@@ -324,7 +324,7 @@ export const Variables = (props: VariablesPageProps) => {
                 onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
             />
             {dropdownItems.length >= 6 && (
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 5px", height: "20px", gap: '5px' }}>
                     <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
                 </div>
             )}

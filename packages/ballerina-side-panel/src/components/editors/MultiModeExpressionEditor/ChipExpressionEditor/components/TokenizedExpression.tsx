@@ -35,7 +35,7 @@ export const getTokenChip = (
     value: string,
     type: string,
     absoluteOffset?: number,
-    onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void,
+    onChipClick?: (element: HTMLElement, value: string, type: string, id?: string) => void,
     onChipBlur?: () => void,
     onChipFocus?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void,
     chipId?: string
@@ -43,7 +43,7 @@ export const getTokenChip = (
     const handleClick = (element: HTMLElement) => {
         console.log(`Clicked on ${type}: ${value}`);
         if (onChipClick) {
-            onChipClick(element, value, type, absoluteOffset);
+            onChipClick(element, value, type, chipId);
         }
     };
 
@@ -61,6 +61,7 @@ export const getTokenChip = (
         }
     };
 
+    console.log(`Rendering chip for ${type}: ${value} with id: ${chipId}`);
     switch (type) {
         case "variable":
             return <ChipComponent type="variable" dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
@@ -75,8 +76,9 @@ export const getTokenChip = (
 
 export type TokenizedExpressionProps = {
     expressionModel: ExpressionModel[];
-    onChipClick?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
+    onChipClick?: (element: HTMLElement, value: string, type: string, id?: string) => void;
     onChipBlur?: () => void;
+    onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onChipFocus?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void;
     onExpressionChange?: (updatedExpression: ExpressionModel[], cursorPosition: number, lastTypedText: string) => void;
     onTriggerRebuild?: (value: string, caretPosition?: number) => void;
@@ -103,7 +105,7 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                             <React.Fragment key={element.id}>
                                 {getTokenChip(
                                     element.value,
-                                    'variable',
+                                    element.type,
                                     undefined,
                                     props.onChipClick,
                                     props.onChipBlur,
@@ -117,6 +119,7 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                             key={element.id}
                             element={element}
                             expressionModel={expressionModel}
+                            onTextFocus={props.onTextFocus}
                             index={index}
                             onExpressionChange={onExpressionChange}
                             onTriggerRebuild={onTriggerRebuild}

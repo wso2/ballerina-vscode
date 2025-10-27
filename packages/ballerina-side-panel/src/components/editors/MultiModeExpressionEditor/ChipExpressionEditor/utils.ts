@@ -177,7 +177,8 @@ export const calculateCompletionsMenuPosition = (
 ) => {
     if (fieldContainerRef.current) {
         const activeElement = document.activeElement as HTMLElement;
-        if (activeElement && activeElement.hasAttribute('contenteditable')) {
+        console.log("Active element for completion menu positioning:", activeElement);
+        if (activeElement && activeElement.hasAttribute('data-element-id')) {
             const rect = activeElement.getBoundingClientRect();
             const containerRect = fieldContainerRef.current.getBoundingClientRect();
             // Align the right edge of the menu with the right edge of the editable span
@@ -196,12 +197,42 @@ export const calculateCompletionsMenuPosition = (
             const containerRect = fieldContainerRef.current.getBoundingClientRect();
             const menuWidth = 300;
             setMenuPosition({
-                top: containerRect.top + containerRect.height,
+                top: containerRect.bottom,
                 left: Math.max(0, containerRect.width - menuWidth)
             });
         }
     } else {
-        setMenuPosition(prev => ({ ...prev, top: 500 }));
+        setMenuPosition(prev => ({ ...prev }));
+    }
+};
+
+export const getCompletionsMenuPosition = (
+    fieldContainerRef: React.RefObject<HTMLDivElement>
+) => {
+    const activeElement = document.activeElement as HTMLElement;
+    console.log("Active element for completion menu positioning:", activeElement);
+    if (activeElement && activeElement.hasAttribute('data-element-id')) {
+        const rect = activeElement.getBoundingClientRect();
+        const containerRect = fieldContainerRef.current.getBoundingClientRect();
+        // Align the right edge of the menu with the right edge of the editable span
+        const menuWidth = 300; // Use the same width as defined in styles
+        let left = rect.right - containerRect.left - menuWidth;
+
+        // Ensure the menu doesn't go beyond the left edge of the container
+        left = Math.max(0, left);
+
+        return {
+            top: rect.bottom - containerRect.top + 5,
+            left: left
+        }
+    } else {
+        // Fallback: position below the expression field, aligned to the right
+        const containerRect = fieldContainerRef.current.getBoundingClientRect();
+        const menuWidth = 300;
+        return ({
+            top: containerRect.height,
+            left: Math.max(0, containerRect.width - menuWidth-30)
+        });
     }
 };
 
@@ -262,6 +293,7 @@ export const createExpressionModelFromTokens = (
     value: string,
     tokens: number[]
 ): ExpressionModel[] => {
+    console.log("Creating expression model from tokens:", tokens);
     if (!value) return [];
     if (!tokens || tokens.length === 0) {
         // No tokens, return entire value as a single literal
@@ -294,17 +326,17 @@ export const createExpressionModelFromTokens = (
         const tokenTypeIndex = chunk[3]; // tokenType
         const tokenModifiers = chunk[4]; // tokenModifiers (optional)
 
-        // Skip zero-width tokens (tokens with length 0)
-        if (tokenLength === 0) {
-            // Still update position for subsequent tokens
-            currentLine += deltaLine;
-            if (deltaLine === 0) {
-                currentChar += deltaStartChar;
-            } else {
-                currentChar = deltaStartChar;
-            }
-            continue;
-        }
+        // // Skip zero-width tokens (tokens with length 0)
+        // if (tokenLength === 0) {
+        //     // Still update position for subsequent tokens
+        //     currentLine += deltaLine;
+        //     if (deltaLine === 0) {
+        //         currentChar += deltaStartChar;
+        //     } else {
+        //         currentChar = deltaStartChar;
+        //     }
+        //     continue;
+        // }
 
         // Update current position based on delta values
         currentLine += deltaLine;
@@ -315,6 +347,7 @@ export const createExpressionModelFromTokens = (
         }
 
         // Calculate absolute offset for this token
+        console.log("THIS IS THE CAUSE")
         const tokenAbsoluteOffset = getAbsoluteColumnOffset(value, currentLine, currentChar);
 
         // Add literal text before this token (if any)
@@ -337,6 +370,8 @@ export const createExpressionModelFromTokens = (
         // Add the token itself
         const tokenValue = value.slice(tokenAbsoluteOffset, tokenAbsoluteOffset + tokenLength);
         const tokenType = getTokenTypeFromIndex(tokenTypeIndex);
+        console.log("TOKEN VALUE")
+        console.log("TOKEN TYPE", tokenTypeIndex, tokenType);
 
         expressionModel.push({
             id: String(idCounter++),
@@ -517,31 +552,6 @@ export const findNearestEditableIndex = (model: ExpressionModel[], startIndex: n
     return null;
 };
 
-/**
- * Filters the LSP response tokens to remove zero-length tokens.
- * Zero-length tokens can cause issues in rendering and interaction,
- * so this utility function ensures only valid tokens are processed.
- * 
- * @param response - The flat array of LSP response tokens
- * @returns Filtered array with zero-length tokens removed
- */
-export const filterTokens = (response: number[]): number[] => {
-    const filteredTokens: number[] = [];
-    for (let i = 0; i < response.length; i += 5) {
-        const length = response[i + 2];
-        if (length > 0) {
-            filteredTokens.push(
-                response[i],
-                response[i + 1],
-                response[i + 2],
-                response[i + 3],
-                response[i + 4]
-            );
-        }
-    }
-    return filteredTokens;
-};
-
 export const updateExpressionModelWithCompletion = (
     expressionModel: ExpressionModel[] | undefined,
     absoluteCaretPosition: number,
@@ -663,6 +673,7 @@ export const updateExpressionModelWithHelperValue = (
     if (!elementAboutToModify || typeof elementAboutToModify.value !== 'string') return null;
 
     let updatedText = '';
+    console.log("REPLACE ENTIRE TOKEN", replaceEntireToken)
     if (replaceEntireToken) {
         updatedText = helperValue;
     }
@@ -672,10 +683,19 @@ export const updateExpressionModelWithHelperValue = (
         updatedText = textBeforeCaret + helperValue + textAfterCaret;
     }
 
-    // Calculate new cursor position: sum of lengths before this element + position after completion
+    // Calculate new cursor position: sum of lengths before this element + position after insertion
     let sumOfCharsBefore = 0;
     for (let i = 0; i < index; i++) {
         sumOfCharsBefore += initializedModel[i].length;
+    }
+
+    let newCursorPosition: number;
+    if (replaceEntireToken) {
+        // When replacing entire token, cursor goes to end of replacement
+        newCursorPosition = sumOfCharsBefore + helperValue.length;
+    } else {
+        // When inserting, cursor goes after the inserted text
+        newCursorPosition = sumOfCharsBefore + offset + helperValue.length;
     }
 
     const updatedModel = initializedModel.map((el, i) =>
@@ -683,7 +703,7 @@ export const updateExpressionModelWithHelperValue = (
     );
 
     const updatedValue = getTextValueFromExpressionModel(updatedModel);
-    return { updatedModel, updatedValue, newCursorPosition: 0 };
+    return { updatedModel, updatedValue, newCursorPosition };
 };
 
 export const handleCompletionNavigation = (
@@ -929,30 +949,69 @@ export const handleKeyDownInTextElement = (
     const textLength = host.textContent?.length || 0;
 
     // Backspace at the beginning of current span
-    if (e.key === 'Backspace' && caretOffset === 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (index === 0 || index >= expressionModel.length) return;
+    if (e.key === 'Backspace') {
+        if (caretOffset === 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (index === 0 || index >= expressionModel.length) return;
 
-        let newExpressionModel = [...expressionModel];
-        for (let i = index - 1; i >= 0; i--) {
-            if (newExpressionModel[i].isToken) {
-                newExpressionModel.splice(i, 1);
+            let newExpressionModel = [...expressionModel];
+            const tokensToRemove: number[] = [];
+
+            // Find all consecutive tokens before current index
+            for (let i = index - 1; i >= 0; i--) {
+                if (newExpressionModel[i].isToken) {
+                    tokensToRemove.push(i);
+                } else {
+                    // Found a non-token element - update its focus and remove current element (if empty) + tokens
+                    const currentElement = expressionModel[index];
+                    const shouldRemoveCurrent = currentElement.length === 0;
+
+                    newExpressionModel = newExpressionModel
+                        .map((el, idx) => {
+                            if (idx === i) {
+                                return { ...el, isFocused: true, focusOffset: el.length };
+                            }
+                            return el;
+                        })
+                        .filter((_, idx) => {
+                            if (idx === index) return !shouldRemoveCurrent;
+                            return !tokensToRemove.includes(idx);
+                        });
+
+                    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+                    onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
+                    return;
+                }
             }
-            else {
-                // Found a non-token element - update its focus and remove current element
-                newExpressionModel = newExpressionModel.map((el, idx) => {
-                    if (idx === i) {
-                        return { ...el, isFocused: true, focusOffset: el.length };
-                    }
-                    return el;
-                }).filter((_, idx) => idx !== index);
+
+            // If we only found tokens (no non-token element), remove only the tokens (keep current element)
+            if (tokensToRemove.length > 0) {
+                newExpressionModel = newExpressionModel.filter(
+                    (_, idx) => !tokensToRemove.includes(idx)
+                );
                 const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
                 onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
-                return;
             }
         }
-        return;
+        else {
+            let newExpressionModel = [...expressionModel];
+            if (
+                caretOffset === 1 &&
+                index - 1 >= 0 &&
+                newExpressionModel[index - 1].isToken &&
+                newExpressionModel[index - 1].type === 'parameter'
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                // console.log("SPECIAL PARAMETER BACKSPACE HANDLING");
+                // newExpressionModel[index].value = " "
+                // const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+                // console.log("NEW_MODEL", newExpressionModel);
+                // onExpressionChange?.(newExpressionModel, newCursorPosition, "#$BACKSPACE");
+                // return;
+            }
+        }
     }
 
     // Delete at the end of current span
@@ -1137,14 +1196,14 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
     const newExpressionModel = [];
     let i = 0;
     let foundTarget = false; // Track if we've found and set the cursor
-    
+
     while (i < expressionModel.length) {
         const element = expressionModel[i];
         if (!foundTarget && cursorPosition <= element.length) {
             foundTarget = true; // Mark that we've found the target
-            
+
             if (element.isToken) {
-                console.log("ELM", expressionModel, i+1, element.length <= i + 1);
+                console.log("ELM", expressionModel, i + 1, element.length <= i + 1);
                 if (expressionModel.length <= i + 1) {
                     console.log("TOKEN ELEMENT", element.length <= i + 1);
 
@@ -1201,7 +1260,7 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
     return newExpressionModel;
 };
 
-export const updateTokens = (tokens: number[], cursorPosition: number, cursorChange: number): number[] => {
+export const updateTokens = (tokens: number[], cursorPosition: number, cursorChange: number, previousFullText: string): number[] => {
     const updatedTokens: number[] = [];
     const tokenChunks = getTokenChunks(tokens);
 
@@ -1231,7 +1290,8 @@ export const updateTokens = (tokens: number[], cursorPosition: number, cursorCha
         }
 
         // Calculate absolute offset
-        const tokenAbsoluteOffset = getAbsoluteColumnOffset('', currentLine, currentChar);
+        console.log("NO THIS ONE")
+        const tokenAbsoluteOffset = getAbsoluteColumnOffset(previousFullText, currentLine, currentChar);
 
         // Adjust ONLY the first token >= cursorPosition on each line
         let adjustedDeltaStartChar = deltaStartChar;
@@ -1245,3 +1305,17 @@ export const updateTokens = (tokens: number[], cursorPosition: number, cursorCha
 
     return updatedTokens;
 };
+
+export const getModelWithModifiedParamsChip = (expressionModel: ExpressionModel[]): ExpressionModel[] => {
+    return expressionModel.map(el => {
+        if (el.type === 'parameter' && el.value.length === 0) {
+            return {
+                ...el,
+                value: '$1',
+                length: 2
+            }
+        }
+        return el;
+    }
+    )
+}

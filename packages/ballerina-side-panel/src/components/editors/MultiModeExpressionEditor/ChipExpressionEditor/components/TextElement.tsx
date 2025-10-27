@@ -18,7 +18,7 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { debounce } from "lodash";
-import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement } from "../utils";
+import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel } from "../utils";
 import { ExpressionModel } from "../types";
 import { InvisibleSpan } from "../styles";
 
@@ -26,6 +26,7 @@ export const TextElement = (props: {
     element: ExpressionModel;
     expressionModel: ExpressionModel[];
     index: number;
+    onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void;
     onTriggerRebuild?: (value: string, caretPosition?: number) => void;
 }) => {
@@ -115,7 +116,7 @@ export const TextElement = (props: {
         let didPrependSpace = false;
         if (props.index > 0) {
             const previousModelElement = props.expressionModel[props.index - 1];
-            if (previousModelElement.isToken && !newValue.startsWith(" ")) {
+            if (previousModelElement.isToken && previousModelElement.length > 0 && !newValue.startsWith(" ")) {
                 newValue = " " + newValue;
                 didPrependSpace = true;
             }
@@ -136,26 +137,22 @@ export const TextElement = (props: {
             isFocused: true,
             focusOffset: newFocusOffset
         };
+        console.log("CURRENT FOCUS OFFSET", currentFocusOffset);
+        console.log("NEW FOCUS OFFSET", newFocusOffset);
         const enteredText = newValue.substring(
             currentFocusOffset,
             newFocusOffset
         );
-        const newAbsoluteCursorPosition = getAbsoluteCaretPosition(updatedExpressionModel);
+        const newAbsoluteCursorPosition = getAbsoluteCaretPositionFromModel(updatedExpressionModel);
         console.log('Entered text:', enteredText);
         lastValueRef.current = newValue;
         onExpressionChange(updatedExpressionModel, newAbsoluteCursorPosition, enteredText);
-
-        if (wasTriggerAdded && debouncedTriggerRebuild) {
-            const fullValue = updatedExpressionModel.map(el => el.value).join('');
-            const absoluteCaretPosition = getAbsoluteCaretPosition(props.expressionModel);
-
-            debouncedTriggerRebuild(fullValue, absoluteCaretPosition);
-        }
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
         e.preventDefault();
         e.stopPropagation();
+        props.onTextFocus && props.onTextFocus(e);
 
         if (isProgrammaticFocusRef.current) {
             isProgrammaticFocusRef.current = false;

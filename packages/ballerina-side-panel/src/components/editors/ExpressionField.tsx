@@ -19,7 +19,6 @@
 import React, { RefObject } from 'react';
 import {
     CompletionItem,
-    FormExpressionEditor,
     FormExpressionEditorRef,
     HelperPaneHeight,
     ThemeColors,
@@ -29,11 +28,14 @@ import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { ChipExpressionBaseComponent2 } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent2';
+import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 
 export interface ExpressionField {
     inputMode: InputMode;
     name: string;
     value: string;
+    fileName?: string;
+    targetLineRange?: LineRange;
     completions: CompletionItem[];
     autoFocus?: boolean;
     sanitizedExpression?: (value: string) => string;
@@ -51,7 +53,7 @@ export interface ExpressionField {
     changeHelperPaneState: (isOpen: boolean) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     helperPaneHeight?: HelperPaneHeight;
@@ -90,6 +92,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     autoFocus,
     ariaLabel,
     placeholder,
+    fileName,
+    targetLineRange,
     onChange,
     extractArgsFromFunction,
     onCompletionSelect,
@@ -138,6 +142,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
         completions={completions}
         onChange={onChange}
         value={value}
+        fileName={fileName}
+        targetLineRange={targetLineRange}
+        extractArgsFromFunction={extractArgsFromFunction}
         />
     );
 };

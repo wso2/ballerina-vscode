@@ -50,7 +50,7 @@ export type HelperPaneNewProps = {
     onClose: () => void;
     defaultValue: string;
     currentValue: string;
-    onChange: (value: string, updatedCursorPosition: number) => void;
+    onChange: (value: string, closeHelperPane: boolean) => void;
     helperPaneHeight: HelperPaneHeight;
     recordTypeField?: RecordTypeField;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
@@ -172,12 +172,12 @@ const HelperPaneNewEl = ({
 
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
         if (typeof insertText === 'string') {
-            onChange(insertText, insertText.length);
+            onChange(insertText, !shouldKeepHelper);
         }
        else {
             const textToInsert = getInsertText(insertText);
             const cursorOffset = getCursorOffset(insertText);
-            onChange(textToInsert, textToInsert.length + cursorOffset);
+            onChange(textToInsert, !shouldKeepHelper);
        }
     };
 
@@ -275,7 +275,6 @@ const HelperPaneNewEl = ({
                                     recordTypeField ?
                                         <SlidingPaneNavContainer onClick={openRecordConfigView}>
                                             <ExpandableList.Item>
-                                                {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                 {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                 <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                     Create value

@@ -868,7 +868,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
@@ -965,7 +965,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const expressionEditor = useMemo(() => {
         return {
-            completions: filteredCompletions,
+            completions: completions,
             triggerCharacters: TRIGGER_CHARACTERS,
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
