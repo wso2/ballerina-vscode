@@ -274,7 +274,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
-            type: defaultType(),
+            type: defaultType("NewType"),
             isDirty: false
         });
     };
