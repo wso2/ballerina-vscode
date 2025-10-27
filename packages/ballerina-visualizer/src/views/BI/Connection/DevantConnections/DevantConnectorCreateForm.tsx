@@ -39,7 +39,7 @@ interface Props {
     component: ComponentKind;
     org: Organization;
     project: Project;
-    onCreate: () => void;
+    onCreate: (connName: string) => void;
     directoryFsPath: string;
     onShowInfo: () => void;
     isShowingInfo: boolean;
@@ -174,7 +174,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                 componentDir: directoryFsPath,
                 params: { name: data.name, schemaId: data.schemaId, visibility: data.visibility },
             }),
-        onSuccess: () => onCreate(),
+        onSuccess: (data) => onCreate(data?.connectionName),
     });
 
     const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);

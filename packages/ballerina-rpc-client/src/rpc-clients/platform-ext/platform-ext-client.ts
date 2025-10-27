@@ -20,7 +20,7 @@ import { PlatformExtAPI, getMarketplaceItems, getSelectedContext, isLoggedIn, ge
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
     private _messenger: Messenger;
@@ -49,7 +49,7 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(getMarketplaceIdl, HOST_EXTENSION, params);
     }
 
-    createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<string> {
+    createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
         return this._messenger.sendRequest(createDevantComponentConnection, HOST_EXTENSION, params);
     }
     

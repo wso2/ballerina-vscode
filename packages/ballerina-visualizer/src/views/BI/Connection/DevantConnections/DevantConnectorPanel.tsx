@@ -24,7 +24,7 @@ import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 
-export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: () => void }> = ({
+export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: (connName: string) => void }> = ({
     selectedItem,
     onClose,
 }) => {
@@ -66,7 +66,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                 <PanelContainer
                     show={true}
                     title="Create New Devant Connection"
-                    onClose={() => onClose()}
+                    onClose={() => onClose("")}
                     subPanelWidth={600}
                     subPanel={
                         showInfo && (
@@ -81,7 +81,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                     <DevantConnectorCreateForm
                         component={directoryComponent}
                         item={selectedItem}
-                        onCreate={() => onClose()}
+                        onCreate={(connName) => onClose(connName)}
                         directoryFsPath={projectPath?.projectUri}
                         org={selected.org}
                         project={selected.project}
