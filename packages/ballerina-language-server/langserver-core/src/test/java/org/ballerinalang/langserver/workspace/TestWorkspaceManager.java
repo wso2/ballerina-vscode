@@ -752,6 +752,22 @@ public class TestWorkspaceManager {
     }
 
     /**
+     * Test opening the root of a workspace project (multi-package workspace).
+     */
+    @Test(description = "Test opening a document in a multi-package workspace project")
+    public void testOpenWorkspaceProjectRoot() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects").resolve("simple-workspace").toAbsolutePath();
+
+        // Open file from workspace project
+        openFile(workspaceProjectsPath);
+        Optional<Project> project = workspaceManager.project(workspaceProjectsPath);
+
+        Assert.assertTrue(project.isPresent(), "Project should be loaded from workspace");
+        Assert.assertEquals(project.get().kind(), ProjectKind.WORKSPACE_PROJECT,
+                "Workspace root should be loaded as WORKSPACE_PROJECT");
+    }
+
+    /**
      * Test opening multiple packages from the same workspace.
      * Each package should be cached separately but recognized as part of the same workspace.
      */
