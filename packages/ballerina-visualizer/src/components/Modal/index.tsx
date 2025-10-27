@@ -141,7 +141,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                             <Codicon name="close" onClick={handleClose} />
                         </ModalHeaderSection>
                         <Divider />
-                        <div>{content}</div>
+                        {content}
                     </ModalBox>
                 </ModalContainer>,
                 document.body
