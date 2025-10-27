@@ -54,11 +54,8 @@ const Circle = styled.div<NodeStyleProp>`
     display: flex;
     justify-content: center;
     align-items: center;
-    flex: 0 0 ${CON_NODE_HEIGHT}px;
-    box-sizing: border-box;
     width: ${CON_NODE_HEIGHT}px;
     height: ${CON_NODE_HEIGHT}px;
-    aspect-ratio: 1 / 1;
     border: ${NODE_BORDER_WIDTH}px solid
         ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
     border-radius: 50%;
