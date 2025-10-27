@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { ConfigProperties, LineRange } from '@wso2/ballerina-core';
+import { ConfigProperties, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { FormField, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -43,9 +43,25 @@ export function ResourceConfig(props: ResourceConfigProps) {
 
 	const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 	const [configFields, setConfigFields] = useState<FormField[]>([]);
+	const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
 	useEffect(() => {
 		setConfigFields(convertConfig(properties));
+		// Extract fields with typeMembers where kind is RECORD_TYPE
+		if (recordTypeFields?.length === 0) {
+			const recordTypeFields: any[] = Object.entries(properties)
+				.filter(([_, property]) =>
+					property.typeMembers &&
+					property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+				)
+				.map(([key, property]) => ({
+					key,
+					property,
+					recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+				}));
+
+			setRecordTypeFields(recordTypeFields as RecordTypeField[]);
+		}
 	}, []);
 
 
@@ -78,6 +94,7 @@ export function ResourceConfig(props: ResourceConfigProps) {
 					fields={configFields}
 					targetLineRange={targetLineRange}
 					onChange={handleChange}
+					recordTypeFields={recordTypeFields}
 					nestedForm={true}
 					compact={true}
 					helperPaneSide='left'
