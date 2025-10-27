@@ -53,7 +53,6 @@ dependencies {
         transitive = false
     }
 
-    // XSD core library (external Maven dependency - matches OpenAPI pattern)
     implementation "io.ballerina:xsd-core:${xsdCoreVersion}"
     implementation "org.apache.ws.commons.schema:XmlSchema:${apacheXmlSchemaVersion}"
 

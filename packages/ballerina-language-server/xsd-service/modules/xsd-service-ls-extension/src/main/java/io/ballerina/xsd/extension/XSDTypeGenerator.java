@@ -123,23 +123,17 @@ public class XSDTypeGenerator {
                 textEdits.add(new TextEdit(CommonUtils.toRange(importPos), newImports));
             }
 
-            // Text edit for type definitions at the end of file
             LinePosition endPos = LinePosition.from(modulePartNode.lineRange().endLine().line() + 1, 0);
-            String contentToAppend = LS + LS + separatedContent.types;
+            String contentToAppend = LS + separatedContent.types;
             textEdits.add(new TextEdit(CommonUtils.toRange(endPos), contentToAppend));
 
             textEditsMap.put(targetFilePath, textEdits);
         } else {
-            // Create new file - separate text edits for imports and types
             List<TextEdit> textEdits = new java.util.ArrayList<>();
             LinePosition startPos = LinePosition.from(0, 0);
-
-            // Text edit for imports
             if (!separatedContent.imports.isEmpty()) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(startPos), separatedContent.imports + LS + LS));
             }
-
-            // Text edit for types (after imports if any)
             int typesStartLine = separatedContent.imports.isEmpty() ? 0 :
                     (int) separatedContent.imports.lines().count() + 2;
             LinePosition typesPos = LinePosition.from(typesStartLine, 0);
