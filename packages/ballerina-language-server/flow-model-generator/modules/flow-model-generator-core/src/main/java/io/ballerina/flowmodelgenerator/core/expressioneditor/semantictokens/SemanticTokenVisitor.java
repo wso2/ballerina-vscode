@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
 
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
@@ -130,17 +131,23 @@ public class SemanticTokenVisitor extends NodeVisitor {
         // Calculate token length using pattern matching
         int length;
         if (node instanceof Token token) {
-            String text = token.text().trim();
-            length = text.isEmpty() ? token.text().length() : text.length();
+            length = token.text().length();
+        } else if (node instanceof FunctionArgumentNode) { // Use the entire length for function arguments
+            length = node.textRange().length();
+            for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
+                length += leadingInvalidToken.text().length();
+            }
+            for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
+                length += trailingInvalidToken.text().length();
+            }
         } else {
             int textRangeLength = node.textRange().length();
-            // Avoid expensive toSourceCode() call - only use for specific zero-length cases
             length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
         }
 
         // Create and add new semantic token
         SemanticToken semanticToken = new SemanticToken(line, column);
-        semanticToken.setProperties(length, type, 0); // No modifiers for expressions
+        semanticToken.setProperties(length, type, 0);
         semanticTokens.add(semanticToken);
     }
 
