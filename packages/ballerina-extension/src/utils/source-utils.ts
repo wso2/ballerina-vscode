@@ -171,7 +171,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
-                        checkAndNotifyWebview(payload.data);
+                        checkAndNotifyWebview(payload.data, identifier);
                         unsubscribe();
                     }
                 });
