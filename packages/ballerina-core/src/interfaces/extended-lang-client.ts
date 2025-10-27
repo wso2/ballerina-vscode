@@ -905,7 +905,7 @@ export type SearchKind =
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
     | "EMBEDDING_PROVIDER"
-    | "VECTOR_KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
     | "AGENT"
