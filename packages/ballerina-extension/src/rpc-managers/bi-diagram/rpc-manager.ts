@@ -1212,7 +1212,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     .deleteByComponentInfo(params)
                     .then(async (model) => {
                         console.log(">>> bi delete node from ls by componentInfo", model);
-                        await updateSourceCode({ textEdits: model.textEdits }, null, `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`);
+                        let description = 'Component Deletion';
+                        if (componentView?.location?.artifactType && componentView?.location?.identifier) {
+                            description = `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`;
+                        }
+                        await updateSourceCode({ textEdits: model.textEdits }, null, description);
                         resolve(model);
                     })
                     .catch((error) => {
