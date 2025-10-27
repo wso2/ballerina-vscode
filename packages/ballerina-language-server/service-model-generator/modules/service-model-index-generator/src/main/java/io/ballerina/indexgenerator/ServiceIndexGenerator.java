@@ -78,9 +78,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +127,8 @@ class ServiceIndexGenerator {
 
                     packageMetadataInfo.name(), packageMetadataInfo.version());
             if (packageOpt.isEmpty()) {
-                LOGGER.warning("Package not found: " + org + "/" + packageMetadataInfo.name() + ":" + packageMetadataInfo.version());
+                LOGGER.warning("Package not found: " + org + "/" + packageMetadataInfo.name() + ":" +
+                        packageMetadataInfo.version());
                 return;
             }
             resolvedPackage = packageOpt.get();

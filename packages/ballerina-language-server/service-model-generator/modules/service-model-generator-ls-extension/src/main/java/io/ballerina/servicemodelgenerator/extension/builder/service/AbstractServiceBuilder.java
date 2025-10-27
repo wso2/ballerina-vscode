@@ -84,6 +84,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_K
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
@@ -296,7 +297,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         // Get the service type for metadata retrieval
         List<String> serviceTypes = ServiceDatabaseManager.getInstance().getServiceTypes(pkg.packageId());
         String serviceType = serviceTypes.isEmpty() ? null : serviceTypes.getFirst();
-        properties.put("readOnlyMetaData", getReadonlyMetadata(pkg.org(), pkg.name(), serviceType));
+        properties.put(PROP_READONLY_METADATA_KEY, getReadonlyMetadata(pkg.org(), pkg.name(), serviceType));
         List<AnnotationAttachment> annotationAttachments = ServiceDatabaseManager.getInstance()
                 .getAnnotationAttachments(pkg.packageId());
         for (AnnotationAttachment annotationAttachment : annotationAttachments) {
