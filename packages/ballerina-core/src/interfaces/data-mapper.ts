@@ -24,7 +24,14 @@ export enum TypeKind {
     Record = "record",
     Array = "array",
     String = "string",
+    StringChar = "string:Char",
     Int = "int",
+    IntSigned8 = "int:Signed8",
+    IntSigned16 = "int:Signed16",
+    IntSigned32 = "int:Signed32",
+    IntUnsigned8 = "int:Unsigned8",
+    IntUnsigned16 = "int:Unsigned16",
+    IntUnsigned32 = "int:Unsigned32",
     Float = "float",
     Decimal = "decimal",
     Boolean = "boolean",
@@ -115,6 +122,7 @@ export interface ExpandedDMModel {
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface DMModel {
@@ -127,6 +135,7 @@ export interface DMModel {
     query?: Query;
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
+    triggerRefresh?: boolean;
 }
 
 export interface ModelState {

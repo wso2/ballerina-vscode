@@ -159,11 +159,6 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             id: "a2s-direct",
             label: getItemElement("a2s-direct", "Extract Single Element from Array"),
             onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
-        },
-        {
-            id: "a2s-aggregate",
-            label: getItemElement("a2s-aggregate", "Aggregate using Query"),
-            onClick: wrapWithProgress(onClickAggregateArray)
         }
     ];
 
@@ -178,7 +173,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     const defaultMenuItems: Item[] = [
         {
             id: "a2a-direct",
-            label: getItemElement("direct", "Map directly"),
+            label: getItemElement("direct", "Map Anyway"),
             onClick: wrapWithProgress(onClickMapDirectly)
         }
     ];
