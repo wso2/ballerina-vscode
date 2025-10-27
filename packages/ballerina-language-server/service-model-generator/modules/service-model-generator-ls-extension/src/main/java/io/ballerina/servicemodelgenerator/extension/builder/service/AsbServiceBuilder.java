@@ -67,7 +67,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
         Map<String, List<String>> result = new HashMap<>();
 
         // Handle ASB-specific nested parameter extraction
-        if ("queueName".equals(metadataItem.metadataKey())) {
+        if (("queueName".equals(metadataItem.metadataKey())|| "topicName".equals(metadataItem.metadataKey()))) {
             List<String> queueNames = extractQueueNameFromEntityConfig(serviceNode, context);
             if (!queueNames.isEmpty()) {
                 String displayName = metadataItem.displayName() != null && !metadataItem.displayName().isEmpty()
@@ -254,7 +254,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
                 SpecificFieldNode specificField = (SpecificFieldNode) field;
                 String fieldName = specificField.fieldName().toString().trim();
 
-                if ("queueName".equals(fieldName) && specificField.valueExpr().isPresent()) {
+                if (("queueName".equals(fieldName) || "topicName".equals(fieldName)) && specificField.valueExpr().isPresent()) {
                     ExpressionNode valueExpr = specificField.valueExpr().get();
                     if (valueExpr.kind().equals(SyntaxKind.STRING_LITERAL)) {
                         String value = ((BasicLiteralNode) valueExpr).literalToken().text();

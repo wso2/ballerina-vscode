@@ -462,7 +462,10 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetaData": [
+        {"key": "protocol", "displayName": "Protocol", "kind": "LISTENER_PARAM"}
+      ]
     },
     {
       "name": "mqtt",
@@ -784,7 +787,9 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "queueName", "displayName": "Queue Name", "kind": "CUSTOM"}
+        {"key": "queueName", "displayName": "Queue Name", "kind": "CUSTOM"},
+        {"key": "topicName", "displayName": "Topic Name", "kind": "CUSTOM"},
+        {"key": "connectionString", "displayName": "Connectio  String", "kind": "LISTENER_PARAM"}
       ]
     },
     {

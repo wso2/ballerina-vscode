@@ -565,15 +565,16 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         // Extract all metadata values using the new architecture
         Map<String, List<String>> extractedValues = metadataManager.extractAllMetadata(serviceNode, context, customExtractor);
 
-        // Get the current value as a map (readOnly metadata uses HashMap<String, ArrayList<String>>)
-        Object currentValue = currentReadOnlyMetadata.getValue();
-        HashMap<String, ArrayList<String>> currentProps;
-
-        if (currentValue instanceof HashMap<?, ?>) {
-            @SuppressWarnings("unchecked")
-            HashMap<String, ArrayList<String>> typedMap = (HashMap<String, ArrayList<String>>) currentValue;
-            currentProps = typedMap;
-        } else {
+        // Get or initialize the metadata map
+        HashMap<String, List<String>> currentProps;
+        try {
+            currentProps = (HashMap<String, List<String>>) currentReadOnlyMetadata.getValueAsObject();
+            if (currentProps == null) {
+                currentProps = new HashMap<>();
+                currentReadOnlyMetadata.setValue(currentProps);
+            }
+        } catch (ClassCastException e) {
+            // Value is not the expected type, reinitialize
             currentProps = new HashMap<>();
             currentReadOnlyMetadata.setValue(currentProps);
         }
