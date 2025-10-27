@@ -52,7 +52,7 @@ public class XSDConverterService implements ExtendedLanguageServerService {
     /**
      * Generate Ballerina types from an XSD schema and append them to the specified file.
      *
-     * @param request The XSD converter request containing the XSD content and target file information
+     * @param request The XSD converter request containing the XSD content and project filepath information
      * @return CompletableFuture containing the response with text edits or error information
      */
     @JsonRequest
