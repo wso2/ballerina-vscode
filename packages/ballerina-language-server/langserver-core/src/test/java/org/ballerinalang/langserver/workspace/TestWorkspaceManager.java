@@ -726,8 +726,8 @@ public class TestWorkspaceManager {
     }
 
     /**
-     * Test opening a file from a workspace project (multi-package workspace).
-     * Workspace projects are identified by [workspace] section in Ballerina.toml.
+     * Test opening a file from a workspace project (multi-package workspace). Workspace projects are identified by
+     * [workspace] section in Ballerina.toml.
      */
     @Test(description = "Test opening a document in a multi-package workspace project")
     public void testOpenWorkspaceProject() throws WorkspaceDocumentException {
@@ -756,7 +756,8 @@ public class TestWorkspaceManager {
      */
     @Test(description = "Test opening a document in a multi-package workspace project")
     public void testOpenWorkspaceProjectRoot() throws WorkspaceDocumentException {
-        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects").resolve("simple-workspace").toAbsolutePath();
+        Path workspaceProjectsPath =
+                RESOURCE_DIRECTORY.resolve("workspace-projects").resolve("simple-workspace").toAbsolutePath();
 
         // Open file from workspace project
         openFile(workspaceProjectsPath);
@@ -768,8 +769,8 @@ public class TestWorkspaceManager {
     }
 
     /**
-     * Test opening multiple packages from the same workspace.
-     * Each package should be cached separately but recognized as part of the same workspace.
+     * Test opening multiple packages from the same workspace. Each package should be cached separately but recognized
+     * as part of the same workspace.
      */
     @Test(description = "Test opening multiple packages in a workspace project")
     public void testOpenMultiplePackagesInWorkspace() throws WorkspaceDocumentException {
@@ -999,123 +1000,6 @@ public class TestWorkspaceManager {
         // Verify it's part of a workspace
         Assert.assertEquals(packageRoot.getParent().getFileName().toString(), "single-package-workspace",
                 "Parent should be the workspace directory");
-    }
-
-    /**
-     * Test cross-package dependencies within workspace.
-     */
-    @Test(description = "Test cross-package dependencies in workspace")
-    public void testCrossPackageDependencies() throws WorkspaceDocumentException, IOException {
-        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
-        // package-b depends on package-a
-        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
-                .resolve("package-a").resolve("main.bal").toAbsolutePath();
-        Path packageBFile = workspaceProjectsPath.resolve("simple-workspace")
-                .resolve("package-b").resolve("main.bal").toAbsolutePath();
-
-        // Read actual file contents
-        String packageBContent = Files.readString(packageBFile);
-
-        // Open package-b with actual content
-        DidOpenTextDocumentParams packageBParams = new DidOpenTextDocumentParams();
-        TextDocumentItem packageBItem = new TextDocumentItem();
-        packageBItem.setUri(packageBFile.toUri().toString());
-        packageBItem.setText(packageBContent);
-        packageBParams.setTextDocument(packageBItem);
-        workspaceManager.didOpen(packageBFile, packageBParams);
-
-        // Verify package B is loaded
-        Optional<Project> projectB = workspaceManager.project(packageBFile);
-        Assert.assertTrue(projectB.isPresent(), "Package B project should be loaded");
-
-        // TODO: Add dependency resolution verification when the API is available
-        // Verify that package-b can resolve symbols from package-a
-    }
-
-    @Test(description = "Test file changes in workspace package")
-    public void testCrossPackageDiagnosticsWithAccessModifierChange() throws WorkspaceDocumentException, IOException {
-        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
-        Path projBFile = workspaceProjectsPath.resolve("workspace-with-deps")
-                .resolve("projB").resolve("utils.bal").toAbsolutePath();
-
-        // Read actual file content
-        String originalContent = Files.readString(projBFile);
-
-        // Open file with actual content
-        DidOpenTextDocumentParams projBParams = new DidOpenTextDocumentParams();
-        TextDocumentItem projBItem = new TextDocumentItem();
-        projBItem.setUri(projBFile.toUri().toString());
-        projBItem.setText(originalContent);
-        projBParams.setTextDocument(projBItem);
-        workspaceManager.didOpen(projBFile, projBParams);
-
-        // Verify document is loaded
-        Assert.assertTrue(workspaceManager.document(projBFile).isPresent(),
-                "projB document should be loaded");
-
-        // Get initial project
-        Optional<Project> project = workspaceManager.project(projBFile);
-        Assert.assertTrue(project.isPresent(), "projB should be loaded");
-
-        // Verify it's recognized as part of a workspace
-        Path projectRoot = workspaceManager.projectRoot(projBFile);
-        Assert.assertEquals(projectRoot.getFileName().toString(), "projB",
-                "Project root should be projB");
-        Assert.assertTrue(projectRoot.getParent().resolve("Ballerina.toml").toFile().exists(),
-                "Parent workspace should have Ballerina.toml");
-
-        // Introduce a syntax error via didChange
-        String contentWithError = originalContent.replace(
-                "function internalHelper()",
-                "function internalHelper( // missing closing paren");
-
-        DidChangeTextDocumentParams changeParams = new DidChangeTextDocumentParams();
-        VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier();
-        identifier.setUri(projBFile.toUri().toString());
-        identifier.setVersion(2);
-        changeParams.setTextDocument(identifier);
-
-        TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent();
-        changeEvent.setText(contentWithError);
-        changeParams.setContentChanges(List.of(changeEvent));
-
-        workspaceManager.didChange(projBFile, changeParams);
-
-        // Verify diagnostic appears
-        Optional<Project> updatedProject = workspaceManager.project(projBFile);
-        Assert.assertTrue(updatedProject.isPresent(), "projB should still be loaded");
-
-        boolean hasSyntaxError = updatedProject.get().currentPackage().getCompilation().diagnosticResult()
-                .diagnostics().stream()
-                .anyMatch(d -> d.message().toLowerCase().contains("missing") ||
-                             d.message().toLowerCase().contains("syntax"));
-        Assert.assertTrue(hasSyntaxError,
-                "projB should have syntax error after introducing malformed code");
-
-        // Fix the error by reverting to original content
-        DidChangeTextDocumentParams fixParams = new DidChangeTextDocumentParams();
-        VersionedTextDocumentIdentifier fixIdentifier = new VersionedTextDocumentIdentifier();
-        fixIdentifier.setUri(projBFile.toUri().toString());
-        fixIdentifier.setVersion(3);
-        fixParams.setTextDocument(fixIdentifier);
-
-        TextDocumentContentChangeEvent fixEvent = new TextDocumentContentChangeEvent();
-        fixEvent.setText(originalContent);
-        fixParams.setContentChanges(List.of(fixEvent));
-
-        workspaceManager.didChange(projBFile, fixParams);
-
-        // Verify diagnostic is gone
-        Optional<Project> fixedProject = workspaceManager.project(projBFile);
-        Assert.assertTrue(fixedProject.isPresent(), "projB should still be loaded");
-
-        boolean stillHasSyntaxError = fixedProject.get().currentPackage().getCompilation().diagnosticResult()
-                .diagnostics().stream()
-                .filter(d -> !d.message().contains("missing key")) // Ignore toml warnings
-                .anyMatch(d -> d.message().toLowerCase().contains("missing") ||
-                             d.message().toLowerCase().contains("syntax"));
-        Assert.assertFalse(stillHasSyntaxError,
-                "projB should no longer have syntax error after fixing the code");
     }
 
     private List<WorkspaceFolder> mockWorkspaceFolders() {

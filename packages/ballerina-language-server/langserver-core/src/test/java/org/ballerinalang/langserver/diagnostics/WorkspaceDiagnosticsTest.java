@@ -97,8 +97,6 @@ public class WorkspaceDiagnosticsTest {
                 .anyMatch(key -> key.contains("projB"));
 
         Assert.assertTrue(hasProjADiagnostics, "Should have diagnostics entry for projA");
-        // projB may or may not have diagnostics depending on implementation
-        // The key test is that workspace projects are loaded together
     }
 
     @Test(description = "Test fixing error in dependency package clears cascading diagnostics in dependent")
