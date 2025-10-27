@@ -29,6 +29,7 @@ import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
+import io.ballerina.projects.util.ProjectPaths;
 import org.ballerinalang.annotation.JavaSPIService;
 
 import java.io.IOException;
@@ -129,5 +130,10 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
     @Override
     public Project loadProject(Path path, ProjectEnvironmentBuilder environmentBuilder) {
         return ProjectLoader.load(path, environmentBuilder).project();
+    }
+
+    @Override
+    public boolean isWorkspaceProjectRoot(Path path) {
+        return ProjectPaths.isWorkspaceProjectRoot(path);
     }
 }

@@ -1432,7 +1432,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
             return path;
         }
 
-        if (ProjectPaths.isWorkspaceProjectRoot(path)) {
+        if (BallerinaCompilerApi.getInstance().isWorkspaceProjectRoot(path)) {
             return path;
         }
 

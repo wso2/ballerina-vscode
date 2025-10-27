@@ -252,4 +252,12 @@ public abstract class BallerinaCompilerApi {
      * @return The loaded project.
      */
     public abstract Project loadProject(Path path, ProjectEnvironmentBuilder environmentBuilder);
+
+    /**
+     * Checks if the given path is a workspace project root.
+     *
+     * @param path The path to check.
+     * @return {@code true} if the path is a workspace project root, {@code false} otherwise.
+     */
+    public abstract boolean isWorkspaceProjectRoot(Path path);
 }

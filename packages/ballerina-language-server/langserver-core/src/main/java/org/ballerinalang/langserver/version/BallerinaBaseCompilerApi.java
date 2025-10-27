@@ -115,4 +115,9 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     public Project loadProject(Path path, ProjectEnvironmentBuilder environmentBuilder) {
         return ProjectLoader.loadProject(path, environmentBuilder);
     }
-}
+
+    @Override
+    public boolean isWorkspaceProjectRoot(Path path) {
+        return false;
+    }
+ }
