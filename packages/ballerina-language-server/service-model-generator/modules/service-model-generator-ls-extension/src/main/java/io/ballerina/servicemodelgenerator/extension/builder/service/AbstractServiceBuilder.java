@@ -606,7 +606,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
     protected void updateReadOnlyMetadataWithAnnotations(Service serviceModel, ServiceDeclarationNode serviceNode,
                                                          ModelFromSourceContext context) {
         // Get the current readOnly metadata property
-        Value currentReadOnlyMetadata = serviceModel.getProperty("readOnlyMetaData");
+        Value currentReadOnlyMetadata = serviceModel.getProperty(PROP_READONLY_METADATA_KEY);
         if (currentReadOnlyMetadata == null) {
             // readOnlyMetaData property should be initialized by service builders before calling this method
             return;

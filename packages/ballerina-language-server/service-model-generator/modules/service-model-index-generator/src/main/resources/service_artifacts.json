@@ -58,7 +58,7 @@
       },
       "initForm": {
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "port",
           "displayName": "Port Number",
@@ -227,7 +227,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "attachpoint",
           "displayName": "Service Name",
@@ -488,7 +488,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "protocol",
           "displayName": "Protocol",
@@ -587,7 +587,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "subscriptions",
           "displayName": "Topics",
@@ -826,7 +826,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "queueName",
           "displayName": "Queue Name",
@@ -1020,7 +1020,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "queueName",
           "displayName": "Queue Name",
@@ -1147,7 +1147,7 @@
           "selections": []
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "topics",
           "displayName": "Topics",
@@ -1249,7 +1249,7 @@
           ]
         }
       },
-      "readOnlyMetaData": [
+      "readOnlyMetadata": [
         {
           "key": "serviceType",
           "displayName": "Event Channel",

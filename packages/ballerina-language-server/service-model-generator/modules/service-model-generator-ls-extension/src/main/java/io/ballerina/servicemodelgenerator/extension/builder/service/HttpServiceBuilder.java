@@ -68,6 +68,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
@@ -271,11 +272,11 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         updateListenerItems(HTTP, semanticModel, context.project(), serviceModel);
 
         // Initialize readOnly metadata if not present in template (HttpServiceBuilder uses custom template)
-        if (serviceModel.getProperty("readOnlyMetaData") == null) {
+        if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
             String serviceType = serviceModel.getType();
             Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
                     serviceType);
-            serviceModel.getProperties().put("readOnlyMetaData", readOnlyMetadata);
+            serviceModel.getProperties().put(PROP_READONLY_METADATA_KEY, readOnlyMetadata);
         }
 
         // Add readOnly metadata extraction (same logic as parent class)

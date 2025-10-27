@@ -95,7 +95,7 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData": {
+      "readOnlyMetadata": {
         "codedata": {
           "type": "READONLY"
         },

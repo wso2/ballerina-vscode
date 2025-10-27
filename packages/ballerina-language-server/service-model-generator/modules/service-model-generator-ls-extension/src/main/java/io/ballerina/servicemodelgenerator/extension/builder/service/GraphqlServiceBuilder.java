@@ -37,6 +37,7 @@ import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
@@ -131,11 +132,11 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
 
         // Initialize readOnly metadata if not present in template (GraphqlServiceBuilder uses custom template)
-        if (serviceModel.getProperty("readOnlyMetaData") == null) {
+        if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
             String modelServiceType = serviceModel.getType();
             Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
                     modelServiceType);
-            serviceModel.getProperties().put("readOnlyMetaData", readOnlyMetadata);
+            serviceModel.getProperties().put(PROP_READONLY_METADATA_KEY, readOnlyMetadata);
         }
 
         // Add readOnly metadata extraction (same logic as parent class)

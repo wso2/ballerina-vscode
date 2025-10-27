@@ -122,7 +122,7 @@
         "optional": true,
         "advanced": false
       },
-      "readOnlyMetaData": {
+      "readOnlyMetadata": {
         "codedata": {
           "type": "READONLY"
         },

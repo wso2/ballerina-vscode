@@ -115,7 +115,9 @@
         "placeholder": "false",
         "valueType": "SINGLE_SELECT",
         "value": {
-          "Event Channel": []
+          "Event Channel": [
+            "IssuesService"
+          ]
         },
         "enabled": true,
         "editable": true,

@@ -124,7 +124,9 @@
         "placeholder": "false",
         "valueType": "SINGLE_SELECT",
         "value": {
-          "Queue Name": []
+          "Queue Name": [
+            "queueName"
+          ]
         },
         "enabled": true,
         "editable": true,
