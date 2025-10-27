@@ -53,13 +53,11 @@ public class XSDConverterServiceTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
         bufferedReader.close();
 
-        // Create request with XSD content and project path
         XSDConverterRequest request = new XSDConverterRequest(
                 testConfig.xsdContent(),
-                sourceDir.resolve("sample").toAbsolutePath().toString()
+                sourceDir.resolve(testConfig.testProjectFolder).toAbsolutePath().toString()
         );
 
-        // Get response from the service
         JsonObject response = getResponse(request);
         JsonObject jsonMap = response.getAsJsonObject("textEdits");
 
@@ -69,8 +67,6 @@ public class XSDConverterServiceTest extends AbstractLSTest {
         }
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
-
-        // Validate text edits against expected output
         assertResults(actualTextEdits, testConfig, configJsonPath);
     }
 
@@ -103,10 +99,11 @@ public class XSDConverterServiceTest extends AbstractLSTest {
             TestConfig updatedConfig = new TestConfig(
                     testConfig.xsdContent(),
                     testConfig.description(),
+                    testConfig.testProjectFolder(),
                     newMap
             );
-          updateConfig(configJsonPath, updatedConfig);
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
+//          updateConfig(configJsonPath, updatedConfig);
+          Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 
@@ -137,7 +134,7 @@ public class XSDConverterServiceTest extends AbstractLSTest {
      * @param description The description of the test.
      * @param output      The expected text edits output.
      */
-    private record TestConfig(String xsdContent, String description,
+    private record TestConfig(String xsdContent, String description, String testProjectFolder,
                               Map<String, List<TextEdit>> output) {
 
         public String description() {
