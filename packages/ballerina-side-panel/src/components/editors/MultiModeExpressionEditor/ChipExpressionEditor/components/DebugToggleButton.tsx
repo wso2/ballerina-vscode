@@ -29,7 +29,6 @@ export const DebugToggleButton: React.FC<DebugToggleButtonProps> = ({
     onToggle 
 }) => {
     const handleClick = () => {
-        console.log("Debug toggle button clicked - Active state:", !isActive);
         onToggle();
     };
 

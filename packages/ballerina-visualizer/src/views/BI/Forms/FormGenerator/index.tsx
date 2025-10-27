@@ -344,7 +344,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             return;
         }
         initForm(node);
-        initForm(node);
         handleFormOpen();
 
         return () => {
