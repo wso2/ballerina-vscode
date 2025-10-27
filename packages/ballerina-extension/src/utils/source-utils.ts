@@ -166,12 +166,14 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 const notificationHandler = ArtifactNotificationHandler.getInstance();
                 // Subscribe to artifact updated notifications
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, async (payload) => {
-                    console.log("Received notification:", payload);
-                    clearTimeout(timeoutId);
-                    resolve(payload.data);
-                    StateMachine.setReadyMode();
-                    checkAndNotifyWebview(payload.data, identifier);
-                    unsubscribe();
+                    if (payload.data && payload.data.length > 0) {
+                        console.log("Received notification:", payload);
+                        clearTimeout(timeoutId);
+                        resolve(payload.data);
+                        StateMachine.setReadyMode();
+                        checkAndNotifyWebview(payload.data);
+                        unsubscribe();
+                    }
                 });
 
                 // Set a timeout to reject if no notification is received within 10 seconds

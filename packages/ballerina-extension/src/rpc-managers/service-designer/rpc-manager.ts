@@ -349,7 +349,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.addFunctionSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Function Creation');
+                const artifacts = await updateSourceCode(res, { artifactType: params.service ? DIRECTORY_MAP.SERVICE : DIRECTORY_MAP.FUNCTION }, 'Function Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -444,8 +444,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 params.filePath = targetFile;
                 const identifiers = [];
                 for (let property in params.serviceInitModel.properties) {
-                    const value = params.serviceInitModel.properties[property].value 
-                    || params.serviceInitModel.properties[property].values?.at(0);
+                    const value = params.serviceInitModel.properties[property].value
+                        || params.serviceInitModel.properties[property].values?.at(0);
                     if (value) {
                         identifiers.push(value);
                     }
