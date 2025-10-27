@@ -32,10 +32,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The extended service for the XSD to Ballerina type converter LS extension endpoint.
  *
- * @since 1.0.0
+ * @since 1.4.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
-@JsonSegment("xsdLSExtension")
+@JsonSegment("xsdService")
 public class XSDConverterService implements ExtendedLanguageServerService {
     private WorkspaceManager workspaceManager;
 
@@ -60,7 +60,6 @@ public class XSDConverterService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             XSDConverterResponse response = new XSDConverterResponse();
             try {
-                // Validate request
                 if (request.getXsdContent() == null || request.getXsdContent().isEmpty()) {
                     response.setError("XSD content cannot be null or empty");
                     return response;
@@ -72,19 +71,13 @@ public class XSDConverterService implements ExtendedLanguageServerService {
                 }
 
                 Path projectPath = Path.of(request.getProjectPath());
-                String targetFileName = request.getTargetFileName();
-                if (targetFileName == null || targetFileName.isEmpty()) {
-                    targetFileName = "types.bal";
-                }
-
-                // Generate types using XSDTypeGenerator
                 XSDTypeGenerator generator = new XSDTypeGenerator(
                         request.getXsdContent(),
                         projectPath,
                         workspaceManager
                 );
 
-                JsonElement textEdits = generator.generateTypes(targetFileName);
+                JsonElement textEdits = generator.generateTypes();
                 response.setTextEdits(textEdits);
                 response.setError(null);
 

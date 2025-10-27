@@ -23,7 +23,7 @@ import com.google.gson.JsonElement;
 /**
  * Represents the response for XSD to Ballerina type generation.
  *
- * @since 1.0.0
+ * @since 1.4.0
  */
 public class XSDConverterResponse {
     private JsonElement textEdits;

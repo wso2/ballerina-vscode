@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * Tests for XSD to Ballerina type converter service.
  *
- * @since 1.0.0
+ * @since 1.4.0
  */
 public class XSDConverterServiceTest extends AbstractLSTest {
 
@@ -56,8 +56,7 @@ public class XSDConverterServiceTest extends AbstractLSTest {
         // Create request with XSD content and project path
         XSDConverterRequest request = new XSDConverterRequest(
                 testConfig.xsdContent(),
-                sourceDir.resolve("sample").toAbsolutePath().toString(),
-                testConfig.targetFileName()
+                sourceDir.resolve("sample").toAbsolutePath().toString()
         );
 
         // Get response from the service
@@ -103,7 +102,6 @@ public class XSDConverterServiceTest extends AbstractLSTest {
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(
                     testConfig.xsdContent(),
-                    testConfig.targetFileName(),
                     testConfig.description(),
                     newMap
             );
@@ -125,7 +123,7 @@ public class XSDConverterServiceTest extends AbstractLSTest {
 
     @Override
     protected String getServiceName() {
-        return "xsdLSExtension";
+        return "xsdService";
     }
 
     @Override
@@ -136,12 +134,11 @@ public class XSDConverterServiceTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the XSD converter test.
      *
-     * @param xsdContent     The XSD schema content.
-     * @param targetFileName The target file name for generated types.
-     * @param description    The description of the test.
-     * @param output         The expected text edits output.
+     * @param xsdContent  The XSD schema content.
+     * @param description The description of the test.
+     * @param output      The expected text edits output.
      */
-    private record TestConfig(String xsdContent, String targetFileName, String description,
+    private record TestConfig(String xsdContent, String description,
                               Map<String, List<TextEdit>> output) {
 
         public String description() {

@@ -39,7 +39,7 @@ import java.util.Optional;
 /**
  * Generates Ballerina types from XSD schema.
  *
- * @since 1.0.0
+ * @since 1.4.0
  */
 public class XSDTypeGenerator {
     private static final String DEFAULT_TARGET_FILE = "types.bal";
@@ -59,15 +59,13 @@ public class XSDTypeGenerator {
 
     /**
      * Generates Ballerina types from the XSD content and returns text edits to be applied.
+     * The types will always be appended to types.bal file.
      *
-     * @param targetFileName The name of the file to append types to (e.g., "types.bal")
      * @return JsonElement containing the text edits to be applied
      * @throws Exception if an error occurs during type generation
      */
-    public JsonElement generateTypes(String targetFileName) throws Exception {
-        if (targetFileName == null || targetFileName.isEmpty()) {
-            targetFileName = DEFAULT_TARGET_FILE;
-        }
+    public JsonElement generateTypes() throws Exception {
+        String targetFileName = DEFAULT_TARGET_FILE;
 
         // Parse XSD and generate types using the public API
         // XSDToRecord.generateNodes accepts xsdContent directly and returns NodeResponse

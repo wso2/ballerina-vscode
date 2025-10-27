@@ -21,20 +21,18 @@ package io.ballerina.xsd.extension;
 /**
  * Represents a request to generate Ballerina types from an XSD schema.
  *
- * @since 1.0.0
+ * @since 1.4.0
  */
 public class XSDConverterRequest {
     private String xsdContent;
     private String projectPath;
-    private String targetFileName;
 
     public XSDConverterRequest() {
     }
 
-    public XSDConverterRequest(String xsdContent, String projectPath, String targetFileName) {
+    public XSDConverterRequest(String xsdContent, String projectPath) {
         this.xsdContent = xsdContent;
         this.projectPath = projectPath;
-        this.targetFileName = targetFileName;
     }
 
     public String getXsdContent() {
@@ -51,13 +49,5 @@ public class XSDConverterRequest {
 
     public void setProjectPath(String projectPath) {
         this.projectPath = projectPath;
-    }
-
-    public String getTargetFileName() {
-        return targetFileName;
-    }
-
-    public void setTargetFileName(String targetFileName) {
-        this.targetFileName = targetFileName;
     }
 }
