@@ -295,7 +295,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
         if (isExpanded && hasInProgress) {
             scrollToInProgress();
         }
-    }, [isExpanded, inProgressTask?.id]);
+    }, [isExpanded, inProgressTask?.description]);
 
     // Handle user scroll - refocus after delay
     useEffect(() => {
@@ -322,7 +322,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
                 clearTimeout(scrollTimeoutRef.current);
             }
         };
-    }, [hasInProgress, inProgressTask?.id]);
+    }, [hasInProgress, inProgressTask?.description]);
 
     // Determine status text
     const getStatusText = () => {
@@ -396,7 +396,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
                             const isReview = task.status === "review";
                             return (
                                 <TodoItem
-                                    key={task.id}
+                                    key={task.description}
                                     status={task.status}
                                     ref={isInProgress ? inProgressRef : null}
                                     style={{

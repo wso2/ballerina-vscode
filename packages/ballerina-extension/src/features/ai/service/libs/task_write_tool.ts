@@ -23,53 +23,24 @@ import { integrateCodeToWorkspace } from '../design/utils';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
-/**
- * Result returned by TaskWrite tool
- */
 export interface TaskWriteResult {
     success: boolean;
     message: string;
     tasks: Task[];
 }
 
-/**
- * Zod schema for a single task input
- */
 export const TaskInputSchema = z.object({
-    id: z.string().optional().describe("Task ID (required when updating existing tasks, omit when creating new tasks)"),
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
-    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished. Note: 'rejected' status is managed by the system after user review."),
+    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
     type: z.enum(["service_design", "connections_init", "implementation"]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
 });
 
-/**
- * Type for a single task input
- */
-export type TaskInput = z.infer<typeof TaskInputSchema>;
-
-/**
- * Zod schema for TaskWrite tool input
- */
 const TaskWriteInputSchema = z.object({
-    tasks: z.array(TaskInputSchema).min(1).describe("ALL TASKS - EVERY SINGLE ONE. This tool is stateless. Always send the COMPLETE list. Never send just 1 task when updating. Creating new plan = all tasks without IDs. Updating existing plan = ALL tasks with IDs and statuses.")
+    tasks: z.array(TaskInputSchema).min(1).describe("ALL TASKS - EVERY SINGLE ONE. This tool is stateless. Always send the COMPLETE list of tasks with their current statuses.")
 });
 
-/**
- * Type for TaskWrite tool input
- */
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
-/**
- * Factory function to create the TaskWrite tool
- *
- * Tool is stateless - LLM sends ALL tasks on every call and receives ALL tasks back
- * No IDs needed since we're always replacing the entire task list
- *
- * @param eventHandler Event handler for emitting approval requests to the UI
- * @param updatedSourceFiles Updated source files from the code generation
- * @param updatedFileNames Updated file names from the code generation
- * @returns The TaskWrite tool
- */
 export function createTaskWriteTool(eventHandler?: CopilotEventHandler, updatedSourceFiles?: SourceFiles[], updatedFileNames?: string[]) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
@@ -86,14 +57,13 @@ The tool replaces the entire task list on each call. If you omit tasks, they wil
 **Rules:**
 - Have 5 tasks? Send all 5 EVERY time
 - Updating 1 task? Send ALL tasks with the update
-- NEVER send just 1 task - the tool will reject it
 - NEVER omit completed tasks when moving to next task
 - Think: You're replacing the entire list, not editing one item
+- Tasks are identified by their description - keep descriptions consistent
 
 **Validation:**
-- Tool will ERROR if you send only 1 task with an ID
 - Tool will ERROR if you're missing tasks from the previous plan
-- Error message will list exactly which tasks are missing
+- Error message will list exactly which task descriptions are missing
 
 **Example - Correct Behavior:**
 If you have 5 tasks and updating task 3:
@@ -106,7 +76,7 @@ If you have 5 tasks and updating task 3:
 2. **Task Completion Approval**: User approves/rejects each completed task before moving to the next
 
 ## CREATING TASKS (First Call):
-Send ALL tasks with status "pending", no IDs.
+Send ALL tasks with status "pending".
 Example:
 [
   {"description": "Create the HTTP service contract", "status": "pending", "type": "service_design"},
@@ -115,7 +85,7 @@ Example:
 ]
 
 ## UPDATING TASKS (Every Other Call):
-Send ALL tasks with IDs and updated statuses.
+Send ALL tasks with updated statuses. Tasks are identified by their description.
 
 Workflow per task (after plan approval):
 1. Mark in_progress → Send ALL tasks
@@ -123,28 +93,28 @@ Workflow per task (after plan approval):
 3. Mark completed → Send ALL tasks
 4. Tool will request user approval (or auto-approve if enabled)
 5. If approved → Tool returns tasks with 'completed' status, start next task (repeat from step 1)
-6. If rejected → Tool returns task with 'rejected' status, redo the task based on feedback
+6. If rejected → Tool returns task with 'completed' status and rejection comment, redo the task based on feedback
 
 Example (3 tasks total):
 Start task 1 - Send ALL:
 [
-  {"id": "1", "description": "Create the HTTP service contract", "status": "in_progress", "type": "service_design"},
-  {"id": "2", "description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
-  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
+  {"description": "Create the HTTP service contract", "status": "in_progress", "type": "service_design"},
+  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
+  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 Complete task 1 - Send ALL:
 [
-  {"id": "1", "description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
-  {"id": "2", "description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
-  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
+  {"description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
+  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
+  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 After approval, start task 2 - Send ALL:
 [
-  {"id": "1", "description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
-  {"id": "2", "description": "Create the MYSQL Connection", "status": "in_progress", "type": "connections_init"},
-  {"id": "3", "description": "Implement the resource functions", "status": "pending", "type": "implementation"}
+  {"description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
+  {"description": "Create the MYSQL Connection", "status": "in_progress", "type": "connections_init"},
+  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 Rules:
@@ -156,267 +126,64 @@ Rules:
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                // Get existing plan from state machine to detect status changes
                 const currentContext = AIChatStateMachine.context();
                 const existingPlan = currentContext.currentPlan;
-
-                const allTasks: Task[] = input.tasks.map(task => {
-                    const taskId = task.id || `task_${Date.now()}_${Math.random()}`;
-
-                    return {
-                        id: taskId,
-                        description: task.description,
-                        status: task.status as TaskStatus,
-                        type: task.type as TaskTypes
-                    };
-                });
+                const allTasks = mapInputToTasks(input);
 
                 console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
 
-                // STRICTLY ENFORCE: Return error if only 1 task with ID (violates "send ALL tasks" rule)
-                if (allTasks.length === 1 && input.tasks[0].id) {
-                    console.error(`[TaskWrite Tool] ❌ ERROR: Received only 1 task with ID. This violates the tool requirement. You MUST send ALL tasks on every call, not just the one being updated!`);
-                    return {
-                        success: false,
-                        message: "ERROR: You sent only 1 task. You MUST send ALL tasks with their current statuses on every call. This is a strict requirement - the tool cannot process partial task lists. Please retry with the COMPLETE task list including all tasks (pending, in_progress, completed, and done).",
-                        tasks: []
-                    };
-                }
+                const taskCategories = categorizeTasks(allTasks);
 
-                // STRICTLY ENFORCE: If plan exists and tasks are being updated, verify ALL previous tasks are included
-                if (existingPlan && existingPlan.tasks.length > 0 && input.tasks.some(t => t.id)) {
-                    const existingTaskIds = new Set(existingPlan.tasks.map(t => t.id));
-                    const receivedTaskIds = new Set(input.tasks.filter(t => t.id).map(t => t.id));
-
-                    // Find missing tasks (tasks from existing plan that weren't sent)
-                    const missingTaskIds = [...existingTaskIds].filter(id => !receivedTaskIds.has(id));
-
-                    if (missingTaskIds.length > 0) {
-                        const missingTasks = existingPlan.tasks.filter(t => missingTaskIds.includes(t.id));
-                        console.error(`[TaskWrite Tool] ❌ ERROR: Missing ${missingTaskIds.length} task(s) from previous plan. You MUST include ALL tasks!`);
-                        console.error(`Missing tasks:`, missingTasks.map(t => `${t.id}: ${t.description} (${t.status})`));
-
-                        return {
-                            success: false,
-                            message: `ERROR: You are missing ${missingTaskIds.length} task(s) from the previous plan. You MUST send ALL tasks on every call, including completed ones. Missing: ${missingTasks.map(t => `"${t.description}" (${t.status})`).join(', ')}. Please retry with the COMPLETE task list.`,
-                            tasks: existingPlan.tasks // Return existing tasks to help AI recover
-                        };
-                    }
-                }
-
-                // Determine if this is a new plan creation, plan remodification, or task update
-                const hasNewTasks = input.tasks.some(t => !t.id);
-                const completedTasks = allTasks.filter((t) => t.status === TaskStatus.COMPLETED);
-                const inProgressTasks = allTasks.filter(t => t.status === TaskStatus.IN_PROGRESS);
-                const pendingTasks = allTasks.filter(t => t.status === TaskStatus.PENDING);
-
-                // Detect plan remodification: plan exists but structure changed significantly
+                const isNewPlan = !existingPlan || existingPlan.tasks.length === 0;
                 const isPlanRemodification = existingPlan && (
-                    allTasks.length !== existingPlan.tasks.length || // Different number of tasks
-                    hasNewTasks // Has new tasks added
+                    allTasks.length !== existingPlan.tasks.length ||
+                    allTasks.some(task => !existingPlan.tasks.find(t => t.description === task.description))
                 );
 
-                // Check if we need to request approval
-                let approvalResult: { approved: boolean; comment?: string } | undefined;
+                if (!isNewPlan && !isPlanRemodification) {
+                    const missingTasksError = validateAllTasksIncluded(input, existingPlan);
+                    if (missingTasksError) return missingTasksError;
+                }
+
+                let approvalResult: { approved: boolean; comment?: string; approvedTaskDescription?: string } | undefined;
                 let approvalType: "plan" | "completion" | undefined;
-                let approvedTaskId: string | undefined;
 
                 if (eventHandler) {
-                    // Case 1: New plan creation OR plan remodification
-                    if ((hasNewTasks || isPlanRemodification) && completedTasks.length === 0 && inProgressTasks.length === 0) {
-                        console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}, emitting PLAN_GENERATED event`);
+                    const needsPlanApproval = (isNewPlan || isPlanRemodification) && taskCategories.inProgress.length === 0;
+                    if (needsPlanApproval) {
                         approvalType = "plan";
-
-                        // Create Plan object
-                        const plan: Plan = {
-                            id: `plan-${Date.now()}`,
-                            tasks: allTasks,
-                            createdAt: Date.now(),
-                            updatedAt: Date.now(),
-                        };
-
-                        // Emit PLAN_GENERATED event to state machine (non-blocking)
-                        AIChatStateMachine.sendEvent({
-                            type: AIChatMachineEventType.PLAN_GENERATED,
-                            payload: { plan }
-                        });
-
-                        // Also emit UI event for task approval display
-                        eventHandler({
-                            type: "task_approval_request",
-                            approvalType: "plan",
-                            tasks: allTasks,
-                            message: "Please review the implementation plan"
-                        });
-
-                        // Wait for user approval - state machine will transition out of PlanReview
-                        console.log("[TaskWrite Tool] Waiting for plan approval/rejection...");
-                        approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
-                            // Subscribe to state machine changes
-                            const subscription = AIChatStateMachine.service().subscribe((state) => {
-                                const currentState = state.value;
-
-                                // If we moved from PlanReview to ApprovedPlan = approved
-                                if (currentState === 'ApprovedPlan') {
-                                    console.log("[TaskWrite Tool] Plan approved by user");
-                                    subscription.unsubscribe();
-                                    resolve({ approved: true });
-                                }
-                                // If we moved from PlanReview to GeneratingPlan = rejected
-                                else if (currentState === 'GeneratingPlan') {
-                                    // Get rejection comment from state machine context
-                                    const rejectionComment = state.context.currentApproval?.comment;
-                                    console.log(`[TaskWrite Tool] Plan rejected by user${rejectionComment ? `: "${rejectionComment}"` : ''}`);
-                                    subscription.unsubscribe();
-                                    resolve({ approved: false, comment: rejectionComment });
-                                }
-                            });
-                        });
-                    }
-                    // Case 2: Tasks completed (waiting for approval)
-                    // LLM may have completed multiple tasks at once
-                    else if (completedTasks.length > 0 && inProgressTasks.length === 0) {
-                        // Detect newly completed tasks that need approval
-                        const newlyCompletedTasks = existingPlan ? completedTasks.filter(task => {
-                            const existingTask = existingPlan.tasks.find(t => t.id === task.id);
-                            // Task is newly completed if it wasn't COMPLETED before
-                            return existingTask && existingTask.status !== TaskStatus.COMPLETED;
-                        }) : completedTasks;
+                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler);
+                    } else if (taskCategories.completed.length > 0 && taskCategories.inProgress.length === 0) {
+                        const newlyCompletedTasks = detectNewlyCompletedTasks(taskCategories.completed, existingPlan);
 
                         if (newlyCompletedTasks.length > 0) {
-                            // Get the last task completed (most recently)
-                            const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
-                            console.log(
-                                `[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s), latest: ${lastCompletedTask.id}`
-                            );
                             approvalType = "completion";
-                            approvedTaskId = lastCompletedTask.id;
-
-                            // Integrate code to workspace before task completion
-                            if (updatedSourceFiles && updatedFileNames) {
-                                await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
-                            }
-
-                            // Emit TASK_COMPLETED event to state machine
-                            AIChatStateMachine.sendEvent({
-                                type: AIChatMachineEventType.TASK_COMPLETED,
-                            });
-
-                            // Check if auto-approval is enabled
-                            const isAutoApproveEnabled = currentContext.autoApproveEnabled === true;
-
-                            if (isAutoApproveEnabled) {
-                                // Auto-approval mode: automatically approve the task
-                                console.log(
-                                    `[TaskWrite Tool] Auto-approval enabled, auto-approving task: ${lastCompletedTask.id}`
-                                );
-
-                                // Immediately emit APPROVE_TASK event to auto-approve without waiting for user
-                                AIChatStateMachine.sendEvent({
-                                    type: AIChatMachineEventType.APPROVE_TASK,
-                                });
-
-                                // Tasks remain COMPLETED (no status change needed)
-                                // Set approval result without waiting
-                                approvalResult = { approved: true };
-                            } else {
-                                // Manual approval mode: create copy with REVIEW status for UI, keep original as COMPLETED
-                                console.log(`[TaskWrite Tool] Manual approval mode, waiting for user approval`);
-
-                                // Create a copy of allTasks with REVIEW status for newly completed tasks (for UI display)
-                                const tasksForUI = allTasks.map(task => {
-                                    const isNewlyCompleted = newlyCompletedTasks.some(t => t.id === task.id);
-                                    if (isNewlyCompleted) {
-                                        return { ...task, status: TaskStatus.REVIEW };
-                                    }
-                                    return { ...task };
-                                });
-
-                                // Emit UI event for task approval display (send copy with REVIEW status)
-                                eventHandler({
-                                    type: "task_approval_request",
-                                    approvalType: "completion",
-                                    tasks: tasksForUI,
-                                    taskId: lastCompletedTask.id,
-                                    message: `Please verify the completed work for: ${lastCompletedTask.description}`,
-                                });
-
-                                // Wait for user approval - state machine will transition out of TaskReview
-                                console.log("[TaskWrite Tool] Waiting for task approval/rejection...");
-
-                                approvalResult = await new Promise<{ approved: boolean; comment?: string }>((resolve) => {
-                                    // Subscribe to state machine changes
-                                    const subscription = AIChatStateMachine.service().subscribe((state) => {
-                                        const currentState = state.value;
-
-                                        // If we moved from TaskReview to ApprovedTask = approved
-                                        if (currentState === "ApprovedTask") {
-                                            console.log(
-                                                `[TaskWrite Tool] Task(s) approved by user (${newlyCompletedTasks.length} task(s))`
-                                            );
-
-                                            // Keep allTasks as-is (COMPLETED status unchanged)
-                                            subscription.unsubscribe();
-                                            resolve({ approved: true });
-                                        }
-                                        // If we moved from TaskReview to RejectedTask = rejected
-                                        else if (currentState === "RejectedTask") {
-                                            // Get rejection comment from state machine context
-                                            const rejectionComment = state.context.currentApproval?.comment;
-                                            console.log(
-                                                `[TaskWrite Tool] Task rejected by user${
-                                                    rejectionComment ? `: "${rejectionComment}"` : ""
-                                                }`
-                                            );
-
-                                            // Keep allTasks as-is (COMPLETED status unchanged)
-                                            // Agent will see rejection via success: false and comment
-                                            subscription.unsubscribe();
-                                            resolve({ approved: false, comment: rejectionComment });
-                                        }
-                                    });
-                                });
-                            }
+                            approvalResult = await handleTaskCompletion(
+                                allTasks,
+                                newlyCompletedTasks,
+                                currentContext,
+                                eventHandler,
+                                updatedSourceFiles,
+                                updatedFileNames
+                            );
                         }
-                    } else if (inProgressTasks.length > 0) {
-                        // Emit START_TASK_EXECUTION event to state machine (non-blocking)
+                    } else if (taskCategories.inProgress.length > 0) {
                         AIChatStateMachine.sendEvent({
                             type: AIChatMachineEventType.START_TASK_EXECUTION,
                         });
-                        console.log(`[TaskWrite Tool] Task in progress, no approval needed: ${inProgressTasks[0].description}`);
+                        console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
                     }
                 }
 
-                // Generate contextual message based on approval result and task statuses
-                let message: string;
-                if (approvalResult) {
-                    if (approvalResult.approved) {
-                        if (approvalType === "plan") {
-                            message = `Plan approved! Ready to start execution. ${allTasks.length} tasks created.`;
-                        } else {
-                            message = `Work approved! Task completed successfully. ${approvedTaskId ? `Task: ${allTasks.find(t => t.id === approvedTaskId)?.description}` : ''}`;
-                        }
-                    } else {
-                        if (approvalType === "plan") {
-                            message = `Plan not approved. Please revise the plan based on feedback.${approvalResult.comment ? ` User comment: "${approvalResult.comment}"` : ''}`;
-                        } else {
-                            message = `Work not approved. Please redo the task based on feedback.${approvalResult.comment ? ` User comment: "${approvalResult.comment}"` : ''}`;
-                        }
-                    }
-                } else {
-                    // No approval needed - just status update
-                    if (inProgressTasks.length > 0) {
-                        message = `Started working on: ${inProgressTasks[0].description}`;
-                    } else if (completedTasks.length === allTasks.length) {
-                        message = `All tasks completed!`;
-                    } else if (completedTasks.length > 0) {
-                        message = `Completed: ${completedTasks[completedTasks.length - 1].description}`;
-                    } else {
-                        message = `Successfully created ${allTasks.length} implementation tasks. Tasks are now ready for execution.`;
-                    }
-                }
+                const message = generateResultMessage(
+                    approvalResult,
+                    approvalType,
+                    approvalResult?.approvedTaskDescription,
+                    allTasks,
+                    taskCategories
+                );
 
-                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${completedTasks.length} completed, ${inProgressTasks.length} in progress, ${pendingTasks.length} pending)`);
+                console.log(`[TaskWrite Tool] Returning ${allTasks.length} tasks (${taskCategories.completed.length} completed, ${taskCategories.inProgress.length} in progress, ${taskCategories.pending.length} pending)`);
 
                 return {
                     success: approvalResult ? approvalResult.approved : true,
@@ -433,4 +200,199 @@ Rules:
             }
         }
     });
+}
+
+function mapInputToTasks(input: TaskWriteInput): Task[] {
+    return input.tasks.map(task => ({
+        description: task.description,
+        status: task.status as TaskStatus,
+        type: task.type as TaskTypes
+    }));
+}
+
+function validateAllTasksIncluded(input: TaskWriteInput, existingPlan: Plan | undefined): TaskWriteResult | null {
+    if (!existingPlan || existingPlan.tasks.length === 0) {
+        return null;
+    }
+
+    const existingDescriptions = new Set(existingPlan.tasks.map(t => t.description));
+    const receivedDescriptions = new Set(input.tasks.map(t => t.description));
+    const missingDescriptions = [...existingDescriptions].filter(desc => !receivedDescriptions.has(desc));
+
+    if (missingDescriptions.length > 0) {
+        console.error(`[TaskWrite Tool] Missing ${missingDescriptions.length} task(s)`);
+        return {
+            success: false,
+            message: `ERROR: Missing ${missingDescriptions.length} task(s). Missing: ${missingDescriptions.map(d => `"${d}"`).join(', ')}`,
+            tasks: existingPlan.tasks
+        };
+    }
+    return null;
+}
+
+function categorizeTasks(allTasks: Task[]) {
+    return {
+        completed: allTasks.filter(t => t.status === TaskStatus.COMPLETED),
+        inProgress: allTasks.filter(t => t.status === TaskStatus.IN_PROGRESS),
+        pending: allTasks.filter(t => t.status === TaskStatus.PENDING)
+    };
+}
+
+function detectNewlyCompletedTasks(completedTasks: Task[], existingPlan: Plan | undefined): Task[] {
+    if (!existingPlan) {
+        return completedTasks;
+    }
+    
+    return completedTasks.filter(task => {
+        const existingTask = existingPlan.tasks.find(t => t.description === task.description);
+        return existingTask && existingTask.status !== TaskStatus.COMPLETED;
+    });
+}
+
+function createPlan(allTasks: Task[]): Plan {
+    return {
+        id: `plan-${Date.now()}`,
+        tasks: allTasks,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    };
+}
+
+async function handlePlanApproval(
+    allTasks: Task[],
+    isPlanRemodification: boolean,
+    eventHandler: CopilotEventHandler
+): Promise<{ approved: boolean; comment?: string }> {
+    console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}`);
+
+    const plan = createPlan(allTasks);
+
+    AIChatStateMachine.sendEvent({
+        type: AIChatMachineEventType.PLAN_GENERATED,
+        payload: { plan }
+    });
+
+    eventHandler({
+        type: "task_approval_request",
+        approvalType: "plan",
+        tasks: allTasks,
+        message: "Please review the implementation plan"
+    });
+
+    return new Promise((resolve) => {
+        const subscription = AIChatStateMachine.service().subscribe((state) => {
+            if (state.value === 'ApprovedPlan') {
+                console.log("[TaskWrite Tool] Plan approved");
+                subscription.unsubscribe();
+                resolve({ approved: true });
+            } else if (state.value === 'GeneratingPlan') {
+                const comment = state.context.currentApproval?.comment;
+                console.log("[TaskWrite Tool] Plan rejected");
+                subscription.unsubscribe();
+                resolve({ approved: false, comment });
+            }
+        });
+    });
+}
+
+async function handleTaskCompletion(
+    allTasks: Task[],
+    newlyCompletedTasks: Task[],
+    currentContext: any,
+    eventHandler: CopilotEventHandler,
+    updatedSourceFiles?: SourceFiles[],
+    updatedFileNames?: string[]
+): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
+    const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
+    console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
+
+    if (updatedSourceFiles && updatedFileNames) {
+        await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
+    }
+
+    AIChatStateMachine.sendEvent({
+        type: AIChatMachineEventType.TASK_COMPLETED,
+    });
+
+    const isAutoApproveEnabled = currentContext.autoApproveEnabled === true;
+
+    if (isAutoApproveEnabled) {
+        console.log(`[TaskWrite Tool] Auto-approval enabled`);
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.APPROVE_TASK,
+        });
+        return { approved: true, approvedTaskDescription: lastCompletedTask.description };
+    }
+
+    return handleManualTaskApproval(allTasks, newlyCompletedTasks, lastCompletedTask, eventHandler);
+}
+
+async function handleManualTaskApproval(
+    allTasks: Task[],
+    newlyCompletedTasks: Task[],
+    lastCompletedTask: Task,
+    eventHandler: CopilotEventHandler
+): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
+    console.log(`[TaskWrite Tool] Manual approval mode`);
+
+    const tasksForUI = allTasks.map(task => {
+        const isNewlyCompleted = newlyCompletedTasks.some(t => t.description === task.description);
+        return isNewlyCompleted ? { ...task, status: TaskStatus.REVIEW } : { ...task };
+    });
+
+    eventHandler({
+        type: "task_approval_request",
+        approvalType: "completion",
+        tasks: tasksForUI,
+        taskDescription: lastCompletedTask.description,
+        message: `Please verify the completed work for: ${lastCompletedTask.description}`,
+    });
+
+    return new Promise((resolve) => {
+        const subscription = AIChatStateMachine.service().subscribe((state) => {
+            if (state.value === "ApprovedTask") {
+                console.log(`[TaskWrite Tool] Task approved`);
+                subscription.unsubscribe();
+                resolve({ approved: true, approvedTaskDescription: lastCompletedTask.description });
+            } else if (state.value === "RejectedTask") {
+                const comment = state.context.currentApproval?.comment;
+                console.log("[TaskWrite Tool] Task rejected");
+                subscription.unsubscribe();
+                resolve({ approved: false, comment, approvedTaskDescription: lastCompletedTask.description });
+            }
+        });
+    });
+}
+
+function generateResultMessage(
+    approvalResult: { approved: boolean; comment?: string } | undefined,
+    approvalType: "plan" | "completion" | undefined,
+    approvedTaskDescription: string | undefined,
+    allTasks: Task[],
+    taskCategories: ReturnType<typeof categorizeTasks>
+): string {
+    if (approvalResult) {
+        if (approvalResult.approved) {
+            if (approvalType === "plan") {
+                return `Plan approved! Ready to start execution. ${allTasks.length} tasks created.`;
+            }
+            return `Work approved! Task completed successfully. ${approvedTaskDescription ? `Task: ${approvedTaskDescription}` : ''}`;
+        } else {
+            const feedback = approvalResult.comment ? ` User comment: "${approvalResult.comment}"` : '';
+            return approvalType === "plan"
+                ? `Plan not approved. Please revise the plan based on feedback.${feedback}`
+                : `Work not approved. Please redo the task based on feedback.${feedback}`;
+        }
+    }
+
+    if (taskCategories.inProgress.length > 0) {
+        return `Started working on: ${taskCategories.inProgress[0].description}`;
+    }
+    if (taskCategories.completed.length === allTasks.length) {
+        return `All tasks completed!`;
+    }
+    if (taskCategories.completed.length > 0) {
+        return `Completed: ${taskCategories.completed[taskCategories.completed.length - 1].description}`;
+    }
+    return `Successfully created ${allTasks.length} implementation tasks. Tasks are now ready for execution.`;
 }
