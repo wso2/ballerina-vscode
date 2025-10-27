@@ -34,6 +34,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE
  * @since 1.0.0
  */
 public class Value {
+    private final Map<String, String> imports;
     private MetaData metadata;
     private Codedata codedata;
     private String placeholder;
@@ -45,7 +46,6 @@ public class Value {
     private List<Value> choices;
     private List<PropertyTypeMemberInfo> typeMembers;
     private Map<String, Value> properties;
-    private final Map<String, String> imports;
     private boolean enabled;
     private boolean editable;
     private boolean optional;
@@ -103,14 +103,14 @@ public class Value {
         return enabled;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public boolean isEnabledWithValue() {
         return enabled && ((value != null && ((value instanceof String && !((String) value).isEmpty())
                 || (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty())))
                 || (values != null && !values.isEmpty()));
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 
     public boolean isEditable() {
@@ -143,6 +143,10 @@ public class Value {
         return null;
     }
 
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
     public String getLiteralValue() {
         String valueStr = getValue();
         if (valueStr != null && valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE)) {
@@ -166,16 +170,12 @@ public class Value {
         return null;
     }
 
-    public List<Object> getValuesAsObjects() {
-        return values;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
     public void setValues(List<Object> values) {
         this.values = values;
+    }
+
+    public List<Object> getValuesAsObjects() {
+        return values;
     }
 
     public void addValue(String value) {

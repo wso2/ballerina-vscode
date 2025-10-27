@@ -66,12 +66,13 @@ public class ReadOnlyMetadataManager {
      * Extracts all readOnly metadata values for a service, combining database metadata with live extracted values.
      * Aggregates values by display name when multiple metadata items have the same display name.
      *
-     * @param serviceNode The service declaration node
-     * @param context The model context
+     * @param serviceNode     The service declaration node
+     * @param context         The model context
      * @param customExtractor Optional custom extractor for CUSTOM kinds
      * @return Map of display names to list of values (aggregated by display name)
      */
-    public Map<String, List<String>> extractAllMetadata(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
+    public Map<String, List<String>> extractAllMetadata(ServiceDeclarationNode serviceNode,
+                                                        ModelFromSourceContext context,
                                                         Optional<CustomExtractor> customExtractor) {
         Map<String, List<String>> allMetadata = new HashMap<>();
 
@@ -80,7 +81,8 @@ public class ReadOnlyMetadataManager {
 
         // Extract values for each metadata item
         for (ReadOnlyMetaData metadataItem : metadataList) {
-            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
+            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context,
+                    customExtractor);
 
             // Aggregate values by display name - this is where the magic happens!
             for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {
@@ -99,15 +101,16 @@ public class ReadOnlyMetadataManager {
     /**
      * Extracts values for a single metadata item using the appropriate extractor.
      *
-     * @param metadataItem The metadata item to extract values for
-     * @param serviceNode The service declaration node
-     * @param context The model context
+     * @param metadataItem    The metadata item to extract values for
+     * @param serviceNode     The service declaration node
+     * @param context         The model context
      * @param customExtractor Optional custom extractor for CUSTOM kinds
      * @return Map of display names to list of extracted values
      */
-    private Map<String, List<String>> extractForMetadataItem(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                                            ModelFromSourceContext context,
-                                                            Optional<CustomExtractor> customExtractor) {
+    private Map<String, List<String>> extractForMetadataItem(ReadOnlyMetaData metadataItem,
+                                                             ServiceDeclarationNode serviceNode,
+                                                             ModelFromSourceContext context,
+                                                             Optional<CustomExtractor> customExtractor) {
         String kind = metadataItem.kind();
 
         if ("CUSTOM".equals(kind) && customExtractor.isPresent()) {
@@ -139,15 +142,15 @@ public class ReadOnlyMetadataManager {
     /**
      * Extracts values for a specific kind of metadata.
      *
-     * @param kind The metadata kind to extract
-     * @param serviceNode The service declaration node
-     * @param context The model context
+     * @param kind            The metadata kind to extract
+     * @param serviceNode     The service declaration node
+     * @param context         The model context
      * @param customExtractor Optional custom extractor for CUSTOM kinds
      * @return Map of display names to extracted values for the specified kind
      */
     public Map<String, List<String>> extractForKind(String kind, ServiceDeclarationNode serviceNode,
-                                             ModelFromSourceContext context,
-                                             Optional<CustomExtractor> customExtractor) {
+                                                    ModelFromSourceContext context,
+                                                    Optional<CustomExtractor> customExtractor) {
         Map<String, List<String>> result = new HashMap<>();
 
         // Get metadata definitions for the specific kind
@@ -158,7 +161,8 @@ public class ReadOnlyMetadataManager {
 
         // Extract values for filtered metadata
         for (ReadOnlyMetaData metadataItem : filteredMetadata) {
-            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context, customExtractor);
+            Map<String, List<String>> extractedValues = extractForMetadataItem(metadataItem, serviceNode, context,
+                    customExtractor);
 
             // Aggregate values by display name (same logic as extractAllMetadata)
             for (Map.Entry<String, List<String>> entry : extractedValues.entrySet()) {

@@ -140,11 +140,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 @JsonSegment("serviceDesign")
 public class ServiceModelGeneratorService implements ExtendedLanguageServerService {
 
-    private LSClientLogger lsClientLogger;
-    private WorkspaceManager workspaceManager;
-    private final Map<String, TriggerProperty> triggerProperties;
     private static final Type propertyMapType = new TypeToken<Map<String, TriggerProperty>>() {
     }.getType();
+    private final Map<String, TriggerProperty> triggerProperties;
+    private LSClientLogger lsClientLogger;
+    private WorkspaceManager workspaceManager;
 
     public ServiceModelGeneratorService() {
         InputStream newPropertiesStream = getClass().getClassLoader()
@@ -161,6 +161,16 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             }
         }
         this.triggerProperties = newTriggerProperties;
+    }
+
+    private static NonTerminalNode findNonTerminalNode(Codedata codedata, Document document) {
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+        LineRange lineRange = codedata.getLineRange();
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        return modulePartNode.findNode(TextRange.from(start, end - start), true);
     }
 
     @Override
@@ -969,15 +979,5 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 protocol, icon);
 
         return Optional.of(triggerBasicInfo);
-    }
-
-    private static NonTerminalNode findNonTerminalNode(Codedata codedata, Document document) {
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        TextDocument textDocument = syntaxTree.textDocument();
-        LineRange lineRange = codedata.getLineRange();
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
-        return modulePartNode.findNode(TextRange.from(start, end - start), true);
     }
 }

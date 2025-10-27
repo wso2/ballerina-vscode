@@ -59,10 +59,26 @@
       "initForm": {
       },
       "readOnlyMetaData": [
-        {"key": "port", "displayName": "Port Number", "kind": "LISTENER_PARAM"},
-        {"key": "basePath", "displayName": "Base Path", "kind": "SERVICE_DESCRIPTION"},
-        {"key": "host", "displayName": "Host Address", "kind": "SERVICE_DESCRIPTION"},
-        {"key": "config", "displayName": "Service Configuration", "kind": "ANNOTATION"}
+        {
+          "key": "port",
+          "displayName": "Port Number",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "basePath",
+          "displayName": "Base Path",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "host",
+          "displayName": "Host Address",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "config",
+          "displayName": "Service Configuration",
+          "kind": "ANNOTATION"
+        }
       ]
     },
     {
@@ -212,7 +228,11 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "attachpoint", "displayName": "Service Name", "kind": "SERVICE_DESCRIPTION"}
+        {
+          "key": "attachpoint",
+          "displayName": "Service Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
       ]
     },
     {
@@ -469,7 +489,11 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "protocol", "displayName": "Protocol", "kind": "LISTENER_PARAM"}
+        {
+          "key": "protocol",
+          "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        }
       ]
     },
     {
@@ -564,8 +588,16 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "subscriptions", "displayName": "Topics", "kind": "LISTENER_PARAM"},
-        {"key": "arg3", "displayName": "Topics", "kind": "LISTENER_PARAM"}
+        {
+          "key": "subscriptions",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "arg3",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
       ]
     },
     {
@@ -795,8 +827,16 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "queueName", "displayName": "Queue Name", "kind": "CUSTOM"},
-        {"key": "topicName", "displayName": "Topic Name", "kind": "CUSTOM"}
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "CUSTOM"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "CUSTOM"
+        }
       ]
     },
     {
@@ -981,8 +1021,16 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "queueName", "displayName": "Queue Name", "kind": "ANNOTATION"},
-        {"key": "attachPoint", "displayName": "Queue Name", "kind": "SERVICE_DESCRIPTION"}
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "attachPoint",
+          "displayName": "Queue Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
       ]
     },
     {
@@ -1100,7 +1148,11 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "topics", "displayName": "Topics", "kind": "LISTENER_PARAM"}
+        {
+          "key": "topics",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
       ]
     },
     {
@@ -1198,7 +1250,11 @@
         }
       },
       "readOnlyMetaData": [
-        {"key": "serviceType", "displayName": "Event Channel", "kind": "SERVICE_DESCRIPTION"}
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
+        }
       ]
     },
     {

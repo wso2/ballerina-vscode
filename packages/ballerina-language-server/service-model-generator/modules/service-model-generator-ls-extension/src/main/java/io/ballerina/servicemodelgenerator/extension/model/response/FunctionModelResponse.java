@@ -25,10 +25,9 @@ import java.util.Arrays;
 /**
  * FunctionModelResponse class to hold the function model response.
  *
- * @param function function model
- * @param errorMsg error message
+ * @param function   function model
+ * @param errorMsg   error message
  * @param stacktrace stack trace of the error
- *
  * @since 1.0.0
  */
 public record FunctionModelResponse(Function function, String errorMsg, String stacktrace) {

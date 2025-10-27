@@ -173,6 +173,7 @@ class DatabaseManager {
         insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstraint,
                 pkg});
     }
+
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
                                                        String defaultValue, String placeholder, String valueType,
                                                        String typeConstraint, String sourceKind, String selections) {

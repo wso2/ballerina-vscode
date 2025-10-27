@@ -38,8 +38,8 @@ public interface CustomExtractor {
      * This method is called for metadata items with kind "CUSTOM".
      *
      * @param metadataItem The metadata item containing key, displayName, and kind
-     * @param serviceNode The service declaration node
-     * @param context The model context containing additional information
+     * @param serviceNode  The service declaration node
+     * @param context      The model context containing additional information
      * @return A map of displayName to actual value, or empty map if extraction fails
      */
     Map<String, List<String>> extractCustomValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
@@ -50,7 +50,7 @@ public interface CustomExtractor {
      * This allows builders to be selective about which CUSTOM metadata they handle.
      *
      * @param metadataItem The metadata item to check
-     * @param context The model context
+     * @param context      The model context
      * @return true if this extractor can handle the metadata item, false otherwise
      */
     default boolean canExtractCustom(ReadOnlyMetaData metadataItem, ModelFromSourceContext context) {

@@ -88,6 +88,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_DEFAULT_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF;
@@ -96,7 +97,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
@@ -246,9 +246,6 @@ public class ListenerUtil {
         return null;
     }
 
-    public record DefaultListener(String moduleName, String variableName, LinePosition linePosition) {
-    }
-
     public static DefaultListener defaultListener(SemanticModel semanticModel, Document document,
                                                   ModulePartNode node, String moduleName) {
         List<ImportDeclarationNode> importsList = node.imports().stream().toList();
@@ -260,7 +257,7 @@ public class ListenerUtil {
     }
 
     public static String getDefaultListenerDeclarationStmt(DefaultListener defaultListener) {
-        String stmt =  NEW_LINE + "listener %s:Listener %s = %s;" + NEW_LINE;
+        String stmt = NEW_LINE + "listener %s:Listener %s = %s;" + NEW_LINE;
         String expression = switch (defaultListener.moduleName()) {
             case HTTP -> HTTP_DEFAULT_LISTENER_EXPR;
             case GRAPHQL -> GRAPHQL_DEFAULT_LISTENER_EXPR;
@@ -383,8 +380,9 @@ public class ListenerUtil {
      * Processes a syntax tree node to extract listener information and create a response.
      * This method handles both listener declarations and explicit new expressions that create listeners.
      *
-     * @param node the syntax tree node to process (should be ListenerDeclarationNode or ExplicitNewExpressionNode)
-     * @param orgName the organization name for looking up listener metadata
+     * @param node          the syntax tree node to process (should be ListenerDeclarationNode or
+     *                      ExplicitNewExpressionNode)
+     * @param orgName       the organization name for looking up listener metadata
      * @param semanticModel the semantic model for symbol resolution
      * @return {@link ListenerFromSourceResponse} containing the extracted listener model
      * or empty response if processing fails
@@ -411,8 +409,8 @@ public class ListenerUtil {
      * Processes a listener declaration node to extract listener configuration and properties.
      * This method handles listener variable declarations with their initialization expressions.
      *
-     * @param listenerNode the listener declaration syntax node
-     * @param orgName the organization name for looking up listener metadata
+     * @param listenerNode  the listener declaration syntax node
+     * @param orgName       the organization name for looking up listener metadata
      * @param semanticModel the semantic model for symbol resolution
      * @return {@link Listener} containing the listener model with all properties set as non-advanced
      */
@@ -425,7 +423,7 @@ public class ListenerUtil {
 
         Optional<Symbol> symbol = semanticModel.symbol(listenerNode.typeDescriptor().orElse(null));
         if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol)
-                || !(CommonUtils.getRawType(typeSymbol)  instanceof ClassSymbol classSymbol)) {
+                || !(CommonUtils.getRawType(typeSymbol) instanceof ClassSymbol classSymbol)) {
             return null;
         }
 
@@ -444,7 +442,7 @@ public class ListenerUtil {
      * Creates a default HTTP listener model from a listener declaration node that uses the default HTTP listener.
      * This method builds a listener model specifically for HTTP default listeners (http:getDefaultListener())
      *
-     * @param org the organization name used to look up the HTTP listener metadata from the database
+     * @param org          the organization name used to look up the HTTP listener metadata from the database
      * @param listenerNode the listener declaration node containing the default HTTP listener initialization
      */
     private static Optional<Listener> createHttpDefaultListenerModel(String org, ListenerDeclarationNode listenerNode) {
@@ -468,14 +466,14 @@ public class ListenerUtil {
      * This method extracts listener configuration from constructor calls and removes the variable name property.
      *
      * @param newExpressionNode the explicit new expression syntax node
-     * @param semanticModel the semantic model for symbol resolution
+     * @param semanticModel     the semantic model for symbol resolution
      * @return {@link Listener}  the listener model without variable name property
      */
     private static Listener processExplicitNewExpression(ExplicitNewExpressionNode newExpressionNode
             , SemanticModel semanticModel) {
         Optional<Symbol> symbol = semanticModel.symbol(newExpressionNode.typeDescriptor());
         if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol)
-                || !(CommonUtils.getRawType(typeSymbol)  instanceof ClassSymbol classSymbol)) {
+                || !(CommonUtils.getRawType(typeSymbol) instanceof ClassSymbol classSymbol)) {
             return null;
         }
         Listener listenerModel = createListenerModelFromNewExpressionNode(newExpressionNode.lineRange(),
@@ -489,12 +487,12 @@ public class ListenerUtil {
      * This method constructs a comprehensive listener model by analyzing the listener's initialization
      * arguments, setting up all properties, and configuring code metadata for UI representation.
      *
-     * @param lineRange the line range in the source code where the listener is defined
+     * @param lineRange         the line range in the source code where the listener is defined
      * @param newExpressionNode the new expression node containing the listener initialization
-     * @param semanticModel the semantic model for symbol resolution and type analysis
-     * @param classSymbol the class symbol representing the listener type
+     * @param semanticModel     the semantic model for symbol resolution and type analysis
+     * @param classSymbol       the class symbol representing the listener type
      * @return a fully configured {@link Listener} model with analyzed properties, code metadata,
-     *         and all properties marked as non-advanced for UI visibility
+     * and all properties marked as non-advanced for UI visibility
      */
     private static Listener createListenerModelFromNewExpressionNode(LineRange lineRange,
                                                                      NewExpressionNode newExpressionNode,
@@ -519,7 +517,7 @@ public class ListenerUtil {
      * This helper method extracts the init method information to create function metadata
      * used for property analysis and listener model construction.
      *
-     * @param classSymbol the class symbol representing the listener type
+     * @param classSymbol   the class symbol representing the listener type
      * @param semanticModel the semantic model for symbol resolution
      * @return {@link FunctionData} containing the initialization method metadata
      */
@@ -542,10 +540,10 @@ public class ListenerUtil {
      * This method extracts argument values from the new expression and maps them to
      * listener properties using the function metadata.
      *
-     * @param listener the listener model to populate with properties
-     * @param functionData the function metadata containing parameter information
+     * @param listener          the listener model to populate with properties
+     * @param functionData      the function metadata containing parameter information
      * @param newExpressionNode the new expression containing initialization arguments
-     * @param initSymbol the init method symbol
+     * @param initSymbol        the init method symbol
      */
     private static void analyzeAndSetListenerProperties(Listener listener, FunctionData functionData,
                                                         NewExpressionNode newExpressionNode,
@@ -596,5 +594,8 @@ public class ListenerUtil {
                 .setAdvanced(false);
 
         return valueBuilder.build();
+    }
+
+    public record DefaultListener(String moduleName, String variableName, LinePosition linePosition) {
     }
 }

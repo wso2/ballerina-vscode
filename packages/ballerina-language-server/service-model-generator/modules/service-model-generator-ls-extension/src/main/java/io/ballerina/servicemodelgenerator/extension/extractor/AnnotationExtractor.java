@@ -71,7 +71,7 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts a specific parameter value from any annotation containing that parameter.
      *
-     * @param serviceNode The service declaration node
+     * @param serviceNode   The service declaration node
      * @param parameterName The parameter name to extract
      * @return The parameter value as a string, or null if not found
      */
@@ -122,7 +122,7 @@ public class AnnotationExtractor implements ReadOnlyMetadataExtractor {
             // Remove surrounding quotes
             return value.substring(1, value.length() - 1);
         } else if (expression.kind().equals(SyntaxKind.BOOLEAN_LITERAL) ||
-                   expression.kind().equals(SyntaxKind.NUMERIC_LITERAL)) {
+                expression.kind().equals(SyntaxKind.NUMERIC_LITERAL)) {
             return ((BasicLiteralNode) expression).literalToken().text();
         } else {
             // For complex expressions, return the source code

@@ -117,17 +117,17 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData" : {
-        "codedata" : {
-          "type" : "READONLY"
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
         },
-        "placeholder" : "false",
-        "valueType" : "SINGLE_SELECT",
-        "value" : { },
-        "enabled" : true,
-        "editable" : true,
-        "optional" : false,
-        "advanced" : false
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "annotServiceConfig": {
         "metadata": {

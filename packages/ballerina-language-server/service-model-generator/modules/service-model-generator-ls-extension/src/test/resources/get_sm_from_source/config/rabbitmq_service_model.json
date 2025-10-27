@@ -117,19 +117,19 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData" : {
-        "codedata" : {
-          "type" : "READONLY"
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
         },
-        "placeholder" : "false",
-        "valueType" : "SINGLE_SELECT",
-        "value" : {
-          "Queue Name" : [ "queueName" ]
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Queue Name": []
         },
-        "enabled" : true,
-        "editable" : true,
-        "optional" : false,
-        "advanced" : false
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "annotServiceConfig": {
         "metadata": {

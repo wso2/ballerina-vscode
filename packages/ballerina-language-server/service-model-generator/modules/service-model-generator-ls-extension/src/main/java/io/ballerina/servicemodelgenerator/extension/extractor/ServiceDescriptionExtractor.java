@@ -18,22 +18,17 @@
 
 package io.ballerina.servicemodelgenerator.extension.extractor;
 
-import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
-
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 
 /**
  * Extractor for SERVICE_DESCRIPTION kind readOnly metadata.
@@ -72,14 +67,14 @@ public class ServiceDescriptionExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts service description value based on the parameter key.
      *
-     * @param serviceNode The service declaration node
-     * @param context The model context
+     * @param serviceNode  The service declaration node
+     * @param context      The model context
      * @param parameterKey The parameter key to extract (e.g., "basePath", "serviceType", "serviceName")
      * @return The extracted value or null
      */
     private String extractServiceDescriptionValue(ServiceDeclarationNode serviceNode, ModelFromSourceContext context,
-                                                 String parameterKey) {
-        return switch (parameterKey.toLowerCase()) {
+                                                  String parameterKey) {
+        return switch (parameterKey.toLowerCase(Locale.ROOT)) {
             case "basepath", "attachpoint" -> extractAttachPoint(serviceNode);
             case "servicetype" -> extractServiceType(serviceNode);
             case "servicename" -> extractServiceName(serviceNode);

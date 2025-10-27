@@ -95,22 +95,22 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData" : {
-        "codedata" : {
-          "type" : "READONLY"
+      "readOnlyMetaData": {
+        "codedata": {
+          "type": "READONLY"
         },
-        "placeholder" : "false",
-        "valueType" : "SINGLE_SELECT",
-        "value" : {
-          "Base Path" : [ ],
-          "Host Address" : [ ],
-          "Service Configuration" : [ ],
-          "Port Number" : [ ]
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Base Path": [],
+          "Host Address": [],
+          "Service Configuration": [],
+          "Port Number": []
         },
-        "enabled" : true,
-        "editable" : true,
-        "optional" : false,
-        "advanced" : false
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {

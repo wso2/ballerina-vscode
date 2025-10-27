@@ -108,19 +108,19 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData" : {
-        "codedata" : {
-          "type" : "READONLY"
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
         },
-        "placeholder" : "false",
-        "valueType" : "SINGLE_SELECT",
-        "value" : {
-          "Event Channel" : [ "IssuesService" ]
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Event Channel": []
         },
-        "enabled" : true,
-        "editable" : true,
-        "optional" : false,
-        "advanced" : false
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {

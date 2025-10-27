@@ -89,9 +89,9 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
 
     @DataProvider(name = "config-path-provider")
     public Object[][] configPathProvider() {
-        return new Object[][] {
-                {  "http_service_model_from_openapi_spec_1.json" },
-                {  "http_service_model_from_openapi_spec_2.json" }
+        return new Object[][]{
+                {"http_service_model_from_openapi_spec_1.json"},
+                {"http_service_model_from_openapi_spec_2.json"}
         };
     }
 
@@ -160,10 +160,10 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the source generator test.
      *
-     * @param filePath    The path to the source file.
-     * @param description The description of the test.
+     * @param filePath         The path to the source file.
+     * @param description      The description of the test.
      * @param serviceInitModel The service to be added.
-     * @param output      The expected output.
+     * @param output           The expected output.
      */
     private record TestConfig(String filePath, String description, ServiceInitModel serviceInitModel,
                               Map<String, List<TextEdit>> output) {

@@ -56,7 +56,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
  */
 public final class AsbServiceBuilder extends AbstractServiceBuilder implements CustomExtractor {
 
-    private String currentMetadataKey;
+    private String currentMetadataKey = "";
 
     @Override
     public String kind() {
@@ -64,12 +64,13 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     }
 
     @Override
-    public Map<String, List<String>> extractCustomValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                                        ModelFromSourceContext context) {
+    public Map<String, List<String>> extractCustomValues(ReadOnlyMetaData metadataItem,
+                                                         ServiceDeclarationNode serviceNode,
+                                                         ModelFromSourceContext context) {
         Map<String, List<String>> result = new HashMap<>();
 
         // Handle ASB-specific nested parameter extraction
-        if (("queueName".equals(metadataItem.metadataKey())|| "topicName".equals(metadataItem.metadataKey()))) {
+        if (("queueName".equals(metadataItem.metadataKey()) || "topicName".equals(metadataItem.metadataKey()))) {
             this.currentMetadataKey = metadataItem.metadataKey();
             List<String> extractedValues = extractEntityValueFromConfig(serviceNode, context);
             if (!extractedValues.isEmpty()) {
@@ -88,10 +89,11 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
      * Uses the existing ListenerParamExtractor infrastructure for proper listener resolution.
      *
      * @param serviceNode The service declaration node
-     * @param context The model from source context
+     * @param context     The model from source context
      * @return List of entity values found
      */
-    private List<String> extractEntityValueFromConfig(ServiceDeclarationNode serviceNode, ModelFromSourceContext context) {
+    private List<String> extractEntityValueFromConfig(ServiceDeclarationNode serviceNode,
+                                                      ModelFromSourceContext context) {
         List<String> entityValues = new ArrayList<>();
 
         // Use ListenerParamExtractor's listener resolution logic
@@ -100,7 +102,8 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
         // Extract from each listener expression in the service
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         for (ExpressionNode expression : expressions) {
-            List<String> extractedValues = extractEntityValueFromListenerExpression(expression, context, listenerExtractor);
+            List<String> extractedValues = extractEntityValueFromListenerExpression(expression, context,
+                    listenerExtractor);
             entityValues.addAll(extractedValues);
         }
 
@@ -110,13 +113,14 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     /**
      * Extracts entity values from a single listener expression using ListenerParamExtractor's logic.
      *
-     * @param expression The listener expression to analyze
-     * @param context The model from source context
+     * @param expression        The listener expression to analyze
+     * @param context           The model from source context
      * @param listenerExtractor The listener extractor instance for reusing resolution logic
      * @return List of entity values from this expression
      */
-    private List<String> extractEntityValueFromListenerExpression(ExpressionNode expression, ModelFromSourceContext context,
-                                                               ListenerParamExtractor listenerExtractor) {
+    private List<String> extractEntityValueFromListenerExpression(ExpressionNode expression,
+                                                                  ModelFromSourceContext context,
+                                                                  ListenerParamExtractor listenerExtractor) {
         List<String> entityValues = new ArrayList<>();
 
         if (expression instanceof ExplicitNewExpressionNode explicitNew) {
@@ -154,7 +158,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
      * Extracts entity values from variable reference using ListenerParamExtractor's resolution logic.
      */
     private List<String> extractFromAsbVariableReference(NameReferenceNode nameRef, ModelFromSourceContext context,
-                                                        ListenerParamExtractor listenerExtractor) {
+                                                         ListenerParamExtractor listenerExtractor) {
         Optional<Symbol> symbol = context.semanticModel().symbol(nameRef);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             Optional<ListenerDeclarationNode> listenerNode = findListenerDeclaration(variableSymbol, context);
@@ -174,7 +178,8 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
      * Finds the ListenerDeclarationNode for a given variable symbol.
      * Reuses the same logic as ListenerParamExtractor.
      */
-    private Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol, ModelFromSourceContext context) {
+    private Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol,
+                                                                      ModelFromSourceContext context) {
         var location = variableSymbol.getLocation();
         if (location.isEmpty()) {
             return Optional.empty();
@@ -209,7 +214,8 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
                 }
                 current = current.parent();
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            // Handle any runtime exceptions that may occur during workspace or file operations
             return Optional.empty();
         }
 

@@ -38,8 +38,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
-
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -63,10 +61,10 @@ import java.util.Set;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
@@ -75,6 +73,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.populateRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.HTTP_SERVICE_ADD;
@@ -274,7 +273,8 @@ public final class HttpServiceBuilder extends AbstractServiceBuilder {
         // Initialize readOnly metadata if not present in template (HttpServiceBuilder uses custom template)
         if (serviceModel.getProperty("readOnlyMetaData") == null) {
             String serviceType = serviceModel.getType();
-            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(), serviceType);
+            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
+                    serviceType);
             serviceModel.getProperties().put("readOnlyMetaData", readOnlyMetadata);
         }
 

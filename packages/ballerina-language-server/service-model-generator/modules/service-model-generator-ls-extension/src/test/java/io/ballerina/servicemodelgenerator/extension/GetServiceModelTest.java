@@ -55,7 +55,7 @@ public class GetServiceModelTest extends AbstractLSTest {
             GetServiceModelTest.TestConfig updatedConfig = new GetServiceModelTest.TestConfig(testConfig.description(),
                     testConfig.filePath(), testConfig.orgName(), testConfig.pkgName(), testConfig.moduleName(),
                     jsonMap);
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(jsonMap, testConfig.response());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -86,14 +86,14 @@ public class GetServiceModelTest extends AbstractLSTest {
      * Represents the test configuration.
      *
      * @param description description of the test
-     * @param filePath   file path
-     * @param orgName   organization name
-     * @param pkgName   package name
-     * @param moduleName module name
-     * @param response  expected response
+     * @param filePath    file path
+     * @param orgName     organization name
+     * @param pkgName     package name
+     * @param moduleName  module name
+     * @param response    expected response
      * @since 1.0.0
      */
-    private record TestConfig(String description,  String filePath, String orgName, String pkgName, String moduleName,
+    private record TestConfig(String description, String filePath, String orgName, String pkgName, String moduleName,
                               JsonElement response) {
         public String description() {
             return description == null ? "" : description;

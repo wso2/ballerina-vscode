@@ -25,7 +25,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Field;
  * Request to add a field to a class or a service declaration.
  *
  * @param filePath The path of the file to which the field should be added.
- * @param field The field to be added.
+ * @param field    The field to be added.
  * @param codedata The code data of the field.
  */
 public record AddFieldRequest(String filePath, Field field, Codedata codedata) {

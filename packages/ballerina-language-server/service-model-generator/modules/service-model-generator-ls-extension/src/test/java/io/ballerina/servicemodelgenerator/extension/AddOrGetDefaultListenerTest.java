@@ -122,19 +122,24 @@ public class AddOrGetDefaultListenerTest extends AbstractLSTest {
     protected String getServiceName() {
         return "serviceDesign";
     }
-    
+
     @Override
     protected String getApiName() {
         return "addOrGetDefaultListener";
     }
 
+    @AfterClass
+    public void cleanup() {
+
+    }
+
     /**
      * Represents the test configuration for the source generator test.
      *
-     * @param filePath    The path to the source file.
-     * @param description The description of the test.
+     * @param filePath           The path to the source file.
+     * @param description        The description of the test.
      * @param defaultListenerRef The default listener reference.
-     * @param textEdits   The expected text edits.
+     * @param textEdits          The expected text edits.
      */
     private record TestConfig(String filePath, String description, String defaultListenerRef,
                               Map<String, List<TextEdit>> textEdits) {
@@ -142,10 +147,5 @@ public class AddOrGetDefaultListenerTest extends AbstractLSTest {
         public String description() {
             return description == null ? "" : description;
         }
-    }
-
-    @AfterClass
-    public void cleanup() {
-
     }
 }

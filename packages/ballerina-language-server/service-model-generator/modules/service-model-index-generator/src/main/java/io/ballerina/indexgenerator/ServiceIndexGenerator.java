@@ -198,7 +198,7 @@ class ServiceIndexGenerator {
         // insert hardcoded service types
         for (Map.Entry<String, ServiceType> entry : serviceTypes.entrySet()) {
             ServiceType serviceType = entry.getValue();
-            int serviceTypeId =  DatabaseManager.insertServiceType(packageId, serviceType);
+            int serviceTypeId = DatabaseManager.insertServiceType(packageId, serviceType);
             for (ServiceTypeFunction function : serviceType.functions()) {
                 int functionId = DatabaseManager.insertServiceTypeFunction(serviceTypeId, function);
                 for (ServiceTypeFunctionParameter parameter : function.parameters()) {
@@ -581,26 +581,6 @@ class ServiceIndexGenerator {
         });
     }
 
-    enum FunctionParameterKind {
-        REQUIRED,
-        DEFAULTABLE,
-        INCLUDED_RECORD,
-        REST_PARAMETER,
-        INCLUDED_FIELD,
-        PARAM_FOR_TYPE_INFER,
-        INCLUDED_RECORD_REST,
-        PATH_PARAM,
-        PATH_REST_PARAM;
-
-        // need to have a fromString logic here
-        public static FunctionParameterKind fromString(String value) {
-            if (value.equals("REST")) {
-                return REST_PARAMETER;
-            }
-            return FunctionParameterKind.valueOf(value);
-        }
-    }
-
     private static String getParamDefaultValue(ModulePartNode rootNode, Location location, String module) {
         NonTerminalNode node = rootNode.findNode(TextRange.from(location.textRange().startOffset(),
                 location.textRange().length()));
@@ -647,6 +627,49 @@ class ServiceIndexGenerator {
             return defaultModule.document(documentId);
         } catch (RuntimeException ex) {
             return null;
+        }
+    }
+
+    private static String getPath(ResourceMethodSymbol resourceMethodSymbol, SemanticModel semanticModel) {
+        ResourcePath resourcePath = resourceMethodSymbol.resourcePath();
+        List<String> paths = new ArrayList<>();
+        switch (resourcePath.kind()) {
+            case PATH_SEGMENT_LIST -> {
+                PathSegmentList pathSegmentList = (PathSegmentList) resourcePath;
+                for (Symbol pathSegment : pathSegmentList.list()) {
+                    if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
+                        String type = CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
+                                true);
+                        String paramName = pathParameterSymbol.getName().orElse("");
+                        paths.add("[%s %s]".formatted(type, paramName));
+                    } else {
+                        paths.add(pathSegment.getName().orElse(""));
+                    }
+                }
+            }
+            case DOT_RESOURCE_PATH -> paths.add(".");
+            default -> paths.add("");
+        }
+        return String.join("/", paths);
+    }
+
+    enum FunctionParameterKind {
+        REQUIRED,
+        DEFAULTABLE,
+        INCLUDED_RECORD,
+        REST_PARAMETER,
+        INCLUDED_FIELD,
+        PARAM_FOR_TYPE_INFER,
+        INCLUDED_RECORD_REST,
+        PATH_PARAM,
+        PATH_REST_PARAM;
+
+        // need to have a fromString logic here
+        public static FunctionParameterKind fromString(String value) {
+            if (value.equals("REST")) {
+                return REST_PARAMETER;
+            }
+            return FunctionParameterKind.valueOf(value);
         }
     }
 
@@ -717,28 +740,5 @@ class ServiceIndexGenerator {
             int nameEditable,
             int typeEditable
     ) {
-    }
-
-    private static String getPath(ResourceMethodSymbol resourceMethodSymbol, SemanticModel semanticModel) {
-        ResourcePath resourcePath = resourceMethodSymbol.resourcePath();
-        List<String> paths = new ArrayList<>();
-        switch (resourcePath.kind()) {
-            case PATH_SEGMENT_LIST -> {
-                PathSegmentList pathSegmentList = (PathSegmentList) resourcePath;
-                for (Symbol pathSegment : pathSegmentList.list()) {
-                    if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
-                        String type = CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
-                                true);
-                        String paramName = pathParameterSymbol.getName().orElse("");
-                        paths.add("[%s %s]".formatted(type, paramName));
-                    } else {
-                        paths.add(pathSegment.getName().orElse(""));
-                    }
-                }
-            }
-            case DOT_RESOURCE_PATH -> paths.add(".");
-            default -> paths.add("");
-        }
-        return String.join("/", paths);
     }
 }

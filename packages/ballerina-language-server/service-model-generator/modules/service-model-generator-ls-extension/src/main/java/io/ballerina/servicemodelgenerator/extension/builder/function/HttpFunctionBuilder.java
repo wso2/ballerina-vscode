@@ -112,25 +112,6 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         put("Header", "HEADER");
     }};
 
-    @Override
-    public Optional<Function> getModelTemplate(GetModelContext context) {
-        return getHttpResourceModel();
-    }
-
-    @Override
-    public Function getModelFromSource(ModelFromSourceContext context) {
-        FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) context.node();
-        boolean isResource = funcDefNode.qualifierList().stream().anyMatch(q -> q.text().equals(RESOURCE));
-        if (isResource) {
-            Function functionModel = getEnrichedResourceModel(funcDefNode, context.semanticModel());
-            setResourceEditability(context, functionModel);
-            return functionModel;
-        }
-        Function functionModel = getObjectFunctionFromSource(SERVICE_DIAGRAM, funcDefNode, context.semanticModel());
-        functionModel.setEditable(true);
-        return functionModel;
-    }
-
     private static void setResourceEditability(ModelFromSourceContext context, Function functionModel) {
         if (context.node().parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
             Optional<TypeDescriptorNode> typeDescriptorNode = serviceDeclarationNode.typeDescriptor();
@@ -141,11 +122,6 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
                 }
             }
         }
-    }
-
-    @Override
-    public String kind() {
-        return HTTP;
     }
 
     public static Function getEnrichedResourceModel(FunctionDefinitionNode functionDefinitionNode,
@@ -252,6 +228,30 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         } catch (IOException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<Function> getModelTemplate(GetModelContext context) {
+        return getHttpResourceModel();
+    }
+
+    @Override
+    public Function getModelFromSource(ModelFromSourceContext context) {
+        FunctionDefinitionNode funcDefNode = (FunctionDefinitionNode) context.node();
+        boolean isResource = funcDefNode.qualifierList().stream().anyMatch(q -> q.text().equals(RESOURCE));
+        if (isResource) {
+            Function functionModel = getEnrichedResourceModel(funcDefNode, context.semanticModel());
+            setResourceEditability(context, functionModel);
+            return functionModel;
+        }
+        Function functionModel = getObjectFunctionFromSource(SERVICE_DIAGRAM, funcDefNode, context.semanticModel());
+        functionModel.setEditable(true);
+        return functionModel;
+    }
+
+    @Override
+    public String kind() {
+        return HTTP;
     }
 
     @Override

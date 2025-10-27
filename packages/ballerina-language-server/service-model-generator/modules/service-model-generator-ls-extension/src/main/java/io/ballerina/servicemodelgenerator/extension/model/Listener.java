@@ -167,6 +167,10 @@ public class Listener {
         return properties;
     }
 
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
+    }
+
     public String getListenerProtocol() {
         return listenerProtocol;
     }
@@ -209,10 +213,6 @@ public class Listener {
 
     public void setCodedata(Codedata codedata) {
         this.codedata = codedata;
-    }
-
-    public void setProperties(Map<String, Value> properties) {
-        this.properties = properties;
     }
 
     public static class ListenerBuilder {

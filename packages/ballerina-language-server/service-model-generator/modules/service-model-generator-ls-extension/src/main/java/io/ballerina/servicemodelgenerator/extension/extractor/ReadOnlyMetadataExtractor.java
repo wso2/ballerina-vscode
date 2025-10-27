@@ -37,8 +37,8 @@ public interface ReadOnlyMetadataExtractor {
      * Extracts the actual runtime values for readOnly metadata items of a specific kind.
      *
      * @param metadataItem The metadata item containing key, displayName, and kind
-     * @param serviceNode The service declaration node
-     * @param context The model context containing additional information
+     * @param serviceNode  The service declaration node
+     * @param context      The model context containing additional information
      * @return A map of displayName to actual value, or empty map if extraction fails
      */
     Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,

@@ -22,9 +22,9 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
-import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
@@ -38,7 +38,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
-import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 
 import java.util.ArrayList;
@@ -59,7 +58,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
 
     @Override
     public Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
-                                            ModelFromSourceContext context) {
+                                                   ModelFromSourceContext context) {
         Map<String, List<String>> result = new HashMap<>();
 
         // Extract listener parameter values from all listeners (can be multiple)
@@ -86,14 +85,15 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Extracts parameter values from ALL listener declarations (handles multiple listeners).
      * Also handles attach-point extraction if requested.
      *
-     * @param serviceNode The service declaration node
+     * @param serviceNode   The service declaration node
      * @param semanticModel The semantic model for symbol resolution
      * @param parameterName The parameter name to extract (e.g., "host", "port", "attach-point")
-     * @param context The model from source context
+     * @param context       The model from source context
      * @return List of parameter values from all listeners
      */
-    private List<String> extractAllListenerParameterValues(ServiceDeclarationNode serviceNode, SemanticModel semanticModel,
-                                                          String parameterName, ModelFromSourceContext context) {
+    private List<String> extractAllListenerParameterValues(ServiceDeclarationNode serviceNode,
+                                                           SemanticModel semanticModel,
+                                                           String parameterName, ModelFromSourceContext context) {
         List<String> allValues = new ArrayList<>();
 
         // Special handling for attach-point extraction
@@ -136,14 +136,14 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts parameter value(s) from an expression node, handling arrays properly.
      *
-     * @param expression The expression to analyze
+     * @param expression    The expression to analyze
      * @param semanticModel The semantic model
      * @param parameterName The parameter name to find
-     * @param context The model from source context
+     * @param context       The model from source context
      * @return List of parameter values (single value or multiple for arrays)
      */
     private List<String> extractValuesFromExpression(ExpressionNode expression, SemanticModel semanticModel,
-                                                   String parameterName, ModelFromSourceContext context) {
+                                                     String parameterName, ModelFromSourceContext context) {
         if (expression instanceof ExplicitNewExpressionNode explicitNew) {
             return extractFromListenerConstructor(explicitNew, parameterName, semanticModel, context);
         } else if (expression instanceof NameReferenceNode nameRef) {
@@ -157,13 +157,13 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Extracts parameter from listener constructor arguments.
      *
      * @param constructorNode The listener constructor node
-     * @param parameterName The parameter name to find
-     * @param semanticModel The semantic model for resolving configurable variables
-     * @param context The model from source context
+     * @param parameterName   The parameter name to find
+     * @param semanticModel   The semantic model for resolving configurable variables
+     * @param context         The model from source context
      * @return List of parameter values (multiple if array, single if not)
      */
     private List<String> extractFromListenerConstructor(ExplicitNewExpressionNode constructorNode, String parameterName,
-                                                       SemanticModel semanticModel, ModelFromSourceContext context) {
+                                                        SemanticModel semanticModel, ModelFromSourceContext context) {
         SeparatedNodeList<FunctionArgumentNode> arguments = constructorNode.parenthesizedArgList().arguments();
         if (arguments.isEmpty()) {
             return new ArrayList<>();
@@ -202,14 +202,14 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Extracts parameter from a variable reference (listener variable).
      * Resolves the listener variable and extracts parameters from its constructor.
      *
-     * @param nameRef The variable reference node
+     * @param nameRef       The variable reference node
      * @param semanticModel The semantic model
      * @param parameterName The parameter name to find
-     * @param context The model from source context with access to workspace manager
+     * @param context       The model from source context with access to workspace manager
      * @return List of parameter values
      */
     private List<String> extractFromVariableReference(NameReferenceNode nameRef, SemanticModel semanticModel,
-                                                     String parameterName, ModelFromSourceContext context) {
+                                                      String parameterName, ModelFromSourceContext context) {
         Optional<Symbol> symbol = semanticModel.symbol(nameRef);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             // Find the listener declaration using the working approach
@@ -233,7 +233,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Implements the working approach from the debug implementation.
      *
      * @param variableSymbol The variable symbol representing the listener
-     * @param context The model from source context with access to workspace manager
+     * @param context        The model from source context with access to workspace manager
      * @return The ListenerDeclarationNode if found
      */
     private Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol,
@@ -276,8 +276,8 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                 }
                 current = current.parent();
             }
-        } catch (Exception e) {
-            // If anything fails, return empty
+        } catch (RuntimeException e) {
+            // Handle any runtime exceptions that may occur during workspace or file operations
             return Optional.empty();
         }
 
@@ -288,13 +288,15 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Extracts parameter from implicit listener constructor arguments.
      *
      * @param constructorNode The implicit listener constructor node
-     * @param parameterName The parameter name to find
-     * @param semanticModel The semantic model for resolving configurable variables
-     * @param context The model from source context
+     * @param parameterName   The parameter name to find
+     * @param semanticModel   The semantic model for resolving configurable variables
+     * @param context         The model from source context
      * @return List of parameter values
      */
-    private List<String> extractFromImplicitListenerConstructor(ImplicitNewExpressionNode constructorNode, String parameterName,
-                                                               SemanticModel semanticModel, ModelFromSourceContext context) {
+    private List<String> extractFromImplicitListenerConstructor(ImplicitNewExpressionNode constructorNode,
+                                                                String parameterName,
+                                                                SemanticModel semanticModel,
+                                                                ModelFromSourceContext context) {
         var parenthesizedArgList = constructorNode.parenthesizedArgList();
         if (parenthesizedArgList.isEmpty()) {
             return new ArrayList<>();
@@ -338,15 +340,16 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts value from an expression node with support for configurable variables.
      *
-     * @param expression The expression to extract value from
+     * @param expression    The expression to extract value from
      * @param semanticModel The semantic model for resolving configurable variables
-     * @param context The model from source context
+     * @param context       The model from source context
      * @return The extracted value as string
      */
-    private String extractValueFromExpression(ExpressionNode expression, SemanticModel semanticModel, ModelFromSourceContext context) {
+    private String extractValueFromExpression(ExpressionNode expression, SemanticModel semanticModel,
+                                              ModelFromSourceContext context) {
         if (expression.kind().equals(SyntaxKind.NUMERIC_LITERAL) ||
-            expression.kind().equals(SyntaxKind.STRING_LITERAL) ||
-            expression.kind().equals(SyntaxKind.BOOLEAN_LITERAL)) {
+                expression.kind().equals(SyntaxKind.STRING_LITERAL) ||
+                expression.kind().equals(SyntaxKind.BOOLEAN_LITERAL)) {
             String value = expression.toString().trim();
             // Remove quotes from string literals
             if (value.startsWith("\"") && value.endsWith("\"")) {
@@ -366,12 +369,13 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Resolves configurable variable values by finding their declarations.
      *
-     * @param nameRef The name reference to resolve
+     * @param nameRef       The name reference to resolve
      * @param semanticModel The semantic model
-     * @param context The model from source context
+     * @param context       The model from source context
      * @return The resolved value or the variable name if resolution fails
      */
-    private String resolveConfigurableVariable(NameReferenceNode nameRef, SemanticModel semanticModel, ModelFromSourceContext context) {
+    private String resolveConfigurableVariable(NameReferenceNode nameRef, SemanticModel semanticModel,
+                                               ModelFromSourceContext context) {
         Optional<Symbol> symbol = semanticModel.symbol(nameRef);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             // Find the configurable variable declaration
@@ -389,10 +393,11 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Finds the default value of a configurable variable.
      *
      * @param variableSymbol The variable symbol
-     * @param context The model from source context
+     * @param context        The model from source context
      * @return The default value if found
      */
-    private Optional<String> findConfigurableVariableDefaultValue(VariableSymbol variableSymbol, ModelFromSourceContext context) {
+    private Optional<String> findConfigurableVariableDefaultValue(VariableSymbol variableSymbol,
+                                                                  ModelFromSourceContext context) {
         var location = variableSymbol.getLocation();
         if (location.isEmpty()) {
             return Optional.empty();
@@ -447,8 +452,8 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                 }
                 current = current.parent();
             }
-        } catch (Exception e) {
-            // If anything fails, return empty
+        } catch (RuntimeException e) {
+            // Handle any runtime exceptions that may occur during workspace or file operations
             return Optional.empty();
         }
 
@@ -459,12 +464,13 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts values from a single expression, handling arrays properly.
      *
-     * @param expression The expression to extract values from
+     * @param expression    The expression to extract values from
      * @param semanticModel The semantic model
-     * @param context The model from source context
+     * @param context       The model from source context
      * @return List of values (multiple if array, single if not)
      */
-    private List<String> extractValuesFromSingleExpression(ExpressionNode expression, SemanticModel semanticModel, ModelFromSourceContext context) {
+    private List<String> extractValuesFromSingleExpression(ExpressionNode expression, SemanticModel semanticModel,
+                                                           ModelFromSourceContext context) {
         List<String> values = new ArrayList<>();
 
         if (expression instanceof ListConstructorExpressionNode listConstructor) {

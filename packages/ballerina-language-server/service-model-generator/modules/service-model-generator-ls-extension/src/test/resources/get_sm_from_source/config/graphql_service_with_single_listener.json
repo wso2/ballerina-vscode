@@ -119,17 +119,17 @@
         "optional": false,
         "advanced": false
       },
-      "readOnlyMetaData" : {
-        "codedata" : {
-          "type" : "READONLY"
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
         },
-        "placeholder" : "false",
-        "valueType" : "SINGLE_SELECT",
-        "value" : { },
-        "enabled" : true,
-        "editable" : true,
-        "optional" : false,
-        "advanced" : false
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       },
       "annotServiceConfig": {
         "metadata": {
@@ -156,6 +156,18 @@
         "enabled": true,
         "editable": true,
         "optional": true,
+        "advanced": false
+      },
+      "readOnlyMetaData": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
         "advanced": false
       }
     },
@@ -373,13 +385,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -409,13 +421,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -756,13 +768,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -792,13 +804,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1199,13 +1211,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1235,13 +1247,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
