@@ -64,7 +64,9 @@ interface TypeEditorProps {
 export function TypeEditor(props: TypeEditorProps) {
     const { isGraphql, newType, isPopupTypeForm } = props;
 
-    let initialTypeKind = props.type?.codedata?.node ?? "RECORD" as TypeNodeKind;
+    const [initialTypeKind] = useState<TypeNodeKind>(() =>
+        (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
+    );
     const [isSaving, setIsSaving] = useState(false);
 
     const type: Type = (() => {
@@ -93,7 +95,7 @@ export function TypeEditor(props: TypeEditorProps) {
         return defaultType as unknown as Type;
     })();
 
-    const [activeTab, setActiveTab] = useState<string>("create-from-scratch");
+    const [activeTab, setActiveTab] = useState<string>("import");
 
 
     const onTypeSave = async (type: Type) => {
@@ -139,21 +141,21 @@ export function TypeEditor(props: TypeEditorProps) {
                     <TabPanel
                         views={[
                             {
-                                id: 'create-from-scratch',
-                                name: 'Create from scratch',
-                                icon: <Icon
-                                    name="bi-edit"
-                                    sx={{ marginRight: '5px' }}
-                                    iconSx={{ fontSize: '12px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
-                                />
-                            },
-                            {
                                 id: 'import',
                                 name: 'Import',
                                 icon: <Icon
                                     name="bi-import"
                                     sx={{ marginRight: '5px' }}
                                     iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
+                                />
+                            },
+                            {
+                                id: 'create-from-scratch',
+                                name: 'Create from scratch',
+                                icon: <Icon
+                                    name="bi-edit"
+                                    sx={{ marginRight: '5px' }}
+                                    iconSx={{ fontSize: '12px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
                                 />
                             }
                         ]}

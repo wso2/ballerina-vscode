@@ -318,6 +318,7 @@ export function ForkForm(props: ForkFormProps) {
                                 control={control}
                                 field={field}
                                 watch={watch}
+                                setValue={setValue}
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}
                                 fileName={fileName}

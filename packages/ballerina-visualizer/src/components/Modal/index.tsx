@@ -39,24 +39,26 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 const ModalBox = styled.div<{ width?: number; height?: number }>`
-  width: ${({ width }: { width?: number }) => (width ? `${width}px` : 'auto')};
-  height: ${({ height }: { height?: number }) => (height ? `${height}px` : 'auto')};
+  width: ${({width}:{width:number}) => (width ? `${width}px` : 'auto')};
+  height: ${({height}:{height:number}) => (height ? `${height}px` : 'auto')};
+  max-width: 90vw;
+  max-height: 90vh;
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow-y: hidden;
+  overflow: hidden;
   padding: 16px;
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-    z-index: 30001;
+  z-index: 30001;
 `;
 
 const InvisibleButton = styled.button`

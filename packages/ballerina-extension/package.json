@@ -24,6 +24,7 @@
         "Snippets"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onLanguage:ballerina",
         "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
@@ -965,21 +966,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f182"
+                    "fontCharacter": "\\f18b"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f7"
+                    "fontCharacter": "\\f200"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17d"
+                    "fontCharacter": "\\f186"
                 }
             },
             "distro-source-view": {
@@ -993,7 +994,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1d2"
+                    "fontCharacter": "\\f1db"
                 }
             },
             "distro-cached-rounded": {
@@ -1117,6 +1118,8 @@
         "watch-ballerina": "webpack --mode none --watch",
         "test-compile": "tsc -p ./",
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
+        "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
+        "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.83.1 && npx extest get-chromedriver -c 1.83.1 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
