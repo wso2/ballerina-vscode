@@ -19,7 +19,6 @@
 import { Icon } from "@wso2/ui-toolkit";
 import { ReactElement } from "react";
 
-
 export enum HelperPaneIconType {
     VARIABLE = "variable",
     FUNCTION = "function",
