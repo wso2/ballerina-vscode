@@ -58,7 +58,7 @@ export type ChipExpressionBaseComponentProps = {
     targetLineRange?: LineRange;
 }
 
-export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentProps) => {
+export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentProps) => {
     const [tokens, setTokens] = useState<number[]>([]);
     const [expressionModel, setExpressionModel] = useState<ExpressionModel[]>();
     const [selectedCompletionItem, setSelectedCompletionItem] = useState<number>(0);

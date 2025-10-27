@@ -27,7 +27,7 @@ import {
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
-import { ChipExpressionBaseComponent2 } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent2';
+import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 
 export interface ExpressionField {
@@ -137,7 +137,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     }
 
     return (
-        <ChipExpressionBaseComponent2
+        <ChipExpressionBaseComponent
         getHelperPane={getHelperPane}
         completions={completions}
         onChange={onChange}
