@@ -46,7 +46,7 @@ public class KnowledgeBaseBuilder extends CallBuilder {
     public static final String DESCRIPTION = "Knowledge bases available in the integration";
 
     private static final String KNOWLEDGE_BASE_NAME_LABEL = "Knowledge Base Name";
-    private static final String KNOWLEDGE_BASE_NAME_LABEL_DOC = "knowledge-base instance name";
+    private static final String KNOWLEDGE_BASE_NAME_LABEL_DOC = "Name of the knowledge base instance";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
     private static final String VECTOR_KNOWLEDGE_BASE_TYPE = "VectorKnowledgeBase";
 

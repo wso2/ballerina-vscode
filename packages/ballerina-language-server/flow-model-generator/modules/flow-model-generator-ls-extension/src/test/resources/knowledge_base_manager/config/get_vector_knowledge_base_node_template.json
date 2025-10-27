@@ -48,7 +48,7 @@
         "variable": {
           "metadata": {
             "label": "Knowledge Base Name",
-            "description": "knowledge-base instance name"
+            "description": "Name of the knowledge base instance"
           },
           "valueType": "IDENTIFIER",
           "value": "aiVectorknowledgebase",
