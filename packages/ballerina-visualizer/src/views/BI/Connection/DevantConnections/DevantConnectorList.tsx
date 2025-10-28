@@ -30,6 +30,7 @@ import {
     ICmdParamsBase as PlatformExtICmdParamsBase,
 } from "@wso2/wso2-platform-core";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
+import { PlatformExtHooks } from "../../../../PlatformExtHooks";
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
     display: grid;
@@ -46,11 +47,10 @@ export const DevantConnectorList: FC<{
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
-
-    const { data: projectPath } = useQuery({
-        queryKey: ["projectPath"],
-        queryFn: () => rpcClient.getVisualizerLocation(),
-    });
+    const isLoggedIn = PlatformExtHooks.isLoggedIn();
+    const selected = PlatformExtHooks.getSelectedContext();
+    const directoryComponent = PlatformExtHooks.getDirectoryComp()
+    const projectPath = PlatformExtHooks.getProjectPath();
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -58,30 +58,6 @@ export const DevantConnectorList: FC<{
         }, 2000);
         return () => clearTimeout(handler);
     }, [search]);
-
-    const { data: isLoggedIn } = useQuery({
-        queryKey: ["isLoggedIn"],
-        queryFn: () => rpcClient.getPlatformRpcClient().isLoggedIn(),
-        refetchInterval: 2000,
-    });
-
-    const { data: selected } = useQuery({
-        queryKey: ["devant-context", isLoggedIn],
-        queryFn: () => rpcClient.getPlatformRpcClient().getSelectedContext(),
-        enabled: !!isLoggedIn,
-        refetchInterval: 2000,
-    });
-
-    const { data: directoryComponent } = useQuery({
-        queryKey: [
-            "getDirectoryComponents",
-            { isLoggedIn, org: selected?.org?.uuid, project: selected?.project?.id, projectPath },
-        ],
-        queryFn: () => rpcClient.getPlatformRpcClient().getDirectoryComponents(projectPath?.projectUri),
-        enabled: isLoggedIn && !!projectPath,
-        select: (components) => components[0] || null,
-        refetchInterval: 2000,
-    });
 
     const { data: marketplaceResp, isLoading } = useQuery({
         queryKey: [
@@ -152,7 +128,7 @@ export const DevantConnectorList: FC<{
                                     // integrationType: integrationType as any,
                                     buildPackLang: "ballerina",
                                     // name: path.basename(StateMachine.context().projectUri),
-                                    componentDir: projectPath?.projectUri,
+                                    componentDir: projectPath,
                                     extName: "Devant",
                                 } as ICreateComponentCmdParams,
                             ],

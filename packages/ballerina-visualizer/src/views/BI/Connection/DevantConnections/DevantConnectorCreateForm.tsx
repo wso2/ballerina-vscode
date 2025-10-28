@@ -33,6 +33,7 @@ import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Button, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
+import { PlatformExtHooks } from "../../../../PlatformExtHooks";
 
 interface Props {
     item: MarketplaceItem;
@@ -151,18 +152,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
         }
     }, [schemas]);
 
-    const { data: componentConnections = [], isLoading: isLoadingComponentConnections } = useQuery({
-        queryKey: [
-            "componentConnections",
-            { component: component?.metadata?.id, project: project?.id },
-        ],
-        queryFn: () => rpcClient.getPlatformRpcClient().getConnections({
-            componentId: component?.metadata?.id,
-            orgId: org?.id?.toString(),
-            projectId: project?.id
-        }),
-        enabled: !!component,
-    });
+    const {connections, isLoadingConnections} = PlatformExtHooks.getAllConnections()
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
@@ -199,7 +189,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                             validate: (value) => {
                                 if (!value || value.trim().length === 0) {
                                     return "Required";
-                                } else if (componentConnections?.some((item) => item.name === value)) {
+                                } else if (connections?.some((item) => item.name === value)) {
                                     return "Name already exists";
                                 } else if (
                                     !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
@@ -257,7 +247,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                     />
                 </FormStyles.Row>
                 <FormStyles.Footer>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection || isLoadingComponentConnections}>
+                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection || isLoadingConnections}>
                         {isCreatingConnection ? "Creating..." : "Create"}
                     </Button>
                 </FormStyles.Footer>

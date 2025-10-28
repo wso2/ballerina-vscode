@@ -55,6 +55,7 @@ import {
     convertEmbeddingProviderCategoriesToSidePanelCategories,
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
+    enrichCategoryWithDevant,
 } from "../../../utils/bi";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
@@ -74,6 +75,7 @@ import {
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
+import { PlatformExtHooks } from "../../../PlatformExtHooks";
 
 const Container = styled.div`
     width: 100%;
@@ -112,7 +114,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
-    const [categories, setCategories] = useState<PanelCategory[]>([]);
+    const [categories, setCategories] = useState<PanelCategory[]>([]); //
     const [fetchingAiSuggestions, setFetchingAiSuggestions] = useState(false);
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
@@ -158,6 +160,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
+    const {connections: devantConnections = [], refetchConnections: refetchDevantConnections} = PlatformExtHooks.getAllConnections();
+    const selected = PlatformExtHooks.getSelectedContext()
+    const { projectToml, refetchToml } = PlatformExtHooks.getProjectToml()
+    const enrichedCategories = useMemo(()=>{
+         return enrichCategoryWithDevant(rpcClient, selected, projectToml, devantConnections, categories)
+    },[projectToml, selected, devantConnections,categories])
+
     useEffect(() => {
         debouncedGetFlowModel();
     }, [breakpointState, syntaxTree]);
@@ -186,6 +195,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowProgressIndicator(true);
                 if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
                     updateConnectionWithNewItem(parent.recentIdentifier);
+                    refetchToml();
+                    refetchDevantConnections();
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
@@ -2178,7 +2189,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showSidePanel={showSidePanel}
                 sidePanelView={sidePanelView}
                 subPanel={subPanel}
-                categories={categories}
+                categories={enrichedCategories}
                 selectedNode={selectedNodeRef.current}
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}

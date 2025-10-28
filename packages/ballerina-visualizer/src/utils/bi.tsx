@@ -24,6 +24,7 @@ import {
     ParameterValue,
     Parameter,
     FormImports,
+    Node,
 } from "@wso2/ballerina-side-panel";
 import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
@@ -55,7 +56,8 @@ import {
     CompletionInsertText,
     SubPanel,
     SubPanelView,
-    NodeMetadata
+    NodeMetadata,
+    TomlValues
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -76,6 +78,8 @@ import { DocSection } from "../components/ExpressionEditor";
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
+import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
+import { ConnectionListItem, ContextItemEnriched } from "@wso2/wso2-platform-core";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -130,6 +134,34 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
         icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
         items: items,
     };
+}
+
+
+export function enrichCategoryWithDevant(rpcClient: BallerinaRpcClient, selected: ContextItemEnriched, tomlValues: TomlValues,connections: ConnectionListItem[], panelCategories: PanelCategory[] = []): PanelCategory[] {
+    const updated = panelCategories?.map(category=>{
+            if(category.title === "Connections" && category.items?.length > 0){
+                if(tomlValues && selected?.org && selected?.project){
+                    return {
+                        ...category,
+                        items: category.items?.map((categoryItem)=>{
+                            const matchingConn = (tomlValues as any)?.tool?.openapi?.find((openapiItem: any)=>{
+                                return (categoryItem as PanelCategory)?.items?.some((item)=> (item as Node)?.metadata?.codedata?.module === `${tomlValues?.package?.name}.${openapiItem?.targetModule}`)
+                            })
+                            if(matchingConn){
+                                const matchingDevantConn = connections?.find(conn => conn.name === matchingConn?.devantConnection)
+                                if(matchingDevantConn){
+                                    return {...categoryItem, title: matchingDevantConn.name, devant: matchingDevantConn}
+                                }
+                            }
+                            return categoryItem
+                        })
+                    }
+                }
+            }
+            return category
+
+    })
+   return updated
 }
 
 export function convertBICategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
