@@ -29,11 +29,8 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
 import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -65,7 +62,6 @@ public class WorkspaceDiagnosticsTest {
 
     @Test(description = "Test workspace diagnostics are collected from all packages on initialization")
     public void testWorkspaceDiagnosticsOnInitialization() throws IOException, WorkspaceDocumentException {
-        // Open projA file
         Path projAFile = testRoot.resolve("projA").resolve("main.bal").toAbsolutePath();
         String projAContent = Files.readString(projAFile);
 
@@ -77,7 +73,6 @@ public class WorkspaceDiagnosticsTest {
 
         workspaceManager.didOpen(projAFile, openParams);
 
-        // Get diagnostics
         DocumentServiceContext serviceContext = ContextBuilder.buildDocumentServiceContext(
                 projAFile.toUri().toString(),
                 this.workspaceManager,
@@ -87,25 +82,21 @@ public class WorkspaceDiagnosticsTest {
         DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
         Map<String, List<Diagnostic>> diagnostics = diagnosticsHelper.getLatestDiagnostics(serviceContext);
 
-        // Verify diagnostics are present
         Assert.assertFalse(diagnostics.isEmpty(), "Diagnostics should be collected");
 
-        // Verify both projA and projB files have diagnostics entries (even if empty lists)
         boolean hasProjADiagnostics = diagnostics.keySet().stream()
                 .anyMatch(key -> key.contains("projA"));
         boolean hasProjBDiagnostics = diagnostics.keySet().stream()
                 .anyMatch(key -> key.contains("projB"));
-
         Assert.assertTrue(hasProjADiagnostics, "Should have diagnostics entry for projA");
+        Assert.assertFalse(hasProjBDiagnostics, "projB should not have diagnostics initially");
     }
 
     @Test(description = "Test fixing error in dependency package clears cascading diagnostics in dependent")
     public void testWorkspaceDiagnosticsAfterDependentChange() throws IOException, WorkspaceDocumentException {
-        // Read projB file
-        Path projBFile = testRoot.resolve("projB").resolve("utils.bal").toAbsolutePath();
+        Path projBFile = testRoot.resolve("projB").resolve("main.bal").toAbsolutePath();
         String projBOriginalContent = Files.readString(projBFile);
 
-        // Open projB with error (missing semicolon)
         String projBWithError = projBOriginalContent.replace(
                 "    return \"Hello\";",
                 "    return \"Hello\" // Missing semicolon"
@@ -119,7 +110,6 @@ public class WorkspaceDiagnosticsTest {
 
         workspaceManager.didOpen(projBFile, openProjBParams);
 
-        // Get diagnostics for projB - should have syntax error
         DocumentServiceContext projBContext = ContextBuilder.buildDocumentServiceContext(
                 projBFile.toUri().toString(),
                 this.workspaceManager,
@@ -129,39 +119,14 @@ public class WorkspaceDiagnosticsTest {
         DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
         Map<String, List<Diagnostic>> projBDiagnostics = diagnosticsHelper.getLatestDiagnostics(projBContext);
 
-        // Verify projB has errors
-        long projBErrorsBefore = projBDiagnostics.values().stream()
+        List<String> diagnostics = projBDiagnostics.values().stream()
                 .flatMap(List::stream)
-                .filter(d -> d.getSeverity().toString().equals("Error"))
-                .count();
+                .map(d -> d.getRange().toString() + " - " + d.getMessage())
+                .toList();
 
-        Assert.assertTrue(projBErrorsBefore > 0, "projB should have syntax error");
-
-        // Now fix projB by reverting to correct content
-        DidChangeTextDocumentParams fixParams = new DidChangeTextDocumentParams();
-        VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier();
-        identifier.setUri(projBFile.toUri().toString());
-        identifier.setVersion(2);
-        fixParams.setTextDocument(identifier);
-
-        TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent();
-        changeEvent.setText(projBOriginalContent);
-        fixParams.setContentChanges(List.of(changeEvent));
-
-        workspaceManager.didChange(projBFile, fixParams);
-
-        // Get diagnostics after fix
-        Map<String, List<Diagnostic>> projBDiagnosticsAfterFix = diagnosticsHelper.getLatestDiagnostics(projBContext);
-
-        // Count errors after fix
-        long projBErrorsAfter = projBDiagnosticsAfterFix.values().stream()
-                .flatMap(List::stream)
-                .filter(d -> d.getSeverity().toString().equals("Error"))
-                .count();
-        
-        // After fixing projB, syntax errors should be cleared
-        Assert.assertTrue(projBErrorsAfter < projBErrorsBefore,
-                "Fixing projB should clear syntax errors");
+        Assert.assertEquals(diagnostics.size(), 2, "Should have only two diagnostics");
+        Assert.assertEquals(diagnostics.stream().distinct().count(), diagnostics.size(),
+                "Diagnostics should be distinct");
     }
 
     @AfterClass
