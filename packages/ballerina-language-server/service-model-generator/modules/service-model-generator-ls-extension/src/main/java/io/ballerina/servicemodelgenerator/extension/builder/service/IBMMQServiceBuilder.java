@@ -18,19 +18,8 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
-import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeParser;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.projects.BallerinaToml;
-import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -39,7 +28,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
-import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
 import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
 import io.ballerina.toml.semantic.ast.TomlTableNode;
@@ -53,7 +41,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -63,7 +50,6 @@ import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitMode
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.AT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.IBM_MQ;
@@ -73,21 +59,19 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FLAG;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_STRING;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.CALLER_PARAM_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.addCallerParameter;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY_SESSION_ACK_MODE;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAckModeToOnMessageFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSessionAckModeProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.updateModelWithAckMode;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
 /**
  * Builder class for IBM MQ service.
@@ -97,9 +81,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
 
     private static final String PROPERTY_DESTINATION = "destination";
-    private static final String PROPERTY_SESSION_ACK_MODE = "sessionAckMode";
-    private static final String PROPERTY_QUEUE_NAME = "queueName";
-    private static final String PROPERTY_TOPIC_NAME = "topicName";
     private static final String TYPE_IBM_MQ_SERVICE_CONFIG = "ibmmq:ServiceConfig";
     private static final String SERVICE_TYPE = "ibmmq:Service";
     private static final String CALLER_TYPE = "ibmmq:Caller";
@@ -111,7 +92,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String LABEL_TOPIC = "Topic";
     private static final String LABEL_QUEUE_NAME = "Queue Name";
     private static final String LABEL_TOPIC_NAME = "Topic Name";
-    private static final String LABEL_SESSION_ACK_MODE = "Session Ack Mode";
     private static final String LABEL_DESTINATION = "Destination";
 
     // Descriptions
@@ -119,50 +99,13 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String DESC_TOPIC = "Listen to messages from a topic";
     private static final String DESC_QUEUE_NAME = "Queue to listen for incoming messages.";
     private static final String DESC_TOPIC_NAME = "Topic to listen for incoming messages.";
-    private static final String DESC_SESSION_ACK_MODE = "How messages received should be acknowledged.";
     private static final String DESC_DESTINATION = "The IBM MQ destination to expect messages from.";
-
-    /**
-     * Acknowledgment mode enum for IBM MQ sessions.
-     */
-    private enum AcknowledgmentMode {
-        AUTO_ACKNOWLEDGE("AUTO_ACKNOWLEDGE"),
-        CLIENT_ACKNOWLEDGE("CLIENT_ACKNOWLEDGE"),
-        DUPS_OK_ACKNOWLEDGE("DUPS_OK_ACKNOWLEDGE"),
-        SESSION_TRANSACTED("SESSION_TRANSACTED");
-
-        private final String value;
-
-        AcknowledgmentMode(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public String getQuotedValue() {
-            return "\"" + value + "\"";
-        }
-
-        public static AcknowledgmentMode fromString(String value) {
-            String cleanValue = value.replace("\"", "");
-            for (AcknowledgmentMode mode : values()) {
-                if (mode.value.equals(cleanValue)) {
-                    return mode;
-                }
-            }
-            return AUTO_ACKNOWLEDGE;
-        }
-    }
 
     // Formatting strings
     private static final String BOOLEAN_TRUE = "true";
     private static final String EQUALS_SEPARATOR = SPACE + "=" + SPACE;
     private static final String COMMA_SEPARATOR = "," + SPACE;
     private static final String COLON_SEPARATOR = COLON + SPACE;
-    private static final String QUEUE_NAME_PARAM = PROPERTY_QUEUE_NAME + COLON_SEPARATOR;
-    private static final String TOPIC_NAME_PARAM = PROPERTY_TOPIC_NAME + COLON_SEPARATOR;
     private static final String LISTENER_DECLARATION_FORMAT = "listener %s:%s %s = new (%s);";
 
     // Function and parameter names
@@ -202,7 +145,31 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         }
 
         // Add destination choice (Queue vs Topic)
-        Value destinationChoice = buildDestinationChoice();
+        Map<String, Value> additionalTopicProps = new LinkedHashMap<>();
+        additionalTopicProps.put("shared", new Value.ValueBuilder()
+                .metadata("Shared Consumer", "Allow multiple consumers to process messages.")
+                .value(false)
+                .valueType(VALUE_TYPE_FLAG)
+                .setValueTypeConstraint("BOOLEAN")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        Value destinationChoice = buildDestinationChoice(
+                "\"DEV.QUEUE.1\"",
+                "\"SYSTEM.BASE.TOPIC\"",
+                LABEL_QUEUE,
+                LABEL_TOPIC,
+                LABEL_QUEUE_NAME,
+                DESC_QUEUE_NAME,
+                LABEL_TOPIC_NAME,
+                DESC_TOPIC_NAME,
+                LABEL_DESTINATION,
+                DESC_DESTINATION,
+                DESC_QUEUE,
+                DESC_TOPIC,
+                additionalTopicProps);
         properties.put(PROPERTY_DESTINATION, destinationChoice);
 
         // Add session acknowledgment mode dropdown
@@ -232,205 +199,48 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             listenerDTO = buildIBMMQListenerDTO(context);
         }
 
-        // Build service annotation
-        String serviceAnnotation = buildServiceAnnotation(properties);
+        // Build service code
+        String serviceCode = buildJMSServiceCode(context, listenerDTO);
 
-        // Get required functions with conditional onMessage signature
-        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
-        applyAckModeToOnMessageFunction(functions, properties);
-        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
-
-        // Build complete service
-        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-        StringBuilder builder = new StringBuilder(NEW_LINE)
-                .append(listenerDTO.listenerDeclaration())
-                .append(NEW_LINE)
-                .append(serviceAnnotation)
-                .append(SERVICE).append(SPACE).append(SERVICE_TYPE).append(SPACE)
-                .append(ON).append(SPACE).append(listenerDTO.listenerVarName()).append(SPACE)
-                .append(OPEN_BRACE)
-                .append(NEW_LINE)
-                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
-                .append(CLOSE_BRACE).append(NEW_LINE);
-
-        Map<String, List<TextEdit>> allEdits = new HashMap<>();
-        List<TextEdit> edits = new ArrayList<>();
-
-        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
-            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
-            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
-        }
-        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
-
-        allEdits.put(context.filePath(), edits);
-
-        // Check and add/update IBM MQ platform dependency if needed
-        Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
-        dependencyEdits.forEach((filePath, textEdits) -> {
-            allEdits.merge(filePath, textEdits, (existing, additional) -> {
-                existing.addAll(additional);
-                return existing;
-            });
-        });
-
-        return allEdits;
+        // Build text edits with IBM MQ dependency handling
+        return buildServiceCodeEdits(context, serviceCode, this::createIBMMQDependencyEdits);
     }
 
     private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
+        ListenerDTO listenerDTO = buildIBMMQListenerDTO(context);
+        String serviceCode = buildJMSServiceCode(context, listenerDTO);
+        return buildServiceCodeEdits(context, serviceCode, this::createIBMMQDependencyEdits);
+    }
+
+    private String buildJMSServiceCode(AddServiceInitModelContext context, ListenerDTO listenerDTO) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        ListenerDTO listenerDTO = buildIBMMQListenerDTO(context);
-
         // Build service annotation
-        String serviceAnnotation = buildServiceAnnotation(properties);
+        String serviceAnnotation = buildServiceAnnotation(
+                TYPE_IBM_MQ_SERVICE_CONFIG,
+                properties,
+                (isDurable, isShared) -> isDurable && isShared ? "SHARED_DURABLE"
+                        : isDurable ? "DURABLE"
+                        : isShared ? "SHARED"
+                        : "DEFAULT");
 
         // Get required functions with conditional onMessage signature
         List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
-        applyAckModeToOnMessageFunction(functions, properties);
+        applyAckModeToOnMessageFunction(functions, properties, CALLER_TYPE, LABEL_IBM_MQ);
         List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
 
-        // Build complete service
-        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-        StringBuilder builder = new StringBuilder(NEW_LINE)
-                .append(listenerDTO.listenerDeclaration())
-                .append(NEW_LINE)
-                .append(serviceAnnotation)
-                .append(SERVICE).append(SPACE).append(SERVICE_TYPE).append(SPACE)
-                .append(ON).append(SPACE).append(listenerDTO.listenerVarName()).append(SPACE)
-                .append(OPEN_BRACE)
-                .append(NEW_LINE)
-                .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
-                .append(CLOSE_BRACE).append(NEW_LINE);
-
-        Map<String, List<TextEdit>> allEdits = new HashMap<>();
-        List<TextEdit> edits = new ArrayList<>();
-
-        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
-            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
-            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
-        }
-        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
-
-        allEdits.put(context.filePath(), edits);
-
-        // Check and add/update IBM MQ platform dependency if needed
-        Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
-        dependencyEdits.forEach((filePath, textEdits) -> {
-            allEdits.merge(filePath, textEdits, (existing, additional) -> {
-                existing.addAll(additional);
-                return existing;
-            });
-        });
-
-        return allEdits;
-    }
-
-    private Value buildDestinationChoice() {
-        // Build Queue choice
-        Map<String, Value> queueProps = new LinkedHashMap<>();
-        queueProps.put(PROPERTY_QUEUE_NAME, new Value.ValueBuilder()
-                .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
-                .value("\"DEV.QUEUE.1\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .build());
-
-        Value queueChoice = new Value.ValueBuilder()
-                .metadata(LABEL_QUEUE, DESC_QUEUE)
-                .value(BOOLEAN_TRUE)
-                .valueType(VALUE_TYPE_FORM)
-                .enabled(true)
-                .editable(false)
-                .setProperties(queueProps)
-                .build();
-
-        // Build Topic choice
-        Map<String, Value> topicProps = new LinkedHashMap<>();
-        topicProps.put(PROPERTY_TOPIC_NAME, new Value.ValueBuilder()
-                .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
-                .value("\"SYSTEM.BASE.TOPIC\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .build());
-
-        topicProps.put("subscriberName", new Value.ValueBuilder()
-                .metadata("Subscriber Name", "The name to be used for the subscription.")
-                .value("")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
-
-        topicProps.put("durable", new Value.ValueBuilder()
-                .metadata("Durable Subscriber", "Persist subscription when disconnected.")
-                .value(false)
-                .valueType(VALUE_TYPE_FLAG)
-                .setValueTypeConstraint("BOOLEAN")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
-
-        topicProps.put("shared", new Value.ValueBuilder()
-                .metadata("Shared Consumer", "Allow multiple consumers to process messages.")
-                .value(false)
-                .valueType(VALUE_TYPE_FLAG)
-                .setValueTypeConstraint("BOOLEAN")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
-
-        Value topicChoice = new Value.ValueBuilder()
-                .metadata(LABEL_TOPIC, DESC_TOPIC)
-                .value(BOOLEAN_TRUE)
-                .valueType(VALUE_TYPE_FORM)
-                .enabled(false)
-                .editable(false)
-                .setProperties(topicProps)
-                .build();
-
-        // Build main choice property
-        Value destinationChoice = new Value.ValueBuilder()
-                .metadata(LABEL_DESTINATION, DESC_DESTINATION)
-                .value(0)
-                .valueType(VALUE_TYPE_CHOICE)
-                .enabled(true)
-                .editable(true)
-                .build();
-        destinationChoice.setChoices(List.of(queueChoice, topicChoice));
-
-        return destinationChoice;
-    }
-
-    private Value buildSessionAckModeProperty() {
-        List<Object> ackModeOptions = List.of(
-                AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.SESSION_TRANSACTED.getValue()
-        );
-
-        return new Value.ValueBuilder()
-                .metadata(LABEL_SESSION_ACK_MODE, DESC_SESSION_ACK_MODE)
-                .value(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
-                .setItems(ackModeOptions)
-                .enabled(true)
-                .editable(true)
-                .build();
+        // Build and return complete service code
+        return NEW_LINE
+                + listenerDTO.listenerDeclaration()
+                + NEW_LINE
+                + serviceAnnotation
+                + SERVICE + SPACE + SERVICE_TYPE + SPACE
+                + ON + SPACE + listenerDTO.listenerVarName() + SPACE
+                + OPEN_BRACE
+                + NEW_LINE
+                + String.join(TWO_NEW_LINES, functionsStr) + NEW_LINE
+                + CLOSE_BRACE + NEW_LINE;
     }
 
     private static ListenerDTO buildIBMMQListenerDTO(AddServiceInitModelContext context) {
@@ -463,224 +273,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         String listenerDeclaration = String.format(LISTENER_DECLARATION_FORMAT,
                 listenerProtocol, LISTENER_TYPE, listenerVarName, args);
         return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
-    }
-
-    private String buildServiceAnnotation(Map<String, Value> properties) {
-        StringBuilder annotation = new StringBuilder();
-        List<String> configParams = new ArrayList<>();
-
-        annotation.append(AT).append(TYPE_IBM_MQ_SERVICE_CONFIG).append(OPEN_BRACE).append(NEW_LINE);
-
-        if (properties.containsKey(PROPERTY_QUEUE_NAME)) {
-            Value queueName = properties.get(PROPERTY_QUEUE_NAME);
-            if (queueName != null && queueName.getValue() != null) {
-                configParams.add(QUEUE_NAME_PARAM + queueName.getValue());
-            }
-        } else if (properties.containsKey(PROPERTY_TOPIC_NAME)) {
-            Value topicName = properties.get(PROPERTY_TOPIC_NAME);
-            if (topicName != null && topicName.getValue() != null) {
-                configParams.add(TOPIC_NAME_PARAM + topicName.getValue());
-            }
-
-            Value subscriberName = properties.get("subscriberName");
-            if (subscriberName != null && subscriberName.getValue() != null && !subscriberName.getValue().isBlank()) {
-                configParams.add("subscriberName" + COLON_SEPARATOR + subscriberName.getValue());
-            }
-
-            Value durableProp = properties.get("durable");
-            Value sharedProp = properties.get("shared");
-
-            boolean isDurable = durableProp != null && Boolean.parseBoolean(durableProp.getValue());
-            boolean isShared = sharedProp != null && Boolean.parseBoolean(sharedProp.getValue());
-
-            if (isDurable && isShared) {
-                configParams.add("consumerType" + COLON_SEPARATOR + "\"SHARED_DURABLE\"");
-            } else if (isDurable) {
-                configParams.add("consumerType" + COLON_SEPARATOR + "\"DURABLE\"");
-            } else if (isShared) {
-                configParams.add("consumerType" + COLON_SEPARATOR + "\"SHARED\"");
-            } else {
-                configParams.add("consumerType" + COLON_SEPARATOR + "\"DEFAULT\"");
-            }
-        }
-
-        // Add session acknowledgment mode
-        Value sessionAckMode = properties.get(PROPERTY_SESSION_ACK_MODE);
-        if (sessionAckMode != null && Objects.nonNull(sessionAckMode.getValue())) {
-            AcknowledgmentMode mode = AcknowledgmentMode.fromString(sessionAckMode.getValue());
-            configParams.add(PROPERTY_SESSION_ACK_MODE + COLON_SEPARATOR + mode.getQuotedValue());
-        }
-
-        annotation.append(String.join(COMMA_SEPARATOR, configParams));
-        annotation.append(CLOSE_BRACE).append(NEW_LINE);
-        return annotation.toString();
-    }
-
-    private void applyAckModeToOnMessageFunction(List<Function> functions, Map<String, Value> properties) {
-        // Find the onMessage function
-        Function onMessageFunction = functions.stream()
-                .filter(func -> ON_MESSAGE_FUNCTION_NAME.equals(func.getName().getValue()))
-                .findFirst()
-                .orElse(null);
-
-        if (onMessageFunction == null) {
-            return;
-        }
-
-        // Get the session ack mode
-        Value sessionAckMode = properties.get(PROPERTY_SESSION_ACK_MODE);
-        if (sessionAckMode == null || sessionAckMode.getValue() == null) {
-            return;
-        }
-
-        String ackMode = sessionAckMode.getValue();
-        updateCallerParameterForAckMode(onMessageFunction, ackMode);
-    }
-
-    private String extractAcknowledgmentMode(MappingConstructorExpressionNode mappingNode) {
-        // Parse the mapping constructor to find the sessionAckMode field
-        for (MappingFieldNode field : mappingNode.fields()) {
-            if (field instanceof SpecificFieldNode specificField) {
-                // Get the field name
-                String fieldName = specificField.fieldName().toString().trim();
-
-                // Check if this is the sessionAckMode field
-                if (PROPERTY_SESSION_ACK_MODE.equals(fieldName)) {
-                    // Get the field value
-                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
-                    if (valueExpr instanceof BasicLiteralNode literalNode) {
-                        return literalNode.literalToken().text().trim();
-                    }
-                }
-            }
-        }
-        return null; // Return null if sessionAckMode field not found
-    }
-
-    private String extractFieldValue(MappingConstructorExpressionNode mappingNode, String fieldName) {
-        // Parse the mapping constructor to find the specified field
-        for (MappingFieldNode field : mappingNode.fields()) {
-            if (field instanceof SpecificFieldNode specificField) {
-                // Get the field name
-                String currentFieldName = specificField.fieldName().toString().trim();
-
-                // Check if this is the field we're looking for
-                if (fieldName.equals(currentFieldName)) {
-                    // Get the field value
-                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
-                    if (valueExpr instanceof BasicLiteralNode literalNode) {
-                        return literalNode.literalToken().text().trim().replace("\"", "");
-                    }
-                }
-            }
-        }
-        return null; // Return null if field not found
-    }
-
-    private void extractDestinationFromAnnotation(Service service) {
-        Map<String, Value> properties = service.getProperties();
-        Map<String, Value> readonlyProperties = service.getReadonlyProperties();
-
-        // Get the annotation configuration from properties
-        Value annotServiceConfig = properties.get("annotServiceConfig");
-        if (annotServiceConfig == null || annotServiceConfig.getValue() == null) {
-            return;
-        }
-
-        // Parse the annotation expression
-        String annotationExpr = annotServiceConfig.getValue();
-        ExpressionNode exprNode = NodeParser.parseExpression(annotationExpr);
-        if (!(exprNode instanceof MappingConstructorExpressionNode mappingNode)) {
-            return;
-        }
-
-        // Extract queue name first, then topic name if queue name not found
-        String queueName = extractFieldValue(mappingNode, PROPERTY_QUEUE_NAME);
-        if (queueName != null) {
-            // Create a new readonly property for the queue name
-            Value queueNameProperty = new Value.ValueBuilder()
-                    .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
-                    .value(queueName)
-                    .valueType(VALUE_TYPE_EXPRESSION)
-                    .setValueTypeConstraint(VALUE_TYPE_STRING)
-                    .enabled(true)
-                    .editable(false)
-                    .build();
-
-            // Add the queue name as a readonly property
-            readonlyProperties.put(PROPERTY_QUEUE_NAME, queueNameProperty);
-        } else {
-            // Try to extract topic name if queue name not found
-            String topicName = extractFieldValue(mappingNode, PROPERTY_TOPIC_NAME);
-            if (topicName != null) {
-                // Create a new readonly property for the topic name
-                Value topicNameProperty = new Value.ValueBuilder()
-                        .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
-                        .value(topicName)
-                        .valueType(VALUE_TYPE_EXPRESSION)
-                        .setValueTypeConstraint(VALUE_TYPE_STRING)
-                        .enabled(true)
-                        .editable(false)
-                        .build();
-
-                // Add the topic name as a readonly property
-                readonlyProperties.put(PROPERTY_TOPIC_NAME, topicNameProperty);
-
-                // Extract and add subscriber name if present
-                String subscriberName = extractFieldValue(mappingNode, "subscriberName");
-                if (subscriberName != null && !subscriberName.isEmpty()) {
-                    Value subscriberNameProperty = new Value.ValueBuilder()
-                            .metadata("Subscriber Name", "The name to be used for the subscription.")
-                            .value(subscriberName)
-                            .valueType(VALUE_TYPE_EXPRESSION)
-                            .setValueTypeConstraint(VALUE_TYPE_STRING)
-                            .enabled(true)
-                            .editable(false)
-                            .build();
-                    readonlyProperties.put("subscriberName", subscriberNameProperty);
-                }
-            }
-        }
-
-        // Extract and add session acknowledgment mode as readonly property
-        String ackMode = extractAcknowledgmentMode(mappingNode);
-        if (ackMode != null) {
-            Value ackModeProperty = new Value.ValueBuilder()
-                    .metadata(LABEL_SESSION_ACK_MODE, DESC_SESSION_ACK_MODE)
-                    .value(ackMode.replace("\"", ""))
-                    .valueType(VALUE_TYPE_EXPRESSION)
-                    .setValueTypeConstraint(VALUE_TYPE_STRING)
-                    .enabled(true)
-                    .editable(false)
-                    .build();
-
-            readonlyProperties.put(PROPERTY_SESSION_ACK_MODE, ackModeProperty);
-        }
-    }
-
-    private void updateCallerParameterForAckMode(Function onMessageFunction, String ackMode) {
-        if (onMessageFunction == null) {
-            return;
-        }
-
-        Parameter callerParam = onMessageFunction.getParameters().stream()
-                .filter(param -> CALLER_PARAM_NAME.equals(param.getName().getValue()))
-                .findFirst()
-                .orElse(null);
-
-        AcknowledgmentMode mode = AcknowledgmentMode.fromString(ackMode);
-
-        if (mode == AcknowledgmentMode.AUTO_ACKNOWLEDGE) {
-            if (callerParam != null) {
-                callerParam.setEnabled(false);
-            }
-        } else {
-            if (callerParam != null) {
-                callerParam.setEnabled(true);
-            } else {
-                addCallerParameter(onMessageFunction, CALLER_TYPE, LABEL_IBM_MQ);
-            }
-        }
     }
 
     private DependencyCheckResult checkIBMMQDependency(AddServiceInitModelContext context) {
@@ -776,55 +368,8 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
         // Get service-level edits from parent
         Map<String, List<TextEdit>> serviceEdits = super.updateModel(context);
-        List<TextEdit> allEdits = new ArrayList<>(serviceEdits.get(context.filePath()));
-
-        Service service = context.service();
-        ServiceDeclarationNode serviceNode = context.serviceNode();
-
-        // Find and update onMessage function if ack mode changed
-        try {
-            Function onMessageFunction = service.getFunctions().stream()
-                    .filter(func -> ON_MESSAGE_FUNCTION_NAME.equals(func.getName().getValue()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (onMessageFunction != null) {
-                // Extract and apply ack mode from annotation
-                String annotationExpr = service.getProperties().get("annotServiceConfig").getValue();
-                ExpressionNode exprNode = NodeParser.parseExpression(annotationExpr);
-                if (exprNode instanceof MappingConstructorExpressionNode mappingNode) {
-                    String ackMode = extractAcknowledgmentMode(mappingNode);
-                    if (ackMode != null) {
-                        updateCallerParameterForAckMode(onMessageFunction, ackMode);
-                    }
-                }
-
-                // Find corresponding FunctionDefinitionNode in the service
-                FunctionDefinitionNode functionNode = serviceNode.members().stream()
-                        .filter(member -> member instanceof FunctionDefinitionNode)
-                        .map(member -> (FunctionDefinitionNode) member)
-                        .filter(funcNode -> ON_MESSAGE_FUNCTION_NAME.equals(funcNode.functionName().text().trim()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (functionNode != null) {
-                    // Use FunctionBuilderRouter to generate function update edits
-                    Map<String, List<TextEdit>> functionEdits = FunctionBuilderRouter.updateFunction(
-                            IBM_MQ, onMessageFunction, context.filePath(), context.document(), functionNode,
-                            context.semanticModel(), context.project(), context.workspaceManager());
-
-                    // Add function edits to the service edits
-                    if (functionEdits.containsKey(context.filePath())) {
-                        allEdits.addAll(functionEdits.get(context.filePath()));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // If function update fails, just return service edits
-            // This ensures service-level updates still work even if function updates fail
-        }
-
-        return Map.of(context.filePath(), allEdits);
+        // Use JmsUtil to handle ack mode updates for onMessage function
+        return updateModelWithAckMode(context, serviceEdits, IBM_MQ, CALLER_TYPE, LABEL_IBM_MQ);
     }
 
     @Override
@@ -838,8 +383,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                     onErrorFunction.setOptional(true);
                 });
 
-        // Extract destination from annotation and add as readonly property
-        extractDestinationFromAnnotation(service);
         return service;
     }
 

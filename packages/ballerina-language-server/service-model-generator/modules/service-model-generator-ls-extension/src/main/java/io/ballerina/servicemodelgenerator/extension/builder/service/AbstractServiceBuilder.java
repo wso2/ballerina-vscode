@@ -165,6 +165,9 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         List<String> includedParams = new ArrayList<>();
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
             Value value = entry.getValue();
+            if (value.getCodedata() == null) {
+                continue;
+            }
             Codedata codedata = value.getCodedata();
             String argType = codedata.getArgType();
             if (Objects.isNull(argType) || argType.isEmpty()) {

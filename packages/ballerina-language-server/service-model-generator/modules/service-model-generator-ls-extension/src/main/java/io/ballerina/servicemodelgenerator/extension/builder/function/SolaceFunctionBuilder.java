@@ -34,7 +34,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE
 /**
  * Represents the Solace function builder of the service model generator.
  *
- * @since 1.3.0
+ * @since 1.4.0
  */
 public final class SolaceFunctionBuilder extends AbstractFunctionBuilder {
 
@@ -42,14 +42,9 @@ public final class SolaceFunctionBuilder extends AbstractFunctionBuilder {
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        // Process databinding - handles type generation/update and parameter updates
         Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingUpdate(
                 context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false);
-
-        // Get edits for main file
         Map<String, List<TextEdit>> mainFileEdits = super.updateModel(context);
-
-        // Merge both edits into a mutable map
         Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
         allEdits.putAll(databindEdits);
 
