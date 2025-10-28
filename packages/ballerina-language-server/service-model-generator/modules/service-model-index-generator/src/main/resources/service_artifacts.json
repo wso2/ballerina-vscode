@@ -1545,6 +1545,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "solaceError",

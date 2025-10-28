@@ -47,7 +47,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
@@ -72,6 +71,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_STRING;
+import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.CALLER_PARAM_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.addCallerParameter;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
@@ -128,6 +128,8 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
     // Function and parameter names
     private static final String ON_MESSAGE_FUNCTION_NAME = "onMessage";
+    public static final String PAYLOAD_FIELD_NAME = "payload";
+    public static final String TYPE_PREFIX = "SolaceMessage";
 
     // Listener configuration property keys
     private static final String[] LISTENER_CONFIG_KEYS = {
@@ -177,7 +179,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        // Check for existing Solace listeners
         Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                 context.semanticModel(), context.project());
 
@@ -190,11 +191,9 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
         }
 
-        // Add destination choice (Queue vs Topic)
         Value destinationChoice = buildDestinationChoice();
         properties.put(PROPERTY_DESTINATION, destinationChoice);
 
-        // Add session acknowledgment mode dropdown
         Value sessionAckMode = buildSessionAckModeProperty();
         properties.put(PROPERTY_SESSION_ACK_MODE, sessionAckMode);
 
@@ -469,92 +468,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         return annotation.toString();
     }
 
-    private void extractDestinationFromAnnotation(Service service) {
-        Map<String, Value> properties = service.getProperties();
-        Map<String, Value> readonlyProperties = service.getReadonlyProperties();
-
-        // Get the annotation configuration from properties
-        Value annotServiceConfig = properties.get("annotServiceConfig");
-        if (annotServiceConfig == null || annotServiceConfig.getValue() == null) {
-            return;
-        }
-
-        // Parse the annotation expression
-        String annotationExpr = annotServiceConfig.getValue();
-        ExpressionNode exprNode = NodeParser.parseExpression(annotationExpr);
-        if (!(exprNode instanceof MappingConstructorExpressionNode mappingNode)) {
-            return;
-        }
-
-        // Extract queue name first, then topic name if queue name not found
-        String queueName = extractFieldValue(mappingNode, PROPERTY_QUEUE_NAME);
-        if (queueName != null) {
-            // Create a new readonly property for the queue name
-            Value queueNameProperty = new Value.ValueBuilder()
-                    .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
-                    .value(queueName)
-                    .valueType(VALUE_TYPE_EXPRESSION)
-                    .setValueTypeConstraint(VALUE_TYPE_STRING)
-                    .enabled(true)
-                    .editable(false)
-                    .build();
-
-            // Add the queue name as a readonly property
-            readonlyProperties.put(PROPERTY_QUEUE_NAME, queueNameProperty);
-        } else {
-            // Try to extract topic name if queue name not found
-            String topicName = extractFieldValue(mappingNode, PROPERTY_TOPIC_NAME);
-            if (topicName != null) {
-                // Create a new readonly property for the topic name
-                Value topicNameProperty = new Value.ValueBuilder()
-                        .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
-                        .value(topicName)
-                        .valueType(VALUE_TYPE_EXPRESSION)
-                        .setValueTypeConstraint(VALUE_TYPE_STRING)
-                        .enabled(true)
-                        .editable(false)
-                        .build();
-
-                // Add the topic name as a readonly property
-                readonlyProperties.put(PROPERTY_TOPIC_NAME, topicNameProperty);
-
-                // Extract and add subscriber name if present
-                String subscriberName = extractFieldValue(mappingNode, "subscriberName");
-                if (subscriberName != null && !subscriberName.isEmpty()) {
-                    Value subscriberNameProperty = new Value.ValueBuilder()
-                            .metadata("Subscriber Name", "The name to be used for the subscription.")
-                            .value(subscriberName)
-                            .valueType(VALUE_TYPE_EXPRESSION)
-                            .setValueTypeConstraint(VALUE_TYPE_STRING)
-                            .enabled(true)
-                            .editable(false)
-                            .build();
-                    readonlyProperties.put("subscriberName", subscriberNameProperty);
-                }
-            }
-        }
-    }
-
-    private String extractFieldValue(MappingConstructorExpressionNode mappingNode, String fieldName) {
-        // Parse the mapping constructor to find the specified field
-        for (MappingFieldNode field : mappingNode.fields()) {
-            if (field instanceof SpecificFieldNode specificField) {
-                // Get the field name
-                String currentFieldName = specificField.fieldName().toString().trim();
-
-                // Check if this is the field we're looking for
-                if (fieldName.equals(currentFieldName)) {
-                    // Get the field value
-                    ExpressionNode valueExpr = specificField.valueExpr().orElse(null);
-                    if (valueExpr instanceof BasicLiteralNode literalNode) {
-                        return literalNode.literalToken().text().trim().replace("\"", "");
-                    }
-                }
-            }
-        }
-        return null; // Return null if field not found
-    }
-
     private void applyAckModeToOnMessageFunction(List<Function> functions, Map<String, Value> properties) {
         // Find the onMessage function
         Function onMessageFunction = functions.stream()
@@ -679,14 +592,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
-
-        // Find onError function and set it as optional
-        service.getFunctions().stream()
-                .filter(func -> "onError".equals(func.getName().getValue()))
-                .findFirst().ifPresent(onErrorFunction -> onErrorFunction.setOptional(true));
-
-        // Extract destination from annotation and add as readonly property
-        extractDestinationFromAnnotation(service);
+        addDataBindingParam(service, ON_MESSAGE_FUNCTION_NAME, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
         return service;
     }
 

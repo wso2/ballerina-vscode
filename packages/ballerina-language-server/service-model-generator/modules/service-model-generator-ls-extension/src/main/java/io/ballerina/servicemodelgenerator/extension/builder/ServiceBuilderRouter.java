@@ -29,9 +29,9 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBu
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.IBMMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBuilder;
-import io.ballerina.servicemodelgenerator.extension.builder.service.IBMMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
