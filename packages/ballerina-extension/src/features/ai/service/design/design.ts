@@ -31,23 +31,22 @@ import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
-    let updatedFileNames: string[] = [];
-    // Populate chat history and add user message
+    const updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    const updatedFileNames: string[] = [];
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
     const allMessages: ModelMessage[] = [
-            {
-                role: "system",
-                content: `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
+        {
+            role: "system",
+            content: `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
 ONLY answer Ballerina-related queries.
 
 # Plan Mode Approach
 
 ## Step 1: Create High-Level Design
-Create a very high-level and consise design plan for the the given user requirement.
+Create a very high-level and concise design plan for the given user requirement.
 
 ## Step 2: Break Down Into Tasks and Execute
 
@@ -77,19 +76,30 @@ This plan will be visible to the user and the execution will be guided on the ta
 2. Create the MYSQL Connection
 3. Implement the resource functions
 
-**Critical**:
+**Critical Rules**:
 - Task management is MANDATORY for all implementations
-- It prevents missing steps and ensures systematic implementation
-- Users get visibility into your progress
-- Do NOT mention internal tool names to the user - just naturally describe what you're doing (e.g., "I'll now break this down into implementation tasks" instead of "I'll use the ${TASK_WRITE_TOOL_NAME} tool")
-- **IMPORTANT**: When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call (see tool description for details)
+- When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call
+- Do NOT mention internal tool names to users
 
-**Execution Conditions**:
+**Execution Flow**:
 1. Create high-level design plan and break it into tasks using ${TASK_WRITE_TOOL_NAME}
 2. The tool will wait for PLAN APPROVAL from the user
 3. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
+   - **CRITICAL - User Updates**: You MUST provide progress updates in this EXACT format:
+
+     BEFORE starting implementation, write:
+     <toolcall>Your update message here</toolcall>
+
+     Based on task type:
+     - For 'service_design' tasks: <toolcall>Setting up the service structure...</toolcall>
+     - For 'connections_init' tasks: <toolcall>Connecting to [database/API name]...</toolcall>
+     - For 'implementation' tasks: <toolcall>Building the [feature name] functionality...</toolcall>
+
+     DO NOT write plain text like "Now I'll create..." or "I'm working on..."
+     ALWAYS wrap your update in <toolcall></toolcall> tags
+
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - Implement the task completely (write the Ballerina code)
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
@@ -98,6 +108,11 @@ This plan will be visible to the user and the execution will be guided on the ta
    - Repeat until ALL tasks are done
 
 4. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+
+**User Communication**:
+- ALWAYS use <toolcall></toolcall> tags for progress updates
+- Keep language simple and non-technical
+- Example: <toolcall>Setting up the service structure...</toolcall>
 
 ## Code Generation Guidelines
 
@@ -111,38 +126,26 @@ When generating Ballerina code:
    - Initialize necessary clients
    - Create service OR main function
    - Plan data flow and transformations
-
-3. **Code Format**:
-   \`\`\`
-   <code filename="main.bal">
-   \`\`\`ballerina
-   // Your Ballerina code here
-   \`\`\`
-   </code>
-   \`\`\`
 `,
-                providerOptions: cacheOptions,
-            },
-            ...historyMessages,
-            {
-                role: "user",
-                content: `Create a high-level design plan for the following requirement and break it down into implementation tasks.
+            providerOptions: cacheOptions,
+        },
+        ...historyMessages,
+        {
+            role: "user",
+            content: `Create a high-level design plan for the following requirement and break it down into implementation tasks.
 
 After the plan is approved, execute all tasks continuously following the execution flow defined in the system prompt.
 
 <User Query>
 ${params.usecase}
 </User Query>`,
-            },
-        ];
+        },
+    ];
 
-    // Fetch all libraries for tool description
     const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    const libraryDescriptions =
-        allLibraries.length > 0
-            ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
-            : "- No libraries available";
-
+    const libraryDescriptions = allLibraries.length > 0
+        ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
+        : "- No libraries available";
 
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, updatedSourceFiles, updatedFileNames),
@@ -163,7 +166,6 @@ ${params.usecase}
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
-    // Emit event to state machine: AI generation started
     AIChatStateMachine.sendEvent({
         type: AIChatMachineEventType.PLANNING_STARTED
     });
@@ -181,16 +183,13 @@ ${params.usecase}
             }
             case "tool-call": {
                 const toolName = part.toolName;
-                console.log(`[Design] Tool call started: ${toolName}`);
                 if (toolName === "LibraryProviderTool") {
                     selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
-                    eventHandler({ type: "tool_call", toolName });
                 }
                 else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
                     const input = part.input as any;
                     if (input && input.file_path) {
                         let fileName = input.file_path;
-                        eventHandler({ type: "tool_call", toolName, toolInput: { fileName } });
                     }
                 } else {
                     eventHandler({ type: "tool_call", toolName });
@@ -217,7 +216,8 @@ ${params.usecase}
                 else if (toolName === "LibraryProviderTool") {
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
-                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
+                }
+                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
                 }
                 else {
                     eventHandler({ type: "tool_result", toolName });
@@ -238,11 +238,9 @@ ${params.usecase}
                 const finishReason = part.finishReason;
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
-                // Emit FINISH_EXECUTION event to complete workflow
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
-                console.log(`[Design] Emitting FINISH_EXECUTION event`);
 
                 eventHandler({ type: "stop", command: Command.Design });
                 break;
@@ -251,7 +249,6 @@ ${params.usecase}
     }
 }
 
-// Main public function that uses the default event handler
 export async function generateDesign(params: GenerateCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
