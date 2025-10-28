@@ -97,6 +97,7 @@ import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getImportedTypes } from "../../TypeEditor/utils";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -229,6 +230,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+
+    const { addModal, closeModal, popModal } = useModalStack()
 
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
 
@@ -886,7 +889,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
@@ -903,7 +906,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,
@@ -968,14 +970,31 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     }
 
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: filePath,
+            position: position
+        })
+    }
+
+    const popupManager = {
+        addPopup: addModal,
+        removeLastPopup: popModal,
+        closePopup: closeModal
+    }
+
     const expressionEditor = useMemo(() => {
         return {
-            completions: filteredCompletions,
+            completions: completions,
             triggerCharacters: TRIGGER_CHARACTERS,
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,
@@ -1405,6 +1424,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
+                    popupManager={popupManager}
                     onSubmit={handleOnSubmit}
                     onBlur={handleOnBlur}
                     openView={handleOpenView}
