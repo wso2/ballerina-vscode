@@ -18,8 +18,6 @@ package org.ballerinalang.langserver.diagnostic;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
-import io.ballerina.projects.directory.BuildProject;
-import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.command.CommandUtil;
 import org.ballerinalang.langserver.common.utils.PathUtil;

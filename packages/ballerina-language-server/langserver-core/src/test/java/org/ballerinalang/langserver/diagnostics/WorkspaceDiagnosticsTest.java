@@ -116,8 +116,8 @@ public class WorkspaceDiagnosticsTest {
                 .flatMap(List::stream)
                 .map(d -> d.getCode().getLeft())
                 .toList();
-        Assert.assertEquals(diagnostics.size(), 2, "There should be only 2 diagnostics");
-        Assert.assertEquals(diagnostics, List.of("BCE0002", "BCE2003"));
+        Assert.assertEquals(diagnostics.size(), 3, "There should be only 2 diagnostics");
+        Assert.assertEquals(diagnostics, List.of("BCE0600", "BCE0002", "BCE2003"));
     }
 
     @Test(description = "Test workspace diagnostics after changing function signature from string to string|error")
@@ -147,8 +147,8 @@ public class WorkspaceDiagnosticsTest {
                 .flatMap(List::stream)
                 .map(d -> d.getCode().getLeft())
                 .toList();
-        Assert.assertEquals(actualInitialDiagnostics.size(), 1, "Initially, there should be only one diagnostic");
-        Assert.assertEquals(actualInitialDiagnostics.getFirst(), "BCE2003");
+        Assert.assertEquals(actualInitialDiagnostics.size(), 2, "Initially, there should be only two diagnostics");
+        Assert.assertEquals(actualInitialDiagnostics.getFirst(), "BCE0600", "BCE2003");
 
         // Now make the change to function signature from returns string to returns string|error
         String modifiedProjBContent = projBOriginalContent.replace(
@@ -174,8 +174,8 @@ public class WorkspaceDiagnosticsTest {
                 .map(d -> d.getCode().getLeft())
                 .toList();
 
-        Assert.assertEquals(actualAfterChangeDiagnostics.size(), 2, "Finally, there should be 2 diagnostics");
-        Assert.assertEquals(actualAfterChangeDiagnostics, List.of("BCE2003", "BCE2066"));
+        Assert.assertEquals(actualAfterChangeDiagnostics.size(), 3, "Finally, there should be 2 diagnostics");
+        Assert.assertEquals(actualAfterChangeDiagnostics, List.of("BCE0600", "BCE2003", "BCE2066"));
     }
 
     @AfterClass
