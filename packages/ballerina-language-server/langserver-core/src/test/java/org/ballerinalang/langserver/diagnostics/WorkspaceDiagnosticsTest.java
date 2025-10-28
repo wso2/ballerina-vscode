@@ -21,6 +21,7 @@ package org.ballerinalang.langserver.diagnostics;
 import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
@@ -64,21 +65,12 @@ public class WorkspaceDiagnosticsTest {
     }
 
     @Test(description = "Test workspace diagnostics are collected from all packages on initialization")
-    public void testWorkspaceDiagnosticsOnInitialization() throws IOException, WorkspaceDocumentException {
-        Path projAFile = testRoot.resolve("projA").resolve("main.bal").toAbsolutePath();
-        String projAContent = Files.readString(projAFile);
-
-        // Open the document
-        DidOpenTextDocumentParams openParams = new DidOpenTextDocumentParams();
-        TextDocumentItem textDocumentItem = new TextDocumentItem();
-        textDocumentItem.setUri(projAFile.toUri().toString());
-        textDocumentItem.setText(projAContent);
-        openParams.setTextDocument(textDocumentItem);
-        workspaceManager.didOpen(projAFile, openParams);
+    public void testWorkspaceDiagnosticsOnInitialization() throws WorkspaceDocumentException, EventSyncException {
+        workspaceManager.loadProject(testRoot.toAbsolutePath());
 
         // Assert the diagnostics
         DocumentServiceContext serviceContext = ContextBuilder.buildDocumentServiceContext(
-                projAFile.toUri().toString(),
+                testRoot.toUri().toString(),
                 this.workspaceManager,
                 LSContextOperation.TXT_DID_OPEN,
                 this.serverContext);
@@ -90,7 +82,7 @@ public class WorkspaceDiagnosticsTest {
         boolean hasProjBDiagnostics = diagnosticsMap.keySet().stream()
                 .anyMatch(key -> key.contains("projB"));
         Assert.assertTrue(hasProjADiagnostics, "Should have diagnostics entry for projA");
-        Assert.assertFalse(hasProjBDiagnostics, "projB should not have diagnostics initially");
+        Assert.assertTrue(hasProjBDiagnostics, "Should have diagnostics entry for projB");
     }
 
     @Test(description = "Test fixing error in dependency package clears cascading diagnostics in dependent")

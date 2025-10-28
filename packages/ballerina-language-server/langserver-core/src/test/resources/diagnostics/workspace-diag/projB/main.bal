@@ -1,4 +1,4 @@
 
-public function getMessage() returns string {
+public function getMessage() returns strin {
     return "Hello";
 }
