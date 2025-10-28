@@ -257,7 +257,7 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     }
 
     if (!config.script) {
-        // if webview is present and in BI mode, use the project path from the state machine (focused project in BI)
+        // If webview is present and in BI mode, use the project path from the state machine (focused project in BI)
         if (StateMachine.context().isBI && isWebviewPresent) {
             config.script = StateMachine.context().projectPath;
         } else {
@@ -745,7 +745,7 @@ async function getCurrentProjectRoot(): Promise<string> {
         return currentProjectRoot;
     }
 
-    // 2. Try to get the any open Ballerina files in the editor and determine the project root from there
+    // 2. Try to get any open Ballerina files in the editor and determine the project root from there
     let file: string | undefined;
     try {
         file = getCurrentBallerinaFile();
