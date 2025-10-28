@@ -16,49 +16,21 @@
  * under the License.
  */
 
-import React, { FC, useState } from "react";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { useQuery } from "@tanstack/react-query";
+import { FC, useState } from "react";
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
+import { PlatformExtHooks } from "../../../../PlatformExtHooks";
 
 export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: (connName: string) => void }> = ({
     selectedItem,
     onClose,
 }) => {
-    const { rpcClient } = useRpcContext();
     const [showInfo, setShowInfo] = useState(false);
-
-    const { data: projectPath } = useQuery({
-        queryKey: ["projectPath"],
-        queryFn: () => rpcClient.getVisualizerLocation(),
-    });
-
-    const { data: isLoggedIn } = useQuery({
-        queryKey: ["isLoggedIn"],
-        queryFn: () => rpcClient.getPlatformRpcClient().isLoggedIn(),
-        refetchInterval: 2000,
-    });
-
-    const { data: selected } = useQuery({
-        queryKey: ["devant-context", isLoggedIn],
-        queryFn: () => rpcClient.getPlatformRpcClient().getSelectedContext(),
-        enabled: !!isLoggedIn,
-        refetchInterval: 2000,
-    });
-
-    const { data: directoryComponent } = useQuery({
-        queryKey: [
-            "getDirectoryComponents",
-            { isLoggedIn, org: selected?.org?.uuid, project: selected?.project?.id, projectPath },
-        ],
-        queryFn: () => rpcClient.getPlatformRpcClient().getDirectoryComponents(projectPath.projectUri),
-        enabled: isLoggedIn && !!projectPath,
-        select: (components) => components[0] || null,
-        refetchInterval: 2000,
-    });
+    const selected = PlatformExtHooks.getSelectedContext();
+    const directoryComponent = PlatformExtHooks.getDirectoryComp()
+    const projectPath = PlatformExtHooks.getProjectPath();
 
     return (
         <>
@@ -82,7 +54,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                         component={directoryComponent}
                         item={selectedItem}
                         onCreate={(connName) => onClose(connName)}
-                        directoryFsPath={projectPath?.projectUri}
+                        directoryFsPath={projectPath}
                         org={selected.org}
                         project={selected.project}
                         onShowInfo={() => setShowInfo(true)}
