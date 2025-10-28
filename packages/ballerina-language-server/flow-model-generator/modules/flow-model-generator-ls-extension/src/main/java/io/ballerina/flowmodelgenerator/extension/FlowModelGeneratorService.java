@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -627,9 +628,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 .exceptionally(throwable -> {
                     FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
                     response.setError(throwable);
-             return response;
-         });
-     }
+                    return response;
+                });
+    }
 
     @JsonRequest
     public CompletableFuture<SearchNodesResponse> searchNodes(SearchNodesRequest request) {
@@ -649,7 +650,10 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 // Generate the flow nodes based on search criteria
                 ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
-                response.setOutput(modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+                Gson gson = new Gson();
+                JsonElement jsonElement = gson.toJsonTree(
+                        modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+                response.setOutput(jsonElement.getAsJsonArray());
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -657,7 +661,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         });
     }
 
-     @JsonRequest
+    @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> search(SearchRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             FlowModelAvailableNodesResponse response = new FlowModelAvailableNodesResponse();

@@ -117,6 +117,7 @@ under the License.
             <package name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager"/>
             <package name="io.ballerina.flowmodelgenerator.extension.dataloadermanager"/>
             <package name="io.ballerina.flowmodelgenerator.extension.chunkermanager"/>
+            <package name="io.ballerina.flowmodelgenerator.extension.toolkitmanager"/>
         </packages>
     </test>
 </suite>

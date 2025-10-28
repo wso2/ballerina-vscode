@@ -63,7 +63,6 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
-
     private WorkspaceManager workspaceManager;
 
     @Override
@@ -194,15 +193,60 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     @JsonRequest
     public CompletableFuture<GetMcpToolsResponse> getMcpTools(McpToolsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
+            GetMcpToolsResponse response = new GetMcpToolsResponse();
             try {
-                String sessionId = McpClient.sendInitializeRequest(request.serviceUrl());
-                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(request.serviceUrl(), sessionId);
+                // Validate URL format
+                String serviceUrl = request.serviceUrl();
+                if (serviceUrl == null || serviceUrl.trim().isEmpty()) {
+                    response.setError(new IllegalArgumentException("Service URL cannot be empty"));
+                    return response;
+                }
 
-                GetMcpToolsResponse response = new GetMcpToolsResponse();
+                try {
+                    java.net.URI uri = new java.net.URI(serviceUrl);
+                    if (uri.getHost() == null) {
+                        response.setError(new IllegalArgumentException("Invalid URL: missing host"));
+                        return response;
+                    }
+                    if (uri.getScheme() == null || !uri.getScheme().matches("https?")) {
+                        response.setError(
+                                new IllegalArgumentException("Invalid URL: only http/https protocols are supported"));
+                        return response;
+                    }
+                } catch (java.net.URISyntaxException e) {
+                    response.setError(new IllegalArgumentException("Invalid URL format: " + e.getMessage(), e));
+                    return response;
+                }
+
+                // Get the access token from the request (if provided)
+                String accessToken = request.accessToken();
+
+                // Send initialize request with optional authentication
+                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken);
+
+                // Send initialized notification to complete the handshake
+                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken);
+
+                // Now we can send operational requests
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken);
+
                 response.setTools(toolsJsonArray);
                 return response;
+            } catch (java.net.ConnectException e) {
+                response.setError(
+                        new RuntimeException("Connection failed: Unable to connect to " + request.serviceUrl(), e));
+                return response;
+            } catch (java.net.SocketTimeoutException e) {
+                response.setError(new RuntimeException("Connection timeout: Server did not respond in time", e));
+                return response;
+            } catch (java.io.IOException e) {
+                response.setError(new RuntimeException("Network error: " + e.getMessage(), e));
+                return response;
             } catch (Exception e) {
-                throw new RuntimeException("Failed to get MCP tools", e);
+                String errorMsg = e.getMessage() != null ? e.getMessage() :
+                    e.getClass().getSimpleName() + " (no error message)";
+                response.setError(new RuntimeException("Failed to get MCP tools: " + errorMsg, e));
+                return response;
             }
         });
     }

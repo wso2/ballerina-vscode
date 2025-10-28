@@ -49,6 +49,7 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
@@ -240,7 +241,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                     (TypeReferenceTypeSymbol) ((VariableSymbol) symbol).typeDescriptor();
             ClassSymbol classSymbol = (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
             if (classSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiVectorKnowledgeBase(classSymbol)
-                    || isAiVectorStore(symbol)) {
+                    || isAiVectorStore(symbol) || isAiMemoryStore(symbol)) {
                 return Optional.of(classSymbol);
             }
         } catch (Throwable e) {
