@@ -60,24 +60,9 @@
       },
       "readOnlyMetadata": [
         {
-          "key": "port",
-          "displayName": "Port Number",
-          "kind": "LISTENER_PARAM"
-        },
-        {
           "key": "basePath",
           "displayName": "Base Path",
           "kind": "SERVICE_DESCRIPTION"
-        },
-        {
-          "key": "host",
-          "displayName": "Host Address",
-          "kind": "SERVICE_DESCRIPTION"
-        },
-        {
-          "key": "config",
-          "displayName": "Service Configuration",
-          "kind": "ANNOTATION"
         }
       ]
     },

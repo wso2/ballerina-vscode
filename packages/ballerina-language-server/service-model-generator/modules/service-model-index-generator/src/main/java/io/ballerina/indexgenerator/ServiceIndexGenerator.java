@@ -223,8 +223,8 @@ class ServiceIndexGenerator {
         }
 
         // readonly metadata
-        if (Objects.nonNull(packageMetadataInfo.readOnlyMetaData())) {
-            List<MetadataItem> metadataItems = packageMetadataInfo.readOnlyMetaData();
+        if (Objects.nonNull(packageMetadataInfo.readOnlyMetadata())) {
+            List<MetadataItem> metadataItems = packageMetadataInfo.readOnlyMetadata();
             for (MetadataItem item : metadataItems) {
                 // Insert metadata with the kind field
                 DatabaseManager.insertServiceReadOnlyMetaData(packageId, item.key(),
@@ -680,7 +680,7 @@ class ServiceIndexGenerator {
                                        ServiceDeclaration serviceDeclaration,
                                        Map<String, ServiceType> serviceTypes, Map<String, Annotation> annotations,
                                        Map<String, ServiceInitializerProperty> initForm,
-                                       List<MetadataItem> readOnlyMetaData) {
+                                       List<MetadataItem> readOnlyMetadata) {
     }
 
     private record MetadataItem(String key, String displayName, String kind) {
