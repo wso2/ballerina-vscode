@@ -132,6 +132,7 @@ public class XSDConverterServiceTest extends AbstractLSTest {
      *
      * @param xsdContent  The XSD schema content.
      * @param description The description of the test.
+     * @param testProjectFolder The test project folder path.
      * @param output      The expected text edits output.
      */
     private record TestConfig(String xsdContent, String description, String testProjectFolder,

@@ -368,7 +368,10 @@ public class XSDTypeGenerator {
     }
 
     /**
-    * Record class to hold separated imports and type definitions.
+     * Record class to hold separated imports and type definitions.
+     *
+     * @param imports The import statements
+     * @param types The type definitions
      */
     private record SeparatedContent(String imports, String types) {
     }
