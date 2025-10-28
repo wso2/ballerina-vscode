@@ -321,7 +321,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.updateResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Resource Update');
+                const artifacts = await updateSourceCode(res, params.service ? { artifactType: DIRECTORY_MAP.SERVICE } : null, 'Resource Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
