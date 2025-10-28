@@ -26,7 +26,7 @@ import { useDMSearchStore } from "../../../store/store";
 import { InputNode } from "../Node";
 import { getErrorKind } from "../utils/common-utils";
 import { OverlayLayerModel } from "../OverlayLayer/OverlayLayerModel";
-import { IOType } from "@wso2/ballerina-core/lib/interfaces/data-mapper";
+import { IOType } from "@wso2/ballerina-core";
 import { useEffect } from "react";
 
 export const useDiagramModel = (

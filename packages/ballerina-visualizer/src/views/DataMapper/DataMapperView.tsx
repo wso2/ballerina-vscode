@@ -606,7 +606,7 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: property,
+                        property: { ...property, valueType: "DATA_MAPPING_EXPRESSION" }
                     },
                     completionContext: {
                         triggerKind: triggerCharacter ? 2 : 1,
