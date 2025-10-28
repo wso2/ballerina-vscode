@@ -1407,7 +1407,9 @@
       },
       "annotations": {
         "ServiceConfig": {
-          "attachmentPoints": ["SERVICE"],
+          "attachmentPoints": [
+            "SERVICE"
+          ],
           "displayName": "Service Configuration",
           "description": "Define advanced configurations like queue name",
           "typeConstraint": "ibmmq:ServiceConfiguration"
@@ -1458,7 +1460,19 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     },
     {
       "name": "solace",
@@ -1581,7 +1595,19 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }
