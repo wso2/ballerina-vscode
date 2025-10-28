@@ -287,7 +287,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             const readonlyProps: Set<ReadonlyProperty> = new Set();
             const readOnlyMetadata = service.properties.readOnlyMetadata;
 
-            if (readOnlyMetadata?.enabled && readOnlyMetadata.value && typeof readOnlyMetadata.value === "object") {
+            if (readOnlyMetadata?.enabled && readOnlyMetadata.value && typeof readOnlyMetadata.value === "object" && !Array.isArray(readOnlyMetadata.value)) {
                 Object.entries(readOnlyMetadata.value).forEach(([label, values]) => {
                     if (Array.isArray(values) && values.length > 0) {
                         readonlyProps.add({
