@@ -58,6 +58,7 @@ public class Constants {
     public static final String TCP = "tcp";
     public static final String AI = "ai";
     public static final String MCP = "mcp";
+    public static final String IBM_MQ = "ibm.ibmmq";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";

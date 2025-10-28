@@ -99,6 +99,16 @@
     "keywords": [
       "mcp"
     ]
+  },
+  "11": {
+    "name": "ibm.ibmmq",
+    "orgName": "ballerinax",
+    "packageName": "ibm.ibmmq",
+    "keywords": [
+      "ibm",
+      "ibmmq",
+      "messaging",
+      "event"
+    ]
   }
 }
- 
