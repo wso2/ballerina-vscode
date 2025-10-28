@@ -20,6 +20,8 @@ package io.ballerina.xsd.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
@@ -35,10 +37,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -106,6 +112,9 @@ public class XSDTypeGenerator {
             throw new XSDGenerationException("No types were generated from the provided XSD schema");
         }
 
+        // Handle type name collisions
+        generatedTypes = handleTypeNameCollisions(generatedTypes);
+
         // Process text edits for the target file
         Path targetFilePath = projectPath.resolve(DEFAULT_TARGET_FILE);
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
@@ -143,6 +152,145 @@ public class XSDTypeGenerator {
         }
 
         return gson.toJsonTree(textEditsMap);
+    }
+
+    /**
+     * Handles type name collisions by renaming conflicting types and updating all references.
+     *
+     * @param generatedTypes The generated Ballerina types
+     * @return The generated types with resolved name collisions
+     */
+    private String handleTypeNameCollisions(String generatedTypes) {
+
+        List<String> existingTypeNames = getExistingTypeNames();
+
+        // Extract type names from generated content
+        Map<String, String> typeRenames = new HashMap<>();
+        Pattern typeDefPattern = Pattern.compile("^\\s*(?:public\\s+)?type\\s+(\\w+)\\s+", Pattern.MULTILINE);
+        Matcher matcher = typeDefPattern.matcher(generatedTypes);
+
+        while (matcher.find()) {
+            String typeName = matcher.group(1);
+            String updatedTypeName = getUpdatedTypeName(typeName, existingTypeNames, typeRenames);
+            if (!typeName.equals(updatedTypeName)) {
+                typeRenames.put(typeName, updatedTypeName);
+                existingTypeNames.add(updatedTypeName);
+            }
+        }
+
+        // Apply renames to the generated types
+        return applyTypeRenames(generatedTypes, typeRenames);
+    }
+
+    /**
+     * Gets existing type names from the target file.
+     *
+     * @return List of existing type names
+     */
+    private List<String> getExistingTypeNames() {
+        List<String> existingTypeNames = new ArrayList<>();
+        Path targetFilePath = projectPath.resolve(DEFAULT_TARGET_FILE);
+        Optional<Document> documentOpt = this.workspaceManager.document(targetFilePath);
+
+        if (documentOpt.isPresent()) {
+            Document document = documentOpt.get();
+            List<Symbol> typeDefSymbols = document.module().getCompilation()
+                    .getSemanticModel().moduleSymbols()
+                    .stream().filter(symbol -> symbol.kind() == SymbolKind.TYPE_DEFINITION).toList();
+
+            for (Symbol symbol : typeDefSymbols) {
+                symbol.getName().ifPresent(existingTypeNames::add);
+            }
+        }
+
+        return existingTypeNames;
+    }
+
+    /**
+     * Gets an updated type name if the given name already exists.
+     *
+     * @param typeName          Type name to check
+     * @param existingTypeNames List of existing type names
+     * @param typeRenames       Map of type renames already performed
+     * @return Updated type name
+     */
+    private String getUpdatedTypeName(String typeName, List<String> existingTypeNames,
+                                      Map<String, String> typeRenames) {
+        if (typeRenames.containsKey(typeName)) {
+            return typeRenames.get(typeName);
+        }
+
+        if (!existingTypeNames.contains(typeName) && !typeRenames.containsValue(typeName)) {
+            return typeName;
+        }
+
+        // Type name exists, generate a new one with numeric suffix
+        String[] parts = typeName.split("_");
+        String lastPart = parts[parts.length - 1];
+
+        if (isNumeric(lastPart)) {
+            // Already has a numeric suffix, increment it
+            String baseName = String.join("_", Arrays.copyOfRange(parts, 0, parts.length - 1));
+            int nextNumber = Integer.parseInt(lastPart) + 1;
+            String newName = baseName + "_" + String.format("%02d", nextNumber);
+            return getUpdatedTypeName(newName, existingTypeNames, typeRenames);
+        } else {
+            // No numeric suffix, add _01
+            return getUpdatedTypeName(typeName + "_01", existingTypeNames, typeRenames);
+        }
+    }
+
+    /**
+     * Checks if a string represents a valid integer.
+     *
+     * @param str String to check
+     * @return true if the string is a valid integer
+     */
+    private boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Applies type renames to the generated types content.
+     *
+     * @param generatedTypes The generated types
+     * @param typeRenames    Map of old type names to new type names
+     * @return The generated types with renames applied
+     */
+    private String applyTypeRenames(String generatedTypes, Map<String, String> typeRenames) {
+        if (typeRenames.isEmpty()) {
+            return generatedTypes;
+        }
+
+        String result = generatedTypes;
+
+        for (Map.Entry<String, String> entry : typeRenames.entrySet()) {
+            String oldName = entry.getKey();
+            String newName = entry.getValue();
+
+            // Replace type definition: "type OldName " -> "type NewName "
+            result = result.replaceAll(
+                    "\\b(type\\s+)" + Pattern.quote(oldName) + "\\b",
+                    "$1" + newName
+            );
+
+            // Replace type references in field definitions, unions, arrays, etc.
+            // Match the type name when it appears as a type reference (not part of another identifier)
+            result = result.replaceAll(
+                    "(?<![\\w])(" + Pattern.quote(oldName) + ")(?![\\w])",
+                    newName
+            );
+        }
+
+        return result;
     }
 
     /**
