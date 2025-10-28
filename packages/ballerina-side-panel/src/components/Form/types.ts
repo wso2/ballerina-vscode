@@ -173,7 +173,7 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
@@ -214,6 +214,18 @@ type FormExpressionEditorBaseProps = {
     onSaveConfigurables?: (values: any) => void;
 }
 
+type ExpressionEditorRPCManager = {
+    getExpressionTokens: (
+        expression: string,
+        filePath: string,
+        position: LinePosition
+    ) => Promise<number[]>;
+}
+
+type ExpressionEditorFormProps = {
+    rpcManager: ExpressionEditorRPCManager;
+}
+
 type SanitizedExpressionEditorProps = {
     rawExpression?: (expression: string) => string; // original expression
     sanitizedExpression?: (expression: string) => string; // sanitized expression that will be rendered in the editor
@@ -224,6 +236,7 @@ export type FormExpressionEditorProps =
     FormTypeConditionalProps &
     FormHelperPaneConditionalProps &
     FormExpressionEditorBaseProps &
+    ExpressionEditorFormProps &
     SanitizedExpressionEditorProps;
 
 export type FormImports = {

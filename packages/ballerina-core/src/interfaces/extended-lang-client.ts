@@ -1332,6 +1332,16 @@ export interface AddFieldRequest {
     };
 }
 
+export interface ExpressionTokensRequest {
+    expression: string;
+    filePath: string;
+    position?: LinePosition;
+}
+
+export interface ExpressionTokensResponse {
+    data: number[];
+}
+
 export interface SourceEditResponse {
     textEdits?: {
         [key: string]: TextEdit[];
