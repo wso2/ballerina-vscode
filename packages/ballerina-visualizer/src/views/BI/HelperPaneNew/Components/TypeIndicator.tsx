@@ -16,27 +16,18 @@
  * under the License.
  */
 
-export const DEFAULT_VALUE_MAP: Record<string, string> = {
-    "struct": "{}",
-    "array": "[]",
-    "map": "{}",
-    "int": "0",
-    "float": "0.0",
-    "boolean": "false",
-    "any": "null",
-    "decimal": "0.0",
-    "byte": "0"
-}
+import styled from "@emotion/styled";
 
-export const isRowType = (type: string | string[]) => {
-    return type && type === "struct";
-}
-
-export const isUnionType = (type: string) => {
-    return type && type === "enum";
-}
-
-export const getDefaultValue = (type: string) => {
-    //TODO: handle this using API
-     return DEFAULT_VALUE_MAP[type] || "";
-}
+export const TypeIndicator = styled.div`
+    text-transform: none;
+    font-size: 10px;
+    max-width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 16px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--vscode-chat-slashCommandBackground);
+    color: var(--vscode-chat-slashCommandForeground);
+`;

@@ -23,7 +23,7 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
@@ -905,11 +905,12 @@ export type SearchKind =
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
     | "EMBEDDING_PROVIDER"
-    | "VECTOR_KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
     | "AGENT"
-    | "MEMORY_MANAGER"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "AGENT_TOOL"
     | "CLASS_INIT";
 
@@ -936,7 +937,7 @@ export type BISearchNodesResponse = {
 }
 
 export type SearchNodesQueryParams = {
-    kind?: SearchKind;
+    kind?: NodeKind;
     exactMatch?: string;
 }
 
@@ -1754,8 +1755,7 @@ export interface AIToolResponse {
 
 export interface McpToolsRequest {
     serviceUrl?: string;
-    configs?: Record<string, string>;
-    filePath?: string;
+    accessToken?: string;
 }
 
 export interface McpToolsResponse {
@@ -1763,7 +1763,7 @@ export interface McpToolsResponse {
         name: string;
         description?: string;
     }>;
-    error?: string;
+    errorMsg?: string;
 }
 
 export interface AIGentToolsRequest {

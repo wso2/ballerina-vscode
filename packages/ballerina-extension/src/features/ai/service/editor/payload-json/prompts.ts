@@ -14,13 +14,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { PayloadContext } from "@wso2/ballerina-core";
+import { PayloadContext, HttpPayloadContext, MessageQueuePayloadContext } from "@wso2/ballerina-core";
+import { isMessageQueuePayloadContext } from "../../utils";
 
 /**
  * System prompt for generating example JSON payloads
  */
-export function getPayloadGenerationSystemPrompt(): string {
-    return `You are an expert at generating realistic and contextually appropriate example JSON payloads for REST API services.
+export function getSystemPrompt(serviceType: string): string {
+
+    return `You are an expert at generating realistic and contextually appropriate example JSON payloads for ${serviceType} services.
 
 Your task is to analyze the provided service context and generate a meaningful JSON payload that:
 1. Matches the semantic intent of the service and resource
@@ -43,9 +45,9 @@ Return ONLY the JSON payload object in the specified format.`;
 }
 
 /**
- * User prompt for generating example JSON payloads
+ * User prompt for generating example JSON payloads for HTTP services
  */
-export function getPayloadGenerationUserPrompt(context: PayloadContext): string {
+function getHttpUserPrompt(context: HttpPayloadContext): string {
     let prompt = `Generate an example JSON payload for the following HTTP service resource:\n\n`;
 
     prompt += `**Service Name:** ${context.serviceName}\n`;
@@ -77,4 +79,52 @@ export function getPayloadGenerationUserPrompt(context: PayloadContext): string 
     prompt += `\nBased on the above context, generate a realistic and meaningful example JSON payload that would be appropriate for this service resource.`;
 
     return prompt;
+}
+
+/**
+ * User prompt for generating example JSON payloads for message brokers
+ */
+function getMessageBrokerUserPrompt(context: MessageQueuePayloadContext): string {
+    let prompt = `Generate an example JSON payload for the following message broker service:\n\n`;
+
+    prompt += `**Service Name:** ${context.serviceName}\n`;
+
+    if (context.queueOrTopic) {
+        prompt += `**Queue/Topic Name:** ${context.queueOrTopic}\n`;
+    }
+
+    if (context.messageDocumentation) {
+        prompt += `**Message Documentation:** ${context.messageDocumentation}\n`;
+    }
+
+    prompt += `\n**IMPORTANT:** Generate ONLY the message payload value that would be consumed by the application logic.
+DO NOT include message broker metadata fields such as topic, partition, offset, timestamp, key, headers, exchange, routing_key, 
+delivery_tag, or any other transport-level metadata.
+Generate ONLY the business data object that represents the actual message content.
+
+Based on the above context, generate a realistic and meaningful example JSON payload that represents the business data for this message.`;
+
+    return prompt;
+}
+
+/**
+ * System prompt for generating example JSON payloads
+ * Automatically selects the appropriate prompt based on the payload context type
+ */
+export function getPayloadGenerationSystemPrompt(context?: PayloadContext): string {
+    if (context && isMessageQueuePayloadContext(context)) {
+        return getSystemPrompt("Message Broker");
+    }
+    return getSystemPrompt("REST API");
+}
+
+/**
+ * User prompt for generating example JSON payloads
+ * Automatically selects the appropriate prompt based on the payload context type
+ */
+export function getPayloadGenerationUserPrompt(context: PayloadContext): string {
+    if (isMessageQueuePayloadContext(context)) {
+        return getMessageBrokerUserPrompt(context);
+    }
+    return getHttpUserPrompt(context as HttpPayloadContext);
 }

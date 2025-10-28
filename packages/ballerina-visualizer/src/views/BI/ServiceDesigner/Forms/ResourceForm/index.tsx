@@ -23,9 +23,10 @@ import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
 import { getDefaultResponse, HTTP_METHOD, removeForwardSlashes, sanitizedHttpPath } from '../../utils';
-import { FunctionModel, ParameterModel, PayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
+import { ConfigProperties, FunctionModel, ParameterModel, HttpPayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
+import { ResourceConfig } from './ResourceConfig/ResourceConfig';
 
 namespace S {
 	export const Grid = styled.div<{ columns: number }>`
@@ -87,11 +88,12 @@ export interface ResourceFormProps {
 	onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
 	onClose: () => void;
 	isNew?: boolean;
-	payloadContext?: PayloadContext;
+	payloadContext?: HttpPayloadContext;
+	filePath?: string;
 }
 
 export function ResourceForm(props: ResourceFormProps) {
-	const { model, isSaving, onSave, onClose, isNew, payloadContext } = props;
+	const { model, isSaving, onSave, onClose, isNew, payloadContext, filePath } = props;
 
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
@@ -113,7 +115,7 @@ export function ResourceForm(props: ResourceFormProps) {
 
 		const updatedResponse = {
 			...model.returnType.responses[0],
-			statusCode: { value: defaultStatusCode }
+			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
 		const updatedFunctionModel = {
@@ -157,6 +159,15 @@ export function ResourceForm(props: ResourceFormProps) {
 		console.log("Response Change: ", updatedFunctionModel);
 	};
 
+	const handleConfigChange = (properties: ConfigProperties, value: any) => {
+		const updatedFunctionModel = {
+			...functionModel,
+			properties: { ...functionModel.properties, ...properties }
+		};
+		setFunctionModel(updatedFunctionModel);
+		console.log("Config Change: ", updatedFunctionModel);
+	};
+
 	const handleSave = () => {
 		console.log("Saved Resource", functionModel);
 		if (createMore) {
@@ -189,6 +200,7 @@ export function ResourceForm(props: ResourceFormProps) {
 					/>
 					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
 					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+					<ResourceConfig properties={functionModel.properties} filePath={filePath} onChange={handleConfigChange} />
 					<ActionButtons
 						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
 						secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
@@ -248,7 +260,7 @@ export function ResourceForm(props: ResourceFormProps) {
 								}}
 							/>
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+							<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 							<Divider sx={{ marginBottom: 30 }} />
 							<Tooltip content='Keep adding more resources' containerSx={{ position: "fixed", width: "180px", marginLeft: 1 }}>
 								<CheckBoxGroup columns={2}>
@@ -257,7 +269,7 @@ export function ResourceForm(props: ResourceFormProps) {
 							</Tooltip>
 							<ActionButtons
 								primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
-								secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
+								secondaryButton={{ text: "Cancel", onClick: closeMethod, tooltip: "Cancel", disabled: isSaving }}
 								sx={{ justifyContent: "flex-end" }}
 							/>
 						</SidePanelBody>
