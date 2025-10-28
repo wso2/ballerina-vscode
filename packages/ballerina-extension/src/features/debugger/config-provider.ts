@@ -258,7 +258,7 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
 
     if (!config.script) {
         // If webview is present and in BI mode, use the project path from the state machine (focused project in BI)
-        if (StateMachine.context().isBI && isWebviewPresent) {
+        if (StateMachine.context().isBI && isWebviewPresent && StateMachine.context().projectPath) {
             config.script = StateMachine.context().projectPath;
         } else {
             config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
@@ -755,7 +755,11 @@ async function getCurrentProjectRoot(): Promise<string> {
 
     if (file) {
         const currentProject = await getCurrentBallerinaProject(file);
-        return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
+        if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE) {
+            return file;
+        } else if (currentProject.path) {
+            return currentProject.path;
+        }
     }
 
     // 3. Fallback to workspace root
