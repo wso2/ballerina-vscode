@@ -29,7 +29,7 @@ import { TextDocumentEdit } from "vscode-languageserver-types";
 import { modifyFileContent } from "../../utils/modification";
 import { fileURLToPath } from "url";
 import { startDebugging } from "../editor-support/activator";
-import { openView } from "../../stateMachine";
+import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
@@ -150,9 +150,11 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    let currentProject: BallerinaProject = {};
-    currentProject = await getCurrentBallerinaProject(projectPath);
-    return currentProject;
+    if (StateMachine.context().projectPath) {
+        projectPath = StateMachine.context().projectPath;
+    }
+
+    return await getCurrentBallerinaProject(projectPath);
 }
 
 export async function handleOnUnSetValues(packageName: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean): Promise<void> {
