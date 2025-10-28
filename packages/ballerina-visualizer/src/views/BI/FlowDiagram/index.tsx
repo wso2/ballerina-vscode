@@ -56,6 +56,7 @@ import {
     convertEmbeddingProviderCategoriesToSidePanelCategories,
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
+    convertKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
@@ -375,8 +376,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleVectorKnowledgeBaseAdded = async () => {
-        // Try to navigate back to VECTOR_KNOWLEDGE_BASE_LIST in the stack
-        const foundInStack = popNavigationStackUntilView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+        // Try to navigate back to KNOWLEDGE_BASE_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.KNOWLEDGE_BASE_LIST);
 
         if (foundInStack) {
             setShowProgressIndicator(true);
@@ -391,15 +392,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         FUNCTION_TYPE.REGULAR
                     )
                 );
-                setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+                setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
                 setShowSidePanel(true);
             } catch (error) {
-                console.error(">>> Error refreshing vector knowledge bases", error);
+                console.error(">>> Error refreshing knowledge bases", error);
             } finally {
                 setShowProgressIndicator(false);
             }
         } else {
-            console.log(">>> VECTOR_KNOWLEDGE_BASE_LIST not found in navigation stack, closing panel");
+            console.log(">>> KNOWLEDGE_BASE_LIST not found in navigation stack, closing panel");
             closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
@@ -823,8 +824,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     case "EMBEDDING_PROVIDER":
                         panelView = SidePanelView.EMBEDDING_PROVIDER_LIST;
                         break;
-                    case "VECTOR_KNOWLEDGE_BASE":
-                        panelView = SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST;
+                    case "KNOWLEDGE_BASE":
+                        panelView = SidePanelView.KNOWLEDGE_BASE_LIST;
                         break;
                     case "DATA_LOADER":
                         panelView = SidePanelView.DATA_LOADER_LIST;
@@ -865,7 +866,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearchVectorKnowledgeBase = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        // await handleSearch(searchText, functionType, "VECTOR_KNOWLEDGE_BASE");
+        // await handleSearch(searchText, functionType, "KNOWLEDGE_BASE");
     };
 
     const handleSearchDataLoader = async (searchText: string, functionType: FUNCTION_TYPE) => {
@@ -1066,7 +1067,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
-            case "VECTOR_KNOWLEDGE_BASES":
+            case "KNOWLEDGE_BASES":
                 setShowProgressIndicator(true);
                 rpcClient
                     .getBIDiagramRpcClient()
@@ -1081,7 +1082,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 FUNCTION_TYPE.REGULAR
                             )
                         );
-                        setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+                        setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1423,6 +1424,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 );
                 setCategories([]);
                 setSidePanelView(SidePanelView.DATA_LOADER_LIST);
+            } else if (sidePanelView === SidePanelView.KNOWLEDGE_BASES) {
+                handleOnSelectNode(
+                    selectedNodeMetadata.current.nodeId,
+                    selectedNodeMetadata.current.metadata,
+                    selectedNodeMetadata.current.fileName
+                );
+                setCategories([]);
+                setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
             } else if (sidePanelView === SidePanelView.CHUNKERS) {
                 handleOnSelectNode(
                     selectedNodeMetadata.current.nodeId,
@@ -1433,7 +1442,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setSidePanelView(SidePanelView.CHUNKER_LIST);
             } else if (
                 sidePanelView === SidePanelView.FORM &&
-                selectedNodeMetadata.current.metadata.node.codedata.node === "VECTOR_KNOWLEDGE_BASE"
+                selectedNodeMetadata.current.metadata.node.codedata.node === "KNOWLEDGE_BASE"
             ) {
                 handleOnSelectNode(
                     selectedNodeMetadata.current.nodeId,
@@ -1441,7 +1450,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     selectedNodeMetadata.current.fileName
                 );
                 setCategories([]);
-                setSidePanelView(SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST);
+                setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
             } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
@@ -1449,7 +1458,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
                 sidePanelView === SidePanelView.VECTOR_STORE_LIST ||
                 sidePanelView === SidePanelView.EMBEDDING_PROVIDER_LIST ||
-                sidePanelView === SidePanelView.VECTOR_KNOWLEDGE_BASE_LIST ||
+                sidePanelView === SidePanelView.KNOWLEDGE_BASE_LIST ||
                 sidePanelView === SidePanelView.DATA_LOADER_LIST ||
                 sidePanelView === SidePanelView.CHUNKER_LIST
             ) {
@@ -1639,22 +1648,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        // Update the node type to VECTOR_KNOWLEDGE_BASE and get the template
-        const updatedMetadata = { ...selectedNodeMetadata.current.metadata };
-        updatedMetadata.node.codedata.node = "VECTOR_KNOWLEDGE_BASE";
-        selectedNodeMetadata.current.metadata = updatedMetadata;
-
+        // Use search to get available knowledge base types
         rpcClient
             .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
+            .search({
+                position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
                 filePath: model?.fileName,
-                id: updatedMetadata.node.codedata,
+                queryMap: undefined,
+                searchKind: "KNOWLEDGE_BASE",
             })
             .then((response) => {
-                selectedNodeRef.current = response.flowNode;
-                showEditForm.current = false;
-                setSidePanelView(SidePanelView.FORM);
+                setCategories(convertKnowledgeBaseCategoriesToSidePanelCategories(response.categories as Category[]));
+                setSidePanelView(SidePanelView.KNOWLEDGE_BASES);
                 setShowSidePanel(true);
             })
             .finally(() => {
@@ -2030,7 +2035,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateNodeWithConnection = async (selectedNode: FlowNode) => {
-        if (selectedNode.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+        if (selectedNode.codedata.node === "KNOWLEDGE_BASE") {
             setSidePanelView(SidePanelView.FORM);
             return;
         }
