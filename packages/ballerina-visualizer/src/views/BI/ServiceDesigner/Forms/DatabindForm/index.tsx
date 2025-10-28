@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { FunctionModel, ParameterModel, Type } from "@wso2/ballerina-core";
+import { ConfigProperties, FunctionModel, ParameterModel, MessageQueuePayloadContext, Type } from "@wso2/ballerina-core";
 import {
     ActionButtons,
     CheckBox,
@@ -99,12 +99,16 @@ export const EditorContentColumn = styled.div`
 export interface DatabindFormProps {
     model: FunctionModel;
     isSaving?: boolean;
-    onSave: (functionModel: FunctionModel) => void;
+    onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
     onClose: () => void;
+    isNew?: boolean;
+    payloadContext?: MessageQueuePayloadContext;
+    serviceProperties?: ConfigProperties;
+    serviceModuleName?: string;
 }
 
 export function DatabindForm(props: DatabindFormProps) {
-    const { model, isSaving = false, onSave, onClose } = props;
+    const { model, isSaving = false, onSave, onClose, isNew = false, payloadContext, serviceProperties, serviceModuleName } = props;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
@@ -113,7 +117,6 @@ export function DatabindForm(props: DatabindFormProps) {
 
     // State for payload editor
     const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
-    const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     // State for type editor modal
@@ -139,6 +142,31 @@ export function DatabindForm(props: DatabindFormProps) {
         const moduleName = functionModel?.codedata?.moduleName || "";
         const key = `${moduleName}-${parameterName}`.toLowerCase();
         return parameterDescriptionMap[key] || "";
+    };
+
+    /**
+     * Gets the queue name description string based on module name
+     * @param moduleName - The module name (e.g., "rabbitmq", "kafka")
+     * @returns Description string about where the payload comes from
+     */
+    const getQueueDescriptionByModule = (moduleName: string): string => {
+        if (!moduleName) {
+            return "";
+        }
+        const lowerModuleName = moduleName.toLowerCase();
+        if (lowerModuleName === "rabbitmq") {
+            return serviceProperties.stringLiteral?.value;
+        } else if (lowerModuleName === "kafka") {
+            const metaValue = serviceProperties?.readOnlyMetaData?.value;
+            if (metaValue && typeof metaValue === "object") {
+                for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
+                    if (key === "Topics" && Array.isArray(val) && val.length > 0) {
+                        return String(val[0]);
+                    }
+                }
+            }
+        }
+        return "";
     };
 
     const handleParamChange = (params: ParameterModel[]) => {
@@ -175,7 +203,8 @@ export function DatabindForm(props: DatabindFormProps) {
     };
 
     const handleSave = () => {
-        onSave(functionModel);
+        // For new handlers, always open diagram after save
+        onSave(functionModel, isNew);
     };
 
     const handleCancel = () => {
@@ -255,14 +284,13 @@ export function DatabindForm(props: DatabindFormProps) {
             p => p.metadata.label === param.metadata.label && p.name.value === param.name.value
         );
         setEditingIndex(index);
-        setIsNew(false);
         setEditModel(param);
     };
 
     const onChangeParam = (param: ParameterModel) => {
         setEditModel(param);
         // Update the parameters array in real-time for existing parameters
-        if (!isNew && editingIndex >= 0) {
+        if (editingIndex >= 0) {
             const updatedParameters = [...functionModel.parameters];
             updatedParameters[editingIndex] = param;
             handleParamChange(updatedParameters);
@@ -280,23 +308,18 @@ export function DatabindForm(props: DatabindFormProps) {
             }
         }
 
-        if (isNew) {
-            handleParamChange([...functionModel.parameters, param]);
-            setIsNew(false);
+        // Use the editingIndex for more reliable updates
+        if (editingIndex >= 0) {
+            const updatedParameters = [...functionModel.parameters];
+            updatedParameters[editingIndex] = param;
+            handleParamChange(updatedParameters);
         } else {
-            // Use the editingIndex for more reliable updates
-            if (editingIndex >= 0) {
-                const updatedParameters = [...functionModel.parameters];
-                updatedParameters[editingIndex] = param;
-                handleParamChange(updatedParameters);
-            } else {
-                // Fallback to the original logic if index is not available
-                handleParamChange(
-                    functionModel.parameters.map((p) =>
-                        p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p
-                    )
-                );
-            }
+            // Fallback to the original logic if index is not available
+            handleParamChange(
+                functionModel.parameters.map((p) =>
+                    p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p
+                )
+            );
         }
         setEditModel(undefined);
         setEditingIndex(-1);
@@ -541,6 +564,10 @@ export function DatabindForm(props: DatabindFormProps) {
                 initialTypeName={generatePayloadTypeName()}
                 editMode={false}
                 modalTitle={"Define " + payloadFieldName + " Schema"}
+                payloadContext={{
+                    ...payloadContext,
+                    queueOrTopic: getQueueDescriptionByModule(serviceModuleName)
+                }}
                 modalWidth={650}
                 modalHeight={600}
             />
