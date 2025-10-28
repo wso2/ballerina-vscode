@@ -155,10 +155,8 @@ const AIChat: React.FC = () => {
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
 
-    // Approval dialog state
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
-    // Top-level tasks state for the todo panel
     const [todoTasks, setTodoTasks] = useState<Task[] | null>(null);
     const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
@@ -286,14 +284,12 @@ const AIChat: React.FC = () => {
             });
     }, []);
 
-    // Initialize auto-approve state from state machine context on mount
     useEffect(() => {
         const initializeAutoApproveState = async () => {
             try {
                 const context = await rpcClient.getAIChatContext();
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
-                    console.log(`[AIChat] Initialized auto-approve state: ${context.autoApproveEnabled}`);
                 }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
@@ -373,14 +369,9 @@ const AIChat: React.FC = () => {
                 });
             } else if (response.toolName == "TaskWrite") {
                 const taskOutput = response.toolOutput;
-                console.log("[TaskWrite] Tool result received:", taskOutput);
-                console.log("[TaskWrite] All tasks count:", taskOutput?.allTasks?.length);
 
-                // Update the top-level tasks if they exist (after approval)
                 if (taskOutput.success && taskOutput.allTasks && taskOutput.allTasks.length > 0) {
-                    // Only update if todoTasks is already set (meaning plan was approved)
                     if (todoTasks && todoTasks.length > 0) {
-                        console.log("[TaskWrite] Updating top-level tasks display");
                         setTodoTasks(taskOutput.allTasks);
                         setTasksMessage(taskOutput.message);
                     }
@@ -390,64 +381,49 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         if (!taskOutput.success || !taskOutput.allTasks || taskOutput.allTasks.length === 0) {
-                            // Check if this is an internal validation error that shouldn't be shown to user
                             const isInternalError = taskOutput.message &&
-                                taskOutput.message.includes("You MUST send ALL tasks with their current statuses");
+                                taskOutput.message.includes("ERROR: Missing");
 
-                            const indicatorPattern = /<toolcall>(Planning\.\.\.|Updating\.\.\.)<\/toolcall>/;
-                            if (!isInternalError) {
-                                // Parse and simplify the backend message
+                            const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+
+                            if (isInternalError) {
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(indicatorPattern, "");
+                            } else {
                                 let simplifiedMessage = "Task update failed";
+
                                 if (taskOutput.message) {
-                                    // Extract the key parts: "Plan not approved" or "Work not approved" + user comment
+                                    const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
+                                    const userComment = commentMatch ? commentMatch[1] : null;
+
                                     if (taskOutput.message.includes("Plan not approved")) {
-                                        // Extract user comment if present
-                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                        simplifiedMessage = commentMatch
-                                            ? `Plan not approved: ${commentMatch[1]}`
+                                        simplifiedMessage = userComment
+                                            ? `Plan not approved: ${userComment}`
                                             : "Plan not approved";
-                                    } else if (taskOutput.message.includes("Work not approved")) {
-                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                        simplifiedMessage = commentMatch
-                                            ? `Work not approved: ${commentMatch[1]}`
-                                            : "Work not approved";
                                     }
                                 }
 
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(
-                                    indicatorPattern,
-                                    `<toolcall>${simplifiedMessage}</toolcall>`
-                                );
-                            } else {
-                                // For internal errors, just remove the Planning indicator without showing an error
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, "");
+                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`);
                             }
                         } else {
-                            // Prepare todo data with ALL tasks
                             const todoData = {
-                                tasks: taskOutput.allTasks, // This should contain ALL tasks with updated statuses
+                                tasks: taskOutput.allTasks,
                                 message: taskOutput.message
                             };
                             const todoJson = JSON.stringify(todoData);
 
-                            console.log("[TaskWrite] Creating todo with", todoData.tasks.length, "tasks");
-
-                            // Replace "Planning..." or "Updating tasks..." toolcall or existing todo section with new todo section
-                            const taskPattern = /<toolcall>(Planning\.\.\.|Updating tasks\.\.\.)<\/toolcall>|<todo>.*?<\/todo>/s;
+                            const taskPattern = /<toolcall>Planning\.\.\.<\/toolcall>|<todo>.*?<\/todo>/s;
                             const lastMessageContent = newMessages[newMessages.length - 1].content;
 
                             if (taskPattern.test(lastMessageContent)) {
-                                console.log("[TaskWrite] Replacing existing todo section");
                                 newMessages[newMessages.length - 1].content = lastMessageContent.replace(
                                     taskPattern,
                                     `<todo>${todoJson}</todo>`
                                 );
                             } else {
-                                console.log("[TaskWrite] Appending new todo section");
                                 newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
                             }
                         }
@@ -459,8 +435,6 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                        // Match patterns like "Generating code for types.bal..." or "Reading service.bal..."
                         const generatingPattern = /<toolcall>Generating code for (.+?)\.\.\.<\/toolcall>/;
                         const readingPattern = /<toolcall>Reading (.+?)\.\.\.<\/toolcall>/;
 
@@ -485,9 +459,6 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "task_approval_request") {
             // Handle approval request from the backend
-            console.log("[Approval] Received approval request:", response);
-
-            // Show "Planning..." indicator only for plan approval (initial creation)
             if (response.approvalType === "plan") {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
@@ -498,7 +469,6 @@ const AIChat: React.FC = () => {
                 });
             }
 
-            // Set approval request
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
@@ -1888,7 +1858,6 @@ const AIChat: React.FC = () => {
         );
 
         setMessages((prevMessages) => []);
-        // Clear tasks and approval requests when clearing chat
         setTodoTasks(null);
         setTasksMessage(undefined);
         setApprovalRequest(null);
@@ -1898,12 +1867,9 @@ const AIChat: React.FC = () => {
         rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
 
-    // Handle auto-approval toggle
     const handleToggleAutoApprove = () => {
         const newValue = !isAutoApproveEnabled;
         setIsAutoApproveEnabled(newValue);
-
-        // Send event to state machine
         if (newValue) {
             rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
         } else {
@@ -2111,23 +2077,17 @@ const AIChat: React.FC = () => {
         });
     };
 
-    // Handle approval dialog approve action
     const handleApprovalApprove = (comment?: string) => {
         if (!approvalRequest) return;
 
-        console.log("[Approval] User approved:", comment);
-
-        // Send approval event to state machine based on approval type
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_PLAN,
                 payload: { comment }
             });
-            // Show tasks in the top panel ONLY when plan is approved
             setTodoTasks(approvalRequest.tasks);
             setTasksMessage(approvalRequest.message);
         } else if (approvalRequest.approvalType === "completion") {
-            // Find the index of the last task in review status
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
             const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.description === lastReviewTask?.description);
@@ -2141,17 +2101,12 @@ const AIChat: React.FC = () => {
             });
         }
 
-        // Close dialog
         setApprovalRequest(null);
     };
 
-    // Handle approval dialog reject action
     const handleApprovalReject = (comment?: string) => {
         if (!approvalRequest) return;
 
-        console.log("[Approval] User rejected:", comment);
-
-        // Send rejection event to state machine based on approval type
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.REJECT_PLAN,
@@ -2164,7 +2119,6 @@ const AIChat: React.FC = () => {
             });
         }
 
-        // Close dialog
         setApprovalRequest(null);
     };
 
@@ -2204,7 +2158,6 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
-                    {/* Show TodoSection when we have tasks from approval request OR after plan is approved */}
                     {(approvalRequest?.tasks || todoTasks) && (
                         <TodoPanel>
                             <TodoSection
