@@ -90,7 +90,7 @@ import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { VariableForm } from "../DeclareVariableForm";
-import VectorKnowledgeBaseForm from "../VectorKnowledgeBaseForm";
+import KnowledgeBaseForm from "../KnowledgeBaseForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import React from "react";
@@ -130,11 +130,14 @@ interface FormProps {
     handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
-    newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[];
-    onToolsChange?: (selectedTools: string[]) => void;
+    injectedComponents?: {
+        component: React.ReactNode;
+        index: number;
+    }[];
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
+    fieldPriority?: Record<string, number>; // Map of field keys to priority numbers (lower = rendered first)
+    fieldOverrides?: Record<string, Partial<FormField>>;
 }
 
 // Styled component for the action button description
@@ -206,9 +209,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleOnFormSubmit,
         isInModal,
         scopeFieldAddon,
-        newServerUrl,
         onChange,
-        mcpTools,
+        injectedComponents,
+        fieldPriority,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -363,6 +366,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             });
     };
 
+    // Sorts form fields based on the fieldPriority prop.
+    //  Fields with lower priority numbers are rendered first.
+    const sortFieldsByPriority = (fields: FormField[]): FormField[] => {
+        if (!fieldPriority || Object.keys(fieldPriority).length === 0) {
+            return fields;
+        }
+
+        return [...fields].sort((a, b) => {
+            const priorityA = fieldPriority[a.key] ?? Number.MAX_SAFE_INTEGER;
+            const priorityB = fieldPriority[b.key] ?? Number.MAX_SAFE_INTEGER;
+
+            // If priorities are equal, maintain original order
+            if (priorityA === priorityB) {
+                return 0;
+            }
+
+            return priorityA - priorityB;
+        });
+    };
+
     const initForm = (node: FlowNode) => {
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
@@ -407,9 +430,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // get node properties
-        const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
-        setFields(fields);
-        setFormImports(getImportsForFormFields(fields));
+        let fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
+
+        // Apply field overrides if provided
+        if (props.fieldOverrides) {
+            fields = fields.map(field => {
+                const override = props.fieldOverrides[field.key];
+                if (override) {
+                    return { ...field, ...override };
+                }
+                return field;
+            });
+        }
+
+        const sortedFields = sortFieldsByPriority(fields);
+        setFields(sortedFields);
+        setFormImports(getImportsForFormFields(sortedFields));
     };
 
     const setDiagnosticsToFields = (data: FormValues, nodeWithDiagnostics: FlowNode) => {
@@ -1241,9 +1277,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     // handle vector knowledge base form
-    if (node?.codedata.node === "VECTOR_KNOWLEDGE_BASE") {
+    if (node?.codedata.node === "KNOWLEDGE_BASE") {
         return (
-            <VectorKnowledgeBaseForm
+            <KnowledgeBaseForm
                 fileName={fileName}
                 node={node}
                 targetLineRange={targetLineRange}
@@ -1398,10 +1434,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         node.codedata.node === ("ASSIGN" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
-                    newServerUrl={newServerUrl}
                     onChange={onChange}
-                    mcpTools={mcpTools}
-                    onToolsChange={props.onToolsChange}
+                    injectedComponents={injectedComponents}
                 />
             )}
             {stack.map((item, i) => (
