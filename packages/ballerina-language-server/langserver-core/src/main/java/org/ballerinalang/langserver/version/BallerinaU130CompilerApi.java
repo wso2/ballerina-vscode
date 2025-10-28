@@ -23,6 +23,7 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectKind;
@@ -30,6 +31,7 @@ import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectPaths;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.ballerinalang.annotation.JavaSPIService;
 
 import java.nio.file.Path;
@@ -116,5 +118,10 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
     @Override
     public boolean isWorkspaceProjectRoot(Path path) {
         return ProjectPaths.isWorkspaceProjectRoot(path);
+    }
+
+    @Override
+    public Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult) {
+        return diagnosticResult.diagnostics(false, true);
     }
 }

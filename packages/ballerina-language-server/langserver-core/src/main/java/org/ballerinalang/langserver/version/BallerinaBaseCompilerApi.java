@@ -23,10 +23,12 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.ProjectLoader;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
@@ -120,4 +122,9 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     public boolean isWorkspaceProjectRoot(Path path) {
         return false;
     }
- }
+
+    @Override
+    public Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult) {
+        return diagnosticResult.diagnostics(false);
+    }
+}

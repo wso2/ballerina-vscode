@@ -156,7 +156,7 @@ public class WorkspaceDiagnosticsTest {
                 .map(d -> d.getCode().getLeft())
                 .toList();
         Assert.assertEquals(actualInitialDiagnostics.size(), 1, "Initially, there should be only one diagnostic");
-        Assert.assertEquals(actualInitialDiagnostics.get(0), "BCE2003", "Expected diagnostic code BCE2003 initially");
+        Assert.assertEquals(actualInitialDiagnostics.getFirst(), "BCE2003", "Expected diagnostic code BCE2003 initially");
 
         // Now make the change to function signature from returns string to returns string|error
         String modifiedProjBContent = projBOriginalContent.replace(

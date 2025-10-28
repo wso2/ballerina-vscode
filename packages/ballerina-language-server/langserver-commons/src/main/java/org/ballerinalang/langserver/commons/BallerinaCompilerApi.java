@@ -24,9 +24,11 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.util.RepoUtils;
 
@@ -260,4 +262,12 @@ public abstract class BallerinaCompilerApi {
      * @return {@code true} if the path is a workspace project root, {@code false} otherwise.
      */
     public abstract boolean isWorkspaceProjectRoot(Path path);
+
+    /**
+     * Gets diagnostics from a diagnostic result after hiding the diagnostics from the dependencies.
+     *
+     * @param diagnosticResult The diagnostic result from a package compilation.
+     * @return A collection of diagnostics.
+     */
+    public abstract Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult);
 }

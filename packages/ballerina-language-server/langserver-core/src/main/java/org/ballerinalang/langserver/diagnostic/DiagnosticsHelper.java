@@ -202,7 +202,7 @@ public class DiagnosticsHelper {
             Optional<PackageCompilation> currentCompilation =
                     workspace.waitAndGetPackageCompilation(context.filePath());
             currentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                    toDiagnosticsMap(packageCompilation.diagnosticResult().diagnostics(false),
+                    toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
                             originalPath, workspace)));
 
             // Get diagnostics from all dependent packages
@@ -212,7 +212,7 @@ public class DiagnosticsHelper {
                 Optional<PackageCompilation> dependentCompilation =
                         workspace.waitAndGetPackageCompilation(dependentRoot);
                 dependentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                        toDiagnosticsMap(packageCompilation.diagnosticResult().diagnostics(false),
+                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
                                 dependentRoot, workspace)));
             }
         } else {
