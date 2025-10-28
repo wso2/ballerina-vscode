@@ -260,17 +260,8 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
     const hasInProgress = !!inProgressTask;
     const needsApproval = !!approvalType;
 
-    // Highlight container only for plan approval, not task completion approval
     useEffect(() => {
-        if (approvalType === "plan") {
-            // Highlight entire container for plan approval
-            setIsNew(true);
-        } else {
-            // No container highlight for task approval (task itself has blue border)
-            setIsNew(false);
-        }
-
-        // Reset submission state when approval type changes
+        setIsNew(approvalType === "plan");
         setIsSubmitting(false);
         setShowRejectComment(false);
         setRejectComment("");
@@ -280,7 +271,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
         setIsExpanded(!isExpanded);
     };
 
-    // Function to scroll to in-progress task
     const scrollToInProgress = () => {
         if (inProgressRef.current) {
             inProgressRef.current.scrollIntoView({
@@ -290,25 +280,21 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
         }
     };
 
-    // Auto-scroll to in-progress task
     useEffect(() => {
         if (isExpanded && hasInProgress) {
             scrollToInProgress();
         }
     }, [isExpanded, inProgressTask?.description]);
 
-    // Handle user scroll - refocus after delay
     useEffect(() => {
         const todoList = todoListRef.current;
         if (!todoList || !hasInProgress) return;
 
         const handleScroll = () => {
-            // Clear existing timeout
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
             }
 
-            // Set new timeout to refocus after 3 seconds
             scrollTimeoutRef.current = setTimeout(() => {
                 scrollToInProgress();
             }, 3000);
@@ -324,7 +310,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
         };
     }, [hasInProgress, inProgressTask?.description]);
 
-    // Determine status text
     const getStatusText = () => {
         if (allCompleted) return "completed";
         if (needsApproval) return "awaiting approval";
