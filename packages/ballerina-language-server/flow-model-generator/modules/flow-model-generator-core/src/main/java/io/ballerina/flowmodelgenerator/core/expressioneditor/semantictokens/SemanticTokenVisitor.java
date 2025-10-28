@@ -135,7 +135,9 @@ public class SemanticTokenVisitor extends NodeVisitor {
         } else if (node instanceof FunctionArgumentNode) { // Use the entire length for function arguments
             length = node.textRange().length();
             for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
-                length += leadingInvalidToken.text().length();
+                int tokenLength = leadingInvalidToken.text().length();
+                length += tokenLength;
+                column -= tokenLength;
             }
             for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
                 length += trailingInvalidToken.text().length();
