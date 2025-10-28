@@ -146,6 +146,9 @@ public class SemanticTokenVisitor extends NodeVisitor {
         }
 
         // Create and add new semantic token
+        if (length <= 0) {
+            return; // Skip zero-length tokens
+        }
         SemanticToken semanticToken = new SemanticToken(line, column);
         semanticToken.setProperties(length, type, 0);
         semanticTokens.add(semanticToken);
