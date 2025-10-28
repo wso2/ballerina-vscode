@@ -43,6 +43,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -491,16 +493,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
-        console.log(">>> requesting bi available vector knowledge bases from ls", params);
+        console.log(">>> requesting bi available knowledge bases from ls", params);
         return new Promise((resolve) => {
             StateMachine.langClient()
                 .getAvailableVectorKnowledgeBases(params)
                 .then((model) => {
-                    console.log(">>> bi available vector knowledge bases from ls", model);
+                    console.log(">>> bi available knowledge bases from ls", model);
                     resolve(model);
                 })
                 .catch((error) => {
-                    console.log(">>> error fetching available vector knowledge bases from ls", error);
+                    console.log(">>> error fetching available knowledge bases from ls", error);
                     return new Promise((resolve) => {
                         resolve(undefined);
                     });
@@ -1210,7 +1212,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     .deleteByComponentInfo(params)
                     .then(async (model) => {
                         console.log(">>> bi delete node from ls by componentInfo", model);
-                        await updateSourceCode({ textEdits: model.textEdits }, null, `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`);
+                        let description = 'Component Deletion';
+                        if (componentView?.location?.artifactType && componentView?.location?.identifier) {
+                            description = `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`;
+                        }
+                        await updateSourceCode({ textEdits: model.textEdits }, null, description);
                         resolve(model);
                     })
                     .catch((error) => {
@@ -1951,6 +1957,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .catch((error) => {
                     reject(error);
                 });
+        });
+    }
+
+    async searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient().searchNodes(params).then((res) => {
+                resolve(res);
+            }).catch((error) => {
+                console.log(">>> error searching", error);
+                reject(error);
+            });
         });
     }
 }

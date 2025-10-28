@@ -34,7 +34,6 @@ export interface ResourceParamProps {
 }
 
 const ResourceResponseContainer = styled.div`
-	margin-bottom: 25px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -61,7 +60,9 @@ export function ResourceResponse(props: ResourceParamProps) {
         param.name.metadata = schema.name.metadata;
         param.headers.metadata = schema.headers.metadata;
         param.type.metadata = schema.type.metadata;
-        param.mediaType.metadata = schema.mediaType.metadata;
+        if (param.mediaType) {
+            param.mediaType.metadata = schema.mediaType.metadata;
+        }
         setEditModel(param);
     };
 
