@@ -98,7 +98,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 async function handleMainFunctionParams(config: DebugConfiguration) {
     const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
-            uri: Uri.file(StateMachine.context().projectPath).toString()
+            uri: Uri.file(StateMachine.context().projectUri).toString()
         }
     }) as MainFunctionParamsResponse;
     if (res.hasMain) {
@@ -258,8 +258,8 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
 
     if (!config.script) {
         // If webview is present and in BI mode, use the project path from the state machine (focused project in BI)
-        if (StateMachine.context().isBI && isWebviewPresent) {
-            config.script = StateMachine.context().projectPath;
+        if (StateMachine.context().isBI && isWebviewPresent && StateMachine.context().projectUri) {
+            config.script = StateMachine.context().projectUri;
         } else {
             config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
         }
@@ -740,7 +740,7 @@ async function stopRunFast(root: string): Promise<boolean> {
 
 async function getCurrentProjectRoot(): Promise<string> {
     // 1. Check if the project path is already set in the state machine context
-    let currentProjectRoot = StateMachine.context().projectPath;
+    let currentProjectRoot = StateMachine.context().projectUri;
     if (currentProjectRoot) {
         return currentProjectRoot;
     }
@@ -755,7 +755,11 @@ async function getCurrentProjectRoot(): Promise<string> {
 
     if (file) {
         const currentProject = await getCurrentBallerinaProject(file);
-        return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
+        if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE) {
+            return file;
+        } else if (currentProject.path) {
+            return currentProject.path;
+        }
     }
 
     // 3. Fallback to workspace root
