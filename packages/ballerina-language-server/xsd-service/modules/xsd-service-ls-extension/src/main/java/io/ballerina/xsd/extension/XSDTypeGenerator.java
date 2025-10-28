@@ -79,7 +79,7 @@ public class XSDTypeGenerator {
      * @throws Exception if an error occurs during type generation
      */
     public JsonElement generateTypes() throws Exception {
-        // Parse the XSD content into a DOM Document
+        // Parse the XSD content into a DOM Document and convert to Ballerina types
         Response response;
         try {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(xsdContent.getBytes(StandardCharsets.UTF_8));
@@ -112,7 +112,6 @@ public class XSDTypeGenerator {
             throw new XSDGenerationException("No types were generated from the provided XSD schema");
         }
 
-        // Handle type name collisions
         generatedTypes = handleTypeNameCollisions(generatedTypes);
 
         // Process text edits for the target file
@@ -163,8 +162,6 @@ public class XSDTypeGenerator {
     private String handleTypeNameCollisions(String generatedTypes) {
 
         List<String> existingTypeNames = getExistingTypeNames();
-
-        // Extract type names from generated content
         Map<String, String> typeRenames = new HashMap<>();
         Pattern typeDefPattern = Pattern.compile("^\\s*(?:public\\s+)?type\\s+(\\w+)\\s+", Pattern.MULTILINE);
         Matcher matcher = typeDefPattern.matcher(generatedTypes);
@@ -178,7 +175,6 @@ public class XSDTypeGenerator {
             }
         }
 
-        // Apply renames to the generated types
         return applyTypeRenames(generatedTypes, typeRenames);
     }
 
@@ -276,14 +272,13 @@ public class XSDTypeGenerator {
             String oldName = entry.getKey();
             String newName = entry.getValue();
 
-            // Replace type definition: "type OldName " -> "type NewName "
+            // Replace type definitions
             result = result.replaceAll(
                     "\\b(type\\s+)" + Pattern.quote(oldName) + "\\b",
                     "$1" + newName
             );
 
-            // Replace type references in field definitions, unions, arrays, etc.
-            // Match the type name when it appears as a type reference (not part of another identifier)
+            // Replace type references
             result = result.replaceAll(
                     "(?<![\\w])(" + Pattern.quote(oldName) + ")(?![\\w])",
                     newName
