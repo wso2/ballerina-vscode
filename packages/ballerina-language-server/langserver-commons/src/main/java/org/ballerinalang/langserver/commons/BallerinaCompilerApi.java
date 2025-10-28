@@ -220,6 +220,14 @@ public abstract class BallerinaCompilerApi {
     public abstract List<Project> getWorkspacePackagesInOrder(Project project);
 
     /**
+     * Gets all projects in a workspace.
+     *
+     * @param project The workspace project.
+     * @return A list of all build projects in the workspace, or empty if not a workspace project.
+     */
+    public abstract List<Project> getWorkspaceProjects(Project project);
+
+    /**
      * Loads a project from the given path using the appropriate ProjectLoader API.
      *
      * @param path The path to the project root.

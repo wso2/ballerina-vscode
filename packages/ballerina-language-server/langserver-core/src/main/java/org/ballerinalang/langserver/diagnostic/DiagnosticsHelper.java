@@ -216,17 +216,16 @@ public class DiagnosticsHelper {
                         toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
                                 dependentRoot, workspace)));
             }
-        } else if (project.get().kind() == ProjectKind.WORKSPACE_PROJECT) {
+        } else if (compilerApi.isWorkspaceProject(project.get())) {
             // Handle workspace project by iterating through all its packages
-            WorkspaceProject workspaceProject = (WorkspaceProject) project.get();
-            List<BuildProject> projects = workspaceProject.projects();
-            for (BuildProject buildProject : projects) {
+            List<Project> projects = compilerApi.getWorkspaceProjects(project.get());
+            for (Project buildProject : projects) {
                 Path buildProjectRoot = buildProject.sourceRoot();
                 Optional<PackageCompilation> buildProjectCompilation =
                         workspace.waitAndGetPackageCompilation(buildProjectRoot);
                 buildProjectCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                        toDiagnosticsMap(packageCompilation.diagnosticResult().diagnostics(false), buildProjectRoot,
-                                workspace)));
+                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                                buildProjectRoot, workspace)));
             }
         } else {
             // Fall back to single package compilation

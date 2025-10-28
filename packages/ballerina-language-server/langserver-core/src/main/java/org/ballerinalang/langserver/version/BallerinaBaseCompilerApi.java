@@ -127,4 +127,9 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     public Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult) {
         return diagnosticResult.diagnostics(false);
     }
+
+    @Override
+    public List<Project> getWorkspaceProjects(Project project) {
+        return Collections.emptyList();
+    }
 }

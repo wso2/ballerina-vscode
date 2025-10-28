@@ -35,6 +35,7 @@ import io.ballerina.tools.diagnostics.Diagnostic;
 import org.ballerinalang.annotation.JavaSPIService;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -123,5 +124,14 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
     @Override
     public Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult) {
         return diagnosticResult.diagnostics(false, true);
+    }
+
+    @Override
+    public List<Project> getWorkspaceProjects(Project project) {
+        if (project instanceof WorkspaceProject workspaceProject) {
+            List<BuildProject> buildProjects = workspaceProject.projects();
+            return new ArrayList<>(buildProjects);
+        }
+        return Collections.emptyList();
     }
 }
