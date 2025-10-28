@@ -188,9 +188,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Gets the workspace project from a package project if it belongs to a workspace.
-     * <p>
-     * When a package is part of a workspace, this returns the workspace project. This feature is available from
-     * Ballerina version 2201.13.0 onwards.
      *
      * @param project The package project.
      * @return An Optional containing the workspace project if the package belongs to a workspace.
@@ -207,9 +204,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Gets all dependent packages in a workspace for a given package.
-     * <p>
-     * This returns all packages that depend on the given package within its workspace, which is useful for collecting
-     * diagnostics across the entire workspace dependency graph.
      *
      * @param workspaceProject The workspace project.
      * @param packageProject   The package project within the workspace.
@@ -219,8 +213,6 @@ public abstract class BallerinaCompilerApi {
 
     /**
      * Gets all workspace packages in topological order.
-     * <p>
-     * This ensures packages are processed in dependency order, with dependencies before dependents.
      *
      * @param project The workspace project.
      * @return A list of projects in topological order, or empty if not a workspace project.
