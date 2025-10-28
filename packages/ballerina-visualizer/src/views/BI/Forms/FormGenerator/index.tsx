@@ -412,6 +412,28 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setFormImports(getImportsForFormFields(fields));
     };
 
+    const setDiagnosticsToFields = (data: FormValues, nodeWithDiagnostics: FlowNode) => {
+        const updatedFields = fields.map((field) => {
+            const updatedField = { ...field };
+            
+            // Update value from current form data
+            if (data[field.key] !== undefined) {
+                updatedField.value = data[field.key];
+            }
+            
+            // Update diagnostics from nodeWithDiagnostics
+            const nodeProperties = nodeWithDiagnostics?.properties as any;
+            const propertyDiagnostics = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
+            if (propertyDiagnostics && Array.isArray(propertyDiagnostics)) {
+                updatedField.diagnostics = propertyDiagnostics;
+            } else {
+                updatedField.diagnostics = [];
+            }
+            return updatedField;
+        });
+        setFields(updatedFields);
+    }
+
     const handleOnSubmit = (data: FormValues, dirtyFields: any) => {
         console.log(">>> FormGenerator handleOnSubmit", data);
         if (node && targetLineRange) {
@@ -425,7 +447,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node && targetLineRange && !skipFormValidation) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
-            initForm(nodeWithDiagnostics);
+            setDiagnosticsToFields(data, nodeWithDiagnostics!);
         }
     };
 
@@ -680,7 +702,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (node && targetLineRange && !skipFormValidation) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
-            initForm(nodeWithDiagnostics);
+            setDiagnosticsToFields(data, nodeWithDiagnostics!);
 
             if (nodeWithDiagnostics?.diagnostics?.hasDiagnostics) {
                 return false
