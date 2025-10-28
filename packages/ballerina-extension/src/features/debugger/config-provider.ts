@@ -26,8 +26,7 @@ import {
     TaskExecution,
     DebugAdapterTrackerFactory,
     DebugAdapterTracker,
-    ViewColumn,
-    TabInputText
+    ViewColumn
 } from 'vscode';
 import * as child_process from "child_process";
 import { getPortPromise } from 'portfinder';
@@ -36,7 +35,6 @@ import {
     BallerinaExtension, LANGUAGE, OLD_BALLERINA_VERSION_DEBUGGER_RUNINTERMINAL,
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
-import { ExtendedLangClient } from '../../core/extended-language-client';
 import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
@@ -45,15 +43,14 @@ import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../u
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join, sep } from 'path';
-import { parseTomlToConfig } from '../config-generator/utils';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { LoggingDebugSession, OutputEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { PALETTE_COMMANDS, PROJECT_TYPE } from '../project/cmds/cmd-runner';
 import { Disposable } from 'monaco-languageclient';
-import { getCurrentBallerinaFile, getCurrentBallerinaProject } from '../../utils/project-utils';
-import { BallerinaProject, BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
+import { getCurrentBallerinaFile, getCurrentBallerinaProject, selectBallerinaProjectForDebugging } from '../../utils/project-utils';
+import { BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
 import { openView, StateMachine } from '../../stateMachine';
 import { waitForBallerinaService } from '../tryit/utils';
 import { BreakpointManager } from './breakpoint-manager';
@@ -67,8 +64,6 @@ import { findHighestVersionJdk } from '../../utils/server/server';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
-const BALLERINA_TOML_REGEX = `**${sep}Ballerina.toml`;
-const BALLERINA_FILE_REGEX = `**${sep}*.bal`;
 const BALLERINA_TOML = `Ballerina.toml`;
 
 export enum DEBUG_REQUEST {
@@ -80,17 +75,6 @@ export enum DEBUG_CONFIG {
     TEST_DEBUG_NAME = 'Ballerina Test'
 }
 
-export interface BALLERINA_TOML {
-    package: PACKAGE;
-    "build-options": any;
-}
-
-export interface PACKAGE {
-    org: string;
-    name: string;
-    version: string;
-    distribution: string;
-}
 
 class DebugConfigProvider implements DebugConfigurationProvider {
     async resolveDebugConfiguration(_folder: WorkspaceFolder, config: DebugConfiguration)
@@ -253,6 +237,12 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
 
     config.noDebug = Boolean(config.noDebug);
 
+    // Notify debug server that the debug session is started in low-code mode
+    const isWebviewPresent = isVisualizerWebviewActive();
+    if (isWebviewPresent && StateMachine.context().isBI) {
+        config.lowCodeMode = true;
+    }
+
     const activeTextEditor = window.activeTextEditor;
 
     if (activeTextEditor && activeTextEditor.document.fileName.endsWith(BAL_NOTEBOOK)) {
@@ -267,52 +257,11 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     }
 
     if (!config.script) {
-        const tomls = await workspace.findFiles(workspaceFolder ? new RelativePattern(workspaceFolder, BALLERINA_TOML_REGEX) : BALLERINA_TOML_REGEX);
-        const projects: { project: BallerinaProject; balFile: Uri; relativePath: string }[] = [];
-        for (const toml of tomls) {
-            const projectRoot = dirname(toml.fsPath);
-            const balFiles = await workspace.findFiles(new RelativePattern(projectRoot, BALLERINA_FILE_REGEX), undefined, 1);
-            if (balFiles.length > 0) {
-
-                const tomlContent: string = readFileSync(toml.fsPath, 'utf8');
-                const tomlObj: BALLERINA_TOML = parseTomlToConfig(tomlContent) as BALLERINA_TOML;
-                const relativePath = workspace.asRelativePath(projectRoot);
-                projects.push({ project: { packageName: tomlObj.package.name }, balFile: balFiles[0], relativePath });
-            }
-        }
-
-        if (projects.length > 0) {
-            if (projects.length === 1) {
-                config.script = projects[0].balFile.fsPath;
-            } else {
-                const selectedProject = await window.showQuickPick(projects.map((project) => {
-                    return {
-                        label: project.project.packageName,
-                        description: project.relativePath
-                    };
-                }), { placeHolder: "Select a Ballerina project to debug", canPickMany: false });
-                if (selectedProject) {
-                    config.script = projects[projects.indexOf(projects.find((project) => {
-                        return project.project.packageName === selectedProject.label;
-                    }))].balFile.fsPath;
-                } else {
-                    return Promise.reject();
-                }
-            }
+        // if webview is present and in BI mode, use the project path from the state machine (focused project in BI)
+        if (StateMachine.context().isBI && isWebviewPresent) {
+            config.script = StateMachine.context().projectPath;
         } else {
-            extension.ballerinaExtInstance.showMessageInvalidProject();
-            return Promise.reject();
-        }
-
-        let langClient = <ExtendedLangClient>extension.ballerinaExtInstance.langClient;
-        if (langClient.initializeResult) {
-            const { experimental } = langClient.initializeResult!.capabilities;
-            if (experimental && experimental.introspection && experimental.introspection.port > 0) {
-                config.networkLogsPort = experimental.introspection.port;
-                if (config.networkLogs === undefined) {
-                    config.networkLogs = false;
-                }
-            }
+            config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
         }
     }
 
@@ -338,12 +287,11 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
         config.debugServer = debugServerPort.toString();
     }
 
-    // Notify debug server that the debug session is started in low-code mode
-    const isWebviewPresent = VisualizerWebview.currentPanel !== undefined;
-    if (isWebviewPresent && StateMachine.context().isBI) {
-        config.lowCodeMode = true;
-    }
     return config;
+}
+
+function isVisualizerWebviewActive() {
+    return VisualizerWebview.currentPanel !== undefined;
 }
 
 export async function constructDebugConfig(uri: Uri, testDebug: boolean, args?: any): Promise<DebugConfiguration> {
