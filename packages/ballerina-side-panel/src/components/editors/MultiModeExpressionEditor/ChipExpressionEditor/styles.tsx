@@ -59,7 +59,7 @@ export const Chip = styled.div`
     padding: 2px 10px;
     display: inline-block;
     min-height: 20px;
-    min-wdith: 25px;
+    min-width: 25px;
     transition: all 0.2s ease;
     outline: none;
     vertical-align: middle;
