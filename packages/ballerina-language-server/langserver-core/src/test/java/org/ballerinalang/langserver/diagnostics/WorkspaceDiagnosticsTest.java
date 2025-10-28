@@ -68,14 +68,15 @@ public class WorkspaceDiagnosticsTest {
         Path projAFile = testRoot.resolve("projA").resolve("main.bal").toAbsolutePath();
         String projAContent = Files.readString(projAFile);
 
+        // Open the document
         DidOpenTextDocumentParams openParams = new DidOpenTextDocumentParams();
         TextDocumentItem textDocumentItem = new TextDocumentItem();
         textDocumentItem.setUri(projAFile.toUri().toString());
         textDocumentItem.setText(projAContent);
         openParams.setTextDocument(textDocumentItem);
-
         workspaceManager.didOpen(projAFile, openParams);
 
+        // Assert the diagnostics
         DocumentServiceContext serviceContext = ContextBuilder.buildDocumentServiceContext(
                 projAFile.toUri().toString(),
                 this.workspaceManager,
@@ -83,13 +84,10 @@ public class WorkspaceDiagnosticsTest {
                 this.serverContext);
 
         DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
-        Map<String, List<Diagnostic>> diagnostics = diagnosticsHelper.getLatestDiagnostics(serviceContext);
-
-        Assert.assertFalse(diagnostics.isEmpty(), "Diagnostics should be collected");
-
-        boolean hasProjADiagnostics = diagnostics.keySet().stream()
+        Map<String, List<Diagnostic>> diagnosticsMap = diagnosticsHelper.getLatestDiagnostics(serviceContext);
+        boolean hasProjADiagnostics = diagnosticsMap.keySet().stream()
                 .anyMatch(key -> key.contains("projA"));
-        boolean hasProjBDiagnostics = diagnostics.keySet().stream()
+        boolean hasProjBDiagnostics = diagnosticsMap.keySet().stream()
                 .anyMatch(key -> key.contains("projB"));
         Assert.assertTrue(hasProjADiagnostics, "Should have diagnostics entry for projA");
         Assert.assertFalse(hasProjBDiagnostics, "projB should not have diagnostics initially");
@@ -100,19 +98,19 @@ public class WorkspaceDiagnosticsTest {
         Path projBFile = testRoot.resolve("projB").resolve("main.bal").toAbsolutePath();
         String projBOriginalContent = Files.readString(projBFile);
 
+        // Open the document with an introduced error
         String projBWithError = projBOriginalContent.replace(
                 "    return \"Hello\";",
                 "    return \"Hello\" // Missing semicolon"
         );
-
         DidOpenTextDocumentParams openProjBParams = new DidOpenTextDocumentParams();
         TextDocumentItem projBItem = new TextDocumentItem();
         projBItem.setUri(projBFile.toUri().toString());
         projBItem.setText(projBWithError);
         openProjBParams.setTextDocument(projBItem);
-
         workspaceManager.didOpen(projBFile, openProjBParams);
 
+        // Assert the diagnostics
         DocumentServiceContext projBContext = ContextBuilder.buildDocumentServiceContext(
                 projBFile.toUri().toString(),
                 this.workspaceManager,
@@ -120,57 +118,55 @@ public class WorkspaceDiagnosticsTest {
                 this.serverContext);
 
         DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
-        Map<String, List<Diagnostic>> projBDiagnostics = diagnosticsHelper.getLatestDiagnostics(projBContext);
+        Map<String, List<Diagnostic>> diagnosticsMap = diagnosticsHelper.getLatestDiagnostics(projBContext);
 
-        List<String> diagnostics = projBDiagnostics.values().stream()
+        List<String> diagnostics = diagnosticsMap.values().stream()
                 .flatMap(List::stream)
-                .map(d -> d.getRange().toString() + " - " + d.getMessage())
+                .map(d -> d.getCode().getLeft())
                 .toList();
-
-        Assert.assertEquals(diagnostics.size(), 2, "Should have only two diagnostics");
-        Assert.assertEquals(diagnostics.stream().distinct().count(), diagnostics.size(),
-                "Diagnostics should be distinct");
+        Assert.assertEquals(diagnostics.size(), 2, "There should be only 2 diagnostics");
+        Assert.assertEquals(diagnostics, List.of("BCE0002", "BCE2003"));
     }
 
     @Test(description = "Test workspace diagnostics after changing function signature from string to string|error")
     public void testWorkspaceDiagnosticsAfterFunctionSignatureChange() throws IOException, WorkspaceDocumentException {
         Path projBFile = testRoot.resolve("projB").resolve("main.bal").toAbsolutePath();
         String projBOriginalContent = Files.readString(projBFile);
-        
+
         // First open the document
         DidOpenTextDocumentParams openProjBParams = new DidOpenTextDocumentParams();
         TextDocumentItem projBItem = new TextDocumentItem();
         projBItem.setUri(projBFile.toUri().toString());
         projBItem.setText(projBOriginalContent);
         openProjBParams.setTextDocument(projBItem);
-
         workspaceManager.didOpen(projBFile, openProjBParams);
 
-        // Check diagnostics after opening (should be 0 initially)
+        // Check diagnostics after opening
         DocumentServiceContext projBContext = ContextBuilder.buildDocumentServiceContext(
                 projBFile.toUri().toString(),
                 this.workspaceManager,
                 LSContextOperation.TXT_DID_OPEN,
                 this.serverContext);
-
         DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
-        Map<String, List<Diagnostic>> initialProjBDiagnostics = diagnosticsHelper.getLatestDiagnostics(projBContext);
-        long initialProjBDiagnosticCount = initialProjBDiagnostics.values().stream()
-                .mapToLong(List::size)
-                .sum();
-        Assert.assertEquals(initialProjBDiagnosticCount, 1, "Initial diagnostics for projB should be 0");
+        Map<String, List<Diagnostic>> initialDiagnosticsMap = diagnosticsHelper.getLatestDiagnostics(projBContext);
+
+        // Assert the initial diagnostics
+        List<String> actualInitialDiagnostics = initialDiagnosticsMap.values().stream()
+                .flatMap(List::stream)
+                .map(d -> d.getCode().getLeft())
+                .toList();
+        Assert.assertEquals(actualInitialDiagnostics.size(), 1, "Initially, there should be only one diagnostic");
+        Assert.assertEquals(actualInitialDiagnostics.get(0), "BCE2003", "Expected diagnostic code BCE2003 initially");
 
         // Now make the change to function signature from returns string to returns string|error
         String modifiedProjBContent = projBOriginalContent.replace(
                 "public function getMessage() returns string {",
                 "public function getMessage() returns string|error {"
         );
-
         DidChangeTextDocumentParams changeParams = new DidChangeTextDocumentParams();
         changeParams.setTextDocument(new VersionedTextDocumentIdentifier(projBFile.toUri().toString(), 1));
         TextDocumentContentChangeEvent contentChange = new TextDocumentContentChangeEvent(modifiedProjBContent);
         changeParams.setContentChanges(List.of(contentChange));
-
         workspaceManager.didChange(projBFile, changeParams);
 
         // Update context after the change
@@ -180,13 +176,14 @@ public class WorkspaceDiagnosticsTest {
                 LSContextOperation.TXT_DID_CHANGE,
                 this.serverContext);
 
-        Map<String, List<Diagnostic>> projBDiagnostics = diagnosticsHelper.getLatestDiagnostics(updatedProjBContext);
+        Map<String, List<Diagnostic>> finalDiagnosticsMap = diagnosticsHelper.getLatestDiagnostics(updatedProjBContext);
+        List<String> actualAfterChangeDiagnostics = finalDiagnosticsMap.values().stream()
+                .flatMap(List::stream)
+                .map(d -> d.getCode().getLeft())
+                .toList();
 
-        // Count diagnostics for projB after the change
-        long projBDiagnosticCount = projBDiagnostics.values().stream()
-                .mapToLong(List::size)
-                .sum();
-        Assert.assertEquals(projBDiagnosticCount, 2, "Initial diagnostics for projB should be 0");
+        Assert.assertEquals(actualAfterChangeDiagnostics.size(), 2, "Finally, there should be 2 diagnostics");
+        Assert.assertEquals(actualAfterChangeDiagnostics, List.of("BCE2003", "BCE2066"));
     }
 
     @AfterClass
