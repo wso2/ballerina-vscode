@@ -80,7 +80,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
-    // Memoize expression model creation since it has loops and complex conditions
     const memoizedExpressionModel = useMemo(
         () => createExpressionModelFromTokens(props.value, tokens),
         [props.value, tokens]
@@ -97,30 +96,25 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
     const fetchInitialTokens = async (value: string) => {
         let updatedTokens = tokens;
-        let shouldUseMemoizedModel = true;
 
         if (pendingForceSetTokensRef.current) {
             setTokens(pendingForceSetTokensRef.current);
             updatedTokens = pendingForceSetTokensRef.current;
             pendingForceSetTokensRef.current = null;
-            shouldUseMemoizedModel = false;
         }
         if (fetchnewTokensRef.current) {
             const filteredTokens = await fetchUpdatedFilteredTokens(value);
             setTokens(filteredTokens);
             updatedTokens = filteredTokens;
             fetchnewTokensRef.current = false;
-            shouldUseMemoizedModel = false;
         }
 
         fetchedInitialTokensRef.current = true;
         let exprModel;
 
-        if (shouldUseMemoizedModel && value === props.value && updatedTokens === tokens) {
-            // Use memoized model when tokens and value haven't changed
+        if (value === props.value && updatedTokens === tokens) {
             exprModel = memoizedExpressionModel;
         } else {
-            // Create new model when tokens or value have changed
             exprModel = createExpressionModelFromTokens(value, updatedTokens);
         }
 
