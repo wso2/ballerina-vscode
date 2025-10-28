@@ -29,8 +29,11 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -127,6 +130,63 @@ public class WorkspaceDiagnosticsTest {
         Assert.assertEquals(diagnostics.size(), 2, "Should have only two diagnostics");
         Assert.assertEquals(diagnostics.stream().distinct().count(), diagnostics.size(),
                 "Diagnostics should be distinct");
+    }
+
+    @Test(description = "Test workspace diagnostics after changing function signature from string to string|error")
+    public void testWorkspaceDiagnosticsAfterFunctionSignatureChange() throws IOException, WorkspaceDocumentException {
+        Path projBFile = testRoot.resolve("projB").resolve("main.bal").toAbsolutePath();
+        String projBOriginalContent = Files.readString(projBFile);
+        
+        // First open the document
+        DidOpenTextDocumentParams openProjBParams = new DidOpenTextDocumentParams();
+        TextDocumentItem projBItem = new TextDocumentItem();
+        projBItem.setUri(projBFile.toUri().toString());
+        projBItem.setText(projBOriginalContent);
+        openProjBParams.setTextDocument(projBItem);
+
+        workspaceManager.didOpen(projBFile, openProjBParams);
+
+        // Check diagnostics after opening (should be 0 initially)
+        DocumentServiceContext projBContext = ContextBuilder.buildDocumentServiceContext(
+                projBFile.toUri().toString(),
+                this.workspaceManager,
+                LSContextOperation.TXT_DID_OPEN,
+                this.serverContext);
+
+        DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
+        Map<String, List<Diagnostic>> initialProjBDiagnostics = diagnosticsHelper.getLatestDiagnostics(projBContext);
+        long initialProjBDiagnosticCount = initialProjBDiagnostics.values().stream()
+                .mapToLong(List::size)
+                .sum();
+        Assert.assertEquals(initialProjBDiagnosticCount, 1, "Initial diagnostics for projB should be 0");
+
+        // Now make the change to function signature from returns string to returns string|error
+        String modifiedProjBContent = projBOriginalContent.replace(
+                "public function getMessage() returns string {",
+                "public function getMessage() returns string|error {"
+        );
+
+        DidChangeTextDocumentParams changeParams = new DidChangeTextDocumentParams();
+        changeParams.setTextDocument(new VersionedTextDocumentIdentifier(projBFile.toUri().toString(), 1));
+        TextDocumentContentChangeEvent contentChange = new TextDocumentContentChangeEvent(modifiedProjBContent);
+        changeParams.setContentChanges(List.of(contentChange));
+
+        workspaceManager.didChange(projBFile, changeParams);
+
+        // Update context after the change
+        DocumentServiceContext updatedProjBContext = ContextBuilder.buildDocumentServiceContext(
+                projBFile.toUri().toString(),
+                this.workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                this.serverContext);
+
+        Map<String, List<Diagnostic>> projBDiagnostics = diagnosticsHelper.getLatestDiagnostics(updatedProjBContext);
+
+        // Count diagnostics for projB after the change
+        long projBDiagnosticCount = projBDiagnostics.values().stream()
+                .mapToLong(List::size)
+                .sum();
+        Assert.assertEquals(projBDiagnosticCount, 2, "Initial diagnostics for projB should be 0");
     }
 
     @AfterClass

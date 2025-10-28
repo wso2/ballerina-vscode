@@ -1,5 +1,6 @@
 import test/projB;
+import test/foo;
 
 public function main() {
-    string msg = projB:getMessage();
+    string _ = projB:getMessage();
 }
