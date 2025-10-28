@@ -339,7 +339,7 @@ function DeploymentOption({
                 {isExpanded ? (
                     <Codicon
                         name={'triangle-down'}
-                        sx={{ color: 'var(--vscode-textLink-foreground)'}}
+                        sx={{ color: 'var(--vscode-textLink-foreground)' }}
                     />
                 ) : (
                     <Codicon
@@ -731,7 +731,15 @@ export function Overview(props: ComponentDiagramProps) {
                 <HeaderControls>
                     <UndoRedoGroup key={Date.now()} />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
+                        <Icon
+                            name="bi-settings"
+                            sx={{
+                                marginRight: 5,
+                                fontSize: "16px",
+                                width: "16px",
+                            }}
+                        />
+                        Configure
                     </Button>
                     <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="play" sx={{ marginRight: 5 }} /> Run

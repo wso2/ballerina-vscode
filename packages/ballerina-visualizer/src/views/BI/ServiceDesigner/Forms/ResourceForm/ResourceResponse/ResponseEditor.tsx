@@ -22,6 +22,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
 import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { TypeHelperContext } from '../../../../../../constants';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
@@ -58,8 +59,7 @@ export function ResponseEditor(props: ParamProps) {
     const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
-            console.log("Resource Return Types: ", res);
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
             setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
@@ -161,13 +161,15 @@ export function ResponseEditor(props: ParamProps) {
                     setNewFields([...updatedFields]);
                 }
             });
-            fields.push({
-                ...convertPropertyToFormField(res.mediaType),
-                type: "AUTOCOMPLETE",
-                items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
-                key: `mediaType`,
-                defaultValue: res.mediaType.value,
-            });
+            if (res.mediaType) {
+                fields.push({
+                    ...convertPropertyToFormField(res.mediaType),
+                    type: "AUTOCOMPLETE",
+                    items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
+                    key: `mediaType`,
+                    defaultValue: res.mediaType.value,
+                });
+            }
             fields.push({
                 ...convertPropertyToFormField(res.headers, defaultItems),
                 key: `headers`,
@@ -178,8 +180,9 @@ export function ResponseEditor(props: ParamProps) {
                 type: "FLAG",
                 label: "Make this response reusable",
                 documentation: "Check this option to make this response reusable",
-                onValueChange: (value: boolean) => {
-                    if (value) {
+                onValueChange: (value: string) => {
+                    const boolValue = value === "true";
+                    if (boolValue) {
                         // When checked, add the name field after the checkbox
                         const nameField: FormField = {
                             ...convertPropertyToFormField(res.name),
@@ -364,22 +367,20 @@ export function ResponseEditor(props: ParamProps) {
     return (
         <EditorContainer>
             <EditorContent>
-                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Response Configuration</Typography>
+                <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">Response Configuration</Typography>
             </EditorContent>
             <Divider />
             {filePath && targetLineRange &&
-                <div>
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={newFields}
-                        onBack={handleOnCancel}
-                        onSubmit={handleOnNewSubmit}
-                        submitText={isEdit ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                    />
-                </div>
+                <FormGeneratorNew
+                    fileName={filePath}
+                    targetLineRange={targetLineRange}
+                    fields={newFields}
+                    onBack={handleOnCancel}
+                    onSubmit={handleOnNewSubmit}
+                    submitText={isEdit ? "Save" : "Add"}
+                    nestedForm={true}
+                    helperPaneSide='left'
+                />
             }
         </EditorContainer >
     );

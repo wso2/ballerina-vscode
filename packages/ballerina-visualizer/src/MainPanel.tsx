@@ -77,6 +77,7 @@ import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
 import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
+import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 
 const globalStyles = css`
@@ -530,6 +531,15 @@ const MainPanel = () => {
                                 org={value?.org}
                                 package={value?.package}
                                 addNew={true}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.ServiceFunctionForm:
+                        setViewComponent(
+                            <ServiceFunctionForm
+                                position={value?.position}
+                                currentFilePath={value.documentUri}
+                                projectPath={value.projectUri}
                             />
                         );
                         break;

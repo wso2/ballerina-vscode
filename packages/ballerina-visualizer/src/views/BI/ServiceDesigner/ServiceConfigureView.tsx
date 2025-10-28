@@ -31,6 +31,7 @@ import { ServiceEditView } from "./ServiceEditView";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 import DynamicModal from "../../../components/Modal";
+import { getReadableListenerName } from "./utils";
 
 const Container = styled.div`
     width: 100%;
@@ -444,7 +445,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 ? 'bold' : 'normal'
                                                                         }}
                                                                     >
-                                                                        {listener.name}
+                                                                        {listener.name.includes(":") ? getReadableListenerName(listener.name) : listener.name}
                                                                     </Typography>
                                                                 </div>
                                                             </TreeViewItem>
@@ -538,7 +539,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         }}
                                                                     >
                                                                         <Accordion
-                                                                            header={`${listener.name} Configuration`}
+                                                                            header={`${listener.name.includes(":") ? getReadableListenerName(listener.name) : listener.name} Configuration`}
                                                                             isExpanded={expandedAccordion === listener.id}
                                                                         >
                                                                             <div>
