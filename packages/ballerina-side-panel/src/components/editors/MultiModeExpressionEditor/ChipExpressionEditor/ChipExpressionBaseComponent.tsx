@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import FXButton from "./components/FxButton";
 import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
@@ -80,6 +80,12 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
+    // Memoize expression model creation since it has loops and complex conditions
+    const memoizedExpressionModel = useMemo(
+        () => createExpressionModelFromTokens(props.value, tokens),
+        [props.value, tokens]
+    );
+
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
         const response = await expressionEditorRpcManager?.getExpressionTokens(
             value,
@@ -91,20 +97,33 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
     const fetchInitialTokens = async (value: string) => {
         let updatedTokens = tokens;
+        let shouldUseMemoizedModel = true;
+
         if (pendingForceSetTokensRef.current) {
             setTokens(pendingForceSetTokensRef.current);
             updatedTokens = pendingForceSetTokensRef.current;
             pendingForceSetTokensRef.current = null;
+            shouldUseMemoizedModel = false;
         }
         if (fetchnewTokensRef.current) {
             const filteredTokens = await fetchUpdatedFilteredTokens(value);
             setTokens(filteredTokens);
             updatedTokens = filteredTokens;
             fetchnewTokensRef.current = false;
+            shouldUseMemoizedModel = false;
         }
 
         fetchedInitialTokensRef.current = true;
-        let exprModel = createExpressionModelFromTokens(value, updatedTokens);
+        let exprModel;
+
+        if (shouldUseMemoizedModel && value === props.value && updatedTokens === tokens) {
+            // Use memoized model when tokens and value haven't changed
+            exprModel = memoizedExpressionModel;
+        } else {
+            // Create new model when tokens or value have changed
+            exprModel = createExpressionModelFromTokens(value, updatedTokens);
+        }
+
         if (pendingCursorPositionUpdateRef.current !== null) {
             exprModel = setCursorPositionToExpressionModel(exprModel, pendingCursorPositionUpdateRef.current);
             pendingCursorPositionUpdateRef.current = null;
@@ -112,9 +131,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
         setExpressionModel(exprModel);
     };
-
-    useEffect(() => {
-    }, [expressionModel])
 
     useEffect(() => {
         if (!props.value) return;
@@ -184,12 +200,16 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             return;
         }
 
-        if (valueBeforeCursor === '' || !wordBeforeCursor || wordBeforeCursor.trim() === '') {
+        if (valueBeforeCursor === '' ) {
             setIsHelperPaneOpen(true);
             setIsCompletionsOpen(false);
             return;
         }
-
+        if (!wordBeforeCursor || wordBeforeCursor.trim() === '') {
+            setIsHelperPaneOpen(false);
+            setIsCompletionsOpen(false);
+            return;
+        }
         const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
         setFilteredCompletions(newFilteredCompletions);
 

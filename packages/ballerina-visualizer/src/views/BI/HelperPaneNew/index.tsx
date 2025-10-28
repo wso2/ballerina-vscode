@@ -290,7 +290,6 @@ const HelperPaneNewEl = ({
                                                 >
                                                     <ExpandableList.Item>
                                                         {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
                                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                                             Create Value
                                                         </Typography>

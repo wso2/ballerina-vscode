@@ -170,7 +170,7 @@ export const getTextValueFromExpressionModel = (expressionModel: ExpressionModel
     if (!Array.isArray(expressionModel) || expressionModel.length === 0) return "";
 
     return expressionModel
-        .map((item: any) => {
+        .map((item: ExpressionModel) => {
             return item.value;
         })
         .join("");
