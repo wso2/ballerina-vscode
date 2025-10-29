@@ -1,4 +1,12 @@
 
+export interface DeleteBiDevantConnectionReq{
+    filePath: string;
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
+
 // OpenAPI 3.0 type definitions
 export interface OpenAPISecurityScheme {
     type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';

@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getSelectedContext, isLoggedIn, getDirectoryComponents, getMarketplaceIdl, createDevantComponentConnection, getConnections } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getSelectedContext, isLoggedIn, getDirectoryComponents, getDirectoryComponent, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteConnection, deleteLocalConnectionsConfig, getDevantConsoleUrl } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq } from "@wso2/wso2-platform-core"
+import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
@@ -45,6 +45,10 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(getDirectoryComponents, HOST_EXTENSION, fsPath);
     }
 
+    getDirectoryComponent(fsPath: string): Promise<ComponentKind | null> {
+        return this._messenger.sendRequest(getDirectoryComponent, HOST_EXTENSION, fsPath);
+    }
+
     getMarketplaceIdl(params: GetMarketplaceIdlReq): Promise<MarketplaceIdlResp> {
         return this._messenger.sendRequest(getMarketplaceIdl, HOST_EXTENSION, params);
     }
@@ -55,5 +59,17 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
     
     getConnections(params: GetConnectionsReq): Promise<ConnectionListItem[]> {
         return this._messenger.sendRequest(getConnections, HOST_EXTENSION, params);
+    }
+
+    deleteConnection(params: DeleteConnectionReq): Promise<void> {
+        return this._messenger.sendRequest(deleteConnection, HOST_EXTENSION, params);
+    }
+
+    deleteLocalConnectionsConfig(params: DeleteLocalConnectionsConfigReq): Promise<void> {
+        return this._messenger.sendRequest(deleteLocalConnectionsConfig, HOST_EXTENSION, params);
+    }
+
+    getDevantConsoleUrl(): Promise<string> {
+        return this._messenger.sendRequest(getDevantConsoleUrl, HOST_EXTENSION, undefined);
     }
 }

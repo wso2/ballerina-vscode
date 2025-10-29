@@ -173,6 +173,7 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1223,6 +1224,15 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     });
             });
         };
+
+        if(params.nodeType === "connection-node"){
+            // If its a Devant connection, need to delete it from Devant backend as well
+            await new PlatformExtRpcManager().deleteBiDevantConnection({
+                filePath: params.filePath,
+                ...params.component
+            });
+        }
+
 
         // If there are diagnostics, remove unused imports first, then delete component
         if (projectDiags.length > 0) {

@@ -144,7 +144,7 @@ export function enrichCategoryWithDevant(rpcClient: BallerinaRpcClient, selected
                     return {
                         ...category,
                         items: category.items?.map((categoryItem)=>{
-                            const matchingConn = (tomlValues as any)?.tool?.openapi?.find((openapiItem: any)=>{
+                            const matchingConn = tomlValues?.tool?.openapi?.find((openapiItem: any)=>{
                                 return (categoryItem as PanelCategory)?.items?.some((item)=> (item as Node)?.metadata?.codedata?.module === `${tomlValues?.package?.name}.${openapiItem?.targetModule}`)
                             })
                             if(matchingConn){

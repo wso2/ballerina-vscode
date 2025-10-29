@@ -100,4 +100,12 @@ export interface TomlPackage {
 
 export interface TomlValues {
     package: TomlPackage;
+    tool?: {
+        openapi?: {
+            id: string;
+            targetModule: string;
+            filePath: string;
+            devantConnection?: string;
+        }[];
+    }
 }

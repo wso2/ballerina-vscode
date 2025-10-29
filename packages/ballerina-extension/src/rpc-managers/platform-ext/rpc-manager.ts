@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PlatformExtAPI, SyntaxTree } from "@wso2/ballerina-core";
+import { PlatformExtAPI, SyntaxTree, TomlValues } from "@wso2/ballerina-core";
 import { extensions, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -25,6 +25,8 @@ import {
     ComponentKind,
     ConnectionListItem,
     ContextItemEnriched,
+    DeleteConnectionReq,
+    DeleteLocalConnectionsConfigReq,
     GetConnectionsReq,
     GetMarketplaceIdlReq,
     GetMarketplaceListReq,
@@ -34,15 +36,18 @@ import {
     MarketplaceListResp,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
-import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import {
+    CreateDevantConnectionReq,
+    CreateDevantConnectionResp,
+} from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
 import { CommonRpcManager } from "../common/rpc-manager";
 import Handlebars from "handlebars";
-import { CaptureBindingPattern, ModulePart } from "@wso2/syntax-tree";
-import * as yaml from 'js-yaml';
-import { OpenAPIDefinition } from "./types";
+import { CaptureBindingPattern, ModulePart, ModuleVarDecl } from "@wso2/syntax-tree";
+import * as yaml from "js-yaml";
+import { DeleteBiDevantConnectionReq, OpenAPIDefinition } from "./types";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     private async getPlatformExt() {
@@ -93,6 +98,16 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async getDirectoryComponent(fsPath: string): Promise<ComponentKind | null> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            const components = platformExt.getDirectoryComponents(fsPath);
+            return components?.length > 0 ? components[0] : null;
+        } catch (err) {
+            log(`Failed to invoke getDirectoryComponent: ${err}`);
+        }
+    }
+
     async getMarketplaceIdl(params: GetMarketplaceIdlReq): Promise<MarketplaceIdlResp> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -108,6 +123,160 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return platformExt.getConnections(params);
         } catch (err) {
             log(`Failed to invoke getConnections: ${err}`);
+        }
+    }
+
+    async deleteConnection(params: DeleteConnectionReq): Promise<void> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            await platformExt.deleteConnection(params);
+        } catch (err) {
+            log(`Failed to delete getConnection: ${err}`);
+        }
+    }
+
+    async deleteLocalConnectionsConfig(params: DeleteLocalConnectionsConfigReq): Promise<void> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            platformExt.deleteLocalConnectionsConfig(params);
+        } catch (err) {
+            log(`Failed to delete connection config: ${err}`);
+        }
+    }
+
+    async getDevantConsoleUrl(): Promise<string> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt.getDevantConsoleUrl();
+        } catch (err) {
+            log(`Failed to delete connection config: ${err}`);
+        }
+    }
+
+    async deleteBiDevantConnection(params: DeleteBiDevantConnectionReq): Promise<void> {
+        try {
+            StateMachine.setEditMode();
+
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: Uri.file(params.filePath).toString() },
+            })) as SyntaxTree;
+
+            const matchingConnection = (syntaxTree.syntaxTree as ModulePart)?.members?.find((member) => {
+                return (
+                    member.position?.startLine === params?.startLine &&
+                    member.position?.startColumn === params?.startColumn &&
+                    member.position?.endLine === params?.endLine &&
+                    member.position?.endColumn === params?.endColumn
+                );
+            });
+
+            if (matchingConnection) {
+                const moduleName: string = (matchingConnection as ModuleVarDecl)?.initializer?.typeData?.typeSymbol
+                    ?.moduleID?.moduleName;
+                const balPackage = StateMachine.context().package;
+                const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+                const matchingTomlEntry = tomlValues?.tool?.openapi?.find(
+                    (item) => `${balPackage}.${item.targetModule}` === moduleName
+                );
+                if (matchingTomlEntry && matchingTomlEntry?.devantConnection) {
+                    const updatedToml: TomlValues = {
+                        ...tomlValues,
+                        tool: {
+                            ...tomlValues?.tool,
+                            openapi: tomlValues.tool?.openapi?.filter(
+                                (item) => `${balPackage}.${item.targetModule}` !== moduleName
+                            ),
+                        },
+                    };
+
+                    const projectPath = StateMachine.context().projectUri;
+                    const balTomlPath = path.join(projectPath, "Ballerina.toml");
+                    const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+                    fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+
+                    const platformRpc = new PlatformExtRpcManager();
+                    const isLoggedIn = await platformRpc.isLoggedIn();
+                    const devantUrl = await platformRpc.getDevantConsoleUrl();
+                    if (!isLoggedIn) {
+                        window
+                            .showErrorMessage(
+                                "Unable to delete Devant connection as you are not logged into Devant. please head over to Devant console to delete the Devant connection",
+                                "Open Devant"
+                            )
+                            .then((resp) => {
+                                if (resp === "Open Devant") {
+                                    vscode.env.openExternal(Uri.parse(devantUrl));
+                                }
+                            });
+                        return;
+                    }
+                    const selected = await platformRpc.getSelectedContext();
+                    if (selected?.org && selected?.project) {
+                        const projectConnections = await platformRpc.getConnections({
+                            orgId: selected?.org?.id?.toString(),
+                            projectId: selected?.project?.id,
+                            componentId: "",
+                        });
+                        const matchingProjectConnection = projectConnections.find(
+                            (item) => item.name === matchingTomlEntry?.devantConnection
+                        );
+                        if (matchingProjectConnection) {
+                            await platformRpc.deleteLocalConnectionsConfig({
+                                componentDir: projectPath,
+                                connectionName: matchingTomlEntry?.devantConnection,
+                            });
+                            window
+                                .showInformationMessage(
+                                    "In-order to delete your project level Devant connection, please head over to Devant console",
+                                    "Open Devant"
+                                )
+                                .then((resp) => {
+                                    if (resp === "Open Devant") {
+                                        vscode.env.openExternal(
+                                            Uri.parse(
+                                                `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.id}/admin/connections`
+                                            )
+                                        );
+                                    }
+                                });
+                            return;
+                        }
+
+                        const component = await platformRpc.getDirectoryComponent(projectPath);
+                        if (component) {
+                            const componentConnections = await platformRpc.getConnections({
+                                orgId: selected?.org?.id?.toString(),
+                                projectId: selected?.project?.id,
+                                componentId: component.metadata?.id,
+                            });
+                            const matchingCompConnection = componentConnections.find(
+                                (item) => item.name === matchingTomlEntry?.devantConnection
+                            );
+                            if (matchingCompConnection) {
+                                await platformRpc.deleteLocalConnectionsConfig({
+                                    componentDir: projectPath,
+                                    connectionName: matchingTomlEntry?.devantConnection,
+                                });
+                                await platformRpc.deleteConnection({
+                                    componentPath: projectPath,
+                                    connectionId: matchingCompConnection.groupUuid,
+                                    connectionName: matchingCompConnection.name,
+                                    orgId: selected.org.id.toString(),
+                                });
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // todo: remove entry from ballerina.toml
+
+            StateMachine.setReadyMode();
+        } catch (err) {
+            StateMachine.setReadyMode();
+            window.showErrorMessage("Failed to delete Devant connection");
+            log(`Failed to invoke deleteDevantConnection: ${err}`);
         }
     }
 
@@ -173,25 +342,39 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             });
 
             // Update bal.toml with created connection reference
-            const balTomlPath = path.join(params.componentDir, "Ballerina.toml");
-            if (fs.existsSync(balTomlPath)) {
-                const fileContent = fs.readFileSync(balTomlPath, "utf-8");
-                const parsedToml: any = toml.parse(fileContent);
-                const matchingItem = parsedToml?.tool.openapi.find((item) => item.id === moduleName);
-                if (matchingItem) {
-                    matchingItem.devantConnection = params.params?.name;
-                }
-                const updatedTomlContent = toml.stringify(parsedToml);
-                fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
-            }
+            const projectPath = StateMachine.context().projectUri;
+            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+
+            const updatedToml: TomlValues = {
+                ...tomlValues,
+                tool: {
+                    ...tomlValues?.tool,
+                    openapi: tomlValues.tool?.openapi?.map(item=>{
+                        if(item.id === moduleName){
+                            return {...item, devantConnection: params.params?.name }
+                        }
+                        return item
+                    }),
+                },
+            };
+
+            const balTomlPath = path.join(projectPath, "Ballerina.toml");
+            const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+            fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
 
             const configFileUri = getConfigFileUri();
 
             const connectionKeys =
                 createdConnection.configurations[Object.keys(createdConnection.configurations)?.[0]]?.entries;
 
-            interface IkeyVal { keyname: string; envName: string; }
-            interface Ikeys { ChoreoAPIKey?: IkeyVal; ServiceURL?: IkeyVal;}
+            interface IkeyVal {
+                keyname: string;
+                envName: string;
+            }
+            interface Ikeys {
+                ChoreoAPIKey?: IkeyVal;
+                ServiceURL?: IkeyVal;
+            }
             const keys: Ikeys = {};
             const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
                 documentIdentifier: { uri: configFileUri.toString() },
@@ -218,8 +401,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
             );
 
-            if(keys?.ChoreoAPIKey && keys?.ServiceURL){
-                const resp = await addConnection(moduleName, {apiKeyVarName: keys?.ChoreoAPIKey?.keyname, svsUrlVarName: keys?.ServiceURL?.keyname});
+            if (keys?.ChoreoAPIKey && keys?.ServiceURL) {
+                const resp = await addConnection(moduleName, {
+                    apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
+                    svsUrlVarName: keys?.ServiceURL?.keyname,
+                });
 
                 StateMachine.setReadyMode();
                 return { connectionName: resp.connName };
@@ -233,7 +419,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 }
-
 
 const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
@@ -258,7 +443,7 @@ const addConfigurable = async (configBalFileUri: Uri, params: { configName: stri
         const balOsImportTemplate = Templates.importBalOs();
         configBalEdits.insert(configBalFileUri, new vscode.Position(0, 0), balOsImportTemplate);
     }
-    
+
     const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
     configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), Templates.emptyLine());
 
@@ -273,7 +458,10 @@ const addConfigurable = async (configBalFileUri: Uri, params: { configName: stri
     await workspace.applyEdit(configBalEdits);
 };
 
-const addConnection = async (moduleName: string, configs: {apiKeyVarName: string, svsUrlVarName: string}): Promise<{connName: string, connFileUri: Uri}> => {
+const addConnection = async (
+    moduleName: string,
+    configs: { apiKeyVarName: string; svsUrlVarName: string }
+): Promise<{ connName: string; connFileUri: Uri }> => {
     const packageName = StateMachine.context().package;
     const connectionBalFile = path.join(StateMachine.context().projectUri, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
@@ -290,9 +478,11 @@ const addConnection = async (moduleName: string, configs: {apiKeyVarName: string
     })) as SyntaxTree;
 
     if (
-        !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes(`import ${packageName}/${moduleName}`))
+        !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) =>
+            item.source?.includes(`import ${packageName}/${moduleName}`)
+        )
     ) {
-        const connImportTemplate = Templates.importConnection({PACKAGE_NAME: packageName, MODULE_NAME: moduleName});
+        const connImportTemplate = Templates.importConnection({ PACKAGE_NAME: packageName, MODULE_NAME: moduleName });
         connBalEdits.insert(connectionBalFileUri, new vscode.Position(0, 0), connImportTemplate);
     }
 
@@ -304,9 +494,7 @@ const addConnection = async (moduleName: string, configs: {apiKeyVarName: string
     let counter = 1;
     while (
         (syntaxTree.syntaxTree as ModulePart)?.members?.some(
-            (k) =>
-                (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                candidate
+            (k) => (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === candidate
         )
     ) {
         candidate = `${baseName}${counter}`;
@@ -317,57 +505,59 @@ const addConnection = async (moduleName: string, configs: {apiKeyVarName: string
         API_KEY_VAR_NAME: configs.apiKeyVarName,
         CONNECTION_NAME: candidate,
         MODULE_NAME: moduleName,
-        SERVICE_URL_VAR_NAME: configs.svsUrlVarName
+        SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
     });
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
     await workspace.applyEdit(connBalEdits);
-    return {connName: candidate, connFileUri: connectionBalFileUri};
+    return { connName: candidate, connFileUri: connectionBalFileUri };
 };
 
 export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
     try {
         const openApiDefinition = yaml.load(yamlString) as OpenAPIDefinition;
-        
+
         if (!openApiDefinition) {
-            throw new Error('Invalid YAML: Unable to parse OpenAPI definition');
+            throw new Error("Invalid YAML: Unable to parse OpenAPI definition");
         }
-        
+
         if (!openApiDefinition.components) {
             openApiDefinition.components = {};
         }
-        
+
         if (!openApiDefinition.components.securitySchemes) {
             openApiDefinition.components.securitySchemes = {};
         }
-        
+
         openApiDefinition.components.securitySchemes.ApiKeyAuth = {
-            type: 'apiKey',
-            in: 'header',
-            name: 'Choreo-API-Key'
+            type: "apiKey",
+            in: "header",
+            name: "Choreo-API-Key",
         };
 
-        if(openApiDefinition.security && openApiDefinition.security.length > 0){
-            openApiDefinition.security.push({ApiKeyAuth: []});
+        if (openApiDefinition.security && openApiDefinition.security.length > 0) {
+            openApiDefinition.security.push({ ApiKeyAuth: [] });
         }
 
-        if(openApiDefinition.paths){
-            for(const path in openApiDefinition.paths){
-                for(const method in openApiDefinition.paths[path]){
-                    if(openApiDefinition.paths[path]?.[method]?.security){
-                        openApiDefinition.paths[path]?.[method]?.security?.push({ApiKeyAuth: []});
+        if (openApiDefinition.paths) {
+            for (const path in openApiDefinition.paths) {
+                for (const method in openApiDefinition.paths[path]) {
+                    if (openApiDefinition.paths[path]?.[method]?.security) {
+                        openApiDefinition.paths[path]?.[method]?.security?.push({ ApiKeyAuth: [] });
                     }
                 }
             }
         }
 
-        if(!openApiDefinition.servers || openApiDefinition.servers.length === 0){
-            openApiDefinition.servers = [{url: "http://localhost:8080"}];
+        if (!openApiDefinition.servers || openApiDefinition.servers.length === 0) {
+            openApiDefinition.servers = [{ url: "http://localhost:8080" }];
         }
-        
+
         return yaml.dump(openApiDefinition);
     } catch (error) {
-        throw new Error(`Failed to process OpenAPI definition: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+            `Failed to process OpenAPI definition: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
     }
 };
 
@@ -377,7 +567,9 @@ const Templates = {
         return template({});
     },
     newEnvConfigurable: (params: { CONFIG_NAME: string; CONFIG_ENV_NAME: string }) => {
-        const template = Handlebars.compile(`configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`);
+        const template = Handlebars.compile(
+            `configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`
+        );
         return template(params);
     },
     importBalOs: () => {
@@ -388,7 +580,12 @@ const Templates = {
         const template = Handlebars.compile(`import {{PACKAGE_NAME}}.{{MODULE_NAME}};\n`);
         return template(params);
     },
-    newConnectionWithApiKey: (params: { MODULE_NAME: string, CONNECTION_NAME: string; SERVICE_URL_VAR_NAME: string, API_KEY_VAR_NAME: string }) => {
+    newConnectionWithApiKey: (params: {
+        MODULE_NAME: string;
+        CONNECTION_NAME: string;
+        SERVICE_URL_VAR_NAME: string;
+        API_KEY_VAR_NAME: string;
+    }) => {
         // check new (apiKeyConfig = {choreoAPIKey: ""},config = {},serviceUrl = "")
         // const template = Handlebars.compile(`final {{MODULE_NAME}}:Client {{CONNECTION_NAME}} = check new (apiKeyConfig = {choreoAPIKey: {{API_KEY_VAR_NAME}}},config = {},serviceUrl = {{SERVICE_URL_VAR_NAME}})l;\n`);
         // return template(params);
