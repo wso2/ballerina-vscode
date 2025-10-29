@@ -658,7 +658,10 @@ const MainPanel = () => {
                 )}
                 {
                     modalStack.map((modal) => (
-                        <Popup title={modal.title} onClose={() => handlePopupClose(modal.id)} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                        <Popup title={modal.title} onClose={() => {
+                            modal.onClose && modal.onClose();
+                            handlePopupClose(modal.id)
+                        }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
                     ))
                 }
             </VisualizerContainer>

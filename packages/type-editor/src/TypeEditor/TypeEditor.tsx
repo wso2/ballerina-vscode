@@ -95,7 +95,7 @@ export function TypeEditor(props: TypeEditorProps) {
         return defaultType as unknown as Type;
     })();
 
-    const [activeTab, setActiveTab] = useState<string>("import");
+    const [activeTab, setActiveTab] = useState<string>("create-from-scratch");
 
 
     const onTypeSave = async (type: Type) => {
@@ -141,21 +141,21 @@ export function TypeEditor(props: TypeEditorProps) {
                     <TabPanel
                         views={[
                             {
-                                id: 'import',
-                                name: 'Import',
-                                icon: <Icon
-                                    name="bi-import"
-                                    sx={{ marginRight: '5px' }}
-                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
-                                />
-                            },
-                            {
                                 id: 'create-from-scratch',
                                 name: 'Create from scratch',
                                 icon: <Icon
                                     name="bi-edit"
                                     sx={{ marginRight: '5px' }}
                                     iconSx={{ fontSize: '12px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
+                                />
+                            },
+                            {
+                                id: 'import',
+                                name: 'Import',
+                                icon: <Icon
+                                    name="bi-import"
+                                    sx={{ marginRight: '5px' }}
+                                    iconSx={{ fontSize: '15px', display: 'flex', alignItems: 'center', paddingTop: '2px' }}
                                 />
                             }
                         ]}

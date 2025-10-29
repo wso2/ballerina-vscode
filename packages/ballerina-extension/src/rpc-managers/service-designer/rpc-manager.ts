@@ -321,7 +321,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.updateResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Resource Update');
+                const artifacts = await updateSourceCode(res, params.service ? { artifactType: DIRECTORY_MAP.SERVICE } : null, 'Resource Update');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -349,7 +349,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.addFunctionSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Function Creation');
+                const artifacts = await updateSourceCode(res, { artifactType: params.service ? DIRECTORY_MAP.SERVICE : DIRECTORY_MAP.FUNCTION }, 'Function Creation');
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -396,8 +396,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
-            params.filePath = StateMachine.context().projectPath;
-            params.context = "HTTP_STATUS_CODE";
+            params.filePath = params.filePath || context.projectPath;
             try {
                 const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
@@ -445,8 +444,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 params.filePath = targetFile;
                 const identifiers = [];
                 for (let property in params.serviceInitModel.properties) {
-                    const value = params.serviceInitModel.properties[property].value 
-                    || params.serviceInitModel.properties[property].values?.at(0);
+                    const value = params.serviceInitModel.properties[property].value
+                        || params.serviceInitModel.properties[property].values?.at(0);
                     if (value) {
                         identifiers.push(value);
                     }

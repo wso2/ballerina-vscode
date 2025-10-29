@@ -24,8 +24,6 @@ import {
     AIPanelPrompt,
     AddFilesToProjectRequest,
     AddToProjectRequest,
-    DataMapperModelResponse,
-    DatamapperModelContext,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DocGenerationRequest,
@@ -34,7 +32,6 @@ import {
     GenerateCodeRequest,
     GenerateOpenAPIRequest,
     GetFromFileRequest,
-    GetModuleDirParams,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
@@ -97,6 +94,7 @@ import {
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
+    isUserAuthenticated,
     markAlertShown,
     openChatWindowWithCommand,
     postProcess,
@@ -333,5 +331,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         return this._messenger.sendRequest(addFilesToProject, HOST_EXTENSION, params);
+    }
+
+    isUserAuthenticated(): Promise<boolean> {
+        return this._messenger.sendRequest(isUserAuthenticated, HOST_EXTENSION);
     }
 }

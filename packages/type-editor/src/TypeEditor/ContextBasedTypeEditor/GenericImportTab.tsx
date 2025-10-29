@@ -138,8 +138,23 @@ export function GenericImportTab(props: GenericImportTabProps) {
     const [nameError, setNameError] = useState<string>("");
     const [error, setError] = useState<string>("");
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
 
     const { rpcClient } = useRpcContext();
+
+    // Check user authentication status on mount
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                const authenticated = await rpcClient.getAiPanelRpcClient().isUserAuthenticated();
+                setIsUserAuthenticated(authenticated);
+            } catch (error) {
+                console.error("Error checking user authentication:", error);
+                setIsUserAuthenticated(false);
+            }
+        };
+        checkAuthStatus();
+    }, [rpcClient]);
 
     useEffect(() => {
         if (detectedFormat === DetectedFormat.JSON) {
@@ -492,7 +507,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                         value={content}
                         onChange={handleContentChange}
                         errorMsg={error}
-                        placeholder={!payloadContext ? "Paste JSON or XML here..." : ""}
+                        placeholder={(!payloadContext || !isUserAuthenticated) ? "Paste JSON or XML here..." : ""}
                     />
                     {/* Loading overlay for generation */}
                     {isGenerating && (
@@ -503,7 +518,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             </Typography>
                         </LoaderOverlay>
                     )}
-                    {!content && payloadContext && !isGenerating && (
+                    {!content && payloadContext && isUserAuthenticated && !isGenerating && (
                         <div style={{
                             position: 'absolute',
                             top: '50%',
