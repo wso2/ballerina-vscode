@@ -266,7 +266,9 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    ExpressionTokensRequest,
+    ExpressionTokensResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -339,7 +341,7 @@ enum EXTENDED_APIS {
     BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
     BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
     BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
-    BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES = 'flowDesignService/getAvailableVectorKnowledgeBases',
+    BI_AVAILABLE_KNOWLEDGE_BASES = 'flowDesignService/getAvailableVectorKnowledgeBases',
     BI_AVAILABLE_DATA_LOADERS = 'flowDesignService/getAvailableDataLoaders',
     BI_AVAILABLE_CHUNKS = 'flowDesignService/getAvailableChunkers',
     BI_NODE_TEMPLATE = 'flowDesignService/getNodeTemplate',
@@ -429,6 +431,7 @@ enum EXTENDED_APIS {
     BI_ADD_TEST_FUNCTION = 'testManagerService/addTestFunction',
     BI_UPDATE_TEST_FUNCTION = 'testManagerService/updateTestFunction',
     BI_EDIT_FUNCTION_NODE = 'flowDesignService/functionDefinition',
+    BI_GET_EXPRESSION_TOKENS = 'expressionEditor/semanticTokens',
     BI_AI_AGENT_ORG = 'agentManager/getAiModuleOrg',
     BI_AI_ALL_AGENTS = 'agentManager/getAllAgents',
     BI_AI_ALL_MODELS = 'agentManager/getAllModels',
@@ -1036,7 +1039,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     }
 
     async getAvailableVectorKnowledgeBases(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
-        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_VECTOR_KNOWLEDGE_BASES, params);
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_KNOWLEDGE_BASES, params);
     }
 
     async getAvailableDataLoaders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
@@ -1162,6 +1165,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getFunctionNode(params: FunctionNodeRequest): Promise<FunctionNodeResponse> {
         return this.sendRequest<FunctionNodeResponse>(EXTENDED_APIS.BI_EDIT_FUNCTION_NODE, params);
+    }
+
+    async getExpressionTokens(params: ExpressionTokensRequest): Promise<ExpressionTokensResponse> {
+        return this.sendRequest<ExpressionTokensResponse>(EXTENDED_APIS.BI_GET_EXPRESSION_TOKENS, params);
     }
 
     async getListenerModel(params: ListenerModelRequest): Promise<ListenerModelResponse> {

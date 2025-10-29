@@ -34,7 +34,6 @@ export interface ResourceParamProps {
 }
 
 const ResourceResponseContainer = styled.div`
-	margin-bottom: 25px;
 `;
 
 const AddButtonWrapper = styled.div`
