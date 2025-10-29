@@ -52,8 +52,8 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
     // Get the project name from the ballerina.toml file
     const commonRpcManager = new CommonRpcManager();
     const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-    if (tomlValues && tomlValues.package.title) {
-        projectName = tomlValues.package.title;
+    if (tomlValues) {
+        projectName = tomlValues.package?.title || tomlValues.package?.name;
     }
     result.projectName = projectName;
 
