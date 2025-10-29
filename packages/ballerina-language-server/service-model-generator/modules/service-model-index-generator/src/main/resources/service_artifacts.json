@@ -348,7 +348,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "path",
+          "displayName": "Path",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "ftp",
