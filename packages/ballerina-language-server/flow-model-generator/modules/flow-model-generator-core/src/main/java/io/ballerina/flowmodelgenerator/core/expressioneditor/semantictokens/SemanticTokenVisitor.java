@@ -199,7 +199,7 @@ public class SemanticTokenVisitor extends NodeVisitor {
         }
 
         if (length <= 0) {
-            return; // Skip zero-length tokens (except for explicit event tokens)
+            return; // Skip zero-length tokens
         }
 
         SemanticToken semanticToken = new SemanticToken(line, column);
