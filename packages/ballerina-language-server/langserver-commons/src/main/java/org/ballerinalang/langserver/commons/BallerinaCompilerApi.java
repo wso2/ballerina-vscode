@@ -217,7 +217,7 @@ public abstract class BallerinaCompilerApi {
      * @param project The workspace project.
      * @return A list of projects in topological order, or empty if not a workspace project.
      */
-    public abstract List<Project> getWorkspacePackagesInOrder(Project project);
+    public abstract List<Project> getWorkspaceProjectsInOrder(Project project);
 
     /**
      * Gets all projects in a workspace.

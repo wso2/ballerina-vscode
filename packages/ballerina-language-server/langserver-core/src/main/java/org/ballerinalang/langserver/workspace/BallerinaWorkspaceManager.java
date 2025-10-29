@@ -1469,7 +1469,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
             // Handle workspace projects - extract the specific package from the workspace
             if (compilerApi.isWorkspaceProject(project)) {
                 // Get all workspace packages in topological order
-                List<Project> workspacePackages = compilerApi.getWorkspacePackagesInOrder(project);
+                List<Project> workspacePackages = compilerApi.getWorkspaceProjectsInOrder(project);
 
                 // Add all packages to cache and find the target package
                 Project targetProject = null;

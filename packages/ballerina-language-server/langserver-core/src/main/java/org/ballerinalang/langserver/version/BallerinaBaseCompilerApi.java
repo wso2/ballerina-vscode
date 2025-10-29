@@ -98,7 +98,7 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     }
 
     @Override
-    public List<Project> getWorkspacePackagesInOrder(Project project) {
+    public List<Project> getWorkspaceProjectsInOrder(Project project) {
         return Collections.emptyList();
     }
 

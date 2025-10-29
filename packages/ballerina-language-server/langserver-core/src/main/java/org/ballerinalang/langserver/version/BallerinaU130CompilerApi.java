@@ -90,7 +90,7 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
     }
 
     @Override
-    public List<Project> getWorkspacePackagesInOrder(Project project) {
+    public List<Project> getWorkspaceProjectsInOrder(Project project) {
         if (!isWorkspaceProject(project)) {
             return Collections.emptyList();
         }
@@ -98,7 +98,7 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
         WorkspaceProject workspaceProject = (WorkspaceProject) project;
         List<BuildProject> buildProjects = workspaceProject.getResolution().dependencyGraph()
                 .toTopologicallySortedList();
-        return new java.util.ArrayList<>(buildProjects);
+        return new ArrayList<>(buildProjects);
     }
 
     @Override
