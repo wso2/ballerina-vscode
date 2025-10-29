@@ -58,7 +58,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
         connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
         
-        if (!selectedNode?.codedata?.lineRange) {
+        if (!selectedNode?.codedata?.lineRange || selectedNode?.codedata?.node === "NP_FUNCTION") {
             const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
                 filePath: connectionsFilePath.current
             });
