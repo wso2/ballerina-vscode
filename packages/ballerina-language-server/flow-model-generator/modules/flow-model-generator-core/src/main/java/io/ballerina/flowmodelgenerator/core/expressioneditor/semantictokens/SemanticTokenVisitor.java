@@ -142,7 +142,7 @@ public class SemanticTokenVisitor extends NodeVisitor {
         Token startToken = interpolationNode.interpolationStartToken();
         addSemanticTokenWithPosition(startToken.lineRange().startLine().line(),
                 startToken.lineRange().startLine().offset(),
-                2,  // Length 2 to cover "${"
+                2,
                 ExpressionTokenTypes.START_EVENT.getId());
 
         // Visit the expression inside the interpolation
@@ -152,24 +152,22 @@ public class SemanticTokenVisitor extends NodeVisitor {
         Token endToken = interpolationNode.interpolationEndToken();
         addSemanticTokenWithPosition(endToken.lineRange().startLine().line(),
                 endToken.lineRange().startLine().offset(),
-                1,  // Length 1 to cover "}"
+                1,
                 ExpressionTokenTypes.END_EVENT.getId());
     }
 
     @Override
     public void visit(TypeCastExpressionNode typeCastExpressionNode) {
         // Mark the entire type cast (<Type>) as TYPE_CAST token
-        int startLine = typeCastExpressionNode.ltToken().lineRange().startLine().line();
-        int startCol = typeCastExpressionNode.ltToken().lineRange().startLine().offset();
+        LinePosition linePosition = typeCastExpressionNode.ltToken().lineRange().startLine();
+        int startLine = linePosition.line();
+        int startCol = linePosition.offset();
         int endCol = typeCastExpressionNode.gtToken().lineRange().endLine().offset() + 1;
         int length = endCol - startCol;
-
         addSemanticTokenWithPosition(startLine, startCol, length, ExpressionTokenTypes.TYPE_CAST.getId());
 
-        // Visit the expression part (the value being cast)
-        ExpressionNode expression = typeCastExpressionNode.expression();
-
         // If it's a mapping constructor, visit field values individually
+        ExpressionNode expression = typeCastExpressionNode.expression();
         if (expression instanceof MappingConstructorExpressionNode mappingConstructor) {
             for (MappingFieldNode field : mappingConstructor.fields()) {
                 if (field instanceof SpecificFieldNode specificField) {
@@ -183,26 +181,6 @@ public class SemanticTokenVisitor extends NodeVisitor {
             // For non-mapping expressions, mark the entire expression as VALUE
             addSemanticToken(expression, ExpressionTokenTypes.VALUE.getId());
         }
-    }
-
-    /**
-     * Adds a zero-length semantic token at a specific position.
-     *
-     * @param line   Line number (0-indexed)
-     * @param column Column offset (0-indexed)
-     * @param type   Semantic token type's index
-     */
-    private void addZeroLengthToken(int line, int column, int type) {
-        // Efficient O(1) duplicate check using position hash (line << 32 | column)
-        long positionKey = ((long) line << 32) | column;
-        if (!seenPositions.add(positionKey)) {
-            return; // Already processed this position
-        }
-
-        // Create and add semantic token with zero length (special case for events)
-        SemanticToken semanticToken = new SemanticToken(line, column);
-        semanticToken.setProperties(0, type, 0);
-        semanticTokens.add(semanticToken);
     }
 
     /**

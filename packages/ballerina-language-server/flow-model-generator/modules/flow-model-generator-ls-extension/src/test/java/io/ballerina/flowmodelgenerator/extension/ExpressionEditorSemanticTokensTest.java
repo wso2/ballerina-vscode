@@ -26,6 +26,7 @@ import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -79,6 +80,16 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
         }
     }
 
+//    @DataProvider(name = "data-provider")
+//    @Override
+//    protected Object[] getConfigsList() {
+//        return new Object[]{
+////                Path.of("config9.json"),
+////                Path.of("config30.json"),
+////                Path.of("config31.json")
+//        };
+//    }
+
     @Override
     protected String getResourceDir() {
         return "semantic_tokens";
@@ -122,8 +133,29 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
                         Assert.fail("Token type 2 should be PARAMETER but enum mismatch detected");
                     }
                 }
+                case 3 -> {
+                    if (ExpressionTokenTypes.TYPE_CAST.getId() != 3) {
+                        Assert.fail("Token type 3 should be TYPE_CAST but enum mismatch detected");
+                    }
+                }
+                case 4 -> {
+                    if (ExpressionTokenTypes.VALUE.getId() != 4) {
+                        Assert.fail("Token type 4 should be VALUE but enum mismatch detected");
+                    }
+                }
+                case 5 -> {
+                    if (ExpressionTokenTypes.START_EVENT.getId() != 5) {
+                        Assert.fail("Token type 5 should be START_EVENT but enum mismatch detected");
+                    }
+                }
+                case 6 -> {
+                    if (ExpressionTokenTypes.END_EVENT.getId() != 6) {
+                        Assert.fail("Token type 6 should be END_EVENT but enum mismatch detected");
+                    }
+                }
                 default -> Assert.fail(String.format("Invalid token type: %d. Valid types are 0 (VARIABLE), " +
-                        "1 (PROPERTY), 2 (PARAMETER)", token.type()));
+                        "1 (PROPERTY), 2 (PARAMETER), 3 (TYPE_CAST), 4 (VALUE), 5 (START_EVENT), 6 (END_EVENT)",
+                        token.type()));
             }
         }
     }
@@ -265,7 +297,7 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
      * @param line      Line number (0-indexed)
      * @param col       Column offset (0-indexed)
      * @param length    Token length in characters
-     * @param type      Token type ID (0=VARIABLE, 1=PROPERTY, 2=PARAMETER)
+     * @param type      Token type ID 
      * @param modifiers Token modifiers bitmask (0=none)
      */
     private record ExpectedToken(
