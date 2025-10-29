@@ -223,7 +223,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     // show dash line if the node is a class call
-    const isClassCall = model.node.codedata.node === "VECTOR_KNOWLEDGE_BASE_CALL";
+    const isClassCall = model.node.codedata.node === "KNOWLEDGE_BASE_CALL";
 
     useEffect(() => {
         if (model.node.suggested) {

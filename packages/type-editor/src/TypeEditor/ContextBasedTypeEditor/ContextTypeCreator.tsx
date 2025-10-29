@@ -189,6 +189,13 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
+    // This ensures validation runs even if the name hasn't changed but other nested types were created
+    useEffect(() => {
+        if (editingType && editingType.name) {
+            validateTypeName(editingType.name);
+        }
+    }, [editingType]);
+
     const handleSetType = (type: Type) => {
         replaceTop({
             type: type,
