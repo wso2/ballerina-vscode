@@ -219,7 +219,7 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                                 cursor: ${isUserAuthenticated ? "pointer" : "not-allowed"};
                             `}
                         >
-                            {!isUserAuthenticated && <title>You need to be logged into copilot to access AI features</title>}
+                            {!isUserAuthenticated && <title>You need to be logged into BI Copilot to access AI features</title>}
                             <path
                                 fill={ThemeColors.SURFACE_BRIGHT}
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
