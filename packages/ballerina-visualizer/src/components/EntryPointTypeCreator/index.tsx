@@ -174,7 +174,7 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
     }
 
     const createNewType = (): Type => ({
-        name: "",
+        name: "NewType",
         members: [] as Member[],
         editable: true,
         metadata: {
