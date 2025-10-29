@@ -39,7 +39,7 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -53,7 +53,7 @@ const ModalBox = styled.div<{ width?: number; height?: number }>`
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
@@ -82,7 +82,6 @@ const ModalHeaderSection = styled.header`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-inline: 16px;
 `;
 
 type TriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
@@ -141,7 +140,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                             <Codicon name="close" onClick={handleClose} />
                         </ModalHeaderSection>
                         <Divider />
-                        <div>{content}</div>
+                        {content}
                     </ModalBox>
                 </ModalContainer>,
                 document.body

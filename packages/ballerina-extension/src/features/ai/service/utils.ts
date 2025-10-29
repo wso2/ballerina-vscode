@@ -27,11 +27,15 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFiles,
+    SourceFile,
     TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
     Command,
-    DocumentationGeneratorIntermediaryState
+    DocumentationGeneratorIntermediaryState,
+    PayloadContext,
+    HttpPayloadContext,
+    MessageQueuePayloadContext
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
@@ -211,6 +215,14 @@ export function sendToolResultNotification(toolName: string, toolOutput: any): v
     sendAIPanelNotification(msg);
 }
 
+export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void {
+    const msg: ChatNotify = {
+        type: "generated_sources",
+        fileArray: fileArray,
+    };
+    sendAIPanelNotification(msg);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
@@ -249,4 +261,12 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {
+    return context.protocol === "HTTP";
+}
+
+export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
+    return context.protocol === "MESSAGE_BROKER";
 }

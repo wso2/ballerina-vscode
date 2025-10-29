@@ -37,6 +37,7 @@ const Node = styled.div<NodeStyleProp>`
     justify-content: center;
     align-items: center;
     height: ${CON_NODE_HEIGHT}px;
+    width: ${CON_NODE_WIDTH}px;
     color: ${ThemeColors.ON_SURFACE};
     cursor: pointer;
 `;
@@ -165,6 +166,9 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
     };
 
     const getNodeDescription = () => {
+        if (model.node?.kind) {
+            return model.node.kind;
+        }
         return "Connection";
     };
 

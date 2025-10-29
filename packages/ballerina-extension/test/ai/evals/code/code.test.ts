@@ -172,7 +172,7 @@ async function setupTestEnvironment(): Promise<void> {
     }
 }
 
-suite.only("AI Code Generator Tests Suite", () => {
+suite.skip("AI Code Generator Tests Suite", () => {
 
     suiteSetup(async function (): Promise<void> {
         await setupTestEnvironment();

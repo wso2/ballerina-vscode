@@ -374,7 +374,7 @@ ${JSON.stringify(langlibs, null, 2)}
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
-Begin your response with the very consice explanation. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
+Begin your response with the very consice explanation in the same language as the user query. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
 Once the explanation is finished, make the necessary File modifications. Avoid any usage guides or explanations after the file modifications.
 `;
 }
