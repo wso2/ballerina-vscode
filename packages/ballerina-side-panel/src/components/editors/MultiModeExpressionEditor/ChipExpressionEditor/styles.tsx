@@ -27,7 +27,7 @@ export const ChipEditorField = styled.div`
     min-height: ${CHIP_EXPRESSION_EDITOR_HEIGHT}px;
     height: 100%;
     width: 100%;
-    padding: 1px 25px 1px 8px;
+    padding: 1px 2px 1px 8px;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground, #000000);
     white-space: pre-wrap;
@@ -35,9 +35,18 @@ export const ChipEditorField = styled.div`
     border: 1px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
+    display: flex;
+    flex-direction: column;
 
     &:focus {
         outline: 1px solid var(--vscode-focusBorder, #0078d4);
+    }
+
+    & span[contenteditable] {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
     }
 `;
 
@@ -222,10 +231,11 @@ interface CompletionsItemElProps {
 export const FloatingButtonContainer = styled.div`
     position: absolute;
     bottom: 6px;
-    right: 6px;
+    right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;
+    background: linear-gradient(to top, rgba(0,0,0,0.05), transparent);
 `;
 
 export const FloatingToggleButton = styled.button<{ isActive: boolean }>`

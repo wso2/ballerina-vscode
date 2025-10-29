@@ -22,8 +22,8 @@ import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
-import { GetHelperButton } from "./FloatingButtonIcons";
-import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
+import { GetHelperButton, ExpandButton } from "./FloatingButtonIcons";
+import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition } from "../utils";
 
 export type AutoExpandingEditableDivProps = {
@@ -35,8 +35,6 @@ export type AutoExpandingEditableDivProps = {
     onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
     style?: React.CSSProperties;
     onFocusChange?: (isFocused: boolean) => void;
-    isExpanded?: boolean;
-    setIsExpanded?: (isExpanded: boolean) => void;
     isCompletionsOpen?: boolean;
     completions?: CompletionItem[];
     selectedCompletionItem?: number;
@@ -53,6 +51,8 @@ export type AutoExpandingEditableDivProps = {
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
     handleHelperPaneValueChange?: (value: string, closeHelperPane: boolean) => void;
+    isInExpandedMode?: boolean;
+    onOpenExpandedMode?: () => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -62,9 +62,8 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         onKeyDown,
         onInput,
         fieldContainerRef,
-        style,
-        isExpanded,
-        setIsExpanded } = props;
+        style
+    } = props;
 
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
 
@@ -214,40 +213,42 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
 
     return (
         <>
-            {isExpanded ? (
-                <div
-                    style={{
-                        height: '100%',
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-
-                    <span>Editing in expanded mode</span>
+            <ChipEditorField
+                ref={fieldContainerRef}
+                style={{
+                    ...style,
+                    flex: 1,
+                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '200px',
+                    ...(props.isInExpandedMode && {
+                        height: `${EXPANDED_EDITOR_HEIGHT}px`,
+                        minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
+                    })
+                }}
+                onKeyUp={onKeyUp}
+                onClick={handleEditorClicked}
+                onKeyDown={onKeyDown}
+                onInput={onInput}
+            >
+                <div style={{ flex: 1, overflow: 'auto', height: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto' }}>
+                    {children}
                 </div>
-            ) : (
-                <>
-                    <ChipEditorField
-                        ref={fieldContainerRef}
-                        style={{ ...style, flex: 1 }}
-                        onKeyUp={onKeyUp}
-                        onClick={handleEditorClicked}
-                        onKeyDown={onKeyDown}
-                        onInput={onInput}
+            </ChipEditorField>
+            {renderCompletionsMenu()}
+            {renderHelperPane()}
+            <FloatingButtonContainer>
+                {props.onOpenExpandedMode && !props.isInExpandedMode && (
+                    <FloatingToggleButton
+                        isActive={false}
+                        onClick={() => props.onOpenExpandedMode?.()}
+                        title="Expand"
                     >
-                        {children}
-                    </ChipEditorField>
-                    {renderCompletionsMenu()}
-                    {renderHelperPane()}
-                    <FloatingButtonContainer>
-                        <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
-                            <GetHelperButton />
-                        </FloatingToggleButton>
-                    </FloatingButtonContainer>
-                </>
-            )}
+                        <ExpandButton />
+                    </FloatingToggleButton>
+                )}
+                <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
+                    <GetHelperButton />
+                </FloatingToggleButton>
+            </FloatingButtonContainer>
         </>
     )
 }
