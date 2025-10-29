@@ -22,12 +22,17 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.InterpolationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.SemanticTokens;
 
@@ -129,6 +134,97 @@ public class SemanticTokenVisitor extends NodeVisitor {
         functionCallExpressionNode.arguments().forEach(arg -> {
             addSemanticToken(arg, ExpressionTokenTypes.PARAMETER.getId());
         });
+    }
+
+    @Override
+    public void visit(InterpolationNode interpolationNode) {
+        // Add START_EVENT token for $ (zero-length)
+        Token startToken = interpolationNode.interpolationStartToken();
+        addZeroLengthToken(startToken.lineRange().startLine().line(),
+                startToken.lineRange().startLine().offset(),
+                ExpressionTokenTypes.START_EVENT.getId());
+
+        // Visit the expression inside the interpolation
+        interpolationNode.expression().accept(this);
+
+        // Add END_EVENT token for } (zero-length)
+        Token endToken = interpolationNode.interpolationEndToken();
+        addZeroLengthToken(endToken.lineRange().startLine().line(),
+                endToken.lineRange().startLine().offset(),
+                ExpressionTokenTypes.END_EVENT.getId());
+    }
+
+    @Override
+    public void visit(TypeCastExpressionNode typeCastExpressionNode) {
+        // Mark the entire type cast (<Type>) as TYPE_CAST token
+        int startLine = typeCastExpressionNode.ltToken().lineRange().startLine().line();
+        int startCol = typeCastExpressionNode.ltToken().lineRange().startLine().offset();
+        int endCol = typeCastExpressionNode.gtToken().lineRange().endLine().offset() + 1;
+        int length = endCol - startCol;
+
+        addSemanticTokenWithPosition(startLine, startCol, length, ExpressionTokenTypes.TYPE_CAST.getId());
+
+        // Visit the expression part (the value being cast)
+        ExpressionNode expression = typeCastExpressionNode.expression();
+
+        // If it's a mapping constructor, visit field values individually
+        if (expression instanceof MappingConstructorExpressionNode mappingConstructor) {
+            for (MappingFieldNode field : mappingConstructor.fields()) {
+                if (field instanceof SpecificFieldNode specificField) {
+                    // Mark only the value expression, not the field name
+                    specificField.valueExpr().ifPresent(valueExpr ->
+                            addSemanticToken(valueExpr, ExpressionTokenTypes.VALUE.getId())
+                    );
+                }
+            }
+        } else {
+            // For non-mapping expressions, mark the entire expression as VALUE
+            addSemanticToken(expression, ExpressionTokenTypes.VALUE.getId());
+        }
+    }
+
+    /**
+     * Adds a zero-length semantic token at a specific position.
+     *
+     * @param line   Line number (0-indexed)
+     * @param column Column offset (0-indexed)
+     * @param type   Semantic token type's index
+     */
+    private void addZeroLengthToken(int line, int column, int type) {
+        // Efficient O(1) duplicate check using position hash (line << 32 | column)
+        long positionKey = ((long) line << 32) | column;
+        if (!seenPositions.add(positionKey)) {
+            return; // Already processed this position
+        }
+
+        // Create and add semantic token with zero length (special case for events)
+        SemanticToken semanticToken = new SemanticToken(line, column);
+        semanticToken.setProperties(0, type, 0);
+        semanticTokens.add(semanticToken);
+    }
+
+    /**
+     * Adds a semantic token with explicit position and length.
+     *
+     * @param line   Line number (0-indexed)
+     * @param column Column offset (0-indexed)
+     * @param length Token length
+     * @param type   Semantic token type's index
+     */
+    private void addSemanticTokenWithPosition(int line, int column, int length, int type) {
+        // Efficient O(1) duplicate check using position hash (line << 32 | column)
+        long positionKey = ((long) line << 32) | column;
+        if (!seenPositions.add(positionKey)) {
+            return; // Already processed this position
+        }
+
+        if (length <= 0) {
+            return; // Skip zero-length tokens (except for explicit event tokens)
+        }
+
+        SemanticToken semanticToken = new SemanticToken(line, column);
+        semanticToken.setProperties(length, type, 0);
+        semanticTokens.add(semanticToken);
     }
 
     /**

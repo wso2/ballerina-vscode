@@ -26,7 +26,11 @@ package io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
 public enum ExpressionTokenTypes {
     VARIABLE(0),    // Variable references
     PROPERTY(1),    // Record field access (obj.field)
-    PARAMETER(2);   // Function call arguments (ALL arguments including literals)
+    PARAMETER(2),   // Function call arguments (ALL arguments including literals)
+    TYPE_CAST(3),   // Type cast expressions (<Type>)
+    VALUE(4),       // Values in template expressions
+    START_EVENT(5), // Start event token - zero length
+    END_EVENT(6);   // End event token - zero length
 
     private final int id;
 
