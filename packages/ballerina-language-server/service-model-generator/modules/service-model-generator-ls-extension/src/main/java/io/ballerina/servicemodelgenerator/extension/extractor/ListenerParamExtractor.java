@@ -31,14 +31,22 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
+import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.LineRange;
+import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +62,62 @@ import java.util.Optional;
 public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
 
     private static final String LISTENER_PARAM_KIND = "LISTENER_PARAM";
+
+    /**
+     * Finds the ListenerDeclarationNode for a given variable symbol.
+     * Implements the working approach from the debug implementation.
+     *
+     * @param variableSymbol The variable symbol representing the listener
+     * @param context        The model from source context with access to workspace manager
+     * @return The ListenerDeclarationNode if found
+     */
+    public static Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol,
+                                                                            ModelFromSourceContext context) {
+        // Get the location of the variable symbol
+        Optional<Location> location = variableSymbol.getLocation();
+        if (location.isEmpty()) {
+            return Optional.empty();
+        }
+
+        try {
+            // Get document from workspace manager
+            WorkspaceManager workspaceManager = context.workspaceManager();
+            String filePath = location.get().lineRange().filePath();
+            if (filePath == null) {
+                return Optional.empty();
+            }
+
+            Optional<Document> documentOpt = workspaceManager.document(Path.of(filePath));
+            if (documentOpt.isEmpty()) {
+                return Optional.empty();
+            }
+
+            // Use the working approach from the debug implementation
+            SyntaxTree syntaxTree = documentOpt.get().syntaxTree();
+            TextDocument textDocument = syntaxTree.textDocument();
+            LineRange lineRange = location.get().lineRange();
+
+            int start = textDocument.textPositionFrom(lineRange.startLine());
+            int end = textDocument.textPositionFrom(lineRange.endLine());
+
+            ModulePartNode modulePartNode = syntaxTree.rootNode();
+            Node foundNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
+
+            // Traverse up to find the ListenerDeclarationNode
+            Node current = foundNode;
+            while (current != null) {
+                if (current instanceof ListenerDeclarationNode listenerDeclarationNode) {
+                    return Optional.of(listenerDeclarationNode);
+                }
+                current = current.parent();
+            }
+        } catch (RuntimeException e) {
+            // Handle any runtime exceptions that may occur during workspace or file operations
+            return Optional.empty();
+        }
+
+        return Optional.empty();
+    }
 
     @Override
     public Map<String, List<String>> extractValues(ReadOnlyMetaData metadataItem, ServiceDeclarationNode serviceNode,
@@ -105,7 +169,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
         return allValues;
     }
 
-
     /**
      * Extracts parameter value(s) from an expression node, handling arrays properly.
      *
@@ -124,7 +187,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
         }
         return new ArrayList<>();
     }
-
 
     /**
      * Extracts parameter from listener constructor arguments.
@@ -202,62 +264,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     }
 
     /**
-     * Finds the ListenerDeclarationNode for a given variable symbol.
-     * Implements the working approach from the debug implementation.
-     *
-     * @param variableSymbol The variable symbol representing the listener
-     * @param context        The model from source context with access to workspace manager
-     * @return The ListenerDeclarationNode if found
-     */
-    private Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol,
-                                                                      ModelFromSourceContext context) {
-        // Get the location of the variable symbol
-        var location = variableSymbol.getLocation();
-        if (location.isEmpty()) {
-            return Optional.empty();
-        }
-
-        try {
-            // Get document from workspace manager
-            var workspaceManager = context.workspaceManager();
-            var filePath = location.get().lineRange().filePath();
-            if (filePath == null) {
-                return Optional.empty();
-            }
-
-            var documentOpt = workspaceManager.document(java.nio.file.Path.of(filePath));
-            if (documentOpt.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Use the working approach from the debug implementation
-            var syntaxTree = documentOpt.get().syntaxTree();
-            var textDocument = syntaxTree.textDocument();
-            var lineRange = location.get().lineRange();
-
-            int start = textDocument.textPositionFrom(lineRange.startLine());
-            int end = textDocument.textPositionFrom(lineRange.endLine());
-
-            ModulePartNode modulePartNode = syntaxTree.rootNode();
-            var foundNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
-
-            // Traverse up to find the ListenerDeclarationNode
-            Node current = foundNode;
-            while (current != null) {
-                if (current instanceof ListenerDeclarationNode listenerDeclarationNode) {
-                    return Optional.of(listenerDeclarationNode);
-                }
-                current = current.parent();
-            }
-        } catch (RuntimeException e) {
-            // Handle any runtime exceptions that may occur during workspace or file operations
-            return Optional.empty();
-        }
-
-        return Optional.empty();
-    }
-
-    /**
      * Extracts parameter from implicit listener constructor arguments.
      *
      * @param constructorNode The implicit listener constructor node
@@ -270,7 +276,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                                                                 String parameterName,
                                                                 SemanticModel semanticModel,
                                                                 ModelFromSourceContext context) {
-        var parenthesizedArgList = constructorNode.parenthesizedArgList();
+        Optional<ParenthesizedArgList> parenthesizedArgList = constructorNode.parenthesizedArgList();
         if (parenthesizedArgList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -313,7 +319,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
     /**
      * Extracts value from an expression node with support for configurable variables.
      *
-     * @param expression    The expression to extract value from
+     * @param expression The expression to extract value from
      * @return The extracted value as string
      */
     private String extractValueFromExpression(ExpressionNode expression) {
@@ -343,7 +349,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
         List<String> values = new ArrayList<>();
 
         if (expression instanceof ListConstructorExpressionNode listConstructor) {
-            // Handle array literals like ["customer", "student"]
             SeparatedNodeList<Node> expressions = listConstructor.expressions();
             for (Node expr : expressions) {
                 if (expr instanceof ExpressionNode expressionNode) {

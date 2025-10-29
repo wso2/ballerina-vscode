@@ -582,12 +582,12 @@
       "readOnlyMetadata": [
         {
           "key": "subscriptions",
-          "displayName": "Topics",
+          "displayName": "Topic(s)",
           "kind": "LISTENER_PARAM"
         },
         {
           "key": "arg3",
-          "displayName": "Topics",
+          "displayName": "Topic(s)",
           "kind": "LISTENER_PARAM"
         }
       ]
@@ -826,7 +826,7 @@
         },
         {
           "key": "topicName",
-          "displayName": "Topic Name",
+          "displayName": "Topic(s)",
           "kind": "CUSTOM"
         }
       ]
@@ -1142,7 +1142,7 @@
       "readOnlyMetadata": [
         {
           "key": "topics",
-          "displayName": "Topics",
+          "displayName": "Topic(s)",
           "kind": "LISTENER_PARAM"
         }
       ]

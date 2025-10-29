@@ -79,7 +79,7 @@
           "placeholder": "false",
           "valueType": "SINGLE_SELECT",
           "value": {
-            "Topics": []
+            "Topic(s)": []
           },
           "enabled": true,
           "editable": true,
