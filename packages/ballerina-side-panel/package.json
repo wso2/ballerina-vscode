@@ -25,7 +25,6 @@
         "@wso2/ui-toolkit": "workspace:*",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-rpc-client": "workspace:*",
-        "@github/markdown-toolbar-element": "^2.2.3",
         "lodash": "~4.17.21",
         "react-hook-form": "7.56.4",
         "react-markdown": "~10.1.0"

@@ -16,12 +16,11 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React from "react";
 
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
-import { useFormContext } from "../../context";
 import { MultiSelectEditor } from "./MultiSelectEditor";
 import { TextEditor } from "./TextEditor";
 import { TypeEditor } from "./TypeEditor";
@@ -48,7 +47,6 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
-import { ExpandedPromptEditor } from "./ExpandedPromptEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -89,8 +87,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
-    const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-    const { form } = useFormContext();
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -160,44 +156,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             />
         );
     } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
-        if (field.key === "prompt") {
-            field.actionCallback = () => setIsPromptModalOpen(true);
-            field.actionLabel = "Expand";
-
-            const handleSavePrompt = (value: string) => {
-                // Update the form value
-                if (form?.setValue) {
-                    form.setValue(field.key, value);
-                }
-                // Update the field value
-                if (field.onValueChange) {
-                    field.onValueChange(value);
-                }
-            };
-
-            // Get the current value from the form state (synced with expression editor)
-            const currentValue = form?.watch ? form.watch(field.key) : field.value;
-
-            return (
-                <>
-                    <ActionExpressionEditor
-                        field={field}
-                        openSubPanel={openSubPanel}
-                        subPanelView={subPanelView}
-                        handleOnFieldFocus={handleOnFieldFocus}
-                        onBlur={onBlur}
-                        autoFocus={autoFocus}
-                        recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-                    />
-                    <ExpandedPromptEditor
-                        isOpen={isPromptModalOpen}
-                        value={currentValue as string}
-                        onClose={() => setIsPromptModalOpen(false)}
-                        onSave={handleSavePrompt}
-                    />
-                </>
-            );
-        }
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor

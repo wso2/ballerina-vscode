@@ -61,6 +61,8 @@ export type ChipExpressionBaseComponentProps = {
         documentation?: FnSignatureDocumentation;
     }>;
     targetLineRange?: LineRange;
+    onOpenExpandedMode?: () => void;
+    isInExpandedMode?: boolean;
 }
 
 export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentProps) => {
@@ -71,7 +73,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
     const [chipClicked, setChipClicked] = useState<ExpressionModel | null>(null);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState(false);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>(props.completions);
     const [isLoading, setIsLoading] = useState(false);
@@ -444,8 +445,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     return (
-        <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative' }}>
-            <FXButton isLoading={isLoading} />
+        <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+            {!props.isInExpandedMode && <FXButton isLoading={isLoading} />}
             <AutoExpandingEditableDiv
                 value={props.value}
                 fieldContainerRef={fieldContainerRef}
@@ -457,8 +458,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     }
                 }}
                 onKeyDown={handleKeyDown}
-                isExpanded={isExpanded}
-                setIsExpanded={setIsExpanded}
                 isCompletionsOpen={isCompletionsOpen}
                 completions={filteredCompletions}
                 selectedCompletionItem={selectedCompletionItem}
@@ -470,6 +469,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 handleHelperPaneValueChange={handleHelperPaneValueChange}
                 onHelperPaneClose={() => setIsHelperPaneOpen(false)}
                 onToggleHelperPane={toggleHelperPane}
+                isInExpandedMode={props.isInExpandedMode}
+                onOpenExpandedMode={props.onOpenExpandedMode}
             >
                 <TokenizedExpression
                     expressionModel={expressionModel || []}
