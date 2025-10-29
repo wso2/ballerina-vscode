@@ -13,15 +13,8 @@
     {
       "line": 0,
       "col": 60,
-      "length": 3,
+      "length": 10,
       "type": 0,
-      "modifiers": 0
-    },
-    {
-      "line": 0,
-      "col": 64,
-      "length": 6,
-      "type": 1,
       "modifiers": 0
     }
   ]
