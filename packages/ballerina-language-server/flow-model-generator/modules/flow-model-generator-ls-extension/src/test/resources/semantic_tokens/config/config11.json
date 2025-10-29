@@ -6,7 +6,7 @@
     {
       "line": 0,
       "col": 11,
-      "length": 0,
+      "length": 2,
       "type": 5,
       "modifiers": 0
     },
@@ -20,7 +20,7 @@
     {
       "line": 0,
       "col": 18,
-      "length": 0,
+      "length": 1,
       "type": 6,
       "modifiers": 0
     }

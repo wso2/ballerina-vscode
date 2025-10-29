@@ -6,7 +6,7 @@
     {
       "line": 0,
       "col": 28,
-      "length": 0,
+      "length": 2,
       "type": 5,
       "modifiers": 0
     },
@@ -20,14 +20,14 @@
     {
       "line": 0,
       "col": 35,
-      "length": 0,
+      "length": 1,
       "type": 6,
       "modifiers": 0
     },
     {
       "line": 0,
       "col": 58,
-      "length": 0,
+      "length": 2,
       "type": 5,
       "modifiers": 0
     },
@@ -41,7 +41,7 @@
     {
       "line": 0,
       "col": 70,
-      "length": 0,
+      "length": 1,
       "type": 6,
       "modifiers": 0
     }

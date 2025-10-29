@@ -138,19 +138,21 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(InterpolationNode interpolationNode) {
-        // Add START_EVENT token for $ (zero-length)
+        // Add START_EVENT token for ${ (length 2)
         Token startToken = interpolationNode.interpolationStartToken();
-        addZeroLengthToken(startToken.lineRange().startLine().line(),
+        addSemanticTokenWithPosition(startToken.lineRange().startLine().line(),
                 startToken.lineRange().startLine().offset(),
+                2,  // Length 2 to cover "${"
                 ExpressionTokenTypes.START_EVENT.getId());
 
         // Visit the expression inside the interpolation
         interpolationNode.expression().accept(this);
 
-        // Add END_EVENT token for } (zero-length)
+        // Add END_EVENT token for } (length 1)
         Token endToken = interpolationNode.interpolationEndToken();
-        addZeroLengthToken(endToken.lineRange().startLine().line(),
+        addSemanticTokenWithPosition(endToken.lineRange().startLine().line(),
                 endToken.lineRange().startLine().offset(),
+                1,  // Length 1 to cover "}"
                 ExpressionTokenTypes.END_EVENT.getId());
     }
 
