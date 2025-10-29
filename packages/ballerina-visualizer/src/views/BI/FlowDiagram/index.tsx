@@ -126,6 +126,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
     const [projectOrg, setProjectOrg] = useState<string>("");
+    const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -198,6 +199,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             setProjectOrg(location.org);
         });
+
+        // Check user authentication status
+        rpcClient.getAiPanelRpcClient().isUserAuthenticated()
+            .then((isAuth) => {
+                setIsUserAuthenticated(isAuth);
+            })
+            .catch(() => {
+                setIsUserAuthenticated(false);
+            });
     }, [rpcClient]);
 
     const updateConnectionWithNewItem = (recentIdentifier: string) => {
@@ -458,6 +468,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const getFlowModel = () => {
         setShowProgressIndicator(true);
         onUpdate();
+
+        // Re-check authentication status
+        rpcClient.getAiPanelRpcClient().isUserAuthenticated()
+            .then((isAuth) => {
+                setIsUserAuthenticated(isAuth);
+            })
+            .catch(() => {
+                setIsUserAuthenticated(false);
+            });
+
         rpcClient
             .getBIDiagramRpcClient()
             .getBreakpointInfo()
@@ -2218,6 +2238,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 visible: selectedNodeId !== undefined,
                 onClickOverlay: handleOnCloseSidePanel,
             },
+            isUserAuthenticated,
         }),
         [
             flowModel,
@@ -2230,6 +2251,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             hasDraft,
             selectedNodeId,
             rpcClient,
+            isUserAuthenticated,
         ]
     );
 
