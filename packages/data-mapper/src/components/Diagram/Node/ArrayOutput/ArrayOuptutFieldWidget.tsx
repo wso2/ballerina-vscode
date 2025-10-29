@@ -137,7 +137,6 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
         <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
             <TruncatedLabel
                 className={classnames(classes.valueLabel, isDisabled ? classes.labelDisabled : "")}
-                style={{ marginLeft: !connectedViaLink ? 0 : indentation + 24 }}
             >
                 <OutputSearchHighlight>{fieldName}</OutputSearchHighlight>
                 {!field?.optional && <span className={classes.requiredMark}>*</span>}
@@ -365,19 +364,17 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                         )}
                     </span>
                     <span className={classes.label}>
-                        {(!connectedViaLink) && (
-                            <FieldActionWrapper>
-                                <Button
-                                    id={`expand-or-collapse-${portName}`}
-                                    appearance="icon"
-                                    sx={{ marginLeft: indentation }}
-                                    onClick={handleExpand}
-                                    data-testid={`${portIn?.getName()}-expand-icon-array-field`}
-                                >
-                                    {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-                                </Button>
-                            </FieldActionWrapper>
-                        )}
+                        <FieldActionWrapper>
+                            <Button
+                                id={`expand-or-collapse-${portName}`}
+                                appearance="icon"
+                                sx={{ marginLeft: indentation }}
+                                onClick={handleExpand}
+                                data-testid={`${portIn?.getName()}-expand-icon-array-field`}
+                            >
+                                {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+                            </Button>
+                        </FieldActionWrapper>
                         {label}
                     </span>
                     {(isLoading) ? (
@@ -402,7 +399,7 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     </div>
                 </div>
             )}
-            {(expanded && !connectedViaLink && !elements?.length && arrayField) && (
+            {(expanded && !elements?.length && arrayField) && (
                 <OutputFieldPreviewWidget
                     key={`arr-output--preview-field-${portName}`}
                     engine={engine}

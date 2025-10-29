@@ -21,22 +21,15 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
-    addCodeSegmentToWorkspace,
     addFilesToProject,
     AddFilesToProjectRequest,
-    addInlineCodeSegmentToWorkspace,
     addToProject,
     AddToProjectRequest,
     AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
-    CodeSegment,
-    createTempFileAndGenerateMetadata,
-    CreateTempFileRequest,
     createTestDirecoryIfNotExists,
-    DatamapperModelContext,
-    DataMapperModelResponse,
     deleteFromProject,
     DeleteFromProjectRequest,
     DeveloperDocument,
@@ -45,19 +38,17 @@ import {
     FetchDataRequest,
     generateCode,
     GenerateCodeRequest,
-    generateDataMapperModel,
+    generateContextTypes,
     generateFunctionTests,
     generateHealthcareCode,
-    generateMappings,
+    generateInlineMappingCode,
+    generateMappingCode,
     generateOpenAPI,
     GenerateOpenAPIRequest,
     generateTestPlan,
-    GenerateTypesFromRecordRequest,
     getAccessToken,
-    getActiveFile,
     getAIMachineSnapshot,
     getBackendUrl,
-    getContentFromFile,
     getDefaultPrompt,
     getDriftDiagnosticContents,
     getFileExists,
@@ -67,8 +58,6 @@ import {
     getGeneratedDocumentation,
     getGeneratedTests,
     getLoginMethod,
-    getModuleDirectory,
-    GetModuleDirParams,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
@@ -78,18 +67,18 @@ import {
     getServiceSourceForName,
     getShadowDiagnostics,
     getTestDiagnostics,
-    getTypesFromRecord,
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
+    isUserAuthenticated,
     markAlertShown,
     MetadataWithAttachments,
-    notifyAIMappings,
-    NotifyAIMappingsRequest,
-    openAIMappingChatWindow,
+    openChatWindowWithCommand,
     postProcess,
     PostProcessRequest,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
     ProjectSource,
     promptGithubAuthorize,
     promptWSO2AILogout,
@@ -99,7 +88,6 @@ import {
     RepairParams,
     RequirementSpecification,
     showSignInAlert,
-    stopAIMappings,
     submitFeedback,
     SubmitFeedbackRequest,
     TestGenerationRequest,
@@ -126,18 +114,13 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getFromFile, (args: GetFromFileRequest) => rpcManger.getFromFile(args));
     messenger.onRequest(getFileExists, (args: GetFromFileRequest) => rpcManger.getFileExists(args));
     messenger.onNotification(deleteFromProject, (args: DeleteFromProjectRequest) => rpcManger.deleteFromProject(args));
-    messenger.onRequest(notifyAIMappings, (args: NotifyAIMappingsRequest) => rpcManger.notifyAIMappings(args));
-    messenger.onRequest(stopAIMappings, () => rpcManger.stopAIMappings());
     messenger.onRequest(getShadowDiagnostics, (args: ProjectSource) => rpcManger.getShadowDiagnostics(args));
     messenger.onRequest(checkSyntaxError, (args: ProjectSource) => rpcManger.checkSyntaxError(args));
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
-    messenger.onNotification(openAIMappingChatWindow, (args: DataMapperModelResponse) => rpcManger.openAIMappingChatWindow(args));
-    messenger.onRequest(generateDataMapperModel, (args: DatamapperModelContext) => rpcManger.generateDataMapperModel(args));
-    messenger.onRequest(getTypesFromRecord, (args: GenerateTypesFromRecordRequest) => rpcManger.getTypesFromRecord(args));
-    messenger.onRequest(createTempFileAndGenerateMetadata, (args: CreateTempFileRequest) => rpcManger.createTempFileAndGenerateMetadata(args));
-    messenger.onRequest(generateMappings, (args: MetadataWithAttachments) => rpcManger.generateMappings(args));
-    messenger.onRequest(addCodeSegmentToWorkspace, (args: CodeSegment) => rpcManger.addCodeSegmentToWorkspace(args));
-    messenger.onNotification(addInlineCodeSegmentToWorkspace, (args: CodeSegment) => rpcManger.addInlineCodeSegmentToWorkspace(args));
+    messenger.onRequest(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());
+    messenger.onRequest(generateContextTypes, (args: ProcessContextTypeCreationRequest) => rpcManger.generateContextTypes(args));
+    messenger.onRequest(generateMappingCode, (args: ProcessMappingParametersRequest) => rpcManger.generateMappingCode(args));
+    messenger.onRequest(generateInlineMappingCode, (args: MetadataWithAttachments) => rpcManger.generateInlineMappingCode(args));
     messenger.onRequest(getGeneratedTests, (args: TestGenerationRequest) => rpcManger.getGeneratedTests(args));
     messenger.onRequest(getTestDiagnostics, (args: TestGenerationResponse) => rpcManger.getTestDiagnostics(args));
     messenger.onRequest(getServiceSourceForName, (args: string) => rpcManger.getServiceSourceForName(args));
@@ -147,7 +130,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortTestGeneration, () => rpcManger.abortTestGeneration());
     messenger.onNotification(applyDoOnFailBlocks, () => rpcManger.applyDoOnFailBlocks());
     messenger.onRequest(postProcess, (args: PostProcessRequest) => rpcManger.postProcess(args));
-    messenger.onRequest(getActiveFile, () => rpcManger.getActiveFile());
     messenger.onRequest(promptGithubAuthorize, () => rpcManger.promptGithubAuthorize());
     messenger.onRequest(promptWSO2AILogout, () => rpcManger.promptWSO2AILogout());
     messenger.onRequest(isCopilotSignedIn, () => rpcManger.isCopilotSignedIn());
@@ -163,8 +145,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(updateDevelopmentDocument, (args: DeveloperDocument) => rpcManger.updateDevelopmentDocument(args));
     messenger.onNotification(updateRequirementSpecification, (args: RequirementSpecification) => rpcManger.updateRequirementSpecification(args));
     messenger.onNotification(createTestDirecoryIfNotExists, (args: string) => rpcManger.createTestDirecoryIfNotExists(args));
-    messenger.onRequest(getModuleDirectory, (args: GetModuleDirParams) => rpcManger.getModuleDirectory(args));
-    messenger.onRequest(getContentFromFile, (args: GetFromFileRequest) => rpcManger.getContentFromFile(args));
     messenger.onRequest(submitFeedback, (args: SubmitFeedbackRequest) => rpcManger.submitFeedback(args));
     messenger.onRequest(getRelevantLibrariesAndFunctions, (args: RelevantLibrariesAndFunctionsRequest) => rpcManger.getRelevantLibrariesAndFunctions(args));
     messenger.onNotification(generateOpenAPI, (args: GenerateOpenAPIRequest) => rpcManger.generateOpenAPI(args));
@@ -176,4 +156,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
     messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
+    messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
 }

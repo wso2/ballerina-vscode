@@ -61,7 +61,6 @@ export interface DataMapperAPI {
     mapWithTransformFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
-    getAllDataMapperSource: (params: AllDataMapperSourceRequest) => Promise<DataMapperSourceResponse>;
     getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;
     getExpandedDMFromDMModel: (params: DMModelRequest) => Promise<ExpandedDMModelResponse>;
     getProcessTypeReference: (params: ProcessTypeReferenceRequest) => Promise<ProcessTypeReferenceResponse>;

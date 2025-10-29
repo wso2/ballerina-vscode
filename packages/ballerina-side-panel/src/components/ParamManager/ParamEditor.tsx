@@ -51,7 +51,7 @@ export function ParamEditor(props: ParamProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField
