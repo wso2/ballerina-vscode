@@ -38,6 +38,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -181,6 +183,7 @@ import {
     renameIdentifier,
     runProject,
     search,
+    searchNodes,
     updateClassField,
     updateConfigVariables,
     updateConfigVariablesV2,
@@ -193,6 +196,8 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     getFormDiagnostics,
+    getExpressionTokens,
+    ExpressionTokensRequest,
     AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -477,6 +482,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(search, HOST_EXTENSION, params);
     }
 
+    searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return this._messenger.sendRequest(searchNodes, HOST_EXTENSION, params);
+    }
+
     getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         return this._messenger.sendRequest(getRecordNames, HOST_EXTENSION);
     }
@@ -503,5 +512,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
         return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
+    }
+
+    getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
+        return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
     }
 }

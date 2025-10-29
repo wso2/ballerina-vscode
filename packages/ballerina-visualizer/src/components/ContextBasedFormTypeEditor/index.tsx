@@ -275,7 +275,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
 
     const getNewTypeCreateForm = () => {
         pushTypeStack({
-            type: defaultType(),
+            type: defaultType("NewType"),
             isDirty: false
         });
     };
@@ -307,7 +307,7 @@ export const ContextBasedFormTypeEditor: React.FC<ContextBasedFormTypeEditorProp
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}
                 >
-                    <div style={{ height: '525px', overflow: 'hidden', paddingBottom: '20px' }}>
+                    <div style={{ maxHeight: '525px', overflow: 'hidden' }}>
                         {loadingType && editMode && i === 0 ? (
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
                                 <ProgressRing />

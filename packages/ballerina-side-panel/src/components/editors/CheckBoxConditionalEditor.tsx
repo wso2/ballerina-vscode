@@ -105,7 +105,7 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
                     setValue(propValue.key, propValue.value);
                 }
             }
-        );
+            );
         }
     }, [uncheckedStateFields]);
 
@@ -127,20 +127,22 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
             <FormSection>
                 {checked && checkedStateFields.length > 0 && (
                     <>
-                        {checkedStateFields.map((dfield) => (
+                        {checkedStateFields.map((dfield, index) => (
                             <EditorFactory
                                 key={dfield.key}
                                 field={dfield}
+                                autoFocus={index === 0 ? true : false}
                             />
                         ))}
                     </>
                 )}
                 {!checked && uncheckedStateFields.length > 0 && (
                     <>
-                        {uncheckedStateFields.map((dfield) => (
+                        {uncheckedStateFields.map((dfield, index) => (
                             <EditorFactory
                                 key={dfield.key}
                                 field={dfield}
+                                autoFocus={index === 0 ? true : false}
                             />
                         ))}
                     </>
