@@ -142,18 +142,14 @@ export function isMergeable(typeName: string): boolean {
 }
 
 
-export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
-    if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
-        let suffix = '';
-        const sourceDim = getDMTypeDim(sourcePort.attributes.field);
-        const targetDim = getDMTypeDim(targetPort.attributes.field);
-        const dimDelta = sourceDim - targetDim;
-        for (let i = 0; i < dimDelta; i++) {
-            suffix += '[0]';
-        }
-        return suffix;
-    }
-    return '';
+export function genArrayElementAccessSuffix(link: DataMapperLinkModel): string {
+    const sourcePort = link.getSourcePort() as InputOutputPortModel;
+    const targetPort = link.getTargetPort() as InputOutputPortModel;
+    
+    const sourceDim = getDMTypeDim(sourcePort.attributes.field);
+    const targetDim = getDMTypeDim(targetPort.attributes.field);
+    
+    return '[0]'.repeat(sourceDim - targetDim);
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {
@@ -222,7 +218,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputId: string, outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -231,12 +227,23 @@ export function expandArrayFn(context: IDataMapperContext, sourceField: string, 
     }
 
     const lastView = views[views.length - 1];
-    
+
+    const outputIdDotIndex = outputId.indexOf(".");
+    let label: string;
+    let targetField: string;
+    if (outputIdDotIndex !== -1) {
+        label = outputId.slice(outputIdDotIndex + 1);
+        targetField = viewId + "." + label;
+    } else {
+        label = "[]";
+        targetField = viewId + ".0";
+    }
+
     // Create base view properties
     const baseView: View = {
-        label: targetField,
-        sourceField,
-        targetField
+        label: label,
+        sourceField: inputId,
+        targetField: targetField
     };
 
     // Create the new view with or without sub-mapping info

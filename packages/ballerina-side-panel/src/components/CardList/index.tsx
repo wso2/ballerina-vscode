@@ -39,6 +39,7 @@ namespace S {
     export const PanelBody = styled(SidePanelBody)`
         height: calc(100vh - 100px);
         padding-top: 0;
+        overflow-y: auto;
     `;
 
     export const StyledSearchInput = styled(SearchBox)`
@@ -301,7 +302,7 @@ function CardList(props: CardListProps) {
         return (
             <S.CardsContainer>
                 {nodes.map((node, index) => (
-                    <S.Card key={node.id + index} enabled={node.enabled} onClick={() => handleCardClick(node)}>
+                    <S.Card key={node.id + index} enabled={node.enabled} onClick={() => handleCardClick(node)} title={node.description}>
                         <S.CardIcon>{node.icon ? node.icon : <LogIcon />}</S.CardIcon>
                         <S.CardContent>
                             <S.CardTitle>{node.label}</S.CardTitle>

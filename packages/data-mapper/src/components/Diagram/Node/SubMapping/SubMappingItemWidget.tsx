@@ -122,7 +122,7 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
 
     const onClickOnExpand = () => {
         const subMapping = subMappings[index];
-        const label = getSubMappingViewLabel(subMapping.name, subMapping.type);
+        const label = subMapping.name;
 
         addView(
             {
