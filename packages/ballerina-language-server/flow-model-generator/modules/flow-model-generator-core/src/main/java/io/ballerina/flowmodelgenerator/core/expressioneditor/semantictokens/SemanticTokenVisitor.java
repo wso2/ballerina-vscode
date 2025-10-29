@@ -218,12 +218,6 @@ public class SemanticTokenVisitor extends NodeVisitor {
         int line = startLine.line();
         int column = startLine.offset();
 
-        // Efficient O(1) duplicate check using position hash (line << 32 | column)
-        long positionKey = ((long) line << 32) | column;
-        if (!seenPositions.add(positionKey)) {
-            return; // Already processed this position
-        }
-
         // Calculate token length using pattern matching
         int length;
         if (node instanceof Token token) {
@@ -245,13 +239,8 @@ public class SemanticTokenVisitor extends NodeVisitor {
             length += trailingInvalidToken.text().length();
         }
 
-        // Create and add new semantic token
-        if (length <= 0) {
-            return; // Skip zero-length tokens
-        }
-        SemanticToken semanticToken = new SemanticToken(line, column);
-        semanticToken.setProperties(length, type, 0);
-        semanticTokens.add(semanticToken);
+        // Delegate to addSemanticTokenWithPosition for duplicate checking and token creation
+        addSemanticTokenWithPosition(line, column, length, type);
     }
 
     /**
