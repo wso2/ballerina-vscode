@@ -24,7 +24,7 @@ import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
 import { ConfigProperties, ParameterModel, PayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
-import { ContextBasedFormTypeEditor } from '../../../../../../components/ContextBasedFormTypeEditor';
+import { EntryPointTypeCreator } from '../../../../../../components/EntryPointTypeCreator';
 
 export interface ParametersProps {
     parameters: ParameterModel[];
@@ -469,12 +469,11 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
             {/* FormTypeEditor Modal for Add Payload */}
-            <ContextBasedFormTypeEditor
+            <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadName()}
-                editMode={false}
                 modalTitle={"Define Payload"}
                 payloadContext={{
                     ...payloadContext,
