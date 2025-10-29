@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlowNode } from "@wso2/ballerina-core";
+import { FlowNode, LineRange } from "@wso2/ballerina-core";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
@@ -26,6 +26,8 @@ import { ConnectionConfigProps } from "./types";
 import { getConnectionKindConfig } from "./config";
 import { createConnectionSelectField, fetchConnectionForNode, updateNodeWithConnectionVariable } from "./utils";
 import { LoaderContainer } from "../RelativeLoader/styles";
+import { URI, Utils } from "vscode-uri";
+import { CONNECTIONS_FILE } from "../../constants";
 
 export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const { connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
@@ -38,6 +40,8 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const projectPath = useRef<string>("");
+    const connectionsFilePath = useRef<string>("");
+    const targetLineRangeRef = useRef<LineRange | undefined>(undefined);
 
     useEffect(() => {
         initPanel();
@@ -52,6 +56,26 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const initPanel = async () => {
         setLoading(true);
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
+        
+        if (!selectedNode?.codedata?.lineRange) {
+            const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+                filePath: connectionsFilePath.current
+            });
+            targetLineRangeRef.current = {
+                startLine: {
+                    line: endPosition.line,
+                    offset: endPosition.offset
+                },
+                endLine: {
+                    line: endPosition.line,
+                    offset: endPosition.offset
+                }
+            };
+        } else {
+            targetLineRangeRef.current = selectedNode.codedata.lineRange;
+        }
+        
         await fetchSelectedConnection();
         setLoading(false);
     };
@@ -88,6 +112,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                     <FormGeneratorNew
                         key={selectedConnection?.id}
                         fileName={projectPath.current}
+                        targetLineRange={targetLineRangeRef.current}
                         fields={selectedConnectionFields}
                         onSubmit={handleOnSave}
                         disableSaveButton={savingForm}
