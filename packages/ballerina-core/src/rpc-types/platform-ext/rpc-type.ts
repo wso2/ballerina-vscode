@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { RequestType } from "vscode-messenger-common";
 import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "./interfaces";
 
@@ -28,5 +28,9 @@ export const isLoggedIn: RequestType<void, boolean> = { method: `${_preFix}/isLo
 export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };
 export const getSelectedContext: RequestType<void, ContextItemEnriched | null> = { method: `${_preFix}/getSelectedContext` };
 export const getDirectoryComponents: RequestType<string,  ComponentKind[]> = { method: `${_preFix}/getDirectoryComponents` };
+export const getDirectoryComponent: RequestType<string,  ComponentKind | null> = { method: `${_preFix}/getDirectoryComponent` };
 export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
 export const getConnections: RequestType<GetConnectionsReq,  ConnectionListItem[]> = { method: `${_preFix}/getConnections` };
+export const deleteConnection: RequestType<DeleteConnectionReq,  void> = { method: `${_preFix}/deleteConnection` };
+export const deleteLocalConnectionsConfig: RequestType<DeleteLocalConnectionsConfigReq,  void> = { method: `${_preFix}/deleteLocalConnectionsConfig` };
+export const getDevantConsoleUrl: RequestType<void,  string> = { method: `${_preFix}/getDevantConsoleUrl` };

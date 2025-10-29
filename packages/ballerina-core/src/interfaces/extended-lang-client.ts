@@ -858,6 +858,7 @@ export type BISourceCodeResponse = {
 export type BIDeleteByComponentInfoRequest = {
     filePath: string;
     component: ComponentInfo;
+    nodeType?: string;
 }
 
 export type BIDeleteByComponentInfoResponse = {

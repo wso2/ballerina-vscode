@@ -139,7 +139,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         });
     };
 
-    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection) => {
+    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => {
         console.log(">>> delete component", component);
         setIsDeleting(true);
         rpcClient
@@ -154,6 +154,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                     endLine: component.location.endLine.line,
                     endColumn: component.location.endLine.offset,
                 },
+                nodeType
             })
             .then((response) => {
                 console.log(">>> Updated source code after delete", response);

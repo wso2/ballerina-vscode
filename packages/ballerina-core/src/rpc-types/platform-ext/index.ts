@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq } from "@wso2/wso2-platform-core"
+import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "./interfaces";
 export * from "./rpc-type"
 
@@ -29,6 +29,11 @@ export interface PlatformExtAPI {
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
     getSelectedContext: () => Promise<ContextItemEnriched | null>;
     getDirectoryComponents: (fsPath: string) => Promise<ComponentKind[]>;
+    // todo: remove following once support for multiple components per directory is added
+    getDirectoryComponent: (fsPath: string) => Promise<ComponentKind | null>;
     getMarketplaceIdl: (params: GetMarketplaceIdlReq) => Promise<MarketplaceIdlResp>;
-    getConnections: (params: GetConnectionsReq) => Promise<ConnectionListItem[]>
+    getConnections: (params: GetConnectionsReq) => Promise<ConnectionListItem[]>;
+    deleteConnection: (params: DeleteConnectionReq) => Promise<void>;
+    deleteLocalConnectionsConfig: (params: DeleteLocalConnectionsConfigReq) => void;
+    getDevantConsoleUrl: () => Promise<string>;
 }

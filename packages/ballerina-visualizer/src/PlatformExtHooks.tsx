@@ -111,9 +111,8 @@ export const PlatformExtHooks = {
                 "getDirectoryComponent",
                 { isLoggedIn, org: selected?.org?.uuid, project: selected?.project?.id, projectPath },
             ],
-            queryFn: () => rpcClient.getPlatformRpcClient().getDirectoryComponents(projectPath),
+            queryFn: () => rpcClient.getPlatformRpcClient().getDirectoryComponent(projectPath),
             enabled: isLoggedIn && !!projectPath,
-            select: (components) => components[0] || null,
             refetchInterval: 2000,
         });
         return directoryComponent
