@@ -34,7 +34,7 @@ import {
 import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
-import { ContextBasedFormTypeEditor } from "../../../../../components/ContextBasedFormTypeEditor";
+import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -534,12 +534,11 @@ export function DatabindForm(props: DatabindFormProps) {
             </SidePanelBody>
 
             {/* FormTypeEditor Modal for Add Payload */}
-            <ContextBasedFormTypeEditor
+            <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadTypeName()}
-                editMode={false}
                 modalTitle={"Define " + payloadFieldName + " Schema"}
                 modalWidth={650}
                 modalHeight={600}
