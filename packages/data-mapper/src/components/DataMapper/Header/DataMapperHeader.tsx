@@ -31,6 +31,7 @@ import { RefreshResetGroup } from "./RefreshResetGroup";
 
 export interface DataMapperHeaderProps {
     views: View[];
+    reusable?: boolean;
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
@@ -43,7 +44,7 @@ export interface DataMapperHeaderProps {
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, reusable, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -55,7 +56,6 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 <IconButton onClick={onBack}>
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
-                {undoRedoGroup && undoRedoGroup()}
                 <VerticalDivider />
                 <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
@@ -63,11 +63,13 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     {!hasEditDisabled && (
                         <HeaderBreadcrumb
                             views={views}
+                            reusable={reusable}
                             switchView={switchView}
                         />
                     )}
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
+                    {undoRedoGroup && undoRedoGroup()}
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>

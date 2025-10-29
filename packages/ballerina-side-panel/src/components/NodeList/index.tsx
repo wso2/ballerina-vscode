@@ -544,7 +544,7 @@ export function NodeList(props: NodeListProps) {
             "Logging": { hasBackground: true },
             "Model Providers": { hasBackground: false },
             "Embedding Providers": { hasBackground: false },
-            "Vector Knowledge Bases": { hasBackground: false },
+            "Knowledge Bases": { hasBackground: false },
             "Vector Stores": { hasBackground: false },
             "Data Loaders": { hasBackground: false },
             "Chunkers": { hasBackground: false },
