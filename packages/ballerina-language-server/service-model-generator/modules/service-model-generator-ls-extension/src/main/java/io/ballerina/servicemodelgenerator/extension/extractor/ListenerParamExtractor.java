@@ -27,7 +27,6 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
@@ -315,12 +314,9 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
      * Extracts value from an expression node with support for configurable variables.
      *
      * @param expression    The expression to extract value from
-     * @param semanticModel The semantic model for resolving configurable variables
-     * @param context       The model from source context
      * @return The extracted value as string
      */
-    private String extractValueFromExpression(ExpressionNode expression, SemanticModel semanticModel,
-                                              ModelFromSourceContext context) {
+    private String extractValueFromExpression(ExpressionNode expression) {
         if (expression.kind().equals(SyntaxKind.NUMERIC_LITERAL) ||
                 expression.kind().equals(SyntaxKind.STRING_LITERAL) ||
                 expression.kind().equals(SyntaxKind.BOOLEAN_LITERAL)) {
@@ -330,110 +326,9 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                 return value.substring(1, value.length() - 1);
             }
             return value;
-        } else if (expression instanceof MappingConstructorExpressionNode mapping) {
-            return extractFromMapping(mapping);
-        } else if (expression instanceof NameReferenceNode nameRef) {
-            // Handle configurable variable references
-            return resolveConfigurableVariable(nameRef, semanticModel, context);
         }
-
         return expression.toString().trim();
     }
-
-    /**
-     * Resolves configurable variable values by finding their declarations.
-     *
-     * @param nameRef       The name reference to resolve
-     * @param semanticModel The semantic model
-     * @param context       The model from source context
-     * @return The resolved value or the variable name if resolution fails
-     */
-    private String resolveConfigurableVariable(NameReferenceNode nameRef, SemanticModel semanticModel,
-                                               ModelFromSourceContext context) {
-        Optional<Symbol> symbol = semanticModel.symbol(nameRef);
-        if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
-            // Find the configurable variable declaration
-            Optional<String> defaultValue = findConfigurableVariableDefaultValue(variableSymbol, context);
-            if (defaultValue.isPresent()) {
-                return defaultValue.get();
-            }
-        }
-
-        // If we can't resolve the configurable, return the variable name
-        return nameRef.toString().trim();
-    }
-
-    /**
-     * Finds the default value of a configurable variable.
-     *
-     * @param variableSymbol The variable symbol
-     * @param context        The model from source context
-     * @return The default value if found
-     */
-    private Optional<String> findConfigurableVariableDefaultValue(VariableSymbol variableSymbol,
-                                                                  ModelFromSourceContext context) {
-        var location = variableSymbol.getLocation();
-        if (location.isEmpty()) {
-            return Optional.empty();
-        }
-
-        try {
-            // Get document from workspace manager
-            var workspaceManager = context.workspaceManager();
-            var filePath = location.get().lineRange().filePath();
-            if (filePath == null) {
-                return Optional.empty();
-            }
-
-            var documentOpt = workspaceManager.document(java.nio.file.Path.of(filePath));
-            if (documentOpt.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Find the variable declaration in the syntax tree
-            var syntaxTree = documentOpt.get().syntaxTree();
-            var textDocument = syntaxTree.textDocument();
-            var lineRange = location.get().lineRange();
-
-            int start = textDocument.textPositionFrom(lineRange.startLine());
-            int end = textDocument.textPositionFrom(lineRange.endLine());
-
-            ModulePartNode modulePartNode = syntaxTree.rootNode();
-            var foundNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
-
-            // Look for a module variable declaration with an initializer
-            Node current = foundNode;
-            while (current != null) {
-                if (current.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                    // Check if this is a configurable variable with an initializer
-                    String nodeText = current.toString();
-                    if (nodeText.contains("configurable") && nodeText.contains("=")) {
-                        // Extract the default value after the equals sign
-                        String[] parts = nodeText.split("=", 2);
-                        if (parts.length > 1) {
-                            String defaultValuePart = parts[1].trim();
-                            // Remove semicolon if present
-                            if (defaultValuePart.endsWith(";")) {
-                                defaultValuePart = defaultValuePart.substring(0, defaultValuePart.length() - 1).trim();
-                            }
-                            // Remove quotes if it's a string literal
-                            if (defaultValuePart.startsWith("\"") && defaultValuePart.endsWith("\"")) {
-                                return Optional.of(defaultValuePart.substring(1, defaultValuePart.length() - 1));
-                            }
-                            return Optional.of(defaultValuePart);
-                        }
-                    }
-                }
-                current = current.parent();
-            }
-        } catch (RuntimeException e) {
-            // Handle any runtime exceptions that may occur during workspace or file operations
-            return Optional.empty();
-        }
-
-        return Optional.empty();
-    }
-
 
     /**
      * Extracts values from a single expression, handling arrays properly.
@@ -452,31 +347,20 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             SeparatedNodeList<Node> expressions = listConstructor.expressions();
             for (Node expr : expressions) {
                 if (expr instanceof ExpressionNode expressionNode) {
-                    String value = extractValueFromExpression(expressionNode, semanticModel, context);
-                    if (value != null && !value.isEmpty()) {
+                    String value = extractValueFromExpression(expressionNode);
+                    if (!value.isEmpty()) {
                         values.add(value);
                     }
                 }
             }
         } else {
             // Handle single values
-            String value = extractValueFromExpression(expression, semanticModel, context);
-            if (value != null && !value.isEmpty()) {
+            String value = extractValueFromExpression(expression);
+            if (!value.isEmpty()) {
                 values.add(value);
             }
         }
 
         return values;
-    }
-
-    /**
-     * Extracts value from a mapping constructor (record expression).
-     *
-     * @param mapping The mapping constructor node
-     * @return Extracted value or null
-     */
-    private String extractFromMapping(MappingConstructorExpressionNode mapping) {
-        // For now, return the raw mapping - could be enhanced to extract specific nested fields
-        return mapping.toString().trim();
     }
 }
