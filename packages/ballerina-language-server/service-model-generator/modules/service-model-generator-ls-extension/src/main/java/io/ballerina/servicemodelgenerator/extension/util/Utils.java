@@ -38,6 +38,7 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.IncludedRecordParameterNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
@@ -47,9 +48,11 @@ import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.RestParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -65,7 +68,6 @@ import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
-import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -94,6 +96,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -104,6 +107,9 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CD_TYPE_ANNOTATION_ATTACHMENT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_PAREN;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GET;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -116,6 +122,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
@@ -218,7 +225,7 @@ public final class Utils {
      * If an enabled choice exists, its properties are added to the service and the choice property is removed.
      *
      * @param service the service initialization model to update
-     * @param key the key of the choice property to process
+     * @param key     the key of the choice property to process
      */
     public static void applyEnabledChoiceProperty(ServiceInitModel service, String key) {
         Map<String, Value> properties = service.getProperties();
@@ -252,13 +259,30 @@ public final class Utils {
         }
     }
 
-    public static Optional<ExpressionNode> getListenerExpression(ServiceDeclarationNode serviceNode) {
+    /**
+     * Extracts the line range that encompasses all listener expressions in a service declaration.
+     *
+     * @param serviceNode the service declaration node containing listener expressions
+     * @return an {@link Optional} containing the {@link LineRange} that spans from the start
+     *         of the first listener expression to the end of the last listener expression,
+     *         or {@link Optional#empty()} if no listener expressions are found
+     */
+    public static Optional<LineRange> getListenerExpressionsLineRange(ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         if (expressions.isEmpty()) {
             return Optional.empty();
         }
-        ExpressionNode expressionNode = expressions.get(0);
-        return Optional.of(expressionNode);
+
+        int size = expressions.size();
+        LineRange firstExprLineRange = expressions.get(0).lineRange();
+        LineRange lastExprLineRange = expressions.get(size - 1).lineRange();
+
+        LineRange lineRange = LineRange.from(
+                firstExprLineRange.fileName(),
+                firstExprLineRange.startLine(),
+                lastExprLineRange.endLine());
+
+        return Optional.of(lineRange);
     }
 
     public static Optional<Symbol> getHttpServiceContractSym(SemanticModel semanticModel,
@@ -439,7 +463,7 @@ public final class Utils {
     }
 
     public static Optional<Function> getFunctionModel(String serviceType, String functionNameOrType) {
-        String resourcePath =  String.format("functions/%s_%s.json", serviceType.toLowerCase(Locale.US),
+        String resourcePath = String.format("functions/%s_%s.json", serviceType.toLowerCase(Locale.US),
                 functionNameOrType.toLowerCase(Locale.US));
         InputStream resourceStream = Utils.class.getClassLoader()
                 .getResourceAsStream(resourcePath);
@@ -456,15 +480,50 @@ public final class Utils {
 
     public static void populateListenerInfo(Service serviceModel, ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
-        int size = expressions.size();
-        if (size == 1) {
-            serviceModel.getListener().setValue(getListenerExprName(expressions.get(0)));
-        } else if (size > 1) {
-            for (int i = 0; i < size; i++) {
-                ExpressionNode expressionNode = expressions.get(i);
-                serviceModel.getListener().addValue(getListenerExprName(expressionNode));
+        Value listener = serviceModel.getListener();
+        Map<String, Value> properties = getOrCreateListenerProperties(listener);
+        if (expressions.size() == 1) {
+            handleSingleListener(expressions.get(0), listener, properties);
+        } else {
+            handleMultipleListeners(expressions, listener, properties);
+        }
+    }
+
+    private static Map<String, Value> getOrCreateListenerProperties(Value listener) {
+        Map<String, Value> properties = listener.getProperties();
+        if (properties == null) {
+            properties = new HashMap<>();
+            listener.setProperties(properties);
+        }
+        return properties;
+    }
+
+    private static void handleSingleListener(ExpressionNode expression, Value listener,
+                                             Map<String, Value> properties) {
+        String listenerExprName = getListenerExprName(expression);
+        if (!listenerExprName.isEmpty()) {
+            listener.setValue(listenerExprName);
+            properties.put(listenerExprName, createListenerValue(expression));
+        }
+    }
+
+    private static void handleMultipleListeners(SeparatedNodeList<ExpressionNode> expressions,
+                                                Value listener, Map<String, Value> properties) {
+        for (ExpressionNode expression : expressions) {
+            String listenerExprName = getListenerExprName(expression);
+            if (!listenerExprName.isEmpty()) {
+                listener.addValue(listenerExprName);
+                properties.put(listenerExprName, createListenerValue(expression));
             }
         }
+    }
+
+    private static Value createListenerValue(ExpressionNode expression) {
+        return new Value.ValueBuilder()
+                .setCodedata(new Codedata.Builder()
+                        .setLineRange(expression.lineRange())
+                        .build())
+                .build();
     }
 
     public static void updateAnnotationAttachmentProperty(ServiceDeclarationNode serviceNode,
@@ -485,6 +544,18 @@ public final class Utils {
             if (service.getProperties().containsKey(propertyName)) {
                 Value property = service.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+            } else {
+                Codedata codedata = new Codedata.Builder()
+                        .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                        .setOriginalName(annotName)
+                        .setModuleName(split.length > 1 ? split[0] : "")
+                        .build();
+
+                Value value = new Value.ValueBuilder()
+                        .setCodedata(codedata)
+                        .value(getAnnotationValue(annotationNode))
+                        .build();
+                service.getProperties().put(propertyName, value);
             }
         });
     }
@@ -501,14 +572,94 @@ public final class Utils {
                 return;
             }
             String annotName = annotationNode.annotReference().toString().trim();
-            String[] split = annotName.split(":");
+            String[] split = annotName.split(COLON);
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+            } else {
+                if (!function.getProperties().containsKey(propertyName)) {
+                    Codedata codedata = new Codedata.Builder()
+                            .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                            .setOriginalName(annotName)
+                            .setModuleName(split.length > 1 ? split[0] : "")
+                            .build();
+
+                    Value value = new Value.ValueBuilder()
+                            .setCodedata(codedata)
+                            .value(getAnnotationValue(annotationNode))
+                            .build();
+                    function.getProperties().put(propertyName, value);
+                }
             }
         });
+    }
+
+    public static NodeList<AnnotationNode> getParamAnnotations(ParameterNode parameterNode) {
+        switch (parameterNode) {
+            case RequiredParameterNode requiredParameterNode -> {
+                return requiredParameterNode.annotations();
+            }
+            case DefaultableParameterNode defaultableParameterNode -> {
+                return defaultableParameterNode.annotations();
+            }
+            case IncludedRecordParameterNode includedRecordParameterNode -> {
+                return includedRecordParameterNode.annotations();
+            }
+            case RestParameterNode restParameterNode -> {
+                return restParameterNode.annotations();
+            }
+            case null, default -> {
+            }
+        }
+        return NodeFactory.createEmptyNodeList();
+    }
+
+    /**
+     * This function will add the annotations of a parameter as properties to the parameter model.
+     * We can pass a skip list to skip certain annotations.
+     *
+     * @param parameterModel Parameter model we need to add the annotations as properties
+     * @param annotations    Annotations of the parameter
+     * @param skipList       List of annotations to skip
+     */
+    public static void addParamAnnotationAsProperties(Parameter parameterModel,
+                                                      NodeList<AnnotationNode> annotations,
+                                                      List<String> skipList) {
+        if (Objects.isNull(annotations) || annotations.isEmpty()) {
+            return;
+        }
+
+        annotations.forEach(annotationNode -> {
+            String annotName = annotationNode.annotReference().toString().trim();
+            String[] split = annotName.split(COLON);
+            annotName = split[split.length - 1];
+            if (skipList.contains(annotName)) {
+                return;
+            }
+            String propertyName = ANNOT_PREFIX + annotName;
+            if (!parameterModel.getProperties().containsKey(propertyName)) {
+                Codedata codedata = new Codedata.Builder()
+                        .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                        .setOriginalName(annotName)
+                        .setModuleName(split.length > 1 ? split[0] : "")
+                        .build();
+
+                Value value = new Value.ValueBuilder()
+                        .setCodedata(codedata)
+                        .value(getAnnotationValue(annotationNode))
+                        .build();
+                parameterModel.getProperties().put(propertyName, value);
+            }
+        });
+    }
+
+    private static String getAnnotationValue(AnnotationNode annotationNode) {
+        if (annotationNode.annotValue().isEmpty()) {
+            return "";
+        }
+        return annotationNode.annotValue().get().toSourceCode().trim();
     }
 
     public static void updateServiceDocs(ServiceDeclarationNode serviceNode, Service service) {
@@ -637,28 +788,34 @@ public final class Utils {
     }
 
     public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {
-        Map<String, Value> properties = function.getProperties().entrySet().stream()
-                        .filter(entry -> entry.getKey().startsWith(ANNOT_PREFIX))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return getAnnotationEdits(function.getProperties(), imports);
+    }
 
-        List<String> annots = new ArrayList<>();
-        if (properties.isEmpty()) {
-            return annots;
+    public static List<String> getAnnotationEdits(Map<String, Value> properties, Map<String, String> imports) {
+        return properties.values().stream()
+                .filter(Utils::isAnnotationProperty)
+                .peek(value -> {
+                    if (value.getImports() != null) {
+                        imports.putAll(value.getImports());
+                    }
+                })
+                .map(value -> "@%s%s".formatted(getAnnotationReference(value.getCodedata()), value.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private static String getAnnotationReference(Codedata codedata) {
+        String ref = "";
+        if (Objects.nonNull(codedata.getModuleName()) && !codedata.getModuleName().isEmpty()) {
+            ref = getProtocol(codedata.getModuleName()) + COLON;
         }
-        for (Map.Entry<String, Value> property : properties.entrySet()) {
-            Value value = property.getValue();
-            if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
-                    value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                Codedata codedata = value.getCodedata();
-                String ref = getProtocol(codedata.getModuleName()) + ":" + codedata.getOriginalName();
-                String annotTemplate = "@%s%s".formatted(ref, value.getValue());
-                annots.add(annotTemplate);
-                if (Objects.nonNull(value.getImports())) {
-                    imports.putAll(value.getImports());
-                }
-            }
-        }
-        return annots;
+        ref += codedata.getOriginalName();
+        return ref;
+    }
+
+    private static boolean isAnnotationProperty(Value value) {
+        return Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
+                value.getCodedata().getType().equals(CD_TYPE_ANNOTATION_ATTACHMENT)
+                && (value.isEnabledWithValue() || !value.isEnabled() && !value.isEditable());
     }
 
     public static String getDocumentationEdits(Service service) {
@@ -715,7 +872,7 @@ public final class Utils {
     }
 
     public static void addServiceAnnotationTextEdits(Service service, ServiceDeclarationNode serviceNode,
-                                                    List<TextEdit> edits) {
+                                                     List<TextEdit> edits) {
         Token serviceKeyword = serviceNode.serviceKeyword();
 
         List<String> annots = getAnnotationEdits(service);
@@ -922,10 +1079,7 @@ public final class Utils {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-
-        FunctionSignatureContext sigContext = addContext.equals(FunctionAddContext.HTTP_SERVICE_ADD) ?
-                FunctionSignatureContext.HTTP_RESOURCE_ADD : signatureContext;
-        String functionSignature = generateFunctionSignatureSource(function, statusCodeResponses, sigContext, imports);
+        String functionSignature = generateFunctionSignatureSource(function, imports);
         builder.append(functionSignature);
 
         FunctionReturnType returnType = function.getReturnType();
@@ -956,16 +1110,13 @@ public final class Utils {
         return builder.toString();
     }
 
-    public static String generateFunctionSignatureSource(Function function, List<String> statusCodeResponses,
-                                                         FunctionSignatureContext context,
-                                                         Map<String, String> imports) {
+    public static String generateFunctionSignatureSource(Function function, Map<String, String> imports) {
         StringBuilder builder = new StringBuilder();
-        builder.append("(");
-        builder.append(generateFunctionParamListSource(function.getParameters(), imports));
-        builder.append(")");
+        builder.append(OPEN_PAREN)
+                .append(generateFunctionParamListSource(function.getParameters(), imports))
+                .append(CLOSE_PAREN);
 
         FunctionReturnType returnType = function.getReturnType();
-        boolean addError = context.equals(FunctionSignatureContext.HTTP_RESOURCE_ADD);
         if (Objects.nonNull(returnType)) {
             if (returnType.isEnabledWithValue()) {
                 builder.append(" returns ");
@@ -975,26 +1126,9 @@ public final class Utils {
                     imports.put("graphql", "ballerina/graphql");
                 }
                 String returnTypeStr = getValueString(returnType);
-                if (addError && !returnTypeStr.contains("error")) {
-                    returnTypeStr = "error|" + returnTypeStr;
-                }
                 builder.append(returnTypeStr);
                 if (Objects.nonNull(returnType.getImports())) {
                     imports.putAll(returnType.getImports());
-                }
-            } else if (returnType.isEnabled() && Objects.nonNull(returnType.getResponses()) &&
-                    !returnType.getResponses().isEmpty()) {
-                List<String> responses = new ArrayList<>(returnType.getResponses().stream()
-                        .filter(HttpResponse::isEnabled)
-                        .map(response -> HttpUtil.getStatusCodeResponse(response, statusCodeResponses, imports))
-                        .filter(Objects::nonNull)
-                        .toList());
-                if (!responses.isEmpty()) {
-                    if (addError && !statusCodeResponses.contains("error") && !responses.contains("error")) {
-                        responses.addFirst("error");
-                    }
-                    builder.append(" returns ");
-                    builder.append(String.join("|", responses));
                 }
             }
         }
@@ -1002,7 +1136,8 @@ public final class Utils {
         return builder.toString();
     }
 
-    private static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
+
+    static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
         // sort params list where required params come first
         parameters.sort(new Parameter.RequiredParamSorter());
 
@@ -1031,9 +1166,6 @@ public final class Utils {
                     paramDef = String.format("@graphql:ID %s", paramDef);
                     imports.put("graphql", "ballerina/graphql");
                 }
-                if (Objects.nonNull(param.getHttpParamType()) && !param.getHttpParamType().equals("Query")) {
-                    paramDef = String.format("@http:%s %s", param.getHttpParamType(), paramDef);
-                }
                 params.add(paramDef);
             }
         });
@@ -1046,10 +1178,8 @@ public final class Utils {
         String kind = function.getKind();
         switch (kind) {
             case KIND_QUERY, KIND_SUBSCRIPTION,
-                 KIND_RESOURCE ->
-                    qualifiers.add(RESOURCE);
-            case KIND_REMOTE, KIND_MUTATION ->
-                    qualifiers.add(REMOTE);
+                 KIND_RESOURCE -> qualifiers.add(RESOURCE);
+            case KIND_REMOTE, KIND_MUTATION -> qualifiers.add(REMOTE);
 
             default -> {
             }
@@ -1060,8 +1190,8 @@ public final class Utils {
     /**
      * Checks whether the given import exists in the given module part node.
      *
-     * @param node module part node
-     * @param org organization name
+     * @param node   module part node
+     * @param org    organization name
      * @param module module name
      * @return true if the import exists, false otherwise
      */
@@ -1079,7 +1209,7 @@ public final class Utils {
     /**
      * Generates the import statement for the given organization and module.
      *
-     * @param org organization name
+     * @param org    organization name
      * @param module module name
      * @return generated import statement
      */
@@ -1090,11 +1220,11 @@ public final class Utils {
     public static boolean filterTriggers(TriggerProperty triggerProperty, TriggerListRequest request) {
         return (request == null) ||
                 ((request.organization() == null || request.organization().equals(triggerProperty.orgName())) &&
-                (request.packageName() == null || request.packageName().equals(triggerProperty.packageName())) &&
-                (request.keyWord() == null || triggerProperty.keywords().stream()
+                        (request.packageName() == null || request.packageName().equals(triggerProperty.packageName()))
+                        && (request.keyWord() == null || triggerProperty.keywords().stream()
                         .anyMatch(keyword -> keyword.equalsIgnoreCase(request.keyWord()))) &&
-                (request.query() == null || triggerProperty.keywords().stream()
-                        .anyMatch(keyword -> keyword.contains(request.query()))));
+                        (request.query() == null || triggerProperty.keywords().stream()
+                                .anyMatch(keyword -> keyword.contains(request.query()))));
     }
 
     public static boolean expectsTriggerByName(TriggerRequest request) {
@@ -1111,12 +1241,27 @@ public final class Utils {
     }
 
     public static String generateTypeIdentifier(SemanticModel semanticModel, Document document,
-                                                    LinePosition linePosition, String prefix) {
-        Set<String> names = semanticModel.visibleSymbols(document, linePosition).parallelStream()
+                                                LinePosition linePosition, String prefix) {
+        Set<String> names = getVisibleSymbols(semanticModel, document, linePosition);
+        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static String generateTypeIdentifier(Set<String> names, String prefix) {
+        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static Set<String> getVisibleSymbols(SemanticModel semanticModel, Document document,
+                                                LinePosition linePosition) {
+        return semanticModel.visibleSymbols(document, linePosition).parallelStream()
                 .filter(s -> s.getName().isPresent())
                 .map(s -> s.getName().get())
                 .collect(Collectors.toSet());
-        return NameUtil.generateTypeName(prefix, names);
+    }
+
+    public static Set<String> getVisibleSymbols(SemanticModel semanticModel, Document document) {
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        LinePosition linePosition = rootNode.lineRange().endLine();
+        return getVisibleSymbols(semanticModel, document, linePosition);
     }
 
     public static String upperCaseFirstLetter(String value) {
@@ -1149,13 +1294,15 @@ public final class Utils {
 
         if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
             // It's a List<String>
-            Type listType = new TypeToken<List<String>>() { }.getType();
+            Type listType = new TypeToken<List<String>>() {
+            }.getType();
             return gson.fromJson(jsonString, listType);
         } else if (firstElement.isJsonObject()) {
             // Check if it has label and value properties (SelectionRecord)
             if (firstElement.getAsJsonObject().has("label") &&
                     firstElement.getAsJsonObject().has("value")) {
-                Type listType = new TypeToken<List<SelectionRecord>>() { }.getType();
+                Type listType = new TypeToken<List<SelectionRecord>>() {
+                }.getType();
                 return gson.fromJson(jsonString, listType);
             }
         }
@@ -1163,7 +1310,8 @@ public final class Utils {
         return new ArrayList<>();
     }
 
-    public record SelectionRecord(String label, String value) { }
+    public record SelectionRecord(String label, String value) {
+    }
 
     /**
      * Resolves a Ballerina module by organization, package, and module name.
@@ -1180,21 +1328,19 @@ public final class Utils {
         if (BALLERINA.equals(orgName) && DISTRIBUTION_MODULES.contains(packageName)) {
             return;
         }
-
         Path balHomePath = RepoUtils.createAndGetHomeReposPath();
         Path packagePath = balHomePath.resolve(Path.of(REPOSITORIES_DIR, CENTRAL_REPO, BALA_DIR, orgName,
                 packageName));
         if (Files.exists(packagePath)) {
             return;
         }
-
         CentralAPI centralApi = RemoteCentral.getInstance();
         String latestVersion = centralApi.latestPackageVersion(orgName, packageName);
         ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, latestVersion);
 
         if (PackageUtil.isModuleUnresolved(orgName, packageName, latestVersion)) {
             notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE, moduleInfo, lsClientLogger);
-            Optional<SemanticModel> semanticModel =  PackageUtil.getSemanticModel(moduleInfo);
+            Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
             if (semanticModel.isEmpty()) {
                 notifyClient(MessageType.Error, MODULE_PULLING_FAILED_MESSAGE, moduleInfo, lsClientLogger);
             } else {

@@ -45,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "github:Listener",
         "value": "githubDefaultListener",
         "values": [],
         "items": [
           "githubDefaultListener"
         ],
+        "properties": {
+          "githubDefaultListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 32
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 53
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,

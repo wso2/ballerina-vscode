@@ -117,11 +117,11 @@ public class SourceBuilder {
         if (Boolean.TRUE.equals(isNew) || lineRange == null) {
             String defaultFile = switch (node) {
                 case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, VECTOR_KNOWLEDGE_BASE,
-                     DATA_LOADER, CHUNKER, CLASS_INIT -> CONNECTIONS_BAL;
+                     DATA_LOADER, CHUNKER, CLASS_INIT, MEMORY_STORE -> CONNECTIONS_BAL;
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
-                case AGENT -> AGENTS_BAL;
+                case AGENT, MEMORY, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
@@ -686,6 +686,11 @@ public class SourceBuilder {
 
         public TokenBuilder name(String name) {
             sb.append(name);
+            return this;
+        }
+
+        public TokenBuilder source(String source) {
+            sb.append(source);
             return this;
         }
 

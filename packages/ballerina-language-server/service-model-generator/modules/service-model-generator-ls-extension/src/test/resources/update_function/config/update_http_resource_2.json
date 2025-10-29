@@ -384,8 +384,7 @@
           },
           "enabled": true,
           "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       ],
       "schema": {
@@ -475,8 +474,7 @@
           },
           "enabled": true,
           "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       },
       "hasError": false,
@@ -567,7 +565,7 @@
             "character": 62
           }
         },
-        "newText": "(http:Request req) returns json "
+        "newText": "(http:Request req) "
       }
     ]
   }

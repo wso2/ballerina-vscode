@@ -15,10 +15,6 @@
     }
   },
   "response": {
-    "metadata": {
-      "label": "Get Path",
-      "description": "The path resource"
-    },
     "kind": "RESOURCE",
     "accessor": {
       "metadata": {
@@ -214,9 +210,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       }
     ],
     "schema": {
@@ -230,7 +226,7 @@
           "placeholder": "",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -264,9 +260,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       },
       "header": {
         "metadata": {
@@ -278,7 +274,7 @@
           "placeholder": "string",
           "valueType": "TYPE",
           "valueTypeConstraint": "anydata",
-          "value": "",
+          "value": "string",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -291,7 +287,7 @@
           "value": "",
           "enabled": true,
           "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "defaultValue": {
@@ -308,13 +304,23 @@
           "optional": true,
           "advanced": false
         },
+        "headerName": {
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
         "enabled": false,
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "HEADER"
       },
       "payload": {
         "metadata": {
@@ -346,9 +352,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
         "hidden": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
       }
     },
     "returnType": {
@@ -372,6 +378,15 @@
             "optional": true,
             "advanced": false
           },
+          "mediaType": {
+            "valueType": "EXPRESSION",
+            "value": "application/json",
+            "imports": {},
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
           "name": {
             "valueType": "IDENTIFIER",
             "value": "",
@@ -383,15 +398,7 @@
           },
           "type": {
             "valueType": "TYPE",
-            "value": {
-              "valueType": "TYPE",
-              "value": "Order[]",
-              "imports": {},
-              "enabled": true,
-              "editable": true,
-              "optional": true,
-              "advanced": false
-            },
+            "value": "",
             "imports": {},
             "enabled": true,
             "editable": true,
@@ -409,33 +416,21 @@
           },
           "enabled": true,
           "editable": true,
-          "advanced": false,
-          "isHttpResponseType": false
+          "advanced": false
         }
       ],
       "schema": {
         "statusCodeResponse": {
           "statusCode": {
             "metadata": {
-              "label": "Status Code Type",
-              "description": "Select the http status code type"
+              "label": "Status Code",
+              "description": "HTTP status code for the response"
             },
             "placeholder": "",
             "valueType": "SINGLE_SELECT",
             "valueTypeConstraint": "",
             "value": "",
-            "items": [
-              "200",
-              "201",
-              "202",
-              "204",
-              "400",
-              "401",
-              "403",
-              "404",
-              "405",
-              "500"
-            ],
+            "items": [],
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -443,8 +438,20 @@
           },
           "body": {
             "metadata": {
-              "label": "Message Body Type",
-              "description": "Format of the response body"
+              "label": "Response Body Schema",
+              "description": "Schema of the response body or data type of the response body"
+            },
+            "valueType": "TYPE",
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "metadata": {
+              "label": "Content Type",
+              "description": "Value for the Content-Type header in the response"
             },
             "valueType": "TYPE",
             "value": "",
@@ -455,10 +462,10 @@
           },
           "name": {
             "metadata": {
-              "label": "Wrapped Type Name",
-              "description": "Name to reference the response type"
+              "label": "Response Definition Name",
+              "description": "Define a name for the response definition"
             },
-            "valueType": "IDENTIFIER",
+            "valueType": "OPTIONAL_IDENTIFIER",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -490,9 +497,8 @@
             "advanced": true
           },
           "enabled": true,
-          "editable": false,
-          "advanced": false,
-          "isHttpResponseType": false
+          "editable": true,
+          "advanced": false
         }
       },
       "hasError": false,
@@ -512,7 +518,7 @@
     },
     "enabled": true,
     "optional": false,
-    "editable": true,
+    "editable": false,
     "canAddParameters": true,
     "codedata": {
       "lineRange": {
@@ -525,7 +531,10 @@
           "line": 18,
           "offset": 5
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
     },
     "properties": {
       "annotResourceConfig": {

@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -52,6 +53,7 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelSuggestedGener
 import io.ballerina.flowmodelgenerator.extension.request.FlowNodeDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FunctionDefinitionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.OpenAPIServiceGenerationRequest;
+import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ServiceFieldNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SuggestedComponentRequest;
@@ -65,6 +67,7 @@ import io.ballerina.flowmodelgenerator.extension.response.FlowModelSourceGenerat
 import io.ballerina.flowmodelgenerator.extension.response.FlowNodeDeleteResponse;
 import io.ballerina.flowmodelgenerator.extension.response.FunctionDefinitionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.OpenApiServiceGenerationResponse;
+import io.ballerina.flowmodelgenerator.extension.response.SearchNodesResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -627,6 +630,35 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                     response.setError(throwable);
                     return response;
                 });
+    }
+
+    @JsonRequest
+    public CompletableFuture<SearchNodesResponse> searchNodes(SearchNodesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            SearchNodesResponse response = new SearchNodesResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+
+                // Obtain the semantic model and the document
+                Project project = workspaceManager.loadProject(filePath);
+                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                // Generate the flow nodes based on search criteria
+                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
+                Gson gson = new Gson();
+                JsonElement jsonElement = gson.toJsonTree(
+                        modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+                response.setOutput(jsonElement.getAsJsonArray());
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
     }
 
     @JsonRequest

@@ -313,6 +313,19 @@
             "character": 0
           }
         },
+        "newText": "import ballerina/ai;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
         "newText": "# Define a function\n@ai:AgentTool\n@display {label: \"\", iconPath: \"\"}\nisolated function toolFunc(string foo, int... bar) returns string {\n    string result = foo(foo, bar);\n    return result;\n}"
       }
     ]

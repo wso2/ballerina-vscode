@@ -88,13 +88,11 @@
       "1373151159": {
         "fields": [
           {
-            "fields": [],
-            "name": "info",
-            "displayName": "info",
-            "typeName": "Info",
-            "kind": "record",
-            "optional": false,
-            "ref": "1372788890"
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "User",

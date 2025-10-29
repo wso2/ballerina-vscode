@@ -90,6 +90,8 @@ public class AiUtils {
     private static final String VERSION = "version";
     private static final String INIT_METHOD = "init";
 
+    public static final String MEMORY_DEFAULT_VALUE = "10";
+
     static {
         versionToFeatures.put("1.0.0",
                 Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, VECTOR_KNOWLEDGE_BASES));
@@ -197,6 +199,7 @@ public class AiUtils {
      * @param key         the property key
      * @param property    the existing property to copy from
      * @param customValue the custom value to use instead of the property's original value, or null to use original
+     * @param isHidden    whether to mark the property as hidden
      */
     public static void addPropertyFromTemplate(NodeBuilder nodeBuilder, String key, Property property,
                                                String customValue, boolean isHidden) {
@@ -372,7 +375,7 @@ public class AiUtils {
         return featureSets.flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
-    private static int compareSemver(String version1, String version2) {
+    public static int compareSemver(String version1, String version2) {
         String[] parts1 = version1.split("\\.");
         String[] parts2 = version2.split("\\.");
         int length = Math.max(parts1.length, parts2.length);
@@ -603,5 +606,26 @@ public class AiUtils {
                 .packageName(AI)
                 .symbol(Ai.AGENT_SYMBOL_NAME)
                 .build();
+    }
+
+    /**
+     * Escapes special characters in a string to prevent injection attacks in template strings. This method handles
+     * backslashes, backticks, dollar signs, and control characters.
+     *
+     * @param input the string to escape
+     * @return the escaped string safe for use in template strings
+     */
+    public static String escapeTemplateString(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        return input
+                .replace("\\", "\\\\")     // Escape backslashes first
+                .replace("`", "\\`")       // Escape backticks (template string delimiter)
+                .replace("$", "\\$")       // Escape dollar signs (interpolation)
+                .replace("\n", "\\n")      // Escape newlines
+                .replace("\r", "\\r")      // Escape carriage returns
+                .replace("\t", "\\t");     // Escape tabs
     }
 }

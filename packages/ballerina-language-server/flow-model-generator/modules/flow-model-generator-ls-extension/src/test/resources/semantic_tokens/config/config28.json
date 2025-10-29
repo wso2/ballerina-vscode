@@ -1,0 +1,18 @@
+{
+  "description": "Local variable reference in function",
+  "filePath": "main.bal",
+  "expression": "localVar",
+  "position": {
+    "line": 33,
+    "offset": 0
+  },
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 8,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

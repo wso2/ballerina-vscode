@@ -49,6 +49,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromSourceResponse;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
@@ -387,46 +388,194 @@ public class ListenerUtil {
         }
     }
 
-    public static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerDeclarationNode,
-                                                           String org, SemanticModel semanticModel) {
-        if (ListenerUtil.isHttpDefaultListener(listenerDeclarationNode)) {
-            return ListenerUtil.getDefaultListenerModel(org, listenerDeclarationNode);
+    /**
+     * Processes a syntax tree node to extract listener information and create a response.
+     * This method handles both listener declarations and explicit new expressions that create listeners.
+     *
+     * @param node the syntax tree node to process (should be ListenerDeclarationNode or ExplicitNewExpressionNode)
+     * @param orgName the organization name for looking up listener metadata
+     * @param semanticModel the semantic model for symbol resolution
+     * @return {@link ListenerFromSourceResponse} containing the extracted listener model
+     * or empty response if processing fails
+     */
+    public static ListenerFromSourceResponse processListenerNode(NonTerminalNode node, String orgName,
+                                                           SemanticModel semanticModel) {
+        if (node instanceof ListenerDeclarationNode listenerNode) {
+            return processListenerDeclaration(listenerNode, orgName, semanticModel);
         }
-        Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
-        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
+
+        if (node instanceof ExplicitNewExpressionNode newExpressionNode) {
+            return processExplicitNewExpression(newExpressionNode, orgName, semanticModel);
+        }
+
+        return new ListenerFromSourceResponse();
+    }
+
+    /**
+     * Processes a listener declaration node to extract listener configuration and properties.
+     * This method handles listener variable declarations with their initialization expressions.
+     *
+     * @param listenerNode the listener declaration syntax node
+     * @param orgName the organization name for looking up listener metadata
+     * @param semanticModel the semantic model for symbol resolution
+     * @return {@link ListenerFromSourceResponse} containing the listener model with all properties set as non-advanced
+     */
+    private static ListenerFromSourceResponse processListenerDeclaration(ListenerDeclarationNode listenerNode,
+                                                                  String orgName, SemanticModel semanticModel) {
+        Optional<Listener> listenerModelOpt = ListenerUtil.getListenerFromSource(
+                listenerNode, orgName, semanticModel);
+
+        if (listenerModelOpt.isEmpty()) {
+            return new ListenerFromSourceResponse();
+        }
+
+        Listener listenerModel = listenerModelOpt.get();
+        setPropertiesAsNonAdvanced(listenerModel);
+        return new ListenerFromSourceResponse(listenerModel);
+    }
+
+    /**
+     * Processes an explicit new expression node that creates a listener instance.
+     * This method extracts listener configuration from constructor calls and removes the variable name property.
+     *
+     * @param newExpressionNode the explicit new expression syntax node
+     * @param orgName the organization name for looking up listener metadata
+     * @param semanticModel the semantic model for symbol resolution
+     * @return {@link ListenerFromSourceResponse} containing the listener model without variable name property
+     */
+    private static ListenerFromSourceResponse processExplicitNewExpression(ExplicitNewExpressionNode newExpressionNode,
+                                                                    String orgName, SemanticModel semanticModel) {
+        Optional<Listener> listenerModelOpt = ListenerUtil.getListenerFromSource(
+                newExpressionNode, orgName, semanticModel);
+
+        if (listenerModelOpt.isEmpty()) {
+            return new ListenerFromSourceResponse();
+        }
+
+        Listener listenerModel = listenerModelOpt.get();
+        listenerModel.getProperties().remove(VARIABLE_NAME_KEY);
+        setPropertiesAsNonAdvanced(listenerModel);
+        return new ListenerFromSourceResponse(listenerModel);
+    }
+
+    /**
+     * Sets all properties of a listener model as non-advanced.
+     * to make all properties visible and editable in the UI.
+     *
+     * @param listenerModel the listener model whose properties should be marked as non-advanced
+     */
+    private static void setPropertiesAsNonAdvanced(Listener listenerModel) {
+        listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
+    }
+
+    private static Optional<Listener> getListenerFromSource(ListenerDeclarationNode listenerNode,
+                                                           String org, SemanticModel semanticModel) {
+        if (isHttpDefaultListener(listenerNode)) {
+            return getDefaultListenerModel(org, listenerNode);
+        }
+
+        Optional<TypeSymbol> typeSymbol = extractTypeSymbol(semanticModel, listenerNode.typeDescriptor().get());
+        if (typeSymbol.isEmpty()) {
             return Optional.empty();
         }
 
+        Optional<Listener> baseListener = createBaseListener(org, typeSymbol.get());
+        if (baseListener.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Listener listener = baseListener.get();
+        configureListenerFromDeclaration(listener, listenerNode, typeSymbol.get());
+
+        return Optional.of(listener);
+    }
+
+    public static Optional<Listener> getListenerFromSource(ExplicitNewExpressionNode newExpressionNode,
+                                                           String org, SemanticModel semanticModel) {
+        Optional<TypeSymbol> typeSymbol = extractTypeSymbol(semanticModel, newExpressionNode.typeDescriptor());
+        if (typeSymbol.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Listener> baseListener = createBaseListener(org, typeSymbol.get());
+        if (baseListener.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Listener listener = baseListener.get();
+        configureListenerFromNewExpression(listener, newExpressionNode, typeSymbol.get());
+
+        return Optional.of(listener);
+    }
+
+    private static Optional<TypeSymbol> extractTypeSymbol(SemanticModel semanticModel, Node typeNode) {
+        Optional<Symbol> symbol = semanticModel.symbol(typeNode);
+        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol) || typeSymbol.getModule().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(typeSymbol);
+    }
+
+    private static Optional<Listener> createBaseListener(String org, TypeSymbol typeSymbol) {
         String moduleName = typeSymbol.getModule().get().id().moduleName();
         ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
         Optional<FunctionData> optFunctionResult = dbManager.getListener(org, moduleName);
+
         if (optFunctionResult.isEmpty()) {
             return Optional.empty();
         }
+
         FunctionData functionData = optFunctionResult.get();
         LinkedHashMap<String, ParameterData> parameters = dbManager
                 .getFunctionParametersAsMap(functionData.functionId());
         functionData.setParameters(parameters);
 
-        Listener listener = getListenerModelWithoutParamProps(functionData);
+        return Optional.of(getListenerModelWithoutParamProps(functionData));
+    }
+
+    private static void configureListenerFromDeclaration(Listener listener,
+                                                         ListenerDeclarationNode listenerDeclarationNode,
+                                                         TypeSymbol typeSymbol) {
         Value nameProperty = listener.getVariableNameProperty();
         nameProperty.setValue(listenerDeclarationNode.variableName().text().trim());
         nameProperty.setCodedata(new Codedata(listenerDeclarationNode.variableName().lineRange()));
         nameProperty.setEditable(false);
         listener.setCodedata(new Codedata(listenerDeclarationNode.lineRange()));
+
         Node initializer = listenerDeclarationNode.initializer();
         if (initializer instanceof NewExpressionNode newExpressionNode) {
-            TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
-            if (rawType instanceof ClassSymbol classSymbol) {
-                SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
-                if (classSymbol.initMethod().isEmpty()) {
-                    return Optional.of(listener);
-                }
+            analyzeListenerArguments(listener, typeSymbol, newExpressionNode);
+        }
+    }
+
+    private static void configureListenerFromNewExpression(Listener listener,
+                                                           ExplicitNewExpressionNode newExpressionNode,
+                                                           TypeSymbol typeSymbol) {
+        listener.setCodedata(new Codedata(newExpressionNode.lineRange()));
+        analyzeListenerArguments(listener, typeSymbol, newExpressionNode);
+    }
+
+    private static void analyzeListenerArguments(Listener listener, TypeSymbol typeSymbol,
+                                                 NewExpressionNode newExpressionNode) {
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType instanceof ClassSymbol classSymbol && classSymbol.initMethod().isPresent()) {
+            SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+
+            // Get function data from listener properties (assuming it's stored in metadata)
+            ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
+            String moduleName = typeSymbol.getModule().get().id().moduleName();
+            Optional<FunctionData> optFunctionData = dbManager.getListener(listener.getOrgName(), moduleName);
+
+            if (optFunctionData.isPresent()) {
+                FunctionData functionData = optFunctionData.get();
+                LinkedHashMap<String, ParameterData> parameters = dbManager
+                        .getFunctionParametersAsMap(functionData.functionId());
+                functionData.setParameters(parameters);
+
                 ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties());
                 analyzer.analyze(arguments, classSymbol.initMethod().get(), functionData);
             }
         }
-        return Optional.of(listener);
     }
 
     private static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {

@@ -73,10 +73,11 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.ICPEnablerTests"/>
             <class name="io.ballerina.flowmodelgenerator.extension.AddICPTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.SearchTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.SearchNodesTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.InitializerTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.ServiceFieldNodesTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingDeleteTest"/>
-
+            <class name="io.ballerina.flowmodelgenerator.extension.ExpressionEditorSemanticTokensTest"/>
             <!--types manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateAndUpdateTypeTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateGraphqlClassTypeTest"/>
@@ -116,6 +117,7 @@ under the License.
             <package name="io.ballerina.flowmodelgenerator.extension.knowledgebasemanager"/>
             <package name="io.ballerina.flowmodelgenerator.extension.dataloadermanager"/>
             <package name="io.ballerina.flowmodelgenerator.extension.chunkermanager"/>
+            <package name="io.ballerina.flowmodelgenerator.extension.toolkitmanager"/>
         </packages>
     </test>
 </suite>

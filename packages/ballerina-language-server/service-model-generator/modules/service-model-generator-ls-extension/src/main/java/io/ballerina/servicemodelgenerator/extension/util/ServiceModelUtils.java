@@ -60,7 +60,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_R
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPE_SERVICE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValue;
 
@@ -377,7 +381,7 @@ public class ServiceModelUtils {
                 .setCodedata(codedata)
                 .value("")
                 .setValues(new ArrayList<>())
-                .valueType("EXPRESSION")
+                .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(attachment.typeName())
                 .setPlaceholder("{}")
                 .optional(true)
@@ -390,18 +394,18 @@ public class ServiceModelUtils {
     }
 
     public static Value getListenersProperty(String protocol, String valueType) {
-        boolean isMultiple = valueType.equals("MULTIPLE_SELECT");
+        boolean isMultiple = valueType.equals(VALUE_TYPE_MULTIPLE_SELECT);
         MetaData metaData = isMultiple ?
                 new MetaData("Listeners", "The Listeners to be bound with the service")
                 : new MetaData("Listener", "The Listener to be bound with the service");
-
+        String kind = isMultiple ? VALUE_TYPE_MULTIPLE_SELECT_LISTENER : VALUE_TYPE_SINGLE_SELECT_LISTENER;
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(metaData)
                 .setCodedata(new Codedata("LISTENER"))
                 .value("")
                 .setValues(new ArrayList<>())
-                .valueType(valueType)
+                .valueType(kind)
                 .setValueTypeConstraint(protocol + ":" + "Listener")
                 .setPlaceholder("")
                 .optional(false)

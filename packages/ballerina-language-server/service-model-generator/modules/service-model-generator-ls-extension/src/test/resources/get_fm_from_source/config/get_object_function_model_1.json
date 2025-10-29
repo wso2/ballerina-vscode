@@ -49,6 +49,22 @@
     "enabled": true,
     "optional": false,
     "editable": true,
-    "canAddParameters": false
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "service.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 3
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 4
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
+    }
   }
 }

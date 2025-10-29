@@ -276,6 +276,18 @@
         "editable": true,
         "advanced": true,
         "hidden": true
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
       }
     },
     "flags": 0

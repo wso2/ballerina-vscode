@@ -187,7 +187,10 @@
           "line": 8,
           "offset": 4
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
     }
   }
 }

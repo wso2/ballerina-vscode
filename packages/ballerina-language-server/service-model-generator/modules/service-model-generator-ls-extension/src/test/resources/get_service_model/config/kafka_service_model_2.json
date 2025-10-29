@@ -41,7 +41,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "SINGLE_SELECT",
+          "valueType": "SINGLE_SELECT_LISTENER",
           "valueTypeConstraint": "kafka:Listener",
           "value": "",
           "values": [],

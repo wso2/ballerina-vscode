@@ -132,7 +132,7 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "TYPE",
+        "valueType": "ACTION_TYPE",
         "isType": true,
         "optional": false,
         "advanced": false,

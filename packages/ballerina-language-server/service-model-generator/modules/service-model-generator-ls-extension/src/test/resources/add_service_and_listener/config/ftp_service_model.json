@@ -135,7 +135,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new (host = \"127.0.0.1\", port = 21, protocol = \"ftp\", path = \"/\");\nservice ftp:Service on ftpListener {\n\tremote function onFileChange(ftp:WatchEvent & readonly event, ftp:Caller caller) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new (host = \"127.0.0.1\", port = 21, protocol = \"ftp\", path = \"/\");\nservice ftp:Service on ftpListener {\n\n}\n"
       }
     ]
   }

@@ -94,7 +94,7 @@ public class ServiceBuilderRouter {
 
     public static Service getServiceFromSource(Node node, Project project,
                                                SemanticModel semanticModel,
-                                               WorkspaceManager workspaceManager) {
+                                               WorkspaceManager workspaceManager, String filePath) {
         ServiceMetadata serviceMetadata = ServiceModelUtils.deriveServiceType(
                 (ServiceDeclarationNode) node, semanticModel);
         if (Objects.isNull(serviceMetadata.orgName()) || Objects.isNull(serviceMetadata.packageName())) {
@@ -102,9 +102,11 @@ public class ServiceBuilderRouter {
         }
         NodeBuilder<Service> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
-                workspaceManager, serviceMetadata.serviceType(), serviceMetadata.orgName(),
+                workspaceManager, filePath, serviceMetadata.serviceType(), serviceMetadata.orgName(),
                 serviceMetadata.packageName(), serviceMetadata.moduleName());
-        return serviceBuilder.getModelFromSource(context);
+        Service service = serviceBuilder.getModelFromSource(context);
+        service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        return service;
     }
 
     public static Map<String, List<TextEdit>> addService(Service service,

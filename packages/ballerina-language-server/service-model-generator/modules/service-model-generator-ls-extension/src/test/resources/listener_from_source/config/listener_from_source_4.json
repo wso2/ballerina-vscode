@@ -99,7 +99,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "server": {
           "metadata": {
@@ -131,7 +131,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "host": {
           "metadata": {
@@ -157,7 +157,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "http1Settings": {
           "metadata": {
@@ -183,7 +183,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "secureSocket": {
           "metadata": {
@@ -215,7 +215,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "httpVersion": {
           "metadata": {
@@ -241,7 +241,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "timeout": {
           "metadata": {
@@ -267,7 +267,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "requestLimits": {
           "metadata": {
@@ -293,7 +293,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "gracefulStopTimeout": {
           "metadata": {
@@ -319,7 +319,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "http2InitialWindowSize": {
           "metadata": {
@@ -345,7 +345,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "minIdleTimeInStaleState": {
           "metadata": {
@@ -371,7 +371,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "timeBetweenStaleEviction": {
           "metadata": {
@@ -397,7 +397,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         }
       },
       "codedata": {

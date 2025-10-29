@@ -137,7 +137,7 @@
             "label": "Argument Type",
             "description": "The type of the argument"
           },
-          "valueType": "TYPE",
+          "valueType": "ACTION_TYPE",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -250,6 +250,7 @@
         }
       },
       "orgName": "ballerina",
+      "packageName": "graphql",
       "moduleName": "graphql"
     },
     "properties": {

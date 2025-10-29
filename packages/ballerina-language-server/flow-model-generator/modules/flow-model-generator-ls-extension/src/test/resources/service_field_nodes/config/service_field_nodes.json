@@ -890,6 +890,18 @@
             "editable": true,
             "advanced": true,
             "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable",
+              "description": "Name of the variable/field"
+            },
+            "valueType": "LV_EXPRESSION",
+            "value": "self._AgentServiceAgent",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
           }
         },
         "flags": 1

@@ -1,0 +1,135 @@
+{
+  "source": "generated_mcp_toolkit",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "ai",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.4.png"
+    },
+    "codedata": {
+      "node": "MCP_TOOL_KIT",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "McpToolKit",
+      "version": "1.5.4",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "permittedTools": {
+        "metadata": {
+          "label": "Permitted Tools"
+        },
+        "valueType": "MULTIPLE_SELECT",
+        "valueTypeConstraint": "Global",
+        "value": "[\"tool-with-dash\", \"tool with spaces\", \"init\", \"getTools\", \"123-tool-with-num\"]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "serverUrl": {
+        "metadata": {
+          "label": "Server Url"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"http://localhost:9000\"",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "serverUrl"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "toolKitName": {
+        "metadata": {
+          "label": "MCP Toolkit Name",
+          "description": "Name of the MCP toolkit"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "SpecialToolsKit",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:McpBaseToolKit",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {},
+        "valueType": "IDENTIFIER",
+        "value": "specialToolsKit",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "connections.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 2,
+              "character": 79
+            },
+            "end": {
+              "line": 2,
+              "character": 79
+            }
+          },
+          "newText": "\nfinal SpecialToolsKit specialToolsKit = check new (\"http://localhost:9000\");"
+        }
+      ],
+      "agents.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 43,
+              "character": 1
+            },
+            "end": {
+              "line": 43,
+              "character": 1
+            }
+          },
+          "newText": "\nisolated class SpecialToolsKit {\n    *ai:McpBaseToolKit;\n    private final mcp:StreamableHttpClient mcpClient;\n    private final readonly & ai:ToolConfig[] tools;\n\n    public isolated function init(string serverUrl, mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},\n            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {\n        final map<ai:FunctionTool> permittedTools = {\n                \"init\" : self.'init,\n                \"getTools\" : self.gettools,\n                \"123-tool-with-num\" : self._123_tool_with_num,\n                \"tool-with-dash\" : self.tool_with_dash,\n                \"tool with spaces\" : self.toolWithSpaces\n        };\n\n        do {\n            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);\n            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, permittedTools).cloneReadOnly();\n        } on fail error e {\n            return error ai:Error(\"Failed to initialize MCP toolkit\", e);\n        }\n    }\n\n    public isolated function getTools() returns ai:ToolConfig[] => self.tools;\n\n    @ai:AgentTool\n    public isolated function 'init(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function gettools(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function _123_tool_with_num(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function tool_with_dash(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n\n    @ai:AgentTool\n    public isolated function toolWithSpaces(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n}\n"
+        }
+      ]
+    }
+  }
+}

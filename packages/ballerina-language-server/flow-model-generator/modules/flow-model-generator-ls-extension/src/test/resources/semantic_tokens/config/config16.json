@@ -1,0 +1,21 @@
+{
+  "description": "Member access with variable index x[a]",
+  "filePath": "main.bal",
+  "expression": "x[a]",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 2,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

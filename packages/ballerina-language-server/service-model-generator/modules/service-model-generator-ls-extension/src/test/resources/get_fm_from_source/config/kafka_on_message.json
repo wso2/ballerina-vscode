@@ -172,7 +172,7 @@
       "optional": true,
       "advanced": false
     },
-    "enabled": true,
+    "enabled": false,
     "optional": false,
     "editable": true,
     "canAddParameters": false,
@@ -187,7 +187,10 @@
           "line": 11,
           "offset": 5
         }
-      }
+      },
+      "orgName": "ballerinax",
+      "packageName": "kafka",
+      "moduleName": "kafka"
     }
   }
 }

@@ -20,14 +20,18 @@ package io.ballerina.designmodelgenerator.core;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.PathParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathRestParam;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
@@ -57,6 +61,10 @@ public class CommonUtils {
 
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
+    private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
+    private static final String WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
+    private static final String WSO2_EMBEDDING_PROVIDER = "Wso2EmbeddingProvider";
+    private static final String WSO2_ICON_SUFFIX = "?wso2_icon";
 
     private static final Map<String, ConnectionKind> CONNECTION_KIND_MAP = Map.of(
             "Agent", ConnectionKind.AGENT,
@@ -108,7 +116,15 @@ public class CommonUtils {
      * @return the icon URL or null if the module symbol is not present
      */
     public static String generateIcon(TypeSymbol typeSymbol) {
-        return typeSymbol.getModule().map(moduleSymbol -> generateIcon(moduleSymbol.id())).orElse(null);
+        String typeName = getTypeName(typeSymbol);
+        String iconUrl = typeSymbol.getModule().map(moduleSymbol ->
+                generateIcon(moduleSymbol.id())).orElse(null);
+
+        if (iconUrl != null && (WSO2_MODEL_PROVIDER.equals(typeName) || WSO2_EMBEDDING_PROVIDER.equals(typeName))) {
+            return iconUrl + WSO2_ICON_SUFFIX;
+        }
+
+        return iconUrl;
     }
 
     public static String generateUUID() {
@@ -231,6 +247,21 @@ public class CommonUtils {
         return pathBuilder.toString();
     }
 
+    private static ClassSymbol getClassSymbol(Symbol symbol) {
+        if (symbol instanceof ClassSymbol classSymbol) {
+            return classSymbol;
+        }
+        TypeReferenceTypeSymbol typeDescriptorSymbol;
+        if (symbol instanceof VariableSymbol variableSymbol) {
+            typeDescriptorSymbol = (TypeReferenceTypeSymbol) variableSymbol.typeDescriptor();
+        } else if (symbol instanceof ParameterSymbol parameterSymbol) {
+            typeDescriptorSymbol = (TypeReferenceTypeSymbol) parameterSymbol.typeDescriptor();
+        } else {
+            return null;
+        }
+        return (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
+    }
+
     public static boolean isAgentClass(Symbol symbol) {
         Optional<ModuleSymbol> optModule = symbol.getModule();
         if (optModule.isEmpty()) {
@@ -241,6 +272,26 @@ public class CommonUtils {
             return false;
         }
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
+    }
+
+    public static boolean isAiKnowledgeBase(Symbol symbol) {
+        if (symbol instanceof ObjectTypeSymbol objectTypeSymbol) {
+            return hasAiTypeInclusion(objectTypeSymbol, KNOWLEDGE_BASE_TYPE_NAME);
+        }
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, KNOWLEDGE_BASE_TYPE_NAME);
+    }
+
+    private static boolean hasAiTypeInclusion(ObjectTypeSymbol objectTypeSymbol, String includedTypeName) {
+        return objectTypeSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
+                        AI.equals(moduleId.id().moduleName()));
     }
 
     public static boolean isAiModule(String org, String module) {

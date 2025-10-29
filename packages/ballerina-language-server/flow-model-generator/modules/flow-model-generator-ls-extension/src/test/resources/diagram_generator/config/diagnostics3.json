@@ -46,11 +46,10 @@
       {
         "id": "33863",
         "metadata": {
-          "label": "Stop",
-          "description": "Stop the flow"
+          "label": "Return"
         },
         "codedata": {
-          "node": "STOP",
+          "node": "RETURN",
           "lineRange": {
             "fileName": "diagnostics3.bal",
             "startLine": {
@@ -244,11 +243,10 @@
               {
                 "id": "38951",
                 "metadata": {
-                  "label": "Stop",
-                  "description": "Stop the flow"
+                  "label": "Return"
                 },
                 "codedata": {
-                  "node": "STOP",
+                  "node": "RETURN",
                   "lineRange": {
                     "fileName": "diagnostics3.bal",
                     "startLine": {

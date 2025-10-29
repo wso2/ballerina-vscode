@@ -95,8 +95,6 @@ public class OpenApiServiceGenerator {
     private final WorkspaceManager workspaceManager;
     private final Path openAPIContractPath;
     private final Path projectPath;
-    public static final List<String> SUPPORTED_OPENAPI_VERSIONS = List.of("2.0", "3.0.0", "3.0.1", "3.0.2", "3.0.3",
-            "3.1.0");
     public static final String LS = System.lineSeparator();
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -196,8 +194,6 @@ public class OpenApiServiceGenerator {
             throw new BallerinaOpenApiException("Info section of the definition file cannot be empty/null: " +
                     openAPI);
         }
-
-        checkOpenAPIVersion(openAPIDef);
 
         // Validate the service generation
         List<String> complexPaths = GeneratorUtils.getComplexPaths(openAPIDef);
@@ -434,13 +430,5 @@ public class OpenApiServiceGenerator {
         Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+\\.\\d+\\.\\d+):");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll("$2");
-    }
-
-    private void checkOpenAPIVersion(OpenAPI openAPIDef) throws BallerinaOpenApiException {
-        if (!SUPPORTED_OPENAPI_VERSIONS.contains(openAPIDef.getOpenapi())) {
-            String sb = String.format("WARNING: The tool has not been tested with OpenAPI version %s. The generated " +
-                    "code may potentially contain errors.", openAPIDef.getOpenapi()) + System.lineSeparator();
-            throw new BallerinaOpenApiException(sb);
-        }
     }
 }
