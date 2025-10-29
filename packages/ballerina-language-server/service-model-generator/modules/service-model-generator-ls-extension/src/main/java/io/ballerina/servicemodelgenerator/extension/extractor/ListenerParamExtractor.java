@@ -96,15 +96,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
                                                            String parameterName, ModelFromSourceContext context) {
         List<String> allValues = new ArrayList<>();
 
-        // Special handling for attach-point extraction
-        if ("attachPoint".equals(parameterName)) {
-            String attachPoint = extractAttachPoint(serviceNode);
-            if (attachPoint != null) {
-                allValues.add(attachPoint);
-            }
-            return allValues;
-        }
-
         // Extract from each listener expression
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         for (ExpressionNode expression : expressions) {
@@ -113,23 +104,6 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
         }
 
         return allValues;
-    }
-
-    /**
-     * Extracts the attach-point from service declaration.
-     * Handles both path-based (/foobar) and string literal ("testqueue") attach points.
-     *
-     * @param serviceNode The service declaration node
-     * @return The attach-point value or null if not found
-     */
-    private String extractAttachPoint(ServiceDeclarationNode serviceNode) {
-        // Check if service has an attach-point (absolute resource path)
-        var attachPoint = serviceNode.absoluteResourcePath();
-        if (!attachPoint.isEmpty()) {
-            // Handle path-based attach point like /foobar
-            return attachPoint.toString().trim();
-        }
-        return null;
     }
 
 
