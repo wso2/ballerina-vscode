@@ -493,17 +493,17 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                             title="Create New Type"
                             openState={isTypeEditorOpen}
                             setOpenState={handleTypeEditorStateChange}>
-                            <div style={{ padding: '0px 20px' }}>
-                                <BreadcrumbContainer>
-                                    {stack.slice(1, i + 2).map((stackItem, index) => (
-                                        <React.Fragment key={index}>
-                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                            <BreadcrumbItem>
-                                                {stackItem?.type?.name || "NewType"}
-                                            </BreadcrumbItem>
-                                        </React.Fragment>
-                                    ))}
-                                </BreadcrumbContainer>
+                            <BreadcrumbContainer>
+                                {stack.slice(1, i + 2).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <div style={{ height: '560px', overflow: 'auto' }}>
                                 <FormTypeEditor
                                     key={editingType?.name ?? 'new-type'}
                                     type={peekTypeStack()?.type}
