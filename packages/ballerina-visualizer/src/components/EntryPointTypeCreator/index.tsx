@@ -26,7 +26,7 @@ import { EditorContext, StackItem } from "@wso2/type-editor";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../../views/BI/Forms/FormGenerator";
 import { FormTypeEditor } from "../../views/BI/TypeEditor";
 
-export const Title: React.FC<any> = styled.div`
+export const Title = styled.div`
     color: ${ThemeColors.ON_SURFACE};
 `;
 
