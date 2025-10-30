@@ -56,6 +56,36 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     private static final String MODEL = "Model";
     private static final String DEFAULT_AGENT_NAME = "chat";
 
+    private static String getServiceFields(String agentVarName) {
+        return "    private final ai:Agent " + agentVarName + ";";
+    }
+
+    private static String getServiceInitFunction(String agentVarName, String modelVarName) {
+        return String.format(
+                "    function init() returns error? { %s" +
+                        "        self.%s = check new (%s" +
+                        "            systemPrompt = {role: string ``, instructions: string ``}, model = %s" +
+                        ", tools = []%s" +
+                        "        );%s" +
+                        "    }",
+                NEW_LINE, agentVarName, NEW_LINE, modelVarName, NEW_LINE, NEW_LINE
+        );
+    }
+
+    private static String getAgentChatFunction(String agentVarName, String orgName) {
+        String methodCall = BALLERINA.equals(orgName)
+                ? String.format("self.%s.run(request.message, request.sessionId)", agentVarName)
+                : String.format("self.%s->run(request.message, request.sessionId)", agentVarName);
+        return String.format(
+                "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
+                        "returns ai:ChatRespMessage|error {%s" +
+                        "        string stringResult = check %s;%s" +
+                        "        return {message: stringResult};%s" +
+                        "    }",
+                NEW_LINE, methodCall, NEW_LINE, NEW_LINE
+        );
+    }
+
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         return super.getModelTemplate(context).map(service -> {
@@ -102,7 +132,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
                 : DEFAULT_AGENT_NAME;
         return sanitizeIdentifier(rawAgentName);
     }
-    
+
     private String sanitizeIdentifier(String name) {
         if (name == null || name.trim().isEmpty()) {
             return DEFAULT_AGENT_NAME;
@@ -154,36 +184,6 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
             String importsStmts = String.join(NEW_LINE, importStmts);
             edits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
         }
-    }
-
-    private static String getServiceFields(String agentVarName) {
-        return "    private final ai:Agent " + agentVarName + ";";
-    }
-
-    private static String getServiceInitFunction(String agentVarName, String modelVarName) {
-        return String.format(
-                "    function init() returns error? { %s" +
-                        "        self.%s = check new (%s" +
-                        "            systemPrompt = {role: string ``, instructions: string ``}, model = %s" +
-                        ", tools = []%s" +
-                        "        );%s" +
-                        "    }",
-                NEW_LINE, agentVarName, NEW_LINE, modelVarName, NEW_LINE, NEW_LINE
-        );
-    }
-
-    private static String getAgentChatFunction(String agentVarName, String orgName) {
-        String methodCall = BALLERINA.equals(orgName)
-                ? String.format("self.%s.run(request.message, request.sessionId)", agentVarName)
-                : String.format("self.%s->run(request.message, request.sessionId)", agentVarName);
-        return String.format(
-                "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
-                        "returns ai:ChatRespMessage|error {%s" +
-                        "        string stringResult = check %s;%s" +
-                        "        return {message: stringResult};%s" +
-                        "    }",
-                NEW_LINE, methodCall, NEW_LINE, NEW_LINE
-        );
     }
 
     @Override

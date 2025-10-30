@@ -73,6 +73,20 @@
           "editable": true,
           "optional": false,
           "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {
+            "Topics": []
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
         }
       },
       "functions": []

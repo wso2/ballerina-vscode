@@ -109,7 +109,7 @@ public class AddFunctionTest extends AbstractLSTest {
     protected String getServiceName() {
         return "serviceDesign";
     }
-    
+
     @Override
     protected String getApiName() {
         return "addFunction";

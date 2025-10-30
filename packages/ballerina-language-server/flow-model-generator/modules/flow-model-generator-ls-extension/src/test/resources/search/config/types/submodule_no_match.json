@@ -1,0 +1,84 @@
+{
+  "description": "Test query with no matches - should return empty results",
+  "kind": "TYPE",
+  "source": "proj2/automation.bal",
+  "queryMap": {
+    "q": "DatabaseConnection",
+    "limit": "30"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "mod1.Weather",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ForecastCondition",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ForecastCondition",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "cdc",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "DatabaseConnection",
+                "description": "Represents the base configuration for a database connection.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_cdc_1.0.3.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "cdc",
+                "packageName": "cdc",
+                "symbol": "DatabaseConnection",
+                "version": "1.0.3"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

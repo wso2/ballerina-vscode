@@ -91,17 +91,11 @@
                 "typeName": "Elephant",
                 "kind": "record",
                 "ref": "-2143678211"
-              },
-              {
-                "name": "animal",
-                "displayName": "animal",
-                "typeName": "()",
-                "kind": "()"
               }
             ],
             "name": "animal",
             "displayName": "animal",
-            "typeName": "Dog|Elephant|()",
+            "typeName": "Dog|Elephant",
             "kind": "union",
             "optional": false,
             "ref": "1484"

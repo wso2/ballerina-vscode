@@ -18,12 +18,14 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
@@ -53,6 +55,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
@@ -76,6 +79,7 @@ public class ServiceBuilderRouter {
         put(GRAPHQL, GraphqlServiceBuilder::new);
         put(MCP, McpServiceBuilder::new);
         put(KAFKA, KafkaServiceBuilder::new);
+        put(ASB, AsbServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {
@@ -97,15 +101,19 @@ public class ServiceBuilderRouter {
                                                WorkspaceManager workspaceManager, String filePath) {
         ServiceMetadata serviceMetadata = ServiceModelUtils.deriveServiceType(
                 (ServiceDeclarationNode) node, semanticModel);
-        if (Objects.isNull(serviceMetadata.orgName()) || Objects.isNull(serviceMetadata.packageName())) {
+        if (Objects.isNull(serviceMetadata.moduleId())) {
             return null;
         }
-        NodeBuilder<Service> serviceBuilder = getServiceBuilder(serviceMetadata.moduleName());
+        ModuleID moduleID = serviceMetadata.moduleId();
+
+        NodeBuilder<Service> serviceBuilder = getServiceBuilder(moduleID.moduleName());
         ModelFromSourceContext context = new ModelFromSourceContext(node, project, semanticModel,
-                workspaceManager, filePath, serviceMetadata.serviceType(), serviceMetadata.orgName(),
-                serviceMetadata.packageName(), serviceMetadata.moduleName());
+                workspaceManager, filePath, serviceMetadata.serviceType(), moduleID.orgName(),
+                moduleID.packageName(), moduleID.moduleName(), moduleID.version());
         Service service = serviceBuilder.getModelFromSource(context);
-        service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        if (service != null) {
+            service.getProperties().forEach((k, v) -> v.setAdvanced(false));
+        }
         return service;
     }
 

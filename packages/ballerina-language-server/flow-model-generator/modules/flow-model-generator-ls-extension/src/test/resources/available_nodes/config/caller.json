@@ -21,7 +21,7 @@
               "metadata": {
                 "label": "respond",
                 "description": "Sends the outbound response to the caller.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -30,7 +30,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "respond",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -40,7 +40,7 @@
               "metadata": {
                 "label": "promise",
                 "description": "Pushes a promise to the caller.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -49,7 +49,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "promise",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -59,7 +59,7 @@
               "metadata": {
                 "label": "pushPromisedResponse",
                 "description": "Sends a promised push response to the caller.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -68,7 +68,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "pushPromisedResponse",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -78,7 +78,7 @@
               "metadata": {
                 "label": "'continue",
                 "description": "Sends a `100-continue` response to the caller.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -87,7 +87,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "'continue",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -97,7 +97,7 @@
               "metadata": {
                 "label": "redirect",
                 "description": "Sends a redirect response to the user with the specified redirection status code.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -106,7 +106,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "redirect",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -116,7 +116,7 @@
               "metadata": {
                 "label": "getRemoteHostName",
                 "description": "Gets the hostname from the remote address. This method may trigger a DNS reverse lookup if the address was created\nwith a literal IP address.\n```ballerina\nstring? remoteHost = caller.getRemoteHostName();\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -125,7 +125,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "getRemoteHostName",
-                "version": "2.14.6",
+                "version": "2.14.7",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -178,11 +178,11 @@
           "items": [
             {
               "metadata": {
-                "label": "Vector Knowledge Base",
-                "description": "Vector knowledge bases available in the integration"
+                "label": "Knowledge Base",
+                "description": "Knowledge bases available in the integration"
               },
               "codedata": {
-                "node": "VECTOR_KNOWLEDGE_BASES",
+                "node": "KNOWLEDGE_BASES",
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",

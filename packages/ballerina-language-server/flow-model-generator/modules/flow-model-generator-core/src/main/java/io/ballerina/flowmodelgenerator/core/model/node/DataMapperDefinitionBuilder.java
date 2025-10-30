@@ -168,8 +168,7 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
                     .token().skipFormatting().stepOut()
                     .textEdit();
         }
-        return sourceBuilder
-                .build();
+        return sourceBuilder.build();
     }
 
     private static class ParameterSchemaHolder {

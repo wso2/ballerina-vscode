@@ -117,6 +117,18 @@
         "optional": false,
         "advanced": false
       },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
@@ -156,7 +168,10 @@
           "line": 36,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "mcp",
+      "moduleName": "mcp"
     },
     "functions": [
       {
@@ -318,7 +333,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {
@@ -336,6 +351,10 @@
         },
         "properties": {
           "annotTool": {
+            "metadata": {
+              "label": "Tool",
+              "description": "Tool"
+            },
             "codedata": {
               "type": "ANNOTATION_ATTACHMENT",
               "originalName": "Tool",
@@ -577,7 +596,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {

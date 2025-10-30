@@ -113,7 +113,7 @@ public class ReferenceType {
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, ModuleID moduleID,
                                              List<Symbol> typeDefSymbols) {
         TypeDescKind kind = symbol.typeKind();
-        RefType primitiveType = getPrimitiveType(kind, name);
+        RefType primitiveType = getPrimitiveType(kind);
         if (primitiveType != null) {
             return primitiveType;
         }
@@ -237,13 +237,19 @@ public class ReferenceType {
             return arrayType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
+            List<TypeSymbol> typeSymbols = filterNilOrError(unionTypeSymbol);
+            if (typeSymbols.size() == 1) {
+                TypeSymbol soleTypeSymbol = typeSymbols.getFirst();
+                ModuleID soleModuleId = getModuleID(soleTypeSymbol, moduleID);
+                return fromSemanticSymbol(soleTypeSymbol, unionTypeSymbol.signature(), soleModuleId, typeDefSymbols);
+            }
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
             unionType.key = typeKey;
             unionType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
             visitedTypeMap.put(typeKey, unionType);
 
-            for (TypeSymbol memberTypeSymbol : unionTypeSymbol.memberTypeDescriptors()) {
+            for (TypeSymbol memberTypeSymbol : typeSymbols) {
                 String memberTypeName = memberTypeSymbol.getName().orElse("");
                 ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
@@ -321,35 +327,53 @@ public class ReferenceType {
                 tupleType.memberTypes.add(refType);
             }
             return tupleType;
+        } else if (kind == TypeDescKind.REGEXP) {
+            return new RefType("regexp:RegExp");
         }
 
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
     }
 
-    private static RefType getPrimitiveType(TypeDescKind kind, String name) {
-        if (kind == TypeDescKind.INT || kind == TypeDescKind.STRING || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.NIL || kind == TypeDescKind.DECIMAL ||
-                kind == TypeDescKind.NEVER) {
-            return createPrimitiveRefType(kind, name);
+    private static List<TypeSymbol> filterNilOrError(UnionTypeSymbol unionTypeSymbol) {
+        List<TypeSymbol> filteredMembers = new ArrayList<>();
+        for (TypeSymbol member : unionTypeSymbol.memberTypeDescriptors()) {
+            if (member.typeKind() != TypeDescKind.NIL && member.typeKind() != TypeDescKind.ERROR) {
+                filteredMembers.add(member);
+            }
         }
-        return null;
+        return filteredMembers;
     }
 
-    private static RefType createPrimitiveRefType(TypeDescKind kind, String name) {
-        RefType refType = new RefType(name);
-        refType.typeName = switch (kind) {
+    private static RefType getPrimitiveType(TypeDescKind kind) {
+        String primitiveTypeName = getPrimitiveTypeName(kind);
+        if (primitiveTypeName == null) {
+            return null;
+        }
+        RefType refType = new RefType(primitiveTypeName);
+        refType.typeName = primitiveTypeName;
+        return refType;
+    }
+
+    private static String getPrimitiveTypeName(TypeDescKind kind) {
+        return switch (kind) {
             case INT -> "int";
+            case INT_SIGNED8 -> "int:Signed8";
+            case INT_SIGNED16 -> "int:Signed16";
+            case INT_SIGNED32 -> "int:Signed32";
+            case INT_UNSIGNED8 -> "int:Unsigned8";
+            case INT_UNSIGNED16 -> "int:Unsigned16";
+            case INT_UNSIGNED32 -> "int:Unsigned32";
             case STRING -> "string";
             case FLOAT -> "float";
             case BOOLEAN -> "boolean";
             case NIL -> "()";
             case DECIMAL -> "decimal";
+            case BYTE -> "byte";
+            case STRING_CHAR -> "string:Char";
             case NEVER -> "never";
-            default -> throw new UnsupportedOperationException("Unsupported primitive type: " + kind);
+            default -> null;
         };
-        refType.name = refType.typeName;
-        return refType;
     }
 
 

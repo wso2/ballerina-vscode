@@ -66,10 +66,11 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
         if (path.isEmpty()) {
             return;
         }
-        this.baseWorkspaceManager.didOpen(path.get(), params);
         if (this.isExprScheme(uri)) {
             Optional<Project> project = this.baseWorkspaceManager.project(path.get());
             project.ifPresent(this.clonedWorkspaceManager::open);
+        } else {
+            this.baseWorkspaceManager.didOpen(path.get(), params);
         }
     }
 
@@ -80,10 +81,11 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
         if (path.isEmpty()) {
             return;
         }
-        if (!this.isExprScheme(uri)) {
+        if (this.isExprScheme(uri)) {
+            this.clonedWorkspaceManager.didChange(path.get(), params);
+        } else {
             this.baseWorkspaceManager.didChange(path.get(), params);
         }
-        this.clonedWorkspaceManager.didChange(path.get(), params);
     }
 
     @Override
@@ -95,9 +97,9 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
         }
         if (this.isExprScheme(uri)) {
             this.clonedWorkspaceManager.didClose(path.get(), params);
-            return;
+        } else {
+            this.baseWorkspaceManager.didClose(path.get(), params);
         }
-        this.baseWorkspaceManager.didClose(path.get(), params);
     }
 
     private static class ClonedWorkspace extends BallerinaWorkspaceManager {

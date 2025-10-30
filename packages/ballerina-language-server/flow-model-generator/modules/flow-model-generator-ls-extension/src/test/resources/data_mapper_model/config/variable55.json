@@ -1,0 +1,66 @@
+{
+  "source": "variable33.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable33.bal",
+      "startLine": {
+        "line": 12,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 41
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 12,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "details",
+  "model": {
+    "inputs": [],
+    "output": {
+      "fields": [],
+      "name": "details",
+      "displayName": "details",
+      "typeName": "PurchaseDetails",
+      "kind": "record",
+      "ref": "2079257237"
+    },
+    "mappings": [],
+    "refs": {
+      "2079257237": {
+        "fields": [
+          {
+            "name": "rewardId",
+            "displayName": "rewardId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          },
+          {
+            "name": "skuId",
+            "displayName": "skuId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          },
+          {
+            "name": "quantity",
+            "displayName": "quantity",
+            "typeName": "int:Signed32",
+            "kind": "int:Signed32",
+            "optional": true
+          }
+        ],
+        "typeName": "PurchaseDetails",
+        "kind": "record"
+      }
+    }
+  }
+}

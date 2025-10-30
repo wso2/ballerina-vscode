@@ -18,12 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens;
 
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.SemanticTokens;
@@ -88,7 +91,25 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(FieldAccessExpressionNode fieldAccessExpressionNode) {
-        // Mark the field name as PROPERTY
+        // Find the leftmost node
+        ExpressionNode expression = fieldAccessExpressionNode.expression();
+        while (expression.kind() == SyntaxKind.FIELD_ACCESS) {
+            expression = ((FieldAccessExpressionNode) expression).expression();
+        }
+
+        // Mark the field as variable if the expression is a variable reference
+        if (expression instanceof SimpleNameReferenceNode nameReferenceNode) {
+            // Get the symbol name from the node
+            String symbolName = nameReferenceNode.name().text();
+            if (!validSymbolNames.contains(symbolName)) {
+                return;
+            }
+
+            addSemanticToken(fieldAccessExpressionNode, ExpressionTokenTypes.VARIABLE.getId());
+            return;
+        }
+
+        // Mark the field name as PROPERTY, if the expression is not a variable
         addSemanticToken(fieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
         // Visit the expression part (left side)
         fieldAccessExpressionNode.expression().accept(this);
@@ -130,17 +151,30 @@ public class SemanticTokenVisitor extends NodeVisitor {
         // Calculate token length using pattern matching
         int length;
         if (node instanceof Token token) {
-            String text = token.text().trim();
-            length = text.isEmpty() ? token.text().length() : text.length();
+            length = token.text().length();
+        } else if (node instanceof FunctionArgumentNode) { // Use the entire length for function arguments
+            length = node.textRange().length();
         } else {
             int textRangeLength = node.textRange().length();
-            // Avoid expensive toSourceCode() call - only use for specific zero-length cases
             length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
         }
 
+        // Account for invalid tokens to the length and adjust column accordingly
+        for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
+            int tokenLength = leadingInvalidToken.text().length();
+            length += tokenLength;
+            column -= tokenLength;
+        }
+        for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
+            length += trailingInvalidToken.text().length();
+        }
+
         // Create and add new semantic token
+        if (length <= 0) {
+            return; // Skip zero-length tokens
+        }
         SemanticToken semanticToken = new SemanticToken(line, column);
-        semanticToken.setProperties(length, type, 0); // No modifiers for expressions
+        semanticToken.setProperties(length, type, 0);
         semanticTokens.add(semanticToken);
     }
 

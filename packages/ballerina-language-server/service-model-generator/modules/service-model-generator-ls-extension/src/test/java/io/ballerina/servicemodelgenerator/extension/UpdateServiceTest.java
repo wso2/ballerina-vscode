@@ -115,10 +115,10 @@ public class UpdateServiceTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the source generator test.
      *
-     * @param filePath     The path to the source file.
-     * @param description  The description of the test.
+     * @param filePath    The path to the source file.
+     * @param description The description of the test.
      * @param service     The service model.
-     * @param output       The expected output.
+     * @param output      The expected output.
      */
     private record TestConfig(String filePath, String description, Service service,
                               Map<String, List<TextEdit>> output) {
