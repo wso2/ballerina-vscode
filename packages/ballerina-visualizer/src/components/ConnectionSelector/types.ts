@@ -41,7 +41,7 @@ export interface ConnectionSpecialConfig {
 
 export interface ConnectionConfigProps {
     connectionKind: ConnectionKind;
-    selectedNode?: FlowNode;
+    selectedNode: FlowNode;
     onSave?: (selectedCallNode: FlowNode) => void;
     onNavigateToSelectionList?: () => void;
 }
