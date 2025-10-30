@@ -92,9 +92,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
 public class OpenApiServiceGenerator {
 
     public static final String MAIN_BAL = "main.bal";
-    private final WorkspaceManager workspaceManager;
-    private final Path openAPIContractPath;
-    private final Path projectPath;
     public static final String LS = System.lineSeparator();
     public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
@@ -107,6 +104,9 @@ public class OpenApiServiceGenerator {
     public static final String DEFAULT_HTTP_RESPONSE_VALUE = "status: new (0)";
     public static final String SERVICE_DECLARATION = "service %s on %s {";
     private static final String RANGED_RESPONSE_ERROR_CODE = "OAS_SERVICE_201";
+    private final WorkspaceManager workspaceManager;
+    private final Path openAPIContractPath;
+    private final Path projectPath;
 
     public OpenApiServiceGenerator(Path openAPIContractPath, Path projectPath, WorkspaceManager workspaceManager) {
         this.openAPIContractPath = openAPIContractPath;

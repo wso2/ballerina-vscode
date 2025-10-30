@@ -98,6 +98,84 @@ public class Parameter {
         this.isGraphqlId = parameter.isGraphqlId;
     }
 
+    private static Value name(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    private static Value type(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_TYPE)
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    private static Value defaultValue(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_EXPRESSION)
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build();
+    }
+
+    private static Value documentation(MetaData metadata) {
+        return new Value.ValueBuilder()
+                .setMetadata(metadata)
+                .valueType(Constants.VALUE_TYPE_STRING)
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build();
+    }
+
+    public static Parameter getNewField() {
+        return new Builder()
+                .type(type(FIELD_TYPE_METADATA))
+                .name(name(FIELD_NAME_METADATA))
+                .defaultValue(defaultValue(FIELD_DEFAULT_VALUE_METADATA))
+                .editable(true)
+                .optional(true)
+                .build();
+    }
+
+    public static Parameter graphqlParamSchema() {
+        return new Parameter.Builder()
+                .type(type(ARGUMENT_TYPE_METADATA))
+                .name(name(ARGUMENT_NAME_METADATA))
+                .defaultValue(defaultValue(ARGUMENT_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(ARGUMENT_DOCUMENTATION_METADATA))
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    public static Parameter functionParamSchema() {
+        return new Parameter.Builder()
+                .type(type(PARAMETER_TYPE_METADATA))
+                .name(name(PARAMETER_NAME_METADATA))
+                .defaultValue(defaultValue(PARAMETER_DEFAULT_VALUE_METADATA))
+                .documentation(documentation(PARAMETER_DOCUMENTATION_METADATA))
+                .enabled(true)
+                .editable(true)
+                .build();
+    }
+
+    public static Parameter getNewFunctionParameter() {
+        return functionParamSchema();
+    }
+
+    public static Parameter getNewGraphqlParameter() {
+        return graphqlParamSchema();
+    }
+
     public MetaData getMetadata() {
         return metadata;
     }
@@ -194,12 +272,12 @@ public class Parameter {
         this.httpParamType = httpParamType;
     }
 
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
     public boolean isHidden() {
         return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     public Value getHeaderName() {
@@ -227,84 +305,6 @@ public class Parameter {
 
     public void setIsGraphqlId(boolean isGraphqlId) {
         this.isGraphqlId = isGraphqlId;
-    }
-
-    private static Value name(MetaData metadata) {
-        return new Value.ValueBuilder()
-                .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
-                .enabled(true)
-                .editable(true)
-                .build();
-    }
-
-    private static Value type(MetaData metadata) {
-        return new Value.ValueBuilder()
-                .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_TYPE)
-                .enabled(true)
-                .editable(true)
-                .build();
-    }
-
-    private static Value defaultValue(MetaData metadata) {
-        return new Value.ValueBuilder()
-                .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_EXPRESSION)
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build();
-    }
-
-    private static Value documentation(MetaData metadata) {
-        return new Value.ValueBuilder()
-                .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_STRING)
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build();
-    }
-
-    public static Parameter getNewField() {
-        return new Builder()
-                .type(type(FIELD_TYPE_METADATA))
-                .name(name(FIELD_NAME_METADATA))
-                .defaultValue(defaultValue(FIELD_DEFAULT_VALUE_METADATA))
-                .editable(true)
-                .optional(true)
-                .build();
-    }
-
-    public static Parameter graphqlParamSchema() {
-        return new Parameter.Builder()
-                .type(type(ARGUMENT_TYPE_METADATA))
-                .name(name(ARGUMENT_NAME_METADATA))
-                .defaultValue(defaultValue(ARGUMENT_DEFAULT_VALUE_METADATA))
-                .documentation(documentation(ARGUMENT_DOCUMENTATION_METADATA))
-                .enabled(true)
-                .editable(true)
-                .build();
-    }
-
-    public static Parameter functionParamSchema() {
-        return new Parameter.Builder()
-                .type(type(PARAMETER_TYPE_METADATA))
-                .name(name(PARAMETER_NAME_METADATA))
-                .defaultValue(defaultValue(PARAMETER_DEFAULT_VALUE_METADATA))
-                .documentation(documentation(PARAMETER_DOCUMENTATION_METADATA))
-                .enabled(true)
-                .editable(true)
-                .build();
-    }
-
-    public static Parameter getNewFunctionParameter() {
-        return functionParamSchema();
-    }
-
-    public static Parameter getNewGraphqlParameter() {
-        return graphqlParamSchema();
     }
 
     public static class RequiredParamSorter implements Comparator<Parameter>, Serializable {

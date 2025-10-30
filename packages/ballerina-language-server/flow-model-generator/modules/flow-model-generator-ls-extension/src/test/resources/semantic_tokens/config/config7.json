@@ -6,22 +6,8 @@
     {
       "line": 0,
       "col": 0,
-      "length": 6,
+      "length": 20,
       "type": 0,
-      "modifiers": 0
-    },
-    {
-      "line": 0,
-      "col": 7,
-      "length": 6,
-      "type": 1,
-      "modifiers": 0
-    },
-    {
-      "line": 0,
-      "col": 14,
-      "length": 6,
-      "type": 1,
       "modifiers": 0
     }
   ]

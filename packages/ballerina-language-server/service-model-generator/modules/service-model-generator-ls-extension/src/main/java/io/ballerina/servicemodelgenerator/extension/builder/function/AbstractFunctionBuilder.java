@@ -96,86 +96,6 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
 
     private static final String DEFAULT_FUNCTION_MODEL_LOCATION = "functions/%s_%s.json";
 
-    /**
-     * Get the model template for a given function.
-     *
-     * @param context the context information for retrieving the functional model template
-     * @return the model template
-     */
-    @Override
-    public Optional<Function> getModelTemplate(GetModelContext context) {
-        String resourcePath =  String.format(DEFAULT_FUNCTION_MODEL_LOCATION, context.serviceType(),
-                context.functionType());
-        InputStream resourceStream = Utils.class.getClassLoader()
-                .getResourceAsStream(resourcePath);
-        if (resourceStream == null) {
-            return Optional.empty();
-        }
-
-        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return Optional.of(new Gson().fromJson(reader, Function.class));
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Get the list of text edits for the given function model for addition.
-     *
-     * @param context the context information for adding the service
-     * @return a map of file paths to lists of text edits
-     */
-    @Override
-    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        return buildModel(context);
-    }
-
-    /**
-     * Get the list of text edits for the given function for updating.
-     *
-     * @param context the context information for updating the service
-     * @return a map of file paths to lists of text edits
-     */
-    @Override
-    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        return buildUpdateModel(context);
-    }
-
-    /**
-     * Get the function model from the source code.
-     *
-     * @param context the context information for extracting the function model
-     * @return the ser extracted from the source code
-     */
-    @Override
-    public Function getModelFromSource(ModelFromSourceContext context) {
-        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
-        Function functionModel;
-        if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
-            functionModel = getObjectFunctionFromSource(CLASS, functionDefinitionNode, context.semanticModel());
-        } else {
-            functionModel = getFunctionInsideService(context);
-        }
-        functionModel.setEditable(true);
-        return functionModel;
-    }
-
-    private Function getFunctionInsideService(ModelFromSourceContext context) {
-        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
-        boolean isResource = functionDefinitionNode.qualifierList().stream()
-                .anyMatch(qualifier -> qualifier.text().equals(RESOURCE));
-        String functionName = isResource ? getPath(functionDefinitionNode.relativeResourcePath())
-                : functionDefinitionNode.functionName().text().trim();
-        Optional<ServiceTypeFunction> matchingServiceTypeFunction = ServiceDatabaseManager.getInstance()
-                .getMatchingServiceTypeFunction(context.orgName(), context.moduleName(), context.serviceType(),
-                        functionName);
-        return matchingServiceTypeFunction.map(serviceTypeFunction ->
-                        getServiceTypeBoundedFunctionFromSource(serviceTypeFunction,
-                                functionDefinitionNode, context.semanticModel()))
-                .orElseGet(() -> getObjectFunctionFromSource(SERVICE_DIAGRAM,
-                        functionDefinitionNode, context.semanticModel()));
-    }
-
     static Function getServiceTypeBoundedFunctionFromSource(ServiceTypeFunction serviceTypeFunction,
                                                             FunctionDefinitionNode functionDefinitionNode,
                                                             SemanticModel semanticModel) {
@@ -196,14 +116,6 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         function.setCodedata(new Codedata(functionDefinitionNode.lineRange()));
         updateAnnotationAttachmentProperty(functionDefinitionNode, function);
         return function;
-    }
-
-    /**
-     * @return kind of the function model
-     */
-    @Override
-    public String kind() {
-        return "";
     }
 
     static Function getObjectFunctionFromSource(ServiceClassUtil.ServiceClassContext context,
@@ -339,7 +251,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         }
         boolean isDefault = functionKind.equals(KIND_DEFAULT);
 
-        if (!isRemote  && !isDefault) {
+        if (!isRemote && !isDefault) {
             if (!functionName.equals(context.function().getAccessor().getValue())) {
                 edits.add(new TextEdit(Utils.toRange(nameRange), context.function().getAccessor().getValue()));
             }
@@ -392,5 +304,93 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         parameterModel.getType().setValue(typeName);
         parameterModel.getName().setValue(paramName);
         return parameterModel;
+    }
+
+    /**
+     * Get the model template for a given function.
+     *
+     * @param context the context information for retrieving the functional model template
+     * @return the model template
+     */
+    @Override
+    public Optional<Function> getModelTemplate(GetModelContext context) {
+        String resourcePath = String.format(DEFAULT_FUNCTION_MODEL_LOCATION, context.serviceType(),
+                context.functionType());
+        InputStream resourceStream = Utils.class.getClassLoader()
+                .getResourceAsStream(resourcePath);
+        if (resourceStream == null) {
+            return Optional.empty();
+        }
+
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            return Optional.of(new Gson().fromJson(reader, Function.class));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Get the list of text edits for the given function model for addition.
+     *
+     * @param context the context information for adding the service
+     * @return a map of file paths to lists of text edits
+     */
+    @Override
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        return buildModel(context);
+    }
+
+    /**
+     * Get the list of text edits for the given function for updating.
+     *
+     * @param context the context information for updating the service
+     * @return a map of file paths to lists of text edits
+     */
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        return buildUpdateModel(context);
+    }
+
+    /**
+     * Get the function model from the source code.
+     *
+     * @param context the context information for extracting the function model
+     * @return the ser extracted from the source code
+     */
+    @Override
+    public Function getModelFromSource(ModelFromSourceContext context) {
+        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
+        Function functionModel;
+        if (functionDefinitionNode.parent() instanceof ClassDefinitionNode) {
+            functionModel = getObjectFunctionFromSource(CLASS, functionDefinitionNode, context.semanticModel());
+        } else {
+            functionModel = getFunctionInsideService(context);
+        }
+        functionModel.setEditable(true);
+        return functionModel;
+    }
+
+    private Function getFunctionInsideService(ModelFromSourceContext context) {
+        FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) context.node();
+        boolean isResource = functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.text().equals(RESOURCE));
+        String functionName = isResource ? getPath(functionDefinitionNode.relativeResourcePath())
+                : functionDefinitionNode.functionName().text().trim();
+        Optional<ServiceTypeFunction> matchingServiceTypeFunction = ServiceDatabaseManager.getInstance()
+                .getMatchingServiceTypeFunction(context.orgName(), context.moduleName(), context.serviceType(),
+                        functionName);
+        return matchingServiceTypeFunction.map(serviceTypeFunction ->
+                        getServiceTypeBoundedFunctionFromSource(serviceTypeFunction,
+                                functionDefinitionNode, context.semanticModel()))
+                .orElseGet(() -> getObjectFunctionFromSource(SERVICE_DIAGRAM,
+                        functionDefinitionNode, context.semanticModel()));
+    }
+
+    /**
+     * @return kind of the function model
+     */
+    @Override
+    public String kind() {
+        return "";
     }
 }

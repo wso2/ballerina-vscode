@@ -57,7 +57,29 @@
         }
       },
       "initForm": {
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "port",
+          "displayName": "Port Number",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "basePath",
+          "displayName": "Base Path",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "host",
+          "displayName": "Host Address",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "config",
+          "displayName": "Service Configuration",
+          "kind": "ANNOTATION"
+        }
+      ]
     },
     {
       "name": "graphql",
@@ -204,7 +226,14 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "attachpoint",
+          "displayName": "Service Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "file",
@@ -458,7 +487,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "protocol",
+          "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "mqtt",
@@ -550,7 +586,19 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "subscriptions",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "arg3",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "ai",
@@ -777,7 +825,19 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "CUSTOM"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "CUSTOM"
+        }
+      ]
     },
     {
       "name": "rabbitmq",
@@ -959,7 +1019,19 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "attachPoint",
+          "displayName": "Queue Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "kafka",
@@ -1074,7 +1146,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "topics",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "salesforce",
@@ -1169,7 +1248,14 @@
             "ProjectCardService"
           ]
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "ai",

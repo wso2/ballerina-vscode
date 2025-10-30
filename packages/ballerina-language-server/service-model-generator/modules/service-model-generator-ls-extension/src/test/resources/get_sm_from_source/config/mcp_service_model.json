@@ -117,6 +117,18 @@
         "optional": false,
         "advanced": false
       },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",

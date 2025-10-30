@@ -35,16 +35,17 @@ allprojects {
     repositories {
         mavenLocal()
         maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
-        }
-
-        maven {
-            url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
-        }
-
-        maven {
             url = 'https://repo.maven.apache.org/maven2'
         }
+
+//        Commented out due to package corruption
+//        maven {
+//            url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
+//        }
+//
+//        maven {
+//            url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
+//        }
 
         maven {
             url = 'https://maven.pkg.github.com/ballerina-platform/*'

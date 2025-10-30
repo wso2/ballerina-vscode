@@ -85,13 +85,13 @@ public class GetListenerModelTest extends AbstractLSTest {
      * Represents the test configuration.
      *
      * @param description description of the test
-     * @param orgName   organization name
-     * @param pkgName   package name
-     * @param moduleName module name
-     * @param response  expected response
+     * @param orgName     organization name
+     * @param pkgName     package name
+     * @param moduleName  module name
+     * @param response    expected response
      * @since 1.0.0
      */
-    private record TestConfig(String description,  String orgName, String pkgName, String moduleName,
+    private record TestConfig(String description, String orgName, String pkgName, String moduleName,
                               JsonElement response) {
         public String description() {
             return description == null ? "" : description;

@@ -264,8 +264,8 @@ public final class Utils {
      *
      * @param serviceNode the service declaration node containing listener expressions
      * @return an {@link Optional} containing the {@link LineRange} that spans from the start
-     *         of the first listener expression to the end of the last listener expression,
-     *         or {@link Optional#empty()} if no listener expressions are found
+     * of the first listener expression to the end of the last listener expression,
+     * or {@link Optional#empty()} if no listener expressions are found
      */
     public static Optional<LineRange> getListenerExpressionsLineRange(ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
@@ -1029,21 +1029,6 @@ public final class Utils {
         return String.format("{%s}", String.join(", ", params));
     }
 
-    public enum FunctionAddContext {
-        HTTP_SERVICE_ADD,
-        TCP_SERVICE_ADD,
-        GRAPHQL_SERVICE_ADD,
-        TRIGGER_ADD,
-        FUNCTION_ADD,
-        RESOURCE_ADD
-    }
-
-    public enum FunctionSignatureContext {
-        FUNCTION_ADD,
-        HTTP_RESOURCE_ADD,
-        FUNCTION_UPDATE
-    }
-
     public static String generateFunctionDefSource(Function function, List<String> statusCodeResponses,
                                                    FunctionAddContext addContext,
                                                    FunctionSignatureContext signatureContext,
@@ -1135,7 +1120,6 @@ public final class Utils {
         builder.append(SPACE);
         return builder.toString();
     }
-
 
     static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
         // sort params list where required params come first
@@ -1310,9 +1294,6 @@ public final class Utils {
         return new ArrayList<>();
     }
 
-    public record SelectionRecord(String label, String value) {
-    }
-
     /**
      * Resolves a Ballerina module by organization, package, and module name.
      * If the module is not found locally, attempts to pull it from the central repository,
@@ -1364,5 +1345,23 @@ public final class Utils {
                     String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
             lsClientLogger.notifyClient(messageType, String.format(message, signature));
         }
+    }
+
+    public enum FunctionAddContext {
+        HTTP_SERVICE_ADD,
+        TCP_SERVICE_ADD,
+        GRAPHQL_SERVICE_ADD,
+        TRIGGER_ADD,
+        FUNCTION_ADD,
+        RESOURCE_ADD
+    }
+
+    public enum FunctionSignatureContext {
+        FUNCTION_ADD,
+        HTTP_RESOURCE_ADD,
+        FUNCTION_UPDATE
+    }
+
+    public record SelectionRecord(String label, String value) {
     }
 }

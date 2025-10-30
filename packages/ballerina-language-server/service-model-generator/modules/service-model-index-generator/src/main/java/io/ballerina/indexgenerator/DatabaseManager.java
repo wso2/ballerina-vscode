@@ -173,6 +173,7 @@ class DatabaseManager {
         insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstraint,
                 pkg});
     }
+
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
                                                        String defaultValue, String placeholder, String valueType,
                                                        String typeConstraint, String sourceKind, String selections) {
@@ -188,5 +189,12 @@ class DatabaseManager {
         String sql = "INSERT INTO ServiceInitializerPropertyMemberType (initializer_id, type, kind, package) " +
                 "VALUES (?, ?, ?, ?)";
         insertEntry(sql, new Object[]{initializerId, type, kind, packageInfo});
+    }
+
+    public static void insertServiceReadOnlyMetaData(int packageId, String metadataKey,
+                                                     String displayName, String kind) {
+        String sql = "INSERT INTO ServiceReadOnlyMetaData (package_id, metadata_key, display_name, kind) " +
+                "VALUES (?, ?, ?, ?)";
+        insertEntry(sql, new Object[]{packageId, metadataKey, displayName, kind});
     }
 }

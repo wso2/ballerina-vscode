@@ -185,6 +185,27 @@
         "editable": true,
         "optional": true,
         "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Base Path": [
+            "/api/test"
+          ],
+          "Host Address": [],
+          "Service Configuration": [],
+          "Port Number": [
+            "8080"
+          ]
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {

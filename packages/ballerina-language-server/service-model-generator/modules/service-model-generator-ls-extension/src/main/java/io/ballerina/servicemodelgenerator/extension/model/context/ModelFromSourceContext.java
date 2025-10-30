@@ -26,17 +26,16 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 /**
  * Context for generating a service model from a source file.
  *
- * @param node            the syntax tree node where the service is defined
- * @param project         the Ballerina project
- * @param semanticModel   the semantic model of the project
+ * @param node             the syntax tree node where the service is defined
+ * @param project          the Ballerina project
+ * @param semanticModel    the semantic model of the project
  * @param workspaceManager the workspace manager for handling workspace operations
- * @param filePath        the path to the Ballerina file
- * @param serviceType     the type of the service (e.g., HTTP, gRPC)
- * @param orgName         name of the organization
- * @param packageName     name of the package
- * @param moduleName      name of the module
- * @param version         version of the package
- *
+ * @param filePath         the path to the Ballerina file
+ * @param serviceType      the type of the service (e.g., HTTP, gRPC)
+ * @param orgName          name of the organization
+ * @param packageName      name of the package
+ * @param moduleName       name of the module
+ * @param version          version of the package
  * @since 1.2.0
  */
 public record ModelFromSourceContext(Node node, Project project, SemanticModel semanticModel,

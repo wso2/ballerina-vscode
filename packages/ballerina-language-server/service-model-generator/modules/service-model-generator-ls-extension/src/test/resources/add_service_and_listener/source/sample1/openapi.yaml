@@ -22,7 +22,7 @@ paths:
             type: array
             items:
               type: string
-            default: []
+            default: [ ]
         - name: X-API-VERSION
           in: header
           schema:
