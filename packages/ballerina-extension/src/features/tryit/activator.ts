@@ -28,6 +28,7 @@ import { BIDesignModelResponse, OpenAPISpec } from "@wso2/ballerina-core";
 import { startDebugging } from "../editor-support/activator";
 import { v4 as uuidv4 } from "uuid";
 import { createGraphqlView } from "../../views/graphql";
+import { StateMachine } from "../../stateMachine";
 
 // File constants
 const FILE_NAMES = {
@@ -65,16 +66,16 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             throw new Error('Ballerina Language Server is not connected');
         }
 
-        const workspaceRoot = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0].uri.fsPath;
-        if (!workspaceRoot) {
+        const projectPath = StateMachine.context().projectUri;
+        if (!projectPath) {
             throw new Error('Please open a workspace first');
         }
 
-        let services: ServiceInfo[] | null = await getAvailableServices(workspaceRoot);
+        let services: ServiceInfo[] | null = await getAvailableServices(projectPath);
 
         // if the getDesignModel() LS API is unavailable, create a ServiceInfo from ServiceMetadata to support Try It functionality. (a fallback logic for Ballerina versions prior to 2201.12.x)
         if (services == null && serviceMetadata && filePath) {
-            const service = createServiceInfoFromMetadata(serviceMetadata, workspaceRoot, filePath);
+            const service = createServiceInfoFromMetadata(serviceMetadata, projectPath, filePath);
             services = [service];
         }
 
@@ -94,7 +95,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
                 return;
             }
         } else {
-            const processesRunning = await checkBallerinaProcessRunning(workspaceRoot);
+            const processesRunning = await checkBallerinaProcessRunning(projectPath);
             if (!processesRunning) {
                 return;
             }
@@ -146,33 +147,33 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             return;
         }
 
-        const targetDir = path.join(workspaceRoot, 'target');
+        const targetDir = path.join(projectPath, 'target');
         if (!fs.existsSync(targetDir)) {
             fs.mkdirSync(targetDir);
         }
 
         if (selectedService.type === ServiceType.HTTP) {
             const openapiSpec: OAISpec = await getOpenAPIDefinition(selectedService);
-            const selectedPort: number = await getServicePort(workspaceRoot, selectedService, openapiSpec);
+            const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
             const tryitFileUri = await generateTryItFileContent(targetDir, openapiSpec, selectedService, resourceMetadata);
             await openInSplitView(tryitFileUri, 'http');
         } else if (selectedService.type === ServiceType.GRAPHQL) {
-            const selectedPort: number = await getServicePort(workspaceRoot, selectedService);
+            const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
             const path = selectedService.basePath;
             const service = `http://localhost:${port}${path}`;
             await createGraphqlView(service);
         } else if (selectedService.type === ServiceType.MCP) {
-            const selectedPort: number = await getServicePort(workspaceRoot, selectedService);
+            const selectedPort: number = await getServicePort(projectPath, selectedService);
             selectedService.port = selectedPort;
             const path = selectedService.basePath;
             const serviceUrl = `http://localhost:${selectedPort}${path}`;
 
             await openMcpInspector(serviceUrl);
         } else {
-            const selectedPort: number = await getServicePort(workspaceRoot, selectedService);
+            const selectedPort: number = await getServicePort(projectPath, selectedService);
             selectedService.port = selectedPort;
 
             await openChatView(selectedService.basePath, selectedPort.toString());
@@ -291,7 +292,8 @@ async function findServiceForResource(services: ServiceInfo[], resourceMetadata:
 
 async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] | null> {
     try {
-        const langClient = clientManager.getClient();
+        // const langClient = clientManager.getClient();
+        const langClient = StateMachine.langClient();
 
         const response: BIDesignModelResponse = await langClient.getDesignModel({
             projectPath: projectDir
