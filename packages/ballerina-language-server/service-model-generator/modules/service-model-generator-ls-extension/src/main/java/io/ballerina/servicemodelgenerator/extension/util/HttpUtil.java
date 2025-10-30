@@ -79,9 +79,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_P
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
@@ -96,12 +96,13 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValu
  */
 public final class HttpUtil {
 
+    public static final Map<String, String> HTTP_CODES;
+    public static final Map<String, String> HTTP_CODES_DES;
     private static final String APPLICATION_JSON = "application/json";
     private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     private static final String APPLICATION_XML = "application/xml";
     private static final String TEXT_PLAIN = "text/plain";
 
-    public static final Map<String, String> HTTP_CODES;
     static {
         Map<String, String> httpCodeMap = new HashMap<>();
         httpCodeMap.put("Continue", "100");
@@ -168,7 +169,6 @@ public final class HttpUtil {
         HTTP_CODES = Collections.unmodifiableMap(httpCodeMap);
     }
 
-    public static final Map<String, String> HTTP_CODES_DES;
     static {
         Map<String, String> httpCodeMap = new HashMap<>();
         httpCodeMap.put("100", "Continue");
@@ -274,17 +274,7 @@ public final class HttpUtil {
         serviceModel.setCodedata(new Codedata(serviceNode.lineRange()));
         populateListenerInfo(serviceModel, serviceNode);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-
-        // handle base path and string literal
-        String attachPoint = getPath(serviceNode.absoluteResourcePath());
-        if (!attachPoint.isEmpty()) {
-            Value basePathProperty = serviceModel.getBasePath();
-            if (Objects.nonNull(basePathProperty)) {
-                basePathProperty.setValue(attachPoint);
-            } else {
-                serviceModel.setBasePath(ServiceModelUtils.getBasePathProperty(attachPoint));
-            }
-        }
+        extractServicePathInfo(serviceNode, serviceModel);
     }
 
     private static void updateServiceInfo(Service serviceModel, Service commonSvcModel) {
@@ -623,7 +613,7 @@ public final class HttpUtil {
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         String signature = statusCodeResponseType.signature().trim();
         if (signature.startsWith("record {") && signature.endsWith("}")) {
-           return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, null);
+            return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, null);
         }
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         if (typeName.startsWith("http:")) {

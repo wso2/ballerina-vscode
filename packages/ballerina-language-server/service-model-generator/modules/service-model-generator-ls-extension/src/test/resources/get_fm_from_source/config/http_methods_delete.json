@@ -516,7 +516,7 @@
       "advanced": false
     },
     "enabled": true,
-    "optional": false,
+    "optional": true,
     "editable": true,
     "canAddParameters": true,
     "codedata": {

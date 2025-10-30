@@ -81,7 +81,6 @@ import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.MessageType;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -156,7 +155,7 @@ public class FunctionDataBuilder {
                         FunctionDataBuilder.class.getClassLoader().getResourceAsStream(CONNECTOR_NAME_CORRECTION_JSON)),
                 StandardCharsets.UTF_8)) {
             map = new Gson().fromJson(reader, CONNECTOR_NAME_MAP_TYPE);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             map = Map.of();
         }
         CONNECTOR_NAME_MAP = map;
@@ -456,10 +455,21 @@ public class FunctionDataBuilder {
     }
 
     public boolean isLocal() {
-        if (project != null && moduleInfo != null) {
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            return moduleInfo.org().equals(descriptor.org().value()) &&
-                    moduleInfo.packageName().startsWith(descriptor.name().value());
+        if (project == null || moduleInfo == null) {
+            return false;
+        }
+        PackageDescriptor descriptor = project.currentPackage().descriptor();
+        if (!moduleInfo.org().equals(descriptor.org().value())) {
+            return false;
+        }
+        String packageName = moduleInfo.packageName();
+        String descriptorName = descriptor.name().value();
+        if (packageName != null) {
+            return packageName.startsWith(descriptorName);
+        }
+        String moduleName = moduleInfo.moduleName();
+        if (moduleName != null) {
+            return moduleName.startsWith(descriptorName);
         }
         return false;
     }
@@ -630,7 +640,12 @@ public class FunctionDataBuilder {
     }
 
     private Optional<FunctionData> getFunctionFromIndex() {
-        DatabaseManager dbManager = DatabaseManager.getInstance();
+        DatabaseManager dbManager;
+        try {
+            dbManager = DatabaseManager.getInstance();
+        } catch (Throwable e) {
+            return Optional.empty();
+        }
 
         // Skipping the index since we currently only index connectors with the name "Client".
         // TODO: This should be removed after the package index is revamped.

@@ -11,6 +11,7 @@
     "symbol": "addItem",
     "parentSymbol": "cart",
     "org": "nipunaf",
+    "packageName": "new_connection1",
     "module": "new_connection1"
   },
   "output": {
@@ -18,12 +19,13 @@
     "metadata": {
       "label": "addItem",
       "description": "",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_null_null.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_null.png"
     },
     "codedata": {
       "node": "METHOD_CALL",
       "org": "nipunaf",
       "module": "new_connection1",
+      "packageName": "new_connection1",
       "object": "Cart",
       "symbol": "addItem",
       "isNew": true

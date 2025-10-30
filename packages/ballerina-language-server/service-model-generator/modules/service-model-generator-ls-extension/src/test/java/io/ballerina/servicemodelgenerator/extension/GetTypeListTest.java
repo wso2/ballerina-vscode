@@ -86,8 +86,8 @@ public class GetTypeListTest extends AbstractLSTest {
      *
      * @param description description of the test
      * @param filePath    path to the file
-     * @param context    context of the request
-     * @param result     expected result of the request
+     * @param context     context of the request
+     * @param result      expected result of the request
      * @since 1.0.0
      */
     private record TestConfig(String filePath, String description, String context, JsonElement result) {

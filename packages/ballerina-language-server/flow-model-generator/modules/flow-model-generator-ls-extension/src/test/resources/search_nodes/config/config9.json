@@ -15,7 +15,7 @@
       "metadata": {
         "label": "Agent",
         "description": "Represents an agent.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.0.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
       },
       "codedata": {
         "node": "AGENT",
@@ -58,7 +58,7 @@
           "typeMembers": [
             {
               "type": "SystemPrompt",
-              "packageInfo": "ballerina:ai:1.6.0",
+              "packageInfo": "ballerina:ai:1.6.1",
               "packageName": "ai",
               "kind": "RECORD_TYPE",
               "selected": true
@@ -86,7 +86,7 @@
           "typeMembers": [
             {
               "type": "ModelProvider",
-              "packageInfo": "ballerina:ai:1.6.0",
+              "packageInfo": "ballerina:ai:1.6.1",
               "packageName": "ai",
               "kind": "OBJECT_TYPE",
               "selected": false
@@ -202,7 +202,7 @@
           "typeMembers": [
             {
               "type": "Memory",
-              "packageInfo": "ballerina:ai:1.6.0",
+              "packageInfo": "ballerina:ai:1.6.1",
               "packageName": "ai",
               "kind": "OBJECT_TYPE",
               "selected": false

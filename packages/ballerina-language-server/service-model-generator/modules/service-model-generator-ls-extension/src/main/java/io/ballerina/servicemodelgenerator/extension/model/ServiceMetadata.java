@@ -18,10 +18,11 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-public record ServiceMetadata(String serviceType, String serviceTypeIdentifier,
-                              String orgName, String packageName, String moduleName) {
+import io.ballerina.compiler.api.ModuleID;
+
+public record ServiceMetadata(String serviceType, String serviceTypeIdentifier, ModuleID moduleId) {
 
     public ServiceMetadata(String serviceType, String serviceTypeIdentifier) {
-        this(serviceType, serviceTypeIdentifier, null, null, null);
+        this(serviceType, serviceTypeIdentifier, null);
     }
 }

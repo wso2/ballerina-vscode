@@ -33,6 +33,7 @@ import java.util.List;
  * @param returnTypeEditable Whether the return type is editable
  * @param importStatements The import statements of the function
  * @param enable Whether the function is enabled
+ * @param optional Whether the function is optional
  * @param parameters The parameters of the function
  *
  * @since 1.0.0
@@ -48,6 +49,7 @@ public record ServiceTypeFunction(
         int returnTypeEditable,
         String importStatements,
         int enable,
+        int optional,
         List<ServiceTypeFunctionParameter> parameters
 ) {
 

@@ -1,0 +1,123 @@
+{
+  "source": "sub_module/main.bal",
+  "position": {
+    "line": 3,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "wso2",
+    "module": "sub_module.client_module",
+    "packageName": "sub_module",
+    "object": "CustomClient",
+    "symbol": "get",
+    "version": "0.1.0",
+    "parentSymbol": "customClient",
+    "resourcePath": "/users/[userId]"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/wso2_sub_module_0.1.0.png"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "wso2",
+      "module": "sub_module.client_module",
+      "packageName": "sub_module",
+      "object": "CustomClient",
+      "symbol": "get",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "client_module:CustomClient",
+        "value": "customClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "valueType": "ACTION_PATH",
+        "value": "/users/[userId]",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/users/[userId]"
+        }
+      },
+      "userId": {
+        "metadata": {
+          "label": "userId"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PATH_PARAM",
+          "originalName": "userId"
+        },
+        "typeMembers": []
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "json",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "jsonResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

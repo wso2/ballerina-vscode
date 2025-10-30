@@ -46,7 +46,10 @@ import java.util.Optional;
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
@@ -95,7 +98,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         Service serviceModel = service.get();
         int packageId = Integer.parseInt(serviceModel.getId());
         ServiceDatabaseManager.getInstance().getMatchingServiceTypeFunctions(packageId, serviceType)
-                .forEach(function -> serviceModel.getFunctions().add(getFunction(function)));
+                .forEach(function -> serviceModel.getFunctions().add(getFunctionFromServiceTypeFunction(function)));
         serviceModel.getServiceType().setValue(serviceType);
 
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
@@ -112,6 +115,18 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+
+        // Initialize readOnly metadata if not present in template (GraphqlServiceBuilder uses custom template)
+        if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
+            String modelServiceType = serviceModel.getType();
+            Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
+                    modelServiceType);
+            serviceModel.getProperties().put(PROP_READONLY_METADATA_KEY, readOnlyMetadata);
+        }
+
+        // Add readOnly metadata extraction (same logic as parent class)
+        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
+
         return serviceModel;
     }
 
@@ -139,6 +154,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
             if (serviceModel.getFunctions().stream().noneMatch(newFunction -> isPresent(funcInSource, newFunction))) {
                 updateGraphqlFunctionMetaData(funcInSource);
                 serviceModel.addFunction(funcInSource);
+                funcInSource.setOptional(true);
             }
         });
     }
@@ -158,7 +174,8 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
                 function.getName().setMetadata(
                         new MetaData("Subscription Name", "The name of the subscription"));
             }
-            default -> { }
+            default -> {
+            }
         }
     }
 }

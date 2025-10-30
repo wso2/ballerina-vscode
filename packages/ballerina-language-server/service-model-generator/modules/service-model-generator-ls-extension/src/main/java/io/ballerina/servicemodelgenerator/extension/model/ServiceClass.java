@@ -24,19 +24,18 @@ import java.util.Map;
 /**
  * ServiceClass class to hold the service class model.
  *
- * @param id service class id
- * @param name service class name
- * @param type service class type
+ * @param id            service class id
+ * @param name          service class name
+ * @param type          service class type
  * @param documentation service class documentation
- * @param properties service class properties
- * @param codedata service class codedata
- * @param functions service class functions
- * @param fields service class fields
- *
+ * @param properties    service class properties
+ * @param codedata      service class codedata
+ * @param functions     service class functions
+ * @param fields        service class fields
  * @since 1.0.0
  */
 public record ServiceClass(String id, String name, String type, Value documentation, Map<String, Value> properties,
-                          Codedata codedata, List<Function> functions, List<Field> fields) {
+                           Codedata codedata, List<Function> functions, List<Field> fields) {
 
     public Value className() {
         return properties.get("name");

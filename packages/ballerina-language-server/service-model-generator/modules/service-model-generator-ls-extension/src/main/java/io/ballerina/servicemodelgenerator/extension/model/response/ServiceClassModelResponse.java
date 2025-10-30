@@ -25,8 +25,8 @@ import java.util.Arrays;
 /**
  * ServiceClassModelResponse class to hold the service class model response.
  *
- * @param model service class model
- * @param errorMsg error message
+ * @param model      service class model
+ * @param errorMsg   error message
  * @param stacktrace stack trace of the error
  */
 public record ServiceClassModelResponse(ServiceClass model, String errorMsg, String stacktrace) {

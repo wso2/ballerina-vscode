@@ -21,11 +21,11 @@
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
         "optionalAbsoluteResourcePath": 0,
-        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathLabel": "Base Path",
         "absoluteResourcePathDescription": "",
         "absoluteResourcePathDefaultValue": "/",
         "optionalStringLiteral": 1,
-        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralLabel": "Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/\"",
         "listenerKind": "MULTIPLE_SELECT",
@@ -57,7 +57,29 @@
         }
       },
       "initForm": {
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "port",
+          "displayName": "Port Number",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "basePath",
+          "displayName": "Base Path",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "host",
+          "displayName": "Host Address",
+          "kind": "SERVICE_DESCRIPTION"
+        },
+        {
+          "key": "config",
+          "displayName": "Service Configuration",
+          "kind": "ANNOTATION"
+        }
+      ]
     },
     {
       "name": "graphql",
@@ -174,6 +196,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "caller",
@@ -203,7 +226,14 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "attachpoint",
+          "displayName": "Service Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "file",
@@ -244,6 +274,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -267,6 +298,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -290,6 +322,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -371,6 +404,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "event",
@@ -453,7 +487,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "protocol",
+          "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "mqtt",
@@ -492,6 +533,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "canAddParameter": 0,
               "parameters": [
                 {
@@ -544,7 +586,19 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "subscriptions",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "arg3",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "ai",
@@ -695,6 +749,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -718,6 +773,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "asbErr",
@@ -769,7 +825,19 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "CUSTOM"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "CUSTOM"
+        }
+      ]
     },
     {
       "name": "rabbitmq",
@@ -808,6 +876,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -842,6 +911,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -876,6 +946,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -948,7 +1019,19 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "attachPoint",
+          "displayName": "Queue Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "kafka",
@@ -987,6 +1070,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "messages",
@@ -1021,6 +1105,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "kafkaError",
@@ -1061,7 +1146,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "topics",
+          "displayName": "Topics",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "salesforce",
@@ -1156,7 +1248,14 @@
             "ProjectCardService"
           ]
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "ai",

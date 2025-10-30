@@ -149,11 +149,11 @@ class DatabaseManager {
 
     public static int insertServiceTypeFunction(int serviceTypeId, ServiceIndexGenerator.ServiceTypeFunction func) {
         String sql = "INSERT INTO ServiceTypeFunction (name, description, accessor, kind, return_type, " +
-                "return_type_editable, return_error, import_statements, enable, service_type_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "return_type_editable, return_error, import_statements, enable, optional, service_type_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return insertEntry(sql, new Object[]{func.name(), func.description(), func.accessor(), func.kind(),
                 func.returnType(), func.returnTypeEditable(), func.returnError(), func.importStatements(),
-                func.enable(), serviceTypeId});
+                func.enable(), func.optional(), serviceTypeId});
     }
 
     public static void insertServiceTypeFunctionParameter(int functionId,
@@ -173,6 +173,7 @@ class DatabaseManager {
         insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstraint,
                 pkg});
     }
+
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
                                                        String defaultValue, String placeholder, String valueType,
                                                        String typeConstraint, String sourceKind, String selections) {
@@ -188,5 +189,12 @@ class DatabaseManager {
         String sql = "INSERT INTO ServiceInitializerPropertyMemberType (initializer_id, type, kind, package) " +
                 "VALUES (?, ?, ?, ?)";
         insertEntry(sql, new Object[]{initializerId, type, kind, packageInfo});
+    }
+
+    public static void insertServiceReadOnlyMetaData(int packageId, String metadataKey,
+                                                     String displayName, String kind) {
+        String sql = "INSERT INTO ServiceReadOnlyMetaData (package_id, metadata_key, display_name, kind) " +
+                "VALUES (?, ?, ?, ?)";
+        insertEntry(sql, new Object[]{packageId, metadataKey, displayName, kind});
     }
 }
