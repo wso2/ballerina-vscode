@@ -137,31 +137,58 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 }
 
 
-export function enrichCategoryWithDevant(rpcClient: BallerinaRpcClient, selected: ContextItemEnriched, tomlValues: TomlValues,connections: ConnectionListItem[], panelCategories: PanelCategory[] = []): PanelCategory[] {
-    const updated = panelCategories?.map(category=>{
-            if(category.title === "Connections" && category.items?.length > 0){
-                if(tomlValues && selected?.org && selected?.project){
-                    return {
-                        ...category,
-                        items: category.items?.map((categoryItem)=>{
-                            const matchingConn = tomlValues?.tool?.openapi?.find((openapiItem: any)=>{
-                                return (categoryItem as PanelCategory)?.items?.some((item)=> (item as Node)?.metadata?.codedata?.module === `${tomlValues?.package?.name}.${openapiItem?.targetModule}`)
-                            })
-                            if(matchingConn){
-                                const matchingDevantConn = connections?.find(conn => conn.name === matchingConn?.devantConnection)
-                                if(matchingDevantConn){
-                                    return {...categoryItem, title: matchingDevantConn.name, devant: matchingDevantConn}
-                                }
-                            }
-                            return categoryItem
-                        })
+export function enrichCategoryWithDevant(
+    selected: ContextItemEnriched,
+    tomlValues: TomlValues,
+    connections: ConnectionListItem[],
+    panelCategories: PanelCategory[] = [],
+    importingConn?: ConnectionListItem
+): PanelCategory[] {
+    const updated = panelCategories?.map((category) => {
+        if (category.title === "Connections" && tomlValues && selected?.org && selected?.project) {
+            const usedConnIds: string[] = [];
+            const mappedCategoryItems = category.items?.map((categoryItem) => {
+                const matchingConn = tomlValues?.tool?.openapi?.find((openapiItem: any) => {
+                    return (categoryItem as PanelCategory)?.items?.some(
+                        (item) =>
+                            (item as Node)?.metadata?.codedata?.module ===
+                            `${tomlValues?.package?.name}.${openapiItem?.targetModule}`
+                    );
+                });
+                if (matchingConn) {
+                    const matchingDevantConn = connections?.find(
+                        (conn) => conn.name === matchingConn?.devantConnection
+                    );
+                    if (matchingDevantConn) {
+                        usedConnIds.push(matchingDevantConn.groupUuid);
+                        return {
+                            ...categoryItem,
+                            title: matchingDevantConn.name,
+                            devant: matchingDevantConn,
+                            unusedDevantConn: false,
+                        };
                     }
                 }
-            }
-            return category
-
-    })
-   return updated
+                return categoryItem;
+            });
+            const unusedCategoryItems: PanelCategory[] = connections
+                .filter((conn) => !usedConnIds.includes(conn.groupUuid))
+                .map((conn) => ({
+                    title: conn.name,
+                    items: [] as PanelItem[],
+                    description: "Unused Devant connection",
+                    devant: conn,
+                    unusedDevantConn: true,
+                    isLoading: importingConn?.name === conn.name,
+                }));
+            return {
+                ...category,
+                items: [...mappedCategoryItems, ...unusedCategoryItems],
+            };
+        }
+        return category;
+    });
+    return updated;
 }
 
 export function convertBICategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {

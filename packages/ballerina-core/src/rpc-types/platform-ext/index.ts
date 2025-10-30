@@ -16,23 +16,26 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp } from "./interfaces";
+import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq } from "@wso2/wso2-platform-core"
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp} from "./interfaces";
 export * from "./rpc-type"
 
 // TODO: check if we can directly use the wso2-extension api interface
 export interface PlatformExtAPI {
     // BI ext handlers
     createDevantComponentConnection: (params: CreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
+    importDevantComponentConnection: (params: ImportDevantConnectionReq) => Promise<ImportDevantConnectionResp>
     // Platform ext proxies
     isLoggedIn: () => Promise<boolean>;
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
+    getMarketplaceItem: (params: GetMarketplaceItemReq) => Promise<MarketplaceItem>;
     getSelectedContext: () => Promise<ContextItemEnriched | null>;
     getDirectoryComponents: (fsPath: string) => Promise<ComponentKind[]>;
     // todo: remove following once support for multiple components per directory is added
     getDirectoryComponent: (fsPath: string) => Promise<ComponentKind | null>;
     getMarketplaceIdl: (params: GetMarketplaceIdlReq) => Promise<MarketplaceIdlResp>;
     getConnections: (params: GetConnectionsReq) => Promise<ConnectionListItem[]>;
+    getConnection: (params: GetConnectionItemReq) => Promise<ConnectionListItem>;
     deleteConnection: (params: DeleteConnectionReq) => Promise<void>;
     deleteLocalConnectionsConfig: (params: DeleteLocalConnectionsConfigReq) => void;
     getDevantConsoleUrl: () => Promise<string>;

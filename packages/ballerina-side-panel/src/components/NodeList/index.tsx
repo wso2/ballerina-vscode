@@ -37,6 +37,7 @@ import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
 import { getCategoryConfig, shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, CategoryAction } from "./categoryConfig";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -305,6 +306,7 @@ interface NodeListProps {
     onBack?: () => void;
     onClose?: () => void;
     searchPlaceholder?: string;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -321,6 +323,7 @@ export function NodeList(props: NodeListProps) {
         onBack,
         onClose,
         searchPlaceholder,
+        onImportDevantConn,
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -521,6 +524,7 @@ export function NodeList(props: NodeListProps) {
                         category={category}
                         expand={searchText?.length > 0}
                         onSelect={handleAddNode}
+                        onImportDevantConn={onImportDevantConn}
                     />
                 ))
             }

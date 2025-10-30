@@ -29,8 +29,6 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
 }) => {
     const [showInfo, setShowInfo] = useState(false);
     const selected = PlatformExtHooks.getSelectedContext();
-    const directoryComponent = PlatformExtHooks.getDirectoryComp()
-    const projectPath = PlatformExtHooks.getProjectPath();
 
     return (
         <>
@@ -51,11 +49,8 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                     }
                 >
                     <DevantConnectorCreateForm
-                        component={directoryComponent}
                         item={selectedItem}
                         onCreate={(connName) => onClose(connName)}
-                        directoryFsPath={projectPath}
-                        org={selected.org}
                         project={selected.project}
                         onShowInfo={() => setShowInfo(true)}
                         isShowingInfo={showInfo}

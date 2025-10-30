@@ -17,11 +17,13 @@
  */
 
 import React, { useState } from "react";
-import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { CallIcon, LogIcon } from "../../resources";
 import { Category, Node } from "./../NodeList/types";
 import { stripHtmlTags } from "../Form/utils";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { DownloadIcon } from "../../resources/icons/nodes/DownloadIcon";
 
 namespace S {
     export const Card = styled.div<{}>`
@@ -34,6 +36,10 @@ namespace S {
         padding: 8px 0;
         border-radius: 5px;
         background-color: ${ThemeColors.SURFACE_DIM_2};
+    `;
+
+    export const DevantInputCard = styled(Card)`
+        opacity: 0.8;
     `;
 
     export const Row = styled.div<{}>`
@@ -50,6 +56,10 @@ namespace S {
     export const TitleRow = styled(Row)<{}>`
         cursor: pointer;
         padding: 0 5px;
+    `;
+
+    export const DevantPullTitleRow = styled(TitleRow)<{}>`
+        cursor: unset;
     `;
 
     export const Title = styled.div<{}>`
@@ -151,10 +161,11 @@ interface GroupListProps {
     category: Category;
     expand?: boolean;
     onSelect: (node: Node, category: string) => void;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
 }
 
 export function GroupList(props: GroupListProps) {
-    const { category, expand, onSelect } = props;
+    const { category, expand, onSelect, onImportDevantConn } = props;
 
     const [showList, setShowList] = useState(expand ?? false);
     const [expandedTitleIndex, setExpandedTitleIndex] = useState<number | null>(null);
@@ -173,6 +184,10 @@ export function GroupList(props: GroupListProps) {
     const handleComponentMouseLeave = () => {
         setExpandedTitleIndex(null);
     };
+
+    if(category.devant && category.unusedDevantConn){
+        return <UnusedDevantCard devantConn={category.devant} onImportDevantConn={onImportDevantConn}/>
+    }
 
     if (nodes.length === 0) {
         return null;
@@ -221,6 +236,21 @@ export function GroupList(props: GroupListProps) {
         </S.Card>
     );
 }
+
+const UnusedDevantCard = (props: { devantConn: ConnectionListItem, onImportDevantConn?: (devantConn: ConnectionListItem) => void; }) => {
+    const { devantConn, onImportDevantConn } = props;
+    return (
+        <S.DevantInputCard>
+            <S.DevantPullTitleRow>
+                <S.CardIcon>{<DownloadIcon />}</S.CardIcon>
+                <S.Title>{devantConn.name}</S.Title>
+                <S.CardAction>
+                    <Button appearance="icon" onClick={onImportDevantConn ? () => onImportDevantConn(devantConn) : undefined}>Import</Button>
+                </S.CardAction>
+            </S.DevantPullTitleRow>
+        </S.DevantInputCard>
+    );
+};
 
 export default GroupList;
 

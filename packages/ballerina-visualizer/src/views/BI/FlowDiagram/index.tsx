@@ -76,6 +76,8 @@ import {
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 import { PlatformExtHooks } from "../../../PlatformExtHooks";
+import { useMutation } from "@tanstack/react-query";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 
 const Container = styled.div`
     width: 100%;
@@ -125,6 +127,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
+    const [importingConn, setImportingConn] = useState<ConnectionListItem>();
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -164,8 +167,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const selected = PlatformExtHooks.getSelectedContext()
     const { projectToml, refetchToml } = PlatformExtHooks.getProjectToml()
     const enrichedCategories = useMemo(()=>{
-         return enrichCategoryWithDevant(rpcClient, selected, projectToml, devantConnections, categories)
-    },[projectToml, selected, devantConnections,categories])
+         return  enrichCategoryWithDevant(selected, projectToml, devantConnections, categories, importingConn)
+    },[projectToml, selected, devantConnections,categories, importingConn])
+
+    const { mutate: importConnection } = useMutation({
+        mutationFn: (data: ConnectionListItem) =>
+            rpcClient.getPlatformRpcClient().importDevantComponentConnection({ connectionListItem: data }),
+        onMutate: (data)=>setImportingConn(data),
+        onSuccess: (data) => {
+            refetchToml();
+            refetchDevantConnections();
+            fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
+        },
+        onSettled:() => setImportingConn(undefined)
+    });
 
     useEffect(() => {
         debouncedGetFlowModel();
@@ -2244,6 +2259,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
+                // Devant specific callbacks
+                onImportDevantConn={importConnection}
             />
         </>
     );

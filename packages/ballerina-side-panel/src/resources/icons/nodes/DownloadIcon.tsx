@@ -15,25 +15,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import React from "react";
 
-export type Item = Category | Node;
-
-export type Category = {
-    title: string;
-    description: string;
-    icon?: JSX.Element;
-    items: Item[];
-    isLoading?: boolean;
-    devant?: ConnectionListItem;
-    unusedDevantConn?: boolean;
-};
-
-export type Node = {
-    id: string;
-    label: string;
-    description: string;
-    icon?: JSX.Element;
-    enabled?: boolean;
-    metadata?: any;
+export const DownloadIcon = () => {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.147 9l5 5h.707l5-5-.707-.707L9 12.439V2H8v10.44L3.854 8.292 3.147 9z"/></svg>
+    );
 };

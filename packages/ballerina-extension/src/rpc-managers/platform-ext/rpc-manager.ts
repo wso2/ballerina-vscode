@@ -23,22 +23,30 @@ import * as path from "path";
 import {
     ComponentDisplayType,
     ComponentKind,
+    ConnectionDetailed,
     ConnectionListItem,
     ContextItemEnriched,
     DeleteConnectionReq,
     DeleteLocalConnectionsConfigReq,
     GetConnectionsReq,
     GetMarketplaceIdlReq,
+    GetMarketplaceItemReq,
     GetMarketplaceListReq,
     getTypeForDisplayType,
     IWso2PlatformExtensionAPI,
     MarketplaceIdlResp,
+    MarketplaceItem,
     MarketplaceListResp,
+    ServiceInfoVisibilityEnum,
+    ConnectionConfigurations,
+    GetConnectionItemReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
     CreateDevantConnectionReq,
     CreateDevantConnectionResp,
+    ImportDevantConnectionReq,
+    ImportDevantConnectionResp,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import * as toml from "@iarna/toml";
@@ -77,6 +85,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return platformExt.getMarketplaceItems(params);
         } catch (err) {
             log(`Failed to invoke getMarketplaceItems: ${err}`);
+        }
+    }
+
+    async getMarketplaceItem(params: GetMarketplaceItemReq): Promise<MarketplaceItem> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt.getMarketplaceItem(params);
+        } catch (err) {
+            log(`Failed to invoke getMarketplaceItem: ${err}`);
         }
     }
 
@@ -123,6 +140,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return platformExt.getConnections(params);
         } catch (err) {
             log(`Failed to invoke getConnections: ${err}`);
+        }
+    }
+
+    async getConnection(params: GetConnectionItemReq): Promise<ConnectionListItem> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt.getConnection(params);
+        } catch (err) {
+            log(`Failed to invoke getConnection: ${err}`);
         }
     }
 
@@ -208,6 +234,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                     vscode.env.openExternal(Uri.parse(devantUrl));
                                 }
                             });
+                        StateMachine.setReadyMode();
                         return;
                     }
                     const selected = await platformRpc.getSelectedContext();
@@ -239,6 +266,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                         );
                                     }
                                 });
+                            StateMachine.setReadyMode();
                             return;
                         }
 
@@ -263,14 +291,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                     connectionName: matchingCompConnection.name,
                                     orgId: selected.org.id.toString(),
                                 });
+                                StateMachine.setReadyMode();
                                 return;
                             }
                         }
                     }
                 }
             }
-
-            // todo: remove entry from ballerina.toml
 
             StateMachine.setReadyMode();
         } catch (err) {
@@ -280,143 +307,190 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async importDevantComponentConnection(params: ImportDevantConnectionReq): Promise<ImportDevantConnectionResp> {
+        try {
+            const selected = await this.getSelectedContext();
+
+            let visibility: string = ServiceInfoVisibilityEnum.Public;
+            if(params.connectionListItem?.schemaName.toLowerCase()?.includes("organization")){
+                visibility = ServiceInfoVisibilityEnum.Organization;
+            }else if(params.connectionListItem?.schemaName.toLowerCase()?.includes("project")){
+                visibility = ServiceInfoVisibilityEnum.Project;
+            }
+
+            const connectionItem = await this.getConnection({orgId: selected?.org?.id?.toString(), connectionGroupId: params.connectionListItem?.groupUuid});
+
+            const marketplaceItem = await this.getMarketplaceItem({orgId: selected?.org?.id?.toString(), serviceId: params?.connectionListItem?.serviceId});
+
+            const resp = await this.initializeDevantConnection({
+                name: params.connectionListItem.name,
+                marketplaceItem: marketplaceItem,
+                visibility: visibility,
+                configurations: (connectionItem as any)?.configurations
+            });
+
+            StateMachine.setReadyMode();
+            return { connectionName: resp.connectionName };
+        } catch (err) {
+            StateMachine.setReadyMode();
+            window.showErrorMessage("Failed to import Devant connection");
+            log(`Failed to invoke importDevantComponentConnection: ${err}`);
+        }
+    }
+
     async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
         try {
-            StateMachine.setEditMode();
+            const projectPath = StateMachine.context().projectUri;
             const platformExt = await this.getPlatformExt();
 
+            const component = await this.getDirectoryComponent(projectPath);
+            const selected = await this.getSelectedContext();
+
             const createdConnection = await platformExt.createComponentConnection({
-                componentId: params.component.metadata?.id,
+                componentId: component.metadata?.id,
                 name: params.params.name,
-                orgId: params.org.id?.toString(),
-                orgUuid: params.org.uuid,
-                projectId: params.project.id,
+                orgId: selected?.org.id?.toString(),
+                orgUuid: selected?.org?.uuid,
+                projectId: selected?.project.id,
                 serviceSchemaId: params.params.schemaId,
                 serviceId: params.marketplaceItem.serviceId,
                 serviceVisibility: params.params.visibility!,
-                componentType: getTypeForDisplayType(params.component?.spec?.type),
-                componentPath: params.componentDir,
-                generateCreds: params.component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
+                componentType: getTypeForDisplayType(component?.spec?.type),
+                componentPath: projectPath,
+                generateCreds: component?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
             });
 
-            await platformExt.createConnectionConfig({
-                componentDir: params.componentDir,
-                marketplaceItem: params.marketplaceItem,
+            const resp = await this.initializeDevantConnection({
                 name: params.params.name,
-                visibility: params.params.visibility,
+                marketplaceItem: params.marketplaceItem,
+                visibility: params.params.visibility!,
+                configurations: createdConnection.configurations
             });
 
-            const serviceIdl = await platformExt.getMarketplaceIdl({
-                orgId: params.org.id?.toString(),
-                serviceId: params.marketplaceItem.serviceId,
-            });
-
-            const choreoDir = path.join(params.componentDir, ".choreo");
-            if (!fs.existsSync(choreoDir)) {
-                fs.mkdirSync(choreoDir, { recursive: true });
-            }
-
-            const moduleName = params.params.name.replace(/[_\-\s]/g, "")?.toLowerCase();
-            const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
-
-            if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
-                const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content);
-                fs.writeFileSync(filePath, updatedDef, "utf8");
-            } else {
-                // todo: show button to open up devant connection documentation UI
-                window.showErrorMessage(
-                    "Client creation for connection is only supported for REST APIs with valid openAPI spec"
-                );
-                return { connectionName: params?.params?.name };
-            }
-
-            // Generate Bal client
-            const diagram = new BiDiagramRpcManager();
-            // const common = new CommonRpcManager();
-            // const langClient = new LangClientRpcManager();
-
-            await diagram.generateOpenApiClient({
-                module: moduleName,
-                openApiContractPath: filePath,
-                projectPath: params.componentDir,
-            });
-
-            // Update bal.toml with created connection reference
-            const projectPath = StateMachine.context().projectUri;
-            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
-
-            const updatedToml: TomlValues = {
-                ...tomlValues,
-                tool: {
-                    ...tomlValues?.tool,
-                    openapi: tomlValues.tool?.openapi?.map(item=>{
-                        if(item.id === moduleName){
-                            return {...item, devantConnection: params.params?.name }
-                        }
-                        return item
-                    }),
-                },
-            };
-
-            const balTomlPath = path.join(projectPath, "Ballerina.toml");
-            const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
-            fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
-
-            const configFileUri = getConfigFileUri();
-
-            const connectionKeys =
-                createdConnection.configurations[Object.keys(createdConnection.configurations)?.[0]]?.entries;
-
-            interface IkeyVal {
-                keyname: string;
-                envName: string;
-            }
-            interface Ikeys {
-                ChoreoAPIKey?: IkeyVal;
-                ServiceURL?: IkeyVal;
-            }
-            const keys: Ikeys = {};
-            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
-                documentIdentifier: { uri: configFileUri.toString() },
-            })) as SyntaxTree;
-            for (const entry in connectionKeys) {
-                let baseName = connectionKeys[entry].key?.toLowerCase();
-                let candidate = baseName;
-                let counter = 1;
-                while (
-                    (syntaxTree.syntaxTree as ModulePart)?.members?.some(
-                        (k) =>
-                            (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                            candidate
-                    )
-                ) {
-                    candidate = `${baseName}${counter}`;
-                    counter++;
-                }
-                keys[entry] = { keyname: candidate, envName: connectionKeys[entry].envVariableName };
-            }
-
-            await addConfigurable(
-                configFileUri,
-                Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
-            );
-
-            if (keys?.ChoreoAPIKey && keys?.ServiceURL) {
-                const resp = await addConnection(moduleName, {
-                    apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
-                    svsUrlVarName: keys?.ServiceURL?.keyname,
-                });
-
-                StateMachine.setReadyMode();
-                return { connectionName: resp.connName };
-            }
-
-            return { connectionName: "" };
+            StateMachine.setReadyMode();
+            return { connectionName: resp.connectionName };
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");
             log(`Failed to invoke createDevantComponentConnection: ${err}`);
         }
+    }
+
+     async initializeDevantConnection(params: {name: string, visibility: string, marketplaceItem: MarketplaceItem, configurations: ConnectionConfigurations}): Promise<{connectionName: string}> {
+        StateMachine.setEditMode();
+        const projectPath = StateMachine.context().projectUri;
+        const platformExt = await this.getPlatformExt();
+
+        const component = await this.getDirectoryComponent(projectPath);
+        const selected = await this.getSelectedContext();
+
+        await platformExt.createConnectionConfig({
+            componentDir: projectPath,
+            marketplaceItem: params.marketplaceItem,
+            name: params.name,
+            visibility: params.visibility,
+        });
+
+        const serviceIdl = await platformExt.getMarketplaceIdl({
+            orgId: selected?.org.id?.toString(),
+            serviceId: params.marketplaceItem.serviceId,
+        });
+
+        const choreoDir = path.join(projectPath, ".choreo");
+        if (!fs.existsSync(choreoDir)) {
+            fs.mkdirSync(choreoDir, { recursive: true });
+        }
+
+        const moduleName = params.name.replace(/[_\-\s]/g, "")?.toLowerCase();
+        const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
+
+        if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
+            const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content);
+            fs.writeFileSync(filePath, updatedDef, "utf8");
+        } else {
+            // todo: show button to open up devant connection documentation UI
+            window.showErrorMessage(
+                "Client creation for connection is only supported for REST APIs with valid openAPI spec"
+            );
+            return { connectionName: params?.name };
+        }
+
+        // Generate Bal client
+        const diagram = new BiDiagramRpcManager();
+        await diagram.generateOpenApiClient({
+            module: moduleName,
+            openApiContractPath: filePath,
+            projectPath,
+        });
+
+        // Update bal.toml with created connection reference
+        const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+
+        const updatedToml: TomlValues = {
+            ...tomlValues,
+            tool: {
+                ...tomlValues?.tool,
+                openapi: tomlValues.tool?.openapi?.map(item=>{
+                    if(item.id === moduleName){
+                        return {...item, devantConnection: params?.name };
+                    }
+                    return item;
+                }),
+            },
+        };
+
+        const balTomlPath = path.join(projectPath, "Ballerina.toml");
+        const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+        fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+
+        const configFileUri = getConfigFileUri();
+
+        const connectionKeys = params.configurations[Object.keys(params.configurations)?.[0]]?.entries;
+        interface IkeyVal {
+            keyname: string;
+            envName: string;
+        }
+        interface Ikeys {
+            ChoreoAPIKey?: IkeyVal;
+            ServiceURL?: IkeyVal;
+        }
+        const keys: Ikeys = {};
+        const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+            documentIdentifier: { uri: configFileUri.toString() },
+        })) as SyntaxTree;
+        for (const entry in connectionKeys) {
+            let baseName = connectionKeys[entry].key?.toLowerCase();
+            let candidate = baseName;
+            let counter = 1;
+            while (
+                (syntaxTree.syntaxTree as ModulePart)?.members?.some(
+                    (k) =>
+                        (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                        candidate
+                )
+            ) {
+                candidate = `${baseName}${counter}`;
+                counter++;
+            }
+            keys[entry] = { keyname: candidate, envName: connectionKeys[entry].envVariableName };
+        }
+
+        await addConfigurable(
+            configFileUri,
+            Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
+        );
+
+        if (keys?.ChoreoAPIKey && keys?.ServiceURL) {
+            const resp = await addConnection(moduleName, {
+                apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
+                svsUrlVarName: keys?.ServiceURL?.keyname,
+            });
+
+            StateMachine.setReadyMode();
+            return { connectionName: resp.connName };
+        }
+
+        return { connectionName: "" };
     }
 }
 
