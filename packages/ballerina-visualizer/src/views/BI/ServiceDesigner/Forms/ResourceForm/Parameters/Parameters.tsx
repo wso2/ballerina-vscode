@@ -23,7 +23,7 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel, PayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
+import { ConfigProperties, ParameterModel, HttpPayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../../components/EntryPointTypeCreator';
 
 export interface ParametersProps {
@@ -34,7 +34,7 @@ export interface ParametersProps {
     pathName?: string;
     showPayload: boolean;
     isNewResource?: boolean;
-    payloadContext?: PayloadContext;
+    payloadContext?: HttpPayloadContext;
 }
 
 const AddButtonWrapper = styled.div`

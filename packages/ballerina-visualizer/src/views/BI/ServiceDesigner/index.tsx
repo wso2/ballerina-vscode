@@ -212,7 +212,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
 
-
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
     };
@@ -600,10 +599,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     /**
      * This function invokes when a new function is added using right panel form.
-     * 
-     * @param value 
+     *
+     * @param value
+     * @param openDiagram - Whether to open the flow diagram after saving
      */
-    const handleFunctionSubmit = async (value: FunctionModel) => {
+    const handleFunctionSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
         setIsSaving(true);
         const lineRange: LineRange = {
             startLine: { line: position.startLine, offset: position.startColumn },
@@ -613,16 +613,33 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isNew) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value });
+                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
-                fetchService(serviceArtifact.position);
-                await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+                if (openDiagram) {
+                    // Navigate to flow diagram for the newly created handler
+                    const handler = serviceArtifact.resources?.find(
+                        r => r.name === value.name.value
+                    );
+                    if (handler) {
+                        await rpcClient.getVisualizerRpcClient().openView({
+                            type: EVENT_TYPE.OPEN_VIEW,
+                            location: { documentUri: handler.path, position: handler.position }
+                        });
+                    }
+                } else {
+                    // Just update the project location
+                    fetchService(serviceArtifact.position);
+                    await rpcClient.getVisualizerRpcClient().openView({
+                        type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+                        location: { documentUri: serviceArtifact.path, position: serviceArtifact.position }
+                    });
+                }
             }
         } else {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value });
+                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
@@ -1127,6 +1144,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1149,6 +1167,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1169,6 +1188,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
+                                        isNew={isNew}
+                                        payloadContext={{
+                                            protocol: "MESSAGE_BROKER",
+                                            serviceName: serviceModel.name || '',
+                                            messageDocumentation: functionModel?.metadata?.description || ''
+                                        }}
+                                        serviceProperties={serviceModel.properties}
+                                        serviceModuleName={serviceModel.moduleName}
                                     />
                                 </PanelContainer>
                             )}

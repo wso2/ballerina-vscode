@@ -23,7 +23,7 @@ import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
 import { getDefaultResponse, HTTP_METHOD, removeForwardSlashes, sanitizedHttpPath } from '../../utils';
-import { ConfigProperties, FunctionModel, ParameterModel, PayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
+import { ConfigProperties, FunctionModel, ParameterModel, HttpPayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
 import { ResourceConfig } from './ResourceConfig/ResourceConfig';
@@ -88,7 +88,7 @@ export interface ResourceFormProps {
 	onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
 	onClose: () => void;
 	isNew?: boolean;
-	payloadContext?: PayloadContext;
+	payloadContext?: HttpPayloadContext;
 	filePath?: string;
 }
 

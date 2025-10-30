@@ -342,6 +342,11 @@ export interface FormProps {
     concertRequired?: boolean;
     concertMessage?: string;
     formImports?: FormImports;
+    popupManager?: {
+        addPopup: (modal: React.ReactNode, id: string, title: string, height?: number, width?: number) => void;
+        removeLastPopup: () => void;
+        closePopup: (id: string) => void;
+    }
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -380,6 +385,7 @@ export const Form = forwardRef((props: FormProps) => {
         visualizableField,
         recordTypeFields,
         nestedForm,
+        popupManager,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -607,6 +613,7 @@ export const Form = forwardRef((props: FormProps) => {
         },
         targetLineRange,
         fileName,
+        popupManager: popupManager
     };
 
     // Find the first editable field

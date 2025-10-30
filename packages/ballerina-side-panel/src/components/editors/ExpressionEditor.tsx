@@ -42,10 +42,10 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { InputMode } from './ChipExpressionEditor/types';
-import { getDefaultExpressionMode, getInputModeFromTypes } from './ChipExpressionEditor/utils';
 import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -451,7 +451,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleGetHelperPane = (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => {
         return getHelperPane?.(
@@ -566,6 +566,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 name={name}
                                 value={value}
                                 completions={completions}
+                                fileName={effectiveFileName}
+                                targetLineRange={effectiveTargetLineRange}
                                 autoFocus={autoFocus}
                                 sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}
