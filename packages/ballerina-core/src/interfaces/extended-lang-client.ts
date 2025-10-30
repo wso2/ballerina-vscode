@@ -905,7 +905,7 @@ export type SearchKind =
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
     | "EMBEDDING_PROVIDER"
-    | "VECTOR_KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
     | "AGENT"
@@ -1330,6 +1330,16 @@ export interface AddFieldRequest {
     codedata: {
         lineRange: LineRange;
     };
+}
+
+export interface ExpressionTokensRequest {
+    expression: string;
+    filePath: string;
+    position?: LinePosition;
+}
+
+export interface ExpressionTokensResponse {
+    data: number[];
 }
 
 export interface SourceEditResponse {

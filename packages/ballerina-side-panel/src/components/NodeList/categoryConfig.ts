@@ -135,8 +135,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         showWhenEmpty: true,
         useConnectionContainer: true
     },
-    "Vector Knowledge Bases": {
-        title: "Vector Knowledge Bases",
+    "Knowledge Bases": {
+        title: "Knowledge Bases",
         actions: [{
             type: 'add',
             tooltip: "",
