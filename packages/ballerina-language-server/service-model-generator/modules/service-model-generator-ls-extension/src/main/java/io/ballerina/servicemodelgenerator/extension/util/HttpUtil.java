@@ -575,9 +575,9 @@ public final class HttpUtil {
                 } else {
                     Value queryAnnot = properties.get("annotQuery");
                     Value payloadAnnot = properties.get("annotPayload");
-                    if (Objects.nonNull(queryAnnot)) {
+                    if (Objects.nonNull(queryAnnot) && Objects.nonNull(queryAnnot.getValue())) {
                         paramDef.append("@http:").append(HTTP_QUERY_PARAM_ANNOTATION).append(queryAnnot.getValue());
-                    } else if (Objects.nonNull(payloadAnnot)) {
+                    } else if (Objects.nonNull(payloadAnnot) && Objects.nonNull(payloadAnnot.getValue())) {
                         paramDef.append("@http:").append(HTTP_PAYLOAD_PARAM_ANNOTATION).append(payloadAnnot.getValue());
                     } else if (httpParamType.equals(HTTP_PARAM_TYPE_QUERY)) {
                         paramDef.append("@http:").append(HTTP_QUERY_PARAM_ANNOTATION);
