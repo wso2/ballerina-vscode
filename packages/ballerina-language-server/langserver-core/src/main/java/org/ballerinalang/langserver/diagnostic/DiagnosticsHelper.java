@@ -19,9 +19,9 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.tools.text.LineRange;
-import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.command.CommandUtil;
 import org.ballerinalang.langserver.common.utils.PathUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.WorkspaceServiceContext;
@@ -189,11 +189,49 @@ public class DiagnosticsHelper {
         Path projectRoot = workspace.projectRoot(context.filePath());
         Path originalPath = project.get().kind() == ProjectKind.SINGLE_FILE_PROJECT
                 ? projectRoot.getParent() : projectRoot;
-        Optional<PackageCompilation> compilationResult = workspace.waitAndGetPackageCompilation(context.filePath(),
-                context.operation() == LSContextOperation.TXT_DID_CHANGE);
-        // We do not send the internal diagnostics
-        compilationResult.ifPresent(compilation -> diagnosticMap.putAll(
-                toDiagnosticsMap(compilation.diagnosticResult().diagnostics(false), originalPath, workspace)));
+
+        // Check if this package belongs to a workspace project
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        Optional<Project> workspaceProjectOpt = compilerApi.getWorkspaceProject(project.get());
+        if (workspaceProjectOpt.isPresent()) {
+            // Handle workspace project: get diagnostics from current package and all dependents
+            Project workspaceProject = workspaceProjectOpt.get();
+
+            // Get the current package compilation
+            Optional<PackageCompilation> currentCompilation =
+                    workspace.waitAndGetPackageCompilation(context.filePath());
+            currentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
+                    toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                            originalPath, workspace)));
+
+            // Get diagnostics from all dependent packages
+            Collection<Project> dependents = compilerApi.getWorkspaceDependents(workspaceProject, project.get());
+            for (Project dependent : dependents) {
+                Path dependentRoot = dependent.sourceRoot();
+                Optional<PackageCompilation> dependentCompilation =
+                        workspace.waitAndGetPackageCompilation(dependentRoot);
+                dependentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
+                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                                dependentRoot, workspace)));
+            }
+        } else if (compilerApi.isWorkspaceProject(project.get())) {
+            // Handle workspace project by iterating through all its packages
+            List<Project> projects = compilerApi.getWorkspaceProjects(project.get());
+            for (Project buildProject : projects) {
+                Path buildProjectRoot = buildProject.sourceRoot();
+                Optional<PackageCompilation> buildProjectCompilation =
+                        workspace.waitAndGetPackageCompilation(buildProjectRoot);
+                buildProjectCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
+                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                                buildProjectRoot, workspace)));
+            }
+        } else {
+            // Fall back to single package compilation
+            Optional<PackageCompilation> compilation = workspace.waitAndGetPackageCompilation(context.filePath());
+            compilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
+                    toDiagnosticsMap(packageCompilation.diagnosticResult().diagnostics(false), originalPath,
+                            workspace)));
+        }
         return diagnosticMap;
     }
 
