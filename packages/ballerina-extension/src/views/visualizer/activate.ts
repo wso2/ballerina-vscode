@@ -70,10 +70,12 @@ export function activateSubscriptions() {
                 }
             }
 
-            if (!StateMachine.context().projectStructure) {
+            const projectPath = StateMachine.context()?.projectUri;
+            const projectRoot = await findBallerinaProjectRoot(documentPath);
+
+            if (!projectPath || projectPath !== projectRoot) {
                 // Initialize project structure if not already set by finding and loading the Ballerina project root
                 // Can happen when the user opens a directory containing multiple Ballerina projects
-                const projectRoot = await findBallerinaProjectRoot(documentPath);
                 if (projectRoot) {
                     await StateMachine.updateProjectRoot(projectRoot);
                 }
