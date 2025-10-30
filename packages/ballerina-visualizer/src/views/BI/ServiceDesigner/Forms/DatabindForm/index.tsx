@@ -35,6 +35,7 @@ import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
+import { hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -450,12 +451,12 @@ export function DatabindForm(props: DatabindFormProps) {
                             </MessageConfigContent>
                         </MessageConfigSection>
                     </MessageConfigContainer>
-                    <Divider sx={{ margin: 0 }} />
 
 
                     {/* Advanced Parameters Section - Only show if there are additional parameters beyond the first */}
-                    {advancedParameters.length > 0 && (
+                    {hasEditableParameters(advancedParameters) && (
                         <>
+                            <Divider sx={{ margin: 0 }} />
                             <OptionalConfigRow>
                                 Advanced Parameters
                                 <OptionalConfigButtonContainer>
