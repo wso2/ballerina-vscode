@@ -33,7 +33,7 @@ import {
     updateExpressionModelWithHelperValue,
     getAbsoluteCaretPositionFromModel,
     getWordBeforeCursor,
-    filterCompletionsByPrefix,
+    filterCompletionsByPrefixAndType,
     setCursorPositionToExpressionModel,
     updateTokens,
 } from "./utils";
@@ -69,6 +69,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const [isExpanded, setIsExpanded] = useState(false);
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState(false);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>(props.completions);
+    const [isLoading, setIsLoading] = useState(false);
 
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const fetchedInitialTokensRef = useRef<boolean>(false);
@@ -86,13 +87,26 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     );
 
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
+        setIsLoading(true);
         const response = await expressionEditorRpcManager?.getExpressionTokens(
             value,
             props.fileName,
             props.targetLineRange.startLine
         );
+        setIsLoading(false);
         return response || [];
     }, [expressionEditorRpcManager]);
+
+    const getFnSignature = useCallback(async (value: string, cursorPosition: number) => {
+        if (props.extractArgsFromFunction) {
+            setIsLoading(true);
+            const fnSignature = await props.extractArgsFromFunction(value, cursorPosition);
+            setIsLoading(false);
+            if (fnSignature) {
+                return fnSignature
+            }
+        }
+    }, [props.extractArgsFromFunction]);
 
     const fetchInitialTokens = async (value: string) => {
         let updatedTokens = tokens;
@@ -178,7 +192,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
         // Update cursor and value
         pendingCursorPositionUpdateRef.current = cursorPosition;
-        props.onChange(updatedValue, updatedValue.length);
+        props.onChange(updatedValue, cursorPosition);
         setHasTypedSinceFocus(true);
     };
 
@@ -194,7 +208,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             return;
         }
 
-        if (valueBeforeCursor === '' ) {
+        if (valueBeforeCursor === '') {
             setIsHelperPaneOpen(true);
             setIsCompletionsOpen(false);
             return;
@@ -204,7 +218,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             setIsCompletionsOpen(false);
             return;
         }
-        const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
+        const newFilteredCompletions = filterCompletionsByPrefixAndType(props.completions, wordBeforeCursor);
         setFilteredCompletions(newFilteredCompletions);
 
         if (newFilteredCompletions.length > 0) {
@@ -248,8 +262,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     const handleCompletionSelect = async (item: CompletionItem) => {
+        if (item.value.endsWith('()')) {
+            const signature = await getFnSignature(item.value, item.value.length - 1);
+            if (signature) {
+                const argsString = signature.args.map((_, index) => `$${index + 1}`).join(',');
+                item.value = item.value.slice(0, -1) + argsString + ')';
+            }
+        }
         const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
-        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value || item.label);
+        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value);
 
         if (updatedExpressionModelInfo) {
             const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
@@ -258,7 +279,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         setIsCompletionsOpen(false);
     };
 
-    const handleHelperPaneValueChange = async (value: string, closeHelperpane: boolean) => {
+    const handleHelperPaneValueChange = async (updatedValue: string, closeHelperpane: boolean) => {
+        let value = updatedValue;
+        if (updatedValue.endsWith('()')) {
+            const signature = await getFnSignature(updatedValue, updatedValue.length - 1);
+            if (signature) {
+                const argsString = signature.args.map((_, index) => `$${index + 1}`).join(',');
+                value = updatedValue.slice(0, -1) + argsString + ')';
+            }
+        }
         if (
             chipClicked &&
             (chipClicked.type !== 'parameter' ||
@@ -328,11 +357,21 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         );
     }, [isCompletionsOpen, selectedCompletionItem, filteredCompletions]);
 
+    const handleHelperKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            setIsHelperPaneOpen(false);
+        }
+    }, [isCompletionsOpen, selectedCompletionItem, filteredCompletions]);
+
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (isCompletionsOpen) {
             handleCompletionKeyDown(e);
         }
-    }, [isCompletionsOpen, handleCompletionKeyDown]);
+        if (isHelperPaneOpen) {
+            handleHelperKeyDown(e);
+        }
+    }, [isCompletionsOpen, handleCompletionKeyDown, isHelperPaneOpen, handleHelperKeyDown]);
 
     useEffect(() => {
         if (filteredCompletions.length === 0) {
@@ -396,10 +435,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
     return (
         <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative' }}>
-            <FXButton />
+            <FXButton isLoading={isLoading} />
             <AutoExpandingEditableDiv
+                value={props.value}
                 fieldContainerRef={fieldContainerRef}
-                onFocusChange={(focused, isEditableSpan) => {
+                onFocusChange={(focused) => {
                     setIsAnyElementFocused(focused);
                     if (!focused && expressionModel) {
                         const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));

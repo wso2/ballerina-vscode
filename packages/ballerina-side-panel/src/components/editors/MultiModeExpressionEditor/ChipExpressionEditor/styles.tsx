@@ -29,7 +29,7 @@ export const ChipEditorField = styled.div`
     width: 100%;
     padding: 1px 25px 1px 8px;
     background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground, #000000); /* Added text color with fallback */
+    color: var(--vscode-input-foreground, #000000);
     white-space: pre-wrap;
     outline: none;
     border: 1px solid var(--vscode-dropdown-border);
@@ -37,7 +37,7 @@ export const ChipEditorField = styled.div`
     position: relative;
 
     &:focus {
-        outline: 1px solid var(--vscode-focusBorder, #0078d4); /* Added fallback color */
+        outline: 1px solid var(--vscode-focusBorder, #0078d4);
     }
 `;
 
@@ -277,3 +277,15 @@ export const ExpandedPopupContainer = styled.div`
     align-items: center;
 `;
 
+const spin = keyframes`
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+`;
+
+export const Spinner = styled.span`
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    font-size: 14px;
+    animation: ${spin} 1s linear infinite;
+`;
