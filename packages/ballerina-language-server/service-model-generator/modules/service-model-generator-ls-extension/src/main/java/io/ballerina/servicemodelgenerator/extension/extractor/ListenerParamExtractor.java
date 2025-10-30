@@ -204,33 +204,7 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             return new ArrayList<>();
         }
 
-        int positionalIndex = 0;
-        int targetArgIndex = -1;
-
-        if (parameterName.matches("arg\\d+")) {
-            try {
-                targetArgIndex = Integer.parseInt(parameterName.substring(3)) - 1; // arg1 -> index 0, arg2 -> index 1
-            } catch (NumberFormatException e) {
-                // Invalid parameter name format, ignore
-            }
-        }
-
-        for (FunctionArgumentNode argument : arguments) {
-            if (argument instanceof NamedArgumentNode namedArg) {
-                String argName = namedArg.argumentName().name().text();
-                if (argName.equals(parameterName)) {
-                    return extractValuesFromSingleExpression(namedArg.expression(), semanticModel, context);
-                }
-            } else if (argument instanceof PositionalArgumentNode positionalArg && targetArgIndex == positionalIndex) {
-                return extractValuesFromSingleExpression(positionalArg.expression(), semanticModel, context);
-            }
-
-            if (argument instanceof PositionalArgumentNode) {
-                positionalIndex++;
-            }
-        }
-
-        return new ArrayList<>();
+        return extractFromArguments(arguments, parameterName, semanticModel, context);
     }
 
     /**
@@ -286,9 +260,27 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             return new ArrayList<>();
         }
 
+        return extractFromArguments(arguments, parameterName, semanticModel, context);
+    }
+
+    /**
+     * Utility method to extract parameter values from function arguments.
+     * Handles both named arguments and positional arguments (including "argN" pattern).
+     *
+     * @param arguments     The function arguments to search through
+     * @param parameterName The parameter name to find
+     * @param semanticModel The semantic model for resolving configurable variables
+     * @param context       The model from source context
+     * @return List of parameter values found
+     */
+    private List<String> extractFromArguments(SeparatedNodeList<FunctionArgumentNode> arguments,
+                                              String parameterName,
+                                              SemanticModel semanticModel,
+                                              ModelFromSourceContext context) {
         int positionalIndex = 0;
         int targetArgIndex = -1;
 
+        // Check if parameter name follows "argN" pattern (e.g., "arg1", "arg2", "arg3")
         if (parameterName.matches("arg\\d+")) {
             try {
                 targetArgIndex = Integer.parseInt(parameterName.substring(3)) - 1; // arg1 -> index 0, arg2 -> index 1
