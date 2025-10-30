@@ -75,4 +75,3 @@ gradleEnterprise {
 }
 
 include 'service-template-generator'
-include 'service-template-generator'

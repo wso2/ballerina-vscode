@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,9 +16,11 @@
  *  under the License.
  */
 
-module io.ballerina.servicetemplategenerator {
-    requires io.ballerina.centralconnector;
-    requires io.ballerina.language.server.core;
-    requires java.logging;
-    requires com.google.gson;
+package io.ballerina.servicetemplegenerator.model;
+
+import java.util.List;
+
+public record ServiceTemplates(List<ServiceTemplate> serviceTemplates) {
+    public record ServiceTemplate(String orgName, String module, String version, List<String> templates) {
+    }
 }

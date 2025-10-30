@@ -54,6 +54,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.wso2.ballerinalang.compiler.util.Names;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +89,8 @@ public class LSPackageLoader {
     private boolean initialized = false;
 
     private final CentralPackageDescriptorLoader centralPackageDescriptorLoader;
+    private static final Type listenerDataTypeToken =
+            new TypeToken<Map<String, Map<String, Map<String, List<ListenerData>>>>>() {}.getType();
 
     public static LSPackageLoader getInstance(LanguageServerContext context) {
         LSPackageLoader lsPackageLoader = context.get(LS_PACKAGE_LOADER_KEY);
@@ -141,9 +144,17 @@ public class LSPackageLoader {
                 PackageRepository packageRepository = ballerinaDistribution.packageRepository();
                 List<String> skippedLangLibs = Arrays.asList("lang.annotations", "lang.__internal", "lang.query");
                 lsClientLogger.logTrace("Loading packages from Ballerina distribution");
-                this.distRepoPackages.addAll(checkAndResolvePackagesFromRepository(packageRepository,
-                        skippedLangLibs, Collections.emptySet()));
-                lsClientLogger.logTrace("Successfully loaded packages from Ballerina distribution");
+
+                try {
+                    String moduleInfo = FileUtils.readFileAsString("service_templates.json");
+                    Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData =
+                            new Gson().fromJson(moduleInfo, listenerDataTypeToken);
+                    this.distRepoPackages.addAll(checkAndResolvePackagesFromRepository(packageRepository,
+                            listenerData, skippedLangLibs, Collections.emptySet()));
+                    lsClientLogger.logTrace("Successfully loaded packages from Ballerina distribution");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
                 this.getDistributionRepoModules().forEach(packageInfo ->
                         packagesList.put(packageInfo.packageIdentifier(), packageInfo));
@@ -275,8 +286,9 @@ public class LSPackageLoader {
         return packagesList;
     }
 
-    public List<ModuleInfo> checkAndResolvePackagesFromRepository(PackageRepository repository, List<String> skipList,
-                                                                   Set<String> loadedPackages) {
+    public List<ModuleInfo> checkAndResolvePackagesFromRepository(
+            PackageRepository repository, Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData,
+            List<String> skipList, Set<String> loadedPackages) {
         Map<String, List<String>> packageMap = repository.getPackages();
         List<ModuleInfo> packages = new ArrayList<>();
         packageMap.forEach((key, value) -> {
@@ -303,18 +315,42 @@ public class LSPackageLoader {
                     PackageDescriptor pkdDesc = PackageDescriptor.from(packageOrg, packageName, pkgVersion);
                     ResolutionRequest request = ResolutionRequest.from(pkdDesc, PackageDependencyScope.DEFAULT);
 
-                    Optional<Package> repoPackage = repository.getPackage(request,
+                    Optional<Package> optRepoPackage = repository.getPackage(request,
                             ResolutionOptions.builder().setOffline(true).build());
-                    repoPackage.ifPresent(pkg -> packages.add(new ModuleInfo(pkg)));
+                    if (optRepoPackage.isPresent()) {
+                        Package repoPackage = optRepoPackage.get();
+                        List<ListenerData> listenerDataForPackage = getListenerDataForPackage(listenerData,
+                                packageOrg.value(), packageName.value(), pkgVersion.value().toString());
+                        if (listenerDataForPackage.isEmpty()) {
+                            packages.add(new ModuleInfo(repoPackage));
+                        } else {
+                            packages.add(new ModuleInfo(repoPackage, listenerDataForPackage));
+                        }
+                    }
                 } catch (Throwable e) {
                     clientLogger.logTrace("Failed to resolve package "
-                            + packageOrg + (!packageOrg.value().isEmpty() ? "/" : "" 
+                            + packageOrg + (!packageOrg.value().isEmpty() ? "/" : ""
                             + packageName + ":" + pkgVersion));
                 }
             });
 
         });
         return packages;
+    }
+
+    private List<ListenerData> getListenerDataForPackage(
+            Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData, String org,
+            String module, String version) {
+        if (listenerData.containsKey(org)) {
+            Map<String, Map<String, List<ListenerData>>> modules = listenerData.get(org);
+            if (modules.containsKey(module)) {
+                Map<String, List<ListenerData>> versions = modules.get(module);
+                if (versions.containsKey(version)) {
+                    return versions.get(version);
+                }
+            }
+        }
+        return Collections.emptyList();
     }
 
     public List<ModuleInfo> updatePackageMap(DocumentServiceContext context) {
@@ -326,7 +362,7 @@ public class LSPackageLoader {
                 .from(project.get().projectEnvironmentContext().environment());
         PackageRepository remoteRepository = ballerinaUserHome.remotePackageRepository();
         List<ModuleInfo> moduleInfos =
-                checkAndResolvePackagesFromRepository(remoteRepository, Collections.emptyList(),
+                checkAndResolvePackagesFromRepository(remoteRepository, Collections.emptyMap(), Collections.emptyList(),
                         this.remoteRepoPackages.stream().map(ModuleInfo::packageIdentifier)
                                 .collect(Collectors.toSet()));
         this.remoteRepoPackages.addAll(moduleInfos);
@@ -387,8 +423,17 @@ public class LSPackageLoader {
             this.packageName = pkg.packageName().value();
             this.packageVersion = pkg.packageVersion().value().toString();
             this.sourceRoot = pkg.project().sourceRoot();
-            this.moduleIdentifier = packageOrg.toString() + "/" + packageName.toString();
+            this.moduleIdentifier = packageOrg + "/" + packageName;
             addServiceTemplateMetaData();
+        }
+
+        public ModuleInfo(Package pkg, List<ListenerData> listenerData) {
+            this.packageOrg = pkg.packageOrg().value();
+            this.packageName = pkg.packageName().value();
+            this.packageVersion = pkg.packageVersion().value().toString();
+            this.sourceRoot = pkg.project().sourceRoot();
+            this.moduleIdentifier = packageOrg + "/" + packageName;
+            addServiceTemplateMetaData(listenerData);
         }
 
         public List<ServiceTemplateGenerator.ListenerMetaData> getListenerMetaData() {
@@ -444,5 +489,28 @@ public class LSPackageLoader {
                             ServiceTemplateGenerator.generateServiceSnippetMetaData(listener, moduleID)
                                     .ifPresent(listenerMetaData::add));
         }
+
+        private void addServiceTemplateMetaData(List<ListenerData> listenersData) {
+            String orgName = ModuleUtil.escapeModuleName(this.packageOrg());
+            // TODO: Try to remove load project here
+            Project project = ProjectLoader.loadProject(this.sourceRoot());
+            //May take some time as we are compiling projects.
+            Module module = project.currentPackage().getDefaultModule();
+
+            String moduleName = module.descriptor().name().toString();
+            String version = module.packageInstance().descriptor().version().value().toString();
+            ModuleID moduleID = CodeActionModuleId.from(orgName, moduleName, version);
+
+            for (ListenerData listener : listenersData) {
+                listenerMetaData.add(ServiceTemplateGenerator.generateServiceSnippetMetaData(listener.symbolName(),
+                        listener.args(), listener.index(), moduleID));
+            }
+        }
     }
+
+    private record ListenerData (
+            String symbolName,
+            String args,
+            int index
+    ) {}
 }
