@@ -37,7 +37,7 @@ import {
     setCursorPositionToExpressionModel,
     updateTokens,
 } from "./utils";
-import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
@@ -54,7 +54,12 @@ export type ChipExpressionBaseComponentProps = {
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
     value: string;
     fileName?: string;
-    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<any>;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
     targetLineRange?: LineRange;
 }
 
@@ -88,13 +93,18 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
         setIsLoading(true);
-        const response = await expressionEditorRpcManager?.getExpressionTokens(
-            value,
-            props.fileName,
-            props.targetLineRange.startLine
-        );
-        setIsLoading(false);
-        return response || [];
+        try {
+            const response = await expressionEditorRpcManager?.getExpressionTokens(
+                value,
+                props.fileName,
+                props.targetLineRange.startLine
+            );
+            setIsLoading(false);
+            return response || [];
+        } catch (error) {
+            setIsLoading(false);
+            return [];
+        }
     }, [expressionEditorRpcManager]);
 
     const getFnSignature = useCallback(async (value: string, cursorPosition: number) => {
@@ -106,6 +116,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 return fnSignature
             }
         }
+        return undefined;
     }, [props.extractArgsFromFunction]);
 
     const fetchInitialTokens = async (value: string) => {
@@ -261,16 +272,22 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         return endsWithTriggerChar || isSpecialKey;
     };
 
-    const handleCompletionSelect = async (item: CompletionItem) => {
-        if (item.value.endsWith('()')) {
-            const signature = await getFnSignature(item.value, item.value.length - 1);
+    const expandFunctionSignature = useCallback(async (value: string): Promise<string> => {
+        if (value.endsWith('()')) {
+            const signature = await getFnSignature(value, value.length - 1);
             if (signature) {
                 const argsString = signature.args.map((_, index) => `$${index + 1}`).join(',');
-                item.value = item.value.slice(0, -1) + argsString + ')';
+                return value.slice(0, -1) + argsString + ')';
             }
         }
+        return value;
+    }, [getFnSignature]);
+
+    const handleCompletionSelect = async (item: CompletionItem) => {
+        const itemCopy = { ...item };
+        itemCopy.value = await expandFunctionSignature(item.value);
         const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
-        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value);
+        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, itemCopy.value);
 
         if (updatedExpressionModelInfo) {
             const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
@@ -280,14 +297,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     const handleHelperPaneValueChange = async (updatedValue: string, closeHelperpane: boolean) => {
-        let value = updatedValue;
-        if (updatedValue.endsWith('()')) {
-            const signature = await getFnSignature(updatedValue, updatedValue.length - 1);
-            if (signature) {
-                const argsString = signature.args.map((_, index) => `$${index + 1}`).join(',');
-                value = updatedValue.slice(0, -1) + argsString + ')';
-            }
-        }
+        let value = await expandFunctionSignature(updatedValue);
         if (
             chipClicked &&
             (chipClicked.type !== 'parameter' ||
@@ -362,7 +372,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             e.preventDefault();
             setIsHelperPaneOpen(false);
         }
-    }, [isCompletionsOpen, selectedCompletionItem, filteredCompletions]);
+    }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (isCompletionsOpen) {
