@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, MarketplaceItem, Organization, Project } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, MarketplaceItem } from "@wso2/wso2-platform-core";
 
 export interface CreateDevantConnectionReq {
     params:{
@@ -24,13 +24,17 @@ export interface CreateDevantConnectionReq {
 	    visibility: string;
         schemaId: string;
     }
-    org: Organization;
-    project: Project;
-    component: ComponentKind;
-    componentDir: string;
     marketplaceItem: MarketplaceItem;
 }
 
+export interface ImportDevantConnectionReq {
+    connectionListItem: ConnectionListItem;
+}
+
 export interface CreateDevantConnectionResp {
+    connectionName: string;
+}
+
+export interface ImportDevantConnectionResp {
     connectionName: string;
 }

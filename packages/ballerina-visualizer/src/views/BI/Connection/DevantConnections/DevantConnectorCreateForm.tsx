@@ -37,11 +37,8 @@ import { PlatformExtHooks } from "../../../../PlatformExtHooks";
 
 interface Props {
     item: MarketplaceItem;
-    component: ComponentKind;
-    org: Organization;
     project: Project;
     onCreate: (connName: string) => void;
-    directoryFsPath: string;
     onShowInfo: () => void;
     isShowingInfo: boolean;
 }
@@ -121,10 +118,7 @@ interface CreateConnectionForm {
 
 export const DevantConnectorCreateForm: FC<Props> = ({
     item,
-    component,
-    org,
     project,
-    directoryFsPath,
     onShowInfo,
     isShowingInfo,
     onCreate,
@@ -157,11 +151,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
             rpcClient.getPlatformRpcClient().createDevantComponentConnection({
-                component,
-                org,
                 marketplaceItem: item,
-                project,
-                componentDir: directoryFsPath,
                 params: { name: data.name, schemaId: data.schemaId, visibility: data.visibility },
             }),
         onSuccess: (data) => onCreate(data?.connectionName),
