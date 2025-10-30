@@ -5,9 +5,23 @@
   "expectedTokens": [
     {
       "line": 0,
+      "col": 11,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
       "col": 13,
       "length": 5,
       "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 18,
+      "length": 1,
+      "type": 6,
       "modifiers": 0
     }
   ]
