@@ -19,6 +19,7 @@
 import React, { RefObject } from 'react';
 import {
     CompletionItem,
+    FnSignatureDocumentation,
     FormExpressionEditorRef,
     HelperPaneHeight,
     ThemeColors,
@@ -42,7 +43,12 @@ export interface ExpressionField {
     ariaLabel?: string;
     placeholder?: string;
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
-    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<any>;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
     onCompletionSelect?: (value: string, item: CompletionItem) => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -138,13 +144,13 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 
     return (
         <ChipExpressionBaseComponent
-        getHelperPane={getHelperPane}
-        completions={completions}
-        onChange={onChange}
-        value={value}
-        fileName={fileName}
-        targetLineRange={targetLineRange}
-        extractArgsFromFunction={extractArgsFromFunction}
+            getHelperPane={getHelperPane}
+            completions={completions}
+            onChange={onChange}
+            value={value}
+            fileName={fileName}
+            targetLineRange={targetLineRange}
+            extractArgsFromFunction={extractArgsFromFunction}
         />
     );
 };

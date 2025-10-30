@@ -962,19 +962,19 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 20px' }}>
-                        {stack.slice(0, i + 1).length > 1 && (
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "NewType"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
-                        )}
+                    {stack.slice(0, i + 1).length > 1 && (
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                        {stackItem?.type?.name || "NewType"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                    )}
+                    <div style={{ height: '560px', overflow: 'auto' }}>
                         <FormTypeEditor
                             type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -990,16 +990,6 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
-            <ContextBasedFormTypeEditor
-                isOpen={isTypeEditorOpen}
-                onClose={handleTypeEditorClose}
-                onTypeCreate={handleTypeCreated}
-                initialTypeName={editingTypeName || "PayloadType"}
-                editMode={!!editingTypeName}
-                modalTitle={"Define Payload"}
-                modalWidth={650}
-                modalHeight={600}
-            />
         </EditorContext.Provider>
     );
 }
