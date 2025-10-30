@@ -152,7 +152,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 setVisualizerLocation(value);
             });
         }
-    }, [rpcClient]);
+    }, [rpcClient, projectUri]);
 
     useEffect(() => {
         setIsModelLoaded(false);
