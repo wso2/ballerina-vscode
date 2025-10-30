@@ -85,6 +85,7 @@ import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
+import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -2077,13 +2078,21 @@ const AIChat: React.FC = () => {
         });
     };
 
-    const handleApprovalApprove = (comment?: string) => {
+    const handleApprovalApprove = (enableAutoApprove: boolean) => {
         if (!approvalRequest) return;
+
+        if (enableAutoApprove && !isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(true);
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
+        } else if (!enableAutoApprove && isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(false);
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        }
 
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_PLAN,
-                payload: { comment }
+                payload: {}
             });
             setTodoTasks(approvalRequest.tasks);
             setTasksMessage(approvalRequest.message);
@@ -2095,7 +2104,6 @@ const AIChat: React.FC = () => {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_TASK,
                 payload: {
-                    comment,
                     lastApprovedTaskIndex: lastApprovedTaskIndex >= 0 ? lastApprovedTaskIndex : undefined
                 }
             });
@@ -2104,7 +2112,7 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
-    const handleApprovalReject = (comment?: string) => {
+    const handleApprovalReject = (comment: string) => {
         if (!approvalRequest) return;
 
         if (approvalRequest.approvalType === "plan") {
@@ -2163,9 +2171,6 @@ const AIChat: React.FC = () => {
                             <TodoSection
                                 tasks={approvalRequest?.tasks || todoTasks || []}
                                 message={approvalRequest?.message || tasksMessage}
-                                onApprove={approvalRequest ? handleApprovalApprove : undefined}
-                                onReject={approvalRequest ? handleApprovalReject : undefined}
-                                approvalType={approvalRequest?.approvalType}
                             />
                         </TodoPanel>
                     )}
@@ -2414,24 +2419,33 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
-                    <Footer
-                        aiChatInputRef={aiChatInputRef}
-                        tagOptions={{
-                            placeholderTags: placeholderTags,
-                            loadGeneralTags: loadGeneralTags,
-                            injectPlaceholderTags: injectPlaceholderTags,
-                        }}
-                        attachmentOptions={{
-                            multiple: true,
-                            acceptResolver: acceptResolver,
-                            handleAttachmentSelection: handleAttachmentSelection,
-                        }}
-                        inputPlaceholder="Describe your integration..."
-                        onSend={handleSend}
-                        onStop={handleStop}
-                        isLoading={isLoading}
-                        showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
-                    />
+                    {approvalRequest ? (
+                        <ApprovalFooter
+                            approvalType={approvalRequest.approvalType}
+                            onApprove={handleApprovalApprove}
+                            onReject={handleApprovalReject}
+                            isSubmitting={false}
+                        />
+                    ) : (
+                        <Footer
+                            aiChatInputRef={aiChatInputRef}
+                            tagOptions={{
+                                placeholderTags: placeholderTags,
+                                loadGeneralTags: loadGeneralTags,
+                                injectPlaceholderTags: injectPlaceholderTags,
+                            }}
+                            attachmentOptions={{
+                                multiple: true,
+                                acceptResolver: acceptResolver,
+                                handleAttachmentSelection: handleAttachmentSelection,
+                            }}
+                            inputPlaceholder="Describe your integration..."
+                            onSend={handleSend}
+                            onStop={handleStop}
+                            isLoading={isLoading}
+                            showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                        />
+                    )}
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
