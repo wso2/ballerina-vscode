@@ -27,13 +27,14 @@ import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE,
 import { getCompletionsMenuPosition } from "../utils";
 
 export type AutoExpandingEditableDivProps = {
+    value: string;
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
     children?: React.ReactNode;
     onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
     style?: React.CSSProperties;
-    onFocusChange?: (isFocused: boolean, isEditableSpan: boolean) => void;
+    onFocusChange?: (isFocused: boolean) => void;
     isExpanded?: boolean;
     setIsExpanded?: (isExpanded: boolean) => void;
     isCompletionsOpen?: boolean;
@@ -119,7 +120,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 onMouseDown={(e) => e.preventDefault()}
             >
                 {props.getHelperPane(
-                    "var",
+                    props.value,
                     props.handleHelperPaneValueChange ? props.handleHelperPaneValueChange : () => { },
                     "3/4"
                 )}
@@ -154,7 +155,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             lastFocusStateRef.current = { focused: newFocusState, isEditable: isEditableSpan };
 
             if (props.onFocusChange) {
-                props.onFocusChange(newFocusState, isEditableSpan);
+                props.onFocusChange(newFocusState);
             }
         }
     }, [fieldContainerRef]);
