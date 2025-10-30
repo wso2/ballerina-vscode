@@ -54,7 +54,7 @@ export const Chip = styled.div`
     background-color: rgba(0, 122, 204, 0.3);
     color: var(--vscode-input-foreground, white); /* Updated text color */
     cursor: pointer;
-    margin: 2px 4px;
+    margin: 2px 0px;
     font-size: 12px;
     padding: 2px 10px;
     display: inline-block;
