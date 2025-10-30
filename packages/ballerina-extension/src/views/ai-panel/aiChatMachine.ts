@@ -86,6 +86,17 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         autoApproveEnabled: false,
     } as AIChatMachineContext,
     on: {
+        [AIChatMachineEventType.SUBMIT_PROMPT]: {
+            target: 'Initiating',
+            actions: assign({
+                initialPrompt: (_ctx, event) => event.payload.prompt,
+                chatHistory: (ctx, event) =>
+                    addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
+                currentPlan: (_ctx) => undefined,
+                currentTaskIndex: (_ctx) => -1,
+                errorMessage: (_ctx) => undefined,
+            }),
+        },
         [AIChatMachineEventType.ENABLE_AUTO_APPROVE]: {
             actions: assign({
                 autoApproveEnabled: (_ctx) => true,
@@ -141,17 +152,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 sessionId: (_ctx) => generateSessionId(),
                 projectId: (_ctx) => generateProjectId(),
             }),
-            on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
-            },
         },
         //TODO : Optional state we can remove if not needed. its just to show that generation is starting.
         Initiating: {
@@ -436,34 +436,10 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         },
         Completed: {
             entry: 'saveChatState',
-            on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        currentPlan: (_ctx) => undefined,
-                        currentTaskIndex: (_ctx) => -1,
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
-            },
         },
         PartiallyCompleted: {
             entry: 'saveChatState',
             on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        currentPlan: (_ctx) => undefined,
-                        currentTaskIndex: (_ctx) => -1,
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
                 [AIChatMachineEventType.START_TASK_EXECUTION]: {
                     target: 'ExecutingTask',
                     actions: assign({
