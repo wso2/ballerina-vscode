@@ -102,8 +102,8 @@ public class EDIConverterServiceTest extends AbstractLSTest {
                     testConfig.testProjectFolder(),
                     newMap
             );
-          updateConfig(configJsonPath, updatedConfig);
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
+//          updateConfig(configJsonPath, updatedConfig);
+          Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 

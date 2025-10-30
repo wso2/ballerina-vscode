@@ -30,12 +30,10 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,7 +51,7 @@ import java.util.regex.Pattern;
 public class EDITypeGenerator {
     private static final String DEFAULT_TYPES_FILE = "types.bal";
     private static final String DEFAULT_FUNCTIONS_FILE = "functions.bal";
-    private static final String EDI_TOOL_JAR = "editools.jar";
+    private static final String EDI_TOOL = "edi";
     private static final String LS = System.lineSeparator();
 
     private final String schemaContent;
@@ -78,39 +76,26 @@ public class EDITypeGenerator {
     public JsonElement generateTypes() throws Exception {
         Path tempDir = null;
         try {
-            // Create temp directory for processing
+            ensureEdiToolAvailable();
+
             tempDir = Files.createTempDirectory("edi-conversion-");
             Path xsdFile = tempDir.resolve("schema.xsd");
             Path jsonSchemaFile = tempDir.resolve("schema.json");
             Path generatedCodeFile = tempDir.resolve("generated.bal");
 
-            // Write XSD content to temp file
             Files.writeString(xsdFile, schemaContent);
+            convertX12ToEDISchema(xsdFile, jsonSchemaFile);
+            generateBallerinaCode(jsonSchemaFile, generatedCodeFile);
 
-            // Extract EDI tools JAR to temp location
-            Path ediToolsJar = extractEDIToolsJar(tempDir);
-
-            // Step 1: Convert X12 XSD to EDI JSON schema
-            convertX12ToEDISchema(ediToolsJar, xsdFile, jsonSchemaFile);
-
-            // Step 2: Generate Ballerina code from EDI schema
-            generateBallerinaCode(ediToolsJar, jsonSchemaFile, generatedCodeFile);
-
-            // Step 3: Parse generated code and separate into types and functions
             String generatedCode = Files.readString(generatedCodeFile);
             GeneratedContent content = parseGeneratedContent(generatedCode);
-
-            // Handle type name collisions
             String updatedTypes = handleTypeNameCollisions(content.types);
             GeneratedContent updatedContent = new GeneratedContent(content.imports, updatedTypes, content.functions);
-
-            // Step 4: Create text edits for types.bal and functions.bal
             Map<Path, List<TextEdit>> textEditsMap = createTextEdits(updatedContent);
 
             return gson.toJsonTree(textEditsMap);
 
         } finally {
-            // Clean up temp directory
             if (tempDir != null && Files.exists(tempDir)) {
                 deleteDirectory(tempDir);
             }
@@ -118,51 +103,87 @@ public class EDITypeGenerator {
     }
 
     /**
-     * Extracts the EDI tools JAR from resources to a temporary location.
+     * Ensures the Ballerina EDI tool is available. If not, attempts to install it.
      *
-     * @param tempDir Temporary directory to extract the JAR
-     * @return Path to the extracted JAR file
-     * @throws EDIGenerationException if extraction fails
+     * @throws EDIGenerationException if the tool cannot be installed
      */
-    private Path extractEDIToolsJar(Path tempDir) throws EDIGenerationException {
+    private void ensureEdiToolAvailable() throws EDIGenerationException {
         try {
-            Path jarPath = tempDir.resolve(EDI_TOOL_JAR);
-            ClassLoader classLoader = getClass().getClassLoader();
-            try (InputStream in = classLoader.getResourceAsStream(EDI_TOOL_JAR)) {
-                if (in == null) {
-                    throw new EDIGenerationException("EDI tools JAR not found in resources: " + EDI_TOOL_JAR);
+            if (!isEdiToolInstalled()) {
+                pullEdiTool();
+                if (!isEdiToolInstalled()) {
+                    throw new EDIGenerationException("Failed to install EDI tool. Please install manually using: " +
+                            "bal tool pull " + EDI_TOOL);
                 }
-                Files.copy(in, jarPath, StandardCopyOption.REPLACE_EXISTING);
             }
-            return jarPath;
         } catch (EDIGenerationException e) {
             throw e;
         } catch (Throwable e) {
-            throw new EDIGenerationException("Failed to extract EDI tools JAR: " + e.getMessage(), e);
+            throw new EDIGenerationException("Error checking EDI tool availability: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Converts X12 XSD to EDI JSON schema using the EDI tools.
+     * Checks if the EDI tool is installed.
      *
-     * @param ediToolsJar Path to the EDI tools JAR
-     * @param xsdFile     Path to the X12 XSD file
-     * @param jsonFile    Path to the output JSON schema file
+     * @return true if the EDI tool is installed
+     */
+    private boolean isEdiToolInstalled() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("bal", "tool", "list");
+            Process process = pb.start();
+            String output = readProcessOutput(process);
+            int exitCode = process.waitFor();
+
+            return exitCode == 0 && output.contains(EDI_TOOL);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    /**
+     * Pulls/installs the EDI tool using bal tool pull.
+     *
+     * @throws EDIGenerationException if the pull fails
+     */
+    private void pullEdiTool() throws EDIGenerationException {
+        try {
+            List<String> command = Arrays.asList("bal", "tool", "pull", EDI_TOOL);
+
+            ProcessBuilder pb = new ProcessBuilder(command);
+            Process process = pb.start();
+            String output = readProcessOutput(process);
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                throw new EDIGenerationException("Failed to pull EDI tool. Exit code: " +
+                        exitCode + ". Output: " + output);
+            }
+        } catch (EDIGenerationException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new EDIGenerationException("Error pulling EDI tool: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Converts X12 XSD to EDI JSON schema using bal edi convertX12Schema command.
+     *
+     * @param xsdFile  Path to the X12 XSD file
+     * @param jsonFile Path to the output JSON schema file
      * @throws EDIGenerationException if conversion fails
      */
-    private void convertX12ToEDISchema(Path ediToolsJar, Path xsdFile, Path jsonFile)
+    private void convertX12ToEDISchema(Path xsdFile, Path jsonFile)
             throws EDIGenerationException {
         try {
             List<String> command = Arrays.asList(
-                    "bal", "run", ediToolsJar.toAbsolutePath().toString(), "--",
-                    "convertX12Schema", xsdFile.toAbsolutePath().toString(),
-                    jsonFile.toAbsolutePath().toString()
+                    "bal", "edi", "convertX12Schema",
+                    "-i", xsdFile.toAbsolutePath().toString(),
+                    "-o", jsonFile.toAbsolutePath().toString()
             );
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             Process process = processBuilder.start();
-
-            // Capture output for debugging
             String output = readProcessOutput(process);
             int exitCode = process.waitFor();
 
@@ -183,25 +204,23 @@ public class EDITypeGenerator {
     }
 
     /**
-     * Generates Ballerina code from EDI JSON schema using the EDI tools.
+     * Generates Ballerina code from EDI JSON schema using bal edi codegen command.
      *
-     * @param ediToolsJar     Path to the EDI tools JAR
-     * @param jsonSchemaFile  Path to the EDI JSON schema file
-     * @param outputFile      Path to the output Ballerina file
+     * @param jsonSchemaFile Path to the EDI JSON schema file
+     * @param outputFile     Path to the output Ballerina file
      * @throws EDIGenerationException if code generation fails
      */
-    private void generateBallerinaCode(Path ediToolsJar, Path jsonSchemaFile, Path outputFile)
+    private void generateBallerinaCode(Path jsonSchemaFile, Path outputFile)
             throws EDIGenerationException {
         try {
             List<String> command = Arrays.asList(
-                    "bal", "run", ediToolsJar.toAbsolutePath().toString(), "--",
-                    "codegen", jsonSchemaFile.toAbsolutePath().toString(),
-                    outputFile.toAbsolutePath().toString()
+                    "bal", "edi", "codegen",
+                    "-i", jsonSchemaFile.toAbsolutePath().toString(),
+                    "-o", outputFile.toAbsolutePath().toString()
             );
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             Process process = processBuilder.start();
-
             String output = readProcessOutput(process);
             int exitCode = process.waitFor();
 
@@ -266,18 +285,17 @@ public class EDITypeGenerator {
 
         boolean inFunction = false;
         boolean inSchemaJson = false;
+        boolean inType = false;
         int braceCount = 0;
 
         for (String line : lines) {
             String trimmedLine = line.trim();
 
-            // Handle imports
             if (trimmedLine.startsWith("import ") && trimmedLine.endsWith(";")) {
                 imports.append(line).append(LS);
                 continue;
             }
 
-            // Handle schema JSON (final readonly & json schemaJson = ...)
             if (trimmedLine.startsWith("final readonly & json schemaJson")) {
                 inSchemaJson = true;
                 schemaJson.append(line).append(LS);
@@ -292,7 +310,6 @@ public class EDITypeGenerator {
                 continue;
             }
 
-            // Detect function start
             if (!inFunction && (trimmedLine.startsWith("public isolated function ") ||
                     trimmedLine.startsWith("public function "))) {
                 inFunction = true;
@@ -301,7 +318,6 @@ public class EDITypeGenerator {
 
             if (inFunction) {
                 functions.append(line).append(LS);
-                // Count braces to detect function end
                 for (char c : line.toCharArray()) {
                     if (c == '{') {
                         braceCount++;
@@ -313,25 +329,23 @@ public class EDITypeGenerator {
                     inFunction = false;
                     functions.append(LS);
                 }
-            } else if (trimmedLine.startsWith("public type ") || trimmedLine.startsWith("type ")) {
-                // Type definitions
+            } else if (inType || trimmedLine.startsWith("public type ") || trimmedLine.startsWith("type ")) {
                 types.append(line).append(LS);
-                // Handle multi-line type definitions
-                if (!trimmedLine.endsWith(";")) {
-                    while (lines.length > 0) {
-                        // This is simplified - in reality we'd need to continue reading
-                        break;
-                    }
+                if (!inType && (trimmedLine.startsWith("public type ") || trimmedLine.startsWith("type "))) {
+                    inType = true;
+                }
+                // Check if type definition ends
+                if (trimmedLine.endsWith(";")) {
+                    inType = false;
                 }
             } else if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#") &&
                     !trimmedLine.startsWith("//")) {
-                // Other non-empty, non-comment lines go to types
                 types.append(line).append(LS);
             }
         }
 
-        // Add schemaJson to functions
-        functions.append(LS).append(schemaJson.toString());
+        // Add schemaJson to types
+        types.append(LS).append(schemaJson);
 
         return new GeneratedContent(
                 imports.toString().trim(),

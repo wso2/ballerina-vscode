@@ -60,7 +60,6 @@ public class EDIConverterService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             EDIConverterResponse response = new EDIConverterResponse();
             try {
-                // Validate request parameters first
                 if (request.getSchemaContent() == null || request.getSchemaContent().isEmpty()) {
                     response.setError("EDI schema content cannot be null or empty");
                     return response;
