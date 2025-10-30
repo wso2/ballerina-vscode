@@ -344,6 +344,7 @@ export function FormGeneratorNew(props: FormProps) {
         };
     }
 
+    // TODO: Remove this function after testing
     const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
         const updatedFields = newFields.map((field) => {
             if (field.type === 'TYPE') {
@@ -377,9 +378,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            const patchedFields = getPatchedFields(fieldsValues, fields);
-            setFields(patchedFields);
-            setFormImports(getImportsForFormFields(patchedFields));
+            setFields(fields);
+            setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
 
