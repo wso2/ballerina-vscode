@@ -229,7 +229,7 @@ public final class JmsUtil {
 
         AcknowledgmentMode mode = AcknowledgmentMode.fromString(ackMode);
 
-        if (mode == AcknowledgmentMode.AUTO_ACKNOWLEDGE) {
+        if (mode == AcknowledgmentMode.AUTO_ACKNOWLEDGE || mode == AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE) {
             if (callerParam != null) {
                 callerParam.setEnabled(false);
             }
@@ -389,7 +389,7 @@ public final class JmsUtil {
 
         topicProps.put("subscriberName", new Value.ValueBuilder()
                 .metadata("Subscriber Name", "The name to be used for the subscription.")
-                .value("")
+                .value("\"default\"")
                 .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
                 .setPlaceholder("")
@@ -534,6 +534,155 @@ public final class JmsUtil {
         }
 
         return allEdits;
+    }
+
+    /**
+     * Builds an authentication choice property for Solace broker connection. Supports Basic, Kerberos, and OAuth 2.0
+     * authentication mechanisms.
+     *
+     * @return Value configured for authentication choice.
+     */
+    public static Value buildAuthenticationChoice() {
+        // Build Basic Authentication choice
+        Map<String, Value> basicAuthProps = new LinkedHashMap<>();
+        basicAuthProps.put("username", new Value.ValueBuilder()
+                .metadata("Username", "Username for broker authentication")
+                .value("\"default\"")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("default")
+                .enabled(true)
+                .editable(true)
+                .build());
+
+        basicAuthProps.put("password", new Value.ValueBuilder()
+                .metadata("Password", "Password for broker authentication")
+                .value("")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        Value basicAuthChoice = new Value.ValueBuilder()
+                .metadata("Basic Authentication", "Username and password authentication")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(true)
+                .editable(false)
+                .setProperties(basicAuthProps)
+                .build();
+
+        // Build Kerberos Authentication choice
+        Map<String, Value> kerberosAuthProps = new LinkedHashMap<>();
+        kerberosAuthProps.put("serviceName", new Value.ValueBuilder()
+                .metadata("Service Name", "Kerberos service name.")
+                .value("\"solace\"")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("solace")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        kerberosAuthProps.put("jaasLoginContext", new Value.ValueBuilder()
+                .metadata("JAAS Login Context", "JAAS login context name.")
+                .value("\"SolaceGSS\"")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("SolaceGSS")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        kerberosAuthProps.put("mutualAuthentication", new Value.ValueBuilder()
+                .metadata("Mutual Authentication", "Enable Kerberos mutual authentication.")
+                .value(true)
+                .valueType(VALUE_TYPE_FLAG)
+                .setValueTypeConstraint("BOOLEAN")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        kerberosAuthProps.put("jaasConfigReloadEnabled", new Value.ValueBuilder()
+                .metadata("JAAS Config Reload", "Enable automatic JAAS configuration reload.")
+                .value(false)
+                .valueType(VALUE_TYPE_FLAG)
+                .setValueTypeConstraint("BOOLEAN")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        Value kerberosAuthChoice = new Value.ValueBuilder()
+                .metadata("Kerberos Authentication", "Kerberos (GSS-KRB) authentication.")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(false)
+                .editable(false)
+                .setProperties(kerberosAuthProps)
+                .build();
+
+        // Build OAuth 2.0 Authentication choice
+        Map<String, Value> oauth2AuthProps = new LinkedHashMap<>();
+        oauth2AuthProps.put("issuer", new Value.ValueBuilder()
+                .metadata("Issuer", "OAuth 2.0 issuer identifier URI")
+                .value("")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("https://auth.example.com")
+                .enabled(true)
+                .editable(true)
+                .build());
+
+        oauth2AuthProps.put("accessToken", new Value.ValueBuilder()
+                .metadata("Access Token", "OAuth 2.0 access token for authentication")
+                .value("")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        oauth2AuthProps.put("oidcToken", new Value.ValueBuilder()
+                .metadata("OIDC Token", "OpenID Connect ID token for authentication")
+                .value("")
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .setPlaceholder("")
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .build());
+
+        Value oauth2AuthChoice = new Value.ValueBuilder()
+                .metadata("OAuth 2.0 Authentication", "OAuth 2.0 token-based authentication")
+                .value("true")
+                .valueType(VALUE_TYPE_FORM)
+                .enabled(false)
+                .editable(false)
+                .setProperties(oauth2AuthProps)
+                .build();
+
+        // Build main choice property
+        Value authenticationChoice = new Value.ValueBuilder()
+                .metadata("Authentication", "Select the authentication method for Solace broker connection")
+                .value(0)
+                .valueType(VALUE_TYPE_CHOICE)
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(true)
+                .build();
+        authenticationChoice.setChoices(List.of(basicAuthChoice, kerberosAuthChoice, oauth2AuthChoice));
+
+        return authenticationChoice;
     }
 
     /**

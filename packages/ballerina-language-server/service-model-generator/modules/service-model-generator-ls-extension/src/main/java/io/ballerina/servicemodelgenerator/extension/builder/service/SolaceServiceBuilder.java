@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -29,6 +30,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelCon
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
@@ -46,10 +49,12 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVIC
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY_SESSION_ACK_MODE;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAckModeToOnMessageFunction;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildAuthenticationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
@@ -70,6 +75,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
     private static final String PROPERTY_DESTINATION = "destination";
     private static final String PROPERTY_QUEUE_NAME = "queueName";
     private static final String PROPERTY_TOPIC_NAME = "topicName";
+    private static final String PROPERTY_AUTHENTICATION = "authentication";
     private static final String TYPE_SOLACE_SERVICE_CONFIG = "solace:ServiceConfig";
     private static final String SERVICE_TYPE = "solace:Service";
     private static final String CALLER_TYPE = "solace:Caller";
@@ -95,7 +101,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
     // Listener configuration property keys
     private static final String[] LISTENER_CONFIG_KEYS = {
-            KEY_LISTENER_VAR_NAME, "url", "messageVpn"
+            KEY_LISTENER_VAR_NAME, "url", "messageVpn", PROPERTY_AUTHENTICATION
     };
 
     @Override
@@ -106,6 +112,8 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         }
 
         Map<String, Value> properties = serviceInitModel.getProperties();
+        Value authenticationChoice = buildAuthenticationChoice();
+        properties.put(PROPERTY_AUTHENTICATION, authenticationChoice);
 
         Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                 context.semanticModel(), context.project());
@@ -120,8 +128,8 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         }
 
         Value destinationChoice = buildDestinationChoice(
-                "\"myQueue\"",
-                "\"myTopic\"",
+                "\"test-queue\"",
+                "\"test/topic\"",
                 LABEL_QUEUE,
                 LABEL_TOPIC,
                 LABEL_QUEUE_NAME,
@@ -150,9 +158,11 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> properties = serviceInitModel.getProperties();
 
         if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
+            applyAuthenticationProperty(properties);
             return addServiceWithNewListener(context);
         }
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        applyAuthenticationProperty(properties);
 
         ListenerDTO listenerDTO;
         if (properties.containsKey(KEY_EXISTING_LISTENER)) {
@@ -165,6 +175,20 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         String serviceCode = buildJMSServiceCode(context, listenerDTO);
 
         return buildServiceCodeEdits(context, serviceCode, null);
+    }
+
+    private void applyAuthenticationProperty(Map<String, Value> properties) {
+        String authConfig = buildAuthenticationConfig(properties);
+        if (authConfig != null && !authConfig.isEmpty()) {
+            Value authValue = new Value.ValueBuilder()
+                    .value(authConfig)
+                    .valueType(VALUE_TYPE_EXPRESSION)
+                    .enabled(true)
+                    .editable(false)
+                    .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
+                    .build();
+            properties.put("auth", authValue);
+        }
     }
 
     private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
@@ -198,6 +222,47 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                 + CLOSE_BRACE + NEW_LINE;
     }
 
+    private String buildAuthenticationConfig(Map<String, Value> properties) {
+        if (!properties.containsKey(PROPERTY_AUTHENTICATION)) {
+            return null;
+        }
+
+        Value authChoice = properties.get(PROPERTY_AUTHENTICATION);
+        if (authChoice == null || authChoice.getChoices() == null || authChoice.getChoices().isEmpty()) {
+            return null;
+        }
+
+        // Find the enabled choice (selected by user)
+        List<Value> choices = authChoice.getChoices();
+        Value selectedAuthChoice = choices.stream()
+                .filter(Value::isEnabled)
+                .findFirst()
+                .orElse(null);
+
+        if (selectedAuthChoice == null) {
+            return null;
+        }
+
+        Map<String, Value> authProps = selectedAuthChoice.getProperties();
+        if (authProps == null || authProps.isEmpty()) {
+            return null;
+        }
+
+        List<String> authFields = new ArrayList<>();
+
+        authProps.forEach((key, value) -> {
+            if (value != null && value.getValue() != null && !value.getValue().isEmpty()) {
+                authFields.add(key + ": " + value.getValue());
+            }
+        });
+
+        if (authFields.isEmpty()) {
+            return null;
+        }
+
+        return "{" + String.join(", ", authFields) + "}";
+    }
+
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
         Map<String, List<TextEdit>> serviceEdits = super.updateModel(context);
@@ -208,6 +273,11 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
         addDataBindingParam(service, ON_MESSAGE_FUNCTION_NAME, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
+        service.getFunctions().stream().filter(function ->
+                        function.getName().getValue().equals(ON_MESSAGE_FUNCTION_NAME)).findFirst()
+                .flatMap(function -> function.getParameters().stream().filter(parameter ->
+                        parameter.getType().getValue().equals(CALLER_TYPE)).findFirst()).ifPresent(parameter ->
+                        parameter.setEditable(false));
         return service;
     }
 

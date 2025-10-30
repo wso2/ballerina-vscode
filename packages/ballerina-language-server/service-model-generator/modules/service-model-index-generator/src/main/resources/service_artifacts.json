@@ -1510,7 +1510,7 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -1531,7 +1531,7 @@
                   "type": "solace:Caller",
                   "defaultValue": "",
                   "importStatements": "",
-                  "nameEditable": 1,
+                  "nameEditable": 0,
                   "typeEditable": 0
                 }
               ]
