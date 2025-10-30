@@ -69,7 +69,7 @@ export const FunctionsPage = ({
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
 
-    const { addModal , closeModal} = useModalStack();
+    const { addModal, closeModal } = useModalStack();
 
     //TODO: get the correct filepath
     let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
@@ -77,7 +77,7 @@ export const FunctionsPage = ({
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
             setIsLoading(true);
-            
+
             // Only apply minimum loading time if we don't have any function info yet
             const shouldShowMinLoader = !functionInfo && !showContent;
             const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
@@ -206,10 +206,10 @@ export const FunctionsPage = ({
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 5px", height: "20px" }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
-            
+
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
@@ -246,7 +246,7 @@ export const FunctionsPage = ({
                                                         <ExpandableList.Section key={category.label} title={category.label} level={0}>
                                                             <div style={{ marginTop: '10px' }}>
                                                                 {category.items.map((item) => (
-                                                                    <HelperPaneListItem 
+                                                                    <HelperPaneListItem
                                                                         key={item.label}
                                                                         onClick={async () => await handleFunctionItemSelect(item)}
                                                                     >
@@ -271,7 +271,7 @@ export const FunctionsPage = ({
                                                         <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={0}>
                                                             <div style={{ marginTop: '10px' }}>
                                                                 {subCategory.items.map((item) => (
-                                                                    <HelperPaneListItem 
+                                                                    <HelperPaneListItem
                                                                         key={item.label}
                                                                         onClick={async () => await handleFunctionItemSelect(item)}
                                                                     >

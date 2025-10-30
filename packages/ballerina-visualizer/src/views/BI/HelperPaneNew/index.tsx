@@ -46,12 +46,11 @@ export type HelperPaneNewProps = {
     fieldKey: string;
     fileName: string;
     targetLineRange: LineRange;
-    exprRef: RefObject<FormExpressionEditorRef>;
     anchorRef: RefObject<HTMLDivElement>;
     onClose: () => void;
     defaultValue: string;
     currentValue: string;
-    onChange: (value: string, updatedCursorPosition: number) => void;
+    onChange: (value: string, closeHelperPane: boolean) => void;
     helperPaneHeight: HelperPaneHeight;
     recordTypeField?: RecordTypeField;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
@@ -78,7 +77,6 @@ const HelperPaneNewEl = ({
     fieldKey,
     fileName,
     targetLineRange,
-    exprRef,
     anchorRef,
     onClose,
     currentValue,
@@ -94,8 +92,6 @@ const HelperPaneNewEl = ({
     forcedValueTypeConstraint,
     handleValueTypeConstChange
 }: HelperPaneNewProps) => {
-    const [position, setPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
-    const [paneWidth, setPaneWidth] = useState<number>(0);
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ? 5 : 4
 
@@ -103,37 +99,6 @@ const HelperPaneNewEl = ({
 
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-    const rect = exprRef.current?.parentElement?.getBoundingClientRect();
-
-    useLayoutEffect(() => {
-        const trySetWidth = () => {
-            const inputEl = exprRef.current?.parentElement;
-            if (inputEl) {
-                const rect = inputEl.getBoundingClientRect();
-                setPaneWidth(rect.width + EXPR_ICON_WIDTH - 6);
-            } else {
-                // Try again on next frame if it's not ready yet
-                requestAnimationFrame(trySetWidth);
-            }
-        };
-
-        trySetWidth();
-    }, []);
-
-    useLayoutEffect(() => {
-        if (anchorRef.current) {
-            const host = anchorRef.current.shadowRoot?.host as HTMLElement | undefined;
-            const target = host || (anchorRef.current as unknown as HTMLElement);
-            if (target && target.getBoundingClientRect) {
-                const rect = target.getBoundingClientRect();
-                setPosition({
-                    top: rect.bottom + window.scrollY,
-                    left: rect.left + window.scrollX,
-                });
-            }
-        }
-    }, [anchorRef]);
 
     useEffect(() => {
         if (valueTypeConstraint?.length > 0) {
@@ -206,25 +171,14 @@ const HelperPaneNewEl = ({
     };
 
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
-        const value = getInsertText(insertText);
-        const cursorOffset = getCursorOffset(insertText);
-        const cursorPosition = exprRef.current?.shadowRoot?.querySelector('textarea')?.selectionStart;
-        const updatedCursorPosition = cursorPosition + value.length + cursorOffset;
-        let updatedValue = value;
-
-        if (!isRecordConfigureChange) {
-            updatedValue = currentValue.slice(0, cursorPosition) + value + currentValue.slice(cursorPosition);
+        if (typeof insertText === 'string') {
+            onChange(insertText, !shouldKeepHelper);
         }
-
-        // Update the value in the expression editor
-        onChange(updatedValue, updatedCursorPosition);
-        // Focus the expression editor
-        exprRef.current?.focus();
-        // Set the cursor
-        exprRef.current?.setCursor(updatedValue, updatedCursorPosition);
-        if (!shouldKeepHelper && !isRecordConfigureChange) {
-            onClose();
-        }
+       else {
+            const textToInsert = getInsertText(insertText);
+            const cursorOffset = getCursorOffset(insertText);
+            onChange(textToInsert, !shouldKeepHelper);
+       }
     };
 
     // Scroll selected item into view when selection changes
@@ -287,8 +241,8 @@ const HelperPaneNewEl = ({
             value: defaultValue,
             label: `Initialize to ${defaultValue}`
         }] : []),
-        ...allValueCreationOptions.filter(option => 
-            forcedValueTypeConstraint && 
+        ...allValueCreationOptions.filter(option =>
+            forcedValueTypeConstraint &&
             isSelectedTypeContainsType(forcedValueTypeConstraint, option.typeCheck)
         )
     ];
@@ -306,14 +260,14 @@ const HelperPaneNewEl = ({
                 />
             </div>
             , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
-            onClose();
+        onClose();
     }
 
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
                 <SlidingWindow>
-                    <SlidingPane name="PAGE1" paneWidth={rect.width} paneHeight='170px'>
+                    <SlidingPane name="PAGE1" paneWidth={300} paneHeight='170px'>
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
 
@@ -395,7 +349,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Variables Page */}
-                    <SlidingPane name="VARIABLES" paneWidth={rect.width}>
+                    <SlidingPane name="VARIABLES" paneWidth={300}>
                         <SlidingPaneHeader>
                             Variables
                         </SlidingPaneHeader>
@@ -416,7 +370,7 @@ const HelperPaneNewEl = ({
                     </SlidingPane>
 
                     {/* Inputs Page */}
-                    <SlidingPane name="INPUTS" paneWidth={rect.width}>
+                    <SlidingPane name="INPUTS" paneWidth={300}>
                         <SlidingPaneHeader>
                             Inputs
                         </SlidingPaneHeader>
@@ -431,7 +385,7 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={rect.width}>
+                    <SlidingPane name="CREATE_VALUE" paneWidth={300}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
                             fileName={fileName}
@@ -443,7 +397,7 @@ const HelperPaneNewEl = ({
                             anchorRef={anchorRef} />
                     </SlidingPane>
 
-                    <SlidingPane name="FUNCTIONS" paneWidth={rect.width}>
+                    <SlidingPane name="FUNCTIONS" paneWidth={300}>
                         <SlidingPaneHeader>
                             Functions
                         </SlidingPaneHeader>
@@ -458,7 +412,7 @@ const HelperPaneNewEl = ({
                             selectedType={selectedType} />
                     </SlidingPane>
 
-                    <SlidingPane name="CONFIGURABLES" paneWidth={rect.width}>
+                    <SlidingPane name="CONFIGURABLES" paneWidth={300}>
                         <SlidingPaneHeader>
                             Configurables
                         </SlidingPaneHeader>
@@ -502,7 +456,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         fieldKey,
         fileName,
         targetLineRange,
-        exprRef,
         anchorRef,
         onClose,
         defaultValue,
@@ -528,7 +481,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             fieldKey={fieldKey}
             fileName={fileName}
             targetLineRange={targetLineRange}
-            exprRef={exprRef}
             anchorRef={anchorRef}
             onClose={onClose}
             defaultValue={defaultValue}
