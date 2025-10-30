@@ -84,3 +84,10 @@ export function getReadableListenerName(name: string) {
     const listenerType = match ? match[1] : "Unknown";
     return `${listenerType.charAt(0).toUpperCase() + listenerType.slice(1)} Listener`;
 }
+
+export function hasEditableParameters(parameters: FunctionModel['parameters']): boolean {
+    if (!parameters || parameters.length === 0) {
+        return false;
+    }
+    return parameters.some((param) => param.editable !== false);
+}
