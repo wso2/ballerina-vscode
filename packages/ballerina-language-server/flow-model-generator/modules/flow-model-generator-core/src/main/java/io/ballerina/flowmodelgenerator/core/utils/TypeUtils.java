@@ -96,6 +96,12 @@ public class TypeUtils {
                 moduleId.orgName(), moduleId.packageName(), typeSymbol.getName().get());
     }
 
+    /**
+     * Check if the given annotation attachment is a GraphQL ID annotation.
+     *
+     * @param annotAttach the annotation attachment symbol
+     * @return true if the annotation is a GraphQL ID annotation, false otherwise
+     */
     public static boolean isGraphqlIdAnnotation(AnnotationAttachmentSymbol annotAttach) {
         AnnotationSymbol annot = annotAttach.typeDescriptor();
         return annot.getName().isPresent()
