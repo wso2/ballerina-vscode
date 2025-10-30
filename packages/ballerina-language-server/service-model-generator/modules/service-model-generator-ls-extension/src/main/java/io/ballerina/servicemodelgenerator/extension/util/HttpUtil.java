@@ -613,7 +613,10 @@ public final class HttpUtil {
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         String signature = statusCodeResponseType.signature().trim();
         if (signature.startsWith("record {") && signature.endsWith("}")) {
-            return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, null);
+            HttpResponse httpResponse = buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName,
+                    statusCode, null);
+            httpResponse.setEditable(true);
+            return httpResponse;
         }
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         if (typeName.startsWith("http:")) {
