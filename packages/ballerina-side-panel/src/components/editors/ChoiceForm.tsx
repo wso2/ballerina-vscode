@@ -129,11 +129,12 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.map((dfield) => {
+                {dynamicFields.map((dfield, index) => {
                     return (
                         <EditorFactory
                             key={dfield.key}
                             field={dfield}
+                            autoFocus={index === 0 ? true : false}
                             recordTypeFields={recordTypeFields}
                         />
                     );

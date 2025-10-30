@@ -91,7 +91,7 @@ const ActionGroup = styled.div`
 `;
 
 const ServiceMetadataContainer = styled.div`
-    padding: 12px 15px;
+    padding: 12px 25px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
     display: flex;
     flex-direction: column;
@@ -132,7 +132,6 @@ const ListenerBadge = styled.div`
 `;
 
 const PropertyInline = styled.div`
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -141,6 +140,8 @@ const PropertyInline = styled.div`
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 4px;
     font-size: 11px;
+    height: 24px;
+    pointer-events: none;
 `;
 
 const PropertyKey = styled.span`
@@ -210,7 +211,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [selectedHandler, setSelectedHandler] = useState<FunctionModel>(undefined);
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
-
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -282,17 +282,21 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             }
         }
         if (service?.properties) {
-            // iterate over each property and check if it's readonly
+            // Extract readonly properties from readOnlyMetadata if available
             const readonlyProps: Set<ReadonlyProperty> = new Set();
-            Object.keys(service.properties).forEach((key) => {
-                if (key === "listener" || service.properties[key].codedata.type === "ANNOTATION_ATTACHMENT") {
-                    return;
-                }
-                const property = service.properties[key];
-                if (property.enabled === true) {
-                    readonlyProps.add({ label: property.metadata.label, value: property.value || property.values });
-                }
-            });
+            const readOnlyMetadata = service.properties.readOnlyMetadata;
+
+            if (readOnlyMetadata?.enabled && readOnlyMetadata.value && typeof readOnlyMetadata.value === "object" && !Array.isArray(readOnlyMetadata.value)) {
+                Object.entries(readOnlyMetadata.value).forEach(([label, values]) => {
+                    if (Array.isArray(values) && values.length > 0) {
+                        readonlyProps.add({
+                            label,
+                            value: values.length === 1 ? values[0] : values
+                        });
+                    }
+                });
+            }
+
             setReadonlyProperties(readonlyProps);
             setIsHttpService(service.moduleName === "http");
             setIsMcpService(service.moduleName === "mcp");
@@ -328,15 +332,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         // Set dropdown options
         const options: DropdownOptionProps[] = [];
-
-        if (unusedHandlers.length > 0) {
-            options.push({
-                title: "Add Handler",
-                description: "Select the handler to add",
-                value: ADD_HANDLER
-            });
-        }
-
         // if (!hasInitMethod) {
         //     options.push({
         //         title: "Add Init Function",
@@ -543,21 +538,21 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleFunctionDelete = async (model: FunctionModel) => {
         console.log("Deleting Resource Model:", model);
-        const targetPosition: NodePosition = {
+        const component: ComponentInfo = {
+            name: model.name.value,
+            filePath: model.codedata.lineRange.fileName,
             startLine: model.codedata.lineRange.startLine.line,
             startColumn: model.codedata.lineRange.startLine.offset,
             endLine: model.codedata.lineRange.endLine.line,
             endColumn: model.codedata.lineRange.endLine.offset,
         };
-        const component: ComponentInfo = {
-            name: model.name.value,
-            filePath: model.codedata.lineRange.fileName,
-            startLine: targetPosition.startLine,
-            startColumn: targetPosition.startColumn,
-            endLine: targetPosition.endLine,
-            endColumn: targetPosition.endColumn,
-        };
         await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
+        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+        const serviceArtifact = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
+        if (serviceArtifact) {
+            await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+            fetchService(serviceArtifact.position);
+        }
     };
 
     const handleResourceSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
@@ -604,10 +599,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     /**
      * This function invokes when a new function is added using right panel form.
-     * 
-     * @param value 
+     *
+     * @param value
+     * @param openDiagram - Whether to open the flow diagram after saving
      */
-    const handleFunctionSubmit = async (value: FunctionModel) => {
+    const handleFunctionSubmit = async (value: FunctionModel, openDiagram: boolean = false) => {
         setIsSaving(true);
         const lineRange: LineRange = {
             startLine: { line: position.startLine, offset: position.startColumn },
@@ -617,16 +613,33 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isNew) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value });
+                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
-                fetchService(serviceArtifact.position);
-                await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
+                if (openDiagram) {
+                    // Navigate to flow diagram for the newly created handler
+                    const handler = serviceArtifact.resources?.find(
+                        r => r.name === value.name.value
+                    );
+                    if (handler) {
+                        await rpcClient.getVisualizerRpcClient().openView({
+                            type: EVENT_TYPE.OPEN_VIEW,
+                            location: { documentUri: handler.path, position: handler.position }
+                        });
+                    }
+                } else {
+                    // Just update the project location
+                    fetchService(serviceArtifact.position);
+                    await rpcClient.getVisualizerRpcClient().openView({
+                        type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+                        location: { documentUri: serviceArtifact.path, position: serviceArtifact.position }
+                    });
+                }
             }
         } else {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value });
+                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
@@ -766,7 +779,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             actions={
                                 <>
                                     <Button appearance="secondary" tooltip="Edit Service" onClick={handleServiceEdit}>
-                                        <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
+                                        <Icon
+                                            name="bi-settings"
+                                            sx={{
+                                                marginRight: 5,
+                                                fontSize: "16px",
+                                                width: "16px",
+                                            }}
+                                        /> Configure
                                     </Button>
                                     {
                                         serviceModel && (isHttpService || isMcpService) && (
@@ -777,7 +797,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             </>
                                         )
                                     }
-                                    {serviceModel && !isMcpService && (
+                                    {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
                                         <AddServiceElementDropdown
                                             buttonTitle="More"
                                             toolTip="More options"
@@ -798,7 +818,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         {listeners.length > 0 && (
                                             <>
                                                 {listeners.map((listener, index) => (
-                                                    <PropertyInline key={`${index}-listener`} onClick={() => handleOpenListener(listener)}>
+                                                    <PropertyInline key={`${index}-listener`}>
                                                         <Icon name="radio-tower" isCodicon sx={{ fontSize: 12 }} />
                                                         <PropertyKey>Listener:</PropertyKey>
                                                         <PropertyValue>
@@ -812,12 +832,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             <>
                                                 {
                                                     Array.from(readonlyProperties).map(prop => (
-                                                        <PropertyInline key={prop.label} onClick={handleServiceEdit}>
-                                                            <Icon
-                                                                name={findIcon(prop.label)}
-                                                                isCodicon
-                                                                sx={{ fontSize: 11, opacity: 0.7 }}
-                                                            />
+                                                        <PropertyInline key={prop.label}>
                                                             <PropertyKey>{prop.label}:</PropertyKey>
                                                             <PropertyValue>
                                                                 {Array.isArray(prop.value) ? prop.value.join(", ") : removeForwardSlashes(prop.value)}
@@ -895,27 +910,28 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 )}
                                             </ActionGroup>
                                         </SectionHeader>
-                                        <FunctionsContainer>
-                                            {resources
-                                                .filter((resource) => {
-                                                    const search = searchValue.toLowerCase();
-                                                    const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
-                                                    const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
-                                                    return nameMatch || iconMatch;
-                                                })
-                                                .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
-                                                .map((resource, index) => (
-                                                    <ResourceAccordionV2
-                                                        key={`${index}-${resource.name}`}
-                                                        resource={resource}
-                                                        readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                                        onEditResource={handleFunctionEdit}
-                                                        onDeleteResource={handleFunctionDelete}
-                                                        onResourceImplement={handleOpenDiagram}
-                                                    />
-                                                ))}
-                                        </FunctionsContainer>
-
+                                        {resourcesCount > 0 && (
+                                            <FunctionsContainer>
+                                                {resources
+                                                    .filter((resource) => {
+                                                        const search = searchValue.toLowerCase();
+                                                        const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
+                                                        const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
+                                                        return nameMatch || iconMatch;
+                                                    })
+                                                    .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
+                                                    .map((resource, index) => (
+                                                        <ResourceAccordionV2
+                                                            key={`${index}-${resource.name}`}
+                                                            resource={resource}
+                                                            readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
+                                                            onEditResource={handleFunctionEdit}
+                                                            onDeleteResource={handleFunctionDelete}
+                                                            onResourceImplement={handleOpenDiagram}
+                                                        />
+                                                    ))}
+                                            </FunctionsContainer>
+                                        )}
                                         {resourcesCount === 0 && (
                                             <EmptyReadmeContainer>
                                                 <Description variant="body2">
@@ -993,7 +1009,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 <>
                                     <SectionHeader
                                         title="Event Handlers"
-                                        subtitle="Define how the service responds to events"
+                                        subtitle={enabledHandlers.length === 0 ? "" : `Define how the service responds to events`}
                                     >
                                         <ActionGroup>
                                             {enabledHandlers.length !== 0 && unusedHandlers.length > 0 && (
@@ -1116,7 +1132,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                             {/* This is for adding a http resource */}
                             {functionModel && isHttpService && functionModel.kind === "RESOURCE" && isNew && (
                                 <PanelContainer
-                                    title={"New Resource Configuration"}
+                                    title={"Select HTTP Method to Add"}
                                     show={showForm}
                                     onClose={handleNewFunctionClose}
                                     width={400}
@@ -1128,6 +1144,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1146,9 +1163,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     <ResourceForm
                                         model={functionModel}
                                         isSaving={isSaving}
+                                        filePath={filePath}
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         payloadContext={{
+                                            protocol: "HTTP",
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1169,6 +1188,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
+                                        isNew={isNew}
+                                        payloadContext={{
+                                            protocol: "MESSAGE_BROKER",
+                                            serviceName: serviceModel.name || '',
+                                            messageDocumentation: functionModel?.metadata?.description || ''
+                                        }}
+                                        serviceProperties={serviceModel.properties}
+                                        serviceModuleName={serviceModel.moduleName}
                                     />
                                 </PanelContainer>
                             )}

@@ -71,6 +71,7 @@ import {
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
+    isUserAuthenticated,
     markAlertShown,
     MetadataWithAttachments,
     openChatWindowWithCommand,
@@ -155,4 +156,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
     messenger.onNotification(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
+    messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
 }

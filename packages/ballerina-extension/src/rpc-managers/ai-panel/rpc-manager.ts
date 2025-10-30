@@ -29,7 +29,6 @@ import {
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
-    DiagnosticList,
     Diagnostics,
     DocGenerationRequest,
     FetchDataRequest,
@@ -55,7 +54,6 @@ import {
     RequirementSpecification,
     SourceFile,
     SubmitFeedbackRequest,
-    TempDirectoryPath,
     TestGenerationMentions,
     TestGenerationRequest,
     TestGenerationResponse,
@@ -71,8 +69,8 @@ import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
-import { URI } from "vscode-uri";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
+import { generateContextTypes, generateInlineMappingCode, generateMappingCode, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
@@ -99,10 +97,10 @@ import {
     REQUIREMENT_TEXT_DOCUMENT,
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
-import { addMissingRequiredFields, attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
+import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { generateMappingCode, generateInlineMappingCode, generateContextTypes, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
+import { checkToken } from "../../../src/views/ai-panel/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -683,6 +681,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async openChatWindowWithCommand(): Promise<void> {
         await openChatWindowWithCommand();
+    }
+
+    async isUserAuthenticated(): Promise<boolean> {
+        try {
+            const token = await checkToken();
+            return !!token;
+        } catch (error) {
+            return false;
+        }
     }
 }
 

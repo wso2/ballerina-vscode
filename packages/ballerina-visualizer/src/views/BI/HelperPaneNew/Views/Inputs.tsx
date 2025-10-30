@@ -17,16 +17,18 @@
  */
 
 import { ExpandableList } from "../Components/ExpandableList"
-import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
+import { TypeIndicator } from "../Components/TypeIndicator"
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
-import styled from "@emotion/styled"
-import { HelperPaneIconType, getHelperPaneIcon } from "../Utils/iconUtils"
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
+import { shouldShowNavigationArrow } from "../utils/types"
+import { HelperPaneListItem } from "../Components/HelperPaneListItem"
+import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
+import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
 
 type InputsPageProps = {
     fileName: string;
@@ -45,73 +47,45 @@ type InputItemProps = {
 }
 
 const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
-    const [isHovered, setIsHovered] = useState(false);
+    const showArrow = shouldShowNavigationArrow(item);
+
+    const mainContent = (
+        <>
+            {getHelperPaneIcon(HelperPaneIconType.INPUT)}
+            <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
+                {item.label}
+            </Typography>
+            <Tooltip content={item.description} position="top">
+                <TypeIndicator>
+                    {item.description}
+                </TypeIndicator>
+            </Tooltip>
+        </>
+    );
+
+    const endAction = showArrow ? (
+        <Codicon 
+            name="chevron-right" 
+        />
+    ) : undefined;
 
     return (
-        <SlidingPaneNavContainer
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+        <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
-            data
-            sx={{
-                maxHeight: isHovered ? "none" : "32px"
-            }}
-            endIcon={
-                <InputsMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
-                    event.stopPropagation();
-                    onMoreIconClick(item.label);
-                }}>
-                    <Tooltip content={item.description} position="top">
-                        <VariableTypeIndicator >
-                            {item.description}
-                        </VariableTypeIndicator>
-                    </Tooltip>
-                    <Codicon name="chevron-right" />
-                </InputsMoreIconContainer>}
+            endAction={endAction}
+            onClickEndAction={() => onMoreIconClick(item.label)}
         >
-            <ExpandableList.Item>
-                {getHelperPaneIcon(HelperPaneIconType.INPUT)}
-                <Typography
-                    variant="body3"
-                    sx={{
-                        maxWidth: isHovered ? '30ch' : '20ch',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: isHovered ? 'normal' : 'nowrap',
-                        transition: 'all 0.3s ease'
-                    }}
-                >
-                    {item.label}
-                </Typography>
-            </ExpandableList.Item>
-        </SlidingPaneNavContainer>
+            {mainContent}
+        </HelperPaneListItem>
     );
 };
-
-const InputsMoreIconContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-     &:hover {
-        cursor: pointer;
-    }
-`;
-
-type BreadCrumbStep = {
-    label: string;
-    replaceText: string
-}
 
 export const Inputs = (props: InputsPageProps) => {
     const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
-        label: "Inputs",
-        replaceText: ""
-    }]);
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Inputs");
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -136,12 +110,22 @@ export const Inputs = (props: InputsPageProps) => {
     }, [targetLineRange])
 
     const dropdownItems = useMemo(() => {
+        // If we're at the root level, only show parameters
+        if (isAtRoot()) {
+            return filteredCompletions.filter(
+                (completion) =>
+                completion.kind === "variable" &&
+                completion.labelDetails?.description?.includes("Parameter")
+            );
+        }
+        
+        // If we're navigating inside an object, show all fields and variables
         return filteredCompletions.filter(
             (completion) =>
-            completion.kind === "variable" &&
-            completion.labelDetails?.description?.includes("Parameter")
+                (completion.kind === "field" || completion.kind === "variable") &&
+                completion.label !== "self"
         );
-    }, [filteredCompletions]);
+    }, [filteredCompletions, isAtRoot]);
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
@@ -159,20 +143,11 @@ export const Inputs = (props: InputsPageProps) => {
     }
 
     const handleInputsMoreIconClick = (value: string) => {
-        const newBreadCrumSteps = [...breadCrumbSteps, {
-            label: value,
-            replaceText: currentValue + value
-        }];
-        setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(value + '.', false, true);
+        navigateToNext(value, currentValue, onChange);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
-        onChange(replaceText, true);
-        const index = breadCrumbSteps.findIndex(item => item.label === step.label);
-        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
-        setBreadCrumbSteps(newSteps);
+        navigateToBreadcrumb(step, onChange);
     }
 
     const ExpandableListItems = () => {
@@ -200,23 +175,15 @@ export const Inputs = (props: InputsPageProps) => {
             overflow: "hidden"
         }}>
 
-            {
-                breadCrumbSteps.length > 1 && (
-                    <div style={{ display: "flex", gap: '8px', padding: '5px 8px', backgroundColor: ThemeColors.SURFACE_DIM_2 }}>
-                        {breadCrumbSteps.map((step, index) => (
-                            <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
-                                <span onClick={() => handleBreadCrumbItemClicked(step)}>
-                                    {step.label}
-                                </span>
-                                {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
-                            </span>
-                        ))}
-
-                    </div>
-                )}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
-                <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
-            </div>
+            <BreadcrumbNavigation
+                breadCrumbSteps={breadCrumbSteps}
+                onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
+            />
+            {dropdownItems.length >= 6 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
+                    <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
+                </div>
+            )}
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {isLoading || !showContent ? (
@@ -224,7 +191,7 @@ export const Inputs = (props: InputsPageProps) => {
                 ) : (
                     <>
                         {filteredDropDownItems.length === 0 ? (
-                            <EmptyItemsPlaceHolder message="No inputs found" />
+                            <EmptyItemsPlaceHolder message={searchValue ? "No inputs found for your search" : "No inputs found"} />
                         ) : (
                             <ExpandableList>
                                 <ExpandableListItems />
