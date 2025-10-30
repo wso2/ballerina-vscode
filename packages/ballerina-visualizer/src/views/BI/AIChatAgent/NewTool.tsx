@@ -70,6 +70,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
 
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+        console.log(">>> agent node found", { agentNode });
         setAgentNode(agentNode);
     };
 
@@ -82,10 +83,11 @@ export function NewTool(props: NewToolProps): JSX.Element {
         }
         try {
             const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
+            const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(updatedAgentNode.codedata.lineRange.fileName);
             // generate the source code
             const agentResponse = await rpcClient
                 .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
+                .getSourceCode({ filePath: filePath, flowNode: updatedAgentNode });
             console.log(">>> response getSourceCode with template ", { agentResponse });
 
             // wait for 2 seconds

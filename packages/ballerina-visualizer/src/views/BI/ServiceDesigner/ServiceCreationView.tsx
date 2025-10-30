@@ -439,6 +439,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                                 targetLineRange={targetLineRange}
                                                 fields={formFields}
                                                 isSaving={isSaving}
+                                                nestedForm={true}
                                                 onSubmit={handleOnSubmit}
                                                 preserveFieldOrder={true}
                                                 recordTypeFields={recordTypeFields}
