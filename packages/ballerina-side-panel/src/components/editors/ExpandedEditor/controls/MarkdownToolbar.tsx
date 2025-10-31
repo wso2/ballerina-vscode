@@ -18,7 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon, Switch } from "@wso2/ui-toolkit";
+import { ThemeColors, Icon, Switch } from "@wso2/ui-toolkit";
 import "@github/markdown-toolbar-element";
 
 // Type declarations for GitHub markdown toolbar custom elements
@@ -122,36 +122,36 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
         <ToolbarContainer>
             <markdown-toolbar for={textareaId}>
                 <md-bold>
-                    <ToolbarButton title="Bold (Ctrl/Cmd+B)" disabled={isPreviewMode}>
-                        <Codicon name="bold" />
+                    <ToolbarButton title="Bold" disabled={isPreviewMode}>
+                        <Icon name="bi-bold" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-bold>
                 <md-italic>
-                    <ToolbarButton title="Italic (Ctrl/Cmd+I)" disabled={isPreviewMode}>
-                        <Codicon name="italic" />
+                    <ToolbarButton title="Italic" disabled={isPreviewMode}>
+                        <Icon name="bi-italic" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-italic>
                 <md-code>
                     <ToolbarButton title="Inline Code" disabled={isPreviewMode}>
-                        <Codicon name="code" />
+                        <Icon name="bi-code" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-code>
                 <md-link>
-                    <ToolbarButton title="Insert Link (Ctrl/Cmd+K)" disabled={isPreviewMode}>
-                        <Codicon name="link" />
+                    <ToolbarButton title="Insert Link" disabled={isPreviewMode}>
+                        <Icon name="bi-link" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-link>
 
                 <ToolbarDivider />
 
-                <md-header data-md-header="2">
-                    <ToolbarButton title="Heading 2" disabled={isPreviewMode}>
-                        <Codicon name="symbol-text" />
+                <md-header data-md-header="3">
+                    <ToolbarButton title="Heading" disabled={isPreviewMode}>
+                        <Icon name="bi-heading" sx={{ width: "24px", height: "24px", fontSize: "24px" }} />
                     </ToolbarButton>
                 </md-header>
                 <md-quote>
                     <ToolbarButton title="Blockquote" disabled={isPreviewMode}>
-                        <Codicon name="quote" />
+                        <Icon name="bi-quote" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-quote>
 
@@ -159,17 +159,17 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
 
                 <md-unordered-list>
                     <ToolbarButton title="Bulleted List" disabled={isPreviewMode}>
-                        <Codicon name="list-unordered" />
+                        <Icon name="bi-bulleted" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-unordered-list>
                 <md-ordered-list>
                     <ToolbarButton title="Numbered List" disabled={isPreviewMode}>
-                        <Codicon name="list-ordered" />
+                        <Icon name="bi-numbered" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-ordered-list>
                 <md-task-list>
                     <ToolbarButton title="Task List" disabled={isPreviewMode}>
-                        <Codicon name="checklist" />
+                        <Icon name="bi-checklist" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                     </ToolbarButton>
                 </md-task-list>
             </markdown-toolbar>
