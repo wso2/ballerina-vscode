@@ -79,9 +79,9 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
                 onChange(newValue);
                 // Set cursor position after both newlines
-                setTimeout(() => {
+                queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                }, 0);
+                });
                 return;
             }
 
@@ -90,10 +90,10 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             const newValue = textBeforeCursor + '\n' + indent + marker + ' ' + textAfterCursor;
             onChange(newValue);
             // Set cursor position after the list marker
-            setTimeout(() => {
+            queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + marker.length + 2;
                 textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            }, 0);
+            });
             return;
         }
 
@@ -108,9 +108,9 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
                 onChange(newValue);
                 // Set cursor position after both newlines
-                setTimeout(() => {
+                queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                }, 0);
+                });
                 return;
             }
 
@@ -120,10 +120,10 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             const newValue = textBeforeCursor + '\n' + indent + nextNumber + '. ' + textAfterCursor;
             onChange(newValue);
             // Set cursor position after the list marker
-            setTimeout(() => {
+            queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + nextNumber.toString().length + 3;
                 textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            }, 0);
+            });
             return;
         }
 
@@ -138,9 +138,9 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
                 onChange(newValue);
                 // Set cursor position after both newlines
-                setTimeout(() => {
+                queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                }, 0);
+                });
                 return;
             }
 
@@ -149,10 +149,10 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             const newValue = textBeforeCursor + '\n' + indent + marker + ' [ ] ' + textAfterCursor;
             onChange(newValue);
             // Set cursor position after the task marker
-            setTimeout(() => {
+            queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + marker.length + 6;
                 textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            }, 0);
+            });
             return;
         }
     };
