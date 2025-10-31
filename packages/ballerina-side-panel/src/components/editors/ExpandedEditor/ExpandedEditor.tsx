@@ -19,11 +19,11 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon, Divider, Button, Dropdown, ToggleSwitch, Icon, Tooltip } from "@wso2/ui-toolkit";
+import { ThemeColors, Codicon, Divider, Button } from "@wso2/ui-toolkit";
 import { FormField } from "../../Form/types";
 import { S } from "../ExpressionEditor";
 import ReactMarkdown from "react-markdown";
-import { EditorMode, MODE_LABELS } from "./modes/types";
+import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 
@@ -86,21 +86,6 @@ const ButtonContainer = styled.div`
     padding: 0 16px 8px 16px;
 `;
 
-const ControlsRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    justify-content: space-between;
-`;
-
-const ToggleWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-`;
-
 /**
  * Map of mode components - add new modes here
  */
@@ -119,7 +104,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     const [editedValue, setEditedValue] = useState(value);
     const promptFields = ["query", "instructions", "role"];
     const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
-    const [mode, setMode] = useState<EditorMode>(defaultMode);
+    const [mode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
@@ -164,7 +149,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
-            onTogglePreview: setShowPreview
+            onTogglePreview: () => setShowPreview(!showPreview)
         })
     };
 
@@ -188,31 +173,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                     </div>
                 </ModalHeaderSection>
                 <Divider sx={{ margin: 0 }} />
-                <ControlsRow>
-                    <Dropdown
-                        id="input-mode"
-                        value={mode}
-                        onChange={(e) => setMode(e.target.value as EditorMode)}
-                        items={Object.entries(MODE_LABELS).map(([id, label]) => ({
-                            id,
-                            content: label,
-                            value: id
-                        }))}
-                        sx={{ width: "150px" }}
-                    />
-                    {mode === "prompt" && (
-                        <ToggleWrapper>
-                            <Tooltip content="Preview Markdown">
-                                <Icon name="bi-markdown" sx={{ width: 28, height: 28, fontSize: 28 }} />
-                            </Tooltip>
-                            <ToggleSwitch
-                                checked={showPreview}
-                                onChange={(checked) => setShowPreview(checked)}
-                                sx={{ fontSize: 10 }}
-                            />
-                        </ToggleWrapper>
-                    )}
-                </ControlsRow>
                 <ModalContent>
                     <ModeComponent {...modeProps} />
                 </ModalContent>
