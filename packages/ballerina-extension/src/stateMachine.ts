@@ -26,6 +26,7 @@ interface MachineContext extends VisualizerLocation {
 
 export let history: History;
 export let undoRedoManager: IUndoRedoManager;
+let pendingProjectRootUpdateResolvers: Array<() => void> = [];
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -54,6 +55,19 @@ const stateMachine = createMachine<MachineContext>(
                         queueMicrotask(() => {
                             commands.executeCommand("BI.project-explorer.refresh");
                         });
+                    }
+                ]
+            },
+            UPDATE_PROJECT_ROOT: {
+                actions: [
+                    assign({
+                        projectUri: (context, event) => event.projectPath
+                    }),
+                    async (context, event) => {
+                        await buildProjectArtifactsStructure(event.projectPath, StateMachine.langClient(), true);
+                        notifyCurrentWebview();
+                        // Resolve the next pending promise waiting for project root update completion
+                        pendingProjectRootUpdateResolvers.shift()?.();
                     }
                 ]
             },
@@ -192,8 +206,9 @@ const stateMachine = createMachine<MachineContext>(
                             isGraphql: (context, event) => event.viewLocation?.isGraphql,
                             metadata: (context, event) => event.viewLocation?.metadata,
                             addType: (context, event) => event.viewLocation?.addType,
-                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
-                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                            artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
                         })
                     }
                 }
@@ -265,8 +280,9 @@ const stateMachine = createMachine<MachineContext>(
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
                                     addType: (context, event) => event.viewLocation?.addType,
-                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
-                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                    artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
                                 })
                             },
                             VIEW_UPDATE: {
@@ -321,13 +337,13 @@ const stateMachine = createMachine<MachineContext>(
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
+                    // Register the event driven listener to get the artifact changes
+                    context.langClient.registerPublishArtifacts();
                     // If the project uri is not set, we don't need to build the project structure
                     if (context.projectUri) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
-                        // Register the event driven listener to get the artifact changes
-                        context.langClient.registerPublishArtifacts();
                         // Initial Project Structure
                         const projectStructure = await buildProjectArtifactsStructure(context.projectUri, context.langClient);
                         resolve({ projectStructure });
@@ -613,6 +629,12 @@ export const StateMachine = {
     },
     sendEvent: (eventType: EVENT_TYPE) => { stateService.send({ type: eventType }); },
     updateProjectStructure: (payload: ProjectStructureResponse) => { stateService.send({ type: "UPDATE_PROJECT_STRUCTURE", payload }); },
+    updateProjectRoot: (projectPath: string): Promise<void> => {
+        return new Promise<void>((resolve) => {
+            pendingProjectRootUpdateResolvers.push(resolve);
+            stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
+        });
+    },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },

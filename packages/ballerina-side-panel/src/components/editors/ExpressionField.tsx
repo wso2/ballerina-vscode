@@ -19,27 +19,36 @@
 import React, { RefObject } from 'react';
 import {
     CompletionItem,
-    FormExpressionEditor,
+    FnSignatureDocumentation,
     FormExpressionEditorRef,
     HelperPaneHeight,
     ThemeColors,
     Tooltip
 } from '@wso2/ui-toolkit';
-import { InputMode } from './ChipExpressionEditor/types';
 import { S } from './ExpressionEditor';
-import TextModeEditor from './TextModeEditor';
+import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
+import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 
 export interface ExpressionField {
     inputMode: InputMode;
     name: string;
     value: string;
+    fileName?: string;
+    targetLineRange?: LineRange;
     completions: CompletionItem[];
     autoFocus?: boolean;
     sanitizedExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
-    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<any>;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
     onCompletionSelect?: (value: string, item: CompletionItem) => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -50,7 +59,7 @@ export interface ExpressionField {
     changeHelperPaneState: (isOpen: boolean) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     helperPaneHeight?: HelperPaneHeight;
@@ -89,6 +98,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     autoFocus,
     ariaLabel,
     placeholder,
+    fileName,
+    targetLineRange,
     onChange,
     extractArgsFromFunction,
     onCompletionSelect,
@@ -132,34 +143,14 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     }
 
     return (
-        <FormExpressionEditor
-            ref={exprRef}
-            anchorRef={anchorRef}
-            name={name}
-            completions={completions}
-            value={sanitizedExpression ? sanitizedExpression(value) : value}
-            autoFocus={autoFocus}
-            startAdornment={<EditorRibbon onClick={onToggleHelperPane} />}
-            ariaLabel={ariaLabel}
-            onChange={onChange}
-            extractArgsFromFunction={extractArgsFromFunction}
-            onCompletionSelect={onCompletionSelect}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onSave={onSave}
-            onCancel={onCancel}
-            onRemove={onRemove}
-            enableExIcon={false}
-            isHelperPaneOpen={isHelperPaneOpen}
-            changeHelperPaneState={changeHelperPaneState}
-            helperPaneOrigin="vertical"
+        <ChipExpressionBaseComponent
             getHelperPane={getHelperPane}
-            helperPaneHeight={helperPaneHeight}
-            helperPaneWidth={helperPaneWidth}
-            growRange={growRange}
-            sx={{ paddingInline: '0' }}
-            placeholder={placeholder}
-            helperPaneZIndex={helperPaneZIndex}
+            completions={completions}
+            onChange={onChange}
+            value={value}
+            fileName={fileName}
+            targetLineRange={targetLineRange}
+            extractArgsFromFunction={extractArgsFromFunction}
         />
     );
 };

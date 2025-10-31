@@ -18,6 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { HistoryEntry } from "../../history";
+import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
 import { AddToUndoStackRequest, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
 import { NotificationType, RequestType } from "vscode-messenger-common";
@@ -35,3 +36,4 @@ export const addToUndoStack: NotificationType<AddToUndoStackRequest> = { method:
 export const undoRedoState: RequestType<void, UndoRedoStateResponse> = { method: `${_preFix}/undoRedoState` };
 export const joinProjectPath: RequestType<string | string[], string> = { method: `${_preFix}/joinProjectPath` };
 export const getThemeKind: RequestType<void, ColorThemeKind> = { method: `${_preFix}/getThemeKind` };
+export const updateCurrentArtifactLocation: RequestType<UpdatedArtifactsResponse, ProjectStructureArtifactResponse> = { method: `${_preFix}/updateCurrentArtifactLocation` };

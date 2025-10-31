@@ -20,7 +20,7 @@ import React, { useRef, useState } from 'react';
 import { Imports, Member, Type } from '@wso2/ballerina-core';
 import { Button, CheckBox, Codicon, TextField } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { typeToSource, defaultAnonymousRecordType } from './TypeUtil';
+import { typeToSource, defaultAnonymousRecordType, isGraphQLScalarType } from './TypeUtil';
 import { RecordEditor } from './RecordEditor';
 import { AdvancedOptions } from './AdvancedOptions';
 import { IdentifierField } from './IdentifierField';
@@ -35,6 +35,7 @@ interface FieldEditorProps {
     onFieldValidation: (isIdentifier: boolean, hasError: boolean) => void;
     onRecordValidation: (hasError: boolean) => void;
     onDelete: () => void;
+    isGraphql?: boolean;
 }
 
 const ButtonDeactivated = styled.div<{}>`
@@ -64,8 +65,15 @@ const CollapsibleSection = styled.div`
     border-radius: 4px;
 `;
 
+const CheckBoxGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 5px;
+`;
+
 export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
-    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation } = props;
+    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation, isGraphql } = props;
     const [panelOpened, setPanelOpened] = useState<boolean>(false);
     const recordEditorRef = useRef<{ addMember: () => void }>(null);
     const currentImports = useRef<Imports | undefined>();
@@ -140,7 +148,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
 
     return (
         <>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'start' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'start', justifyContent: 'space-between' }}>
                 <ExpandIconButton
                     data-testid={`field-expand-btn`}
                     appearance="icon"
@@ -148,21 +156,25 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 >
                     <Codicon name={panelOpened ? "chevron-down" : "chevron-right"} />
                 </ExpandIconButton>
-                <IdentifierField
-                    value={member.name}
-                    onChange={handleNameChange}
-                    rootType={type}
-                    onValidationError={(hasError) => onFieldValidation(true, hasError)}
-                />
-                <TypeField
-                    type={member.type}
-                    memberName={typeToSource(member.type)}
-                    onChange={handleTypeChange}
-                    onUpdateImports={handleUpdateImports}
-                    onValidationError={(hasError) => onFieldValidation(false, hasError)}
-                    rootType={type}
-                    isAnonymousRecord={isRecord(member.type)}
-                />
+                <div style={{ width: '100%' }}>
+                    <IdentifierField
+                        value={member.name}
+                        onChange={handleNameChange}
+                        rootType={type}
+                        onValidationError={(hasError) => onFieldValidation(true, hasError)}
+                    />
+                </div>
+                <div style={{ width: '100%' }}>
+                    <TypeField
+                        type={member.type}
+                        memberName={typeToSource(member.type)}
+                        onChange={handleTypeChange}
+                        onUpdateImports={handleUpdateImports}
+                        onValidationError={(hasError) => onFieldValidation(false, hasError)}
+                        rootType={type}
+                        isAnonymousRecord={isRecord(member.type)}
+                    />
+                </div>
                 <div style={{ display: 'flex', gap: '1px' }}>
                     {isRecord(member.type) &&
                         <Button appearance="icon" onClick={() => recordEditorRef.current?.addMember()} tooltip='Add Field'>
@@ -184,19 +196,31 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 <CollapsibleSection>
                     <TextField label='Default Value' value={member.defaultValue} onChange={handleMemberDefaultValueChange} style={{ width: '180px' }} />
                     <TextField label='Description' value={member.docs} onChange={handleDescriptionChange} style={{ width: '180px' }} />
-                    <CheckBox
-                        sx={{ border: 'none', padding: '5px' }}
-                        label="Readonly"
-                        checked={member.readonly}
-                        onChange={(checked: boolean) => {
-                            // Match the same pattern used in the working checkbox
-                            onChange({
-                                ...member,
-                                readonly: checked 
-                                }
-                            );
-                        }}
-                    />
+                    <CheckBoxGroup>
+                        <CheckBox
+                            label="Readonly"
+                            checked={member.readonly}
+                            onChange={(checked: boolean) => {
+                                onChange({
+                                    ...member,
+                                    readonly: checked
+                                    }
+                                );
+                            }}
+                        />
+                        {isGraphql && isGraphQLScalarType(member.type) &&
+                            <CheckBox
+                                label="ID Type"
+                                checked={member.isGraphqlId || false}
+                                onChange={(checked: boolean) => {
+                                    onChange({
+                                        ...member,
+                                        isGraphqlId: checked
+                                    });
+                                }}
+                            />
+                        }
+                    </CheckBoxGroup>
                 </CollapsibleSection>
             )}
             {isRecord(member.type) && typeof member.type !== 'string' && (

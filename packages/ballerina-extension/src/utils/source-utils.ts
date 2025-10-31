@@ -34,7 +34,7 @@ export interface UpdateSourceCodeRequest {
     resolveMissingDependencies?: boolean;
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, artifactData?: ArtifactData, description?: string): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, artifactData?: ArtifactData, description?: string, identifier?: string): Promise<ProjectStructureArtifactResponse[]> {
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
@@ -166,12 +166,14 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 const notificationHandler = ArtifactNotificationHandler.getInstance();
                 // Subscribe to artifact updated notifications
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, async (payload) => {
-                    console.log("Received notification:", payload);
-                    clearTimeout(timeoutId);
-                    resolve(payload.data);
-                    StateMachine.setReadyMode();
-                    checkAndNotifyWebview(payload.data);
-                    unsubscribe();
+                    if (payload.data && payload.data.length > 0) {
+                        console.log("Received notification:", payload);
+                        clearTimeout(timeoutId);
+                        resolve(payload.data);
+                        StateMachine.setReadyMode();
+                        checkAndNotifyWebview(payload.data, identifier);
+                        unsubscribe();
+                    }
                 });
 
                 // Set a timeout to reject if no notification is received within 10 seconds
@@ -207,10 +209,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 //** 
 // Notify webview unless a new TYPE artifact is created outside the type diagram view
 // */
-function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[]) {
+function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[], identifier?: string) {
     const newArtifact = response.find(artifact => artifact.isNew);
+    const selectedArtifact = response.find(artifact => artifact.id === identifier);
     const stateContext = StateMachine.context().view;
-    if (newArtifact?.type === "TYPE" && stateContext !== MACHINE_VIEW.TypeDiagram) {
+    if ((selectedArtifact?.type === "TYPE " || newArtifact?.type === "TYPE") && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
     } else {
         notifyCurrentWebview();

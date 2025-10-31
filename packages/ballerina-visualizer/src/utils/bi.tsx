@@ -174,17 +174,22 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
-        <NodeIcon type={codedata?.node} size={24} />
-    ));
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => {
+        return <AIModelIcon type={codedata?.module} codedata={codedata} />;
+    });
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
-export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return convertModelProviderCategoriesToSidePanelCategories(categories);
+export function convertKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => {
+        if ((codedata?.module as string).includes("azure")) {
+            return <AIModelIcon type="ai.azure" />;
+        }
+        return <NodeIcon type={codedata?.node} size={24} />
+    });
 }
 
 export function convertCategoriesToSidePanelCategoriesWithIcon(
@@ -213,6 +218,12 @@ export function convertDataLoaderCategoriesToSidePanelCategories(categories: Cat
 }
 
 export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
         <NodeIcon type={codedata?.node} size={24} />
     ));
@@ -397,6 +408,9 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             if (!activeNode) {
                 return "";
             }
+            if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
+                return `ai: Vector Knowledge Base`;
+            }
             if (
                 activeNode.codedata?.node === "REMOTE_ACTION_CALL" ||
                 activeNode.codedata?.node === "RESOURCE_ACTION_CALL"
@@ -466,6 +480,15 @@ export function enrichFormTemplatePropertiesWithValues(
             ) {
                 // Copy the value from formProperties to formTemplateProperties
                 enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
+                
+                if (formProperty.hasOwnProperty('editable')) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].editable = formProperty.editable;
+                    enrichedFormTemplateProperties[key as NodePropertyKey].codedata = formProperty?.codedata;
+                }
+
+                if (formProperty.diagnostics) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
+               }
             }
         }
     }
@@ -496,10 +519,7 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
-    const labelDetails = {
-        description,
-        detail: completion.detail,
-    };
+    const labelDetails = completion.labelDetails;
 
     return {
         tag,
