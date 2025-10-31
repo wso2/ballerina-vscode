@@ -21,20 +21,14 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 import { TypeHelperContext } from '../../../../../../constants';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { URI, Utils } from 'vscode-uri';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
-
-enum Views {
-    NEW = "NEW",
-    EXISTING = "EXISTING",
-}
 
 export interface ParamProps {
     index: number;
@@ -196,9 +190,9 @@ export function ResponseEditor(props: ParamProps) {
 
                             // Get a default value for the response name
                             const responseCodeData = responseCodes.find(code => code.labelDetails.detail === res.statusCode.value);
-                            const responseCodeName = responseCodeData.label;
+                            const responseCodeName = responseCodeData?.label || "";
 
-                            // Default name for the response name. Example: AcceptedJsonResponse. We have to remove the spaces and capitalize the first letter of the body type.
+                            // Default name for the response: removes spaces from response code name and appends 'Response'. Example: AcceptedResponse.
                             const defaultName = `${responseCodeName.replace(/\s+/g, '')}Response`;
 
                             // When checked, add the name field after the checkbox

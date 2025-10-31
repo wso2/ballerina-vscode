@@ -88,7 +88,7 @@ export function ResourceConfig(props: ResourceConfigProps) {
 
 	const checkReadOnly = (fields: FormField[]) => {
 		return readonly && fields.every(field => field.value === undefined || field.value === null || field.value === "");
-	}
+	};
 
 
 	return (

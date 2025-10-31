@@ -17,7 +17,7 @@
  */
 
 
-import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, EVENT_TYPE, MACHINE_VIEW, DIRECTORY_MAP } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP } from '@wso2/ballerina-core';
 import { FormField, Parameter, FormValues, FormImports } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../../utils/bi';
 
