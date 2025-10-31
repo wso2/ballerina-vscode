@@ -218,8 +218,8 @@ export function ParamEditor(props: ParamProps) {
                     enabled: true,
                     value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
                     valueTypeConstraint: "",
-                    onValueChange: (value: string) => {
-                        const sanitizeValue = value
+                    onValueChange: (value: string | boolean) => {
+                        const sanitizeValue = (value as string)
                             .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/\.([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/[^a-zA-Z0-9]/g, '');
