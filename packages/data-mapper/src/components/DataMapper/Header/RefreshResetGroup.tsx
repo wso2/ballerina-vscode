@@ -54,23 +54,27 @@ function ActionButton({ onClick, iconName, tooltip }: ActionButtonProps) {
 }
 
 interface RefreshResetGroupProps {
-    onRefresh: () => Promise<void>;
-    onReset: () => Promise<void>;
+    onRefresh?: () => Promise<void>;
+    onReset?: () => Promise<void>;
 }
 
 export function RefreshResetGroup({ onRefresh, onReset }: RefreshResetGroupProps) {
     return (
         <ButtonGroup>
-            <ActionButton 
-                onClick={onRefresh}
-                iconName="refresh"
-                tooltip="Refresh"
-            />
-            <ActionButton 
-                onClick={onReset}
-                iconName="clear-all"
-                tooltip="Clear all mappings"
-            />
+            {onRefresh && (
+                <ActionButton
+                    onClick={onRefresh}
+                    iconName="refresh"
+                    tooltip="Refresh"
+                />
+            )}
+            {onReset && (
+                <ActionButton
+                    onClick={onReset}
+                    iconName="clear-all"
+                    tooltip="Clear all mappings"
+                />
+            )}
         </ButtonGroup>
     );
 }

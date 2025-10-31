@@ -56,8 +56,6 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 <IconButton onClick={onBack}>
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
-                <VerticalDivider />
-                <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
@@ -69,7 +67,10 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     )}
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
-                    {undoRedoGroup && undoRedoGroup()}
+                    <ActionGroupContaner>
+                        {undoRedoGroup && undoRedoGroup()}
+                        <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
+                    </ActionGroupContaner>
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>
@@ -124,6 +125,10 @@ const RightContainer = styled.div<{ isClickable: boolean }>`
     gap: 12px;
     pointer-events: ${({ isClickable }) => (isClickable ? "auto" : "none")};
     opacity: ${({ isClickable }) => (isClickable ? 1 : 0.5)};
+`;
+
+const ActionGroupContaner = styled.div`
+    display: flex;
 `;
 
 const BreadCrumb = styled.div`
