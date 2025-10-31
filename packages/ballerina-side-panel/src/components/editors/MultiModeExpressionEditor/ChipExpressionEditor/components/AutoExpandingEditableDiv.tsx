@@ -236,15 +236,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             {renderCompletionsMenu()}
             {renderHelperPane()}
             <FloatingButtonContainer>
-                {props.onOpenExpandedMode && !props.isInExpandedMode && (
-                    <FloatingToggleButton
-                        isActive={false}
-                        onClick={() => props.onOpenExpandedMode?.()}
-                        title="Expand"
-                    >
-                        <ExpandButton />
-                    </FloatingToggleButton>
-                )}
                 <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
                     <GetHelperButton />
                 </FloatingToggleButton>
