@@ -33,4 +33,5 @@ module io.ballerina.LSExtensions.TriggerService {
     requires java.logging;
     requires org.xerial.sqlitejdbc;
     requires io.ballerina.centralconnector;
+    requires io.ballerina.toml;
 }

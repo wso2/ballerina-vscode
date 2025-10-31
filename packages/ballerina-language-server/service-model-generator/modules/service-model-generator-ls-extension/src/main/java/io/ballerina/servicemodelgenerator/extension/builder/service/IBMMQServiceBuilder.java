@@ -27,6 +27,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.projects.BallerinaToml;
 import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
@@ -38,14 +39,21 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
+import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
+import io.ballerina.toml.semantic.ast.TomlTableNode;
+import io.ballerina.toml.semantic.ast.TopLevelNode;
+import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FILED;
@@ -128,6 +136,12 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String ON_MESSAGE_FUNCTION_NAME = "onMessage";
     private static final String CALLER_PARAM_NAME = "caller";
 
+    // IBM MQ Platform dependency constants
+    private static final String IBM_MQ_CLIENT_GROUP_ID = "com.ibm.mq";
+    private static final String IBM_MQ_CLIENT_ARTIFACT_ID = "com.ibm.mq.allclient";
+    private static final String IBM_MQ_CLIENT_VERSION = "9.4.1.0";
+    private static final String PLATFORM_JAVA21_DEPENDENCY = "platform.java21.dependency";
+
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
@@ -178,14 +192,29 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
                 .append(String.join(TWO_NEW_LINES, functionsStr)).append(NEW_LINE)
                 .append(CLOSE_BRACE).append(NEW_LINE);
 
+        Map<String, List<TextEdit>> allEdits = new HashMap<>();
         List<TextEdit> edits = new ArrayList<>();
+
         if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
             String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
             edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
         }
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
 
-        return Map.of(context.filePath(), edits);
+        allEdits.put(context.filePath(), edits);
+
+        // Check and add IBM MQ platform dependency if not present
+        if (!hasIBMMQDependency(context)) {
+            Map<String, List<TextEdit>> dependencyEdits = createIBMMQDependencyEdits(context);
+            dependencyEdits.forEach((filePath, textEdits) -> {
+                allEdits.merge(filePath, textEdits, (existing, additional) -> {
+                    existing.addAll(additional);
+                    return existing;
+                });
+            });
+        }
+
+        return allEdits;
     }
 
     private Value buildDestinationChoice() {
@@ -420,6 +449,88 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
             } else {
                 addCallerParameter(onMessageFunction);
             }
+        }
+    }
+
+    private boolean hasIBMMQDependency(AddServiceInitModelContext context) {
+        try {
+            Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
+            if (ballerinaToml.isEmpty()) {
+                return false;
+            }
+
+            TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+            TopLevelNode platformNode = tomlTableNode.entries().get("platform");
+            if (!(platformNode instanceof TomlTableNode platformTable)) {
+                return false;
+            }
+
+            TopLevelNode java21Node = platformTable.entries().get("java21");
+            if (!(java21Node instanceof TomlTableNode java21Table)) {
+                return false;
+            }
+
+            TopLevelNode dependencyNode = java21Table.entries().get("dependency");
+            if (!(dependencyNode instanceof TomlTableArrayNode dependencyArray)) {
+                return false;
+            }
+
+            // Check if IBM MQ dependency already exists with correct version
+            for (TomlTableNode dependencyTable : dependencyArray.children()) {
+                TomlKeyValueNode groupIdNode = (TomlKeyValueNode) dependencyTable.entries().get("groupId");
+                TomlKeyValueNode artifactIdNode = (TomlKeyValueNode) dependencyTable.entries().get("artifactId");
+                TomlKeyValueNode versionNode = (TomlKeyValueNode) dependencyTable.entries().get("version");
+
+                if (groupIdNode != null && artifactIdNode != null && versionNode != null) {
+                    String groupId = groupIdNode.value().toNativeValue().toString().replace("\"", "");
+                    String artifactId = artifactIdNode.value().toNativeValue().toString().replace("\"", "");
+                    String version = versionNode.value().toNativeValue().toString().replace("\"", "");
+
+                    return IBM_MQ_CLIENT_GROUP_ID.equals(groupId) &&
+                            IBM_MQ_CLIENT_ARTIFACT_ID.equals(artifactId) &&
+                            IBM_MQ_CLIENT_VERSION.equals(version);
+                }
+            }
+        } catch (Exception e) {
+            // If any error occurs while checking, assume dependency doesn't exist
+            return false;
+        }
+        return false;
+    }
+
+    private Map<String, List<TextEdit>> createIBMMQDependencyEdits(AddServiceInitModelContext context) {
+        try {
+            Path tomlPath = context.project().sourceRoot().resolve("Ballerina.toml");
+            Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
+
+            if (ballerinaToml.isEmpty()) {
+                return Map.of();
+            }
+
+            TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+            String dependencyText = String.format(
+                    "%s%s[[%s]]%sgroupId = \"%s\"%sartifactId = \"%s\"%sversion = \"%s\"%s",
+                    NEW_LINE,
+                    NEW_LINE,
+                    PLATFORM_JAVA21_DEPENDENCY,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_GROUP_ID,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_ARTIFACT_ID,
+                    NEW_LINE,
+                    IBM_MQ_CLIENT_VERSION,
+                    NEW_LINE
+            );
+
+            TextEdit edit = new TextEdit(
+                    PositionUtil.toRange(tomlTableNode.location().lineRange().endLine()),
+                    dependencyText
+            );
+
+            return Map.of(tomlPath.toString(), List.of(edit));
+        } catch (Exception e) {
+            // If any error occurs, return empty map
+            return Map.of();
         }
     }
 
