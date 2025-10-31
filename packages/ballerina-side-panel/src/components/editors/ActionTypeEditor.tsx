@@ -437,7 +437,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
     const handleGraphqlIdChange = (checked: boolean) => {
         setIsGraphqlId(checked);
         // Store the isGraphqlId value in a hidden form field
-        form.setValue(`${field.key}_isGraphqlId`, checked, { shouldValidate: false, shouldDirty: true });
+        form.setValue(`isGraphqlId`, checked, { shouldValidate: false, shouldDirty: true });
     };
 
     // Create code actions and menu items
@@ -645,7 +645,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                     // If the type is not a scalar, reset the GraphQL ID checkbox
                                     if (!isScalar) {
                                         setIsGraphqlId(false);
-                                        form.setValue(`${field.key}_isGraphqlId`, false, { shouldValidate: false, shouldDirty: true });
+                                        form.setValue(`isGraphqlId`, false, { shouldValidate: false, shouldDirty: true });
                                     }
 
                                     // Set show default completion
