@@ -344,20 +344,6 @@ export function FormGeneratorNew(props: FormProps) {
         };
     }
 
-    const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
-        const updatedFields = newFields.map((field) => {
-            if (field.type === 'TYPE') {
-                const oldField = oldFields.find(f => f.key === field.key);
-                if (oldField) {
-                    return { ...field, value: oldField.value };
-                }
-            }
-            return field;
-        });
-        return updatedFields;
-    }
-
-
     useEffect(() => {
         if (rpcClient) {
             // Set current theme
@@ -377,9 +363,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            const patchedFields = getPatchedFields(fieldsValues, fields);
-            setFields(patchedFields);
-            setFormImports(getImportsForFormFields(patchedFields));
+            setFields(fields);
+            setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
 
