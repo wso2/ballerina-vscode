@@ -16,17 +16,14 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable, DIRECTORY_MAP, FunctionModel, getConfigVariables, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigVariable, DIRECTORY_MAP, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Accordion, Button, Codicon, Divider, ErrorBanner, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, TextField, ThemeColors, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { DropdownOptionProps } from "./components/AddServiceElementDropdown";
-import ServiceConfigForm from "./Forms/ServiceConfigForm";
 import ListenerConfigForm from "./Forms/ListenerConfigForm";
-import { ListenerEditView, ListenerEditViewProps } from "./ListenerEditView";
 import { ServiceEditView } from "./ServiceEditView";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
@@ -82,11 +79,13 @@ const SearchContainer = styled.div`
 `;
 
 const AccordionContainer = styled.div`
-    margin-bottom: 16px;
-    width: 570px;
+    width: 587px;
     margin-left: 16px;
     & h4 {
         margin: 7px 0px;
+    }
+    & .side-panel-body {
+        padding: unset;
     }
 `;
 
@@ -96,6 +95,16 @@ const ServiceConfigureListenerEditViewContainer = styled.div`
     gap: 10;
     margin: 0 20px 20px 0;
 `;
+
+const ListenerConfigHeader = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 568px;
+`;
+
 
 namespace S {
     export const Grid = styled.div<{ columns: number }>`
@@ -191,7 +200,24 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [showAttachListenerModal, setShowAttachListenerModal] = useState<boolean>(false);
 
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [hasChanges, setHasChanges] = useState<boolean>(false);
+
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
+
+    const [changeMap, setChangeMap] = useState<{ [key: string]: { data: ServiceModel | ListenerModel, isService: boolean, filePath: string } }>({});
+    // Helper function to create key from filePath and position
+    const getChangeKey = (filePath: string, position: NodePosition) => {
+        return `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
+    };
+    // Helper function to add a change to the map
+    const addChangeToMap = (filePath: string, position: NodePosition, data: ServiceModel | ListenerModel, isService: boolean) => {
+        const key = getChangeKey(filePath, position);
+        setChangeMap(prev => ({ ...prev, [key]: { data, isService, filePath } }));
+    };
+
+
+    const [configTitle, setConfigTitle] = useState<string>("");
 
     // Create ref map for accordion containers
     const accordionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -242,6 +268,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     console.log("Service Model: ", res.service);
                     // Set the service model
                     setServiceModel(res.service);
+                    setConfigTitle(`${res.service.name} Configuration`);
                     // Set the service listeners
                     setServiceListeners(res.service);
                     // Find the listener type
@@ -253,16 +280,17 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     };
 
     const findListenerType = (service: ServiceModel) => {
-        let listenerType = "MULTIPLE";
+        let detectedType: "SINGLE" | "MULTIPLE" = "MULTIPLE";
+        let foundType = false;
         for (const key in service.properties) {
             const expression = service.properties[key];
-            if (expression.valueType === "MULTIPLE_SELECT_LISTENER") {
-                listenerType = "MULTIPLE";
-                break;
-            }
-            if (expression.valueType === "SINGLE_SELECT_LISTENER") {
-                listenerType = "SINGLE";
-                // Check if the number of properties where enabled === true is equal to 1 and assuming the listener property is the only property that is enabled
+            if (
+                expression.valueType === "MULTIPLE_SELECT_LISTENER" ||
+                expression.valueType === "SINGLE_SELECT_LISTENER"
+            ) {
+                detectedType = expression.valueType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
+                foundType = true;
+                // Check if only one property is enabled
                 const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
                 if (enabledCount === 1) {
                     setHaveServiceConfigs(false);
@@ -270,8 +298,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 break;
             }
         }
-        console.log("Listener type: ", listenerType);
-        setListenerType(listenerType as "SINGLE" | "MULTIPLE");
+        console.log("Listener type: ", detectedType);
+        setListenerType(detectedType);
     }
 
     const setServiceListeners = (service: ServiceModel) => {
@@ -318,6 +346,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const updatedArtifact = res.artifacts.at(0);
         await fetchService(updatedArtifact.position);
         setShowAttachListenerModal(false);
+        setChangeMap({});
     }
 
     const handleOnDetachListener = async (listenerName: string) => {
@@ -325,6 +354,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
         await fetchService(updatedArtifact.position);
+        setChangeMap({});
     }
 
     const handleOnListenerClick = (listenerId: string) => {
@@ -344,6 +374,35 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 });
             }
         }, 100); // Small delay to ensure tab switch and DOM update
+    }
+
+    const handleListenerChange = async (data: ListenerModel, filePath: string, position: NodePosition) => {
+        addChangeToMap(filePath, position, data, false);
+        setHasChanges(true);
+        setIsSaving(false);
+    }
+
+    const handleServiceChange = async (data: ServiceModel, filePath: string, position: NodePosition) => {
+        addChangeToMap(filePath, position, data, true);
+        setHasChanges(true);
+        setIsSaving(false);
+    }
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        const changes = Object.values(changeMap);
+        for (const change of changes) {
+            if (change.isService) {
+                const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
+                const updatedArtifact = res.artifacts.at(0);
+                await fetchService(updatedArtifact.position);
+            } else {
+                await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+            }
+        }
+        setChangeMap({});
+        setHasChanges(false);
+        setIsSaving(false);
     }
 
     return (
@@ -470,7 +529,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                 margin: "10px 0px",
                                                                 color: "var(--vscode-foreground)"
                                                             }}>
+                                                            {configTitle}
                                                         </Typography>
+
+                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges}>
+                                                            {isSaving ? <Typography variant="progress">Saving...</Typography> : <>Save Changes</>}
+                                                        </Button>
                                                     </TitleContent>
                                                     <TitleBoxShadow />
                                                 </div>
@@ -485,76 +549,34 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             <div ref={serviceRef}>
 
                                                                 {haveServiceConfigs && (
-                                                                    <ServiceEditView filePath={props.filePath} position={props.position} />
+                                                                    <>
+                                                                        <ServiceEditView filePath={props.filePath} position={props.position} onChange={handleServiceChange} />
+                                                                    </>
                                                                 )}
-                                                                {!haveServiceConfigs && (
-                                                                    // Set a message to the user that the service doesn't have any configurations
-                                                                    <div style={{
-                                                                        width: '570px',
-                                                                        display: 'flex',
-                                                                        flexDirection: 'column',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center',
-                                                                        margin: '30px 0'
-                                                                    }}>
-                                                                        <Codicon
-                                                                            name="info"
-                                                                            sx={{
-                                                                                fontSize: "36px",
-                                                                                color: "var(--vscode-infoForeground)",
-                                                                                marginBottom: "12px"
-                                                                            }}
-                                                                        />
-                                                                        <Typography
-                                                                            variant="h4"
-                                                                            sx={{
-                                                                                marginBottom: '6px',
-                                                                                color: "var(--vscode-infoForeground)",
-                                                                                fontWeight: 500,
-                                                                                textAlign: 'center'
-                                                                            }}
-                                                                        >
-                                                                            No Configurations Found
-                                                                        </Typography>
-                                                                        <Typography
-                                                                            variant="body2"
-                                                                            sx={{
-                                                                                color: "var(--vscode-descriptionForeground)",
-                                                                                textAlign: "center",
-                                                                                maxWidth: 380
-                                                                            }}
-                                                                        >
-                                                                            This service does not have any additional configurations to customize.
-                                                                        </Typography>
-                                                                    </div>
-
-                                                                )}
-                                                                <Divider />
-                                                                <Typography variant="h3" sx={{ marginLeft: '18px' }}>Attached Listeners</Typography>
                                                                 {listeners.map((listener) => (
                                                                     <AccordionContainer
                                                                         key={listener.id}
                                                                         ref={(el) => {
                                                                             accordionRefs.current[listener.id] = el;
+
                                                                         }}
                                                                     >
-                                                                        <Accordion
-                                                                            header={`${listener.name.includes(":") ? getReadableListenerName(listener.name) : listener.name} Configuration`}
-                                                                            isExpanded={expandedAccordion === listener.id}
-                                                                        >
-                                                                            <div>
+                                                                        <div>
+                                                                            <ListenerConfigHeader>
+                                                                                <Typography variant="h2" sx={{ marginBottom: '10px', marginTop: '10px' }}>Configuration for {listener.name.includes(":") ? getReadableListenerName(listener.name) : listener.name} </Typography>
                                                                                 {/* Add detach button to the listener configuration only if there are more than one listener attached */}
                                                                                 {listeners.length > 1 && (
-                                                                                    <Button appearance="secondary" sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
+                                                                                    <Button appearance="secondary" onClick={() => {
                                                                                         handleOnDetachListener(listener.name);
-                                                                                    }}> <Codicon name="trash" sx={{ marginRight: '5px' }} /> Detach listener</Button>
+                                                                                    }}> <Codicon name="trash" /></Button>
                                                                                 )}
-                                                                                <ServiceConfigureListenerEditView
-                                                                                    filePath={listener.path}
-                                                                                    position={listener.position}
-                                                                                />
-                                                                            </div>
-                                                                        </Accordion>
+                                                                            </ListenerConfigHeader>
+                                                                            <ServiceConfigureListenerEditView
+                                                                                filePath={listener.path}
+                                                                                position={listener.position}
+                                                                                onChange={handleListenerChange}
+                                                                            />
+                                                                        </div>
                                                                     </AccordionContainer>
                                                                 ))}
                                                                 {/* Add a button to attach a new listener and when clicked, open a new modal to select a listener if multiple listener are allowed */}
@@ -602,10 +624,11 @@ export default ServiceConfigureView;
 interface ServiceConfigureListenerEditViewProps {
     filePath: string;
     position: NodePosition;
+    onChange?: (data: ListenerModel, filePath: string, position: NodePosition) => void;
 }
 
 function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditViewProps) {
-    const { filePath, position } = props;
+    const { filePath, position, onChange } = props;
     const { rpcClient } = useRpcContext();
     const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
@@ -631,6 +654,11 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         }, 1000);
     }
 
+    const handleListenerChange = (data: ListenerModel) => {
+        console.log("Listener change: ", data);
+        onChange(data, filePath, position);
+    }
+
     return (
         <ServiceConfigureListenerEditViewContainer>
             {!listenerModel &&
@@ -640,7 +668,7 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                 </LoadingContainer>
             }
             {listenerModel &&
-                <ListenerConfigForm listenerModel={listenerModel} onSubmit={onSubmit} formSubmitText={saving ? savingText : "Save"} isSaving={saving} />
+                <ListenerConfigForm listenerModel={listenerModel} onSubmit={onSubmit} formSubmitText={saving ? savingText : "Save"} isSaving={saving} onChange={handleListenerChange} />
             }
         </ServiceConfigureListenerEditViewContainer>
     );

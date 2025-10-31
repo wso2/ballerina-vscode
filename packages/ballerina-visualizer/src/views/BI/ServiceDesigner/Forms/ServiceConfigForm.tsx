@@ -67,13 +67,14 @@ interface ServiceConfigFormProps {
     isSaving?: boolean;
     onBack?: () => void;
     formSubmitText?: string;
+    onChange?: (data: ServiceModel) => void;
 }
 
 export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [serviceFields, setServiceFields] = useState<FormField[]>([]);
-    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving } = props;
+    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -171,6 +172,28 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
         onSubmit(response);
     };
 
+    const handleServiceChange = (fieldKey: string, value: any, allValues: FormValues) => {
+        if (onChange) {
+            let hasChanges = false;
+            serviceFields.forEach(val => {
+                if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
+                    hasChanges = true;
+                }
+                if (allValues[val.key] !== undefined) {
+                    val.value = allValues[val.key];
+                }
+                if (val.key === "basePath") {
+                    val.value = sanitizedHttpPath(allValues[val.key] as string);
+                }
+            })
+            if (!hasChanges) {
+                return;
+            }
+            const response = updateConfig(serviceFields, serviceModel);
+            onChange(response);
+        }
+    }
+
     const handleListenerForm = (panel: SubPanel) => {
         if (panel.view === SubPanelView.ADD_NEW_FORM) {
             openListenerForm && openListenerForm();
@@ -197,7 +220,6 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                 <>
                     {serviceFields.length > 0 &&
                         <FormContainer>
-                            <FormHeader title={`${serviceModel.name} Configuration`} />
                             {filePath && targetLineRange &&
                                 <FormGeneratorNew
                                     fileName={filePath}
@@ -211,6 +233,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                     submitText={formSubmitText}
                                     recordTypeFields={recordTypeFields}
                                     preserveFieldOrder={true}
+                                    onChange={handleServiceChange}
+                                    hideSaveButton={onChange ? true : false}
                                 />
                             }
                         </FormContainer>
