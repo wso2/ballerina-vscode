@@ -21,6 +21,7 @@ package io.ballerina.servicemodelgenerator.extension.extractor;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
@@ -226,6 +227,11 @@ public class ListenerParamExtractor implements ReadOnlyMetadataExtractor {
             if (listenerNode.isPresent()) {
                 // Extract from the listener's initializer expression
                 Node initializer = listenerNode.get().initializer();
+
+                if (initializer instanceof CheckExpressionNode checkExpr) {
+                    initializer = checkExpr.expression();
+                }
+
                 if (initializer instanceof ExplicitNewExpressionNode explicitNew) {
                     return extractFromListenerConstructor(explicitNew, parameterName, semanticModel, context);
                 } else if (initializer instanceof ImplicitNewExpressionNode implicitNew) {
