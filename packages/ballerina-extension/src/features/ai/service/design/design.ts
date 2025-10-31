@@ -82,24 +82,13 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Do NOT mention internal tool names to users
 
 **Execution Flow**:
-1. Create high-level design plan and break it into tasks using ${TASK_WRITE_TOOL_NAME}
-2. The tool will wait for PLAN APPROVAL from the user
-3. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+1. Think about and explain your high-level design plan to the user
+2. After explaining the plan, output: <toolcall>Planning...</toolcall>
+3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+4. The tool will wait for PLAN APPROVAL from the user
+5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - **CRITICAL - User Updates**: You MUST provide progress updates in this EXACT format:
-
-     BEFORE starting implementation, write:
-     <toolcall>Your update message here</toolcall>
-
-     Based on task type:
-     - For 'service_design' tasks: <toolcall>Setting up the service structure...</toolcall>
-     - For 'connections_init' tasks: <toolcall>Connecting to [database/API name]...</toolcall>
-     - For 'implementation' tasks: <toolcall>Building the [feature name] functionality...</toolcall>
-
-     DO NOT write plain text like "Now I'll create..." or "I'm working on..."
-     ALWAYS wrap your update in <toolcall></toolcall> tags
-
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - Implement the task completely (write the Ballerina code)
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
@@ -107,12 +96,12 @@ This plan will be visible to the user and the execution will be guided on the ta
    - Once approved (success: true), immediately start the next task
    - Repeat until ALL tasks are done
 
-4. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
 
 **User Communication**:
-- ALWAYS use <toolcall></toolcall> tags for progress updates
-- Keep language simple and non-technical
-- Example: <toolcall>Setting up the service structure...</toolcall>
+- Using the task_write tool will automatically show progress to the user via a task list
+- Keep language simple and non-technical when responding
+- No need to add manual progress indicators - the task list shows what you're working on
 
 ## Code Generation Guidelines
 
@@ -126,6 +115,15 @@ When generating Ballerina code:
    - Initialize necessary clients
    - Create service OR main function
    - Plan data flow and transformations
+
+3. **Service Design Phase** ('service_design' tasks):
+   - Create resource function signatures with comprehensive return types covering all possible scenarios
+   - For unimplemented function bodies, use http:NOT_IMPLEMENTED as the placeholder return value
+
+4. **Implementation Phase** ('implementation' tasks):
+   - Implement the complete logic for resource functions
+   - **CRITICAL**: After implementation, refine the function signature to ONLY include return types that are actually returned in the implementation
+   - Remove any unused return types from the signature to keep it clean and precise
 `,
             providerOptions: cacheOptions,
         },
