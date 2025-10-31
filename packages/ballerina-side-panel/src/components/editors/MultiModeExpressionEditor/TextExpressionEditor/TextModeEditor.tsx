@@ -16,10 +16,25 @@
  * under the License.
  */
 
-import { FormExpressionEditor } from "@wso2/ui-toolkit";
+import { FormExpressionEditor, Icon } from "@wso2/ui-toolkit";
 import { ExpressionField } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
+import styled from "@emotion/styled";
+
+const EditorContainer = styled.div`
+    width: 100%;
+    position: relative;
+
+    #text-mode-editor-expand {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #text-mode-editor-expand {
+        opacity: 1;
+    }
+`;
 
 type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
 
@@ -48,27 +63,52 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     }
 
     return (
-        <FormExpressionEditor
-            ref={exprRef}
-            anchorRef={anchorRef}
-            name={name}
-            completions={[]}
-            value={getValueForTextModeEditor(value)}
-            autoFocus={autoFocus}
-            startAdornment={<></>}
-            ariaLabel={ariaLabel}
-            onChange={handleOnChange}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onSave={onSave}
-            onCancel={onCancel}
-            onRemove={onRemove}
-            enableExIcon={false}
-            growRange={growRange}
-            onExpandClick={onOpenExpandedMode && !isInExpandedMode ? onOpenExpandedMode : undefined}
-            sx={{ paddingInline: '0' }}
-            placeholder={placeholder}
-        />
+        <EditorContainer>
+            <FormExpressionEditor
+                ref={exprRef}
+                anchorRef={anchorRef}
+                name={name}
+                completions={[]}
+                value={getValueForTextModeEditor(value)}
+                autoFocus={autoFocus}
+                startAdornment={<></>}
+                ariaLabel={ariaLabel}
+                onChange={handleOnChange}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onSave={onSave}
+                onCancel={onCancel}
+                onRemove={onRemove}
+                enableExIcon={false}
+                growRange={growRange}
+                sx={{ paddingInline: '0' }}
+                placeholder={placeholder}
+            />
+            {onOpenExpandedMode && !isInExpandedMode && (
+                <Icon
+                    id="text-mode-editor-expand"
+                    sx={{
+                        position: 'absolute',
+                        bottom: '6px',
+                        right: '8px',
+                        width: '16px',
+                        height: '16px',
+                        cursor: 'pointer',
+                        backgroundColor: 'var(--vscode-menu-background)',
+                        zIndex: '5',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '9px',
+                        borderRadius: '4px',
+                        border: '1px solid var(--dropdown-border)'
+                    }}
+                    iconSx={{ color: 'var(--vscode-editor-foreground)' }}
+                    name="expand"
+                    onClick={onOpenExpandedMode}
+                />
+            )}
+        </EditorContainer>
     );
 };
 

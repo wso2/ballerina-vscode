@@ -34,6 +34,15 @@ interface TextAreaEditorProps {
 const TextAreaContainer = styled.div`
     width: 100%;
     position: relative;
+
+    #textarea-editor-expand {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #textarea-editor-expand {
+        opacity: 1;
+    }
 `;
 
 export function TextAreaEditor(props: TextAreaEditorProps) {
@@ -97,7 +106,7 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 id="textarea-editor-expand"
                                 sx={{
                                     position: 'absolute',
-                                    bottom: '10px',
+                                    bottom: '8px',
                                     right: '8px',
                                     width: '16px',
                                     height: '16px',
