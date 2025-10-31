@@ -33,6 +33,7 @@ interface MachineContext extends VisualizerLocation {
 
 export let history: History;
 export let undoRedoManager: IUndoRedoManager;
+let pendingProjectRootUpdateResolvers: Array<() => void> = [];
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -61,6 +62,19 @@ const stateMachine = createMachine<MachineContext>(
                         queueMicrotask(() => {
                             commands.executeCommand("BI.project-explorer.refresh");
                         });
+                    }
+                ]
+            },
+            UPDATE_PROJECT_ROOT: {
+                actions: [
+                    assign({
+                        projectPath: (context, event) => event.projectPath
+                    }),
+                    async (context, event) => {
+                        await buildProjectArtifactsStructure(event.projectPath, StateMachine.langClient(), true);
+                        notifyCurrentWebview();
+                        // Resolve the next pending promise waiting for project root update completion
+                        pendingProjectRootUpdateResolvers.shift()?.();
                     }
                 ]
             },
@@ -335,13 +349,13 @@ const stateMachine = createMachine<MachineContext>(
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
+                    // Register the event driven listener to get the artifact changes
+                    context.langClient.registerPublishArtifacts();
                     // If the project uri or workspace path is not set, we don't need to build the project structure
                     if (context.projectPath || context.workspacePath) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
-                        // Register the event driven listener to get the artifact changes
-                        context.langClient.registerPublishArtifacts();
                         // Initial Project Structure
                         const projectStructure = await buildProjectArtifactsStructure(context.projectPath, context.langClient);
                         resolve({ projectStructure });
@@ -415,7 +429,8 @@ const stateMachine = createMachine<MachineContext>(
                         buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
                     }
 
-                    const execution = new ShellExecution(buildCommand);
+                    // Use the current process environment which should have the updated PATH
+                    const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
 
                     if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
                         resolve(true);
@@ -637,6 +652,12 @@ export const StateMachine = {
     },
     sendEvent: (eventType: EVENT_TYPE) => { stateService.send({ type: eventType }); },
     updateProjectStructure: (payload: ProjectStructureResponse) => { stateService.send({ type: "UPDATE_PROJECT_STRUCTURE", payload }); },
+    updateProjectRoot: (projectPath: string): Promise<void> => {
+        return new Promise<void>((resolve) => {
+            pendingProjectRootUpdateResolvers.push(resolve);
+            stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
+        });
+    },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },
@@ -762,7 +783,7 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
                 commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/organize-ballerina-code/'));
             }
         });
-        
+
         // Return empty result to indicate no project should be loaded
         return { isBI: false, projectPath: '' };
     } else if (balProjects.length === 1) {
@@ -808,7 +829,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
                 ? targetPackage
                 : path.join(workspaceURI.fsPath, targetPackage);
             const packageUri = Uri.file(packagePath);
-            
+
             const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
             const isBI = isBallerinaPackage && checkIsBI(packageUri);
             const scope = fetchScope(packageUri);
@@ -819,7 +840,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
             if (!isBI) {
                 console.error("No BI enabled workspace found");
             }
-    
+
             return { isBI, projectPath, workspacePath: workspaceURI.fsPath, scope, orgName, packageName };
         } else {
             return { isBI: false, projectPath: '' };
@@ -830,12 +851,12 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         const scope = fetchScope(workspaceURI);
         const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
         const { orgName, packageName } = getOrgPackageName(projectPath);
-    
+
         setBIContext(isBI);
         if (!isBI) {
             console.error("No BI enabled workspace found");
         }
-    
+
         return { isBI, projectPath, scope, orgName, packageName };
     }
 }

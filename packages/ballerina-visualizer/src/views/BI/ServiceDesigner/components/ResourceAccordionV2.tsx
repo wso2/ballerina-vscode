@@ -243,14 +243,14 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                             <Icon
                                 name="bi-settings"
                                 sx={{
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
+                                    cursor: "pointer",
+                                    opacity: 1,
                                     fontSize: "16px",
                                     width: "16px",
                                 }}
                             />
                         </ActionButton >
-                        <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource}>
+                        <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource} disabled={readOnly}>
                             <Codicon
                                 name="trash"
                                 sx={{

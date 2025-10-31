@@ -196,7 +196,24 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                     view: MACHINE_VIEW.DataMapper,
                     identifier: node.syntaxTree.functionName.value,
                     documentUri: documentUri,
-                    position: position
+                    position: position,
+                    artifactType: DIRECTORY_MAP.DATA_MAPPER,
+                    dataMapperMetadata: {
+                        name: node.syntaxTree.functionName.value,
+                        codeData: {
+                            lineRange: {
+                                fileName: documentUri,
+                                startLine: {
+                                    line: position.startLine,
+                                    offset: position.startColumn
+                                },
+                                endLine: {
+                                    line: position.endLine,
+                                    offset: position.endColumn
+                                }
+                            }
+                        }
+                    },
                 },
                 dataMapperDepth: 0
             };

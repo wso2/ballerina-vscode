@@ -183,9 +183,10 @@ export function ResourceForm(props: ResourceFormProps) {
 				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 				<SidePanelBody>
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-						onError={onResourcePathError} />
+						onError={onResourcePathError} readonly={!functionModel.editable} />
 					<Divider />
 					<Parameters
+						readonly={!functionModel.editable}
 						showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")}
 						parameters={functionModel.parameters}
 						onChange={handleParamChange}
@@ -199,10 +200,10 @@ export function ResourceForm(props: ResourceFormProps) {
 						}}
 					/>
 					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
-					<ResourceConfig properties={functionModel.properties} filePath={filePath} onChange={handleConfigChange} />
+					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} readonly={!functionModel.editable} />
+					<ResourceConfig properties={functionModel.properties} filePath={filePath} onChange={handleConfigChange} readonly={!functionModel.editable} />
 					<ActionButtons
-						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
+						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving || !functionModel.editable, loading: isSaving }}
 						secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
 						sx={{ justifyContent: "flex-end" }}
 					/>

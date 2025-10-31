@@ -34,10 +34,11 @@ export interface ResourceConfigProps {
 	properties: ConfigProperties;
 	filePath: string;
 	onChange: (properties: ConfigProperties, value: any) => void;
+	readonly?: boolean;
 }
 
 export function ResourceConfig(props: ResourceConfigProps) {
-	const { properties, filePath, onChange } = props;
+	const { properties, filePath, onChange, readonly } = props;
 
 	const { rpcClient } = useRpcContext();
 
@@ -46,7 +47,7 @@ export function ResourceConfig(props: ResourceConfigProps) {
 	const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
 	useEffect(() => {
-		setConfigFields(convertConfig(properties));
+		setConfigFields(convertConfig(properties, readonly));
 		// Extract fields with typeMembers where kind is RECORD_TYPE
 		if (recordTypeFields?.length === 0) {
 			const recordTypeFields: any[] = Object.entries(properties)
@@ -85,10 +86,14 @@ export function ResourceConfig(props: ResourceConfigProps) {
 		onChange(updatedProperties, value);
 	};
 
+	const checkReadOnly = (fields: FormField[]) => {
+		return readonly && fields.every(field => field.value === undefined || field.value === null || field.value === "");
+	};
+
 
 	return (
 		<ResourceConfigContainer>
-			{configFields.length > 0 && filePath && targetLineRange &&
+			{configFields.length > 0 && filePath && targetLineRange && !checkReadOnly(configFields) &&
 				<FormGeneratorNew
 					fileName={filePath}
 					fields={configFields}
@@ -107,7 +112,7 @@ export function ResourceConfig(props: ResourceConfigProps) {
 }
 
 
-function convertConfig(properties: ConfigProperties): FormField[] {
+function convertConfig(properties: ConfigProperties, readonly: boolean): FormField[] {
 	const formFields: FormField[] = [];
 	for (const key in properties) {
 		const expression = properties[key];
@@ -117,7 +122,7 @@ function convertConfig(properties: ConfigProperties): FormField[] {
 			type: expression.valueType,
 			documentation: expression?.metadata.description || "",
 			valueType: expression.valueTypeConstraint,
-			editable: expression.editable,
+			editable: expression.editable && !readonly,
 			enabled: expression.enabled ?? true,
 			optional: expression.optional,
 			value: expression.value,
