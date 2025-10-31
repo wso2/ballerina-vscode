@@ -69,7 +69,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 <RightContainer isClickable={!hasEditDisabled}>
                     <ActionGroupContaner>
                         {undoRedoGroup && undoRedoGroup()}
-                        <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
+                        <RefreshResetGroup onReset={onReset} />
                     </ActionGroupContaner>
                     <FilterBar>
                         <HeaderSearchBox />
