@@ -480,7 +480,13 @@ export function enrichFormTemplatePropertiesWithValues(
             ) {
                 // Copy the value from formProperties to formTemplateProperties
                 enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
-               if (formProperty.diagnostics) {
+                
+                if (formProperty.hasOwnProperty('editable')) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].editable = formProperty.editable;
+                    enrichedFormTemplateProperties[key as NodePropertyKey].codedata = formProperty?.codedata;
+                }
+
+                if (formProperty.diagnostics) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
                }
             }

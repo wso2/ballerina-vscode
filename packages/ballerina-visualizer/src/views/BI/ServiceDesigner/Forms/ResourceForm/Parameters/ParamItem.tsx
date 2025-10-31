@@ -121,7 +121,7 @@ export function ParamItem(props: ParamItemProps) {
                 <div
                     data-test-id={`${label}-param`}
                     className={readonly ? disabledHeaderLabel : headerLabelStyles}
-                    onClick={handleEdit}
+                    onClick={!readonly ? handleEdit : undefined}
                 >
                     {label}
                 </div>
