@@ -108,9 +108,13 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
-                await this.updateCurrentArtifactLocation({ artifacts: payload.data });
+                const currentArtifact = await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
+                if (!currentArtifact) {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                    resolve("Undo successful"); // resolve the undo string
+                }
                 notifyCurrentWebview();
                 await this.refreshDataMapperView();
                 unsubscribe();

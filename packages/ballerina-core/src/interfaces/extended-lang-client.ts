@@ -1657,6 +1657,7 @@ export interface FunctionSourceCodeRequest {
         lineRange: LineRange; // For the entire service
     };
     service?: ServiceModel;
+    artifactType?: DIRECTORY_MAP;
 }
 export interface ResourceSourceCodeResponse {
     textEdits: {
