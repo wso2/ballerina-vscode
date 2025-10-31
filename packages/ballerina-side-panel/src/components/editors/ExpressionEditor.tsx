@@ -516,7 +516,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     };
 
     // Only prompt field supports expanded mode
-    const onOpenExpandedMode = (field.key === 'prompt' && !props.isInExpandedMode)
+    const onOpenExpandedMode = (!props.isInExpandedMode)
         ? handleOpenExpandedMode
         : undefined;
 
@@ -670,7 +670,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             {onOpenExpandedMode && (
                 <ExpandedPromptEditor
                     isOpen={isExpandedModalOpen}
-                    field={field}
+                    value={watch(key)}
                     onClose={() => setIsExpandedModalOpen(false)}
                     onSave={handleSaveExpandedMode}
                 />

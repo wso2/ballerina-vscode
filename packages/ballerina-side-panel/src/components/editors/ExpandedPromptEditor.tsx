@@ -20,14 +20,10 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { ThemeColors, Codicon, Divider, Typography, Button } from "@wso2/ui-toolkit";
-import { ExpressionEditor } from "./ExpressionEditor";
-import { useFormContext } from '../../context';
-import { FormField } from "../Form/types";
-import { EXPANDED_EDITOR_HEIGHT } from "./MultiModeExpressionEditor/ChipExpressionEditor/constants";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
-    field: FormField;
+    value: string;
     onClose: () => void;
     onSave: (value: string) => void;
 }
@@ -76,17 +72,21 @@ const ModalContent = styled.div`
     flex-direction: column;
 `;
 
-const EditorContainer = styled.div`
+const TextArea = styled.textarea`
     width: 100%;
-    min-height: ${EXPANDED_EDITOR_HEIGHT}px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 500px;
+    padding: 12px;
+    fontSize: 13px;
+    font-family: var(--vscode-editor-font-family);
     background-color: ${ThemeColors.SURFACE};
+    color: ${ThemeColors.ON_SURFACE};
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
+    resize: vertical;
+    outline: none;
     box-sizing: border-box;
 
-    &:focus-within {
+    &:focus {
         border-color: ${ThemeColors.OUTLINE};
         box-shadow: 0 0 0 1px ${ThemeColors.OUTLINE};
     }
@@ -101,18 +101,24 @@ const ButtonContainer = styled.div`
 
 export const ExpandedPromptEditor: React.FC<ExpandedPromptEditorProps> = ({
     isOpen,
-    field,
+    value,
     onClose,
     onSave,
 }) => {
-    const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
+    const [editedValue, setEditedValue] = useState(value);
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-    const handleSave = (value: string) => {
-        onSave(value);
+    useEffect(() => {
+        setEditedValue(value);
+    }, [value, isOpen]);
+
+    const handleSave = () => {
+        onSave(editedValue);
         onClose();
     };
 
     const handleCancel = () => {
+        setEditedValue(value);
         onClose();
     };
 
@@ -131,25 +137,19 @@ export const ExpandedPromptEditor: React.FC<ExpandedPromptEditorProps> = ({
                 </ModalHeaderSection>
                 <Divider sx={{ margin: 0 }} />
                 <ModalContent>
-                    <EditorContainer>
-                        <ExpressionEditor
-                            fileName={fileName}
-                            targetLineRange={targetLineRange}
-                            field={field}
-                            {...form}
-                            {...expressionEditor}
-                            showHeader={false}
-                            isInExpandedMode={true}
-                            onSave={handleSave}
-                            onCancel={handleCancel}
-                        />
-                    </EditorContainer>
+                    <TextArea
+                        ref={textareaRef}
+                        value={editedValue}
+                        onChange={(e) => setEditedValue(e.target.value)}
+                        placeholder="Enter your prompt here..."
+                        autoFocus
+                    />
                 </ModalContent>
                 <ButtonContainer>
                     <Button appearance="secondary" onClick={handleCancel}>
                         Cancel
                     </Button>
-                    <Button appearance="primary" onClick={() => handleSave(form.watch(field.key))}>
+                    <Button appearance="primary" onClick={handleSave}>
                         Save
                     </Button>
                 </ButtonContainer>
