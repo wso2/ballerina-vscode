@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 
 public class ServiceModifier extends TreeModifier {
 
-    private static final Pattern ERROR_PATTERN = Pattern.compile("\\|?error[?|]?");
+    private static final Pattern ERROR_PATTERN = Pattern.compile("(^|\\|)\\s*error\\s*(\\?|\\||$)");
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
     public static final String ERROR = "error";
