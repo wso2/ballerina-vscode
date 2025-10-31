@@ -225,9 +225,15 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     // Create ref for service section
     const serviceRef = useRef<HTMLDivElement | null>(null);
-
+    
     // Create ref for the scrollable container
     const containerRef = useRef<HTMLDivElement | null>(null);
+    
+    // Ref to track the current visible section to prevent unnecessary updates
+    const visibleSectionRef = useRef<string | null>("service");
+    
+    // Ref for debounce timer
+    const scrollTimerRef = useRef<number | null>(null);
 
     // State to manage which accordion is expanded
     const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
@@ -245,6 +251,11 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         }
     }, [props.listenerName]);
 
+    // Sync the ref when visibleSection changes from external sources
+    useEffect(() => {
+        visibleSectionRef.current = visibleSection;
+    }, [visibleSection]);
+
     // Set up Intersection Observer to track visible sections
     useEffect(() => {
         if (!containerRef.current) return;
@@ -255,7 +266,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             rootMargin: '0px 0px 0px 0px', // Offset for the sticky header area
         };
 
-        const topOffset = -60;
+        const topOffset = 0;
         const observerCallback = (entries: IntersectionObserverEntry[]) => {
             // Get all currently visible sections with their visibility ratios
             const visibleSections: Array<{ id: string; ratio: number; isService: boolean }> = [];
@@ -292,11 +303,15 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 }
             });
 
+            // Determine which section should be shown
+            let newVisibleSection: string | null = null;
+            let newTitle: string | null = null;
+            
             // Prioritize service if it's visible
             const serviceSection = visibleSections.find(s => s.isService);
             if (serviceSection && serviceSection.ratio > 0.05) {
-                setVisibleSection('service');
-                setConfigTitle(`${serviceModel.name} Configuration`);
+                newVisibleSection = 'service';
+                newTitle = `${serviceModel.name} Configuration`;
             } else {
                 // Get all visible listeners
                 const visibleListenerIds = visibleSections
@@ -309,12 +324,21 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     const firstVisibleListener = listeners.find(l => visibleListenerIds.includes(l.id));
                     
                     if (firstVisibleListener) {
-                        setVisibleSection(firstVisibleListener.id);
+                        newVisibleSection = firstVisibleListener.id;
                         const displayName = firstVisibleListener.name.includes(":")
                             ? getReadableListenerName(firstVisibleListener.name)
                             : firstVisibleListener.name;
-                        setConfigTitle(`Configuration for ${displayName}`);
+                        newTitle = `Configuration for ${displayName}`;
                     }
+                }
+            }
+            
+            // Only update state if the section actually changed
+            if (newVisibleSection && newVisibleSection !== visibleSectionRef.current) {
+                visibleSectionRef.current = newVisibleSection;
+                setVisibleSection(newVisibleSection);
+                if (newTitle) {
+                    setConfigTitle(newTitle);
                 }
             }
         };
@@ -333,15 +357,26 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             }
         });
 
-        // Also add a scroll listener for more responsive updates
+        // Add a throttled scroll listener for responsive updates
         const handleScroll = () => {
-            observerCallback([]);
+            // Clear any existing timer
+            if (scrollTimerRef.current !== null) {
+                clearTimeout(scrollTimerRef.current);
+            }
+            
+            // Set a new timer to call the observer callback after a short delay
+            scrollTimerRef.current = window.setTimeout(() => {
+                observerCallback([]);
+            }, 50); // 50ms throttle - feels responsive but prevents excessive updates
         };
 
-        containerRef.current.addEventListener('scroll', handleScroll);
+        containerRef.current.addEventListener('scroll', handleScroll, { passive: true });
 
         return () => {
             observer.disconnect();
+            if (scrollTimerRef.current) {
+                clearTimeout(scrollTimerRef.current);
+            }
             if (containerRef.current) {
                 containerRef.current.removeEventListener('scroll', handleScroll);
             }
