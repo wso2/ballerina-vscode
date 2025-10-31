@@ -547,6 +547,12 @@ public class SourceCodeGenerator {
         if (Objects.nonNull(member.imports())) {
             member.imports().forEach(this.imports::putIfAbsent);
         }
+
+        // Add GraphQL import when GraphQL ID annotation is used
+        if (member.isGraphqlId()) {
+            this.imports.putIfAbsent(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
+        }
     }
 
     /**
@@ -557,6 +563,12 @@ public class SourceCodeGenerator {
     private void addFunctionImports(Function function) {
         if (Objects.nonNull(function.imports())) {
             function.imports().forEach(this.imports::putIfAbsent);
+        }
+
+        // Add GraphQL import when GraphQL ID annotation is used on function return type
+        if (function.isGraphqlId()) {
+            this.imports.putIfAbsent(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
         }
     }
 }
