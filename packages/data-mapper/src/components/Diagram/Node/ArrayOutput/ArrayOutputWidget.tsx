@@ -91,7 +91,6 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 		expanded = false;
 	}
 
-	const indentation = (portIn && !hasValue) ? 0 : 24;
 	const shouldPortVisible = !hasValue || !expanded || !isBodyArrayLitExpr || elements.length === 0;
 	const hasElementConnectedViaLink = elements.some(expr => expr.mappings.some(m => m.inputs.length > 0));
 
@@ -218,7 +217,6 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 								tooltip="Expand/Collapse"
 								onClick={handleExpand}
 								data-testid={`${id}-expand-icon-mapping-target-node`}
-								sx={{ marginLeft: indentation }}
 							>
 								{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
 							</Button>
@@ -237,7 +235,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 						</FieldActionWrapper>
 					)}
 				</TreeHeader>
-				{expanded && outputType && isBodyArrayLitExpr && (
+				{expanded && outputType && (
 					<TreeBody>
 						<ArrayOutputFieldWidget
 							key={id}
