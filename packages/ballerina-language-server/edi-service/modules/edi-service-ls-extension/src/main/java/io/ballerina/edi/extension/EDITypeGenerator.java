@@ -420,7 +420,6 @@ public class EDITypeGenerator {
             return typeName;
         }
 
-        // Type name exists, generate a new one with numeric suffix
         String[] parts = typeName.split("_");
         String lastPart = parts[parts.length - 1];
 
@@ -496,13 +495,8 @@ public class EDITypeGenerator {
      */
     private Map<Path, List<TextEdit>> createTextEdits(GeneratedContent content) throws EDIGenerationException {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-
-        // Create text edits for types.bal
         createTypesFileEdits(content, textEditsMap);
-
-        // Create text edits for functions.bal
         createFunctionsFileEdits(content, textEditsMap);
-
         return textEditsMap;
     }
 
@@ -521,20 +515,17 @@ public class EDITypeGenerator {
             Document document = documentOpt.get();
             ModulePartNode modulePartNode = document.syntaxTree().rootNode();
 
-            // Add imports if needed
             String newImports = filterExistingImports(content.imports, modulePartNode);
             if (!newImports.isEmpty()) {
                 LinePosition importPos = getImportInsertPosition(modulePartNode);
                 textEdits.add(new TextEdit(CommonUtils.toRange(importPos), newImports + LS));
             }
 
-            // Append types at the end
             LinePosition endPos = LinePosition.from(modulePartNode.lineRange().endLine().line() + 1, 0);
             String contentToAppend = LS + content.types;
             textEdits.add(new TextEdit(CommonUtils.toRange(endPos), contentToAppend));
 
         } else {
-            // File doesn't exist, create new content
             LinePosition startPos = LinePosition.from(0, 0);
             if (!content.imports.isEmpty()) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(startPos), content.imports + LS + LS));
@@ -563,20 +554,17 @@ public class EDITypeGenerator {
             Document document = documentOpt.get();
             ModulePartNode modulePartNode = document.syntaxTree().rootNode();
 
-            // Add imports if needed
             String newImports = filterExistingImports(content.imports, modulePartNode);
             if (!newImports.isEmpty()) {
                 LinePosition importPos = getImportInsertPosition(modulePartNode);
                 textEdits.add(new TextEdit(CommonUtils.toRange(importPos), newImports + LS));
             }
 
-            // Append functions at the end
             LinePosition endPos = LinePosition.from(modulePartNode.lineRange().endLine().line() + 1, 0);
             String contentToAppend = LS + content.functions;
             textEdits.add(new TextEdit(CommonUtils.toRange(endPos), contentToAppend));
 
         } else {
-            // File doesn't exist, create new content
             LinePosition startPos = LinePosition.from(0, 0);
             if (!content.imports.isEmpty()) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(startPos), content.imports + LS + LS));
@@ -654,12 +642,12 @@ public class EDITypeGenerator {
                             try {
                                 Files.delete(path);
                             } catch (Throwable e) {
-                                // Ignore deletion errors
+                                throw new RuntimeException("Failed to delete: " + path, e);
                             }
                         });
             }
         } catch (Throwable e) {
-            // Ignore errors during cleanup
+            throw new RuntimeException("Failed to delete directory: " + directory, e);
         }
     }
 
