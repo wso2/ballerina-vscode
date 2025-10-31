@@ -17,7 +17,7 @@
         "metadata": {
           "label": "run",
           "description": "Executes the agent for a given user query.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png",
           "data": {
             "tools": [
               {
@@ -64,7 +64,7 @@
           "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
-          "version": "1.0.1",
+          "version": "1.2.3",
           "lineRange": {
             "fileName": "agents.bal",
             "startLine": {
@@ -85,7 +85,7 @@
               "packageName": "ai",
               "object": "Agent",
               "symbol": "init",
-              "version": "1.0.1",
+              "version": "1.2.3",
               "lineRange": {
                 "fileName": "agents.bal",
                 "startLine": {
@@ -406,7 +406,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -449,7 +449,7 @@
             "typeMembers": [
               {
                 "type": "ModelProvider",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.3",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -477,7 +477,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.3",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -505,7 +505,7 @@
             "typeMembers": [
               {
                 "type": "AgentType",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.3",
                 "packageName": "ai",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -614,7 +614,7 @@
             "typeMembers": [
               {
                 "type": "Memory",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerinax:ai:1.2.3",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -2167,7 +2167,7 @@
         "metadata": {
           "label": "Class",
           "description": "AzureOpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
         },
         "codedata": {
           "node": "CLASS_INIT",

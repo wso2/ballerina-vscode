@@ -36,265 +36,6 @@
     },
     {
       "metadata": {
-        "label": "AI"
-      },
-      "items": [
-        {
-          "metadata": {
-            "label": "Chat",
-            "description": "This is a generated connector from [Azure OpenAI Chat Completions API v2023-12-01-preview](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#chat-completions/) OpenAPI specification.\nThe Azure Azure OpenAI Service REST API Chat Completions Endpoint will create completions for chat messages with the ChatGPT (preview) and GPT-4 (preview) models.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.openai.chat_3.0.2.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "azure.openai.chat",
-            "packageName": "azure.openai.chat",
-            "object": "Client",
-            "symbol": "init",
-            "version": "3.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Embeddings",
-            "description": "This is a generated connector from [Azure OpenAI Embeddings API v2023-03-15-preview](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#embeddings/) OpenAPI specification.\nThe Azure Azure OpenAI Service REST API Embeddings Endpoint will generate one a vector representation of a given input that can be easily consumed by machine learning models and other algorithms.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.openai.embeddings_1.0.2.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "azure.openai.embeddings",
-            "packageName": "azure.openai.embeddings",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Chat",
-            "description": "The OpenAI REST API. Please see https://platform.openai.com/docs/api-reference for more details.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_openai.chat_4.0.0.png",
-            "data": {
-              "isAgentSupport": true
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "openai.chat",
-            "packageName": "openai.chat",
-            "object": "Client",
-            "symbol": "init",
-            "version": "4.0.0",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Embeddings",
-            "description": "This is a generated connector for the [OpenAI API] (https://platform.openai.com/docs/api-reference/introduction) specification. Use the OpenAI API to access the state-of-the-art language models that can complete sentences, transcribe audio, and generate images. The API also supports natural language processing tasks such as text classification, entity recognition, and sentiment analysis. By using the OpenAI API, you can incorporate advanced AI capabilities into your own applications and services.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_openai.embeddings_1.0.5.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "openai.embeddings",
-            "packageName": "openai.embeddings",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.5",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Stabilityai",
-            "description": "Welcome to the Stability.ai REST API!\n\nYour DreamStudio API key will be required for authentication: [How to find your API key](https://platform.stability.ai/docs/getting-started/authentication)\n\nAPI operations use the following versioning scheme:\n- `/v*` interface is stable and ready for production workloads\n- `/v*beta*`: interface is stable, preparing for production release\n- `/v*alpha*`: under development and the interface is subject to change\n\nNOTE: The v1alpha and v1beta endpoints from the developer preview are still available, but they\nwill disabled on May 1st, 2023.  Please migrate to the v1 endpoints as soon as possible.\n\nIf you have feedback or encounter any issues with the API, please reach out:\n- [https://github.com/Stability-AI/REST-API](https://github.com/Stability-AI/REST-API)\n- [https://discord.gg/stablediffusion #API channel](https://discord.com/channels/1002292111942635562/1042896447311454361)",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stabilityai_1.0.1.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "stabilityai",
-            "packageName": "stabilityai",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.1",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Mistral",
-            "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "mistral",
-            "packageName": "mistral",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.0",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Mcp StreamableHttp",
-            "description": "Represents an MCP client built on top of the Streamable HTTP transport.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.1.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerina",
-            "module": "mcp",
-            "packageName": "mcp",
-            "object": "StreamableHttpClient",
-            "symbol": "init",
-            "version": "1.0.1",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Ai",
-            "description": "This is a generated connector for [WebScraping.AI API v2.0.4](https://webscraping.ai/docs) OpenAPI specification.\nIt provides a web scaping automation API with Chrome JS rendering, rotating proxies and builtin HTML parsing.\nMore information about the WebScraping.AI API can be found at https://webscraping.ai.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_webscraping.ai_1.5.1.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "webscraping.ai",
-            "packageName": "webscraping.ai",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.5.1",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Vector",
-            "description": "This is a generated connector for the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "pinecone.vector",
-            "packageName": "pinecone.vector",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Index",
-            "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "pinecone.index",
-            "packageName": "pinecone.index",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Weaviate",
-            "description": "This is a generated connector for [Weaviate Vector Search Engine API](https://weaviate.io/developers/weaviate/api) OpenAPI specification.\nWeaviate API provide access to the manipulations of weaviate schema, objects and search vectors based on various criterias.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_weaviate_1.0.2.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "weaviate",
-            "packageName": "weaviate",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "Milvus",
-            "description": "Milvus is a high-performance, cloud-native vector database built for scalable vector ANN search.\n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
-            "data": {
-              "isAgentSupport": false
-            }
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "milvus",
-            "packageName": "milvus",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.1.0",
-            "isGenerated": false
-          },
-          "enabled": true
-        }
-      ]
-    },
-    {
-      "metadata": {
         "label": "Network"
       },
       "items": [
@@ -826,6 +567,265 @@
             "object": "Client",
             "symbol": "init",
             "version": "2.0.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "AI"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Chat",
+            "description": "This is a generated connector from [Azure OpenAI Chat Completions API v2023-12-01-preview](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#chat-completions/) OpenAPI specification.\nThe Azure Azure OpenAI Service REST API Chat Completions Endpoint will create completions for chat messages with the ChatGPT (preview) and GPT-4 (preview) models.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.openai.chat_3.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "azure.openai.chat",
+            "packageName": "azure.openai.chat",
+            "object": "Client",
+            "symbol": "init",
+            "version": "3.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Embeddings",
+            "description": "This is a generated connector from [Azure OpenAI Embeddings API v2023-03-15-preview](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#embeddings/) OpenAPI specification.\nThe Azure Azure OpenAI Service REST API Embeddings Endpoint will generate one a vector representation of a given input that can be easily consumed by machine learning models and other algorithms.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.openai.embeddings_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "azure.openai.embeddings",
+            "packageName": "azure.openai.embeddings",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Chat",
+            "description": "The OpenAI REST API. Please see https://platform.openai.com/docs/api-reference for more details.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_openai.chat_4.0.0.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "openai.chat",
+            "packageName": "openai.chat",
+            "object": "Client",
+            "symbol": "init",
+            "version": "4.0.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Embeddings",
+            "description": "This is a generated connector for the [OpenAI API] (https://platform.openai.com/docs/api-reference/introduction) specification. Use the OpenAI API to access the state-of-the-art language models that can complete sentences, transcribe audio, and generate images. The API also supports natural language processing tasks such as text classification, entity recognition, and sentiment analysis. By using the OpenAI API, you can incorporate advanced AI capabilities into your own applications and services.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_openai.embeddings_1.0.5.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "openai.embeddings",
+            "packageName": "openai.embeddings",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.5",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Stabilityai",
+            "description": "Welcome to the Stability.ai REST API!\n\nYour DreamStudio API key will be required for authentication: [How to find your API key](https://platform.stability.ai/docs/getting-started/authentication)\n\nAPI operations use the following versioning scheme:\n- `/v*` interface is stable and ready for production workloads\n- `/v*beta*`: interface is stable, preparing for production release\n- `/v*alpha*`: under development and the interface is subject to change\n\nNOTE: The v1alpha and v1beta endpoints from the developer preview are still available, but they\nwill disabled on May 1st, 2023.  Please migrate to the v1 endpoints as soon as possible.\n\nIf you have feedback or encounter any issues with the API, please reach out:\n- [https://github.com/Stability-AI/REST-API](https://github.com/Stability-AI/REST-API)\n- [https://discord.gg/stablediffusion #API channel](https://discord.com/channels/1002292111942635562/1042896447311454361)",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stabilityai_1.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "stabilityai",
+            "packageName": "stabilityai",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mistral",
+            "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "mistral",
+            "packageName": "mistral",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mcp StreamableHttp",
+            "description": "Represents an MCP client built on top of the Streamable HTTP transport.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "mcp",
+            "packageName": "mcp",
+            "object": "StreamableHttpClient",
+            "symbol": "init",
+            "version": "1.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ai",
+            "description": "This is a generated connector for [WebScraping.AI API v2.0.4](https://webscraping.ai/docs) OpenAPI specification.\nIt provides a web scaping automation API with Chrome JS rendering, rotating proxies and builtin HTML parsing.\nMore information about the WebScraping.AI API can be found at https://webscraping.ai.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_webscraping.ai_1.5.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "webscraping.ai",
+            "packageName": "webscraping.ai",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.5.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Vector",
+            "description": "This is a generated connector for the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "pinecone.vector",
+            "packageName": "pinecone.vector",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Index",
+            "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "pinecone.index",
+            "packageName": "pinecone.index",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Weaviate",
+            "description": "This is a generated connector for [Weaviate Vector Search Engine API](https://weaviate.io/developers/weaviate/api) OpenAPI specification.\nWeaviate API provide access to the manipulations of weaviate schema, objects and search vectors based on various criterias.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_weaviate_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "weaviate",
+            "packageName": "weaviate",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Milvus",
+            "description": "Milvus is a high-performance, cloud-native vector database built for scalable vector ANN search.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "milvus",
+            "packageName": "milvus",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.1.0",
             "isGenerated": false
           },
           "enabled": true
