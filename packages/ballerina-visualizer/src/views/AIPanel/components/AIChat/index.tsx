@@ -63,7 +63,7 @@ import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus, Task, TaskApprovalRequest } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, TodoPanel } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
@@ -330,6 +330,14 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "task_write") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
+                    }
+                    return newMessages;
+                });
             } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
                 const message = response.toolName === "file_read"
@@ -386,11 +394,12 @@ const AIChat: React.FC = () => {
                                 taskOutput.message.includes("ERROR: Missing");
 
                             const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                            const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (isInternalError) {
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, "");
+                                ].content.replace(indicatorPattern, "").replace(todoPattern, "");
                             } else {
                                 let simplifiedMessage = "Task update failed";
 
@@ -407,7 +416,7 @@ const AIChat: React.FC = () => {
 
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`);
+                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
                             }
                         } else {
                             const todoData = {
@@ -416,15 +425,17 @@ const AIChat: React.FC = () => {
                             };
                             const todoJson = JSON.stringify(todoData);
 
-                            const taskPattern = /<toolcall>Planning\.\.\.<\/toolcall>|<todo>.*?<\/todo>/s;
                             const lastMessageContent = newMessages[newMessages.length - 1].content;
+                            const todoPattern = /<todo>.*?<\/todo>/s;
 
-                            if (taskPattern.test(lastMessageContent)) {
+                            if (todoPattern.test(lastMessageContent)) {
+                                // Replace existing todo section
                                 newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                                    taskPattern,
+                                    todoPattern,
                                     `<todo>${todoJson}</todo>`
                                 );
                             } else {
+                                // Add new todo section
                                 newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
                             }
                         }
@@ -459,23 +470,38 @@ const AIChat: React.FC = () => {
                 });
             }
         } else if (type === "task_approval_request") {
-            // Handle approval request from the backend
-            if (response.approvalType === "plan") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += ` <toolcall>Planning...</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            }
-
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
                 taskDescription: response.taskDescription,
                 message: response.message,
             });
+            if (response.approvalType === "plan") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const todoData = {
+                            tasks: response.tasks,
+                            message: response.message
+                        };
+                        const todoJson = JSON.stringify(todoData);
+                        const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                        if (indicatorPattern.test(lastMessageContent)) {
+                            // Replace Planning indicator with todo
+                            newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                                indicatorPattern,
+                                `<todo>${todoJson}</todo>`
+                            );
+                        } else {
+                            // Append todo if Planning indicator not found
+                            newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
+                        }
+                    }
+                    return newMessages;
+                });
+            }
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
@@ -2146,10 +2172,10 @@ const AIChat: React.FC = () => {
                             <Button
                                 appearance="icon"
                                 onClick={handleToggleAutoApprove}
-                                tooltip={isAutoApproveEnabled ? "Disable auto-approval" : "Enable auto-approval"}
+                                tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
                             >
                                 <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: ON" : "Auto-Approve: OFF"}
+                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
                             </Button>
                             <Button
                                 appearance="icon"
@@ -2166,14 +2192,6 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
-                    {(approvalRequest?.tasks || todoTasks) && (
-                        <TodoPanel>
-                            <TodoSection
-                                tasks={approvalRequest?.tasks || todoTasks || []}
-                                message={approvalRequest?.message || tasksMessage}
-                            />
-                        </TodoPanel>
-                    )}
                     <main style={{ flex: 1, overflowY: "auto" }}>
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
@@ -2277,9 +2295,12 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
-                                            // Skip rendering todo in chat messages - tasks are shown only in top panel
-                                            // The <todo> tags remain in message content for agent context
-                                            return null;
+                                            return (
+                                                <TodoSection
+                                                    tasks={approvalRequest?.tasks || todoTasks || []}
+                                                    message={approvalRequest?.message || tasksMessage}
+                                                />
+                                            );
                                         } else if (segment.type === SegmentType.Attachment) {
                                             return (
                                                 <AttachmentsContainer>

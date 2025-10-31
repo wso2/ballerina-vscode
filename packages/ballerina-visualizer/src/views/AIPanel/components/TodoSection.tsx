@@ -27,30 +27,32 @@ const spin = keyframes`
 `;
 
 const TodoContainer = styled.div`
-    background-color: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    margin: 0;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 8px 0;
     font-family: var(--vscode-editor-font-family);
     font-size: 12px;
     color: var(--vscode-editor-foreground);
-    min-height: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;
 
 const TodoHeader = styled.div<{ clickable?: boolean }>`
-    font-weight: 600;
-    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '6px'};
-    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '4px'};
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '8px'};
+    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '8px' : '8px'};
     border-bottom: ${(props: { clickable?: boolean }) =>
-        props.clickable ? 'none' : '1px solid var(--vscode-panel-border)'};
+        props.clickable ? 'none' : '1px solid var(--vscode-widget-border)'};
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: ${(props: { clickable?: boolean }) => props.clickable ? 'pointer' : 'default'};
     user-select: none;
-    padding: 2px;
-    border-radius: 3px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
 
     &:hover {
         background-color: ${(props: { clickable?: boolean }) =>
@@ -75,23 +77,32 @@ const MinimalTaskInfo = styled.span`
 const TodoList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     overflow-y: auto;
-    max-height: 200px;
+    max-height: 300px;
+    padding: 2px;
 `;
 
 const TodoItem = styled.div<{ status: string }>`
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-radius: 3px;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 4px;
     background-color: ${(props: { status: string }) =>
         props.status === "completed"
             ? "var(--vscode-list-hoverBackground)"
+            : props.status === "in_progress"
+            ? "rgba(75, 110, 175, 0.1)"
             : "transparent"};
-    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.7 : 1)};
+    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.65 : 1)};
     transition: all 0.2s ease;
+    border-left: 2px solid ${(props: { status: string }) =>
+        props.status === "in_progress"
+            ? "var(--vscode-charts-blue)"
+            : props.status === "completed"
+            ? "var(--vscode-testing-iconPassed)"
+            : "transparent"};
 `;
 
 const TodoIcon = styled.span<{ status: string }>`
@@ -236,11 +247,15 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
                     {message && (
                         <div
                             style={{
-                                marginTop: "6px",
-                                marginBottom: "6px",
+                                marginTop: "8px",
+                                marginBottom: "12px",
+                                padding: "8px 10px",
                                 fontSize: "11px",
                                 color: "var(--vscode-descriptionForeground)",
                                 fontStyle: "italic",
+                                backgroundColor: "var(--vscode-textBlockQuote-background)",
+                                borderRadius: "4px",
+                                borderLeft: "3px solid var(--vscode-textBlockQuote-border)",
                             }}
                         >
                             {message}
