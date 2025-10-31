@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Type, ServiceClassModel, ModelFromCodeRequest, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE } from "@wso2/ballerina-core";
+import { Type, ServiceClassModel, ModelFromCodeRequest, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography, TextField, ProgressRing, ThemeColors, AutoResizeTextArea } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import React, { useCallback, useEffect, useState, useRef } from "react";
@@ -281,7 +281,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -298,7 +299,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 

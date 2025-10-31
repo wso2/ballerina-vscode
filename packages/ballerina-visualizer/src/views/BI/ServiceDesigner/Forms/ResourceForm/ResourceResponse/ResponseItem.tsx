@@ -68,7 +68,7 @@ export function ResponseItem(props: ParamItemProps) {
                 <div
                     data-test-id={`${response.body.value}-resp`}
                     className={readonly ? disabledHeaderLabel : headerLabelStyles}
-                    onClick={handleEdit}
+                    onClick={!readonly ? handleEdit : undefined}
                 >
                     {response.name.value || response.body.value || response.type.value || "anydata"}
                 </div>

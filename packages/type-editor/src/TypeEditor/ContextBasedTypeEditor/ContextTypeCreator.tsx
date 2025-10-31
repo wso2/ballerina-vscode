@@ -189,13 +189,6 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
-    // This ensures validation runs even if the name hasn't changed but other nested types were created
-    useEffect(() => {
-        if (editingType && editingType.name) {
-            validateTypeName(editingType.name);
-        }
-    }, [editingType]);
-
     const handleSetType = (type: Type) => {
         replaceTop({
             type: type,
@@ -336,9 +329,9 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         await validateTypeName(e.target.value);
     }
 
-    const validateTypeName = useCallback(debounce(async (value: string) => {
+    const performValidation = async (value: string): Promise<{ isValid: boolean; error: string }> => {
         if (saveButtonClicked.current) {
-            return;
+            return { isValid: isTypeNameValid, error: nameError };
         }
 
         const projectPath = await rpcClient.getVisualizerLocation().then((res) => res.projectPath);
@@ -390,15 +383,26 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
             }
         });
 
+        const hasErrors = response && response.diagnostics && response.diagnostics.length > 0;
+        const errorMessage = hasErrors ? response.diagnostics[0].message : "";
 
-        if (response && response.diagnostics && response.diagnostics.length > 0) {
-            setNameError(response.diagnostics[0].message);
-            setIsTypeNameValid(false);
-        } else {
-            setNameError("");
-            setIsTypeNameValid(true);
-        }
-    }, 250), [rpcClient, type]);
+        return {
+            isValid: !hasErrors,
+            error: errorMessage
+        };
+    };
+
+    // Debounced version for real-time validation (updates UI state)
+    const validateTypeName = useCallback(debounce(async (value: string) => {
+        const result = await performValidation(value);
+        setNameError(result.error);
+        setIsTypeNameValid(result.isValid);
+    }, 250), [performValidation]);
+
+    // Immediate version for save validation (returns result without updating UI)
+    const validateTypeNameSync = async (value: string): Promise<{ isValid: boolean; error: string }> => {
+        return await performValidation(value);
+    };
 
     const handleOnTypeNameUpdate = (value: string) => {
         setTempName(value);
@@ -409,6 +413,33 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         handleSetType({ ...type, name: value });
         validateTypeName(value);
     }
+
+    // Function to validate before saving to verify names created in nested forms
+    const handleSaveWithValidation = async (typeToSave: Type) => {
+        try {
+            setIsSaving(true);
+
+            // Perform immediate validation
+            const validationResult = await validateTypeNameSync(typeToSave.name);
+
+            // Update the UI state with validation results
+            if (validationResult.isValid) {
+                setNameError("");
+                setIsTypeNameValid(true);
+                await onTypeSave(typeToSave);
+            } else {
+                setNameError(validationResult.error);
+                setIsTypeNameValid(false);
+            }
+        } catch (error) {
+            console.error('Error during validation', error);
+            if (isTypeNameValid && !onValidationError) {
+                await onTypeSave(typeToSave);
+            }
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const renderEditor = () => {
         if (!type) {
@@ -591,7 +622,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
             <Footer>
                 <Button
                     data-testid="type-create-save"
-                    onClick={() => onTypeSave(type)}
+                    onClick={() => handleSaveWithValidation(type)}
                     disabled={onValidationError || !isTypeNameValid || isEditing || isSaving}>
                     {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
                 </Button>

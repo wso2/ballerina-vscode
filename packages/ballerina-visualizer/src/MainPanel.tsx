@@ -352,6 +352,7 @@ const MainPanel = () => {
                                 <TypeDiagram
                                     selectedTypeId={value?.identifier}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         } else {
@@ -361,6 +362,7 @@ const MainPanel = () => {
                                     key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
                                     selectedTypeId={value?.identifier}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         }

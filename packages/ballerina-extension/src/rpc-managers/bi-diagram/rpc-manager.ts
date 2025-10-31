@@ -1160,7 +1160,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
         }
 
-        const execution = new ShellExecution(buildCommand);
+        // Use the current process environment which should have the updated PATH
+        const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
 
         const task = new Task(
             taskDefinition,

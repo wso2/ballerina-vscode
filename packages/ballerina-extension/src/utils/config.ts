@@ -129,12 +129,12 @@ export function checkIsBI(uri: Uri): boolean {
 
 export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
-    
+
     // First check if the file exists
     if (!fs.existsSync(ballerinaTomlPath)) {
         return false;
     }
-    
+
     try {
         const tomlValues = await getProjectTomlValues(uri.fsPath);
         return tomlValues?.package !== undefined;
@@ -147,12 +147,12 @@ export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
 
 export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
-    
+
     // First check if the file exists
     if (!fs.existsSync(ballerinaTomlPath)) {
         return false;
     }
-    
+
     try {
         const tomlValues = await getWorkspaceTomlValues(uri.fsPath);
         return tomlValues?.workspace !== undefined;
@@ -165,13 +165,13 @@ export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
 
 /**
  * Filters package paths to only include valid Ballerina packages within the workspace.
- * 
+ *
  * For each path, this function:
  * - Resolves the path (handling relative paths like `.` and `..`)
  * - Verifies the path exists on the filesystem
  * - Ensures the path is within the workspace boundaries (prevents path traversal)
  * - Validates it's a valid Ballerina package
- * 
+ *
  * @param packagePaths Array of package paths (relative or absolute)
  * @param workspacePath Absolute path to the workspace root
  * @returns Filtered array of valid Ballerina package paths that exist within the workspace

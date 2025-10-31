@@ -27,7 +27,7 @@ export const EditorContainer = styled.div<CSSObject>`
     border-radius: 5px;
     padding: 10px;
     border: 1px solid var(--vscode-dropdown-border);
-    & > .side-panel-body {
+    & .side-panel-body {
         padding: unset;
     }
 `;
