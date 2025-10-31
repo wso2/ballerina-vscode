@@ -101,17 +101,6 @@
     ]
   },
   "11": {
-    "name": "ibm.ibmmq",
-    "orgName": "ballerinax",
-    "packageName": "ibm.ibmmq",
-    "keywords": [
-      "ibm",
-      "ibmmq",
-      "messaging",
-      "event"
-    ]
-  },
-  "12": {
     "name": "solace",
     "orgName": "ballerinax",
     "packageName": "solace",

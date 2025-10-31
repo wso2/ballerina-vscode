@@ -189,7 +189,7 @@ public final class JmsUtil {
      *
      * @param functions     List of functions to apply ack mode to.
      * @param properties    Map containing the session ack mode property.
-     * @param callerTypeStr The caller type as a string (e.g., "ibmmq:Caller").
+     * @param callerTypeStr The caller type as a string (e.g., "solace:Caller").
      * @param moduleName    The module name for display purposes.
      */
     public static void applyAckModeToOnMessageFunction(List<Function> functions, Map<String, Value> properties,
@@ -217,7 +217,7 @@ public final class JmsUtil {
      *
      * @param onMessageFunction The onMessage function to update.
      * @param ackMode           The acknowledgment mode value.
-     * @param callerTypeStr     The caller type as a string (e.g., "ibmmq:Caller").
+     * @param callerTypeStr     The caller type as a string (e.g., "solace:Caller").
      * @param moduleName        The module name for display purposes.
      */
     public static void updateCallerParameterForAckMode(Function onMessageFunction, String ackMode,
@@ -273,8 +273,8 @@ public final class JmsUtil {
      *
      * @param context            The update model context.
      * @param parentServiceEdits The edits from the parent class's updateModel method.
-     * @param protocolName       The protocol name (e.g., "ibmmq", "solace").
-     * @param callerType         The caller type (e.g., "ibmmq:Caller", "solace:Caller").
+     * @param protocolName       The protocol name (e.g., "solace").
+     * @param callerType         The caller type (e.g., "solace:Caller").
      * @param moduleName         The module name for display purposes.
      * @return A map of file paths to text edits.
      */
@@ -412,7 +412,6 @@ public final class JmsUtil {
                 .optional(true)
                 .build());
 
-        // Add any additional topic properties (e.g., "shared" for IBMMQ)
         if (additionalTopicProperties != null) {
             topicProps.putAll(additionalTopicProperties);
         }
@@ -442,7 +441,7 @@ public final class JmsUtil {
     /**
      * Builds a service annotation string for JMS-based services.
      *
-     * @param serviceConfigType    The service config type annotation (e.g., "@ibmmq:ServiceConfig").
+     * @param serviceConfigType    The service config type annotation (e.g., "@solace:ServiceConfig").
      * @param properties           The service properties containing queue/topic configuration.
      * @param consumerTypeResolver Function that determines consumer type based on durable/shared flags. Input: Boolean
      *                             array [isDurable, isShared], Output: consumer type string.
@@ -527,7 +526,7 @@ public final class JmsUtil {
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceCode));
         allEdits.put(context.filePath(), edits);
 
-        // Merge any additional protocol-specific edits (e.g., dependency edits for IBMMQ)
+        // Merge any additional protocol-specific edits
         if (additionalEditsProvider != null) {
             Map<String, List<TextEdit>> additionalEdits = additionalEditsProvider.apply(context);
             additionalEdits.forEach(
@@ -744,9 +743,11 @@ public final class JmsUtil {
      * Extracts acknowledgment mode from the service annotation and applies it to the function's caller parameter,
      * silently failing on errors.
      *
-     * @param context The add model context containing the service node and service model
+     * @param context    The add model context containing the service node and service model
+     * @param callerType The caller type string (e.g., "solace:Caller")
+     * @param moduleName The module name for display purposes
      */
-    public static void updateCallerParameterForAckMode(AddModelContext context, String callerTypeStr,
+    public static void updateCallerParameterForAckMode(AddModelContext context, String callerType,
                                                        String moduleName) {
         try {
             if (!(context.node() instanceof ServiceDeclarationNode serviceNode)) {
@@ -778,7 +779,7 @@ public final class JmsUtil {
             updateCallerParameterForAckMode(
                     context.function(),
                     ackMode,
-                    callerTypeStr,
+                    callerType,
                     moduleName
             );
         } catch (ClassCastException | NullPointerException ignored) {

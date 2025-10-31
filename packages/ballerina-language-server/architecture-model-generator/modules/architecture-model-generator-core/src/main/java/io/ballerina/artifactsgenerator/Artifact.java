@@ -91,7 +91,6 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("github", "GitHub Event Handler"),
             Map.entry("twilio", "Twilio Event Handler"),
             Map.entry("ai", "AI Agent Services"),
-            Map.entry("ibm.ibmmq", "IBM MQ Event Handler"),
             Map.entry("solace", "Solace Event Handler")
     );
 
@@ -100,7 +99,6 @@ public record Artifact(String id, LineRange location, String type, String name, 
      * module can have multiple field names to try in order of preference.
      */
     private static final Map<String, String[]> moduleAnnotationFields = Map.of(
-            "ibm.ibmmq", new String[]{"queueName", "topicName"},
             "solace", new String[]{"queueName", "topicName"}
     );
 
