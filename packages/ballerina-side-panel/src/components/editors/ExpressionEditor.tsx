@@ -42,10 +42,10 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { InputMode } from './ChipExpressionEditor/types';
-import { getDefaultExpressionMode, getInputModeFromTypes } from './ChipExpressionEditor/utils';
 import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -58,6 +58,7 @@ export type ContextAwareExpressionEditorProps = {
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
+    onBlur?: () => void | Promise<void>;
     autoFocus?: boolean;
     recordTypeField?: RecordTypeField;
     helperPaneZIndex?: number;
@@ -295,9 +296,9 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
             fileName={fileName}
             targetLineRange={targetLineRange}
             helperPaneZIndex={props.helperPaneZIndex}
-            {...props}
             {...form}
             {...expressionEditor}
+            {...props}
         />
     );
 };
@@ -342,6 +343,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
+    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
+
+    // Update formDiagnostics when field.diagnostics changes
+    useEffect(() => {
+        setFormDiagnostics(field.diagnostics);
+    }, [field.diagnostics]);
 
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
@@ -444,7 +451,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleGetHelperPane = (
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         helperPaneHeight: HelperPaneHeight
     ) => {
         return getHelperPane?.(
@@ -559,6 +566,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 name={name}
                                 value={value}
                                 completions={completions}
+                                fileName={effectiveFileName}
+                                targetLineRange={effectiveTargetLineRange}
                                 autoFocus={autoFocus}
                                 sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}
@@ -568,9 +577,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         return;
                                     }
 
+                                    // clear field diagnostics
+                                    setFormDiagnostics([]); 
                                     const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                    
                                     onChange(rawValue);
-
                                     if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
                                         getExpressionEditorDiagnostics(
                                             (required ?? !field.optional) || rawValue !== '',
@@ -620,7 +631,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 anchorRef={anchorRef}
                                 onToggleHelperPane={toggleHelperPaneState}
                             />
-                            {error && <ErrorBanner errorMsg={error.message.toString()} />}
+                            {error ?
+                                <ErrorBanner errorMsg={error.message.toString()} /> : 
+                                formDiagnostics && formDiagnostics.length > 0 && 
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                            }
                         </div>
                     )}
                 />

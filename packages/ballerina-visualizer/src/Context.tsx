@@ -146,11 +146,12 @@ type ModalStackItem = {
     title: string;
     height?: number;
     width?: number;
+    onClose?: () => void;
 }
 
 interface ModalStackContext {
     modalStack: ModalStackItem[];
-    addModal: (modal: ReactNode, id: string, title: string, height?: number, width?: number) => void;
+    addModal: (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => void;
     popModal: () => void;
     closeModal: (id: string) => void;
 }
@@ -165,8 +166,8 @@ export const ModalStackContext = createContext({
 export const ModalStackProvider = ({children}: {children: ReactNode}) => {
     const [modalStack, setModalStack] = useState<ModalStackItem[]>([]);
 
-    const addModal = (modal: ReactNode, id: string, title: string, height?: number, width?: number) => {
-        setModalStack((prevStack) => [...prevStack, { modal, id, title, height, width }]);
+    const addModal = (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => {
+        setModalStack((prevStack) => [...prevStack, { modal, id, title, height, width, onClose }]);
     };
 
     const popModal = () => {

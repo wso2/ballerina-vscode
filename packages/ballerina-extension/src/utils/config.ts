@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import { SCOPE } from '@wso2/ballerina-core';
+import { SCOPE, TomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse } from 'toml';
 
 export enum VERSION {
     BETA = 'beta',
@@ -182,4 +183,17 @@ export function setupBIFiles(projectDir: string): void {
             fs.writeFileSync(filePath, '');
         }
     });
+}
+
+export async function getProjectTomlValues(projectPath: string): Promise<TomlValues> {
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
 }
