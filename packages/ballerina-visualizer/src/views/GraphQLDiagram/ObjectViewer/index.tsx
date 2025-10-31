@@ -283,7 +283,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                         }
                     },
                     function: updatedFunction,
-                    artifactType: DIRECTORY_MAP.SERVICE
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -301,7 +301,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                         }
                     },
                     function: updatedFunction,
-                    artifactType: DIRECTORY_MAP.SERVICE
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 
