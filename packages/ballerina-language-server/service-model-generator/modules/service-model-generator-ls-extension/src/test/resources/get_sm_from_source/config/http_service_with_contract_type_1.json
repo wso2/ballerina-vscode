@@ -102,10 +102,7 @@
         "placeholder": "false",
         "valueType": "SINGLE_SELECT",
         "value": {
-          "Base Path": [],
-          "Host Address": [],
-          "Service Configuration": [],
-          "Port Number": []
+          "Base Path": []
         },
         "enabled": true,
         "editable": true,
