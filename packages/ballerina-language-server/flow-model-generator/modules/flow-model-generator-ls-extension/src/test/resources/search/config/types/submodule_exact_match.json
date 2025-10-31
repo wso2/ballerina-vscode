@@ -83,7 +83,32 @@
       "items": [
         {
           "metadata": {
-            "label": "geonames",
+            "label": "azure.ai.search",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchIndexerLimits",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "azure.ai.search",
+                "packageName": "azure.ai.search",
+                "symbol": "SearchIndexerLimits",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "automata",
             "description": "",
             "keywords": []
           },
@@ -92,39 +117,14 @@
               "metadata": {
                 "label": "SearchResponse",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_geonames_1.3.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_automata_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "geonames",
-                "packageName": "geonames",
+                "module": "automata",
+                "packageName": "automata",
                 "symbol": "SearchResponse",
-                "version": "1.3.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "visiblethread",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "Search",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_visiblethread_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "visiblethread",
-                "packageName": "visiblethread",
-                "symbol": "Search",
                 "version": "1.5.1"
               },
               "enabled": true
@@ -158,24 +158,65 @@
         },
         {
           "metadata": {
-            "label": "automata",
+            "label": "edocs",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "SearchResponse",
+                "label": "SearchData",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_automata_1.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edocs_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "automata",
-                "packageName": "automata",
-                "symbol": "SearchResponse",
+                "module": "edocs",
+                "packageName": "edocs",
+                "symbol": "SearchData",
                 "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "sugarcrm",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchOptions",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "sugarcrm",
+                "packageName": "sugarcrm",
+                "symbol": "SearchOptions",
+                "version": "1.4.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchBackendStatus",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "sugarcrm",
+                "packageName": "sugarcrm",
+                "symbol": "SearchBackendStatus",
+                "version": "1.4.1"
               },
               "enabled": true
             }
@@ -272,130 +313,7 @@
         },
         {
           "metadata": {
-            "label": "edocs",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "SearchData",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edocs_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "edocs",
-                "packageName": "edocs",
-                "symbol": "SearchData",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "github",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "SearchResultTextMatches",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "github",
-                "packageName": "github",
-                "symbol": "SearchResultTextMatches",
-                "version": "5.1.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "zendesk",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "SearchExportResponse",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "SearchExportResponse",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchResultObject",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "SearchResultObject",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchResponse",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "SearchResponse",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchCountResponse",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "SearchCountResponse",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "stripe",
+            "label": "optimizely",
             "description": "",
             "keywords": []
           },
@@ -404,15 +322,15 @@
               "metadata": {
                 "label": "SearchResult",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optimizely_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
+                "module": "optimizely",
+                "packageName": "optimizely",
                 "symbol": "SearchResult",
-                "version": "2.0.0"
+                "version": "1.5.1"
               },
               "enabled": true
             }
@@ -420,40 +338,24 @@
         },
         {
           "metadata": {
-            "label": "sugarcrm",
+            "label": "icons8",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "SearchOptions",
+                "label": "Search",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_icons8_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "sugarcrm",
-                "packageName": "sugarcrm",
-                "symbol": "SearchOptions",
-                "version": "1.4.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchBackendStatus",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "sugarcrm",
-                "packageName": "sugarcrm",
-                "symbol": "SearchBackendStatus",
-                "version": "1.4.1"
+                "module": "icons8",
+                "packageName": "icons8",
+                "symbol": "Search",
+                "version": "1.5.1"
               },
               "enabled": true
             }
@@ -461,40 +363,97 @@
         },
         {
           "metadata": {
-            "label": "jira",
+            "label": "geonames",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "SearchRequestBean",
+                "label": "SearchResponse",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_geonames_1.3.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "jira",
-                "packageName": "jira",
-                "symbol": "SearchRequestBean",
-                "version": "2.0.0"
+                "module": "geonames",
+                "packageName": "geonames",
+                "symbol": "SearchResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "smartsheet",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultItem",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultItem",
+                "version": "1.0.0"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "SearchAndReconcileRequestBean",
+                "label": "SearchResult",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "jira",
-                "packageName": "jira",
-                "symbol": "SearchAndReconcileRequestBean",
-                "version": "2.0.0"
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResult",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResultData",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultData",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResponse",
+                "version": "1.0.0"
               },
               "enabled": true
             }
@@ -639,7 +598,7 @@
         },
         {
           "metadata": {
-            "label": "shortcut",
+            "label": "visiblethread",
             "description": "",
             "keywords": []
           },
@@ -648,31 +607,81 @@
               "metadata": {
                 "label": "Search",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_shortcut_1.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_visiblethread_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "shortcut",
-                "packageName": "shortcut",
+                "module": "visiblethread",
+                "packageName": "visiblethread",
                 "symbol": "Search",
                 "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "jira",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchRequestBean",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "jira",
+                "packageName": "jira",
+                "symbol": "SearchRequestBean",
+                "version": "2.0.0"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "SearchStories",
+                "label": "SearchAndReconcileRequestBean",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_shortcut_1.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "shortcut",
-                "packageName": "shortcut",
-                "symbol": "SearchStories",
-                "version": "1.5.1"
+                "module": "jira",
+                "packageName": "jira",
+                "symbol": "SearchAndReconcileRequestBean",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "zendesk",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchExportResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "SearchExportResponse",
+                "version": "2.0.0"
               },
               "enabled": true
             }

@@ -133,169 +133,9 @@
           "items": [
             {
               "metadata": {
-                "label": "getTools",
-                "description": "Get the tools registered with the agent.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getTools",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "chunkDocumentRecursively",
-                "description": "Provides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to \nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content \nbetween chunks can be controlled using `maxOverlapSize`.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "chunkDocumentRecursively",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "extractToolsFromOpenApiSpecFile",
-                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "extractToolsFromOpenApiSpecFile",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "extractToolsFromOpenApiJsonSpec",
-                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "extractToolsFromOpenApiJsonSpec",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "parseOpenApiSpec",
-                "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "parseOpenApiSpec",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "getDefaultModelProvider",
-                "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getDefaultModelProvider",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "getDefaultEmbeddingProvider",
-                "description": "Creates a default embedding provider based on the provided `wso2ProviderConfig`.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getDefaultEmbeddingProvider",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "augmentUserQuery",
-                "description": "Augments the user's query with relevant context.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "augmentUserQuery",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "executeTool",
-                "description": "Executes an AgentTool.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "executeTool",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "getToolConfigs",
-                "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getToolConfigs",
-                "version": "1.1.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
                 "label": "run",
                 "description": "Execute the agent for a given user's query.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -303,7 +143,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "run",
-                "version": "1.2.1"
+                "version": "1.2.3"
               },
               "enabled": true
             },
@@ -311,7 +151,7 @@
               "metadata": {
                 "label": "getTools",
                 "description": "Get the tools registered with the agent.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -319,7 +159,7 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "getTools",
-                "version": "1.2.1"
+                "version": "1.2.3"
               },
               "enabled": true
             },
@@ -327,7 +167,7 @@
               "metadata": {
                 "label": "updateMemory",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -335,7 +175,167 @@
                 "module": "ai",
                 "packageName": "ai",
                 "symbol": "updateMemory",
-                "version": "1.2.1"
+                "version": "1.2.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiSpecFile",
+                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiSpecFile",
+                "version": "1.2.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiJsonSpec",
+                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiJsonSpec",
+                "version": "1.2.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "parseOpenApiSpec",
+                "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "parseOpenApiSpec",
+                "version": "1.2.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getToolConfigs",
+                "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getToolConfigs",
+                "version": "1.2.3"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getTools",
+                "description": "Get the tools registered with the agent.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getTools",
+                "version": "1.6.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkDocumentRecursively",
+                "description": "Provides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively",
+                "version": "1.6.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkMarkdownDocument",
+                "description": "Provides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkMarkdownDocument",
+                "version": "1.6.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkHtmlDocument",
+                "description": "Provides functionality to recursively chunk a HTML document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkHtmlDocument",
+                "version": "1.6.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiSpecFile",
+                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiSpecFile",
+                "version": "1.6.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiJsonSpec",
+                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiJsonSpec",
+                "version": "1.6.1"
               },
               "enabled": true
             }
@@ -352,7 +352,7 @@
               "metadata": {
                 "label": "authenticateResource",
                 "description": "Uses for declarative auth design, where the authentication/authorization decision is taken\nby reading the auth annotations provided in service/resource and the `Authorization` header of request.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -360,7 +360,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "authenticateResource",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -368,7 +368,7 @@
               "metadata": {
                 "label": "createHttpCachingClient",
                 "description": "Creates an HTTP client capable of caching HTTP responses.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -376,7 +376,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "createHttpCachingClient",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -384,7 +384,7 @@
               "metadata": {
                 "label": "parseHeader",
                 "description": "Parses the header value which contains multiple values or parameters.\n```ballerina\n http:HeaderValue[] values = check http:parseHeader(\"text/plain;level=1;q=0.6, application/xml;level=2\");\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -392,7 +392,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "parseHeader",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -400,7 +400,7 @@
               "metadata": {
                 "label": "getHeaderMap",
                 "description": "Converts the headers represented as a map of `anydata` to a map of `string` or `string` array. The `value:toString`\nmethod will be used to convert the values to `string`. Additionally if the header name is specified by the\n`http:Header` annotation, then it will be used as the header name.\n```ballerina\ntype Headers record {\n  @http:Header {name: \"X-API-VERSION\"}\n  string apiVersion;\n  int id;\n};\nHeaders headers = {apiVersion: \"v1\", id: 1};\nmap<string|string[]> headersMap = http:getHeaderMap(headers); // { \"X-API-VERSION\": \"v1\", \"id\": \"1\" }\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -408,7 +408,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "getHeaderMap",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -416,7 +416,7 @@
               "metadata": {
                 "label": "getQueryMap",
                 "description": "If the query name is specified by the `http:Query` annotation, then this function will return the queries map\nwith the specified query name. Otherwise, it will return the map as it is.\n```ballerina\ntype Queries record {\n  @http:Query {name: \"filter_ids\"}\n  string[] ids;\n};\nQueries queries = {ids: [\"1\", \"2\"]};\nmap<anydata> queriesMap = http:getQueryMap(queries); // { \"filter_ids\": [\"1\", \"2\"] }\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -424,7 +424,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "getQueryMap",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -432,7 +432,7 @@
               "metadata": {
                 "label": "getDefaultListener",
                 "description": "Returns the default HTTP listener. If the default listener is not already created, a new\nlistener will be created with the port and configuration. An error will be returned if\nthe listener creation fails.\n\nThe default listener configuration can be changed in the `Config.toml` file. Example:\n```toml\n[ballerina.http]\ndefaultListenerPort = 8080\n[ballerina.http.defaultListenerConfig]\nhttpVersion = \"1.1\"\n[ballerina.http.defaultListenerConfig.secureSocket.key]\npath = \"resources/certs/key.pem\"\npassword = \"password\"\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -440,7 +440,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "getDefaultListener",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             },
@@ -448,7 +448,7 @@
               "metadata": {
                 "label": "createHttpSecureClient",
                 "description": "Creates an HTTP client capable of securing HTTP requests with authentication.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -456,7 +456,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "createHttpSecureClient",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             }
@@ -590,7 +590,7 @@
               "metadata": {
                 "label": "printDebug",
                 "description": "Prints debug logs.\n```ballerina\nlog:printDebug(\"debug message\", id = 845315)\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.14.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -598,7 +598,7 @@
                 "module": "log",
                 "packageName": "log",
                 "symbol": "printDebug",
-                "version": "2.12.0"
+                "version": "2.14.0"
               },
               "enabled": true
             },
@@ -606,7 +606,7 @@
               "metadata": {
                 "label": "printError",
                 "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.14.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -614,7 +614,7 @@
                 "module": "log",
                 "packageName": "log",
                 "symbol": "printError",
-                "version": "2.12.0"
+                "version": "2.14.0"
               },
               "enabled": true
             },
@@ -622,7 +622,7 @@
               "metadata": {
                 "label": "printInfo",
                 "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.14.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -630,7 +630,7 @@
                 "module": "log",
                 "packageName": "log",
                 "symbol": "printInfo",
-                "version": "2.12.0"
+                "version": "2.14.0"
               },
               "enabled": true
             },
@@ -638,7 +638,7 @@
               "metadata": {
                 "label": "printWarn",
                 "description": "Prints warn logs.\n```ballerina\nlog:printWarn(\"warn message\", id = 845315)\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.14.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -646,7 +646,7 @@
                 "module": "log",
                 "packageName": "log",
                 "symbol": "printWarn",
-                "version": "2.12.0"
+                "version": "2.14.0"
               },
               "enabled": true
             }
