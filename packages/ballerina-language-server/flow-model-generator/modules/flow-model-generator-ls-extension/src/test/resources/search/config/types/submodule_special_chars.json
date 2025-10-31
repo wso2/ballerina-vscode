@@ -111,31 +111,6 @@
       "items": [
         {
           "metadata": {
-            "label": "github",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "Inline_response_200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "github",
-                "packageName": "github",
-                "symbol": "Inline_response_200",
-                "version": "5.1.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "discord",
             "description": "",
             "keywords": []
@@ -257,111 +232,6 @@
         },
         {
           "metadata": {
-            "label": "stripe",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "inline_response_200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "inline_response_200_5",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200_5",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "inline_response_200_1",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200_1",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "inline_response_200_2",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200_2",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "inline_response_200_3",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200_3",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "inline_response_200_4",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "inline_response_200_4",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "zendesk",
             "description": "",
             "keywords": []
@@ -475,6 +345,111 @@
                 "module": "zendesk",
                 "packageName": "zendesk",
                 "symbol": "Inline_response_200_2",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "stripe",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_5",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_1",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_2",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_3",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_3",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_4",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_4",
                 "version": "2.0.0"
               },
               "enabled": true
@@ -629,6 +604,31 @@
                 "packageName": "asana",
                 "symbol": "Inline_response_200_2",
                 "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Inline_response_200",
+                "version": "5.1.0"
               },
               "enabled": true
             }

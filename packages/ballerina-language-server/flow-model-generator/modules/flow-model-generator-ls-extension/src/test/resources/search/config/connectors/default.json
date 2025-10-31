@@ -145,6 +145,27 @@
         },
         {
           "metadata": {
+            "label": "Mcp StreamableHttp",
+            "description": "Represents an MCP client built on top of the Streamable HTTP transport.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "mcp",
+            "packageName": "mcp",
+            "object": "StreamableHttpClient",
+            "symbol": "init",
+            "version": "1.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
             "label": "Ai",
             "description": "This is a generated connector for [WebScraping.AI API v2.0.4](https://webscraping.ai/docs) OpenAPI specification.\nIt provides a web scaping automation API with Chrome JS rendering, rotating proxies and builtin HTML parsing.\nMore information about the WebScraping.AI API can be found at https://webscraping.ai.",
             "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_webscraping.ai_1.5.1.png",
@@ -226,6 +247,27 @@
             "isGenerated": false
           },
           "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Milvus",
+            "description": "Milvus is a high-performance, cloud-native vector database built for scalable vector ANN search.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "milvus",
+            "packageName": "milvus",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.1.0",
+            "isGenerated": false
+          },
+          "enabled": true
         }
       ]
     },
@@ -238,7 +280,7 @@
           "metadata": {
             "label": "HTTP",
             "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
             "data": {
               "isAgentSupport": false
             }
@@ -250,7 +292,7 @@
             "packageName": "http",
             "object": "Client",
             "symbol": "init",
-            "version": "2.14.2",
+            "version": "2.14.7",
             "isGenerated": false
           },
           "enabled": true
@@ -280,7 +322,7 @@
           "metadata": {
             "label": "Websocket",
             "description": "Represents a WebSocket synchronous client endpoint.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.14.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.14.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -292,7 +334,7 @@
             "packageName": "websocket",
             "object": "Client",
             "symbol": "init",
-            "version": "2.14.0",
+            "version": "2.14.2",
             "isGenerated": false
           },
           "enabled": true
@@ -301,7 +343,7 @@
           "metadata": {
             "label": "TCP",
             "description": "Initializes the TCP connection client based on the provided configurations.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -313,7 +355,7 @@
             "packageName": "tcp",
             "object": "Client",
             "symbol": "init",
-            "version": "1.13.0",
+            "version": "1.13.2",
             "isGenerated": false
           },
           "enabled": true
@@ -322,7 +364,7 @@
           "metadata": {
             "label": "UDP",
             "description": "Initializes the UDP connectionless client based on the provided configurations.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_udp_1.13.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_udp_1.13.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -334,7 +376,7 @@
             "packageName": "udp",
             "object": "Client",
             "symbol": "init",
-            "version": "1.13.0",
+            "version": "1.13.2",
             "isGenerated": false
           },
           "enabled": true
@@ -343,7 +385,7 @@
           "metadata": {
             "label": "FTP",
             "description": "Represents an FTP client that intracts with an FTP server",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.1.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.14.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -355,7 +397,7 @@
             "packageName": "ftp",
             "object": "Client",
             "symbol": "init",
-            "version": "2.13.1",
+            "version": "2.14.1",
             "isGenerated": false
           },
           "enabled": true
@@ -392,7 +434,7 @@
           "metadata": {
             "label": "MongoDB",
             "description": "Represents a MongoDB client that can be used to interact with a MongoDB server.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.1.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -404,7 +446,7 @@
             "packageName": "mongodb",
             "object": "Client",
             "symbol": "init",
-            "version": "5.1.0",
+            "version": "5.2.2",
             "isGenerated": false
           },
           "enabled": true
@@ -483,7 +525,7 @@
           "metadata": {
             "label": "Kafka Consumer",
             "description": "Represents a Kafka consumer endpoint.\n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -495,7 +537,7 @@
             "packageName": "kafka",
             "object": "Consumer",
             "symbol": "init",
-            "version": "4.5.0",
+            "version": "4.6.2",
             "isGenerated": false
           },
           "enabled": true
@@ -504,7 +546,7 @@
           "metadata": {
             "label": "Kafka Producer",
             "description": "Represents a Kafka producer endpoint.\n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png",
             "data": {
               "isAgentSupport": false
             }
@@ -516,7 +558,7 @@
             "packageName": "kafka",
             "object": "Producer",
             "symbol": "init",
-            "version": "4.5.0",
+            "version": "4.6.2",
             "isGenerated": false
           },
           "enabled": true
@@ -525,7 +567,7 @@
           "metadata": {
             "label": "RabbitMQ",
             "description": "The Ballerina interface to provide AMQP Channel related functionality.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.1.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.0.png",
             "data": {
               "isAgentSupport": false
             }
@@ -537,7 +579,7 @@
             "packageName": "rabbitmq",
             "object": "Client",
             "symbol": "init",
-            "version": "3.2.1",
+            "version": "3.3.0",
             "isGenerated": false
           },
           "enabled": true
@@ -573,8 +615,8 @@
         {
           "metadata": {
             "label": "SQS",
-            "description": "Ballerina Amazon SQS connector provides the capability to access Amazon SQS API.\nThis connector lets you to perform operations related to manage queues, send and receive messages. \n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_3.1.0.png",
+            "description": "The Amazon SQS API Client.\n\nProvides access to Amazon Simple Queue Service (SQS) using the AWS SDK for Java V2.\nSupports static and profile-based credential configurations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.0.0.png",
             "data": {
               "isAgentSupport": false
             }
@@ -586,7 +628,7 @@
             "packageName": "aws.sqs",
             "object": "Client",
             "symbol": "init",
-            "version": "3.1.0",
+            "version": "4.0.0",
             "isGenerated": false
           },
           "enabled": true
