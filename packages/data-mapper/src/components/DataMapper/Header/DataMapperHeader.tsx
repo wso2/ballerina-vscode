@@ -16,9 +16,8 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import React from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
 import HeaderBreadcrumb from "./HeaderBreadcrumb";
@@ -27,7 +26,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import ExpressionBarWrapper from "./ExpressionBar";
 import EditButton from "./EditButton";
-import { RefreshResetGroup } from "./RefreshResetGroup";
+import { ActionIconButton } from "./ActionIconButton";
 
 export interface DataMapperHeaderProps {
     views: View[];
@@ -69,7 +68,11 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 <RightContainer isClickable={!hasEditDisabled}>
                     <ActionGroupContaner>
                         {undoRedoGroup && undoRedoGroup()}
-                        <RefreshResetGroup onReset={onReset} />
+                        <ActionIconButton
+                            onClick={onReset}
+                            iconName="clear-all"
+                            tooltip="Clear all mappings"
+                        />
                     </ActionGroupContaner>
                     <FilterBar>
                         <HeaderSearchBox />
