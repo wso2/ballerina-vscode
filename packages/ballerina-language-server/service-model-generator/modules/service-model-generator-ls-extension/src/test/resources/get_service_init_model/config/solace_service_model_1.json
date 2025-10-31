@@ -1,20 +1,20 @@
 {
-  "description": "Test getting kafka service init model",
+  "description": "Test getting solace service init model",
   "filePath": "sample1/main.bal",
   "orgName": "ballerinax",
   "pkgName": "solace",
   "moduleName": "solace",
   "response": {
     "serviceInitModel": {
-      "id": "17",
+      "id": "16",
       "displayName": "Solace Event Handler",
       "description": "Create a service to handle messages from a Solace queue or topic",
       "orgName": "ballerinax",
       "packageName": "solace",
       "moduleName": "solace",
-      "version": "0.1.0",
+      "version": "0.3.0",
       "type": "solace",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.1.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.0.png",
       "properties": {
         "url": {
           "metadata": {
@@ -70,6 +70,210 @@
           "optional": false,
           "advanced": true
         },
+        "authentication": {
+          "metadata": {
+            "label": "Authentication",
+            "description": "Select the authentication method for Solace broker connection"
+          },
+          "valueType": "CHOICE",
+          "value": 0,
+          "choices": [
+            {
+              "metadata": {
+                "label": "Basic Authentication",
+                "description": "Username and password authentication"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "username": {
+                  "metadata": {
+                    "label": "Username",
+                    "description": "Username for broker authentication"
+                  },
+                  "placeholder": "default",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"default\"",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "password": {
+                  "metadata": {
+                    "label": "Password",
+                    "description": "Password for broker authentication"
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                }
+              },
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Kerberos Authentication",
+                "description": "Kerberos (GSS-KRB) authentication."
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "serviceName": {
+                  "metadata": {
+                    "label": "Service Name",
+                    "description": "Kerberos service name."
+                  },
+                  "placeholder": "solace",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"solace\"",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "jaasLoginContext": {
+                  "metadata": {
+                    "label": "JAAS Login Context",
+                    "description": "JAAS login context name."
+                  },
+                  "placeholder": "SolaceGSS",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"SolaceGSS\"",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "mutualAuthentication": {
+                  "metadata": {
+                    "label": "Mutual Authentication",
+                    "description": "Enable Kerberos mutual authentication."
+                  },
+                  "valueType": "FLAG",
+                  "valueTypeConstraint": "BOOLEAN",
+                  "value": true,
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "jaasConfigReloadEnabled": {
+                  "metadata": {
+                    "label": "JAAS Config Reload",
+                    "description": "Enable automatic JAAS configuration reload."
+                  },
+                  "valueType": "FLAG",
+                  "valueTypeConstraint": "BOOLEAN",
+                  "value": false,
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "OAuth 2.0 Authentication",
+                "description": "OAuth 2.0 token-based authentication"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "issuer": {
+                  "metadata": {
+                    "label": "Issuer",
+                    "description": "OAuth 2.0 issuer identifier URI"
+                  },
+                  "placeholder": "https://auth.example.com",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "accessToken": {
+                  "metadata": {
+                    "label": "Access Token",
+                    "description": "OAuth 2.0 access token for authentication"
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "oidcToken": {
+                  "metadata": {
+                    "label": "OIDC Token",
+                    "description": "OpenID Connect ID token for authentication"
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        },
+        "secureSocket": {
+          "metadata": {
+            "label": "Secure Socket",
+            "description": "Configure SSL/TLS configuration for secure connection"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+          },
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "solace:SecureSocket",
+          "value": "",
+          "typeMembers": [
+            {
+              "type": "SecureSocket",
+              "packageInfo": "ballerinax:solace:0.3.0",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        },
         "destination": {
           "metadata": {
             "label": "Destination",
@@ -94,7 +298,7 @@
                   "placeholder": "",
                   "valueType": "EXPRESSION",
                   "valueTypeConstraint": "string",
-                  "value": "\"myQueue\"",
+                  "value": "\"test-queue\"",
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -122,7 +326,7 @@
                   "placeholder": "",
                   "valueType": "EXPRESSION",
                   "valueTypeConstraint": "string",
-                  "value": "\"myTopic\"",
+                  "value": "\"test/topic\"",
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -136,7 +340,7 @@
                   "placeholder": "",
                   "valueType": "EXPRESSION",
                   "valueTypeConstraint": "string",
-                  "value": "",
+                  "value": "\"default\"",
                   "enabled": true,
                   "editable": true,
                   "optional": true,

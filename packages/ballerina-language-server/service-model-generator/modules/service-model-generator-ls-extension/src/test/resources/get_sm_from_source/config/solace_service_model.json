@@ -10,16 +10,16 @@
     "offset": 1
   },
   "response": {
-    "id": "17",
+    "id": "16",
     "name": "Solace Event Handler",
     "type": "solace",
     "displayName": "Solace Event Handler",
     "moduleName": "solace",
     "orgName": "ballerinax",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "packageName": "solace",
     "listenerProtocol": "solace",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.1.0.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.0.png",
     "documentation": {
       "metadata": {
         "label": "Description",
@@ -133,7 +133,7 @@
         "typeMembers": [
           {
             "type": "ServiceConfiguration",
-            "packageInfo": "ballerinax:solace:0.1.0",
+            "packageInfo": "ballerinax:solace:0.3.0",
             "kind": "RECORD_TYPE",
             "selected": true
           }
@@ -261,7 +261,7 @@
               "valueType": "IDENTIFIER",
               "value": "caller",
               "enabled": true,
-              "editable": true,
+              "editable": false,
               "optional": false,
               "advanced": false
             },
@@ -279,7 +279,7 @@
               "advanced": false
             },
             "enabled": false,
-            "editable": true,
+            "editable": false,
             "optional": true,
             "advanced": false,
             "hidden": false,

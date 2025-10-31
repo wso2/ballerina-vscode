@@ -8,9 +8,9 @@
     "orgName": "ballerinax",
     "packageName": "solace",
     "moduleName": "solace",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "type": "solace",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.1.0.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.0.png",
     "properties": {
       "url": {
         "metadata": {
@@ -23,7 +23,7 @@
         "placeholder": "\"smf://localhost:55554\"",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "value": "\"smf://localhost:55554\"",
+        "value": "\"smfs://localhost:55443\"",
         "items": [],
         "typeMembers": [],
         "enabled": true,
@@ -66,6 +66,210 @@
         "optional": false,
         "advanced": true
       },
+      "authentication": {
+        "metadata": {
+          "label": "Authentication",
+          "description": "Select the authentication method for Solace broker connection"
+        },
+        "valueType": "CHOICE",
+        "value": 0.0,
+        "choices": [
+          {
+            "metadata": {
+              "label": "Basic Authentication",
+              "description": "Username and password authentication"
+            },
+            "valueType": "FORM",
+            "value": "true",
+            "properties": {
+              "username": {
+                "metadata": {
+                  "label": "Username",
+                  "description": "Username for broker authentication"
+                },
+                "placeholder": "default",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"default\"",
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
+              },
+              "password": {
+                "metadata": {
+                  "label": "Password",
+                  "description": "Password for broker authentication"
+                },
+                "placeholder": "",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              }
+            },
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "Kerberos Authentication",
+              "description": "Kerberos (GSS-KRB) authentication."
+            },
+            "valueType": "FORM",
+            "value": "true",
+            "properties": {
+              "serviceName": {
+                "metadata": {
+                  "label": "Service Name",
+                  "description": "Kerberos service name."
+                },
+                "placeholder": "solace",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"solace\"",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              },
+              "jaasLoginContext": {
+                "metadata": {
+                  "label": "JAAS Login Context",
+                  "description": "JAAS login context name."
+                },
+                "placeholder": "SolaceGSS",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"SolaceGSS\"",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              },
+              "mutualAuthentication": {
+                "metadata": {
+                  "label": "Mutual Authentication",
+                  "description": "Enable Kerberos mutual authentication."
+                },
+                "valueType": "FLAG",
+                "valueTypeConstraint": "BOOLEAN",
+                "value": true,
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              },
+              "jaasConfigReloadEnabled": {
+                "metadata": {
+                  "label": "JAAS Config Reload",
+                  "description": "Enable automatic JAAS configuration reload."
+                },
+                "valueType": "FLAG",
+                "valueTypeConstraint": "BOOLEAN",
+                "value": false,
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "OAuth 2.0 Authentication",
+              "description": "OAuth 2.0 token-based authentication"
+            },
+            "valueType": "FORM",
+            "value": "true",
+            "properties": {
+              "issuer": {
+                "metadata": {
+                  "label": "Issuer",
+                  "description": "OAuth 2.0 issuer identifier URI"
+                },
+                "placeholder": "https://auth.example.com",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "",
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
+              },
+              "accessToken": {
+                "metadata": {
+                  "label": "Access Token",
+                  "description": "OAuth 2.0 access token for authentication"
+                },
+                "placeholder": "",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              },
+              "oidcToken": {
+                "metadata": {
+                  "label": "OIDC Token",
+                  "description": "OpenID Connect ID token for authentication"
+                },
+                "placeholder": "",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      },
+      "secureSocket": {
+        "metadata": {
+          "label": "Secure Socket",
+          "description": "Configure SSL/TLS configuration for secure connection"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "solace:SecureSocket",
+        "value": "{\n    trustStore: {\n        location: \"./solace-truststore.jks\",\n        password: \"password\",\n        format: \"jks\"\n    }\n}",
+        "typeMembers": [
+          {
+            "type": "SecureSocket",
+            "packageInfo": "ballerinax:solace:0.3.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      },
       "sessionAckMode": {
         "metadata": {
           "label": "Session Acknowledgment Mode",
@@ -86,45 +290,29 @@
         "optional": false,
         "advanced": false
       },
-      "topicName": {
+      "queueName": {
         "metadata": {
-          "label": "Topic Name",
-          "description": "Topic to listen for incoming messages."
+          "label": "Queue Name",
+          "description": "Queue to listen for incoming messages."
         },
         "placeholder": "",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "value": "\"myTopic\"",
+        "value": "\"test-queue\"",
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false
       },
-      "subscriberName": {
-        "metadata": {
-          "label": "Subscriber Name",
-          "description": "The name to be used for the subscription."
+      "auth": {
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
         },
-        "placeholder": "",
         "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
-        "value": "",
+        "value": "{username: \"default\"}",
         "enabled": true,
-        "editable": true,
-        "optional": true,
-        "advanced": false
-      },
-      "durable": {
-        "metadata": {
-          "label": "Durable Subscriber",
-          "description": "Persist subscription when disconnected."
-        },
-        "valueType": "FLAG",
-        "valueTypeConstraint": "BOOLEAN",
-        "value": true,
-        "enabled": true,
-        "editable": true,
-        "optional": true,
+        "editable": false,
+        "optional": false,
         "advanced": false
       }
     }
@@ -155,7 +343,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener solace:Listener solaceListener = new (\"smf://localhost:55554\", messageVpn = \"default\");\n@solace:ServiceConfig {\ntopicName: \"myTopic\", consumerType: \"DURABLE\", sessionAckMode: \"AUTO_ACKNOWLEDGE\"}\nservice solace:Service on solaceListener {\n\tremote function onMessage(solace:Message message) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+        "newText": "\nlistener solace:Listener solaceListener = new (\"smfs://localhost:55443\", messageVpn = \"default\", secureSocket = {\n    trustStore: {\n        location: \"./solace-truststore.jks\",\n        password: \"password\",\n        format: \"jks\"\n    }\n}, auth = {username: \"default\"});\n@solace:ServiceConfig {\nqueueName: \"test-queue\", sessionAckMode: \"AUTO_ACKNOWLEDGE\"}\nservice solace:Service on solaceListener {\n\n}\n"
       }
     ]
   }
