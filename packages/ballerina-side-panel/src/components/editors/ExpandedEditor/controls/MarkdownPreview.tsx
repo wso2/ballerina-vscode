@@ -47,7 +47,17 @@ interface MarkdownPreviewProps {
 export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => {
     return (
         <PreviewContainer>
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+                components={{
+                    // Prevent rendering of potentially dangerous elements
+                    script: () => null,
+                    iframe: () => null,
+                }}
+                disallowedElements={['script', 'iframe', 'object', 'embed']}
+                unwrapDisallowed={true}
+            >
+                {content}
+            </ReactMarkdown>
         </PreviewContainer>
     );
 };
