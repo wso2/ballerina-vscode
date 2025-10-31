@@ -177,20 +177,23 @@ export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
  * @returns Filtered array of valid Ballerina package paths that exist within the workspace
  */
 export async function filterPackagePaths(packagePaths: string[], workspacePath: string): Promise<string[]> {
-    return packagePaths.filter(async pkgPath => {
-        if (path.isAbsolute(pkgPath)) {
-            const resolvedPath = path.resolve(pkgPath);
-            const resolvedWorkspacePath = path.resolve(workspacePath);
-            if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(resolvedWorkspacePath)) {
+    const results = await Promise.all(
+        packagePaths.map(async pkgPath => {
+            if (path.isAbsolute(pkgPath)) {
+                const resolvedPath = path.resolve(pkgPath);
+                const resolvedWorkspacePath = path.resolve(workspacePath);
+                if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(resolvedWorkspacePath)) {
+                    return await checkIsBallerinaPackage(Uri.file(resolvedPath));
+                }
+            }
+            const resolvedPath = path.resolve(workspacePath, pkgPath);
+            if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(workspacePath)) {
                 return await checkIsBallerinaPackage(Uri.file(resolvedPath));
             }
-        }
-        const resolvedPath = path.resolve(workspacePath, pkgPath);
-        if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(workspacePath)) {
-            return await checkIsBallerinaPackage(Uri.file(resolvedPath));
-        }
-        return false;
-    });
+            return false;
+        })
+    );
+    return packagePaths.filter((_, index) => results[index]);
 }
 
 export function getOrgPackageName(projectPath: string): { orgName: string, packageName: string } {
