@@ -508,9 +508,9 @@ public final class JmsUtil {
      * @return A map of file paths to their corresponding text edits.
      */
     public static Map<String, List<TextEdit>> buildServiceCodeEdits(
-            AddServiceInitModelContext context,
-            String serviceCode,
-            java.util.function.Function<AddServiceInitModelContext, Map<String, List<TextEdit>>> additionalEditsProvider) {
+            AddServiceInitModelContext context, String serviceCode,
+            java.util.function.Function<AddServiceInitModelContext, Map<String, List<TextEdit>>>
+                    additionalEditsProvider) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
 
@@ -740,14 +740,14 @@ public final class JmsUtil {
                 .build();
     }
 
-
     /**
      * Extracts acknowledgment mode from the service annotation and applies it to the function's caller parameter,
      * silently failing on errors.
      *
      * @param context The add model context containing the service node and service model
      */
-    public static void updateCallerParameterForAckMode(AddModelContext context, String callerTypeStr, String moduleName) {
+    public static void updateCallerParameterForAckMode(AddModelContext context, String callerTypeStr,
+                                                       String moduleName) {
         try {
             if (!(context.node() instanceof ServiceDeclarationNode serviceNode)) {
                 return;
@@ -785,6 +785,7 @@ public final class JmsUtil {
             // Silently skip acknowledgment mode extraction on any casting or null issues
         }
     }
+
     /**
      * Acknowledgment mode enum for JMS sessions.
      */
