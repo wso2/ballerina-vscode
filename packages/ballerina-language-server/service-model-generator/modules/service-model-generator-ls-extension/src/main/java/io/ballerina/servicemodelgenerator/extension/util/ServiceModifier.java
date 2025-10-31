@@ -29,8 +29,11 @@ import io.ballerina.compiler.syntax.tree.TreeModifier;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class ServiceModifier extends TreeModifier {
+
+    private static final Pattern ERROR_PATTERN = Pattern.compile("(^|\\|)\\s*error\\s*(\\?|\\||$)");
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
     public static final String ERROR = "error";
@@ -72,7 +75,11 @@ public class ServiceModifier extends TreeModifier {
                 return methodDeclarationNode;
             }
             ReturnTypeDescriptorNode oldRetTypeDesc = retTypeDescNode.get();
-            String returnType = oldRetTypeDesc.type().toString().trim() + "|" + ERROR;
+            String oldReturnType = oldRetTypeDesc.type().toString().trim();
+            if (containsErrorType(oldReturnType)) {
+                return methodDeclarationNode;
+            }
+            String returnType = oldReturnType + "|" + ERROR;
             TypeDescriptorNode typeDescriptorNode = NodeParser.parseTypeDescriptor(returnType);
             ReturnTypeDescriptorNode retTypeDesc = NodeFactory.createReturnTypeDescriptorNode(
                     oldRetTypeDesc.returnsKeyword(), oldRetTypeDesc.annotations(), typeDescriptorNode);
@@ -83,5 +90,9 @@ public class ServiceModifier extends TreeModifier {
                     .apply();
         }
         return methodDeclarationNode;
+    }
+
+    private static boolean containsErrorType(String returnType) {
+       return ERROR_PATTERN.matcher(returnType).find();
     }
 }
