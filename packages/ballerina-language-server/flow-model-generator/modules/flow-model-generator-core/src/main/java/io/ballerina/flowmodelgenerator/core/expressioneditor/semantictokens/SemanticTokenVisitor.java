@@ -150,6 +150,9 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
         // Add END_EVENT token for } (length 1)
         Token endToken = interpolationNode.interpolationEndToken();
+        if (endToken.isMissing()) {
+            return;
+        }
         addSemanticTokenWithPosition(endToken.lineRange().startLine().line(),
                 endToken.lineRange().startLine().offset(),
                 1,
