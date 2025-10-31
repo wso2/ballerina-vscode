@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon, Divider, Button } from "@wso2/ui-toolkit";
+import { ThemeColors, Codicon, Divider, Button, Typography } from "@wso2/ui-toolkit";
 import { FormField } from "../../Form/types";
 import { S } from "../ExpressionEditor";
 import ReactMarkdown from "react-markdown";
@@ -68,13 +68,13 @@ const ModalHeaderSection = styled.header`
     align-items: center;
     justify-content: space-between;
     padding-inline: 16px;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 `;
 
 const ModalContent = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 18px 16px;
     display: flex;
     flex-direction: column;
 `;
@@ -129,15 +129,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     if (!isOpen) return null;
 
-    const documentation = field.documentation
-        ? field.documentation.endsWith('.')
-            ? field.documentation
-            : `${field.documentation}.`
-        : '';
-
-    const defaultValueText = field.defaultValue ?
-        <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
-
     // Get the current mode component
     const ModeComponent = MODE_COMPONENTS[mode];
 
@@ -157,22 +148,14 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         <ModalContainer>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <div style={{ margin: "10px 0" }}>
-                        <S.HeaderContainer style={{ marginBottom: "2px" }}>
-                            <S.LabelContainer>
-                                <S.Label style={{ fontSize: "16px" }}>{field.label}</S.Label>
-                            </S.LabelContainer>
-                        </S.HeaderContainer>
-                        <S.EditorMdContainer>
-                            {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                            {defaultValueText}
-                        </S.EditorMdContainer>
-                    </div>
+                    <Typography variant="h3">{field.label}</Typography>
                     <div onClick={handleCancel} style={{ cursor: 'pointer' }}>
                         <Codicon name="close" />
                     </div>
                 </ModalHeaderSection>
-                <Divider sx={{ margin: 0 }} />
+                <div style={{ padding: "0 16px" }}>
+                    <Divider sx={{ margin: 0 }} />
+                </div>
                 <ModalContent>
                     <ModeComponent {...modeProps} />
                 </ModalContent>
