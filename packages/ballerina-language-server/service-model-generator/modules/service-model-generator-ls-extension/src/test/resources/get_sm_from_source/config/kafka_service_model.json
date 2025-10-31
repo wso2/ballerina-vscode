@@ -23,7 +23,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -106,7 +106,7 @@
         "placeholder": "false",
         "valueType": "SINGLE_SELECT",
         "value": {
-          "Topics": []
+          "Topic(s)": []
         },
         "enabled": true,
         "editable": true,
