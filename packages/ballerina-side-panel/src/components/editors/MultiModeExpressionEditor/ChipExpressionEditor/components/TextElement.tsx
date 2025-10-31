@@ -25,6 +25,7 @@ import { FOCUS_MARKER } from "../constants";
 export const TextElement = (props: {
     element: ExpressionModel;
     expressionModel: ExpressionModel[];
+    sx?: React.CSSProperties;
     index: number;
     onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void;
@@ -170,7 +171,10 @@ export const TextElement = (props: {
             onMouseUp={handleMouseUp}
             onKeyDown={handleKeyDown}
             contentEditable
-            suppressContentEditableWarning>{props.element.value}
+            suppressContentEditableWarning
+            style={props.sx}
+            >
+                {props.element.value}
         </InvisibleSpan>
     );
 };
