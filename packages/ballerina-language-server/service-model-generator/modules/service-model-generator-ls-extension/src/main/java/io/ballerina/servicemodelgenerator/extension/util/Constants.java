@@ -208,7 +208,7 @@ public class Constants {
     public static final MetaData RESOURCE_FUNCTION_DOCUMENTATION_METADATA = new MetaData("Description",
             "The description of the resource");
     public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
-            "description of the object");
+            "description of the class");
 
     // organization names
     public static final String BALLERINA = "ballerina";

@@ -17,7 +17,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -32,6 +32,7 @@
     },
     "properties": {
       "name": {
+        "imports": {},
         "metadata": {
           "label": "Object Name",
           "description": "The name of the object"
@@ -52,7 +53,6 @@
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
         "value": "Book",
-        "imports": {},
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -123,13 +123,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -159,13 +159,13 @@
             },
             "kind": "REQUIRED",
             "type": {
+              "imports": {
+                "graphql": "ballerina/graphql:1.16.0"
+              },
               "placeholder": "string",
               "valueType": "TYPE",
               "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
-              "imports": {
-                "graphql": "ballerina/graphql:1.16.0"
-              },
               "enabled": true,
               "editable": false,
               "optional": false,
