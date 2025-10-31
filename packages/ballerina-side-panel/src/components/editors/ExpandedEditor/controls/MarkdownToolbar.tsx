@@ -46,7 +46,7 @@ const ToolbarContainer = styled.div`
     justify-content: space-between;
     gap: 4px;
     padding: 8px 12px;
-    background-color: ${ThemeColors.SURFACE};
+    background-color: ${ThemeColors.SURFACE_BRIGHT};
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px 4px 0 0;
     flex-wrap: wrap;
@@ -183,7 +183,7 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
                     checkedColor="var(--vscode-button-background)"
                     enableTransition={true}
                     sx={{
-                        borderColor: ThemeColors.SURFACE_DIM
+                        borderColor: ThemeColors.OUTLINE_VARIANT
                     }}
                 />
             )}
