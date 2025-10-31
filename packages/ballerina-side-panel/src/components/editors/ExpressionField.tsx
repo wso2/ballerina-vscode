@@ -141,6 +141,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 growRange={growRange}
                 placeholder={placeholder}
+                onOpenExpandedMode={onOpenExpandedMode}
+                isInExpandedMode={isInExpandedMode}
             />
 
         );

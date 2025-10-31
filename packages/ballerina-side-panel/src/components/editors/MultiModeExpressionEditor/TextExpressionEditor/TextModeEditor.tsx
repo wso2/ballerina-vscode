@@ -20,8 +20,10 @@ import { FormExpressionEditor } from "@wso2/ui-toolkit";
 import { ExpressionField } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
+import { FloatingToggleButton } from "../ChipExpressionEditor/components/FloatingToggleButton";
+import { ExpandButton } from "../ChipExpressionEditor/components/FloatingButtonIcons";
 
-type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef'>;
+type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
 
 export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     name,
@@ -38,6 +40,8 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     growRange,
     exprRef,
     anchorRef,
+    onOpenExpandedMode,
+    isInExpandedMode,
 }) => {
 
     const handleOnChange = async (value: string, updatedCursorPosition: number) => {
@@ -63,6 +67,17 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
             onRemove={onRemove}
             enableExIcon={false}
             growRange={growRange}
+            endAdornment={
+                onOpenExpandedMode && !isInExpandedMode ? (
+                    <FloatingToggleButton
+                        isActive={false}
+                        onClick={() => onOpenExpandedMode?.()}
+                        title="Expand"
+                    >
+                        <ExpandButton />
+                    </FloatingToggleButton>
+                ) : <></>
+            }
             sx={{ paddingInline: '0' }}
             placeholder={placeholder}
         />
