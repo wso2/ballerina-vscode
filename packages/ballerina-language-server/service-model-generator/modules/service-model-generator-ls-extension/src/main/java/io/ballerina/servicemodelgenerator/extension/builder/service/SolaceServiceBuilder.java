@@ -57,6 +57,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAck
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildAuthenticationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSecureSocketChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSessionAckModeProperty;
@@ -73,15 +74,14 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
 public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
     private static final String PROPERTY_DESTINATION = "destination";
-    private static final String PROPERTY_QUEUE_NAME = "queueName";
-    private static final String PROPERTY_TOPIC_NAME = "topicName";
     private static final String PROPERTY_AUTHENTICATION = "authentication";
+    private static final String PROPERTY_SECURE_SOCKET = "secureSocket";
     private static final String TYPE_SOLACE_SERVICE_CONFIG = "solace:ServiceConfig";
     private static final String SERVICE_TYPE = "solace:Service";
     private static final String CALLER_TYPE = "solace:Caller";
 
     // Display labels
-    private static final String LABEL_SOLACE = "Solace";
+    public static final String LABEL_SOLACE = "Solace";
     private static final String LABEL_QUEUE = "Queue";
     private static final String LABEL_TOPIC = "Topic";
     private static final String LABEL_QUEUE_NAME = "Queue Name";
@@ -101,7 +101,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
     // Listener configuration property keys
     private static final String[] LISTENER_CONFIG_KEYS = {
-            KEY_LISTENER_VAR_NAME, "url", "messageVpn", PROPERTY_AUTHENTICATION
+            KEY_LISTENER_VAR_NAME, "url", "messageVpn", PROPERTY_AUTHENTICATION, PROPERTY_SECURE_SOCKET
     };
 
     @Override
@@ -114,6 +114,10 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> properties = serviceInitModel.getProperties();
         Value authenticationChoice = buildAuthenticationChoice();
         properties.put(PROPERTY_AUTHENTICATION, authenticationChoice);
+
+        Value secureSocket = buildSecureSocketChoice(serviceInitModel.getOrgName(),
+                serviceInitModel.getModuleName(), serviceInitModel.getVersion());
+        properties.put(PROPERTY_SECURE_SOCKET, secureSocket);
 
         Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                 context.semanticModel(), context.project());

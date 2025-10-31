@@ -27,9 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder.LABEL_SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder.PAYLOAD_FIELD_NAME;
 import static io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder.TYPE_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.updateCallerParameterForAckMode;
 
 /**
  * Represents the Solace function builder of the service model generator.
@@ -39,6 +41,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE
 public final class SolaceFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "solace:Message";
+    private static final String CALLER_PARAM_TYPE = "solace:Caller";
 
     @Override
     public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
@@ -55,6 +58,7 @@ public final class SolaceFunctionBuilder extends AbstractFunctionBuilder {
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
         Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
                 context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, PAYLOAD_FIELD_NAME, false);
+        updateCallerParameterForAckMode(context, CALLER_PARAM_TYPE, LABEL_SOLACE);
 
         Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
         Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);

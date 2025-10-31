@@ -27,12 +27,15 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import org.eclipse.lsp4j.TextEdit;
@@ -47,6 +50,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FLAG;
@@ -685,6 +689,102 @@ public final class JmsUtil {
         return authenticationChoice;
     }
 
+    /**
+     * Builds a secure socket property with type members for the frontend.
+     *
+     * @param orgName     the organization name of the package
+     * @param packageName the package name
+     * @param version     the version of the package
+     * @return Value configured for secure socket configuration with type members
+     */
+    public static Value buildSecureSocketChoice(String orgName, String packageName, String version) {
+        return buildPropertyWithTypeMembers(
+                "Secure Socket",
+                "Configure SSL/TLS configuration for secure connection",
+                "solace:SecureSocket",
+                "SecureSocket",
+                orgName + ":" + packageName + ":" + version,
+                "RECORD_TYPE",
+                ""
+        );
+    }
+
+    /**
+     * Builds a property with type members that support the create value option. This is a generic utility method for
+     * building expression properties with type metadata.
+     *
+     * @param label          the display label for the property
+     * @param description    the description for the property
+     * @param typeConstraint the type constraint for the property (e.g., "solace:SecureSocket")
+     * @param typeName       the name of the type (e.g., "SecureSocket")
+     * @param packageInfo    the package information in format "org:package:version"
+     * @param kind           the kind of the type (e.g., "RECORD_TYPE")
+     * @return Value configured with type members
+     */
+    public static Value buildPropertyWithTypeMembers(String label, String description, String typeConstraint,
+                                                     String typeName, String packageInfo, String kind, String value) {
+        List<PropertyTypeMemberInfo> typeMembers = List.of(
+                new PropertyTypeMemberInfo(typeName, packageInfo, kind, false)
+        );
+
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .valueType(VALUE_TYPE_EXPRESSION)
+                .setValueTypeConstraint(typeConstraint)
+                .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(true)
+                .setMembers(typeMembers)
+                .build();
+    }
+
+
+    /**
+     * Extracts acknowledgment mode from the service annotation and applies it to the function's caller parameter,
+     * silently failing on errors.
+     *
+     * @param context The add model context containing the service node and service model
+     */
+    public static void updateCallerParameterForAckMode(AddModelContext context, String callerTypeStr, String moduleName) {
+        try {
+            if (!(context.node() instanceof ServiceDeclarationNode serviceNode)) {
+                return;
+            }
+
+            var metadataOpt = serviceNode.metadata();
+            if (metadataOpt.isEmpty()) {
+                return;
+            }
+
+            var annotations = metadataOpt.get().annotations();
+            if (annotations.isEmpty()) {
+                return;
+            }
+
+            var annotValue = annotations.get(0).annotValue();
+            if (annotValue.isEmpty()) {
+                return;
+            }
+
+            MappingConstructorExpressionNode mappingNode = annotValue.get();
+
+            String ackMode = extractAcknowledgmentMode(mappingNode);
+            if (ackMode == null || ackMode.isBlank()) {
+                return;
+            }
+
+            updateCallerParameterForAckMode(
+                    context.function(),
+                    ackMode,
+                    callerTypeStr,
+                    moduleName
+            );
+        } catch (ClassCastException | NullPointerException ignored) {
+            // Silently skip acknowledgment mode extraction on any casting or null issues
+        }
+    }
     /**
      * Acknowledgment mode enum for JMS sessions.
      */
