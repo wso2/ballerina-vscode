@@ -50,7 +50,7 @@ const Container = styled.div`
 
 const FormContainer = styled.div`
     /* padding-top: 15px; */
-    padding-bottom: 15px;
+    padding-bottom: 100px;
 `;
 
 const StatusContainer = styled.div`

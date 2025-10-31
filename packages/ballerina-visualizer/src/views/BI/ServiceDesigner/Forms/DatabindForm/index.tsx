@@ -29,6 +29,7 @@ import {
     SidePanelBody,
     TextField,
     ThemeColors,
+    Tooltip,
     Typography,
 } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
@@ -364,10 +365,12 @@ export function DatabindForm(props: DatabindFormProps) {
                                     </Typography>
                                     {!payloadParameter && !editModel && (
                                         <AddButtonWrapper>
-                                            <LinkButton onClick={onAddPayloadClick}>
-                                                <Codicon name="add" />
-                                                Define Schema
-                                            </LinkButton>
+                                            <Tooltip content="Define schema for easier access in the flow diagram" position="bottom">
+                                                <LinkButton onClick={onAddPayloadClick}>
+                                                    <Codicon name="add" />
+                                                    Define Schema
+                                                </LinkButton>
+                                            </Tooltip>
                                         </AddButtonWrapper>
                                     )}
                                     {payloadParameter && (
