@@ -225,13 +225,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     // Create ref for service section
     const serviceRef = useRef<HTMLDivElement | null>(null);
-    
+
     // Create ref for the scrollable container
     const containerRef = useRef<HTMLDivElement | null>(null);
-    
+
     // Ref to track the current visible section to prevent unnecessary updates
     const visibleSectionRef = useRef<string | null>("service");
-    
+
     // Ref for debounce timer
     const scrollTimerRef = useRef<number | null>(null);
 
@@ -266,7 +266,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             rootMargin: '0px 0px 0px 0px', // Offset for the sticky header area
         };
 
-        const topOffset = 0;
+        const topOffset = 10;
         const observerCallback = (entries: IntersectionObserverEntry[]) => {
             // Get all currently visible sections with their visibility ratios
             const visibleSections: Array<{ id: string; ratio: number; isService: boolean }> = [];
@@ -306,7 +306,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             // Determine which section should be shown
             let newVisibleSection: string | null = null;
             let newTitle: string | null = null;
-            
+
             // Prioritize service if it's visible
             const serviceSection = visibleSections.find(s => s.isService);
             if (serviceSection && serviceSection.ratio > 0.05) {
@@ -317,12 +317,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 const visibleListenerIds = visibleSections
                     .filter(s => !s.isService && s.ratio > 0.01) // At least 1% visible
                     .map(s => s.id);
-                
+
                 if (visibleListenerIds.length > 0) {
                     // Find the first listener (topmost) that is visible
                     // We iterate through the listeners array which is in document order
                     const firstVisibleListener = listeners.find(l => visibleListenerIds.includes(l.id));
-                    
+
                     if (firstVisibleListener) {
                         newVisibleSection = firstVisibleListener.id;
                         const displayName = firstVisibleListener.name.includes(":")
@@ -332,13 +332,21 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     }
                 }
             }
-            
+
             // Only update state if the section actually changed
             if (newVisibleSection && newVisibleSection !== visibleSectionRef.current) {
                 visibleSectionRef.current = newVisibleSection;
                 setVisibleSection(newVisibleSection);
                 if (newTitle) {
                     setConfigTitle(newTitle);
+                }
+
+                // Update selectedListener to match the visible section
+                // If it's the service, clear the selected listener, otherwise set it to the listener id
+                if (newVisibleSection === 'service') {
+                    setSelectedListener(null);
+                } else {
+                    setSelectedListener(newVisibleSection);
                 }
             }
         };
@@ -363,7 +371,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             if (scrollTimerRef.current !== null) {
                 clearTimeout(scrollTimerRef.current);
             }
-            
+
             // Set a new timer to call the observer callback after a short delay
             scrollTimerRef.current = window.setTimeout(() => {
                 observerCallback([]);
@@ -969,7 +977,7 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                                     {attachingListener === listener && (
                                         <>
                                             <ProgressRing />
-                                            <Typography variant="body3" sx={{ marginLeft: '10px' }}>Attaching listener...</Typography>
+                                            <Typography variant="body3" sx={{ marginLeft: '10px', marginRight: '5px' }}>Attaching listener...</Typography>
                                         </>
                                     )}
                                 </S.Component>
