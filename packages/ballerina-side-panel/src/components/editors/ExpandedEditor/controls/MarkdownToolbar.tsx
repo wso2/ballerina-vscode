@@ -18,7 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon } from "@wso2/ui-toolkit";
+import { ThemeColors, Codicon, Switch } from "@wso2/ui-toolkit";
 import "@github/markdown-toolbar-element";
 
 // Type declarations for GitHub markdown toolbar custom elements
@@ -41,6 +41,7 @@ declare global {
 const ToolbarContainer = styled.div`
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 4px;
     padding: 8px 12px;
     background-color: ${ThemeColors.SURFACE};
@@ -100,33 +101,41 @@ const ToolbarDivider = styled.div`
 interface MarkdownToolbarProps {
     /** ID of the textarea this toolbar controls */
     textareaId: string;
+    /** Whether preview mode is active */
+    isPreviewMode?: boolean;
+    /** Callback to toggle preview mode */
+    onTogglePreview?: () => void;
 }
 
 /**
  * Markdown formatting toolbar using GitHub's markdown-toolbar-element
  * Provides buttons for common markdown formatting operations
  */
-export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ textareaId }) => {
+export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
+    textareaId,
+    isPreviewMode = false,
+    onTogglePreview
+}) => {
     return (
         <ToolbarContainer>
             <markdown-toolbar for={textareaId}>
                 <md-bold>
-                    <ToolbarButton title="Bold (Ctrl/Cmd+B)">
+                    <ToolbarButton title="Bold (Ctrl/Cmd+B)" disabled={isPreviewMode}>
                         <Codicon name="bold" />
                     </ToolbarButton>
                 </md-bold>
                 <md-italic>
-                    <ToolbarButton title="Italic (Ctrl/Cmd+I)">
+                    <ToolbarButton title="Italic (Ctrl/Cmd+I)" disabled={isPreviewMode}>
                         <Codicon name="italic" />
                     </ToolbarButton>
                 </md-italic>
                 <md-code>
-                    <ToolbarButton title="Inline Code">
+                    <ToolbarButton title="Inline Code" disabled={isPreviewMode}>
                         <Codicon name="code" />
                     </ToolbarButton>
                 </md-code>
                 <md-link>
-                    <ToolbarButton title="Insert Link (Ctrl/Cmd+K)">
+                    <ToolbarButton title="Insert Link (Ctrl/Cmd+K)" disabled={isPreviewMode}>
                         <Codicon name="link" />
                     </ToolbarButton>
                 </md-link>
@@ -134,7 +143,7 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ textareaId }) 
                 <ToolbarDivider />
 
                 <md-header data-md-header="2">
-                    <ToolbarButton title="Heading 2">
+                    <ToolbarButton title="Heading 2" disabled={isPreviewMode}>
                         <Codicon name="symbol-text" />
                     </ToolbarButton>
                 </md-header>
@@ -142,12 +151,12 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ textareaId }) 
                 <ToolbarDivider />
 
                 <md-unordered-list>
-                    <ToolbarButton title="Bulleted List">
+                    <ToolbarButton title="Bulleted List" disabled={isPreviewMode}>
                         <Codicon name="list-unordered" />
                     </ToolbarButton>
                 </md-unordered-list>
                 <md-ordered-list>
-                    <ToolbarButton title="Numbered List">
+                    <ToolbarButton title="Numbered List" disabled={isPreviewMode}>
                         <Codicon name="list-ordered" />
                     </ToolbarButton>
                 </md-ordered-list>
@@ -155,11 +164,25 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ textareaId }) 
                 <ToolbarDivider />
 
                 <md-code-block>
-                    <ToolbarButton title="Code Block">
+                    <ToolbarButton title="Code Block" disabled={isPreviewMode}>
                         <Codicon name="file-code" />
                     </ToolbarButton>
                 </md-code-block>
             </markdown-toolbar>
+
+            {onTogglePreview && (
+                <Switch
+                    checked={isPreviewMode}
+                    leftLabel="Edit"
+                    rightLabel="Preview"
+                    onChange={onTogglePreview}
+                    checkedColor="var(--vscode-button-background)"
+                    enableTransition={true}
+                    sx={{
+                        borderColor: ThemeColors.SURFACE_DIM
+                    }}
+                />
+            )}
         </ToolbarContainer>
     );
 };

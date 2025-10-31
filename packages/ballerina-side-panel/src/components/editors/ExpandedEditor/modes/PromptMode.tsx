@@ -52,22 +52,27 @@ const TEXTAREA_ID = "prompt-textarea";
 export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
     value,
     onChange,
-    isPreviewMode
+    isPreviewMode,
+    onTogglePreview
 }) => {
-    if (isPreviewMode) {
-        return <MarkdownPreview content={value} />;
-    }
-
     return (
         <>
-            <MarkdownToolbar textareaId={TEXTAREA_ID} />
-            <TextArea
-                id={TEXTAREA_ID}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Enter your text here..."
-                autoFocus
+            <MarkdownToolbar
+                textareaId={TEXTAREA_ID}
+                isPreviewMode={isPreviewMode}
+                onTogglePreview={() => onTogglePreview(!isPreviewMode)}
             />
+            {isPreviewMode ? (
+                <MarkdownPreview content={value} />
+            ) : (
+                <TextArea
+                    id={TEXTAREA_ID}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="Enter your text here..."
+                    autoFocus
+                />
+            )}
         </>
     );
 };
