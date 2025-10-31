@@ -515,8 +515,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     };
 
-    // Only prompt field supports expanded mode
-    const onOpenExpandedMode = (!props.isInExpandedMode)
+    // Only allow opening expanded mode for specific fields
+    const onOpenExpandedMode = (!props.isInExpandedMode && ["query", "instructions", "role"].includes(field.key))
         ? handleOpenExpandedMode
         : undefined;
 
