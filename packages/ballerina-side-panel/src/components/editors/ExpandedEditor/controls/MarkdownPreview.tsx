@@ -29,8 +29,9 @@ const PreviewContainer = styled.div`
     font-family: var(--vscode-editor-font-family);
     background: var(--input-background);
     color: ${ThemeColors.ON_SURFACE};
+    border-top: none;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 4px;
+    border-radius: 0 0 4px 4px;
     overflow-y: auto;
     box-sizing: border-box;
 `;

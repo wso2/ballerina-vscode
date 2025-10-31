@@ -158,7 +158,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
                     <div style={{ margin: "10px 0" }}>
-                        <S.HeaderContainer>
+                        <S.HeaderContainer style={{ marginBottom: "3px" }}>
                             <S.LabelContainer>
                                 <S.Label>{field.label}</S.Label>
                             </S.LabelContainer>

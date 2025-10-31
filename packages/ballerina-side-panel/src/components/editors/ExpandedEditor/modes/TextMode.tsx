@@ -44,12 +44,12 @@ const TextArea = styled.textarea`
 /**
  * Text mode editor - simple textarea without any formatting tools
  */
-export const TextMode: React.FC<EditorModeProps> = ({ value, onChange }) => {
+export const TextMode: React.FC<EditorModeProps> = ({ value, onChange, field }) => {
     return (
         <TextArea
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Enter your text here..."
+            placeholder={field.placeholder || "Enter your text here..."}
             autoFocus
         />
     );
