@@ -46,7 +46,7 @@ import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
-import { ExpandedPromptEditor } from './ExpandedPromptEditor';
+import { ExpandedEditor } from './ExpandedEditor';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -668,8 +668,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 />
             )}
             {onOpenExpandedMode && (
-                <ExpandedPromptEditor
+                <ExpandedEditor
                     isOpen={isExpandedModalOpen}
+                    field={field}
                     value={watch(key)}
                     onClose={() => setIsExpandedModalOpen(false)}
                     onSave={handleSaveExpandedMode}
