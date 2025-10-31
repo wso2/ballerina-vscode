@@ -98,8 +98,6 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     private static final String LISTENER_TYPE = "Listener";
 
     // Default values
-    private static final String DEFAULT_QUEUE_NAME = "\"DEV.QUEUE.1\"";
-    private static final String DEFAULT_TOPIC_NAME = "\"TOPIC1\"";
     private static final String DEFAULT_SESSION_ACK_MODE = "\"AUTO_ACKNOWLEDGE\"";
 
     // Display labels
@@ -223,10 +221,10 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> queueProps = new LinkedHashMap<>();
         queueProps.put(PROPERTY_QUEUE_NAME, new Value.ValueBuilder()
                 .metadata(LABEL_QUEUE_NAME, DESC_QUEUE_NAME)
-                .value(DEFAULT_QUEUE_NAME)
+                .value("")
                 .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder(DEFAULT_QUEUE_NAME)
+                .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
                 .build());
@@ -244,10 +242,10 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> topicProps = new LinkedHashMap<>();
         topicProps.put(PROPERTY_TOPIC_NAME, new Value.ValueBuilder()
                 .metadata(LABEL_TOPIC_NAME, DESC_TOPIC_NAME)
-                .value(DEFAULT_TOPIC_NAME)
+                .value("")
                 .valueType(VALUE_TYPE_EXPRESSION)
                 .setValueTypeConstraint(VALUE_TYPE_STRING)
-                .setPlaceholder(DEFAULT_TOPIC_NAME)
+                .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
                 .build());
@@ -509,85 +507,75 @@ public final class IBMMQServiceBuilder extends AbstractServiceBuilder {
     }
 
     private boolean hasIBMMQDependency(AddServiceInitModelContext context) {
-        try {
-            Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
-            if (ballerinaToml.isEmpty()) {
-                return false;
-            }
-
-            TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
-            TopLevelNode platformNode = tomlTableNode.entries().get("platform");
-            if (!(platformNode instanceof TomlTableNode platformTable)) {
-                return false;
-            }
-
-            TopLevelNode java21Node = platformTable.entries().get("java21");
-            if (!(java21Node instanceof TomlTableNode java21Table)) {
-                return false;
-            }
-
-            TopLevelNode dependencyNode = java21Table.entries().get("dependency");
-            if (!(dependencyNode instanceof TomlTableArrayNode dependencyArray)) {
-                return false;
-            }
-
-            // Check if IBM MQ dependency already exists with correct version
-            for (TomlTableNode dependencyTable : dependencyArray.children()) {
-                TomlKeyValueNode groupIdNode = (TomlKeyValueNode) dependencyTable.entries().get("groupId");
-                TomlKeyValueNode artifactIdNode = (TomlKeyValueNode) dependencyTable.entries().get("artifactId");
-                TomlKeyValueNode versionNode = (TomlKeyValueNode) dependencyTable.entries().get("version");
-
-                if (groupIdNode != null && artifactIdNode != null && versionNode != null) {
-                    String groupId = groupIdNode.value().toNativeValue().toString().replace("\"", "");
-                    String artifactId = artifactIdNode.value().toNativeValue().toString().replace("\"", "");
-                    String version = versionNode.value().toNativeValue().toString().replace("\"", "");
-
-                    return IBM_MQ_CLIENT_GROUP_ID.equals(groupId) &&
-                            IBM_MQ_CLIENT_ARTIFACT_ID.equals(artifactId) &&
-                            IBM_MQ_CLIENT_VERSION.equals(version);
-                }
-            }
-        } catch (Exception e) {
-            // If any error occurs while checking, assume dependency doesn't exist
+        Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
+        if (ballerinaToml.isEmpty()) {
             return false;
+        }
+
+        TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+        TopLevelNode platformNode = tomlTableNode.entries().get("platform");
+        if (!(platformNode instanceof TomlTableNode platformTable)) {
+            return false;
+        }
+
+        TopLevelNode java21Node = platformTable.entries().get("java21");
+        if (!(java21Node instanceof TomlTableNode java21Table)) {
+            return false;
+        }
+
+        TopLevelNode dependencyNode = java21Table.entries().get("dependency");
+        if (!(dependencyNode instanceof TomlTableArrayNode dependencyArray)) {
+            return false;
+        }
+
+        // Check if IBM MQ dependency already exists with correct version
+        for (TomlTableNode dependencyTable : dependencyArray.children()) {
+            TomlKeyValueNode groupIdNode = (TomlKeyValueNode) dependencyTable.entries().get("groupId");
+            TomlKeyValueNode artifactIdNode = (TomlKeyValueNode) dependencyTable.entries().get("artifactId");
+            TomlKeyValueNode versionNode = (TomlKeyValueNode) dependencyTable.entries().get("version");
+
+            if (groupIdNode != null && artifactIdNode != null && versionNode != null) {
+                String groupId = groupIdNode.value().toNativeValue().toString().replace("\"", "");
+                String artifactId = artifactIdNode.value().toNativeValue().toString().replace("\"", "");
+                String version = versionNode.value().toNativeValue().toString().replace("\"", "");
+
+                return IBM_MQ_CLIENT_GROUP_ID.equals(groupId) &&
+                        IBM_MQ_CLIENT_ARTIFACT_ID.equals(artifactId) &&
+                        IBM_MQ_CLIENT_VERSION.equals(version);
+            }
         }
         return false;
     }
 
     private Map<String, List<TextEdit>> createIBMMQDependencyEdits(AddServiceInitModelContext context) {
-        try {
-            Path tomlPath = context.project().sourceRoot().resolve("Ballerina.toml");
-            Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
+        Path tomlPath = context.project().sourceRoot().resolve("Ballerina.toml");
+        Optional<BallerinaToml> ballerinaToml = context.project().currentPackage().ballerinaToml();
 
-            if (ballerinaToml.isEmpty()) {
-                return Map.of();
-            }
-
-            TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
-            String dependencyText = String.format(
-                    "%s%s[[%s]]%sgroupId = \"%s\"%sartifactId = \"%s\"%sversion = \"%s\"%s",
-                    NEW_LINE,
-                    NEW_LINE,
-                    PLATFORM_JAVA21_DEPENDENCY,
-                    NEW_LINE,
-                    IBM_MQ_CLIENT_GROUP_ID,
-                    NEW_LINE,
-                    IBM_MQ_CLIENT_ARTIFACT_ID,
-                    NEW_LINE,
-                    IBM_MQ_CLIENT_VERSION,
-                    NEW_LINE
-            );
-
-            TextEdit edit = new TextEdit(
-                    PositionUtil.toRange(tomlTableNode.location().lineRange().endLine()),
-                    dependencyText
-            );
-
-            return Map.of(tomlPath.toString(), List.of(edit));
-        } catch (Exception e) {
-            // If any error occurs, return empty map
+        if (ballerinaToml.isEmpty()) {
             return Map.of();
         }
+
+        TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+        String dependencyText = String.format(
+                "%s%s[[%s]]%sgroupId = \"%s\"%sartifactId = \"%s\"%sversion = \"%s\"%s",
+                NEW_LINE,
+                NEW_LINE,
+                PLATFORM_JAVA21_DEPENDENCY,
+                NEW_LINE,
+                IBM_MQ_CLIENT_GROUP_ID,
+                NEW_LINE,
+                IBM_MQ_CLIENT_ARTIFACT_ID,
+                NEW_LINE,
+                IBM_MQ_CLIENT_VERSION,
+                NEW_LINE
+        );
+
+        TextEdit edit = new TextEdit(
+                PositionUtil.toRange(tomlTableNode.location().lineRange().endLine()),
+                dependencyText
+        );
+
+        return Map.of(tomlPath.toString(), List.of(edit));
     }
 
     @Override

@@ -1417,8 +1417,8 @@
         "name": {
           "label": "Queue Manager Name",
           "description": "Name of the Queue Manager.",
-          "defaultValue": "\"QM1\"",
-          "placeholder": "\"QM1\"",
+          "defaultValue": "",
+          "placeholder": "",
           "valueType": "EXPRESSION",
           "typeConstrain": "string",
           "typeMembers": [],
@@ -1428,8 +1428,8 @@
         "host": {
           "label": "Host",
           "description": "Hostname or IP address of the server where the Queue Manager is running.",
-          "defaultValue": "\"localhost\"",
-          "placeholder": "\"localhost\"",
+          "defaultValue": "",
+          "placeholder": "",
           "valueType": "EXPRESSION",
           "typeConstrain": "string",
           "typeMembers": [],
@@ -1450,8 +1450,8 @@
         "channel": {
           "label": "Channel",
           "description": "The.",
-          "defaultValue": "\"CHANNEL1\"",
-          "placeholder": "\"CHANNEL1\"",
+          "defaultValue": "",
+          "placeholder": "",
           "valueType": "EXPRESSION",
           "typeConstrain": "string",
           "typeMembers": [],
