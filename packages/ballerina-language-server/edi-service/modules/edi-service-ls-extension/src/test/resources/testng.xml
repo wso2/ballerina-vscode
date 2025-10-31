@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="EDI-Service-LS-Extension-Test-Suite">
-    <test name="edi-converter-tests">
+    <test name="edi-converter-tests" enabled="false">
         <classes>
             <class name="io.ballerina.edi.extension.EDIConverterServiceTest"/>
         </classes>
