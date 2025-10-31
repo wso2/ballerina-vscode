@@ -56,8 +56,8 @@ const ModalBox = styled.div`
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 16px 8px;
-    border-radius: 8px;
+    padding: 8px 8px;
+    border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
     z-index: 30001;
@@ -158,9 +158,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
                     <div style={{ margin: "10px 0" }}>
-                        <S.HeaderContainer style={{ marginBottom: "3px" }}>
+                        <S.HeaderContainer style={{ marginBottom: "2px" }}>
                             <S.LabelContainer>
-                                <S.Label>{field.label}</S.Label>
+                                <S.Label style={{ fontSize: "16px" }}>{field.label}</S.Label>
                             </S.LabelContainer>
                         </S.HeaderContainer>
                         <S.EditorMdContainer>
