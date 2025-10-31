@@ -78,6 +78,9 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
         expressionModel.length === 0 ? (
             <TextElement
                 key="empty"
+                sx={{
+                    display: "inline-block"
+                }}
                 element={{ id: "empty", value: "", isToken: false, length: 0 } as ExpressionModel}
                 expressionModel={[]}
                 index={0}
@@ -109,6 +112,9 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                             onTextFocus={props.onTextFocus}
                             index={index}
                             onExpressionChange={onExpressionChange}
+                            sx={{
+                                display: expressionModel.length === 1 ? 'inline-block' : 'inline',
+                            }}
                         />;
                     }
                 })}

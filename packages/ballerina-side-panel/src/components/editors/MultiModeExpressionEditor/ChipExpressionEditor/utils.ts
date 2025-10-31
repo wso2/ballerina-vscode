@@ -137,7 +137,7 @@ export const getCompletionsMenuPosition = (
         const menuWidth = 300;
         return ({
             top: containerRect.height,
-            left: Math.max(0, containerRect.width - menuWidth-30)
+            left: Math.max(0, containerRect.width - menuWidth - 30)
         });
     }
 };
@@ -176,6 +176,18 @@ export const getTextValueFromExpressionModel = (expressionModel: ExpressionModel
         .join("");
 };
 
+export const expressionModelInitValue: ExpressionModel = {
+    id: '1',
+    value: '',
+    isToken: false,
+    startColumn: 0,
+    startLine: 0,
+    length: 0,
+    type: 'literal',
+    isFocused: false,
+    focusOffset: undefined
+}
+
 export const createExpressionModelFromTokens = (
     value: string,
     tokens: number[]
@@ -183,15 +195,7 @@ export const createExpressionModelFromTokens = (
     if (!value) return [];
     if (!tokens || tokens.length === 0) {
         return [{
-            id: '1',
-            value: value,
-            isToken: false,
-            startColumn: 0,
-            startLine: 0,
-            length: value.length,
-            type: 'literal',
-            isFocused: false,
-            focusOffset: undefined
+           ...expressionModelInitValue, value: value, length: value.length, 
         }];
     }
 
@@ -678,9 +682,10 @@ const handleBackspace = (
 ) => {
     if (caretOffset === 0) {
         handleBackspaceAtStart(e, expressionModel, index, onExpressionChange);
-    } else {
-        handleBackspaceInMiddle(e, expressionModel, index, caretOffset);
     }
+    // else {
+    //     handleBackspaceInMiddle(e, expressionModel, index, caretOffset);
+    // }
 };
 
 const handleBackspaceAtStart = (
@@ -691,7 +696,7 @@ const handleBackspaceAtStart = (
 ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (index === 0 || index >= expressionModel.length) return;
 
     let newExpressionModel = [...expressionModel];
@@ -749,23 +754,23 @@ const mergeWithPreviousElement = (
     onExpressionChange?.(newExpressionModel, newCursorPosition, BACKSPACE_MARKER);
 };
 
-const handleBackspaceInMiddle = (
-    e: React.KeyboardEvent<HTMLSpanElement>,
-    expressionModel: ExpressionModel[],
-    index: number,
-    caretOffset: number
-) => {
-    const hasPreviousParameterToken = 
-        caretOffset === 1 &&
-        index - 1 >= 0 &&
-        expressionModel[index - 1].isToken &&
-        expressionModel[index - 1].type === 'parameter';
+// const handleBackspaceInMiddle = (
+//     e: React.KeyboardEvent<HTMLSpanElement>,
+//     expressionModel: ExpressionModel[],
+//     index: number,
+//     caretOffset: number
+// ) => {
+//     const hasPreviousParameterToken = 
+//         caretOffset === 1 &&
+//         index - 1 >= 0 &&
+//         expressionModel[index - 1].isToken &&
+//         expressionModel[index - 1].type === 'parameter';
 
-    if (hasPreviousParameterToken) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-};
+//     if (hasPreviousParameterToken) {
+//         e.preventDefault();
+//         e.stopPropagation();
+//     }
+// };
 
 const handleDelete = (
     e: React.KeyboardEvent<HTMLSpanElement>,
@@ -858,7 +863,7 @@ const moveToNextElement = (
                 }
                 return el;
             });
-            
+
             const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
             onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_RIGHT_MARKER);
             return;
@@ -878,7 +883,7 @@ const moveCaretForward = (
         }
         return el;
     });
-    
+
     const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
     onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
 };
@@ -918,7 +923,7 @@ const moveToPreviousElement = (
                 }
                 return el;
             });
-            
+
             const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
             onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
             return;
@@ -938,7 +943,7 @@ const moveCaretBackward = (
         }
         return el;
     });
-    
+
     const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
     onExpressionChange?.(newExpressionModel, newCursorPosition, ARROW_LEFT_MARKER);
 };
@@ -954,12 +959,13 @@ export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string 
     return fullTextUpToCursor.endsWith(lastMatch) ? lastMatch : '';
 };
 
-export const filterCompletionsByPrefix = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
+export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
         return completions;
     }
 
     return completions.filter(completion =>
+        (completion.kind === 'function' || completion.kind === 'variable') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
 };
