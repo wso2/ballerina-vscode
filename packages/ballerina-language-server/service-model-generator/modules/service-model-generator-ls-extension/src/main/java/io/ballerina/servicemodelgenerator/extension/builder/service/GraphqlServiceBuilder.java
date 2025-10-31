@@ -21,31 +21,50 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
+import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter;
+import io.ballerina.servicemodelgenerator.extension.core.GraphqlServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
+import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.Constants;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRouter.getFunctionFromSource;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_DESIGN_APPROACH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getFunctionFromServiceTypeFunction;
@@ -53,6 +72,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceTypeIdentifier;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
@@ -66,6 +88,11 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServ
 public class GraphqlServiceBuilder extends AbstractServiceBuilder {
 
     private static final String GRAPHQL_SERVICE_MODEL_LOCATION = "services/graphql.json";
+    private static final String LISTENER_VAR_NAME = "listenerVarName";
+    private static final String DEFAULT_LISTENER_NAME = "graphqlListener";
+    private static final String DEFAULT_SERVICE_PATH = "/graphql";
+    private static final String DEFAULT_PORT = "8080";
+    private static final String PORT = "port";
 
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
@@ -83,6 +110,51 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
+            throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
+            EventSyncException {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+        applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+
+        Map<String, Value> properties = serviceInitModel.getProperties();
+
+        StringBuilder listenerDeclaration = new StringBuilder("listener graphql:Listener ");
+        String listenerVarName = Objects.nonNull(properties.get(LISTENER_VAR_NAME)) ?
+                properties.get(LISTENER_VAR_NAME).getValue() : DEFAULT_LISTENER_NAME;
+        String port = DEFAULT_PORT;
+        if (Objects.nonNull(properties.get(PORT))) {
+            port = properties.get(PORT).getValue();
+        }
+        listenerDeclaration.append(listenerVarName).append(" = new (")
+                .append(port).append(");");
+        if (Objects.nonNull(serviceInitModel.getGraphqlSchema())) {
+            return new GraphqlServiceGenerator(context.project().sourceRoot(), context.workspaceManager())
+                    .generateService(serviceInitModel, DEFAULT_SERVICE_PATH, listenerVarName,
+                            listenerDeclaration.toString());
+        }
+
+        ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+
+        String basePath = properties.get(BASE_PATH).getValue();
+        StringBuilder builder = new StringBuilder(NEW_LINE)
+                .append(listenerDeclaration)
+                .append(NEW_LINE)
+                .append(SERVICE).append(SPACE).append(basePath)
+                .append(SPACE).append(ON).append(SPACE).append(listenerVarName).append(SPACE).append(OPEN_BRACE)
+                .append(NEW_LINE)
+                .append(CLOSE_BRACE).append(NEW_LINE);
+
+        List<TextEdit> edits = new ArrayList<>();
+        if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
+            String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
+        }
+        edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), builder.toString()));
+        return Map.of(context.filePath(), edits);
     }
 
     @Override
@@ -174,8 +246,7 @@ public class GraphqlServiceBuilder extends AbstractServiceBuilder {
                 function.getName().setMetadata(
                         new MetaData("Subscription Name", "The name of the subscription"));
             }
-            default -> {
-            }
+            default -> { }
         }
     }
 }
