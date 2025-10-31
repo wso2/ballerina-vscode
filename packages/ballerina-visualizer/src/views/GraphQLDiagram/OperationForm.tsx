@@ -248,7 +248,7 @@ export function OperationForm(props: OperationFormProps) {
         newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
 
         if (isGraphqlView && data['isGraphqlId'] !== undefined) {
-            (newFunctionModel.returnType as any).isGraphqlId = data['isGraphqlId'] === true || data['isGraphqlId'] === 'true';
+            (newFunctionModel.returnType as any).isGraphqlId = data['isGraphqlId'] === true;
         }
 
         Object.entries(data).forEach(([key, value]) => {
