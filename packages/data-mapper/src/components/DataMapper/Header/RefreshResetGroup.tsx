@@ -16,42 +16,14 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
+import { ActionIconButton } from "./ActionIconButton";
 
 const ButtonGroup = styled.div`
     display: flex;
     align-items: center;
 `;
-
-interface ActionButtonProps {
-    onClick: () => Promise<void>;
-    iconName: string;
-    tooltip: string;
-}
-
-function ActionButton({ onClick, iconName, tooltip }: ActionButtonProps) {
-    const [inProgress, setInProgress] = useState(false);
-    
-    const handleOnClick = async () => {
-        setInProgress(true);
-        await onClick();
-        setInProgress(false);
-    };
-    
-    return (
-        <Button appearance="icon" onClick={handleOnClick} disabled={inProgress} tooltip={tooltip}>
-            <span style={{ pointerEvents: "none" }}>
-                {inProgress ? (
-                    <ProgressRing sx={{ width: 16, height: 16 }} />
-                ) : (
-                    <Codicon name={iconName} />
-                )}
-            </span>
-        </Button>
-    );
-}
 
 interface RefreshResetGroupProps {
     onRefresh?: () => Promise<void>;
@@ -62,14 +34,14 @@ export function RefreshResetGroup({ onRefresh, onReset }: RefreshResetGroupProps
     return (
         <ButtonGroup>
             {onRefresh && (
-                <ActionButton
+                <ActionIconButton
                     onClick={onRefresh}
                     iconName="refresh"
                     tooltip="Refresh"
                 />
             )}
             {onReset && (
-                <ActionButton
+                <ActionIconButton
                     onClick={onReset}
                     iconName="clear-all"
                     tooltip="Clear all mappings"
