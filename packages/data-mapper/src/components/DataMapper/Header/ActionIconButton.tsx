@@ -17,21 +17,15 @@
  */
 
 import React, { useState } from "react";
-import styled from "@emotion/styled";
 import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
 
-const ButtonGroup = styled.div`
-    display: flex;
-    align-items: center;
-`;
-
-interface ActionButtonProps {
+interface ActionIconButtonProps {
     onClick: () => Promise<void>;
     iconName: string;
     tooltip: string;
 }
 
-function ActionButton({ onClick, iconName, tooltip }: ActionButtonProps) {
+export function ActionIconButton({ onClick, iconName, tooltip }: ActionIconButtonProps) {
     const [inProgress, setInProgress] = useState(false);
     
     const handleOnClick = async () => {
@@ -50,27 +44,5 @@ function ActionButton({ onClick, iconName, tooltip }: ActionButtonProps) {
                 )}
             </span>
         </Button>
-    );
-}
-
-interface RefreshResetGroupProps {
-    onRefresh: () => Promise<void>;
-    onReset: () => Promise<void>;
-}
-
-export function RefreshResetGroup({ onRefresh, onReset }: RefreshResetGroupProps) {
-    return (
-        <ButtonGroup>
-            <ActionButton 
-                onClick={onRefresh}
-                iconName="refresh"
-                tooltip="Refresh"
-            />
-            <ActionButton 
-                onClick={onReset}
-                iconName="clear-all"
-                tooltip="Clear all mappings"
-            />
-        </ButtonGroup>
     );
 }
