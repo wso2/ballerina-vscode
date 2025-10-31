@@ -109,8 +109,9 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                     justifyContent: 'center',
                                     padding: '9px',
                                     borderRadius: '4px',
+                                    border: '1px solid var(--dropdown-border)'
                                 }}
-                                iconSx={{ color: 'var(--vscode-activityBar-foreground)' }}
+                                iconSx={{ color: 'var(--vscode-editor-foreground)' }}
                                 name="expand"
                                 onClick={handleOpenExpandedMode}
                             />
