@@ -31,8 +31,10 @@ declare global {
             'md-code': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'md-link': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'md-header': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { 'data-md-header'?: string }, HTMLElement>;
+            'md-quote': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'md-unordered-list': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'md-ordered-list': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+            'md-task-list': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
             'md-code-block': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
         }
     }
@@ -147,6 +149,11 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
                         <Codicon name="symbol-text" />
                     </ToolbarButton>
                 </md-header>
+                <md-quote>
+                    <ToolbarButton title="Blockquote" disabled={isPreviewMode}>
+                        <Codicon name="quote" />
+                    </ToolbarButton>
+                </md-quote>
 
                 <ToolbarDivider />
 
@@ -160,14 +167,11 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
                         <Codicon name="list-ordered" />
                     </ToolbarButton>
                 </md-ordered-list>
-
-                <ToolbarDivider />
-
-                <md-code-block>
-                    <ToolbarButton title="Code Block" disabled={isPreviewMode}>
-                        <Codicon name="file-code" />
+                <md-task-list>
+                    <ToolbarButton title="Task List" disabled={isPreviewMode}>
+                        <Codicon name="checklist" />
                     </ToolbarButton>
-                </md-code-block>
+                </md-task-list>
             </markdown-toolbar>
 
             {onTogglePreview && (

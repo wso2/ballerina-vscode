@@ -37,11 +37,6 @@ const TextArea = styled.textarea`
     resize: vertical;
     outline: none;
     box-sizing: border-box;
-
-    &:focus {
-        border-color: ${ThemeColors.OUTLINE};
-        box-shadow: 0 0 0 1px ${ThemeColors.OUTLINE};
-    }
 `;
 
 const TEXTAREA_ID = "prompt-textarea";
@@ -53,8 +48,119 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
     value,
     onChange,
     isPreviewMode,
-    onTogglePreview
+    onTogglePreview,
+    field
 }) => {
+    /**
+     * Handles Enter key to automatically continue lists (similar to GitHub comments)
+     */
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
+
+        const textarea = e.currentTarget;
+        const cursorPosition = textarea.selectionStart;
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const textAfterCursor = value.substring(cursorPosition);
+
+        // Find the start of the current line
+        const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+        const currentLine = textBeforeCursor.substring(lastNewlineIndex + 1);
+
+        // Check for unordered list (- or *)
+        const unorderedMatch = currentLine.match(/^(\s*)([-*])\s+(.*)$/);
+        if (unorderedMatch) {
+            const [, indent, marker, content] = unorderedMatch;
+
+            // If the list item is empty (just the marker), remove it and exit list mode
+            if (!content.trim()) {
+                e.preventDefault();
+                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
+                onChange(newValue);
+                // Set cursor position after both newlines
+                setTimeout(() => {
+                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
+                }, 0);
+                return;
+            }
+
+            // Continue the list
+            e.preventDefault();
+            const newValue = textBeforeCursor + '\n' + indent + marker + ' ' + textAfterCursor;
+            onChange(newValue);
+            // Set cursor position after the list marker
+            setTimeout(() => {
+                const newCursorPos = cursorPosition + indent.length + marker.length + 2;
+                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+            }, 0);
+            return;
+        }
+
+        // Check for ordered list (1., 2., etc.)
+        const orderedMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)$/);
+        if (orderedMatch) {
+            const [, indent, number, content] = orderedMatch;
+
+            // If the list item is empty (just the number), remove it and exit list mode
+            if (!content.trim()) {
+                e.preventDefault();
+                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
+                onChange(newValue);
+                // Set cursor position after both newlines
+                setTimeout(() => {
+                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
+                }, 0);
+                return;
+            }
+
+            // Continue the list with incremented number
+            e.preventDefault();
+            const nextNumber = parseInt(number, 10) + 1;
+            const newValue = textBeforeCursor + '\n' + indent + nextNumber + '. ' + textAfterCursor;
+            onChange(newValue);
+            // Set cursor position after the list marker
+            setTimeout(() => {
+                const newCursorPos = cursorPosition + indent.length + nextNumber.toString().length + 3;
+                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+            }, 0);
+            return;
+        }
+
+        // Check for task list (- [ ] or - [x])
+        const taskMatch = currentLine.match(/^(\s*)([-*])\s+\[([ x])\]\s+(.*)$/);
+        if (taskMatch) {
+            const [, indent, marker, , content] = taskMatch;
+
+            // If the task item is empty, remove it and exit list mode
+            if (!content.trim()) {
+                e.preventDefault();
+                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
+                onChange(newValue);
+                // Set cursor position after both newlines
+                setTimeout(() => {
+                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
+                }, 0);
+                return;
+            }
+
+            // Continue the task list with unchecked box
+            e.preventDefault();
+            const newValue = textBeforeCursor + '\n' + indent + marker + ' [ ] ' + textAfterCursor;
+            onChange(newValue);
+            // Set cursor position after the task marker
+            setTimeout(() => {
+                const newCursorPos = cursorPosition + indent.length + marker.length + 6;
+                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+            }, 0);
+            return;
+        }
+    };
+
+    const placeholder = field.placeholder && field.placeholder.trim() !== "" && field.placeholder.trim() !== "\"\""
+        ? field.placeholder
+        : "Enter your text here...";
+
     return (
         <>
             <MarkdownToolbar
@@ -69,7 +175,8 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
                     id={TEXTAREA_ID}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder="Enter your text here..."
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
                     autoFocus
                 />
             )}
