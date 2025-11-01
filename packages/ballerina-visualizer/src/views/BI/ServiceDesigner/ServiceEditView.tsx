@@ -100,7 +100,7 @@ export function ServiceEditView(props: ServiceEditViewProps) {
         rpcClient.getServiceDesignerRpcClient().getServiceModelFromCode({ filePath, codedata: { lineRange } }).then(res => {
             setServiceModel(res.service);
         })
-    }, [props.position]);
+    }, [props.filePath, props.position]);
 
     const onSubmit = async (value: ServiceModel) => {
         setSaving(true);

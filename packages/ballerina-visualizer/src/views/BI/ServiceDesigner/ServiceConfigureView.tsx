@@ -179,9 +179,10 @@ type ConfigVariablesState = {
     };
 };
 
-interface ReadonlyProperty {
-    label: string;
-    value: string | string[];
+interface ChangeMap {
+    data: ServiceModel | ListenerModel;
+    isService: boolean;
+    filePath: string;
 }
 
 const Overlay = styled.div`
@@ -205,7 +206,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
-    const [changeMap, setChangeMap] = useState<{ [key: string]: { data: ServiceModel | ListenerModel, isService: boolean, filePath: string } }>({});
+    const [changeMap, setChangeMap] = useState<{ [key: string]: ChangeMap }>({});
     // Helper function to create key from filePath and position
     const getChangeKey = (filePath: string, position: NodePosition) => {
         return `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
@@ -365,6 +366,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             }
         });
 
+        const SCROLL_THROTTLE_TIME = 100; // 100ms throttle - feels responsive but prevents excessive updates
+
         // Add a throttled scroll listener for responsive updates
         const handleScroll = () => {
             // Clear any existing timer
@@ -375,7 +378,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             // Set a new timer to call the observer callback after a short delay
             scrollTimerRef.current = window.setTimeout(() => {
                 observerCallback([]);
-            }, 50); // 50ms throttle - feels responsive but prevents excessive updates
+            }, SCROLL_THROTTLE_TIME);
         };
 
         containerRef.current.addEventListener('scroll', handleScroll, { passive: true });
@@ -431,7 +434,6 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const findListenerType = (service: ServiceModel) => {
         let detectedType: "SINGLE" | "MULTIPLE" = "MULTIPLE";
-        let foundType = false;
         for (const key in service.properties) {
             const expression = service.properties[key];
             if (
@@ -439,7 +441,6 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 expression.valueType === "SINGLE_SELECT_LISTENER"
             ) {
                 detectedType = expression.valueType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
-                foundType = true;
                 // Check if only one property is enabled
                 const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
                 if (enabledCount === 1) {
