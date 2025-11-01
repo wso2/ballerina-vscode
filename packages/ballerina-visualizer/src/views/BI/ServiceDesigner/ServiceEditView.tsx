@@ -114,7 +114,9 @@ export function ServiceEditView(props: ServiceEditViewProps) {
     }
 
     const handleServiceChange = async (data: ServiceModel) => {
-        onChange(data, filePath, position);
+        if (onChange) {
+            onChange(data, filePath, position);
+        }
     }
 
     const handleListenerSubmit = async (value?: ListenerModel) => {
