@@ -17,6 +17,7 @@
  */
 
 export const CHIP_EXPRESSION_EDITOR_HEIGHT = 26;
+export const EXPANDED_EDITOR_HEIGHT = 500;
 
 // Data attributes
 export const DATA_CHIP_ATTRIBUTE = 'data-chip';
