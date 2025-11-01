@@ -445,7 +445,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     return (
-        <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+        <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
             {!props.isInExpandedMode && <FXButton isLoading={isLoading} />}
             <AutoExpandingEditableDiv
                 value={props.value}
@@ -482,6 +482,5 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 />
             </AutoExpandingEditableDiv>
         </ChipEditorContainer >
-        </>
     )
 }
