@@ -16,12 +16,14 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { FormField } from "../Form/types";
-import { AutoResizeTextArea } from "@wso2/ui-toolkit";
+import { AutoResizeTextArea, Icon } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
 import { S } from "./ExpressionEditor";
 import { Controller } from "react-hook-form";
+import { ExpandedEditor } from "./ExpandedEditor";
+import styled from "@emotion/styled";
 
 interface TextAreaEditorProps {
     field: FormField;
@@ -29,53 +31,110 @@ interface TextAreaEditorProps {
     autoFocus?: boolean;
 }
 
+const TextAreaContainer = styled.div`
+    width: 100%;
+    position: relative;
+
+    #textarea-editor-expand {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #textarea-editor-expand {
+        opacity: 1;
+    }
+`;
+
 export function TextAreaEditor(props: TextAreaEditorProps) {
     const { field, handleOnFieldFocus, autoFocus } = props;
     const { form } = useFormContext();
-    const { control } = form;
+    const { control, setValue, watch } = form;
+    const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
 
     const errorMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
 
+    const handleOpenExpandedMode = () => {
+        setIsExpandedModalOpen(true);
+    };
+
+    const handleSaveExpandedMode = (value: string) => {
+        setValue(field.key, value);
+        if (field.onValueChange) {
+            field.onValueChange(value);
+        }
+    };
+
     return (
-        <S.Container>
-            <S.HeaderContainer>
-                <S.Header>
-                    <S.LabelContainer>
-                        <S.Label>{field.label}</S.Label>
-                    </S.LabelContainer>
-                    <S.Description>{field.documentation}</S.Description>
-                </S.Header>
-            </S.HeaderContainer>
-            <Controller
-                control={control}
-                name={field.key}
-                defaultValue={field.value}
-                rules={{
-                    required: {
-                        value: !field.optional && !field.placeholder,
-                        message: `${field.label} is required`
-                    }
-                }}
-                render={({ field: { name, value, onChange }, fieldState: { error } }) => (
-                    <div>
-                        <AutoResizeTextArea
-                            id={field.key}
-                            name={name}
-                            aria-label={field.label}
-                            required={!field.optional}
-                            placeholder={field.placeholder}
-                            readOnly={!field.editable}
-                            value={value}
-                            sx={{ width: "100%" }}
-                            errorMsg={errorMsg}
-                            onFocus={() => handleOnFieldFocus?.(field.key)}
-                            autoFocus={autoFocus}
-                            onChange={onChange}
-                            growRange={{ start: 4, offset: 12 }}
-                        />
-                    </div>
-                )}
+        <>
+            <S.Container>
+                <S.HeaderContainer>
+                    <S.Header>
+                        <S.LabelContainer>
+                            <S.Label>{field.label}</S.Label>
+                        </S.LabelContainer>
+                        <S.Description>{field.documentation}</S.Description>
+                    </S.Header>
+                </S.HeaderContainer>
+                <Controller
+                    control={control}
+                    name={field.key}
+                    defaultValue={field.value}
+                    rules={{
+                        required: {
+                            value: !field.optional && !field.placeholder,
+                            message: `${field.label} is required`
+                        }
+                    }}
+                    render={({ field: { name, value, onChange } }) => (
+                        <TextAreaContainer>
+                            <AutoResizeTextArea
+                                id={field.key}
+                                name={name}
+                                aria-label={field.label}
+                                required={!field.optional}
+                                placeholder={field.placeholder}
+                                readOnly={!field.editable}
+                                value={value}
+                                sx={{ width: "100%" }}
+                                errorMsg={errorMsg}
+                                onFocus={() => handleOnFieldFocus?.(field.key)}
+                                autoFocus={autoFocus}
+                                onChange={onChange}
+                                growRange={{ start: 4, offset: 12 }}
+                            />
+                            <Icon
+                                id="textarea-editor-expand"
+                                sx={{
+                                    position: 'absolute',
+                                    bottom: '8px',
+                                    right: '8px',
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                    backgroundColor: 'var(--vscode-menu-background)',
+                                    zIndex: '5',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '9px',
+                                    borderRadius: '4px',
+                                    border: '1px solid var(--dropdown-border)'
+                                }}
+                                iconSx={{ color: 'var(--vscode-editor-foreground)' }}
+                                name="expand"
+                                onClick={handleOpenExpandedMode}
+                            />
+                        </TextAreaContainer>
+                    )}
+                />
+            </S.Container>
+            <ExpandedEditor
+                isOpen={isExpandedModalOpen}
+                field={field}
+                value={watch(field.key)}
+                onClose={() => setIsExpandedModalOpen(false)}
+                onSave={handleSaveExpandedMode}
             />
-        </S.Container>
+        </>
     );
 }
