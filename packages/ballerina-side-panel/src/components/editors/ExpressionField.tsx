@@ -69,6 +69,8 @@ export interface ExpressionField {
     exprRef: RefObject<FormExpressionEditorRef>;
     anchorRef: RefObject<HTMLDivElement>;
     onToggleHelperPane: () => void;
+    onOpenExpandedMode?: () => void;
+    isInExpandedMode?: boolean;
 }
 
 const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
@@ -118,7 +120,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     exprRef,
     anchorRef,
     onToggleHelperPane,
-    sanitizedExpression
+    sanitizedExpression,
+    onOpenExpandedMode,
+    isInExpandedMode
 }) => {
     if (inputMode === InputMode.TEXT) {
         return (
@@ -137,6 +141,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 growRange={growRange}
                 placeholder={placeholder}
+                onOpenExpandedMode={onOpenExpandedMode}
+                isInExpandedMode={isInExpandedMode}
             />
 
         );
@@ -151,6 +157,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}
+            onOpenExpandedMode={onOpenExpandedMode}
+            isInExpandedMode={isInExpandedMode}
         />
     );
 };

@@ -222,7 +222,7 @@ interface CompletionsItemElProps {
 export const FloatingButtonContainer = styled.div`
     position: absolute;
     bottom: 6px;
-    right: 6px;
+    right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;

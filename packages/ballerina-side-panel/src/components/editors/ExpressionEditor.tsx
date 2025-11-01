@@ -46,6 +46,7 @@ import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { ExpandedEditor } from './ExpandedEditor';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -62,7 +63,7 @@ export type ContextAwareExpressionEditorProps = {
     autoFocus?: boolean;
     recordTypeField?: RecordTypeField;
     helperPaneZIndex?: number;
-
+    isInExpandedMode?: boolean;
 };
 
 type diagnosticsFetchContext = {
@@ -344,6 +345,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
+    const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
 
     // Update formDiagnostics when field.diagnostics changes
     useEffect(() => {
@@ -476,7 +478,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const handleModeChange = (value: InputMode) => {
         const currentValue = watch(key);
         if (
-            inputMode === InputMode.EXP 
+            inputMode === InputMode.EXP
             && value === InputMode.TEXT
             && (!currentValue.trim().startsWith("\"") || !currentValue.trim().endsWith("\""))
         ) {
@@ -501,6 +503,22 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const handleModeSwitchWarningCancel = () => {
         setShowModeSwitchWarning(false);
     };
+
+    const handleOpenExpandedMode = () => {
+        setIsExpandedModalOpen(true);
+    };
+
+    const handleSaveExpandedMode = (value: string) => {
+        setValue(key, value);
+        if (field.onValueChange) {
+            field.onValueChange(value);
+        }
+    };
+
+    // Only allow opening expanded mode for specific fields
+    const onOpenExpandedMode = (!props.isInExpandedMode && ["query", "instructions", "role"].includes(field.key))
+        ? handleOpenExpandedMode
+        : undefined;
 
     const defaultValueText = field.defaultValue ?
         <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
@@ -530,7 +548,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         <S.Label>{field.label}</S.Label>
                                         {(required ?? !field.optional) && <RequiredFormInput />}
                                         {field.valueTypeConstraint && (
-                                            <S.Type style={{marginLeft: '5px'}} isVisible={focused} title={field.valueTypeConstraint as string}>
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
                                                 {sanitizeType(field.valueTypeConstraint as string)}
                                             </S.Type>
                                         )}
@@ -578,9 +596,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     }
 
                                     // clear field diagnostics
-                                    setFormDiagnostics([]); 
+                                    setFormDiagnostics([]);
                                     const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
-                                    
+
                                     onChange(rawValue);
                                     if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
                                         getExpressionEditorDiagnostics(
@@ -630,11 +648,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 exprRef={exprRef}
                                 anchorRef={anchorRef}
                                 onToggleHelperPane={toggleHelperPaneState}
+                                onOpenExpandedMode={onOpenExpandedMode}
+                                isInExpandedMode={props.isInExpandedMode}
                             />
                             {error ?
-                                <ErrorBanner errorMsg={error.message.toString()} /> : 
-                                formDiagnostics && formDiagnostics.length > 0 && 
-                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                                <ErrorBanner errorMsg={error.message.toString()} /> :
+                                formDiagnostics && formDiagnostics.length > 0 &&
+                                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
                             }
                         </div>
                     )}
@@ -645,6 +665,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     isOpen={showModeSwitchWarning}
                     onContinue={handleModeSwitchWarningContinue}
                     onCancel={handleModeSwitchWarningCancel}
+                />
+            )}
+            {onOpenExpandedMode && (
+                <ExpandedEditor
+                    isOpen={isExpandedModalOpen}
+                    field={field}
+                    value={watch(key)}
+                    onClose={() => setIsExpandedModalOpen(false)}
+                    onSave={handleSaveExpandedMode}
                 />
             )}
         </FieldProvider>
