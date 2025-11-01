@@ -290,3 +290,27 @@ export const Spinner = styled.span`
     font-size: 14px;
     animation: ${spin} 1s linear infinite;
 `;
+
+const loading = keyframes`
+    0% {
+        background: var(--vscode-editor-background);
+    }
+    100% {
+        background: var(--vscode-editor-inactiveSelectionBackground);
+    }
+`;
+
+export const SkeletonLoader = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--vscode-editor-background);
+    z-index: 1000;
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    animation: ${loading} 1s infinite alternate;
+`;
