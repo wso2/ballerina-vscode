@@ -18,12 +18,14 @@
 
 import React, { useState } from "react";
 import { FormField } from "../Form/types";
-import { AutoResizeTextArea, Icon } from "@wso2/ui-toolkit";
+import { AutoResizeTextArea } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
 import { S } from "./ExpressionEditor";
 import { Controller } from "react-hook-form";
 import { ExpandedEditor } from "./ExpandedEditor";
 import styled from "@emotion/styled";
+import { ExpandButton } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { FloatingToggleButton } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingToggleButton";
 
 interface TextAreaEditorProps {
     field: FormField;
@@ -102,28 +104,11 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 onChange={onChange}
                                 growRange={{ start: 4, offset: 12 }}
                             />
-                            <Icon
-                                id="textarea-editor-expand"
-                                sx={{
-                                    position: 'absolute',
-                                    bottom: '8px',
-                                    right: '8px',
-                                    width: '16px',
-                                    height: '16px',
-                                    cursor: 'pointer',
-                                    backgroundColor: 'var(--vscode-menu-background)',
-                                    zIndex: '5',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '9px',
-                                    borderRadius: '4px',
-                                    border: '1px solid var(--dropdown-border)'
-                                }}
-                                iconSx={{ color: 'var(--vscode-editor-foreground)' }}
-                                name="expand"
-                                onClick={handleOpenExpandedMode}
-                            />
+                            <div id="textarea-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                                <FloatingToggleButton onClick={handleOpenExpandedMode} title="Expand Editor">
+                                    <ExpandButton />
+                                </FloatingToggleButton>
+                            </div>
                         </TextAreaContainer>
                     )}
                 />

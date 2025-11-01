@@ -25,6 +25,21 @@ import { FloatingToggleButton } from "./FloatingToggleButton";
 import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition } from "../utils";
+import styled from "@emotion/styled";
+
+const ChipEditorFieldContainer = styled.div`
+    width: 100%;
+    position: relative;
+
+    #floating-button-container {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #floating-button-container {
+        opacity: 1;
+    }
+`;
 
 export type AutoExpandingEditableDivProps = {
     value: string;
@@ -212,7 +227,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     }
 
     return (
-        <>
+        <ChipEditorFieldContainer>
             <ChipEditorField
                 ref={fieldContainerRef}
                 style={{
@@ -235,11 +250,11 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             </ChipEditorField>
             {renderCompletionsMenu()}
             {renderHelperPane()}
-            <FloatingButtonContainer>
+            <FloatingButtonContainer id="floating-button-container">
                 <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
                     {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
                 </FloatingToggleButton>
             </FloatingButtonContainer>
-        </>
+        </ChipEditorFieldContainer>
     )
 }
