@@ -174,21 +174,26 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
 
     const handleServiceChange = (fieldKey: string, value: any, allValues: FormValues) => {
         if (onChange) {
+            // First, check if any changes exist before modifying serviceFields
             let hasChanges = false;
-            serviceFields.forEach(val => {
+            for (let val of serviceFields) {
                 if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
                     hasChanges = true;
+                    break;
                 }
+            }
+            if (!hasChanges) {
+                return;
+            }
+            // Now, update values
+            serviceFields.forEach(val => {
                 if (allValues[val.key] !== undefined) {
                     val.value = allValues[val.key];
                 }
                 if (val.key === "basePath") {
                     val.value = sanitizedHttpPath(allValues[val.key] as string);
                 }
-            })
-            if (!hasChanges) {
-                return;
-            }
+            });
             const response = updateConfig(serviceFields, serviceModel);
             onChange(response);
         }
