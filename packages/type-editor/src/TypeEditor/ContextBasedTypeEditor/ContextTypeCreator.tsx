@@ -17,7 +17,7 @@
  */
 
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { TextField, Dropdown, Button, ProgressRing, Icon, Typography, ThemeColors } from "@wso2/ui-toolkit";
+import { TextField, Button, ProgressRing, Icon, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Member, Type, TypeNodeKind } from "@wso2/ballerina-core";
@@ -31,18 +31,7 @@ import { debounce } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { EditorContext } from "../Contexts/TypeEditorContext";
 import { SchemaRecordEditor } from "./SchemaRecordEditor";
-import { ContentBody, Footer } from "./ContextTypeEditor";
-
-const CategoryRow = styled.div<{ showBorder?: boolean }>`
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 12px;
-    width: 100%;
-    padding-bottom: 14px;
-    border-bottom: ${({ showBorder }) => (showBorder ? `1px solid var(--vscode-welcomePage-tileBorder)` : "none")};
-`;
+import { StickyFooterContainer, FloatingFooter, ContentBody } from "./ContextTypeEditor";
 
 const InputWrapper = styled.div`
     position: relative;
@@ -89,6 +78,18 @@ const EditRow = styled.div`
     gap: 8px;
     align-items: flex-start;
     width: 100%;
+`;
+
+const ScrollableSection = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
+`;
+
+const NameContainer = styled.div`
+    width: 100%;
+    margin-bottom: 8px;
+    margin-top: 5px;
 `;
 
 enum TypeKind {
@@ -506,22 +507,9 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
     };
 
     return (
-        <>
+        <StickyFooterContainer>
             <ContentBody>
-                <CategoryRow>
-                    {/* {isNewType && (
-                    <Dropdown
-                        id="type-selector"
-                        data-testid="type-kind-dropdown"
-                        label="Kind"
-                        value={getTypeKindLabel(selectedTypeKind, isGraphql)}
-                        items={getAvailableTypeKinds(isGraphql, selectedTypeKind).map((kind) => ({
-                            label: getTypeKindLabel(kind, isGraphql),
-                            value: getTypeKindLabel(kind, isGraphql)
-                        }))}
-                        onChange={(e) => handleTypeKindChange(e.target.value)}
-                    />
-                )} */}
+                <NameContainer>
                     {!isNewType && !isEditing && !type.properties["name"]?.editable && (
                         <InputWrapper>
                             <TextFieldWrapper>
@@ -601,10 +589,8 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                             />
                         </TextFieldWrapper>
                     )}
-                </CategoryRow>
-
-                <div style={{ overflow: 'auto', height: '350px' }}>
-                    {/* {renderEditor()} */}
+                </NameContainer>
+                <ScrollableSection>
                     <>
                         <SchemaRecordEditor
                             type={type}
@@ -617,17 +603,17 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                         <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
 
-                </div>
+                </ScrollableSection>
             </ContentBody>
-            <Footer>
+            <FloatingFooter>
                 <Button
                     data-testid="type-create-save"
                     onClick={() => handleSaveWithValidation(type)}
                     disabled={onValidationError || !isTypeNameValid || isEditing || isSaving}>
                     {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
                 </Button>
-            </Footer>
-        </>
+            </FloatingFooter>
+        </StickyFooterContainer>
     );
 }
 

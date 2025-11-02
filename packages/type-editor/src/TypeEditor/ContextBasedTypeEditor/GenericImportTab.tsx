@@ -23,7 +23,7 @@ import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
-import { ContentBody } from "./ContextTypeEditor";
+import { ContentBody, StickyFooterContainer, FloatingFooter } from "./ContextTypeEditor";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -39,16 +39,6 @@ const CategoryRow = styled.div<{ showBorder?: boolean }>`
 
 const TextFieldWrapper = styled.div`
     flex: 1;
-`;
-
-const Footer = styled.div`
-    display: flex;
-    gap: 8px;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    padding-top: 16px;
-    flex-shrink: 0;
 `;
 
 const InfoBanner = styled.div`
@@ -457,7 +447,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
     };
 
     return (
-        <>
+        <StickyFooterContainer>
             <ContentBody>
                 <InfoBanner>
                     <Codicon name="info" />
@@ -582,11 +572,11 @@ export function GenericImportTab(props: GenericImportTabProps) {
                     </CategoryRow>
                 )}
             </ContentBody>
-            <Footer>
+            <FloatingFooter>
                 <Button onClick={handleImport} disabled={isImportDisabled()}>
                     {isSaving ? <Typography variant="progress">Importing...</Typography> : "Import Type"}
                 </Button>
-            </Footer>
-        </>
+            </FloatingFooter>
+        </StickyFooterContainer>
     );
 }
