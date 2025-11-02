@@ -87,6 +87,7 @@ function initDiagramEngine() {
 	engine.getNodeFactories().registerFactory(new Nodes.QueryOutputNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.LinkConnectorNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.QueryExprConnectorNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.ClauseConnectorNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.DataImportNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.EmptyInputsNodeFactory());
 
