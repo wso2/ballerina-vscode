@@ -47,21 +47,13 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const onClickEdit = () => {
-        const targetPort = node.targetMappedPort;
+        const targetPort = node.targetPort;
         setExprBarFocusedPort(targetPort);
-    };
-
-    const onClickDelete = async () => {
-        setDeleteInProgress(true);
-        if (node.deleteLink) {
-            await node.deleteLink();
-        }
-        setDeleteInProgress(false);
     };
 
     const onFocusClause = () => {
         const sourcePorts = node.sourcePorts.map(port => port.attributes.portName);
-        const targetPort = node.targetMappedPort.attributes.portName;
+        const targetPort = node.targetPort.attributes.portName;
 
         sourcePorts.forEach((port) => {
             collapsedFieldsStore.removeField(port);
@@ -72,7 +64,7 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
 
         const context = node.context;
 	    const lastView = context.views[context.views.length - 1];
-        const mapping = node.targetMappedPort.attributes.value; 
+        const mapping = node.targetPort.attributes.value; 
         expandArrayFn(context, mapping.inputs[0], mapping.output, lastView.targetField);
     };
 
@@ -82,24 +74,18 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
         </div>
     );
 
-    return (!node.hidden && (
+    return (
             <div className={classes.root} data-testid={`clause-connector-node-${node?.value}`}>
                 <div className={classes.header}>
                     {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
-                    {renderEditButton(onClickEdit, node?.value)}
                     <Button
                         appearance="icon"
                         tooltip="Map clause elements"
                         onClick={onFocusClause}
-                        data-testid={`expand-clause-fn-${node?.targetMappedPort?.attributes.fieldFQN}`}
+                        data-testid={`expand-clause-fn-${node?.targetPort?.attributes.fieldFQN}`}
                     >
-                        <Codicon name="export" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
+                        <Codicon name="filter-filled" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
                     </Button>
-                    {deleteInProgress ? (
-                        loadingScreen
-                    ) : (
-                        <>{renderDeleteButton(onClickDelete, node?.value)}</>
-                    )}
                     {diagnostic && (
                         <DiagnosticWidget
                             diagnostic={diagnostic}
@@ -111,6 +97,5 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
                     {renderPortWidget(engine, node.outPort, `${node?.value}-output`)}
                 </div>
             </div>
-        )
     );
 }
