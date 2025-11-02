@@ -67,7 +67,6 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
-import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
 import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
