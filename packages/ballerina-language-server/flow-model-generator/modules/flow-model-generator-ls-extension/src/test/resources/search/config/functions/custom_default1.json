@@ -165,127 +165,6 @@
       "items": [
         {
           "metadata": {
-            "label": "ai",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "run",
-                "description": "Execute the agent for a given user's query.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "run",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "getTools",
-                "description": "Get the tools registered with the agent.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getTools",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "updateMemory",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "updateMemory",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "extractToolsFromOpenApiSpecFile",
-                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "extractToolsFromOpenApiSpecFile",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "extractToolsFromOpenApiJsonSpec",
-                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "extractToolsFromOpenApiJsonSpec",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "parseOpenApiSpec",
-                "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "parseOpenApiSpec",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "getToolConfigs",
-                "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "ai",
-                "packageName": "ai",
-                "symbol": "getToolConfigs",
-                "version": "1.2.3"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "io",
             "description": "",
             "keywords": []
@@ -495,6 +374,118 @@
                 "module": "io",
                 "packageName": "io",
                 "symbol": "fileReadXml",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteString",
+                "description": "Write a string content to a file.\n```ballerina\nstring content = \"Hello Universe..!!\";\nio:Error? result = io:fileWriteString(\"./resources/myfile.txt\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteString",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteLines",
+                "description": "Write an array of lines to a file.\nDuring the writing operation, a newline character `\\n` will be added after each line.\n```ballerina\nstring[] content = [\"Hello Universe..!!\", \"How are you?\"];\nio:Error? result = io:fileWriteLines(\"./resources/myfile.txt\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteLines",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteLinesFromStream",
+                "description": "Write stream of lines to a file.\nDuring the writing operation, a newline character `\\n` will be added after each line.\n```ballerina\nstring content = [\"Hello Universe..!!\", \"How are you?\"];\nstream<string, io:Error?> lineStream = content.toStream();\nio:Error? result = io:fileWriteLinesFromStream(\"./resources/myfile.txt\", lineStream);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteLinesFromStream",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteJson",
+                "description": "Write a JSON to a file.\n```ballerina\njson content = {\"name\": \"Anne\", \"age\": 30};\nio:Error? result = io:fileWriteJson(\"./resources/myfile.json\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteJson",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteXml",
+                "description": "Write XML content to a file.\n```ballerina\nxml content = xml `<book>The Lost World</book>`;\nio:Error? result = io:fileWriteXml(\"./resources/myfile.xml\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteXml",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "openReadableFile",
+                "description": "Retrieves a `ReadableByteChannel` from a given file path.\n```ballerina\nio:ReadableByteChannel readableFieldResult = check io:openReadableFile(\"./files/sample.txt\");\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "openReadableFile",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "openWritableFile",
+                "description": "Retrieves a `WritableByteChannel` from a given file path.\n```ballerina\nio:WritableByteChannel writableFileResult = check io:openWritableFile(\"./files/sampleResponse.txt\");\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "openWritableFile",
                 "version": "1.8.0"
               },
               "enabled": true

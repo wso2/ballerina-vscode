@@ -377,22 +377,6 @@
                 "version": "2.0.0"
               },
               "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "trial_settings_config",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "trial_settings_config",
-                "version": "2.0.0"
-              },
-              "enabled": true
             }
           ]
         },
@@ -554,6 +538,22 @@
                 "module": "github",
                 "packageName": "github",
                 "symbol": "Hook_config",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Hook_config_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Hook_config_body",
                 "version": "5.1.0"
               },
               "enabled": true
