@@ -110,7 +110,7 @@ public class Constants {
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
     public static final String VALUE_TYPE_TYPE = "TYPE";
-    public static final String VALUE_TYPE_STRING = "string";
+    public static final String VALUE_TYPE_STRING = "STRING";
     public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
     public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
 

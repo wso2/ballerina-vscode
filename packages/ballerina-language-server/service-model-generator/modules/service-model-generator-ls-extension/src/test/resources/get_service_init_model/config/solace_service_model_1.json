@@ -1,0 +1,193 @@
+{
+  "description": "Test getting kafka service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "solace",
+  "moduleName": "solace",
+  "response": {
+    "serviceInitModel": {
+      "id": "17",
+      "displayName": "Solace Event Handler",
+      "description": "Create a service to handle messages from a Solace queue or topic",
+      "orgName": "ballerinax",
+      "packageName": "solace",
+      "moduleName": "solace",
+      "version": "0.1.0",
+      "type": "solace",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.1.0.png",
+      "properties": {
+        "url": {
+          "metadata": {
+            "label": "Broker URL",
+            "description": "The Solace broker URL"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "\"smf://localhost:55554\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "\"smf://localhost:55554\"",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "messageVpn": {
+          "metadata": {
+            "label": "Message VPN",
+            "description": "The message VPN to connect to"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          },
+          "placeholder": "\"default\"",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "string",
+          "value": "\"default\"",
+          "items": [],
+          "typeMembers": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "solaceListener",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        },
+        "destination": {
+          "metadata": {
+            "label": "Destination",
+            "description": "The Solace destination to expect messages from."
+          },
+          "valueType": "CHOICE",
+          "value": 0,
+          "choices": [
+            {
+              "metadata": {
+                "label": "Queue",
+                "description": "Listen to messages from a queue"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "queueName": {
+                  "metadata": {
+                    "label": "Queue Name",
+                    "description": "Queue to listen for incoming messages."
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"myQueue\"",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Topic",
+                "description": "Listen to messages from a topic"
+              },
+              "valueType": "FORM",
+              "value": "true",
+              "properties": {
+                "topicName": {
+                  "metadata": {
+                    "label": "Topic Name",
+                    "description": "Topic to listen for incoming messages."
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "\"myTopic\"",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
+                "subscriberName": {
+                  "metadata": {
+                    "label": "Subscriber Name",
+                    "description": "The name to be used for the subscription."
+                  },
+                  "placeholder": "",
+                  "valueType": "EXPRESSION",
+                  "valueTypeConstraint": "string",
+                  "value": "",
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
+                "durable": {
+                  "metadata": {
+                    "label": "Durable Subscriber",
+                    "description": "Persist subscription when disconnected."
+                  },
+                  "valueType": "FLAG",
+                  "valueTypeConstraint": "BOOLEAN",
+                  "value": false,
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "sessionAckMode": {
+          "metadata": {
+            "label": "Session Acknowledgment Mode",
+            "description": "How messages received should be acknowledged."
+          },
+          "placeholder": "AUTO_ACKNOWLEDGE",
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "string",
+          "value": "AUTO_ACKNOWLEDGE",
+          "items": [
+            "AUTO_ACKNOWLEDGE",
+            "CLIENT_ACKNOWLEDGE",
+            "DUPS_OK_ACKNOWLEDGE",
+            "SESSION_TRANSACTED"
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
+}

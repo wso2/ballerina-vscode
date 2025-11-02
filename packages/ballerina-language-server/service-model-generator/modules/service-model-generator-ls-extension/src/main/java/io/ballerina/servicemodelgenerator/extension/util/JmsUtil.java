@@ -52,7 +52,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FLAG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_STRING;
 
 /**
  * Utility class for JMS-based service model generation.
@@ -62,6 +61,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 public final class JmsUtil {
 
     private static final String EXISTING_LISTENER_CHOICE_DESCRIPTION = "Select from the existing %s listeners";
+    private static final String VALUE_TYPE_STRING = "string";
     private static final String CREATE_NEW_LISTENER_CHOICE_DESCRIPTION = "Create a new %s listener";
     private static final String CALLER_PARAM_DESCRIPTION = "%s caller object for message acknowledgment";
     public static final String CALLER_PARAM_NAME = "caller";
