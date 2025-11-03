@@ -232,6 +232,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
                                 payloadContext={payloadContext}
+                                onTypeSelect={props.onSaveType}
                             />
                         </TabContainer>
                         <TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">

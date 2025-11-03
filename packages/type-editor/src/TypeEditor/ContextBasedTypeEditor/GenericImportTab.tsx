@@ -108,6 +108,7 @@ interface GenericImportTabProps {
     setIsSaving: (isSaving: boolean) => void;
     isPopupTypeForm: boolean;
     payloadContext?: PayloadContext;
+    onTypeSelect: (type: Type | string) => void;
 }
 
 export function GenericImportTab(props: GenericImportTabProps) {
@@ -117,7 +118,8 @@ export function GenericImportTab(props: GenericImportTabProps) {
         isSaving,
         setIsSaving,
         isPopupTypeForm,
-        payloadContext
+        payloadContext,
+        onTypeSelect
     } = props;
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -446,6 +448,26 @@ export function GenericImportTab(props: GenericImportTabProps) {
         }
     };
 
+    const selectJsonType = () => {
+        const jsonType: Type = {
+            name: "json",
+            editable: false,
+            metadata: {
+                label: "json",
+                description: "",
+            },
+            codedata: {
+                node: "TYPEDESC"
+            },
+            properties: {},
+            members: [],
+            includes: []
+        };
+
+
+        onTypeSelect(jsonType);
+    };
+
     return (
         <StickyFooterContainer>
             <ContentBody>
@@ -497,7 +519,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                         value={content}
                         onChange={handleContentChange}
                         errorMsg={error}
-                        placeholder={(!payloadContext || !isUserAuthenticated) ? "Paste JSON or XML here..." : ""}
+                        placeholder=""
                     />
                     {/* Loading overlay for generation */}
                     {isGenerating && (
@@ -508,7 +530,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             </Typography>
                         </LoaderOverlay>
                     )}
-                    {!content && payloadContext && isUserAuthenticated && !isGenerating && (
+                    {!content && !isGenerating && (
                         <div style={{
                             position: 'absolute',
                             top: '50%',
@@ -517,7 +539,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '16px',
+                            gap: '12px',
                             pointerEvents: 'none',
                             zIndex: 1
                         }}>
@@ -525,10 +547,34 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 Paste JSON or XML here...
                             </Typography>
                             <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
-                                Or
+                                or
                             </Typography>
+                            {payloadContext && isUserAuthenticated && (
+                                <>
+                                    <LinkButton
+                                        onClick={() => generateSampleJson()}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            backgroundColor: 'transparent',
+                                            color: 'var(--vscode-textLink-foreground)',
+                                            padding: '8px 16px',
+                                            fontSize: '13px',
+                                            borderRadius: '4px',
+                                            pointerEvents: 'auto'
+                                        }}
+                                    >
+                                        <Codicon name="wand" sx={{ fontSize: '14px' }} />
+                                        Generate Sample JSON
+                                    </LinkButton>
+                                    <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                                        or
+                                    </Typography>
+                                </>
+                            )}
                             <LinkButton
-                                onClick={() => generateSampleJson()}
+                                onClick={() => selectJsonType()}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -541,8 +587,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                     pointerEvents: 'auto'
                                 }}
                             >
-                                <Codicon name="wand" sx={{ fontSize: '14px' }} />
-                                Generate Sample JSON
+                                Continue with JSON Type
                             </LinkButton>
                         </div>
                     )}
