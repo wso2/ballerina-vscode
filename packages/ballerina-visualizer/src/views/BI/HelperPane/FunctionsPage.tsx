@@ -231,14 +231,12 @@ export const FunctionsPage = ({
             </HelperPane.Footer>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser
-                    anchorRef={anchorRef}
-                    isLoading={isLoading}
-                    libraryBrowserInfo={libraryBrowserInfo as HelperPaneFunctionInfo}
-                    setFilterText={handleFunctionSearch}
-                    onBack={() => setIsLibraryBrowserOpen(false)}
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
                     onClose={onClose}
                     onChange={onChange}
                     onFunctionItemSelect={onFunctionItemSelect}
+            
                 />
             )}
             {isAddingFunction && createPortal(
