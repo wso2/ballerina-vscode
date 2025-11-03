@@ -19,13 +19,12 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon, Divider, Button, Typography } from "@wso2/ui-toolkit";
+import { ThemeColors, Divider, Typography } from "@wso2/ui-toolkit";
 import { FormField } from "../../Form/types";
-import { S } from "../ExpressionEditor";
-import ReactMarkdown from "react-markdown";
 import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
+import { CompressButton } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -50,17 +49,22 @@ const ModalContainer = styled.div`
 `;
 
 const ModalBox = styled.div`
-    width: 800px;
+    width: 1000px;
+    max-width: 95vw;
+    min-width: 800px;
+    height: 80vh;
     max-height: 90vh;
+    min-height: 600px;
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     padding: 8px 8px;
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
     z-index: 30001;
+    resize: both;
 `;
 
 const ModalHeaderSection = styled.header`
@@ -79,12 +83,6 @@ const ModalContent = styled.div`
     flex-direction: column;
 `;
 
-const ButtonContainer = styled.div`
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 0 16px 8px 16px;
-`;
 
 /**
  * Map of mode components - add new modes here
@@ -106,6 +104,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
     const [mode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
+    const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
         setEditedValue(value);
@@ -117,14 +116,21 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         }
     }, [mode]);
 
-    const handleSave = () => {
+    const handleMinimize = () => {
         onSave(editedValue);
         onClose();
     };
 
-    const handleCancel = () => {
-        setEditedValue(value);
-        onClose();
+    const handleBackdropMouseDown = (e: React.MouseEvent) => {
+        setMouseDownTarget(e.target);
+    };
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        // Only close if both mousedown and click happened on the backdrop
+        if (e.target === e.currentTarget && mouseDownTarget === e.currentTarget) {
+            handleMinimize();
+        }
+        setMouseDownTarget(null);
     };
 
     if (!isOpen) return null;
@@ -145,12 +151,12 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     };
 
     return createPortal(
-        <ModalContainer>
+        <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
                     <Typography variant="h3">{field.label}</Typography>
-                    <div onClick={handleCancel} style={{ cursor: 'pointer' }}>
-                        <Codicon name="close" />
+                    <div onClick={handleMinimize} title="Minimize" style={{ cursor: 'pointer' }}>
+                        <CompressButton />
                     </div>
                 </ModalHeaderSection>
                 <div style={{ padding: "0 16px" }}>
@@ -159,14 +165,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 <ModalContent>
                     <ModeComponent {...modeProps} />
                 </ModalContent>
-                <ButtonContainer>
-                    <Button appearance="secondary" onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                    <Button appearance="primary" onClick={handleSave}>
-                        Save
-                    </Button>
-                </ButtonContainer>
             </ModalBox>
         </ModalContainer>,
         document.body
