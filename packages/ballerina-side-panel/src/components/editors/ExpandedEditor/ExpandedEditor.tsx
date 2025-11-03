@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Divider, Typography, Icon } from "@wso2/ui-toolkit";
+import { ThemeColors, Divider, Typography } from "@wso2/ui-toolkit";
 import { FormField } from "../../Form/types";
 import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
@@ -104,6 +104,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
     const [mode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
+    const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
         setEditedValue(value);
@@ -118,6 +119,18 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     const handleMinimize = () => {
         onSave(editedValue);
         onClose();
+    };
+
+    const handleBackdropMouseDown = (e: React.MouseEvent) => {
+        setMouseDownTarget(e.target);
+    };
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        // Only close if both mousedown and click happened on the backdrop
+        if (e.target === e.currentTarget && mouseDownTarget === e.currentTarget) {
+            handleMinimize();
+        }
+        setMouseDownTarget(null);
     };
 
     if (!isOpen) return null;
@@ -138,7 +151,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     };
 
     return createPortal(
-        <ModalContainer>
+        <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
                     <Typography variant="h3">{field.label}</Typography>
