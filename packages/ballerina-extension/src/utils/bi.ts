@@ -15,19 +15,76 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, NodePosition, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
+import { debug } from "./logger";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
+
+const settingsJsonContent = `
+{
+    "ballerina.isBI": true
+}
+`;
+
+const launchJsonContent = `
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Ballerina Debug",
+            "type": "ballerina",
+            "request": "launch",
+            "programArgs": [],
+            "commandOptions": [],
+            "env": {}
+        },
+        {
+            "name": "Ballerina Test",
+            "type": "ballerina",
+            "request": "launch",
+            "debugTests": true,
+            "programArgs": [],
+            "commandOptions": [],
+            "env": {}
+        },
+        {
+            "name": "Ballerina Remote",
+            "type": "ballerina",
+            "request": "attach",
+            "debuggeeHost": "127.0.0.1",
+            "debuggeePort": "5005"
+        }
+    ]
+}
+`;
+
+const gitignoreContent = `
+# Ballerina generates this directory during the compilation of a package.
+# It contains compiler-generated artifacts and the final executable if this is an application package.
+target/
+
+# Ballerina maintains the compiler-generated source code here.
+# Remove this if you want to commit generated sources.
+generated/
+
+# Contains configuration values used during development time.
+# See https://ballerina.io/learn/provide-values-to-configurable-variables/ for more details.
+Config.toml
+`;
 
 export function openBIProject() {
     window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Open Integration' })
@@ -77,97 +134,67 @@ export function createBIProject(name: string, isService: boolean) {
         });
 }
 
-export function createBIProjectPure(name: string, projectPath: string) {
-    const projectLocation = projectPath;
-
-    name = sanitizeName(name);
-    const projectRoot = path.join(projectLocation, name);
-    // Create project root directory
-    if (!fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot);
-    }
-
+export function getUsername(): string {
     // Get current username from the system across different OS platforms
-    let username;
-    try {
-        if (process.platform === 'win32') {
-            // Windows
-            username = process.env.USERNAME || 'myOrg';
-        } else {
-            // macOS and Linux
-            username = process.env.USER || 'myOrg';
-        }
-    } catch (error) {
-        console.error('Error getting username:', error);
+    let username: string;
+    if (process.platform === 'win32') {
+        // Windows
+        username = process.env.USERNAME || 'myOrg';
+    } else {
+        // macOS and Linux
+        username = process.env.USER || 'myOrg';
     }
+    return username;
+}
+
+function setupProjectInfo(projectRequest: ProjectRequest) {
+    const sanitizedPackageName = sanitizeName(projectRequest.packageName);
+
+    const projectRoot = projectRequest.createDirectory
+        ? path.join(projectRequest.projectPath, sanitizedPackageName)
+        : projectRequest.projectPath;
+
+    // Create project root directory if needed
+    if (projectRequest.createDirectory && !fs.existsSync(projectRoot)) {
+        fs.mkdirSync(projectRoot, { recursive: true });
+    }
+
+    let finalOrgName = projectRequest.orgName;
+    if (!finalOrgName) {
+        finalOrgName = getUsername();
+    }
+
+    const finalVersion = projectRequest.version || "0.1.0";
+
+    return {
+        sanitizedPackageName,
+        projectRoot,
+        finalOrgName,
+        finalVersion,
+        packageName: projectRequest.packageName,
+        integrationName: projectRequest.projectName
+    };
+}
+
+export function createBIProjectPure(projectRequest: ProjectRequest) {
+    const projectInfo = setupProjectInfo(projectRequest);
+    const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
 
     const EMPTY = "\n";
 
     const ballerinaTomlContent = `
 [package]
-org = "${username}"
-name = "${name}"
-version = "0.1.0"
+org = "${finalOrgName}"
+name = "${finalPackageName}"
+version = "${finalVersion}"
+title = "${integrationName}"
 
 [build-options]
 sticky = true
 
 `;
 
-    const settingsJsonContent = `
-{
-    "ballerina.isBI": true
-}
-`;
 
-    const launchJsonContent = `
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Ballerina Debug",
-            "type": "ballerina",
-            "request": "launch",
-            "programArgs": [],
-            "commandOptions": [],
-            "env": {}
-        },
-        {
-            "name": "Ballerina Test",
-            "type": "ballerina",
-            "request": "launch",
-            "debugTests": true,
-            "programArgs": [],
-            "commandOptions": [],
-            "env": {}
-        },
-        {
-            "name": "Ballerina Remote",
-            "type": "ballerina",
-            "request": "attach",
-            "debuggeeHost": "127.0.0.1",
-            "debuggeePort": "5005"
-        }
-    ]
-}
-`;
-
-    const gitignoreContent = `
-# Ballerina generates this directory during the compilation of a package.
-# It contains compiler-generated artifacts and the final executable if this is an application package.
-target/
-
-# Ballerina maintains the compiler-generated source code here.
-# Remove this if you want to commit generated sources.
-generated/
-
-# Contains configuration values used during development time.
-# See https://ballerina.io/learn/provide-values-to-configurable-variables/ for more details.
-Config.toml
-`;
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
@@ -189,7 +216,11 @@ Config.toml
     const mainBal = path.join(projectRoot, 'main.bal');
     writeBallerinaFileDidOpen(mainBal, EMPTY);
 
-    // Create main.bal file
+    // Create automation.bal file
+    const automationBal = path.join(projectRoot, 'automation.bal');
+    writeBallerinaFileDidOpen(automationBal, EMPTY);
+
+    // Create agents.bal file
     const agentsBal = path.join(projectRoot, 'agents.bal');
     writeBallerinaFileDidOpen(agentsBal, EMPTY);
 
@@ -220,6 +251,47 @@ Config.toml
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     console.log(`BI project created successfully at ${projectRoot}`);
+    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+}
+
+export async function createBIProjectFromMigration(params: MigrateRequest) {
+    const projectInfo = setupProjectInfo(params.project);
+    const { projectRoot, sanitizedPackageName } = projectInfo;
+
+    const EMPTY = "\n";
+    // Write files based on keys in params.textEdits
+    for (const [fileName, fileContent] of Object.entries(params.textEdits)) {
+        let content = fileContent;
+        const filePath = path.join(projectRoot, fileName);
+
+        if (fileName === "Ballerina.toml") {
+            content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
+            content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
+            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
+        }
+
+        writeBallerinaFileDidOpen(filePath, content || EMPTY);
+    }
+
+    // Create a .vscode folder
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    if (!fs.existsSync(vscodeDir)) {
+        fs.mkdirSync(vscodeDir);
+    }
+
+    // Create launch.json file
+    const launchPath = path.join(vscodeDir, 'launch.json');
+    fs.writeFileSync(launchPath, launchJsonContent.trim());
+
+    // Create settings.json file
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    fs.writeFileSync(settingsPath, settingsJsonContent);
+
+    // Create .gitignore file
+    const gitignorePath = path.join(projectRoot, '.gitignore');
+    fs.writeFileSync(gitignorePath, gitignoreContent.trim());
+
+    debug(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
 }
 
@@ -350,7 +422,7 @@ export async function handleFunctionCreation(targetFile: string, params: Compone
 // <---------- Function Source Generation END-------->
 // Test_Integration test_integration   Test Integration testIntegration -> testintegration
 export function sanitizeName(name: string): string {
-    return name.replace(/[^a-z0-9]/gi, '_').toLowerCase(); // Replace invalid characters with underscores
+    return name.replace(/[^a-z0-9]_./gi, '_').toLowerCase(); // Replace invalid characters with underscores
 }
 
 // ------------------- HACKS TO MANIPULATE PROJECT FILES ---------------->

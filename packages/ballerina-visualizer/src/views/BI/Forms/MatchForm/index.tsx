@@ -166,8 +166,8 @@ export function MatchForm(props: MatchFormProps) {
     useEffect(() => {
         handleFormOpen();
         // set target value
-        if (node.properties.condition) {
-            setValue(`branch-${TARGET_FIELD_INDEX}`, node.properties.condition.value);
+        if (node.properties.matchTarget) {
+            setValue(`branch-${TARGET_FIELD_INDEX}`, node.properties.matchTarget.value);
         }
         // set branch values
         branches.forEach((branch, index) => {
@@ -203,7 +203,7 @@ export function MatchForm(props: MatchFormProps) {
             }
 
             // update target value
-            updatedNode.properties.condition.value = data[`branch-${TARGET_FIELD_INDEX}`]?.trim();
+            updatedNode.properties.matchTarget.value = data[`branch-${TARGET_FIELD_INDEX}`]?.trim();
 
             // Update branches with form values
             const updatedBranches = branches.map((branch, index) => {
@@ -512,7 +512,7 @@ export function MatchForm(props: MatchFormProps) {
     console.log(">>> Match node", node);
 
     const disableSaveButton = !isValid || isValidating || showProgressIndicator;
-    const targetField = convertNodePropertyToFormField(`branch-${TARGET_FIELD_INDEX}`, node.properties.condition);
+    const targetField = convertNodePropertyToFormField(`branch-${TARGET_FIELD_INDEX}`, node.properties.matchTarget);
     targetField.label = "Target";
 
     return (
@@ -520,9 +520,9 @@ export function MatchForm(props: MatchFormProps) {
             <FormStyles.Row>
                 <ExpressionEditor
                     {...expressionEditor}
-                    ref={exprRef}
                     control={control}
                     field={targetField}
+                    setValue={setValue}
                     watch={watch}
                     openSubPanel={openSubPanel}
                     targetLineRange={targetLineRange}
@@ -549,9 +549,9 @@ export function MatchForm(props: MatchFormProps) {
                         <FormStyles.Row key={field.key}>
                             <ExpressionEditor
                                 {...expressionEditor}
-                                ref={exprRef}
                                 control={control}
                                 field={field}
+                                setValue={setValue}
                                 watch={watch}
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}

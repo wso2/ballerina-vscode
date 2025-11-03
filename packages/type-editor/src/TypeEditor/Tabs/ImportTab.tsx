@@ -52,6 +52,7 @@ interface ImportTabProps {
     onTypeSave: (type: Type) => void;
     isSaving: boolean;
     setIsSaving: (isSaving: boolean) => void;
+    isPopupTypeForm: boolean;
 }
 
 export function ImportTab(props: ImportTabProps) {
@@ -60,6 +61,7 @@ export function ImportTab(props: ImportTabProps) {
         onTypeSave,
         isSaving,
         setIsSaving,
+        isPopupTypeForm
     } = props;
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -206,6 +208,7 @@ export function ImportTab(props: ImportTabProps) {
                     onImport={onImport}
                     isSaving={isSaving}
                     setIsSaving={setIsSaving}
+                    isPopupTypeForm={isPopupTypeForm}
                 />
             )}
             {importFormat === ImportFormat.XML && (
@@ -214,6 +217,7 @@ export function ImportTab(props: ImportTabProps) {
                     onImport={onImport}
                     isSaving={isSaving}
                     setIsSaving={setIsSaving}
+                    isPopupTypeForm={isPopupTypeForm}
                 />
             )}
         </>

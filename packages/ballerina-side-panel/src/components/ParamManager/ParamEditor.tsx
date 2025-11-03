@@ -51,7 +51,7 @@ export function ParamEditor(props: ParamProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, closeHelperPane: boolean) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField
@@ -79,7 +79,8 @@ export function ParamEditor(props: ParamProps) {
         onChange: (newType: string, newCursorPosition: number) => void,
         changeTypeHelperState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
-        closeCompletions: () => void
+        closeCompletions: () => void,
+        exprRef: RefObject<FormExpressionEditorRef>
     ) => {
         return expressionEditor?.getTypeHelper(
             propertyKey,
@@ -91,7 +92,8 @@ export function ParamEditor(props: ParamProps) {
             onChange,
             changeTypeHelperState,
             helperPaneHeight,
-            closeCompletions
+            closeCompletions,
+            exprRef
         );
     };
 

@@ -1,0 +1,63 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:latest",
+        "tslint-react",
+        "tslint-react-hooks"
+    ],
+    "jsRules": {},
+    "rules": {
+        "interface-name": false,
+        "no-submodule-imports": [
+            true,
+            "@material-ui",
+            "monaco-editor",
+            "components",
+            "store",
+            "views"
+        ],
+        "no-implicit-dependencies": [
+            true,
+            [
+                "components",
+                "store",
+                "views"
+            ],
+            "dev"
+        ],
+        "ordered-imports": [
+            true,
+            {
+                "module-source-path": "full",
+                "grouped-imports": true,
+                "groups": [
+                    {
+                        "name": "react",
+                        "match": "^react.*",
+                        "order": 1
+                    },
+                    {
+                        "name": "parent_dir",
+                        "match": "^\\.\\.",
+                        "order": 10
+                    },
+                    {
+                        "name": "current_dir",
+                        "match": "^\\.",
+                        "order": 20
+                    },
+                    {
+                        "name": "extra",
+                        "match": ".*",
+                        "order": 5
+                    }
+                ]
+            }
+        ],
+        "eofline": true,
+        "react-hooks-nesting": {
+            "severity": "error"
+        }
+    },
+    "rulesDirectory": []
+}

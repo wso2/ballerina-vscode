@@ -26,6 +26,7 @@ export type Flow = {
     fileName: string;
     nodes: FlowNode[];
     connections?: FlowNode[];
+    variables?: FlowNode[];
 };
 
 export type Client = {
@@ -87,6 +88,7 @@ export type NodeMetadata = {
     agent?: AgentData;
     paramsToHide?: string[]; // List of properties keys to to hide from forms
     module?: string;
+    type?: string;
 };
 
 export type ParentMetadata = {
@@ -95,6 +97,7 @@ export type ParentMetadata = {
     accessor?: string;
     parameters?: string[];
     return?: string;
+    isServiceFunction?: boolean;
 };
 
 export type ToolData = {
@@ -110,8 +113,8 @@ export type AgentData = {
 };
 
 export type MemoryData = {
-    name: string;
     type: string;
+    size: string
 };
 
 export type Imports = {
@@ -136,6 +139,8 @@ export type Property = {
     advancedValue?: string;
     modified?: boolean;
     oldValue?: string;
+    defaultValue?: string;
+    itemOptions?: OptionProps[];
 };
 
 export type PropertyTypeMemberInfo = {
@@ -181,6 +186,7 @@ export type CodeData = {
     kind?: string;
     originalName?: string;
     dependentProperty?: string[];
+    data?: { [key: string]: CodeData | string };
 };
 
 export type Branch = {
@@ -307,6 +313,7 @@ export type NodePropertyKey =
     | "collection"
     | "comment"
     | "condition"
+    | "matchTarget"
     | "configValue"
     | "connection"
     | "defaultable"
@@ -316,6 +323,7 @@ export type NodePropertyKey =
     | "expression"
     | "functionName"
     | "functionNameDescription"
+    | "instructions"
     | "isIsolated"
     | "maxIter"
     | "memory"
@@ -323,15 +331,20 @@ export type NodePropertyKey =
     | "model"
     | "modelProvider"
     | "msg"
+    | "name"
     | "parameters"
     | "path"
     | "patterns"
+    | "permittedTools"
     | "prompt"
     | "query"
+    | "role"
     | "scope"
+    | "serverUrl"
     | "sessionId"
     | "size"
     | "statement"
+    | "store"
     | "systemPrompt"
     | "targetType"
     | "tools"
@@ -384,15 +397,23 @@ export type NodeKind =
     | "LV_EXPRESSION"
     | "MATCH"
     | "METHOD_CALL"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
+    | "VARIABLE"
     | "VECTOR_STORE"
     | "VECTOR_STORES"
-    | "VECTOR_KNOWLEDGE_BASE"
-    | "VECTOR_KNOWLEDGE_BASE_CALL"
-    | "VECTOR_KNOWLEDGE_BASES"
+    | "KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE_CALL"
+    | "KNOWLEDGE_BASES"
     | "EMBEDDING_PROVIDER"
     | "EMBEDDING_PROVIDERS"
+    | "DATA_LOADER"
+    | "DATA_LOADERS"
+    | "CHUNKER"
+    | "CHUNKERS"
+    | "MCP_TOOL_KIT"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"
@@ -411,10 +432,10 @@ export type NodeKind =
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
-    | "VARIABLE"
     | "WAIT"
     | "WHILE"
-    | "WORKER";
+    | "WORKER"
+    | "VARIABLE";
 
 export type OverviewFlow = {
     entryPoints: EntryPoint[];
@@ -469,4 +490,11 @@ export type FormDiagnostics = {
 export type CompletionInsertText = {
     value: string;
     cursorOffset?: number;
+};
+
+export type OptionProps = {
+    id?: string;
+    content?: string;
+    value: any;
+    disabled?: boolean;
 };

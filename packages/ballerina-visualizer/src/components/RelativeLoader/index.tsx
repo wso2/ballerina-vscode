@@ -34,7 +34,7 @@ export const RelativeLoader = ({ message }: LoadingRingProps) => {
 
     const LoadingText = styled(Typography)`
         margin-top: 16px;
-        color: var(--vscode-descriptionForeground);
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
         font-size: 14px;
     `;
 

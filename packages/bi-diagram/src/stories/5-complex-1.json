@@ -1,0 +1,1353 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/test_24/functions.bal",
+    "nodes": [
+        {
+            "id": "36519",
+            "metadata": {
+                "label": "Start",
+                "data": {
+                    "kind": "Function",
+                    "label": "getName",
+                    "isServiceFunction": false,
+                    "return": "string?"
+                }
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 35
+                    },
+                    "endLine": {
+                        "line": 26,
+                        "offset": 1
+                    }
+                },
+                "sourceCode": "# get randon name form this function each time\nfunction getName() returns string? {\n    do {\n        string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n        int intResult = check redisClient->append(\"name\", names[0]);\n        if intResult > 0 {\n            log:printInfo(\"TEXT_HERE\");\n        }\n        match intResult {\n            1 => {\n            }\n            2 => {\n            }\n            3 => {\n            }\n        }\n        while intResult == 0 {\n            intResult = check redisClient->append(\"name\", names[0]);\n            log:printInfo(\"TEXT_HERE\");\n        }\n        return names[0];\n\n    } on fail error err {\n    }\n}"
+            },
+            "returning": false,
+            "flags": 0
+        },
+        {
+            "id": "36492",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 25,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "do {\n        string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n        int intResult = check redisClient->append(\"name\", names[0]);\n        if intResult > 0 {\n            log:printInfo(\"TEXT_HERE\");\n        }\n        match intResult {\n            1 => {\n            }\n            2 => {\n            }\n            3 => {\n            }\n        }\n        while intResult == 0 {\n            intResult = check redisClient->append(\"name\", names[0]);\n            log:printInfo(\"TEXT_HERE\");\n        }\n        return names[0];\n\n    } on fail error err {\n    }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 4,
+                                "offset": 7
+                            },
+                            "endLine": {
+                                "line": 24,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n        string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];\n        int intResult = check redisClient->append(\"name\", names[0]);\n        if intResult > 0 {\n            log:printInfo(\"TEXT_HERE\");\n        }\n        match intResult {\n            1 => {\n            }\n            2 => {\n            }\n            3 => {\n            }\n        }\n        while intResult == 0 {\n            intResult = check redisClient->append(\"name\", names[0]);\n            log:printInfo(\"TEXT_HERE\");\n        }\n        return names[0];\n\n    }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "37021",
+                            "metadata": {
+                                "label": "Declare Variable",
+                                "description": "Assign a value to a variable"
+                            },
+                            "codedata": {
+                                "node": "VARIABLE",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 5,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 5,
+                                        "offset": 69
+                                    }
+                                },
+                                "sourceCode": "string[] names = [\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"];"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Initialize with value"
+                                    },
+                                    "valueType": "ACTION_OR_EXPRESSION",
+                                    "value": "[\"Alice\", \"Bob\", \"Charlie\", \"Diana\", \"Eve\"]",
+                                    "optional": true,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Name",
+                                        "description": "Name of the variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "names",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 5,
+                                                "offset": 17
+                                            },
+                                            "endLine": {
+                                                "line": 5,
+                                                "offset": 22
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "valueType": "TYPE",
+                                    "value": "string[]",
+                                    "placeholder": "var",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {}
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "38012",
+                            "metadata": {
+                                "label": "append",
+                                "description": "Append a value to a key.\n",
+                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+                            },
+                            "codedata": {
+                                "node": "REMOTE_ACTION_CALL",
+                                "org": "ballerinax",
+                                "module": "redis",
+                                "packageName": "redis",
+                                "object": "Client",
+                                "symbol": "append",
+                                "version": "3.1.0",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 6,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 6,
+                                        "offset": 68
+                                    }
+                                },
+                                "sourceCode": "int intResult = check redisClient->append(\"name\", names[0]);"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "connection": {
+                                    "metadata": {
+                                        "label": "Connection",
+                                        "description": "Connection to use"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "redisClient",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": true
+                                },
+                                "key": {
+                                    "metadata": {
+                                        "label": "Key",
+                                        "description": "Key referring to a value"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "string",
+                                    "value": "\"name\"",
+                                    "placeholder": "\"\"",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "kind": "REQUIRED",
+                                        "originalName": "key"
+                                    },
+                                    "typeMembers": [
+                                        {
+                                            "type": "string",
+                                            "packageInfo": "",
+                                            "packageName": "",
+                                            "kind": "BASIC_TYPE",
+                                            "selected": true
+                                        }
+                                    ]
+                                },
+                                "value": {
+                                    "metadata": {
+                                        "label": "Value To Append",
+                                        "description": "String value to be appended"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "string",
+                                    "value": "names[0]",
+                                    "placeholder": "\"\"",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "kind": "REQUIRED",
+                                        "originalName": "value"
+                                    },
+                                    "typeMembers": [
+                                        {
+                                            "type": "string",
+                                            "packageInfo": "",
+                                            "packageName": "",
+                                            "kind": "BASIC_TYPE",
+                                            "selected": true
+                                        }
+                                    ]
+                                },
+                                "checkError": {
+                                    "metadata": {
+                                        "label": "Check Error",
+                                        "description": "Trigger error flow"
+                                    },
+                                    "valueType": "FLAG",
+                                    "value": true,
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": true,
+                                    "hidden": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Result",
+                                        "description": "Name of the result variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "intResult",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 6,
+                                                "offset": 12
+                                            },
+                                            "endLine": {
+                                                "line": 6,
+                                                "offset": 21
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Result Type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "valueType": "TYPE",
+                                    "value": "int",
+                                    "placeholder": "var",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": true,
+                                    "codedata": {}
+                                }
+                            },
+                            "flags": 1
+                        },
+                        {
+                            "id": "39007",
+                            "metadata": {
+                                "label": "If",
+                                "description": "Add conditional branch to the integration flow."
+                            },
+                            "codedata": {
+                                "node": "IF",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 7,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 9,
+                                        "offset": 9
+                                    }
+                                },
+                                "sourceCode": "if intResult > 0 {\n            log:printInfo(\"TEXT_HERE\");\n        }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Then",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 7,
+                                                "offset": 25
+                                            },
+                                            "endLine": {
+                                                "line": 9,
+                                                "offset": 9
+                                            }
+                                        },
+                                        "sourceCode": "{\n            log:printInfo(\"TEXT_HERE\");\n        }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "condition": {
+                                            "metadata": {
+                                                "label": "Condition",
+                                                "description": "Boolean Condition"
+                                            },
+                                            "valueType": "EXPRESSION",
+                                            "valueTypeConstraint": "boolean",
+                                            "value": "intResult > 0 ",
+                                            "placeholder": "true",
+                                            "optional": false,
+                                            "editable": true,
+                                            "advanced": false,
+                                            "hidden": false
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "id": "40091",
+                                            "metadata": {
+                                                "label": "printInfo",
+                                                "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.13.0.png"
+                                            },
+                                            "codedata": {
+                                                "node": "FUNCTION_CALL",
+                                                "org": "ballerina",
+                                                "module": "log",
+                                                "packageName": "log",
+                                                "symbol": "printInfo",
+                                                "version": "2.13.0",
+                                                "lineRange": {
+                                                    "fileName": "functions.bal",
+                                                    "startLine": {
+                                                        "line": 8,
+                                                        "offset": 12
+                                                    },
+                                                    "endLine": {
+                                                        "line": 8,
+                                                        "offset": 39
+                                                    }
+                                                },
+                                                "sourceCode": "log:printInfo(\"TEXT_HERE\");"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "msg": {
+                                                    "metadata": {
+                                                        "label": "Msg",
+                                                        "description": "The message to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "string|log:PrintableRawTemplate",
+                                                    "value": "\"TEXT_HERE\"",
+                                                    "placeholder": "\"\"",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "REQUIRED",
+                                                        "originalName": "msg"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "PrintableRawTemplate",
+                                                            "packageInfo": "ballerina:log:2.12.0",
+                                                            "packageName": "log",
+                                                            "kind": "OBJECT_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": true
+                                                        }
+                                                    ]
+                                                },
+                                                "error": {
+                                                    "metadata": {
+                                                        "label": "Error",
+                                                        "description": "The error struct to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "'error"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "error",
+                                                            "packageInfo": "ballerina:lang.annotations:0.0.0",
+                                                            "packageName": "lang.annotations",
+                                                            "kind": "ERROR_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "stackTrace": {
+                                                    "metadata": {
+                                                        "label": "Stack Trace",
+                                                        "description": "The error stack trace to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error:StackFrame[]|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "stackTrace"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "StackFrame",
+                                                            "packageInfo": "ballerina:lang.error:0.0.0",
+                                                            "packageName": "lang.error",
+                                                            "kind": "ARRAY_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "additionalValues": {
+                                                    "metadata": {
+                                                        "label": "Additional Values",
+                                                        "description": "Capture key value pairs"
+                                                    },
+                                                    "valueType": "MAPPING_EXPRESSION_SET",
+                                                    "valueTypeConstraint": "log:Value",
+                                                    "value": [],
+                                                    "placeholder": "{}",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "INCLUDED_RECORD_REST",
+                                                        "originalName": "Additional Values"
+                                                    },
+                                                    "typeMembers": []
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "flags": 0
+                        },
+                        {
+                            "id": "42138",
+                            "metadata": {
+                                "label": "Match",
+                                "description": "Switches the data flow based on the value of an expression."
+                            },
+                            "codedata": {
+                                "node": "MATCH",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 10,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 17,
+                                        "offset": 9
+                                    }
+                                },
+                                "sourceCode": "match intResult {\n            1 => {\n            }\n            2 => {\n            }\n            3 => {\n            }\n        }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "1",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 11,
+                                                "offset": 17
+                                            },
+                                            "endLine": {
+                                                "line": 12,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "{\n            }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "patterns": {
+                                            "metadata": {
+                                                "label": "Patterns",
+                                                "description": "List of binding patterns"
+                                            },
+                                            "valueType": "SINGLE_SELECT",
+                                            "value": [
+                                                {
+                                                    "metadata": {
+                                                        "label": "Pattern",
+                                                        "description": "Binding pattern"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "1",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "comment": {}
+                                                }
+                                            ],
+                                            "optional": false,
+                                            "editable": true,
+                                            "advanced": false,
+                                            "hidden": false
+                                        }
+                                    },
+                                    "children": []
+                                },
+                                {
+                                    "label": "2",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 13,
+                                                "offset": 17
+                                            },
+                                            "endLine": {
+                                                "line": 14,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "{\n            }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "patterns": {
+                                            "metadata": {
+                                                "label": "Patterns",
+                                                "description": "List of binding patterns"
+                                            },
+                                            "valueType": "SINGLE_SELECT",
+                                            "value": [
+                                                {
+                                                    "metadata": {
+                                                        "label": "Pattern",
+                                                        "description": "Binding pattern"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "2",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "comment": {}
+                                                }
+                                            ],
+                                            "optional": false,
+                                            "editable": true,
+                                            "advanced": false,
+                                            "hidden": false
+                                        }
+                                    },
+                                    "children": []
+                                },
+                                {
+                                    "label": "3",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 15,
+                                                "offset": 17
+                                            },
+                                            "endLine": {
+                                                "line": 16,
+                                                "offset": 13
+                                            }
+                                        },
+                                        "sourceCode": "{\n            }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "patterns": {
+                                            "metadata": {
+                                                "label": "Patterns",
+                                                "description": "List of binding patterns"
+                                            },
+                                            "valueType": "SINGLE_SELECT",
+                                            "value": [
+                                                {
+                                                    "metadata": {
+                                                        "label": "Pattern",
+                                                        "description": "Binding pattern"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "3",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "comment": {}
+                                                }
+                                            ],
+                                            "optional": false,
+                                            "editable": true,
+                                            "advanced": false,
+                                            "hidden": false
+                                        }
+                                    },
+                                    "children": []
+                                }
+                            ],
+                            "properties": {
+                                "matchTarget": {
+                                    "metadata": {
+                                        "label": "Target",
+                                        "description": "Match target expression"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "any|error",
+                                    "value": "intResult ",
+                                    "placeholder": "true",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "49950",
+                            "metadata": {
+                                "label": "While",
+                                "description": "Loop over a block of code."
+                            },
+                            "codedata": {
+                                "node": "WHILE",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 18,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 21,
+                                        "offset": 9
+                                    }
+                                },
+                                "sourceCode": "while intResult == 0 {\n            intResult = check redisClient->append(\"name\", names[0]);\n            log:printInfo(\"TEXT_HERE\");\n        }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Body",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 18,
+                                                "offset": 29
+                                            },
+                                            "endLine": {
+                                                "line": 21,
+                                                "offset": 9
+                                            }
+                                        },
+                                        "sourceCode": "{\n            intResult = check redisClient->append(\"name\", names[0]);\n            log:printInfo(\"TEXT_HERE\");\n        }"
+                                    },
+                                    "repeatable": "ONE",
+                                    "children": [
+                                        {
+                                            "id": "51032",
+                                            "metadata": {
+                                                "label": "append",
+                                                "description": "Append a value to a key.\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+                                            },
+                                            "codedata": {
+                                                "node": "REMOTE_ACTION_CALL",
+                                                "org": "ballerinax",
+                                                "module": "redis",
+                                                "packageName": "redis",
+                                                "object": "Client",
+                                                "symbol": "append",
+                                                "version": "3.1.0",
+                                                "lineRange": {
+                                                    "fileName": "functions.bal",
+                                                    "startLine": {
+                                                        "line": 19,
+                                                        "offset": 12
+                                                    },
+                                                    "endLine": {
+                                                        "line": 19,
+                                                        "offset": 68
+                                                    }
+                                                },
+                                                "sourceCode": "intResult = check redisClient->append(\"name\", names[0]);"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "connection": {
+                                                    "metadata": {
+                                                        "label": "Connection",
+                                                        "description": "Connection to use"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "value": "redisClient",
+                                                    "optional": false,
+                                                    "editable": false,
+                                                    "advanced": false,
+                                                    "hidden": true
+                                                },
+                                                "key": {
+                                                    "metadata": {
+                                                        "label": "Key",
+                                                        "description": "Key referring to a value"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "string",
+                                                    "value": "\"name\"",
+                                                    "placeholder": "\"\"",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "REQUIRED",
+                                                        "originalName": "key"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "string",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": true
+                                                        }
+                                                    ]
+                                                },
+                                                "value": {
+                                                    "metadata": {
+                                                        "label": "Value To Append",
+                                                        "description": "String value to be appended"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "string",
+                                                    "value": "names[0]",
+                                                    "placeholder": "\"\"",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "REQUIRED",
+                                                        "originalName": "value"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "string",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": true
+                                                        }
+                                                    ]
+                                                },
+                                                "checkError": {
+                                                    "metadata": {
+                                                        "label": "Check Error",
+                                                        "description": "Trigger error flow"
+                                                    },
+                                                    "valueType": "FLAG",
+                                                    "value": true,
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": true
+                                                }
+                                            },
+                                            "flags": 1
+                                        },
+                                        {
+                                            "id": "51995",
+                                            "metadata": {
+                                                "label": "printInfo",
+                                                "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.13.0.png"
+                                            },
+                                            "codedata": {
+                                                "node": "FUNCTION_CALL",
+                                                "org": "ballerina",
+                                                "module": "log",
+                                                "packageName": "log",
+                                                "symbol": "printInfo",
+                                                "version": "2.13.0",
+                                                "lineRange": {
+                                                    "fileName": "functions.bal",
+                                                    "startLine": {
+                                                        "line": 20,
+                                                        "offset": 12
+                                                    },
+                                                    "endLine": {
+                                                        "line": 20,
+                                                        "offset": 39
+                                                    }
+                                                },
+                                                "sourceCode": "log:printInfo(\"TEXT_HERE\");"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "msg": {
+                                                    "metadata": {
+                                                        "label": "Msg",
+                                                        "description": "The message to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "string|log:PrintableRawTemplate",
+                                                    "value": "\"TEXT_HERE\"",
+                                                    "placeholder": "\"\"",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "REQUIRED",
+                                                        "originalName": "msg"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "PrintableRawTemplate",
+                                                            "packageInfo": "ballerina:log:2.12.0",
+                                                            "packageName": "log",
+                                                            "kind": "OBJECT_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": true
+                                                        }
+                                                    ]
+                                                },
+                                                "error": {
+                                                    "metadata": {
+                                                        "label": "Error",
+                                                        "description": "The error struct to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "'error"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "error",
+                                                            "packageInfo": "ballerina:lang.annotations:0.0.0",
+                                                            "packageName": "lang.annotations",
+                                                            "kind": "ERROR_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "stackTrace": {
+                                                    "metadata": {
+                                                        "label": "Stack Trace",
+                                                        "description": "The error stack trace to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error:StackFrame[]|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "stackTrace"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "StackFrame",
+                                                            "packageInfo": "ballerina:lang.error:0.0.0",
+                                                            "packageName": "lang.error",
+                                                            "kind": "ARRAY_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "additionalValues": {
+                                                    "metadata": {
+                                                        "label": "Additional Values",
+                                                        "description": "Capture key value pairs"
+                                                    },
+                                                    "valueType": "MAPPING_EXPRESSION_SET",
+                                                    "valueTypeConstraint": "log:Value",
+                                                    "value": [],
+                                                    "placeholder": "{}",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "INCLUDED_RECORD_REST",
+                                                        "originalName": "Additional Values"
+                                                    },
+                                                    "typeMembers": []
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "properties": {
+                                "condition": {
+                                    "metadata": {
+                                        "label": "Condition",
+                                        "description": "Boolean Condition"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "boolean",
+                                    "value": "intResult == 0 ",
+                                    "placeholder": "true",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false
+                                }
+                            },
+                            "flags": 0
+                        },
+                        {
+                            "id": "53840",
+                            "metadata": {
+                                "label": "Return",
+                                "description": "Value of 'names[0]'"
+                            },
+                            "codedata": {
+                                "node": "RETURN",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 22,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 22,
+                                        "offset": 24
+                                    }
+                                },
+                                "sourceCode": "return names[0];"
+                            },
+                            "returning": true,
+                            "properties": {
+                                "expression": {
+                                    "metadata": {
+                                        "label": "Expression",
+                                        "description": "Return value"
+                                    },
+                                    "valueType": "ACTION_OR_EXPRESSION",
+                                    "value": "names[0]",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false
+                                }
+                            },
+                            "flags": 0
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 24,
+                                "offset": 24
+                            },
+                            "endLine": {
+                                "line": 25,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n    }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "false",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "err ",
+                            "placeholder": "err",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "redis:Error",
+                            "placeholder": "error",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    },
+                    "children": []
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": [
+        {
+            "id": "33774",
+            "metadata": {
+                "label": "New Connection",
+                "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+            },
+            "codedata": {
+                "node": "NEW_CONNECTION",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "init",
+                "lineRange": {
+                    "fileName": "connections.bal",
+                    "startLine": {
+                        "line": 2,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 2,
+                        "offset": 46
+                    }
+                },
+                "sourceCode": "final redis:Client redisClient = check new ();"
+            },
+            "returning": false,
+            "properties": {
+                "connection": {
+                    "metadata": {
+                        "label": "Connection Type",
+                        "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+                    "placeholder": "\"\"",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "connection"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "ConnectionParams",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "RECORD_TYPE",
+                            "selected": false
+                        },
+                        {
+                            "type": "ConnectionUri",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "\"\""
+                },
+                "connectionPooling": {
+                    "metadata": {
+                        "label": "Connection Pooling Enabled",
+                        "description": "Flag to indicate whether connection pooling is enabled"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
+                    "placeholder": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "connectionPooling"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "boolean",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "false"
+                },
+                "isClusterConnection": {
+                    "metadata": {
+                        "label": "Cluster Mode Enabled",
+                        "description": "Flag to indicate whether the connection is a cluster connection"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
+                    "placeholder": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "isClusterConnection"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "boolean",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "false"
+                },
+                "secureSocket": {
+                    "metadata": {
+                        "label": "Secure Socket Configurations",
+                        "description": "Configurations related to SSL/TLS encryption"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "redis:SecureSocket",
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "secureSocket"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "SecureSocket",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "RECORD_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "{}"
+                },
+                "checkError": {
+                    "metadata": {
+                        "label": "Check Error",
+                        "description": "Terminate on error"
+                    },
+                    "valueType": "FLAG",
+                    "value": true,
+                    "optional": false,
+                    "editable": false,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "scope": {
+                    "metadata": {
+                        "label": "Connection Scope",
+                        "description": "Scope of the connection, Global or Local"
+                    },
+                    "valueType": "ENUM",
+                    "value": "Global",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Connection Name",
+                        "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "redisClient",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "lineRange": {
+                            "fileName": "connections.bal",
+                            "startLine": {
+                                "line": 2,
+                                "offset": 19
+                            },
+                            "endLine": {
+                                "line": 2,
+                                "offset": 30
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Connection Type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "redis:Client",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": true,
+                    "codedata": {}
+                }
+            },
+            "flags": 1
+        }
+    ]
+}

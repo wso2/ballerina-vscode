@@ -3,7 +3,7 @@ const webpack = require('webpack');
 module.exports = {
   entry: "./src/index.tsx",
   target: "web",
-  devtool: "source-map",
+  devtool: !process.env.CI ? "source-map" : undefined,
   output: {
     path: path.resolve(__dirname, "build"),
     filename: "PersistDiagram.js",

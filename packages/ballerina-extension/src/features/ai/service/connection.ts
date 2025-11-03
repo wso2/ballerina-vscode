@@ -15,19 +15,42 @@
 // under the License.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken } from "../../../utils/ai/auth";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
-export const ANTHROPIC_SONNET_3_5 = "claude-3-5-sonnet-20241022";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
-    | typeof ANTHROPIC_SONNET_4
-    | typeof ANTHROPIC_SONNET_3_5;
+    | typeof ANTHROPIC_SONNET_4;
+
+/**
+ * Maps AWS regions to their corresponding Bedrock inference profile prefixes
+ * @param region - AWS region string (e.g., 'us-east-1', 'eu-west-1', 'ap-southeast-1')
+ * @returns The appropriate regional prefix for Bedrock model IDs
+ */
+export function getBedrockRegionalPrefix(region: string): string {
+    const regionPrefix = region.split('-')[0].toLowerCase();
+    
+    switch (regionPrefix) {
+        case 'us':
+            return region.startsWith('us-gov-') ? 'us-gov' : 'us';
+        case 'eu':
+            return 'eu';
+        case 'ap':
+            return 'apac';
+        case 'ca':
+        case 'sa':
+            return 'us'; // Canada and South America regions use US prefix
+        default:
+            console.warn(`Unknown region prefix: ${regionPrefix}, defaulting to 'us'`);
+            return 'us';
+    }
+}
 
 let cachedAnthropic: ReturnType<typeof createAnthropic> | null = null;
 let cachedAuthMethod: LoginMethod | null = null;
@@ -69,12 +92,22 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             }
         }
 
+        // Handle usage limit exceeded
+        if (response.status === 429) {
+            console.log("Usage limit exceeded (429)");
+            const error = new Error("Usage limit exceeded. Please try again later.");
+            error.name = "UsageLimitError";
+            (error as any).statusCode = 429;
+            throw error;
+        }
+
         return response;
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
             AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+        } else {
+            throw error;
         }
-        return;
     }
 }
 
@@ -82,14 +115,15 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
  * Returns a singleton Anthropic client instance.
  * Re-initializes the client if the login method has changed.
  */
-export const getAnthropicClient = async (model: AnthropicModel) => {
+export const getAnthropicClient = async (model: AnthropicModel): Promise<any> => {
     const loginMethod = await getLoginMethod();
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
+        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
         if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
-                baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
+                baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });
@@ -99,6 +133,35 @@ export const getAnthropicClient = async (model: AnthropicModel) => {
                 baseURL: "https://api.anthropic.com/v1",
                 apiKey: apiKey,
             });
+        } else if (loginMethod === LoginMethod.AWS_BEDROCK) {
+            const awsCredentials = await getAwsBedrockCredentials();
+            if (!awsCredentials) {
+                throw new Error('AWS Bedrock credentials not found');
+            }
+            
+            const bedrock = createAmazonBedrock({
+                region: awsCredentials.region,
+                accessKeyId: awsCredentials.accessKeyId,
+                secretAccessKey: awsCredentials.secretAccessKey,
+                sessionToken: awsCredentials.sessionToken,
+            });
+            
+            // Map Anthropic model names to AWS Bedrock model IDs (base models without region prefix)
+            const baseModelMap: Record<AnthropicModel, string> = {
+                [ANTHROPIC_HAIKU]: "anthropic.claude-3-5-haiku-20241022-v1:0",
+                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-20250514-v1:0",
+            };
+            
+            const baseModelId = baseModelMap[model];
+            if (!baseModelId) {
+                throw new Error(`Unsupported model for AWS Bedrock: ${model}`);
+            }
+            
+            // Get regional prefix based on AWS region
+            const regionalPrefix = getBedrockRegionalPrefix(awsCredentials.region);
+            const bedrockModelId = `${regionalPrefix}.${baseModelId}`;
+            
+            return bedrock(bedrockModelId);
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);
         }
@@ -106,5 +169,30 @@ export const getAnthropicClient = async (model: AnthropicModel) => {
         cachedAuthMethod = loginMethod;
     }
 
-    return cachedAnthropic(model);
+    // For AWS Bedrock, we return directly above, so this is for other methods
+    return cachedAnthropic!(model);
+};
+
+/**
+ * Type definition for provider-specific cache options
+ */
+export type ProviderCacheOptions = 
+    | { anthropic: { cacheControl: { type: string } } } 
+    | { bedrock: { cachePoint: { type: string } } };
+
+/**
+ * Returns provider-aware cache control options for prompt caching
+ * @returns Cache control options based on the current login method
+ */
+export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> => {
+    const loginMethod = await getLoginMethod();
+    
+    switch (loginMethod) {
+        case LoginMethod.AWS_BEDROCK:
+            return { bedrock: { cachePoint: { type: 'default' } } };
+        case LoginMethod.ANTHROPIC_KEY:
+        case LoginMethod.BI_INTEL:
+        default:
+            return { anthropic: { cacheControl: { type: "ephemeral" } } };
+    }
 };

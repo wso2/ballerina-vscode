@@ -62,3 +62,9 @@ export type {
 } from "@wso2/ballerina-core";
 
 export type FlowNodeStyle = "default" | "ballerina-statements";
+
+export type DraftNodeConfig = {
+    override: boolean; // Override the draft node contents with showSpinner and description
+    showSpinner: boolean;
+    description: string;
+}

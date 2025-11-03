@@ -28,7 +28,6 @@ namespace S {
     export const FormInfoDescription = styled.div`
         color: ${ThemeColors.ON_SURFACE_VARIANT};
         font-size: 13px;
-        margin-bottom: 12px;
         padding: 8px 12px;
         border-radius: 4px;
         opacity: 0.9;

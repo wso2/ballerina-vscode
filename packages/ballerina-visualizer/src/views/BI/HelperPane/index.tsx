@@ -28,7 +28,7 @@ import { RecordTypeField } from '@wso2/ballerina-core';
 export type HelperPaneProps = {
     fieldKey: string;
     fileName: string;
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     exprRef: RefObject<FormExpressionEditorRef>;
     anchorRef: RefObject<HTMLDivElement>;
     onClose: () => void;

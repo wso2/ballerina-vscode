@@ -30,10 +30,15 @@ export declare enum BallerinaComponentTypes {
 }
 
 export enum SubPanelView {
-    INLINE_DATA_MAPPER = "inlineDataMapper",
     HELPER_PANEL = "helperPanel",
     ADD_NEW_FORM = "addNewForm",
     UNDEFINED = undefined,
+}
+
+export enum DataMapperDisplayMode {
+    NONE = "none",
+    POPUP = "popup",
+    VIEW = "view",
 }
 
 export interface DocumentIdentifier {
@@ -75,7 +80,6 @@ export interface SubPanel {
 }
 
 export interface SubPanelViewProps {
-    inlineDataMapper?: InlineDataMapperProps;
     sidePanelData?: SidePanelData;
 }
 
@@ -92,12 +96,4 @@ export interface ConfigurePanelData {
     name?: string;
     documentation?: string;
     value?: string;
-}
-
-interface InlineDataMapperProps {
-    filePath: string;
-    flowNode: FlowNode;
-    propertyKey: string;
-    editorKey: string;
-    position: LinePosition;
 }

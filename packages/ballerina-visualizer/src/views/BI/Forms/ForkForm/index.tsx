@@ -314,10 +314,11 @@ export function ForkForm(props: ForkFormProps) {
                         <FormStyles.Row key={field.key}>
                             <ExpressionEditor
                                 {...expressionEditor}
-                                ref={exprRef}
+                                // ref={exprRef}
                                 control={control}
                                 field={field}
                                 watch={watch}
+                                setValue={setValue}
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}
                                 fileName={fileName}

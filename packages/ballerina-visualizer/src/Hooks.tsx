@@ -17,32 +17,43 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { IDMViewState } from '@wso2/ballerina-core';
+import { DMViewState, LinePosition } from '@wso2/ballerina-core';
+import { useRef } from 'react';
 
-export const useInlineDataMapperModel = (
+export const useDataMapperModel = (
     filePath: string,
-    viewState: IDMViewState
+    viewState: DMViewState,
+    position?: LinePosition
 ) => {
     const { rpcClient } = useRpcContext();
     const viewId = viewState?.viewId;
     const codedata = viewState?.codedata;
 
-    const getIDMModel = async () => {
+    const triggerRefresh = useRef<boolean>(false);
+
+    const getDMModel = async () => {
         try {
             const modelParams = {
                 filePath,
                 codedata,
                 targetField: viewId,
-                position: {
+                position: position ?? {
                     line: codedata.lineRange.startLine.line,
                     offset: codedata.lineRange.startLine.offset
                 }
             };
+            console.log('>>> [Data Mapper] Model Parameters:', modelParams);
+
             const res = await rpcClient
-                .getInlineDataMapperRpcClient()
+                .getDataMapperRpcClient()
                 .getDataMapperModel(modelParams);
 
-            console.log('>>> [Inline Data Mapper] Model:', res);
+            if (triggerRefresh.current) {
+                res.mappingsModel.triggerRefresh = true;
+                triggerRefresh.current = false;
+            }
+
+            console.log('>>> [Data Mapper] Model:', res);
             return res.mappingsModel;
         } catch (error) {
             console.error(error);
@@ -56,10 +67,15 @@ export const useInlineDataMapperModel = (
         isError,
         refetch
     } = useQuery({
-        queryKey: ['getIDMModel', { filePath, codedata, viewId }],
-        queryFn: () => getIDMModel(),
+        queryKey: ['getDMModel', codedata, viewId],
+        queryFn: getDMModel,
         networkMode: 'always'
     });
 
-    return {model, isFetching, isError, refetch};
+    const refreshDMModel = async () => {
+        triggerRefresh.current = true;
+        await refetch();
+    };
+
+    return { model, isFetching, isError, refreshDMModel };
 };

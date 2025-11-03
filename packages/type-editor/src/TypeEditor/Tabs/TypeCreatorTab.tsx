@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { TextField, Dropdown, Button, ProgressRing, Icon, Typography, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -29,6 +29,7 @@ import { AdvancedOptions } from "../AdvancedOptions";
 import { ArrayEditor } from "../ArrayEditor";
 import { debounce } from "lodash";
 import { URI, Utils } from "vscode-uri";
+import { EditorContext } from "../Contexts/TypeEditorContext";
 
 const CategoryRow = styled.div<{ showBorder?: boolean }>`
     display: flex;
@@ -153,6 +154,8 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         return TypeKind.RECORD;
     });
 
+    const { replaceTop } = useContext(EditorContext);
+
     const [isNewType, setIsNewType] = useState<boolean>(newType);
     const [isTypeNameValid, setIsTypeNameValid] = useState<boolean>(true);
     const [onValidationError, setOnValidationError] = useState<boolean>(false);
@@ -167,7 +170,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
 
     useEffect(() => {
         if (editingType) {
-            setType(editingType);
+            handleSetType(editingType);
             validateTypeName(editingType.name);
 
             const nodeKind = editingType.codedata.node;
@@ -195,6 +198,14 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         setIsNewType(newType);
     }, [editingType?.name, newType]);
 
+    const handleSetType = (type: Type) => {
+        replaceTop({
+            type: type,
+            isDirty: true
+        })
+        setType(type);
+    }
+
 
     const handleTypeKindChange = (value: string) => {
         // Convert display name back to internal TypeKind
@@ -220,16 +231,17 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
 
         const typeValue = selectedKind === TypeKind.CLASS ? "CLASS" : selectedKind.toUpperCase();
 
-        // Always create a new type with the selected kind
-        setType((currentType) => ({
-            ...currentType!,
+        // Always create a new type with the selected kind, preserving the name
+        handleSetType({
+            ...type!,
+            name: type!.name, // Explicitly preserve the name
             kind: typeValue,
             members: [] as Member[],
             codedata: {
-                ...currentType!.codedata, // Check the location of the type
+                ...type!.codedata, // Check the location of the type
                 node: typeValue.toUpperCase() as TypeNodeKind
             }
-        }));
+        } as any);
     };
 
     // Add a helper function to get the display label
@@ -251,7 +263,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         if (isGraphql) {
             // For GraphQL mode, filter options based on current type
             if (initialTypeKind === "RECORD") {
-                return [TypeKind.RECORD, TypeKind.ENUM, TypeKind.UNION];
+                return [TypeKind.RECORD, TypeKind.ENUM];
             } else if (initialTypeKind === "CLASS") {
                 return [TypeKind.CLASS, TypeKind.ENUM, TypeKind.UNION];
             }
@@ -306,8 +318,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                     }
                 }
             };
-
-            setType(renamedType);
+            handleSetType(renamedType);
             onTypeChange(renamedType, true);
             cancelEditing();
         } catch (error) {
@@ -327,9 +338,10 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         await validateTypeName(e.target.value);
     }
 
-    const validateTypeName = useCallback(debounce(async (value: string) => {
+    // Core validation logic - shared between debounced and immediate validation
+    const performValidation = async (value: string): Promise<{ isValid: boolean; error: string }> => {
         if (saveButtonClicked.current) {
-            return;
+            return { isValid: isTypeNameValid, error: nameError };
         }
 
         const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
@@ -381,15 +393,26 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
             }
         });
 
+        const hasErrors = response && response.diagnostics && response.diagnostics.length > 0;
+        const errorMessage = hasErrors ? response.diagnostics[0].message : "";
 
-        if (response && response.diagnostics && response.diagnostics.length > 0) {
-            setNameError(response.diagnostics[0].message);
-            setIsTypeNameValid(false);
-        } else {
-            setNameError("");
-            setIsTypeNameValid(true);
-        }
-    }, 250), [rpcClient, type]);
+        return {
+            isValid: !hasErrors,
+            error: errorMessage
+        };
+    };
+
+    // Debounced version for real-time validation (updates UI state)
+    const validateTypeName = useCallback(debounce(async (value: string) => {
+        const result = await performValidation(value);
+        setNameError(result.error);
+        setIsTypeNameValid(result.isValid);
+    }, 250), [performValidation]);
+
+    // Immediate version for save validation (returns result without updating UI)
+    const validateTypeNameSync = async (value: string): Promise<{ isValid: boolean; error: string }> => {
+        return await performValidation(value);
+    };
 
     const handleOnTypeNameUpdate = (value: string) => {
         setTempName(value);
@@ -397,9 +420,40 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
     }
 
     const handleOnTypeNameChange = (value: string) => {
-        setType({ ...type, name: value });
+        handleSetType({ ...type, name: value });
         validateTypeName(value);
     }
+
+    // Function to validate before saving to verify names created in nested forms
+    const handleSaveWithValidation = async (typeToSave: Type) => {
+
+        try {
+            setIsSaving(true);
+
+            // Perform immediate validation
+            const validationResult = await validateTypeNameSync(typeToSave.name);
+
+            // Update the UI state with validation results
+            if (validationResult.isValid) {
+                setNameError("");
+                setIsTypeNameValid(true);
+                // Proceed with save
+                await onTypeSave(typeToSave);
+            } else {
+                setNameError(validationResult.error);
+                setIsTypeNameValid(false);
+                // Don't save if validation fails
+            }
+        } catch (error) {
+            console.error('Error during validation', error);
+            // If the previous validation was successful, attempt to save
+            if (isTypeNameValid && !onValidationError) {
+                await onTypeSave(typeToSave);
+            }
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const renderEditor = () => {
         if (!type) {
@@ -412,46 +466,53 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         <RecordEditor
                             type={type}
                             isAnonymous={false}
-                            onChange={setType}
+                            onChange={handleSetType}
                             newType={newType}
                             isGraphql={isGraphql}
                             onValidationError={handleValidationError}
                         />
-                        <AdvancedOptions type={type} onChange={setType} />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
                     </>
                 );
             case TypeKind.ENUM:
                 return (
                     <EnumEditor
                         type={type}
-                        onChange={setType}
+                        onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
                 );
             case TypeKind.UNION:
                 return (
-                    <UnionEditor
-                        type={type}
-                        onChange={setType}
-                        rpcClient={rpcClient}
-                        onValidationError={handleValidationError}
-                    />
+                    <>
+                        <UnionEditor
+                            type={type}
+                            onChange={handleSetType}
+                            rpcClient={rpcClient}
+                            onValidationError={handleValidationError}
+                        />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
+                    </>
                 );
             case TypeKind.CLASS:
                 return (
                     <ClassEditor
                         type={type}
                         isGraphql={isGraphql}
-                        onChange={setType}
+                        onChange={handleSetType}
                         onValidationError={handleValidationError}
                     />
                 );
             case TypeKind.ARRAY:
                 return (
-                    <ArrayEditor
-                        type={type}
-                        onChange={setType}
-                    />
+                    <>
+                        <ArrayEditor
+                            type={type}
+                            onChange={handleSetType}
+                            onValidationError={handleValidationError}
+                        />
+                        <AdvancedOptions type={type} onChange={handleSetType} />
+                    </>
                 );
             default:
                 return <div>Editor for {selectedTypeKind} type is not implemented yet</div>;
@@ -474,7 +535,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                         onChange={(e) => handleTypeKindChange(e.target.value)}
                     />
                 )}
-                {!isNewType && !isEditing && !type.properties["name"].editable && (
+                {!isNewType && !isEditing && !type.properties["name"]?.editable && (
                     <InputWrapper>
                         <TextFieldWrapper>
                             <TextField
@@ -485,7 +546,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                                 label={type?.properties["name"]?.metadata?.label}
                                 required={!type?.properties["name"]?.optional}
                                 description={type?.properties["name"]?.metadata?.description}
-                                readOnly={!type.properties["name"].editable}
+                                readOnly={!type.properties["name"]?.editable}
                             />
                         </TextFieldWrapper>
                         <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
@@ -555,11 +616,13 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 )}
             </CategoryRow>
 
-            {renderEditor()}
+            <div style={{ overflow: 'auto', maxHeight: '70vh' }}>
+                {renderEditor()}
+            </div>
             <Footer>
                 <Button
                     data-testid="type-create-save"
-                    onClick={() => onTypeSave(type)}
+                    onClick={() => handleSaveWithValidation(type)}
                     disabled={onValidationError || !isTypeNameValid || isEditing || isSaving}>
                     {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
                 </Button>

@@ -34,7 +34,6 @@ import {
 import { FileSelector } from "../components/FileSelector";
 import { FormActionButtons } from "../components/FormComponents/FormFieldComponents/FormActionButtons";
 import { FormTextArea } from "../components/FormComponents/FormFieldComponents/TextField/FormTextArea";
-import { UndoRedoManager } from "../components/UndoRedoManager";
 import { checkDiagnostics, getUpdatedSource } from "../components/FormComponents/Utils";
 import { RecordOverview } from "../RecordOverview";
 import { Context } from "../Context";
@@ -54,7 +53,6 @@ interface RecordState {
 }
 
 interface RecordFromJsonProps {
-    undoRedoManager?: UndoRedoManager;
     onSave: (recordString: string, modifiedPosition: NodePosition) => void;
     onCancel: (createdRecordName?: string) => void;
     isHeaderHidden?: boolean;
@@ -93,7 +91,7 @@ const reducer = (state: RecordState, action: { type: string; payload: any }) => 
 
 export function RecordFromJson(recordFromJsonProps: RecordFromJsonProps) {
     const classes = useStyles();
-    const { isHeaderHidden, undoRedoManager, onSave, onCancel, onUpdate } = recordFromJsonProps;
+    const { isHeaderHidden, onSave, onCancel, onUpdate } = recordFromJsonProps;
 
     const {
         props: { langServerRpcClient, recordCreatorRpcClient, currentFile, fullST, targetPosition },
@@ -250,7 +248,6 @@ export function RecordFromJson(recordFromJsonProps: RecordFromJsonProps) {
             {formState.importedRecord ? (
                 <RecordOverview
                     type="JSON"
-                    undoRedoManager={undoRedoManager}
                     prevST={fullST}
                     definitions={formState.importedRecord}
                     onComplete={onCancel}
@@ -259,8 +256,8 @@ export function RecordFromJson(recordFromJsonProps: RecordFromJsonProps) {
             ) : (
                 <FormContainer data-testid="module-variable-config-form">
                     {!isHeaderHidden && (
-                        <SidePanelTitleContainer sx={{paddingLeft: 20}}>
-                            <Typography variant="h3" sx={{margin: 0, fontSize: "13px"}}>Import Sample JSON</Typography>
+                        <SidePanelTitleContainer sx={{ paddingLeft: 20 }}>
+                            <Typography variant="h3" sx={{ margin: 0, fontSize: "13px" }}>Import Sample JSON</Typography>
                             <Button onClick={onCancel} appearance="icon"><Codicon name="close" /></Button>
                         </SidePanelTitleContainer>
                     )}
@@ -277,9 +274,9 @@ export function RecordFromJson(recordFromJsonProps: RecordFromJsonProps) {
                         />
                         <InputContainer>
                             <InputWrapper>
-                                    <Typography variant="body3" className={classes.inputLabelForRequired}>
-                                        Sample JSON
-                                    </Typography>
+                                <Typography variant="body3" className={classes.inputLabelForRequired}>
+                                    Sample JSON
+                                </Typography>
                                 <FileSelect>
                                     <FileSelector label="Select JSON file" extension="json" onReadFile={onJsonChange} />
                                 </FileSelect>

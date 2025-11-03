@@ -23,10 +23,10 @@ import { RPCLayer } from "../../RPCLayer";
 import { debounce } from "lodash";
 import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } from "../../utils/webview-utils";
 import { extension } from "../../BalExtensionContext";
-import { StateMachine, updateView } from "../../stateMachine";
+import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { refreshDataMapper } from "../../rpc-managers/inline-data-mapper/utils";
+import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 
 export class VisualizerWebview {
@@ -63,6 +63,15 @@ export class VisualizerWebview {
                 await document.document.save();
             }
 
+            // Check the file is changed in the project.
+            const projectUri = StateMachine.context().projectUri;
+            const documentUri = document.document.uri.toString();
+            const isDocumentUnderProject = documentUri.includes(projectUri);
+            // Reset visualizer the undo-redo stack if user did changes in the editor
+            if (isOpened && isDocumentUnderProject && !this._panel?.active) {
+                undoRedoManager.reset();
+            }
+
             const state = StateMachine.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
             if (document?.contentChanges.length === 0 || !machineReady) { return; }
@@ -74,7 +83,10 @@ export class VisualizerWebview {
                     editor.document.fileName === document.document.fileName
                 );
             const dataMapperModified = balFileModified &&
-                StateMachine.context().view === MACHINE_VIEW.InlineDataMapper &&
+                (
+                    StateMachine.context().view === MACHINE_VIEW.InlineDataMapper ||
+                    StateMachine.context().view === MACHINE_VIEW.DataMapper
+                ) &&
                 document.document.fileName === StateMachine.context().documentUri;
 
             if (dataMapperModified) {
@@ -165,13 +177,13 @@ export class VisualizerWebview {
                 padding-top: 30vh;
             }
             .loader {
-                width: 32px;
+                width: 36px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 4px solid var(--vscode-button-background);
+                border: 6px solid var(--vscode-button-background);
                 animation:
-                    l20-1 0.8s infinite linear alternate,
-                    l20-2 1.6s infinite linear;
+                    l20-1 0.5s infinite linear alternate,
+                    l20-2 1s infinite linear;
             }
             @keyframes l20-1{
                 0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}

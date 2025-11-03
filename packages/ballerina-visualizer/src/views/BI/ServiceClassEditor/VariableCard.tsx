@@ -21,6 +21,10 @@ import { Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { FieldType } from '@wso2/ballerina-core';
 
+const COLORS = {
+    METHOD_BOX_BACKGROUND: '#845a23ff'
+} as const;
+
 type ContainerProps = {
     borderColor?: string;
     haveErrors?: boolean;
@@ -69,6 +73,20 @@ const VariableLabel = styled.span`
     margin-left: 5px;
 `;
 
+const MethodBox = styled.div`
+    display: flex;
+    justify-content: center;
+    height: 25px;
+    min-width: 70px;
+    width: auto;
+    text-align: center;
+    padding: 3px 5px 3px 5px;
+    background-color: ${COLORS.METHOD_BOX_BACKGROUND};
+    color: var(--vscode-button-foreground);
+    align-items: center;
+    font-weight: bold;
+    border-radius: 3px;
+`;
 
 export interface VariableCardProps {
     fieldModel: FieldType;
@@ -116,18 +134,28 @@ export function VariableCard(params: VariableCardProps) {
         <AccordionContainer>
             <AccordionHeader onClick={handleVariableImplement}>
                 <MethodSection>
+                    <MethodBox>
+                        {fieldModel.type.value}
+                    </MethodBox>
                     <VariableLabel>{fieldModel.name.value}</VariableLabel>
-                    <VariableLabel>{fieldModel.type.value}</VariableLabel>
                 </MethodSection>
                 <ButtonSection>
                     <>
                         {onEditVariable! && (
-                            <VSCodeButton appearance="icon" title="Edit Variable" onClick={handleEditResource}>
+                            <VSCodeButton
+                                data-testid={`edit-variable-button-${fieldModel.name.value}`}
+                                appearance="icon"
+                                title="Edit Variable"
+                                onClick={handleEditResource}>
                                 <Icon name="bi-edit" sx={{ marginTop: 3.5 }} />
                             </VSCodeButton>
                         )}
                         {onDeleteVariable! && (
-                            <VSCodeButton appearance="icon" title="Delete Variable" onClick={handleDeleteResource}>
+                            <VSCodeButton
+                                data-testid={`delete-variable-button-${fieldModel.name.value}`}
+                                appearance="icon"
+                                title="Delete Variable"
+                                onClick={handleDeleteResource}>
                                 <Codicon name="trash" />
                             </VSCodeButton>
                         )}

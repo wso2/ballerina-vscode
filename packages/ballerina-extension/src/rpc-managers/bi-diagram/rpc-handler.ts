@@ -18,70 +18,51 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatRequest,
+    addBreakpointToSource,
+    addClassField,
     AddFieldRequest,
+    addFunction,
     AddFunctionRequest,
+    AIChatRequest,
     BIAiSuggestionsRequest,
     BIAvailableNodesRequest,
     BIDeleteByComponentInfoRequest,
     BIGetEnclosedFunctionRequest,
     BIGetVisibleVariableTypesRequest,
     BINodeTemplateRequest,
+    BISearchNodesRequest,
     BISearchRequest,
     BISourceCodeRequest,
     BreakpointRequest,
     BuildMode,
+    buildProject,
     ClassFieldModifierRequest,
     ComponentRequest,
-    DeploymentRequest,
-    EndOfFileRequest,
-    ExpressionCompletionsRequest,
-    ExpressionDiagnosticsRequest,
-    FormDidCloseParams,
-    FormDidOpenParams,
-    FunctionNodeRequest,
-    GetConfigVariableNodeTemplateRequest,
-    GetRecordConfigRequest,
-    GetRecordModelFromSourceRequest,
-    GetTypeRequest,
-    GetTypesRequest,
-    getTypeFromJson,
-    JsonToTypeRequest,
-    ModelFromCodeRequest,
-    OpenAPIClientDeleteRequest,
-    OpenAPIClientGenerationRequest,
-    OpenAPIGeneratedModulesRequest,
-    OpenConfigTomlRequest,
-    ProjectRequest,
-    ReadmeContentRequest,
-    RecordSourceGenRequest,
-    RenameIdentifierRequest,
-    ServiceClassSourceRequest,
-    SignatureHelpRequest,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableRequestV2,
-    UpdateImportsRequest,
-    UpdateRecordConfigRequest,
-    UpdateTypeRequest,
-    UpdateTypesRequest,
-    VisibleTypesRequest,
-    addBreakpointToSource,
-    addClassField,
-    addFunction,
-    buildProject,
+    ConfigVariableRequest,
     createComponent,
     createGraphqlClassType,
     createProject,
     deleteByComponentInfo,
+    DeleteConfigVariableRequestV2,
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteType,
+    DeleteTypeRequest,
+    DeploymentRequest,
     deployProject,
+    EndOfFileRequest,
+    ExpressionCompletionsRequest,
+    ExpressionDiagnosticsRequest,
     formDidClose,
+    FormDidCloseParams,
     formDidOpen,
+    FormDidOpenParams,
+    FunctionNodeRequest,
     generateOpenApiClient,
     getAiSuggestions,
-    getAllImports,
+    getAvailableChunkers,
+    getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
     getAvailableModelProviders,
     getAvailableNodes,
@@ -89,6 +70,7 @@ import {
     getAvailableVectorStores,
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
+    GetConfigVariableNodeTemplateRequest,
     getConfigVariables,
     getConfigVariablesV2,
     getDesignModel,
@@ -98,6 +80,7 @@ import {
     getExpressionCompletions,
     getExpressionDiagnostics,
     getFlowModel,
+    getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
     getModuleNodes,
@@ -107,34 +90,63 @@ import {
     getProjectStructure,
     getReadmeContent,
     getRecordConfig,
+    GetRecordConfigRequest,
     getRecordModelFromSource,
+    GetRecordModelFromSourceRequest,
     getRecordNames,
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
     getSourceCode,
     getType,
+    getTypeFromJson,
+    GetTypeRequest,
     getTypes,
+    GetTypesRequest,
     getVisibleTypes,
     getVisibleVariableTypes,
     getWorkspaces,
     handleReadmeContent,
+    JsonToTypeRequest,
+    ModelFromCodeRequest,
     openAIChat,
+    OpenAPIClientDeleteRequest,
+    OpenAPIClientGenerationRequest,
+    OpenAPIGeneratedModulesRequest,
     openConfigToml,
+    OpenConfigTomlRequest,
     openReadme,
+    ProjectRequest,
+    ReadmeContentRequest,
+    RecordSourceGenRequest,
     removeBreakpointFromSource,
     renameIdentifier,
+    RenameIdentifierRequest,
     runProject,
     search,
+    searchNodes,
+    ServiceClassSourceRequest,
+    SignatureHelpRequest,
     updateClassField,
+    UpdateConfigVariableRequest,
+    UpdateConfigVariableRequestV2,
     updateConfigVariables,
     updateConfigVariablesV2,
     updateImports,
+    UpdateImportsRequest,
     updateRecordConfig,
+    UpdateRecordConfigRequest,
     updateServiceClass,
     updateType,
+    UpdateTypeRequest,
     updateTypes,
-    DeleteConfigVariableRequestV2
+    UpdateTypesRequest,
+    verifyTypeDelete,
+    VerifyTypeDeleteRequest,
+    VisibleTypesRequest,
+    FormDiagnosticsRequest,
+    getExpressionTokens,
+    ExpressionTokensRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -150,6 +162,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
     messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
     messenger.onRequest(getAvailableVectorKnowledgeBases, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorKnowledgeBases(args));
+    messenger.onRequest(getAvailableDataLoaders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableDataLoaders(args));
+    messenger.onRequest(getAvailableChunkers, (args: BIAvailableNodesRequest) => rpcManger.getAvailableChunkers(args));
     messenger.onRequest(getEnclosedFunction, (args: BIGetEnclosedFunctionRequest) => rpcManger.getEnclosedFunction(args));
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
@@ -163,7 +177,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getExpressionCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getExpressionCompletions(args));
     messenger.onRequest(getConfigVariables, () => rpcManger.getConfigVariables());
     messenger.onRequest(updateConfigVariables, (args: UpdateConfigVariableRequest) => rpcManger.updateConfigVariables(args));
-    messenger.onRequest(getConfigVariablesV2, () => rpcManger.getConfigVariablesV2());
+    messenger.onRequest(getConfigVariablesV2, (args: ConfigVariableRequest) => rpcManger.getConfigVariablesV2(args));
     messenger.onRequest(updateConfigVariablesV2, (args: UpdateConfigVariableRequestV2) => rpcManger.updateConfigVariablesV2(args));
     messenger.onRequest(deleteConfigVariableV2, (args: DeleteConfigVariableRequestV2) => rpcManger.deleteConfigVariableV2(args));
     messenger.onRequest(getConfigVariableNodeTemplate, (args: GetConfigVariableNodeTemplateRequest) => rpcManger.getConfigVariableNodeTemplate(args));
@@ -181,8 +195,9 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(addBreakpointToSource, (args: BreakpointRequest) => rpcManger.addBreakpointToSource(args));
     messenger.onNotification(removeBreakpointFromSource, (args: BreakpointRequest) => rpcManger.removeBreakpointFromSource(args));
     messenger.onRequest(getBreakpointInfo, () => rpcManger.getBreakpointInfo());
+    messenger.onRequest(getFormDiagnostics, (args: FormDiagnosticsRequest) => rpcManger.getFormDiagnostics(args));
     messenger.onRequest(getExpressionDiagnostics, (args: ExpressionDiagnosticsRequest) => rpcManger.getExpressionDiagnostics(args));
-    messenger.onRequest(getAllImports, () => rpcManger.getAllImports());
+    messenger.onRequest(getExpressionTokens, (args: ExpressionTokensRequest) => rpcManger.getExpressionTokens(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));
     messenger.onRequest(getDesignModel, () => rpcManger.getDesignModel());
@@ -190,6 +205,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
+    messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));
+    messenger.onRequest(verifyTypeDelete, (args: VerifyTypeDeleteRequest) => rpcManger.verifyTypeDelete(args));
     messenger.onRequest(getTypeFromJson, (args: JsonToTypeRequest) => rpcManger.getTypeFromJson(args));
     messenger.onRequest(getServiceClassModel, (args: ModelFromCodeRequest) => rpcManger.getServiceClassModel(args));
     messenger.onRequest(updateClassField, (args: ClassFieldModifierRequest) => rpcManger.updateClassField(args));
@@ -205,6 +222,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getFunctionNode, (args: FunctionNodeRequest) => rpcManger.getFunctionNode(args));
     messenger.onRequest(getEndOfFile, (args: EndOfFileRequest) => rpcManger.getEndOfFile(args));
     messenger.onRequest(search, (args: BISearchRequest) => rpcManger.search(args));
+    messenger.onRequest(searchNodes, (args: BISearchNodesRequest) => rpcManger.searchNodes(args));
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());

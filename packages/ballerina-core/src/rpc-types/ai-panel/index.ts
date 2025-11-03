@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -16,9 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { InlineAllDataMapperSourceRequest, MetadataWithAttachments } from "../../interfaces/extended-lang-client";
+import { DataMapperModelResponse } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, GenerateMappingsRequest, GenerateMappingsResponse, NotifyAIMappingsRequest, ProjectSource, ProjectDiagnostics, GenerateMappingsFromRecordRequest, GenerateMappingFromRecordResponse, PostProcessRequest, PostProcessResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, CodeSegment } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -32,19 +31,18 @@ export interface AIPanelAPI {
     getDefaultPrompt: () => Promise<AIPanelPrompt>;
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
     fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    addToProject: (params: AddToProjectRequest) => void;
+    addToProject: (params: AddToProjectRequest) => Promise<boolean>;
     getFromFile: (params: GetFromFileRequest) => Promise<string>;
     getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
     deleteFromProject: (params: DeleteFromProjectRequest) => void;
-    generateMappings: (params: GenerateMappingsRequest) => Promise<GenerateMappingsResponse>;
-    notifyAIMappings: (params: NotifyAIMappingsRequest) => Promise<boolean>;
-    stopAIMappings: () => Promise<GenerateMappingsResponse>;
     getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
     checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
     clearInitialPrompt: () => void;
-    openInlineMappingChatWindow: () => void;
-    getMappingsFromModel: (params: MetadataWithAttachments) => Promise<InlineAllDataMapperSourceRequest>;
-    addInlineCodeSegmentToWorkspace: (params: CodeSegment) => void;
+    // Data-mapper related functions
+    openChatWindowWithCommand: () => void;
+    generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
+    generateMappingCode: (params: ProcessMappingParametersRequest) => void;
+    generateInlineMappingCode: (params: MetadataWithAttachments) => void;
     // Test-generator related functions
     getGeneratedTests: (params: TestGenerationRequest) => Promise<TestGenerationResponse>;
     getTestDiagnostics: (params: TestGenerationResponse) => Promise<ProjectDiagnostics>;
@@ -53,11 +51,8 @@ export interface AIPanelAPI {
     getServiceNames: () => Promise<TestGenerationMentions>;
     getResourceMethodAndPaths: () => Promise<TestGenerationMentions>;
     abortTestGeneration: () => void;
-    getMappingsFromRecord: (params: GenerateMappingsFromRecordRequest) => Promise<GenerateMappingFromRecordResponse>;
-    getTypesFromRecord: (params: GenerateTypesFromRecordRequest) => Promise<GenerateTypesFromRecordResponse>;
     applyDoOnFailBlocks: () => void;
     postProcess: (params: PostProcessRequest) => Promise<PostProcessResponse>;
-    getActiveFile:() => Promise<string>;
     promptGithubAuthorize: () => Promise<boolean>;
     promptWSO2AILogout: () => Promise<boolean>;
     isCopilotSignedIn: () => Promise<boolean>;
@@ -73,8 +68,6 @@ export interface AIPanelAPI {
     updateDevelopmentDocument:(params: DeveloperDocument) => void;
     updateRequirementSpecification:(params: RequirementSpecification) => void;
     createTestDirecoryIfNotExists:(params: string) => void;
-    getModuleDirectory:(params: GetModuleDirParams) => Promise<string>;
-    getContentFromFile: (params: GetFromFileRequest) => Promise<string>;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
     getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
@@ -84,4 +77,10 @@ export interface AIPanelAPI {
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
     generateHealthcareCode: (params: GenerateCodeRequest) => void;
     abortAIGeneration: () => void;
+    // ==================================
+    // Doc Generation Related Functions
+    // ==================================
+    getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
+    addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
+    isUserAuthenticated: () => Promise<boolean>;
 }

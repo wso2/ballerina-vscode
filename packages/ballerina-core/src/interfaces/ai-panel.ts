@@ -25,6 +25,7 @@ export enum Command {
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
+    Doc = '/doc'
 }
 
 export enum TemplateId {
@@ -52,4 +53,7 @@ export enum TemplateId {
     GenerateCodeFromRequirements = 'generate-code-from-requirements',
     GenerateTestFromRequirements = 'generate-test-from-requirements',
     GenerateCodeFromFollowingRequirements = 'generate-code-from-following-requirements',
+
+    // Command.Doc
+    GenerateUserDoc = 'generate-user-doc'
 }

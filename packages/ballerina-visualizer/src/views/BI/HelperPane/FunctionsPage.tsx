@@ -17,7 +17,7 @@
  */
 
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { Codicon, COMPLETION_ITEM_KIND, getIcon, HelperPane, Overlay, ThemeColors } from '@wso2/ui-toolkit';
+import { Codicon, COMPLETION_ITEM_KIND, getIcon, HelperPane, Icon, Overlay, ThemeColors } from '@wso2/ui-toolkit';
 import { LibraryBrowser } from './LibraryBrowser';
 import { HelperPaneCompletionItem, HelperPaneFunctionInfo } from '@wso2/ballerina-side-panel';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -42,7 +42,7 @@ type FunctionsPageProps = {
     fieldKey: string;
     anchorRef: RefObject<HTMLDivElement>;
     fileName: string;
-    targetLineRange: LineRange;
+    targetLineRange?: LineRange;
     onClose: () => void;
     onChange: (insertText: CompletionInsertText) => void;
     updateImports: (key: string, imports: {[key: string]: string}) => void;

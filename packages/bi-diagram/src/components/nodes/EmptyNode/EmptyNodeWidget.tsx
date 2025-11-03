@@ -28,12 +28,13 @@ import AddCommentPopup from "../../AddCommentPopup";
 import AddPromptPopup from "../../AddPromptPopup";
 
 namespace S {
-    export const Node = styled.div<{}>`
+    export const Node = styled.div<{ readOnly: boolean }>`
         display: flex;
         justify-content: center;
         align-items: center;
         width: ${EMPTY_NODE_WIDTH}px;
         height: ${EMPTY_NODE_WIDTH}px;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export type CircleStyleProp = {
@@ -50,7 +51,7 @@ namespace S {
         border: 2px solid ${(props: CircleStyleProp) => (props.show ? ThemeColors.PRIMARY : "transparent")};
         background-color: ${(props: CircleStyleProp) => (props.show ? ThemeColors.PRIMARY_CONTAINER : "transparent")};
         border-radius: 50%;
-        cursor: ${(props: CircleStyleProp) => (props.clickable ? "pointer" : "default")};
+        cursor: ${(props: CircleStyleProp) => (props.clickable ? "pointer" : "not-allowed")};
     `;
 
     export const TopPortWidget = styled(PortWidget)`
@@ -80,7 +81,7 @@ interface EmptyNodeWidgetProps {
 
 export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const { node, engine } = props;
-    const { onAddNode, onAddNodePrompt } = useDiagramContext();
+    const { onAddNode, onAddNodePrompt, readOnly, isUserAuthenticated } = useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isCommentButtonHovered, setIsCommentButtonHovered] = useState(false);
@@ -92,6 +93,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const isPromptBoxOpen = Boolean(promptAnchorEl);
 
     const handleAddNode = () => {
+        if (readOnly) {
+            return;
+        }
         const topNode = node.getTopNode();
         if (!topNode) {
             console.error(">>> EmptyNodeWidget: handleAddNode: top node not found");
@@ -106,6 +110,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     const handleAddPrompt = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (!onAddNodePrompt) {
             console.error(">>> EmptyNodeWidget: handleAddPrompt: onAddNodePrompt not found");
             return;
@@ -125,6 +132,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     const handleAddComment = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setCommentAnchorEl(event.currentTarget);
     };
 
@@ -134,8 +144,12 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     };
 
     return (
-        <S.Node onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            <S.Circle show={node.isVisible()} clickable={node.showButton}>
+        <S.Node
+            readOnly={readOnly}
+            onMouseEnter={() => !readOnly && setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <S.Circle show={node.isVisible()} clickable={node.showButton && !readOnly}>
                 <S.TopPortWidget port={node.getPort("in")!} engine={engine} />
                 {node.showButton && (
                     <div
@@ -176,11 +190,11 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                             height="20"
                             viewBox="0 0 24 24"
                             onClick={handleAddNode}
-                            onMouseEnter={() => setIsNodeButtonHovered(true)}
+                            onMouseEnter={() => !readOnly && setIsNodeButtonHovered(true)}
                             onMouseLeave={() => setIsNodeButtonHovered(false)}
-                            css={css`
-                                cursor: pointer;
-                            `}
+                            // css={css`
+                            //     cursor: pointer;
+                            // `}
                         >
                             <path
                                 fill={ThemeColors.SURFACE_BRIGHT}
@@ -196,21 +210,22 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
-                            onClick={handleAddPrompt}
+                            onClick={isUserAuthenticated ? handleAddPrompt : undefined}
                             onMouseEnter={() => setIsPromptButtonHovered(true)}
                             onMouseLeave={() => setIsPromptButtonHovered(false)}
                             css={css`
                                 display: ${isHovered ? "flex" : "none"};
                                 animation: ${fadeInZoomIn} 0.2s ease-out forwards;
-                                cursor: pointer;
+                                cursor: ${isUserAuthenticated ? "pointer" : "not-allowed"};
                             `}
                         >
+                            {!isUserAuthenticated && <title>You need to be logged into BI Copilot to access AI features</title>}
                             <path
                                 fill={ThemeColors.SURFACE_BRIGHT}
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                             />
                             <path
-                                fill={isPromptButtonHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY}
+                                fill={!isUserAuthenticated ? ThemeColors.OUTLINE_VARIANT : (isPromptButtonHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY)}
                                 d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
                             />
                         </svg>

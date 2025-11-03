@@ -88,7 +88,16 @@ import {
     DeleteConfigVariableResponseV2,
     DeleteConfigVariableRequestV2,
     JsonToTypeRequest,
-    JsonToTypeResponse
+    JsonToTypeResponse,
+    ConfigVariableRequest,
+    DeleteTypeRequest,
+    DeleteTypeResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -101,7 +110,6 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
-    ProjectImports,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -123,6 +131,8 @@ export interface BIDiagramAPI {
     getAvailableVectorStores: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getAvailableEmbeddingProviders: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getAvailableVectorKnowledgeBases: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
+    getAvailableDataLoaders: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
+    getAvailableChunkers: (params: BIAvailableNodesRequest) => Promise<BIAvailableNodesResponse>;
     getEnclosedFunction: (params: BIGetEnclosedFunctionRequest) => Promise<BIGetEnclosedFunctionResponse>;
     getNodeTemplate: (params: BINodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
@@ -136,7 +146,7 @@ export interface BIDiagramAPI {
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
     getConfigVariables: () => Promise<ConfigVariableResponse>;
     updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
-    getConfigVariablesV2: () => Promise<ConfigVariableResponse>;
+    getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
     getConfigVariableNodeTemplate: (params: GetConfigVariableNodeTemplateRequest) => Promise<BINodeTemplateResponse>;
@@ -153,8 +163,8 @@ export interface BIDiagramAPI {
     addBreakpointToSource: (params: BreakpointRequest) => void;
     removeBreakpointFromSource: (params: BreakpointRequest) => void;
     getBreakpointInfo: () => Promise<CurrentBreakpointsResponse>;
+    getFormDiagnostics: (params: FormDiagnosticsRequest) => Promise<FormDiagnosticsResponse>;
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
-    getAllImports: () => Promise<ProjectImports>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
     getDesignModel: () => Promise<BIDesignModelResponse>;
@@ -162,11 +172,13 @@ export interface BIDiagramAPI {
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateTypes: (params: UpdateTypesRequest) => Promise<UpdateTypesResponse>;
+    deleteType: (params: DeleteTypeRequest) => Promise<DeleteTypeResponse>;
+    verifyTypeDelete: (params: VerifyTypeDeleteRequest) => Promise<VerifyTypeDeleteResponse>;
     getTypeFromJson: (params: JsonToTypeRequest) => Promise<JsonToTypeResponse>;
     getServiceClassModel: (params: ModelFromCodeRequest) => Promise<ServiceClassModelResponse>;
     updateClassField: (params: ClassFieldModifierRequest) => Promise<SourceEditResponse>;
     addClassField: (params: AddFieldRequest) => Promise<SourceEditResponse>;
-    updateServiceClass: (params: ServiceClassSourceRequest) => Promise<SourceEditResponse>;
+    updateServiceClass: (params: ServiceClassSourceRequest) => Promise<UpdatedArtifactsResponse>;
     createGraphqlClassType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     getRecordConfig: (params: GetRecordConfigRequest) => Promise<GetRecordConfigResponse>;
     updateRecordConfig: (params: UpdateRecordConfigRequest) => Promise<GetRecordConfigResponse>;
@@ -177,6 +189,7 @@ export interface BIDiagramAPI {
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
     getEndOfFile: (params: EndOfFileRequest) => Promise<LinePosition>;
     search: (params: BISearchRequest) => Promise<BISearchResponse>;
+    searchNodes: (params: BISearchNodesRequest) => Promise<BISearchNodesResponse>;
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;
     getDevantMetadata: () => Promise<DevantMetadata | undefined>;

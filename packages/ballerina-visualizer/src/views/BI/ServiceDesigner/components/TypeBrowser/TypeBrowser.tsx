@@ -146,25 +146,6 @@ export const TypeBrowser: React.FC<TypeBrowserProps> = (props: TypeBrowserProps)
     const [isTextFieldFocused, setIsTextFieldFocused] = useState(false);
     const inputRef = useRef(null);
 
-    const { rpcClient } = useRpcContext();
-
-
-    const fetchTypes = async () => {
-        const types = await rpcClient.getCommonRpcClient().getTypes();
-        setItems(types.data.map((type: any) => type.insertText));
-    };
-
-    useEffect(() => {
-        fetchTypes();
-    }, []);
-
-
-    const handleArrayChange = (value: boolean) => {
-        if (selectedItem) {
-            handleChange(selectedItem, value); // Call handleChange with the selectedItem
-        }
-    }
-
     const handleCreateNewRecord = async (name: string) => {
         const source = `type ${name} record {};`;
         const position = serviceEndPosition!;
@@ -179,7 +160,6 @@ export const TypeBrowser: React.FC<TypeBrowserProps> = (props: TypeBrowserProps)
             ...position,
         }]);
         setQuery(name);
-        fetchTypes();
     };
 
     const handleChange = (item: string, isArray: boolean = isTypeArray) => {

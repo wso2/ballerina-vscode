@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, streamText } from "ai";
+import { ModelMessage, streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest, Command } from "@wso2/ballerina-core";
@@ -111,7 +111,7 @@ export async function generateTestPlanCore(
         userPrompt = getFunctionUserPrompt(targetSource);
     }
 
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
         {
             role: "system",
             content: systemPrompt,
@@ -123,7 +123,7 @@ export async function generateTestPlanCore(
     ];
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -136,7 +136,7 @@ export async function generateTestPlanCore(
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = part.text;
                 assistantResponse += textPart;
 
                 // Process through buffer for scenario tag detection

@@ -14,11 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Library } from "../libs/libs_types";
-
 export const REQUIREMENTS_DOCUMENT_KEY: string = "user_requirements_file";
 
-export function getRequirementAnalysisCodeGenPrefix(apidocs: Library[], requirementAnalysisDocument: string) {
+export function getRequirementAnalysisCodeGenPrefix(requirementAnalysisDocument: string) {
     return `You are an expert assistant specializing in the Ballerina programming language. Your goal is to provide accurate and functional Ballerina code in response to queries while adhering to the constraints outlined in the given API documentation.
 
 You are tasked with generating Ballerina code based on a requirement analysis document for a system. The document contains an overview of the system and its use cases. Your objective is to create a Ballerina implementation that reflects the requirements described in the document.
@@ -29,21 +27,14 @@ First, carefully read and analyze the following requirement analysis document an
 ${requirementAnalysisDocument}
 </requirement_analysis_document>
 
-You will be provided with the following inputs:
-
-1. **API_DOCS**: A JSON string containing the API documentation for various Ballerina libraries, including their functions, types, and clients.
-<api_docs>
-${JSON.stringify(apidocs)}
-</api_docs>
-
 ### **Instructions for Handling Missing or Empty Requirement Specification:**
 1. If the requirement specification is **missing** (i.e., the \`<requirement_analysis_document>\` tag is not present in the input) or its content is **empty** (i.e., the content inside the tag is blank), respond with the following message:  
    \`"No requirement specification file found in the natural-programming directory. First, place your requirement specification file there to generate code based on the requirements."\`
    Do not proceed with code generation in this case.
 
-2. If the requirement specification is present and contains valid content, proceed to analyze the document and generate Ballerina code based on the requirements described in it. Use the provided \`API_DOCS\` to ensure the generated code adheres to the correct API usage.
+2. If the requirement specification is present and contains valid content, proceed to analyze the document and generate Ballerina code based on the requirements described in it. Use the LibraryProviderTool to fetch detailed API documentation (clients, functions, types) for only the relevant Ballerina libraries based on the requirements in the document. Use the tool's output as API documentation to ensure the generated code adheres to the correct API usage.
 
-Please add the proper API documentation for each function, service, resource, varaible declarations, type definitions and classes in the generated Ballerina code.
+Please add the proper API documentation for each function, service, resource, variable declarations, type definitions, and classes in the generated Ballerina code.
 
 ### **Output Format:**
 - If the requirement specification is missing or empty, return the message as specified above.  
@@ -58,8 +49,10 @@ Please add the proper API documentation for each function, service, resource, va
 \`\`\`xml
 <requirement_analysis_document>
 </requirement_analysis_document>
+\`\`\`
 
-<api_docs>
+##### **LibraryProviderTool Output:**
+\`\`\`json
 {
   "ballerina/io": {
     "functions": {
@@ -70,7 +63,6 @@ Please add the proper API documentation for each function, service, resource, va
     }
   }
 }
-</api_docs>
 \`\`\`
 
 ##### **Expected Output:**
@@ -84,8 +76,10 @@ No requirement specification file found in the natural-programming directory. Fi
 <requirement_analysis_document>
 The system should print "Hello, World!" to the console when executed.
 </requirement_analysis_document>
+\`\`\`
 
-<api_docs>
+##### **LibraryProviderTool Output:**
+\`\`\`json
 {
   "ballerina/io": {
     "functions": {
@@ -96,7 +90,6 @@ The system should print "Hello, World!" to the console when executed.
     }
   }
 }
-</api_docs>
 \`\`\`
 
 ##### **Expected Output:**
@@ -112,16 +105,12 @@ public function main() {
 
 
 
-export function getRequirementAnalysisTestGenPrefix(apidocs: Library[], requirementAnalysisDocument: string) {
+export function getRequirementAnalysisTestGenPrefix(requirementAnalysisDocument: string) {
     return `**Objective**:  
 You are an expert test automation engineer specializing in generating test artifacts for Ballerina entities. Your task is to create comprehensive test implementations based on the provided requirement specification, service interfaces, and a test plan written in the console.
 
 **Inputs**:
 1. **Requirement Document**: ${requirementAnalysisDocument}  
-3. **API_DOCS**: A JSON string that includes API documentation for different Ballerina libraries, covering their functions, types, and clients.  
-\`\`\`json
-${JSON.stringify(apidocs)}
-\`\`\`
 
 **Output Requirements**:
 1. **Executable Test Suite** (Ballerina test code)  
@@ -149,7 +138,8 @@ ${JSON.stringify(apidocs)}
    - Return types and response structures
    - Documented error types
    - Configurable variables
-3. Write test plan that containing:
+3. Use the LibraryProviderTool to fetch detailed API documentation (clients, functions, types) for only the relevant Ballerina libraries based on the requirements and interfaces. Use the tool's output as API documentation.
+4. Write test plan that containing:
    - Test objectives mapping to functional requirements
    - Test objectives mapping to non functional requirements
    - For each and every interface extracted in step 2, generate:
@@ -158,10 +148,10 @@ ${JSON.stringify(apidocs)}
         - Boundary/edge cases
         - Data requirements
         - Success metrics
-        - error handling scenarios
+        - Error handling scenarios
 
 [PHASE 2: TEST IMPLEMENTATION]
-1. Identify the imports required for the test module.
+1. Identify the imports required for the test module based on the API documentation from the LibraryProviderTool.
 
 2. Create Ballerina test module with:
    - Network client configurations (if required, e.g., HTTP, GraphQL, WebSocket, etc.)
@@ -267,7 +257,7 @@ function testCreateResource() returns error? {
 
 ### **Output: Test Implementation**
 \`\`\`toml
-# tsts/Config.toml
+# tests/Config.toml
 host = "http://localhost:9090"
 \`\`\`
 

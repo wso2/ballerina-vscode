@@ -54,7 +54,7 @@ export const placeholderTags: PlaceholderTagMap = {
             functionName: [],
         },
         'mappings-for-function': {
-            functionName: []
+            functionName: [],
         },
         'inline-mappings': {}
     },
@@ -72,4 +72,9 @@ export const placeholderTags: PlaceholderTagMap = {
     [Command.OpenAPI]: {
         'wildcard': {},
     },
+    [Command.Doc]: {
+        'generate-user-doc': {
+            servicename: [],
+        }
+    }
 };
