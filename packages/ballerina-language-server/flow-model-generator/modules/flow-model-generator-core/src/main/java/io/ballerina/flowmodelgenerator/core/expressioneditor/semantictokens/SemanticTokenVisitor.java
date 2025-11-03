@@ -30,7 +30,6 @@ import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.tools.text.LinePosition;
@@ -41,6 +40,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -116,8 +116,10 @@ public class SemanticTokenVisitor extends NodeVisitor {
     private void handleFieldAccessLogic(Node node, ExpressionNode expression, Node fieldName) {
         // Find the leftmost node
         ExpressionNode leftmostExpression = expression;
-        while (leftmostExpression.kind() == SyntaxKind.FIELD_ACCESS) {
-            leftmostExpression = ((FieldAccessExpressionNode) leftmostExpression).expression();
+        Optional<ExpressionNode> fieldExpressionNode = getFieldExpressionNode(expression);
+        while (fieldExpressionNode.isPresent()) {
+            leftmostExpression = fieldExpressionNode.get();
+            fieldExpressionNode = getFieldExpressionNode(leftmostExpression);
         }
 
         // Mark the field as variable if the expression is a variable reference
@@ -137,6 +139,23 @@ public class SemanticTokenVisitor extends NodeVisitor {
         // Visit the expression part (left side)
         expression.accept(this);
     }
+
+    /**
+     * Return the inner expression if {@code expression} is a field access (regular or optional).
+     *
+     * @param expression expression to inspect
+     * @return optional inner {@link ExpressionNode} or {@link Optional#empty()} if not a field access
+     */
+    private static Optional<ExpressionNode> getFieldExpressionNode(ExpressionNode expression) {
+        if (expression instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
+            return Optional.of(fieldAccessExpressionNode.expression());
+        }
+        if (expression instanceof OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+            return Optional.of(optionalFieldAccessExpressionNode.expression());
+        }
+        return Optional.empty();
+    }
+
 
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
