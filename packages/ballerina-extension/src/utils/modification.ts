@@ -22,6 +22,8 @@ import { URI } from "vscode-uri";
 import { writeFileSync } from "fs";
 import { StateMachine, updateView } from "../stateMachine";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "./project-artifacts-handler";
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 interface UpdateFileContentRequest {
     filePath: string;
@@ -54,7 +56,7 @@ export async function modifyFileContent(params: UpdateFileContentRequest): Promi
         }
         return doc.save();
     } else {
-        writeBallerinaFileDidOpen(normalizedFilePath, content);
+        await writeBallerinaFileDidOpen(normalizedFilePath, content);
         StateMachine.langClient().updateStatusBar();
         if (updateViewFlag) {
             updateView();
@@ -62,6 +64,31 @@ export async function modifyFileContent(params: UpdateFileContentRequest): Promi
     }
 
     return false;
+}
+
+export function writeBallerinaFileDidOpenTemp(filePath: string, content: string) {
+    // Replace the selection with:
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(filePath, content.trim());
+    StateMachine.langClient().didChange({
+        textDocument: { uri: filePath, version: 1 },
+        contentChanges: [
+            {
+                text: content,
+            },
+        ],
+    });
+    StateMachine.langClient().didOpen({
+        textDocument: {
+            uri: Uri.file(filePath).toString(),
+            languageId: 'ballerina',
+            version: 1,
+            text: content.trim()
+        }
+    });
 }
 
 export async function writeBallerinaFileDidOpen(filePath: string, content: string) {

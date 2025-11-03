@@ -95,6 +95,19 @@ export const useFooterLogic = ({
                 kind: "placeholder-specific",
             }))
         );
+
+        // === Command.Doc ===
+        injectTags(
+            Command.Doc,
+            "generate-user-doc",
+            "servicename",
+            serviceNames.map((serviceName) => ({
+                display: `@${serviceName}`,
+                value: serviceName,
+                injected: true,
+                kind: "placeholder-specific",
+            }))
+        );
     };
 
     return {

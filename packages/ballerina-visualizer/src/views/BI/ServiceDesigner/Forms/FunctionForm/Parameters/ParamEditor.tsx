@@ -24,9 +24,9 @@ import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
 import { TypeBrowser } from '../../../components/TypeBrowser/TypeBrowser';
 import { PARAM_TYPES } from '../../../definitions';
-import { ParameterModel } from '@wso2/ballerina-core';
+import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 
-const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "Header" }];
+const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "HEADER" }];
 
 export interface ParamProps {
     param: ParameterModel;
@@ -40,7 +40,7 @@ export function ParamEditor(props: ParamProps) {
     const { param, hideType = false, onChange, onSave, onCancel } = props;
 
     const handleOnSelect = (value: string) => {
-        onChange({ ...param, httpParamType: value as "QUERY" | "Header" | "PAYLOAD" });
+        onChange({ ...param, httpParamType: value as "QUERY" | "HEADER" | "PAYLOAD" });
     };
 
     const handleTypeChange = (value: string) => {
@@ -52,7 +52,7 @@ export function ParamEditor(props: ParamProps) {
     };
 
     const handleValueChange = (value: string) => {
-        onChange({ ...param, defaultValue: { ...param.defaultValue, value } });
+        onChange({ ...param, defaultValue: { ...(param.defaultValue as PropertyModel), value } });
     };
 
     const handleReqFieldChange = () => {
@@ -111,7 +111,7 @@ export function ParamEditor(props: ParamProps) {
                         sx={{ width: "100%" }}
                         placeholder='Enter default value'
                         errorMsg={""}
-                        value={param.defaultValue.value}
+                        value={(param.defaultValue as PropertyModel).value}
                         onTextChange={handleValueChange}
                     />
                 )}

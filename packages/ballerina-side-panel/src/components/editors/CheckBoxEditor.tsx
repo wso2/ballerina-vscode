@@ -41,7 +41,6 @@ const LabelGroup = styled.div`
 const BoxGroup = styled.div`
     display: flex;
     flex-direction: row;
-    gap: 12px;
     width: 100%;
     align-items: flex-start;
 `;
@@ -54,12 +53,32 @@ interface TextEditorProps {
 export function CheckBoxEditor(props: TextEditorProps) {
     const { field } = props;
     const { form } = useFormContext();
-    const { register, control } = form;
+    const { register, control, setValue } = form;
+
+    const getBooleanValue = (value: any) => {
+        if (field.type === "FLAG") {
+            return value === "true" || value === true;
+        }
+        return value;
+    };
+
+    const handleChange = (e: any) => {
+        const checked = e.target.value;
+        setValue(field.key, checked);
+        field.onValueChange?.(checked);
+    };
 
     return (
         <CheckBoxGroup containerSx={{ width: "100%" }}>
             <BoxGroup>
-                <FormCheckBox name={field.key} {...register(field.key)} control={control as any} />
+                <FormCheckBox
+                    name={field.key}
+                    {...register(field.key, {
+                        value: getBooleanValue(field.value),
+                        onChange: handleChange
+                    })}
+                    control={control as any}
+                />
                 <LabelGroup>
                     <Label>{field.label}</Label>
                     <Description>{field.documentation}</Description>

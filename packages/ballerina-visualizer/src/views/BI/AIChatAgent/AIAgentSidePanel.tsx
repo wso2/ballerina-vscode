@@ -527,6 +527,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             }
         }
 
+        if (clonedFlowNode?.properties?.variable?.value == "") {
+            clonedFlowNode.properties.variable.value = flowNode.current?.properties?.variable?.value || cleanName + "Result";
+        }
+
         console.log(">>> toolParameters", { toolParameters });
         console.log(">>> clonedFunctionNode", { clonedFunctionNode });
         console.log(">>> clonedFlowNode", { clonedFlowNode });

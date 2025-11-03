@@ -77,3 +77,8 @@ export const INVALID_RECORD_UNION_TYPE: ErrorCode = {
     code: 14,
     message: "AI data mapper does not support input or output as a union of records."
 };
+
+export const INVALID_RECORD_REFERENCE: ErrorCode = {
+    code: 15,
+    message: "Invalid record reference. Follow <org-name>/<package-name>:<record-name> format when referencing to record in another package."
+};

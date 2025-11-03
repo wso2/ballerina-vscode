@@ -22,7 +22,7 @@ export type Item = Category | Node;
 export type Category = {
     title: string;
     description: string;
-    icon?: React.JSX.Element;
+    icon?: React.ReactElement;
     items: Item[];
 };
 
@@ -30,7 +30,7 @@ export type Node = {
     id: string;
     label: string;
     description: string;
-    icon?: React.JSX.Element;
+    icon?: React.ReactElement;
     enabled?: boolean;
     metadata?: any;
 };

@@ -153,19 +153,19 @@ export function FunctionCard(params: FunctionCardProps) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(functionModel.accessor?.value || functionModel.kind)}>
-                        {functionModel.accessor?.value || functionModel.kind.toLowerCase()}
+                        {functionModel.accessor?.value?.toUpperCase() || functionModel.kind.toLowerCase()}
                     </MethodBox>
                     <MethodPath>{functionModel.name.value}</MethodPath>
                 </MethodSection>
                 <ButtonSection>
                     <>
                         {onEditResource! && (
-                            <VSCodeButton appearance="icon" title="Edit Method" onClick={handleEditResource}>
+                            <VSCodeButton data-testid={`edit-method-button-${functionModel.name.value}`} appearance="icon" title="Edit Method" onClick={handleEditResource}>
                                 <Icon name="bi-edit" sx={{ marginTop: 3.5 }} />
                             </VSCodeButton>
                         )}
                         {onDeleteResource! && (
-                            <VSCodeButton appearance="icon" title="Delete Method" onClick={handleDeleteResource}>
+                            <VSCodeButton data-testid={`delete-method-button-${functionModel.name.value}`} appearance="icon" title="Delete Method" onClick={handleDeleteResource}>
                                 <Codicon name="trash" />
                             </VSCodeButton>
                         )}

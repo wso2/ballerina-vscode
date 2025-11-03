@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import { SCOPE } from '@wso2/ballerina-core';
+import { SCOPE, TomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse } from 'toml';
 
 export enum VERSION {
     BETA = 'beta',
@@ -60,6 +61,16 @@ export function getPluginConfig(): BallerinaPluginConfig {
 
 export function isWindows(): boolean {
     return process.platform === "win32";
+}
+
+export function isWSL(): boolean {
+    // Check for WSL environment indicators
+    return process.platform === "linux" && (
+        process.env.WSL_DISTRO_NAME !== undefined ||
+        process.env.WSLENV !== undefined ||
+        (process.env.PATH && process.env.PATH.includes('/mnt/c/')) ||
+        (process.env.TERM_PROGRAM && process.env.TERM_PROGRAM.includes('vscode'))
+    );
 }
 
 export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, supportedRelease: VERSION,
@@ -123,26 +134,26 @@ export function checkIsBallerina(uri: Uri): boolean {
 
 export function getOrgPackageName(projectPath: string): { orgName: string, packageName: string } {
     const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-    
+
     // Regular expressions for Ballerina.toml parsing
     const ORG_REGEX = /\[package\][\s\S]*?org\s*=\s*["']([^"']*)["']/;
     const NAME_REGEX = /\[package\][\s\S]*?name\s*=\s*["']([^"']*)["']/;
 
     if (!fs.existsSync(ballerinaTomlPath)) {
-        return {orgName: '', packageName: ''};
+        return { orgName: '', packageName: '' };
     }
-    
+
     try {
         const tomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
-        
+
         // Extract org name and package name
         const orgName = tomlContent.match(ORG_REGEX)?.[1] || '';
         const packageName = tomlContent.match(NAME_REGEX)?.[1] || '';
-        
-        return {orgName, packageName};
+
+        return { orgName, packageName };
     } catch (error) {
         console.error(`Error reading Ballerina.toml: ${error}`);
-        return {orgName: '', packageName: ''};
+        return { orgName: '', packageName: '' };
     }
 }
 
@@ -172,4 +183,17 @@ export function setupBIFiles(projectDir: string): void {
             fs.writeFileSync(filePath, '');
         }
     });
+}
+
+export async function getProjectTomlValues(projectPath: string): Promise<TomlValues> {
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
 }

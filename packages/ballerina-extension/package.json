@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.3.1",
+    "version": "5.4.2",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -24,6 +24,7 @@
         "Snippets"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onLanguage:ballerina",
         "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
@@ -213,12 +214,24 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
-                "ballerina.includeCurrentOrganizationInSearch": {
+                "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Include components from the current organization in the search. This queries the Ballerina Central using the organization specified in the `Ballerina.toml`.",
-                    "tags": [
-                        "experimental"
+                    "description": "Show advanced AI nodes (Chunker, Vector Store, Embedding Provider, Recursive Document Chunker) in the Flow Diagram View's node palette."
+                },
+                "ballerina-vscode.trace.server": {
+                    "type": "string",
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the Ballerina language server.",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "enumDescriptions": [
+                        "No traces",
+                        "Trace request/response messages only",
+                        "Trace request/response messages with parameters and content"
                     ]
                 }
             }
@@ -613,6 +626,13 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.add-custom-connector",
+                "title": "Add Custom Connector",
+                "icon": "$(add)",
+                "group": "navigation",
+                "category": "BI"
+            },
+            {
                 "command": "BI.project-explorer.delete",
                 "title": "Delete",
                 "icon": "$(trash)",
@@ -693,6 +713,11 @@
                 "title": "Add Natural Function",
                 "icon": "$(add)",
                 "group": "navigation",
+                "category": "BI"
+            },
+            {
+                "command": "BI.toggle.trace.logs",
+                "title": "Toggle Trace Logs",
                 "category": "BI"
             }
         ],
@@ -941,21 +966,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16c"
+                    "fontCharacter": "\\f199"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f119"
+                    "fontCharacter": "\\f20f"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16f"
+                    "fontCharacter": "\\f194"
                 }
             },
             "distro-source-view": {
@@ -969,7 +994,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f132"
+                    "fontCharacter": "\\f1ea"
                 }
             },
             "distro-cached-rounded": {
@@ -1093,6 +1118,8 @@
         "watch-ballerina": "webpack --mode none --watch",
         "test-compile": "tsc -p ./",
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
+        "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
+        "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.83.1 && npx extest get-chromedriver -c 1.83.1 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
@@ -1110,21 +1137,24 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
+        "@ai-sdk/amazon-bedrock": "^3.0.25",
+        "@ai-sdk/anthropic": "^2.0.20",
         "@types/lodash": "^4.14.200",
-        "@ai-sdk/anthropic": "^1.2.12",
-        "ai": "^4.3.16",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^2.22.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
-        "@wso2/wso2-platform-core": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
+        "@wso2/wso2-platform-core": "workspace:*",
+        "ai": "^5.0.56",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
+        "dotenv": "~16.5.0",
         "file-uri-to-path": "^2.0.0",
         "glob": "^7.2.3",
         "handlebars": "~4.7.8",
+        "jwt-decode": "^4.0.0",
         "lodash": "^4.17.21",
         "monaco-languageclient": "0.13.1-next.9",
         "node-fetch": "^3.3.2",
@@ -1132,6 +1162,7 @@
         "portfinder": "^1.0.32",
         "source-map-support": "^0.5.21",
         "toml": "^3.0.0",
+        "uuid": "^11.1.0",
         "vscode-debugadapter": "^1.51.0",
         "vscode-debugprotocol": "^1.51.0",
         "vscode-extension-telemetry": "^0.1.7",
@@ -1144,10 +1175,7 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "uuid": "^11.1.0",
-        "jwt-decode": "^4.0.0",
-        "dotenv": "~16.5.0",
-        "zod": "^3.25.74"
+        "zod": "^4.1.8"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
@@ -1157,7 +1185,8 @@
         "@types/tcp-port-used": "^1.0.3",
         "@types/vscode": "^1.83.1",
         "@types/vscode-notebook-renderer": "~1.72.2",
-        "axios": "^1.6.0",
+        "adm-zip": "^0.5.16",
+        "axios": "^1.12.0",
         "chai": "^4.3.10",
         "copyfiles": "^2.4.1",
         "cross-env": "^7.0.3",
@@ -1183,8 +1212,7 @@
         "webpack": "^5.89.0",
         "webpack-cli": "^6.0.1",
         "webpack-merge-and-include-globally": "^2.3.4",
-        "yarn": "^1.22.19",
-        "adm-zip": "^0.5.16"
+        "yarn": "^1.22.19"
     },
     "extensionPack": [
         "be5invis.toml"

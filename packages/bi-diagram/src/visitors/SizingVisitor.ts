@@ -295,7 +295,7 @@ export class SizingVisitor implements BaseVisitor {
     endVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         const width = COMMENT_NODE_WIDTH;
-        const height = NODE_HEIGHT;
+        const height = NODE_HEIGHT + NODE_GAP_Y;
         this.setNodeSize(node, 0, width, height);
     }
 

@@ -31,7 +31,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
     devtoolModuleFilenameTemplate: '../[resource-path]'
   },
-  devtool: 'source-map',
+  devtool: !process.env.CI ? "source-map" : undefined,
   externals: {
     keytar: "commonjs keytar",
     vscode: 'commonjs vscode',

@@ -21,7 +21,7 @@ import React from "react";
 import { ParamIcon } from "./ParamIcon";
 import { CheckBox, Codicon } from "@wso2/ui-toolkit";
 import { ActionIconWrapper, ContentSection, DeleteIconWrapper, EditIconWrapper, HeaderLabel, IconTextWrapper, IconWrapper, OptionLabel, disabledHeaderLabel, headerLabelStyles } from "../../../styles";
-import { ParameterModel } from "@wso2/ballerina-core";
+import { ParameterModel, PropertyModel } from "@wso2/ballerina-core";
 
 interface ParamItemProps {
     param: ParameterModel;
@@ -33,7 +33,8 @@ interface ParamItemProps {
 export function ParamItem(props: ParamItemProps) {
     const { param, readonly, onDelete, onEditClick } = props;
 
-    const label = param?.type.value ? `${param.type.value} ${param.name.value}${param.defaultValue?.value ? ` = ${param.defaultValue.value}` : ""}`
+    const defaultValue = param.defaultValue as PropertyModel;
+    const label = param?.type.value ? `${param.type.value} ${param.name.value}${defaultValue?.value ? ` = ${defaultValue.value}` : ""}`
         : `${param.name.value}`;
 
     const handleDelete = () => {

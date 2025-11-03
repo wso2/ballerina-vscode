@@ -43,8 +43,11 @@ export interface CommonRPCAPI {
     runBackgroundTerminalCommand: (params: RunExternalCommandRequest) => Promise<RunExternalCommandResponse>;
     openExternalUrl: (params: OpenExternalUrlRequest) => void;
     selectFileOrDirPath: (params: FileOrDirRequest) => Promise<FileOrDirResponse>;
+    selectFileOrFolderPath: () => Promise<FileOrDirResponse>;
     experimentalEnabled: () => Promise<boolean>;
     isNPSupported: () => Promise<boolean>;
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
+    getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
+
 }

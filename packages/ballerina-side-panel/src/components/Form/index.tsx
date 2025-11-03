@@ -27,6 +27,7 @@ import {
     SidePanelBody,
     CheckBox,
     Typography,
+    CompletionItem
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
@@ -44,7 +45,9 @@ import {
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
+    Type,
     VisualizableField,
+    NodeProperties,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -240,14 +243,12 @@ namespace S {
             font-family: var(--vscode-font-family);
         }
 
-        code {
-            // hide code blocks
+        pre {
             display: none;
         }
 
-        pre {
-            // hide code blocks
-            display: none;
+        code {
+            display: inline;
         }
 
         ul,
@@ -318,8 +319,10 @@ export interface FormProps {
     projectPath?: string;
     selectedNode?: NodeKind;
     onSubmit?: (data: FormValues, dirtyFields?: any) => void;
+    onBlur?: (data: FormValues, dirtyFields?: any) => void;
+    onFormValidation?: (data: FormValues, dirtyFields?: any) => Promise<boolean>;
     isSaving?: boolean;
-    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField) => void;
+    openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
     openView?: (filePath: string, position: NodePosition) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
@@ -339,21 +342,26 @@ export interface FormProps {
     concertRequired?: boolean;
     concertMessage?: string;
     formImports?: FormImports;
+    popupManager?: {
+        addPopup: (modal: React.ReactNode, id: string, title: string, height?: number, width?: number) => void;
+        removeLastPopup: () => void;
+        closePopup: (id: string) => void;
+    }
     preserveOrder?: boolean;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
-    newServerUrl?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
-    mcpTools?: { name: string; description?: string }[]; 
-    onToolsChange?: (selectedTools: string[]) => void;
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
+    changeOptionalFieldTitle?: string; // Option to change the title of optional fields
+    openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
 }
 
-export const Form = forwardRef((props: FormProps, ref) => {
+export const Form = forwardRef((props: FormProps) => {
     const {
         infoLabel,
         formFields,
@@ -362,6 +370,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
         cancelText,
         actionButton,
         onSubmit,
+        onBlur,
+        onFormValidation,
         isSaving,
         onCancelForm,
         oneTimeForm,
@@ -371,26 +381,24 @@ export const Form = forwardRef((props: FormProps, ref) => {
         expressionEditor,
         targetLineRange,
         fileName,
-        updatedExpressionField,
-        resetUpdatedExpressionField,
-        mergeFormDataWithFlowNode,
         handleVisualizableFields,
         visualizableField,
         recordTypeFields,
         nestedForm,
+        popupManager,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
         concertMessage,
         formImports,
         preserveOrder = false,
+        handleSelectedTypeChange,
         scopeFieldAddon,
-        newServerUrl,
-        mcpTools,
-        onToolsChange,
         injectedComponents,
         hideSaveButton = false,
         onValidityChange,
+        changeOptionalFieldTitle = undefined,
+        openFormTypeEditor
     } = props;
 
     const {
@@ -413,11 +421,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
+    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Optional Configurations");
 
     const markdownRef = useRef<HTMLDivElement>(null);
 
     const [isUserConcert, setIsUserConcert] = useState(false);
     const [savingButton, setSavingButton] = useState<string | null>(null);
+    const [isValidatingForm, setIsValidatingForm] = useState(false);
 
 
     useEffect(() => {
@@ -431,12 +441,16 @@ export const Form = forwardRef((props: FormProps, ref) => {
             formFields.forEach((field) => {
                 if (isDropdownField(field)) {
                     defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                } else if (field.type === "FLAG") {
+                    defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
                 } else if (typeof field.value === "string") {
                     defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                 } else {
                     defaultValues[field.key] = field.value ?? "";
                 }
-
+                if (field.key === "variable") {
+                    defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
+                }
                 if (field.key === "parameters" && field.value.length === 0) {
                     defaultValues[field.key] = formValues[field.key] ?? [];
                 }
@@ -448,7 +462,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
                     if (existingType !== newType) {
                         setValue(field.key, newType);
-                        mergeFormDataWithFlowNode && getVisualiableFields();
+                        getVisualiableFields();
                     }
                 }
 
@@ -477,49 +491,38 @@ export const Form = forwardRef((props: FormProps, ref) => {
             });
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
-        }
-    }, [formFields, reset]);
 
-    useEffect(() => {
-        if (updatedExpressionField) {
-            if (subPanelView === SubPanelView.INLINE_DATA_MAPPER) {
-                const { key, value } = updatedExpressionField;
-                // Update the form field value
-                setValue(key, value);
-                resetUpdatedExpressionField && resetUpdatedExpressionField();
-                // Update the inline data mapper view
-                handleOpenSubPanel({
-                    view: SubPanelView.INLINE_DATA_MAPPER,
-                    props: {
-                        inlineDataMapper: {
-                            filePath: fileName,
-                            flowNode: undefined,
-                            position: {
-                                line: updatedExpressionField.cursorPosition.line,
-                                offset: updatedExpressionField.cursorPosition.offset,
-                            },
-                            propertyKey: updatedExpressionField.key,
-                            editorKey: updatedExpressionField.key,
-                        },
-                    },
-                });
+            if (changeOptionalFieldTitle) {
+                setOptionalFieldsTitle("Optional Listener Configurations");
             }
         }
-    }, [updatedExpressionField]);
+    }, [formFields, reset]);
 
     const handleOnSave = (data: FormValues) => {
         console.log(">>> saved form fields", { data });
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    // Expose a method to trigger the save
-    useImperativeHandle(ref, () => ({
-        triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
-        resetForm: (values) => reset(values),
-    }));
+    const handleFormValidation = async (): Promise<boolean> => {
+        setIsValidatingForm(true);
+        const data = getValues();
+        const validationResult = await onFormValidation(data, dirtyFields);
+        setIsValidatingForm(false);
+        return validationResult;
+    }
 
-    const handleOpenRecordEditor = (open: boolean, typeField?: FormField) => {
-        openRecordEditor?.(open, getValues(), typeField);
+    const handleOnBlur = async () => {
+        onBlur?.(getValues(), dirtyFields);
+    };
+
+    // Expose a method to trigger the save
+    // useImperativeHandle(ref, () => ({
+    //     triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
+    //     resetForm: (values) => reset(values),
+    // }));
+
+    const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
+        openRecordEditor?.(open, getValues(), typeField, newType);
     };
 
     const handleOnShowAdvancedOptions = () => {
@@ -546,20 +549,6 @@ export const Form = forwardRef((props: FormProps, ref) => {
 
     const handleOpenSubPanel = (subPanel: SubPanel) => {
         let updatedSubPanel = subPanel;
-        if (subPanel.view === SubPanelView.INLINE_DATA_MAPPER) {
-            const flowNode = mergeFormDataWithFlowNode(getValues(), targetLineRange);
-            const inlineDMProps = {
-                ...subPanel.props.inlineDataMapper,
-                flowNode: flowNode,
-            };
-            updatedSubPanel = {
-                ...subPanel,
-                props: {
-                    ...subPanel.props,
-                    inlineDataMapper: inlineDMProps,
-                },
-            };
-        }
         openSubPanel(updatedSubPanel);
     };
 
@@ -567,9 +556,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
         getVisualiableFields();
     };
 
+    const handleNewTypeSelected = (type: string | CompletionItem) => {
+        handleSelectedTypeChange && handleSelectedTypeChange(type);
+    }
+
     const getVisualiableFields = () => {
         const typeName = watch("type");
-        handleVisualizableFields && handleVisualizableFields(fileName, typeName);
+        typeName && handleVisualizableFields && handleVisualizableFields(fileName, typeName);
     };
 
     const handleGetExpressionDiagnostics = async (
@@ -620,53 +613,61 @@ export const Form = forwardRef((props: FormProps, ref) => {
         },
         targetLineRange,
         fileName,
+        popupManager: popupManager
     };
 
     // Find the first editable field
     const firstEditableFieldIndex = formFields.findIndex((field) => field.editable !== false);
 
     const isValid = useMemo(() => {
-        if (!diagnosticsInfo) {
-            return true;
-        }
+        let hasDiagnostics: boolean = false;
 
-        let hasDiagnostics: boolean = true;
-        for (const diagnosticsInfoItem of diagnosticsInfo) {
-            const key = diagnosticsInfoItem.key;
-            if (!key) {
-                continue;
-            }
-
-            let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
-            if (diagnostics.length === 0) {
-                clearErrors(key);
-                continue;
-            } else {
-                // Filter the BCE2066 diagnostics
-                diagnostics = diagnostics.filter(
-                    (d) => d.code !== "BCE2066" || d.message !== "incompatible types: expected 'any', found 'error'"
-                );
-
-                const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
-                setError(key, { type: "validate", message: diagnosticsMessage });
-
-                // If the severity is not ERROR, don't invalidate
-                const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
-                if (hasErrorDiagnostics) {
-                    hasDiagnostics = false;
-                } else {
+        // Check diagnostics from diagnosticsInfo state
+        if (diagnosticsInfo) {
+            for (const diagnosticsInfoItem of diagnosticsInfo) {
+                const key = diagnosticsInfoItem.key;
+                if (!key) {
                     continue;
+                }
+
+                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                if (diagnostics.length === 0) {
+                    clearErrors(key);
+                    continue;
+                } else {
+                    // Filter the BCE2066 diagnostics
+                    diagnostics = diagnostics.filter(
+                        (d) => d.code !== "BCE2066" || d.message !== "incompatible types: expected 'any', found 'error'"
+                    );
+
+                    const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
+                    setError(key, { type: "validate", message: diagnosticsMessage });
+
+                    // If the severity is not ERROR, don't invalidate
+                    const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
+                    if (hasErrorDiagnostics) {
+                        hasDiagnostics = true;
+                    } else {
+                        continue;
+                    }
                 }
             }
         }
 
-        return hasDiagnostics;
-    }, [diagnosticsInfo]);
+        // Check diagnostics directly from formFields
+        for (const field of formFields) {
+            if (field.diagnostics && field.diagnostics.length > 0) {
+                hasDiagnostics = true;
+            }
+        }
+
+        return !hasDiagnostics;
+    }, [diagnosticsInfo, formFields]);
 
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
-            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 && 
+            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
@@ -681,8 +682,8 @@ export const Form = forwardRef((props: FormProps, ref) => {
     };
 
     const disableSaveButton =
-        !isValid || isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || Object.keys(errors).length > 0;
+        isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -706,7 +707,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
             prevValuesRef.current = { ...watchedValues };
         }
     }, [watchedValues]);
-    
+
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
@@ -717,9 +718,12 @@ export const Form = forwardRef((props: FormProps, ref) => {
         })();
     };
 
-    const handleOnSaveClick = () => {
+    const handleOnSaveClick = async () => {
         setSavingButton('save');
-        handleSubmit(handleOnSave)();
+        const isValidForm = onFormValidation ? await handleFormValidation() : true;
+        if (isValidForm) {
+            handleSubmit(handleOnSave)();
+        }
     };
 
     return (
@@ -764,55 +768,75 @@ export const Form = forwardRef((props: FormProps, ref) => {
                             .sort((a, b) => b.groupNo - a.groupNo)
                             .filter((field) => field.type !== "VIEW");
 
-                        const renderedComponents = fieldsToRender.reduce<React.ReactNode[]>((acc, field, index) => {
+                        const renderedComponents: React.ReactNode[] = [];
+                        let renderedFieldCount = 0;
+                        const injectedIndices = new Set<number>(); // Track which injections have been added
+
+                        fieldsToRender.forEach((field) => {
+                            // Check if we need to inject components before this field
                             if (injectedComponents) {
                                 injectedComponents.forEach((injected) => {
-                                    if (injected.index === index) {
-                                        acc.push(injected.component);
+                                    if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                        renderedComponents.push(
+                                            <React.Fragment key={`injected-${injected.index}`}>
+                                                {injected.component}
+                                            </React.Fragment>
+                                        );
+                                        injectedIndices.add(injected.index);
                                     }
                                 });
                             }
 
                             if (field.advanced || field.hidden) {
-                                return acc;
+                                return;
                             }
                             // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
                             if (!preserveOrder && isPrioritizedField(field)) {
-                                return acc;
+                                return;
                             }
 
                             const updatedField = updateFormFieldWithImports(field, formImports);
-                            acc.push(
+                            renderedComponents.push(
                                 <S.Row key={updatedField.key}>
                                     <EditorFactory
                                         field={updatedField}
                                         selectedNode={selectedNode}
                                         openRecordEditor={
                                             openRecordEditor &&
-                                            ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
                                         openSubPanel={handleOpenSubPanel}
                                         subPanelView={subPanelView}
                                         handleOnFieldFocus={handleOnFieldFocus}
-                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField)}
+                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                         handleOnTypeChange={handleOnTypeChange}
                                         setSubComponentEnabled={setIsSubComponentEnabled}
-                                        newServerUrl={newServerUrl}
-                                        mcpTools={mcpTools}
-                                        onToolsChange={onToolsChange}
+                                        handleNewTypeSelected={handleNewTypeSelected}
+                                        onBlur={handleOnBlur}
+                                        isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                        openFormTypeEditor={
+                                            openFormTypeEditor &&
+                                            ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                        }
                                     />
                                     {updatedField.key === "scope" && scopeFieldAddon}
                                 </S.Row>
                             );
-                            return acc;
-                        }, []);
+                            renderedFieldCount++;
+                        });
 
+                        // Check if we need to inject components after all fields
                         if (injectedComponents) {
                             injectedComponents.forEach((injected) => {
-                                if (injected.index >= fieldsToRender.length) {
-                                    renderedComponents.push(injected.component);
+                                if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                    renderedComponents.push(
+                                        <React.Fragment key={`injected-${injected.index}`}>
+                                            {injected.component}
+                                        </React.Fragment>
+                                    );
+                                    injectedIndices.add(injected.index);
                                 }
                             });
                         }
@@ -821,7 +845,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     })()}
                     {hasAdvanceFields && (
                         <S.Row>
-                            Optional Configurations
+                            {optionalFieldsTitle}
                             <S.ButtonContainer>
                                 {!showAdvancedOptions && (
                                     <LinkButton
@@ -854,7 +878,7 @@ export const Form = forwardRef((props: FormProps, ref) => {
                     {hasAdvanceFields &&
                         showAdvancedOptions &&
                         formFields.map((field) => {
-                            if (field.advanced) {
+                            if (field.advanced && !field.hidden) {
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
@@ -862,14 +886,14 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                             field={updatedField}
                                             openRecordEditor={
                                                 openRecordEditor &&
-                                                ((open: boolean) => handleOpenRecordEditor(open, updatedField))
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                             }
-                                            openSubPanel={handleOpenSubPanel}
                                             subPanelView={subPanelView}
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                             handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
                                         />
                                     </S.Row>
                                 );
@@ -886,19 +910,23 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                onBlur={handleOnBlur}
                             />
                         )}
                         {typeField && !isInferredReturnType && (
                             <EditorFactory
                                 field={typeField}
                                 openRecordEditor={
-                                    openRecordEditor && ((open: boolean) => handleOpenRecordEditor(open, typeField))
+                                    openRecordEditor &&
+                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                                 }
-                                openSubPanel={handleOpenSubPanel}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 handleOnTypeChange={handleOnTypeChange}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                handleNewTypeSelected={handleNewTypeSelected}
+                                onBlur={handleOnBlur}
+
                             />
                         )}
                         {targetTypeField && (
@@ -908,7 +936,9 @@ export const Form = forwardRef((props: FormProps, ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleNewTypeSelected={handleNewTypeSelected}
                                     handleOnTypeChange={handleOnTypeChange}
+                                    onBlur={handleOnBlur}
                                 />
                                 {typeField && (
                                     <TypeHelperText
@@ -951,9 +981,13 @@ export const Form = forwardRef((props: FormProps, ref) => {
                             onClick={handleOnSaveClick}
                             disabled={disableSaveButton || isSaving}
                         >
-                            {isSaving && savingButton === 'save' ? (
+                            {isValidatingForm ? (
+                                <Typography variant="progress">Validating...</Typography>
+                            ) : isSaving && savingButton === 'save' ? (
                                 <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : submitText || "Save"}
+                            ) : (
+                                submitText || "Save"
+                            )}
                         </Button>
                     </S.Footer>
                 )}

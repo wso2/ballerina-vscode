@@ -35,12 +35,17 @@ export function EventIntegrationPanel(props: EventIntegrationPanelProps) {
     const { rpcClient } = useRpcContext();
     const isDisabled = props.scope && (props.scope !== SCOPE.EVENT_INTEGRATION && props.scope !== SCOPE.ANY);
 
-    const handleClick = async (key: DIRECTORY_MAP, serviceType?: string) => {
+    const handleClick = async (key: DIRECTORY_MAP, model: ServiceModel) => {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceWizard,
-                serviceType: serviceType,
+                artifactInfo: {
+                    org: model.orgName,
+                    packageName: model.packageName,
+                    moduleName: model.moduleName,
+                    version: model.version
+                }
             },
         });
     };
@@ -66,7 +71,7 @@ export function EventIntegrationPanel(props: EventIntegrationPanelProps) {
                                     title={item.name}
                                     icon={getEntryNodeIcon(item)}
                                     onClick={() => {
-                                        handleClick(DIRECTORY_MAP.SERVICE, item.moduleName);
+                                        handleClick(DIRECTORY_MAP.SERVICE, item);
                                     }}
                                     disabled={isDisabled}
                                     tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}

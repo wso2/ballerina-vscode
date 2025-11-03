@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -30,7 +30,7 @@ export type MachineStateValue =
     | 'lsReady'
     | 'viewActive'
     | 'disabled'
-    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' };
+    | { viewActive: 'viewInit' } | { viewActive: 'webViewLoaded' } | { viewActive: 'viewReady' } | { viewActive: 'viewEditing' } | { viewActive: 'resolveMissingDependencies' };
 
 export type PopupMachineStateValue = 'initialize' | 'ready' | {
     open: 'active';
@@ -47,6 +47,7 @@ export enum EVENT_TYPE {
     FILE_EDIT = "FILE_EDIT",
     EDIT_DONE = "EDIT_DONE",
     CLOSE_VIEW = "CLOSE_VIEW",
+    VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
 }
 
@@ -75,8 +76,10 @@ export enum MACHINE_VIEW {
     BIDiagram = "BI Diagram",
     BIWelcome = "BI Welcome",
     BIProjectForm = "BI Project SKIP",
+    BIImportIntegration = "BI Import Integration SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
     AddConfigVariables = "Add Config Variables",
@@ -92,7 +95,9 @@ export enum MACHINE_VIEW {
     BIServiceClassConfigView = "Service Class Config View",
     BIDataMapperForm = "Add Data Mapper SKIP",
     AIAgentDesigner = "AI Agent Designer",
-    AIChatAgentWizard = "AI Chat Agent Wizard"
+    AIChatAgentWizard = "AI Chat Agent Wizard",
+    ResolveMissingDependencies = "Resolve Missing Dependencies",
+    ServiceFunctionForm = "Service Function Form"
 }
 
 export interface MachineEvent {
@@ -117,6 +122,7 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectUri?: string;
     identifier?: string;
+    parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
     position?: NodePosition;
     syntaxTree?: STNode;
@@ -126,12 +132,23 @@ export interface VisualizerLocation {
     type?: Type;
     addType?: boolean;
     isGraphql?: boolean;
+    rootDiagramId?: string;
     metadata?: VisualizerMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    moduleName?: string;
+    version?: string;
     dataMapperMetadata?: DataMapperMetadata;
+    artifactInfo?: ArtifactInfo;
+}
+
+export interface ArtifactInfo {
+    org?: string;
+    packageName?: string;
+    moduleName?: string;
+    version?: string;
 }
 
 export interface ArtifactData {
@@ -160,6 +177,7 @@ export interface PopupVisualizerLocation extends VisualizerLocation {
 export interface ParentPopupData {
     recentIdentifier: string;
     artifactType: DIRECTORY_MAP;
+    dataMapperMetadata?: DataMapperMetadata;
 }
 
 export interface DownloadProgress {
@@ -178,7 +196,12 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
-    | ChatError;
+    | ChatError
+    | ToolCall
+    | ToolResult
+    | EvalsToolResult
+    | UsageMetricsEvent
+    | GeneratedSourcesEvent;
 
 export interface ChatStart {
     type: "start";
@@ -186,7 +209,7 @@ export interface ChatStart {
 
 export interface IntermidaryState {
     type: "intermediary_state";
-    state: TestGeneratorIntermediaryState;  // Smells off. Must revist later.
+    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
 }
 
 //TODO: Maybe rename content_block to content_append?
@@ -216,9 +239,44 @@ export interface ChatError {
     content: string;
 }
 
+export interface ToolCall {
+    type: "tool_call";
+    toolName: string;
+}
+
+export interface ToolResult {
+    type: "tool_result";
+    toolName: string;
+    toolOutput: any;
+}
+
+export interface EvalsToolResult {
+    type: "evals_tool_result";
+    toolName: string;
+    output: any;
+}
+
+export interface UsageMetricsEvent {
+    type: "usage_metrics";
+    isRepair?: boolean;
+    usage: {
+        inputTokens: number;
+        cacheCreationInputTokens: number;
+        cacheReadInputTokens: number;
+        outputTokens: number;
+    };
+}
+
+export interface GeneratedSourcesEvent {
+    type: "generated_sources";
+    fileArray: SourceFile[];
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
+export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
@@ -234,11 +292,11 @@ export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation>
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
 
-// ------------------> AI Related state types <----------------------- 
+// ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -247,6 +305,8 @@ export enum AIMachineEventType {
     LOGIN = 'LOGIN',
     AUTH_WITH_API_KEY = 'AUTH_WITH_API_KEY',
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
+    AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
+    SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -260,6 +320,13 @@ export type AIMachineEventMap = {
     [AIMachineEventType.LOGIN]: undefined;
     [AIMachineEventType.AUTH_WITH_API_KEY]: undefined;
     [AIMachineEventType.SUBMIT_API_KEY]: { apiKey: string };
+    [AIMachineEventType.AUTH_WITH_AWS_BEDROCK]: undefined;
+    [AIMachineEventType.SUBMIT_AWS_CREDENTIALS]: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+        sessionToken?: string;
+    };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
     [AIMachineEventType.COMPLETE_AUTH]: undefined;
@@ -276,7 +343,8 @@ export type AIMachineSendableEvent =
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
-    ANTHROPIC_KEY = 'anthropic_key'
+    ANTHROPIC_KEY = 'anthropic_key',
+    AWS_BEDROCK = 'aws_bedrock'
 }
 
 interface BIIntelSecrets {
@@ -288,6 +356,13 @@ interface AnthropicKeySecrets {
     apiKey: string;
 }
 
+interface AwsBedrockSecrets {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}
+
 export type AuthCredentials =
     | {
         loginMethod: LoginMethod.BI_INTEL;
@@ -296,6 +371,10 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.ANTHROPIC_KEY;
         secrets: AnthropicKeySecrets;
+    }
+    | {
+        loginMethod: LoginMethod.AWS_BEDROCK;
+        secrets: AwsBedrockSecrets;
     };
 
 export interface AIUserToken {

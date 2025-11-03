@@ -35,14 +35,15 @@ import { ELineRange, FlowNode } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
         disabled: boolean;
         hovered: boolean;
         hasError: boolean;
+        readOnly: boolean;
         isActiveBreakpoint?: boolean;
+        isSelected?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -59,9 +60,15 @@ export namespace NodeStyles {
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
-            props.hasError ? ThemeColors.ERROR : props.hovered && !props.disabled ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT};
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
-        cursor: pointer;
+        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
     export const Header = styled.div<{}>`
@@ -168,31 +175,31 @@ export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { projectPath, onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly } =
-        useDiagramContext();
+    const {
+        onNodeSelect,
+        goToSource,
+        openView,
+        onDeleteNode,
+        removeBreakpoint,
+        addBreakpoint,
+        readOnly,
+        selectedNodeId,
+        project,
+    } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [org, setOrg] = useState<string | null>(null);
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
-    const { rpcClient } = useRpcContext();
-
-    useEffect(() => {
-        const fetchOrg = async () => {
-            try {
-                const vizualizerLocation = await rpcClient.getVisualizerLocation();
-                setOrg(vizualizerLocation.org);
-            } catch (error) {
-                console.error('Failed to get visualizer location:', error);
-            }
-        };
-        
-        fetchOrg();
-    }, []);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
+        if (readOnly) {
+            return;
+        }
         if (event.metaKey) {
             // Handle action when cmd key is pressed
             if (model.node.codedata.node === "DATA_MAPPER_CALL") {
@@ -234,11 +241,20 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        if (readOnly) {
+            return;
+        }
         setMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setMenuAnchorEl(menuButtonElement || event.currentTarget);
     };
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+        setIsHovered(false);
     };
 
     const openDataMapper = async () => {
@@ -246,7 +262,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
@@ -261,7 +277,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
@@ -291,7 +307,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         });
     }
 
-    if (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === org) {
+    if (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === project?.org) {
         menuItems.splice(1, 0, {
             id: "viewFunction",
             label: "View",
@@ -325,9 +341,12 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             hovered={isHovered}
             disabled={model.node.suggested}
             hasError={hasError}
+            readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
+            isSelected={isSelected}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             {hasBreakpoint && (
                 <div
@@ -356,11 +375,14 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                     </NodeStyles.Header>
                     <NodeStyles.ActionButtonGroup>
                         {hasError && <DiagnosticsPopUp node={model.node} />}
-                        {!readOnly && (
-                            <NodeStyles.MenuButton appearance="icon" onClick={handleOnMenuClick}>
-                                <MoreVertIcon />
-                            </NodeStyles.MenuButton>
-                        )}
+                        <NodeStyles.MenuButton
+                            ref={setMenuButtonElement}
+                            buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                            appearance="icon"
+                            onClick={handleOnMenuClick}
+                        >
+                            <MoreVertIcon />
+                        </NodeStyles.MenuButton>
                     </NodeStyles.ActionButtonGroup>
                 </NodeStyles.Row>
                 <Popover

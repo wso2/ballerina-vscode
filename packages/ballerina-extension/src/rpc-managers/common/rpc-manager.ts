@@ -35,6 +35,7 @@ import {
     RunExternalCommandResponse,
     ShowErrorMessageRequest,
     SyntaxTree,
+    TomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
@@ -45,9 +46,11 @@ import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
-import { goToSource } from "../../utils";
-import { askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
-import path from 'path';
+import { getProjectTomlValues, goToSource } from "../../utils";
+import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
+import { parse } from 'toml';
+import * as fs from 'fs';
+import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -186,6 +189,19 @@ export class CommonRpcManager implements CommonRPCAPI {
         });
     }
 
+    async selectFileOrFolderPath(): Promise<FileOrDirResponse> {
+        return new Promise(async (resolve) => {
+            const selectedFileOrFolder = await askFileOrFolderPath();
+            if (!selectedFileOrFolder || selectedFileOrFolder.length === 0) {
+                window.showErrorMessage('A file or folder must be selected');
+                resolve({ path: "" });
+            } else {
+                const fileOrFolderPath = selectedFileOrFolder[0].fsPath;
+                resolve({ path: fileOrFolderPath });
+            }
+        });
+    }
+
     async experimentalEnabled(): Promise<boolean> {
         return extension.ballerinaExtInstance.enabledExperimentalFeatures();
     }
@@ -228,5 +244,9 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     async isNPSupported(): Promise<boolean> {
         return extension.ballerinaExtInstance.isNPSupported;
+    }
+
+    async getCurrentProjectTomlValues(): Promise<TomlValues> {
+        return getProjectTomlValues(StateMachine.context().projectUri);
     }
 }

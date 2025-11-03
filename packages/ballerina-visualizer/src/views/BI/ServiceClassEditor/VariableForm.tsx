@@ -28,12 +28,11 @@ interface VariableFormProps {
     lineRange: LineRange;
     onSave: (model: FieldType) => void;
     onClose: () => void;
-    isGraphqlEditor: boolean;
     isSaving: boolean;
 }
 
 export function VariableForm(props: VariableFormProps) {
-    const { model, onSave, onClose, filePath, lineRange, isGraphqlEditor, isSaving } = props;
+    const { model, onSave, onClose, filePath, lineRange, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
 
     // Initialize form fields
@@ -50,7 +49,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: model.name.metadata?.description,
                 value: model?.name.value || '',
                 valueType: model.name?.valueType,
-                valueTypeConstraint: model.name?.valueTypeConstraint || '',
+                valueTypeConstraint: model.name?.valueTypeConstraint,
                 lineRange: model?.name?.codedata?.lineRange
             },
             {
@@ -64,7 +63,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: model.type.metadata?.description,
                 value: model?.type.value || '',
                 valueType: model.type?.valueType,
-                valueTypeConstraint: model.type?.valueTypeConstraint || ''
+                valueTypeConstraint: model.type?.valueTypeConstraint
             },
             {
                 key: 'expression',
@@ -77,7 +76,7 @@ export function VariableForm(props: VariableFormProps) {
                 documentation: (model.defaultValue as PropertyModel)?.metadata?.description,
                 value: (model.defaultValue as PropertyModel)?.value || '',
                 valueType: (model.defaultValue as PropertyModel)?.valueType,
-                valueTypeConstraint: (model.defaultValue as PropertyModel)?.valueTypeConstraint || ''
+                valueTypeConstraint: (model.defaultValue as PropertyModel)?.valueTypeConstraint
             }
         ];
         setFields(initialFields);
@@ -112,7 +111,6 @@ export function VariableForm(props: VariableFormProps) {
                     onSubmit={handleVariableSave}
                     onBack={onClose}
                     submitText={isSaving ? "Saving..." : "Save"}
-                    isGraphqlEditor={isGraphqlEditor}
                     helperPaneSide="left"
                     preserveFieldOrder={true}
                 />

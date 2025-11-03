@@ -259,8 +259,8 @@ export function getRemoveCreatedRecordRange(recordNames: string[], syntaxTree: S
 export function getHelperPanePosition(typeFieldRef: RefObject<HTMLElement>, offset: Position): Position {
     const rect = typeFieldRef.current.getBoundingClientRect();
     const position: Position = {
-        top: 0,
-        left: rect.left - HELPER_PANE_WIDTH - ARROW_HEIGHT + offset.left
+        top: rect.top + rect.height,
+        left: rect.left 
     };
 
     return position;

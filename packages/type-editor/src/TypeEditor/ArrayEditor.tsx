@@ -25,6 +25,7 @@ import { TextField } from "@wso2/ui-toolkit/lib/components/TextField/TextField";
 interface ArrayEditorProps {
     type: Type;
     onChange: (type: Type) => void;
+    onValidationError: (isError: boolean) => void;
 }
 
 namespace S {
@@ -71,7 +72,7 @@ export function ArrayEditor(props: ArrayEditorProps) {
     console.log("ARRAY EDITOR PROPS", props.type);
     const newMember: Member = {
         kind: "TYPE",
-        type: "string",
+        type: "",
         refs: [],
         name: ""
     };
@@ -133,6 +134,8 @@ export function ArrayEditor(props: ArrayEditorProps) {
                         sx={{ flexGrow: 1 }}
                         label="Type of the Array"
                         required={true}
+                        autoFocus={true}
+                        onValidationError={props.onValidationError}
                         rootType={props.type}
                     />
                     <TextField

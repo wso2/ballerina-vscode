@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { DIRECTORY_MAP, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
 import { NodePosition, STKindChecker, STNode, traversNode } from "@wso2/syntax-tree";
-import { StateMachine } from "../stateMachine";
+import { StateMachine, openView } from "../stateMachine";
 import { Uri } from "vscode";
 import { UIDGenerationVisitor } from "./history/uid-generation-visitor";
 import { FindNodeByUidVisitor } from "./history/find-node-by-uid";
@@ -36,7 +36,8 @@ export async function getView(documentUri: string, position: NodePosition, proje
             location: {
                 view: MACHINE_VIEW.BIDiagram,
                 documentUri: documentUri,
-                position: position
+                position: position,
+                identifier: StateMachine.context()?.identifier,
             },
             dataMapperDepth: 0
         };
@@ -195,7 +196,24 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                     view: MACHINE_VIEW.DataMapper,
                     identifier: node.syntaxTree.functionName.value,
                     documentUri: documentUri,
-                    position: position
+                    position: position,
+                    artifactType: DIRECTORY_MAP.DATA_MAPPER,
+                    dataMapperMetadata: {
+                        name: node.syntaxTree.functionName.value,
+                        codeData: {
+                            lineRange: {
+                                fileName: documentUri,
+                                startLine: {
+                                    line: position.startLine,
+                                    offset: position.startColumn
+                                },
+                                endLine: {
+                                    line: position.endLine,
+                                    offset: position.endColumn
+                                }
+                            }
+                        }
+                    },
                 },
                 dataMapperDepth: 0
             };
@@ -260,6 +278,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
                     for (const resource of dir.resources) {
                         const view = findViewByArtifact(resource, position, documentUri, projectUri);
                         if (view) {
+                            view.location.parentIdentifier = dir.name;
                             return view;
                         }
                     }
@@ -276,13 +295,10 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
     }
 }
 
-function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: NodePosition, documentUri: string, projectUri?: string) {
-    // In windows the documentUri might contain drive letter
-    const driveLetterRegex = /^[a-zA-Z]:/;
-    const normalizedDocumentUri = documentUri.replace(driveLetterRegex, '');
-    const normalizedDirPath = dir.path.replace(driveLetterRegex, '');
-    const normalizedProjectUri = projectUri?.replace(driveLetterRegex, '');
-    if (normalizedDirPath === normalizedDocumentUri && isPositionWithinRange(position, dir.position)) {
+function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: NodePosition, documentUri: string, projectUri?: string): HistoryEntry {
+    const currentDocumentUri = documentUri;
+    const artifactUri = dir.path;
+    if (artifactUri === currentDocumentUri && isPositionWithinRange(position, dir.position)) {
         switch (dir.type) {
             case DIRECTORY_MAP.SERVICE:
                 if (dir.moduleName === "graphql") {
@@ -290,9 +306,9 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         location: {
                             view: MACHINE_VIEW.GraphQLDiagram,
                             identifier: dir.name,
-                            documentUri: normalizedDocumentUri,
+                            documentUri: currentDocumentUri,
                             position: position,
-                            projectUri: normalizedProjectUri,
+                            projectUri: projectUri,
                             artifactType: DIRECTORY_MAP.SERVICE
                         }
                     };
@@ -301,9 +317,9 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         location: {
                             view: MACHINE_VIEW.BIDiagram,
                             identifier: dir.name,
-                            documentUri: normalizedDocumentUri,
+                            documentUri: currentDocumentUri,
                             position: position,
-                            projectUri: normalizedProjectUri,
+                            projectUri: projectUri,
                             artifactType: DIRECTORY_MAP.SERVICE,
                         }
                     };
@@ -312,7 +328,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                         location: {
                             view: MACHINE_VIEW.ServiceDesigner,
                             identifier: dir.name,
-                            documentUri: normalizedDocumentUri,
+                            documentUri: currentDocumentUri,
                             position: position,
                             artifactType: DIRECTORY_MAP.SERVICE
                         }
@@ -322,7 +338,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.BIListenerConfigView,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: dir.position,
                         identifier: dir.name,
                         artifactType: DIRECTORY_MAP.LISTENER
@@ -332,7 +348,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.BIDiagram,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: dir.position,
                         identifier: dir.id,
                         artifactType: DIRECTORY_MAP.RESOURCE,
@@ -342,7 +358,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.BIDiagram,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: dir.position,
                         identifier: dir.name,
                         focusFlowDiagramView: FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION,
@@ -356,7 +372,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.BIDiagram,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         identifier: dir.name,
                         position: dir.position,
                         artifactType: dir.type,
@@ -379,10 +395,10 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.TypeDiagram,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: position,
                         identifier: dir.name,
-                        projectUri: normalizedProjectUri,
+                        projectUri: projectUri,
                         artifactType: DIRECTORY_MAP.TYPE
                     }
                 };
@@ -390,7 +406,7 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                 return {
                     location: {
                         view: MACHINE_VIEW.EditConfigVariables,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: dir.position,
                         identifier: dir.name,
                         artifactType: DIRECTORY_MAP.CONFIGURABLE
@@ -401,9 +417,25 @@ function findViewByArtifact(dir: ProjectStructureArtifactResponse, position: Nod
                     location: {
                         view: MACHINE_VIEW.DataMapper,
                         identifier: dir.name,
-                        documentUri: normalizedDocumentUri,
+                        documentUri: currentDocumentUri,
                         position: position,
-                        artifactType: DIRECTORY_MAP.DATA_MAPPER
+                        artifactType: DIRECTORY_MAP.DATA_MAPPER,
+                        dataMapperMetadata: {
+                            name: dir.name,
+                            codeData: {
+                                lineRange: {
+                                    fileName: currentDocumentUri,
+                                    startLine: {
+                                        line: dir.position.startLine,
+                                        offset: dir.position.startColumn
+                                    },
+                                    endLine: {
+                                        line: dir.position.endLine,
+                                        offset: dir.position.endColumn
+                                    }
+                                }
+                            }
+                        },
                     },
                     dataMapperDepth: 0
                 };
@@ -468,4 +500,3 @@ function getSTByRangeReq(documentUri: string, position: NodePosition) {
         }
     };
 }
-

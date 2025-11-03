@@ -38,14 +38,14 @@ const Description = styled(Typography)`
 `;
 
 interface FormHeaderProps {
-    title: string;
+    title?: string;
     subtitle?: string;
 }
 
 export function FormHeader({ title, subtitle }: FormHeaderProps) {
     return (
         <HeaderContainer>
-            <Title variant="h3">{title}</Title>
+            {title && <Title variant="h3">{title}</Title>}
             {subtitle && (
                 <Description variant="body2">
                     {subtitle}

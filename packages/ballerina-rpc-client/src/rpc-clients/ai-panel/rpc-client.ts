@@ -22,29 +22,23 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AddFilesToProjectRequest,
     AddToProjectRequest,
-    CodeSegment,
     DeleteFromProjectRequest,
     DeveloperDocument,
+    DocGenerationRequest,
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
-    GenerateMappingFromRecordResponse,
-    GenerateMappingsFromRecordRequest,
-    GenerateMappingsRequest,
-    GenerateMappingsResponse,
     GenerateOpenAPIRequest,
-    GenerateTypesFromRecordRequest,
-    GenerateTypesFromRecordResponse,
     GetFromFileRequest,
-    GetModuleDirParams,
-    InlineAllDataMapperSourceRequest,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
-    NotifyAIMappingsRequest,
     PostProcessRequest,
     PostProcessResponse,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
     ProjectDiagnostics,
     ProjectSource,
     RelevantLibrariesAndFunctionsRequest,
@@ -60,7 +54,7 @@ import {
     abortAIGeneration,
     abortTestGeneration,
     addChatSummary,
-    addInlineCodeSegmentToWorkspace,
+    addFilesToProject,
     addToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
@@ -69,26 +63,24 @@ import {
     deleteFromProject,
     fetchData,
     generateCode,
+    generateContextTypes,
     generateFunctionTests,
     generateHealthcareCode,
-    generateMappings,
+    generateInlineMappingCode,
+    generateMappingCode,
     generateOpenAPI,
     generateTestPlan,
     getAIMachineSnapshot,
     getAccessToken,
-    getActiveFile,
     getBackendUrl,
-    getContentFromFile,
     getDefaultPrompt,
     getDriftDiagnosticContents,
     getFileExists,
     getFromDocumentation,
     getFromFile,
+    getGeneratedDocumentation,
     getGeneratedTests,
     getLoginMethod,
-    getMappingsFromModel,
-    getMappingsFromRecord,
-    getModuleDirectory,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
@@ -98,21 +90,19 @@ import {
     getServiceSourceForName,
     getShadowDiagnostics,
     getTestDiagnostics,
-    getTypesFromRecord,
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isRequirementsSpecificationFileExist,
+    isUserAuthenticated,
     markAlertShown,
-    notifyAIMappings,
-    openInlineMappingChatWindow,
+    openChatWindowWithCommand,
     postProcess,
     promptGithubAuthorize,
     promptWSO2AILogout,
     readDeveloperMdFile,
     repairGeneratedCode,
     showSignInAlert,
-    stopAIMappings,
     submitFeedback,
     updateDevelopmentDocument,
     updateRequirementSpecification
@@ -159,8 +149,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(fetchData, HOST_EXTENSION, params);
     }
 
-    addToProject(params: AddToProjectRequest): void {
-        return this._messenger.sendNotification(addToProject, HOST_EXTENSION, params);
+    addToProject(params: AddToProjectRequest): Promise<boolean> {
+        return this._messenger.sendRequest(addToProject, HOST_EXTENSION, params);
     }
 
     getFromFile(params: GetFromFileRequest): Promise<string> {
@@ -175,18 +165,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(deleteFromProject, HOST_EXTENSION, params);
     }
 
-    generateMappings(params: GenerateMappingsRequest): Promise<GenerateMappingsResponse> {
-        return this._messenger.sendRequest(generateMappings, HOST_EXTENSION, params);
-    }
-
-    notifyAIMappings(params: NotifyAIMappingsRequest): Promise<boolean> {
-        return this._messenger.sendRequest(notifyAIMappings, HOST_EXTENSION, params);
-    }
-
-    stopAIMappings(): Promise<GenerateMappingsResponse> {
-        return this._messenger.sendRequest(stopAIMappings, HOST_EXTENSION);
-    }
-
     getShadowDiagnostics(params: ProjectSource): Promise<ProjectDiagnostics> {
         return this._messenger.sendRequest(getShadowDiagnostics, HOST_EXTENSION, params);
     }
@@ -199,16 +177,20 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(clearInitialPrompt, HOST_EXTENSION);
     }
 
-    openInlineMappingChatWindow(): void {
-        return this._messenger.sendNotification(openInlineMappingChatWindow, HOST_EXTENSION);
+    openChatWindowWithCommand(): void {
+        return this._messenger.sendNotification(openChatWindowWithCommand, HOST_EXTENSION);
     }
 
-    getMappingsFromModel(params: MetadataWithAttachments): Promise<InlineAllDataMapperSourceRequest> {
-        return this._messenger.sendRequest(getMappingsFromModel, HOST_EXTENSION, params);
+    generateContextTypes(params: ProcessContextTypeCreationRequest): void {
+        return this._messenger.sendNotification(generateContextTypes, HOST_EXTENSION, params);
     }
 
-    addInlineCodeSegmentToWorkspace(params: CodeSegment): void {
-        return this._messenger.sendNotification(addInlineCodeSegmentToWorkspace, HOST_EXTENSION, params);
+    generateMappingCode(params: ProcessMappingParametersRequest): void {
+        return this._messenger.sendNotification(generateMappingCode, HOST_EXTENSION, params);
+    }
+
+    generateInlineMappingCode(params: MetadataWithAttachments): void {
+        return this._messenger.sendNotification(generateInlineMappingCode, HOST_EXTENSION, params);
     }
 
     getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
@@ -239,24 +221,12 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(abortTestGeneration, HOST_EXTENSION);
     }
 
-    getMappingsFromRecord(params: GenerateMappingsFromRecordRequest): Promise<GenerateMappingFromRecordResponse> {
-        return this._messenger.sendRequest(getMappingsFromRecord, HOST_EXTENSION, params);
-    }
-
-    getTypesFromRecord(params: GenerateTypesFromRecordRequest): Promise<GenerateTypesFromRecordResponse> {
-        return this._messenger.sendRequest(getTypesFromRecord, HOST_EXTENSION, params);
-    }
-
     applyDoOnFailBlocks(): void {
         return this._messenger.sendNotification(applyDoOnFailBlocks, HOST_EXTENSION);
     }
 
     postProcess(params: PostProcessRequest): Promise<PostProcessResponse> {
         return this._messenger.sendRequest(postProcess, HOST_EXTENSION, params);
-    }
-
-    getActiveFile(): Promise<string> {
-        return this._messenger.sendRequest(getActiveFile, HOST_EXTENSION);
     }
 
     promptGithubAuthorize(): Promise<boolean> {
@@ -319,14 +289,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(createTestDirecoryIfNotExists, HOST_EXTENSION, params);
     }
 
-    getModuleDirectory(params: GetModuleDirParams): Promise<string> {
-        return this._messenger.sendRequest(getModuleDirectory, HOST_EXTENSION, params);
-    }
-
-    getContentFromFile(params: GetFromFileRequest): Promise<string> {
-        return this._messenger.sendRequest(getContentFromFile, HOST_EXTENSION, params);
-    }
-
     submitFeedback(params: SubmitFeedbackRequest): Promise<boolean> {
         return this._messenger.sendRequest(submitFeedback, HOST_EXTENSION, params);
     }
@@ -361,5 +323,17 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     abortAIGeneration(): void {
         return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
+    }
+
+    getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
+        return this._messenger.sendRequest(getGeneratedDocumentation, HOST_EXTENSION, params);
+    }
+
+    addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
+        return this._messenger.sendRequest(addFilesToProject, HOST_EXTENSION, params);
+    }
+
+    isUserAuthenticated(): Promise<boolean> {
+        return this._messenger.sendRequest(isUserAuthenticated, HOST_EXTENSION);
     }
 }

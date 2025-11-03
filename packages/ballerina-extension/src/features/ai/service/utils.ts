@@ -27,22 +27,29 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFiles,
+    SourceFile,
     TestGeneratorIntermediaryState,
-    Command
+    ToolCall,
+    ToolResult,
+    Command,
+    DocumentationGeneratorIntermediaryState,
+    PayloadContext,
+    HttpPayloadContext,
+    MessageQueuePayloadContext
 } from "@wso2/ballerina-core";
-import { CoreMessage } from "ai";
+import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
 import { RPCLayer } from "../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { GenerationType } from "./libs/libs";
 import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
-export function populateHistory(chatHistory: ChatEntry[]): CoreMessage[] {
+export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
     if (!chatHistory || chatHistory.length === 0) {
         return [];
     }
 
-    const messages: CoreMessage[] = [];
+    const messages: ModelMessage[] = [];
     for (const history of chatHistory) {
         // Map actor to role, defaulting to "user" if not "assistant"
         const role: MessageRole = history.actor === "assistant" ? "assistant" : "user";
@@ -124,7 +131,7 @@ ${resourceContent}`;
     const readmeContent = readmeFiles[0];
 
     return `${prompt}
-Readme Contents: 
+Readme Contents:
 ${readmeContent}`;
 }
 
@@ -183,10 +190,35 @@ export function sendMessageStartNotification(): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendTestGenIntermidateStateNotification(testGenState: TestGeneratorIntermediaryState): void {
+export function sendIntermidateStateNotification(intermediaryState: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState): void {
     const msg: IntermidaryState = {
         type: "intermediary_state",
-        state: testGenState,
+        state: intermediaryState,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolCallNotification(toolName: string): void {
+    const msg: ToolCall = {
+        type: "tool_call",
+        toolName: toolName,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendToolResultNotification(toolName: string, toolOutput: any): void {
+    const msg: ToolResult = {
+        type: "tool_result",
+        toolName: toolName,
+        toolOutput: toolOutput,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void {
+    const msg: ChatNotify = {
+        type: "generated_sources",
+        fileArray: fileArray,
     };
     sendAIPanelNotification(msg);
 }
@@ -205,6 +237,9 @@ export function getGenerationMode(generationType: GenerationType) {
 export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
+        if (error.name === "UsageLimitError") {
+            return "Usage limit exceeded. Please try again later.";
+        }
         if (error.name === "AI_RetryError") {
             return "An error occured connecting with the AI service. Please try again later.";
         }
@@ -214,13 +249,17 @@ export function getErrorMessage(error: unknown): string {
 
         return error.message;
     }
-    // If it’s an object with a .message field, use that
+    // If it's an object with a .message field, use that
     if (
         typeof error === "object" &&
         error !== null &&
         "message" in error &&
         typeof (error as Record<string, unknown>).message === "string"
     ) {
+        // Check if it has a statusCode property indicating 429
+        if ("statusCode" in error && (error as any).statusCode === 429) {
+            return "Usage limit exceeded. Please try again later.";
+        }
         return (error as { message: string }).message;
     }
     // Fallback: try to JSON-stringify, otherwise call toString()
@@ -229,4 +268,12 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {
+    return context.protocol === "HTTP";
+}
+
+export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
+    return context.protocol === "MESSAGE_BROKER";
 }

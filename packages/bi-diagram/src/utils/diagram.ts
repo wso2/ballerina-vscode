@@ -21,7 +21,6 @@ import { NodePortFactory, NodePortModel } from "../components/NodePort";
 import { NodeLinkFactory, NodeLinkModel, NodeLinkModelOptions } from "../components/NodeLink";
 import { EmptyNodeFactory } from "../components/nodes/EmptyNode";
 import { OverlayLayerFactory } from "../components/OverlayLayer";
-import { DagreEngine } from "../resources/dagre/DagreEngine";
 import { LinkableNodeModel, NodeModel } from "./types";
 import { VerticalScrollCanvasAction } from "../actions/VerticalScrollCanvasAction";
 import { IfNodeFactory } from "../components/nodes/IfNode/IfNodeFactory";
@@ -71,19 +70,6 @@ export function registerListeners(engine: DiagramEngine) {
     engine.getModel().registerListener({
         offsetUpdated: (event: any) => {
             saveDiagramZoomAndPosition(engine.getModel());
-        },
-    });
-}
-
-export function genDagreEngine() {
-    return new DagreEngine({
-        graph: {
-            rankdir: "TB",
-            nodesep: 60,
-            ranksep: 60,
-            marginx: 50,
-            marginy: 100,
-            ranker: "tight-tree",
         },
     });
 }

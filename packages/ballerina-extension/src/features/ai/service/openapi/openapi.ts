@@ -16,7 +16,7 @@
 
 import { GenerateOpenAPIRequest, Command } from "@wso2/ballerina-core";
 import { streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
+import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../connection";
 import { getErrorMessage, populateHistory } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -28,22 +28,21 @@ export async function generateOpenAPISpecCore(
 ): Promise<void> {
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
+    const cacheOptions = await getProviderCacheControl();
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: [
             {
                 role: "system",
                 content: getSystemPrompt(),
-                providerOptions: {
-                    anthropic: { cacheControl: { type: "ephemeral" } },
-                },
+                providerOptions: cacheOptions
             },
             ...historyMessages,
             {
                 role: "user",
-                content: getUserPrompt(params.query),
+                content: getUserPrompt(params.query)
             },
         ],
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -54,7 +53,7 @@ export async function generateOpenAPISpecCore(
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = part.text;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
             }

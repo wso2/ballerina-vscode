@@ -21,7 +21,7 @@ import { Button, SidePanelBody, TextArea, Typography } from '@wso2/ui-toolkit';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
 import { FileSelect } from '../style';
 import { FileSelector } from '../components/FileSelector';
-import { NOT_SUPPORTED_TYPE, Type, TypeDataWithReferences } from '@wso2/ballerina-core';
+import { EVENT_TYPE, Type, TypeDataWithReferences } from '@wso2/ballerina-core';
 import { XMLToRecord } from '@wso2/ballerina-core';
 import styled from '@emotion/styled';
 import { set } from 'lodash';
@@ -31,6 +31,7 @@ interface RecordFromXmlProps {
     rpcClient: BallerinaRpcClient;
     isSaving: boolean;
     setIsSaving: (isSaving: boolean) => void;
+    isPopupTypeForm: boolean;
 }
 
 namespace S {
@@ -52,7 +53,7 @@ namespace S {
 }
 
 export const RecordFromXml = (props: RecordFromXmlProps) => {
-    const { onImport, rpcClient, isSaving, setIsSaving } = props;
+    const { onImport, rpcClient, isSaving, setIsSaving, isPopupTypeForm } = props;
     const [xml, setXml] = useState<string>("");
     const [error, setError] = useState<string>("");
 
@@ -102,6 +103,11 @@ export const RecordFromXml = (props: RecordFromXmlProps) => {
                     filePath: 'types.bal',
                     types: otherRecords
                 });
+                if (!isPopupTypeForm) {
+                    await props.rpcClient.getVisualizerRpcClient().openView(
+                        { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                    );
+                }
             }
 
             if (lastRecord) {

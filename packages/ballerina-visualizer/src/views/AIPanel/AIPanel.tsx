@@ -78,11 +78,11 @@ const AIPanel = (props: { state: AIMachineStateValue }) => {
 
                     if (subState === "determineFlow") {
                         component = <LoadingRing />;
-                    } else if (["ssoFlow", "apiKeyFlow", "validatingApiKey"].includes(subState)) {
+                    } else if (["ssoFlow", "apiKeyFlow", "validatingApiKey", "awsBedrockFlow", "validatingAwsCredentials"].includes(subState)) {
                         component = (
                             <WaitingForLogin
                                 loginMethod={snapshot.context.loginMethod}
-                                isValidating={subState === "validatingApiKey"}
+                                isValidating={subState === "validatingApiKey" || subState === "validatingAwsCredentials"}
                                 errorMessage={snapshot.context.errorMessage}
                             />
                         );
