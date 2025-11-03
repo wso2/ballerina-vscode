@@ -33,7 +33,28 @@ const PreviewContainer = styled.div`
     border-top: none;
     border-radius: 0 0 4px 4px;
     overflow-y: auto;
+    overflow-x: auto;
     box-sizing: border-box;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    p, li, td, th, blockquote {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    pre {
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    code {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
 `;
 
 interface MarkdownPreviewProps {
