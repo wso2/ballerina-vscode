@@ -94,7 +94,6 @@ export interface IOType {
     members?: IOType[];
     defaultValue?: unknown;
     optional?: boolean;
-    focusedMemberId?: string;
     isFocused?: boolean;
     isRecursive?: boolean;
     isDeepNested?: boolean;
