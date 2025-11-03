@@ -50,19 +50,22 @@ const ModalContainer = styled.div`
 `;
 
 const ModalBox = styled.div`
-    width: 90%;
-    max-width: 1000px;
+    width: 1000px;
+    max-width: 95vw;
     min-width: 600px;
+    height: 80vh;
     max-height: 90vh;
+    min-height: 600px;
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     padding: 8px 8px;
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
     z-index: 30001;
+    resize: both;
 `;
 
 const ModalHeaderSection = styled.header`
