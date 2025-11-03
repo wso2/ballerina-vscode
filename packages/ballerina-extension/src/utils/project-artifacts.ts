@@ -426,6 +426,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-ftp";
         case "file":
             return "bi-file";
+        case "solace":
+            return "bi-solace";
         default:
             return "bi-globe";
     }
