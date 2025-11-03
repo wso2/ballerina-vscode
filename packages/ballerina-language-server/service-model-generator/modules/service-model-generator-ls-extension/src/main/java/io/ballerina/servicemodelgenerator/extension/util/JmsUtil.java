@@ -704,8 +704,19 @@ public final class JmsUtil {
                 "SecureSocket",
                 orgName + ":" + packageName + ":" + version,
                 "RECORD_TYPE",
-                ""
+                "",
+                true
         );
+    }
+
+    public static void cleanSecureSocketProperty(Map<String, Value> properties) {
+        Value secureSocketValue = properties.get("secureSocket");
+        if (secureSocketValue != null && secureSocketValue.getValue() != null) {
+            String valueStr = secureSocketValue.getValue().trim();
+            if (valueStr.isEmpty() || valueStr.equals("null")) {
+                properties.remove("secureSocket");
+            }
+        }
     }
 
     /**
@@ -721,7 +732,8 @@ public final class JmsUtil {
      * @return Value configured with type members
      */
     public static Value buildPropertyWithTypeMembers(String label, String description, String typeConstraint,
-                                                     String typeName, String packageInfo, String kind, String value) {
+                                                     String typeName, String packageInfo, String kind, String value,
+                                                     boolean optional) {
         List<PropertyTypeMemberInfo> typeMembers = List.of(
                 new PropertyTypeMemberInfo(typeName, packageInfo, kind, false)
         );
@@ -734,6 +746,7 @@ public final class JmsUtil {
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .enabled(true)
                 .editable(true)
+                .optional(optional)
                 .setAdvanced(true)
                 .setMembers(typeMembers)
                 .build();

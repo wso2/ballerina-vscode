@@ -61,6 +61,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSec
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSessionAckModeProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.cleanSecureSocketProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.updateModelWithAckMode;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
@@ -161,6 +162,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
+        cleanSecureSocketProperty(properties);
         if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
             applyAuthenticationProperty(properties);
             return addServiceWithNewListener(context);

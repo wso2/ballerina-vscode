@@ -316,7 +316,7 @@
                   ],
                   "enabled": true,
                   "editable": true,
-                  "optional": false,
+                  "optional": true,
                   "advanced": true
                 }
               },
