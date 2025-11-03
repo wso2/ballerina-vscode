@@ -41,9 +41,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
@@ -60,9 +62,9 @@ public class DiagnosticsHelper {
             new LanguageServerContext.Key<>();
     private static final long DIAGNOSTIC_DELAY = 1;
     /**
-     * Holds last sent diagnostics for the purpose of clear-off when publishing new diagnostics.
+     * Holds file URIs that had diagnostics in the last publication for the purpose of clear-off when publishing new diagnostics.
      */
-    private final Map<Path, Map<String, List<Diagnostic>>> lastDiagnosticMap;
+    private final Map<Path, Set<String>> lastDiagnosticFileUris;
     private CompletableFuture<Boolean> latestScheduled = null;
     private final Deque<String> cyclicDependencyErrors;
 
@@ -77,7 +79,7 @@ public class DiagnosticsHelper {
 
     private DiagnosticsHelper(LanguageServerContext serverContext) {
         serverContext.put(DIAGNOSTICS_HELPER_KEY, this);
-        this.lastDiagnosticMap = new HashMap<>();
+        this.lastDiagnosticFileUris = new HashMap<>();
         this.cyclicDependencyErrors = new ConcurrentLinkedDeque<>();
     }
 
@@ -154,13 +156,12 @@ public class DiagnosticsHelper {
         if (client == null) {
             return;
         }
-        Map<String, List<Diagnostic>> lastProjectDiagnostics =
-                lastDiagnosticMap.getOrDefault(projectRoot, new HashMap<>());
+        Set<String> lastFileUris = lastDiagnosticFileUris.getOrDefault(projectRoot, new HashSet<>());
 
         // Clear old diagnostic entries of the project with an empty list
-        lastProjectDiagnostics.forEach((key, value) -> {
-            if (!diagnosticMap.containsKey(key)) {
-                client.publishDiagnostics(new PublishDiagnosticsParams(key, emptyDiagnosticList));
+        lastFileUris.forEach(fileUri -> {
+            if (!diagnosticMap.containsKey(fileUri)) {
+                client.publishDiagnostics(new PublishDiagnosticsParams(fileUri, emptyDiagnosticList));
             }
         });
 
@@ -172,8 +173,8 @@ public class DiagnosticsHelper {
             CommandUtil.notifyClient(client, MessageType.Error, this.cyclicDependencyErrors.pop());
         }
 
-        // Replace old diagnostic map associated with the project
-        lastDiagnosticMap.put(projectRoot, diagnosticMap);
+        // Update tracked file URIs for the project
+        lastDiagnosticFileUris.put(projectRoot, new HashSet<>(diagnosticMap.keySet()));
     }
 
     public Map<String, List<Diagnostic>> getLatestDiagnostics(DocumentServiceContext context) {
