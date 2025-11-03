@@ -21,7 +21,7 @@ import styled from '@emotion/styled';
 import { Button, TextField, Typography, ProgressRing, Codicon } from '@wso2/ui-toolkit';
 import { TypeHelperCategory, TypeHelperItem } from '../../TypeHelper';
 import { Type } from '@wso2/ballerina-core';
-import { ContentBody, Footer } from './ContextTypeEditor';
+import { ContentBody, StickyFooterContainer, FloatingFooter } from './ContextTypeEditor';
 
 
 const SearchContainer = styled.div`
@@ -325,7 +325,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     };
 
     return (
-        <>
+        <StickyFooterContainer>
             <ContentBody>
                 <SearchContainer>
                     <TextField
@@ -351,16 +351,15 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                     </ScrollableSection>
                 )}
             </ContentBody>
-
-            <Footer>
+            <FloatingFooter>
                 <Button
                     onClick={handleSelectType}
                     disabled={!selectedType || isSelecting}
                 >
                     {isSelecting ? <Typography variant="progress">Saving...</Typography> : 'Save'}
                 </Button>
-            </Footer>
-        </>
+            </FloatingFooter>
+        </StickyFooterContainer>
     );
 }
 
