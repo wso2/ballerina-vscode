@@ -149,6 +149,7 @@
             "label": "Default Value",
             "description": "The default value of the argument"
           },
+          "valueType": "EXPRESSION",
           "enabled": true,
           "editable": true,
           "optional": true,
