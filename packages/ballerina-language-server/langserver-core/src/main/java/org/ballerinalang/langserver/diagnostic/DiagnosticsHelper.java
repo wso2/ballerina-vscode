@@ -74,9 +74,9 @@ public class DiagnosticsHelper {
      */
     private static class DiagnosticsResponse {
         private final Map<String, List<Diagnostic>> diagnostics;
-        private final Set<Path> compiledPackages;
+        private final List<Path> compiledPackages;
 
-        DiagnosticsResponse(Map<String, List<Diagnostic>> diagnostics, Set<Path> compiledPackages) {
+        DiagnosticsResponse(Map<String, List<Diagnostic>> diagnostics, List<Path> compiledPackages) {
             this.diagnostics = diagnostics;
             this.compiledPackages = compiledPackages;
         }
@@ -85,7 +85,7 @@ public class DiagnosticsHelper {
             return diagnostics;
         }
 
-        Set<Path> getCompiledPackages() {
+        List<Path> getCompiledPackages() {
             return compiledPackages;
         }
     }
@@ -169,14 +169,12 @@ public class DiagnosticsHelper {
                                                         WorkspaceManager workspaceManager) {
         Map<String, List<Diagnostic>> diagnosticMap =
                 toDiagnosticsMap(compilation.diagnosticResult().diagnostics(false), projectRoot, workspaceManager);
-        Set<Path> compiledPackages = new HashSet<>();
-        compiledPackages.add(projectRoot);
-        sendDiagnostics(client, diagnosticMap, compiledPackages);
+        sendDiagnostics(client, diagnosticMap, List.of(projectRoot));
     }
 
     private synchronized void sendDiagnostics(ExtendedLanguageClient client,
                                               Map<String, List<Diagnostic>> diagnosticMap,
-                                              Set<Path> compiledPackages) {
+                                              List<Path> compiledPackages) {
         // If the client is null, returns
         if (client == null) {
             return;
@@ -229,7 +227,7 @@ public class DiagnosticsHelper {
     private DiagnosticsResponse getLatestDiagnosticsWithPackages(DocumentServiceContext context) {
         BallerinaWorkspaceManager workspace = (BallerinaWorkspaceManager) context.workspace();
         Map<String, List<Diagnostic>> diagnosticMap = new HashMap<>();
-        Set<Path> compiledPackages = new HashSet<>();
+        List<Path> compiledPackages = new ArrayList<>();
 
         Optional<Project> project = workspace.project(context.filePath());
         if (project.isEmpty()) {
