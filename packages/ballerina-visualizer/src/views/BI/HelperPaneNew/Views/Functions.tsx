@@ -295,7 +295,12 @@ export const FunctionsPage = ({
             <Divider sx={{ margin: '0px' }} />
             <div style={{ margin: '4px 0' }}>
                 <FooterButtons onClick={handleNewFunctionClick} title="New Function" />
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+                <FooterButtons
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                    title="Open Function Browser"
+                    onClick={() => setIsLibraryBrowserOpen(true)}
+                    startIcon="bi-arrow-outward"
+                />            
             </div>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser

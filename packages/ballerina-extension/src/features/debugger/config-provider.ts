@@ -468,7 +468,7 @@ async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProt
     const newContext = StateMachine.context();
 
     // Check if breakpoint is in a different package
-    if (!uri.fsPath.startsWith(newContext.projectPath)) {
+    if (!uri.fsPath.startsWith(newContext.projectUri)) {
         console.log("Debug hit in a different package");
         window.showInformationMessage("Cannot visualize debug hit since it belongs to a different integration");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);
@@ -656,7 +656,10 @@ class BIRunAdapter extends LoggingDebugSession {
             runCommand = `${runCommand} --experimental`;
         }
 
-        const execution = new ShellExecution(runCommand);
+        // Use the current process environment which should have the updated PATH
+        const env = process.env;
+        debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
+        const execution = new ShellExecution(runCommand, { env: env as { [key: string]: string } });
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
