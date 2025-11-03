@@ -87,6 +87,27 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
         assertResults(actualTextEdits, testConfig, configJsonPath);
     }
 
+    @Test(dataProvider = "config-schema-provider")
+    public void testAddingUsingGraphqlSchema(String path) throws IOException {
+        Path configJsonPath = configDir.resolve(path);
+        BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
+        TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
+        bufferedReader.close();
+
+        ServiceInitModel service = testConfig.serviceInitModel();
+        Value designApproach = service.getDesignApproach();
+        Value graphqlSchemaChoice = designApproach.getChoices().get(1);
+        Value schemaProperty = graphqlSchemaChoice.getProperty("spec");
+        Path schemaPath = sourceDir.resolve("sample3/schema.graphql").toAbsolutePath();
+        schemaProperty.setValue(schemaPath.toString());
+        ServiceInitSourceRequest request = new ServiceInitSourceRequest(
+                sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString(), testConfig.serviceInitModel());
+        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
+
+        assertResults(actualTextEdits, testConfig, configJsonPath);
+    }
+
     @DataProvider(name = "config-path-provider")
     public Object[][] configPathProvider() {
         return new Object[][]{
@@ -95,11 +116,21 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
         };
     }
 
+    @DataProvider(name = "config-schema-provider")
+    public Object[][] configSchemaProvider() {
+        return new Object[][] {
+                {  "graphql_service_model_from_schema_1.json" },
+                {  "graphql_service_model_from_schema_2.json" }
+        };
+    }
+
     @Override
     protected String[] skipList() {
         return new String[]{
                 "http_service_model_from_openapi_spec_1.json",
-                "http_service_model_from_openapi_spec_2.json"
+                "http_service_model_from_openapi_spec_2.json",
+                "graphql_service_model_from_schema_1.json",
+                "graphql_service_model_from_schema_2.json"
         };
     }
 

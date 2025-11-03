@@ -1,0 +1,180 @@
+{
+  "filePath": "sample3/main.bal",
+  "description": "Create a GraphQL service using schema",
+  "serviceInitModel": {
+    "id": "2",
+    "displayName": "GraphQL Service",
+    "description": "Create GraphQL service from scratch or by importing a GraphQL schema",
+    "orgName": "ballerina",
+    "packageName": "graphql",
+    "moduleName": "graphql",
+    "version": "1.16.0",
+    "type": "graphql",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+    "properties": {
+      "designApproach": {
+        "metadata": {
+          "label": "Contract",
+          "description": ""
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "valueType": "CHOICE",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false,
+        "choices": [
+          {
+            "metadata": {
+              "label": "Design From Scratch",
+              "description": "Design the service from scratch"
+            },
+            "enabled": false,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {
+              "basePath": {
+                "metadata": {
+                  "label": "Base Path",
+                  "description": "The base path of the GraphQL service"
+                },
+                "value": "/graphql",
+                "valueType": "SERVICE_PATH",
+                "valueTypeConstraint": "string",
+                "isType": false,
+                "placeholder": "/graphql",
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false,
+                "codedata": {
+                  "type": "SERVICE_BASEPATH"
+                }
+              },
+              "port": {
+                "metadata": {
+                  "label": "Port",
+                  "description": "The port on which the GraphQL service listens"
+                },
+                "value": "8080",
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "int",
+                "isType": false,
+                "placeholder": "8080",
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false,
+                "codedata": {
+                  "type": "LISTENER_PARAM_REQUIRED"
+                }
+              }
+            }
+          },
+          {
+            "metadata": {
+              "label": "Import GraphQL Schema",
+              "description": "Create the service from a GraphQL schema"
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {
+              "spec": {
+                "metadata": {
+                  "label": "GraphQL Schema",
+                  "description": "Provide a GraphQL schema to generate the service"
+                },
+                "enabled": true,
+                "editable": true,
+                "value": "",
+                "valueType": "FILE_SELECT",
+                "valueTypeConstraint": "string",
+                "isType": false,
+                "placeholder": "",
+                "optional": true,
+                "advanced": false,
+                "codedata": {
+                  "type": "GRAPHQL_SCHEMA"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "graphqlNewListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+      "sample3/main.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "\nimport ballerina/graphql;\n"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "\nlistener graphql:Listener graphqlNewListener = new (8080);\nservice /graphql on graphqlNewListener {\n\n\t# Fetch the hero of the Star Wars\nresource function get hero (Episode? episode) returns Character|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns reviews of the Star Wars\nresource function get reviews (Episode episode) returns (Review?)[]|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns characters by id, or null if character is not found\nresource function get characters (string[] idList) returns (Character?)[]|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns a droid by id, or null if droid is not found\nresource function get droid (string id) returns Droid?|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns a human by id, or null if human is not found\nresource function get human (string id) returns Human?|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns a starship by id, or null if starship is not found\nresource function get starship (string id) returns Starship?|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Returns search results by text, or null if search item is not found\nresource function get search (string text) returns SearchResult[]?|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Add new reviews and return the review values\n# + episode - Episode name\n# + reviewInput - Review of the episode\nremote function createReview(Episode episode, ReviewInput reviewInput) returns Review|error {\n\treturn error(\"Not Implemented\");\n\t}\n\n\t# Subscribe to review updates\n# + episode - Episode name\nresource function subscribe reviewAdded (Episode episode) returns stream<Review>|error {\n\treturn error(\"Not Implemented\");\n\t}\n}\n"
+        }
+      ],
+      "sample3/types.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "public type ReviewInput record {|\n    int stars;\n    string? commentary;\n|};\n\n# A character from the Star Wars universe\npublic type Character distinct service object {\n    # The unique identifier of the character\n    resource function get id() returns string|error;\n    # The name of the character\n    resource function get name() returns string|error;\n    # This character's friends, or an empty list if they have none\n    resource function get friends() returns Character[]|error;\n    # The episodes this character appears in\n    resource function get appearsIn() returns Episode[]|error;\n};\n\npublic enum Episode {\n    JEDI,\n    EMPIRE,\n    NEWHOPE\n}\n\n# auto-generated union type from Ballerina\npublic type SearchResult Human|Droid|Starship;\n\n# An autonomous mechanical character in the Star Wars universe\npublic distinct service class Droid {\n    *Character;\n\n    # The unique identifier of the droid\n    resource function get id() returns string|error{ return error(\"Not Implemented\"); }\n    # The name of the droid\n    resource function get name() returns string|error{ return error(\"Not Implemented\"); }\n    # This droid's friends, or an empty list if they have none\n    resource function get friends() returns Character[]|error{ return error(\"Not Implemented\"); }\n    # The episodes this droid appears in\n    resource function get appearsIn() returns Episode[]|error{ return error(\"Not Implemented\"); }\n    # This droid's primary function\n    resource function get primaryFunction() returns string?|error{ return error(\"Not Implemented\"); }}\n\n# A humanoid creature from the Star Wars universe\npublic distinct service class Human {\n    *Character;\n\n    # The unique identifier of the human\n    resource function get id() returns string|error{ return error(\"Not Implemented\"); }\n    # The name of the human\n    resource function get name() returns string|error{ return error(\"Not Implemented\"); }\n    # The home planet of the human, or null if unknown\n    resource function get homePlanet() returns string?|error{ return error(\"Not Implemented\"); }\n    # Height in meters, or null if unknown\n    resource function get height() returns float?|error{ return error(\"Not Implemented\"); }\n    # Mass in kilograms, or null if unknown\n    resource function get mass() returns int?|error{ return error(\"Not Implemented\"); }\n    # This human's friends, or an empty list if they have none\n    resource function get friends() returns Character[]|error{ return error(\"Not Implemented\"); }\n    # The episodes this human appears in\n    resource function get appearsIn() returns Episode[]|error{ return error(\"Not Implemented\"); }\n    # A list of starships this person has piloted, or an empty list if none\n    resource function get starships() returns Starship[]|error{ return error(\"Not Implemented\"); }}\n\npublic distinct service class Review {\n    resource function get episode() returns Episode|error{ return error(\"Not Implemented\"); }\n    resource function get stars() returns int|error{ return error(\"Not Implemented\"); }\n    resource function get commentary() returns string?|error{ return error(\"Not Implemented\"); }}\n\n# A ship from the Star Wars universe\npublic distinct service class Starship {\n    # The unique identifier of the starship\n    resource function get id() returns string|error{ return error(\"Not Implemented\"); }\n    # The name of the starship\n    resource function get name() returns string|error{ return error(\"Not Implemented\"); }\n    # The length of the starship, or null if unknown\n    resource function get length() returns float?|error{ return error(\"Not Implemented\"); }\n    # Coordinates of the starship, or null if unknown\n    resource function get coordinates() returns float[][]?|error{ return error(\"Not Implemented\"); }}"
+        }
+      ]
+    }
+}
