@@ -30,6 +30,7 @@ import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/Tex
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
+import { HelperpaneOnChangeOptions } from '../Form/types';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -59,7 +60,7 @@ export interface ExpressionField {
     changeHelperPaneState: (isOpen: boolean) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     helperPaneHeight?: HelperPaneHeight;
