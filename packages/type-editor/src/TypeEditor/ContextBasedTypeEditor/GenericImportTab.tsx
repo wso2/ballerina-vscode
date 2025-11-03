@@ -543,10 +543,16 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             pointerEvents: 'none',
                             zIndex: 1
                         }}>
-                            <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                            <Typography
+                                variant="body3"
+                                sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
+                            >
                                 Paste JSON or XML here...
                             </Typography>
-                            <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                            <Typography
+                                variant="body3"
+                                sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
+                            >
                                 or
                             </Typography>
                             {payloadContext && isUserAuthenticated && (
@@ -568,7 +574,10 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                         <Codicon name="wand" sx={{ fontSize: '14px' }} />
                                         Generate Sample JSON
                                     </LinkButton>
-                                    <Typography variant="body3" sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}>
+                                    <Typography
+                                        variant="body3"
+                                        sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
+                                    >
                                         or
                                     </Typography>
                                 </>
