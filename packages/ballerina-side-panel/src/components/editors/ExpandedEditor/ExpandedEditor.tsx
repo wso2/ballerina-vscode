@@ -50,7 +50,9 @@ const ModalContainer = styled.div`
 `;
 
 const ModalBox = styled.div`
-    width: 800px;
+    width: 90%;
+    max-width: 1000px;
+    min-width: 600px;
     max-height: 90vh;
     position: relative;
     display: flex;
