@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import FXButton from "./components/FxButton";
-import { ChipEditorContainer } from "./styles";
+import { ChipEditorContainer, SkeletonLoader } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
@@ -445,43 +445,45 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     return (
-        <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
-            {!props.isInExpandedMode && <FXButton isLoading={isLoading} />}
-            <AutoExpandingEditableDiv
-                value={props.value}
-                fieldContainerRef={fieldContainerRef}
-                onFocusChange={(focused) => {
-                    setIsAnyElementFocused(focused);
-                    if (!focused && expressionModel) {
-                        const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
-                        handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
-                    }
-                }}
-                onKeyDown={handleKeyDown}
-                isCompletionsOpen={isCompletionsOpen}
-                completions={filteredCompletions}
-                selectedCompletionItem={selectedCompletionItem}
-                onCompletionSelect={handleCompletionSelect}
-                onCompletionHover={setSelectedCompletionItem}
-                onCloseCompletions={() => setIsCompletionsOpen(false)}
-                getHelperPane={props.getHelperPane}
-                isHelperPaneOpen={isHelperPaneOpen}
-                handleHelperPaneValueChange={handleHelperPaneValueChange}
-                onHelperPaneClose={() => setIsHelperPaneOpen(false)}
-                onToggleHelperPane={toggleHelperPane}
-                isInExpandedMode={props.isInExpandedMode}
-                onOpenExpandedMode={props.onOpenExpandedMode}
-            >
-                <TokenizedExpression
-                    expressionModel={expressionModel || []}
-                    onExpressionChange={handleExpressionChange}
-                    onChipClick={handleChipClick}
-                    onTextFocus={handleTextFocus}
-                    onChipFocus={handleChipFocus}
-                    onChipBlur={handleChipBlur}
-                />
-            </AutoExpandingEditableDiv>
+        <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+            {!props.isInExpandedMode && <FXButton />}
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                {isLoading && <SkeletonLoader />}
+                <AutoExpandingEditableDiv
+                    value={props.value}
+                    fieldContainerRef={fieldContainerRef}
+                    onFocusChange={(focused) => {
+                        setIsAnyElementFocused(focused);
+                        if (!focused && expressionModel) {
+                            const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
+                            handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
+                        }
+                    }}
+                    onKeyDown={handleKeyDown}
+                    isCompletionsOpen={isCompletionsOpen}
+                    completions={filteredCompletions}
+                    selectedCompletionItem={selectedCompletionItem}
+                    onCompletionSelect={handleCompletionSelect}
+                    onCompletionHover={setSelectedCompletionItem}
+                    onCloseCompletions={() => setIsCompletionsOpen(false)}
+                    getHelperPane={props.getHelperPane}
+                    isHelperPaneOpen={isHelperPaneOpen}
+                    handleHelperPaneValueChange={handleHelperPaneValueChange}
+                    onHelperPaneClose={() => setIsHelperPaneOpen(false)}
+                    onToggleHelperPane={toggleHelperPane}
+                    isInExpandedMode={props.isInExpandedMode}
+                    onOpenExpandedMode={props.onOpenExpandedMode}
+                >
+                    <TokenizedExpression
+                        expressionModel={expressionModel || []}
+                        onExpressionChange={handleExpressionChange}
+                        onChipClick={handleChipClick}
+                        onTextFocus={handleTextFocus}
+                        onChipFocus={handleChipFocus}
+                        onChipBlur={handleChipBlur}
+                    />
+                </AutoExpandingEditableDiv>
+            </div>
         </ChipEditorContainer >
-        </>
     )
 }
