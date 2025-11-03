@@ -24,7 +24,6 @@ import ReactMarkdown from "react-markdown";
 const PreviewContainer = styled.div`
     width: 100%;
     height: 100%;
-    min-height: 500px;
     padding: 12px;
     fontSize: 14px;
     font-family: var(--vscode-editor-font-family);
