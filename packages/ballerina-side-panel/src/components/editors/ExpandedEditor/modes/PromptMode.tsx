@@ -25,7 +25,7 @@ import { MarkdownPreview } from "../controls/MarkdownPreview";
 
 const TextArea = styled.textarea`
     width: 100%;
-    min-height: 500px;
+    height: 100%;
     padding: 12px !important;
     fontSize: 13px;
     font-family: var(--vscode-editor-font-family);
@@ -34,7 +34,7 @@ const TextArea = styled.textarea`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 0 0 4px 4px;
     border-top: none;
-    resize: vertical;
+    resize: none;
     outline: none;
     box-sizing: border-box;
 `;
