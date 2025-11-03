@@ -41,13 +41,14 @@ import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { HelperpaneOnChangeOptions } from "../../../Form/types";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     completions: CompletionItem[];
@@ -298,7 +299,13 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         setIsCompletionsOpen(false);
     };
 
-    const handleHelperPaneValueChange = async (updatedValue: string, closeHelperpane: boolean) => {
+    const handleHelperPaneValueChange = async (updatedValue: string, options?: HelperpaneOnChangeOptions) => {
+        if (options?.replaceFullText) {
+            const updatedTokens = await fetchUpdatedFilteredTokens(updatedValue);
+            let exprModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
+            handleExpressionChange(exprModel, updatedValue.length, HELPER_MARKER);
+            return;
+        }
         let value = await expandFunctionSignature(updatedValue);
         if (
             chipClicked &&
@@ -347,7 +354,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 handleExpressionChange(exprModel, newCursorPosition, HELPER_MARKER);
             }
         }
-        if (closeHelperpane) {
+        if (options?.closeHelperPane) {
             setIsHelperPaneOpen(false);
         }
         else {
