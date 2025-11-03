@@ -1,7 +1,7 @@
 import ballerina/http;
-import ballerina/ai;
+import ballerinax/ai;
 
-final ai:Wso2ModelProvider _WorkflowAgentModel = check ai:getDefaultModelProvider();
+final ai:OpenAiProvider _WorkflowAgentModel = check new ("", ai:GPT_4O);
 final ai:Agent _WorkflowAgentAgent = check new (systemPrompt = {role: string `Role with ${"`"}backticks${"`"}`, instructions: string `Instructions with ${"`"}backticks${"`"}`},
     model = _WorkflowAgentModel,
     tools = []
@@ -12,7 +12,7 @@ listener ai:Listener WorkflowAgentListener = new (listenOn = check http:getDefau
 service /WorkflowAgent on WorkflowAgentListener {
     resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {
 
-        string stringResult = check _WorkflowAgentAgent.run(request.message, request.sessionId);
+        string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);
         return {message: stringResult};
     }
 }

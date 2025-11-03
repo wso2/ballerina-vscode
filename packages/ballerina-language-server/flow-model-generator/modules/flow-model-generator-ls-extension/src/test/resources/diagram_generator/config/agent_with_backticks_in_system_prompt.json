@@ -40,17 +40,17 @@
               "offset": 5
             }
           },
-          "sourceCode": "resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n\n        string stringResult = check _WorkflowAgentAgent.run(request.message, request.sessionId);\n        return {message: stringResult};\n    }"
+          "sourceCode": "resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n\n        string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);\n        return {message: stringResult};\n    }"
         },
         "returning": false,
         "flags": 0
       },
       {
-        "id": "45976",
+        "id": "45977",
         "metadata": {
           "label": "run",
           "description": "Executes the agent for a given user query.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png",
           "data": {
             "tools": [],
             "agent": {
@@ -61,21 +61,25 @@
               "model": "_WorkflowAgentModel",
               "tools": "[]"
             },
+            "memory": {
+              "type": "ai:MessageWindowChatMemory",
+              "size": "10"
+            },
             "model": {
               "name": "_WorkflowAgentModel",
               "path": "https://bcentral-packageicons.azureedge.net/images/._._0.0.0.png",
-              "type": "Wso2ModelProvider"
+              "type": "OpenAiProvider"
             }
           }
         },
         "codedata": {
           "node": "AGENT_CALL",
-          "org": "ballerina",
+          "org": "ballerinax",
           "module": "ai",
           "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
-          "version": "1.7.0",
+          "version": "1.0.1",
           "lineRange": {
             "fileName": "agent_with_backticks_in_system_prompt.bal",
             "startLine": {
@@ -84,19 +88,19 @@
             },
             "endLine": {
               "line": 14,
-              "offset": 96
+              "offset": 97
             }
           },
-          "sourceCode": "string stringResult = check _WorkflowAgentAgent.run(request.message, request.sessionId);",
+          "sourceCode": "string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);",
           "data": {
             "agentCodedata": {
               "node": "AGENT",
-              "org": "ballerina",
+              "org": "ballerinax",
               "module": "ai",
               "packageName": "ai",
               "object": "Agent",
               "symbol": "init",
-              "version": "1.7.0",
+              "version": "1.0.1",
               "lineRange": {
                 "fileName": "agent_with_backticks_in_system_prompt.bal",
                 "startLine": {
@@ -172,14 +176,14 @@
             },
             "defaultValue": "[]"
           },
-          "maxIter": {
+          "agentType": {
             "metadata": {
-              "label": "Maximum Iterations",
-              "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
+              "label": "Agent Type",
+              "description": "Type of the agent"
             },
             "valueType": "EXPRESSION",
-            "valueTypeConstraint": "\"INFER_TOOL_COUNT\"|int",
-            "placeholder": "\"INFER_TOOL_COUNT\"",
+            "valueTypeConstraint": "ai:AgentType",
+            "placeholder": "\"FUNCTION_CALL_AGENT\"",
             "optional": true,
             "editable": true,
             "advanced": true,
@@ -187,7 +191,24 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+          },
+          "maxIter": {
+            "metadata": {
+              "label": "Maximum Iterations",
+              "description": "The maximum number of iterations the agent performs to complete the task"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "0"
           },
           "verbose": {
             "metadata": {
@@ -209,7 +230,7 @@
           "memory": {
             "metadata": {
               "label": "Memory",
-              "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
+              "description": "The memory used by the agent to store and manage conversation history"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "ai:Memory|()",
@@ -325,15 +346,15 @@
           },
           "connection": {
             "metadata": {
-              "label": "Object",
-              "description": "The object which you want to call the method on"
+              "label": "Connection",
+              "description": "Connection to use"
             },
             "valueType": "EXPRESSION",
             "value": "_WorkflowAgentAgent",
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
+            "hidden": true
           },
           "query": {
             "metadata": {
@@ -389,33 +410,6 @@
               }
             ],
             "defaultValue": "\"\""
-          },
-          "context": {
-            "metadata": {
-              "label": "Context",
-              "description": "The additional context that can be used during agent tool execution"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:Context",
-            "placeholder": "new ()",
-            "optional": true,
-            "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "context"
-            },
-            "typeMembers": [
-              {
-                "type": "Context",
-                "packageInfo": "ballerina:ai:1.7.0",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              }
-            ],
-            "defaultValue": "new ()"
           }
         },
         "flags": 1
@@ -465,11 +459,11 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
         },
         "codedata": {
           "node": "AGENT",
-          "org": "ballerina",
+          "org": "ballerinax",
           "module": "ai",
           "object": "Agent",
           "symbol": "init",
@@ -508,7 +502,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerina:ai:1.7.0",
+                "packageInfo": "ballerinax:ai:1.0.1",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -536,7 +530,7 @@
             "typeMembers": [
               {
                 "type": "ModelProvider",
-                "packageInfo": "ballerina:ai:1.7.0",
+                "packageInfo": "ballerinax:ai:1.0.1",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -572,14 +566,41 @@
             ],
             "defaultValue": "[]"
           },
+          "agentType": {
+            "metadata": {
+              "label": "Agent Type",
+              "description": "Type of the agent"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ai:AgentType",
+            "placeholder": "\"FUNCTION_CALL_AGENT\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "agentType"
+            },
+            "typeMembers": [
+              {
+                "type": "AgentType",
+                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+          },
           "maxIter": {
             "metadata": {
               "label": "Maximum Iterations",
-              "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
+              "description": "The maximum number of iterations the agent performs to complete the task"
             },
             "valueType": "EXPRESSION",
-            "valueTypeConstraint": "\"INFER_TOOL_COUNT\"|int",
-            "placeholder": "\"INFER_TOOL_COUNT\"",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
             "optional": true,
             "editable": true,
             "advanced": true,
@@ -590,13 +611,6 @@
             },
             "typeMembers": [
               {
-                "type": "\"INFER_TOOL_COUNT\"",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "int",
                 "packageInfo": "",
                 "packageName": "",
@@ -604,7 +618,7 @@
                 "selected": false
               }
             ],
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "0"
           },
           "verbose": {
             "metadata": {
@@ -636,7 +650,7 @@
           "memory": {
             "metadata": {
               "label": "Memory",
-              "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
+              "description": "The memory used by the agent to store and manage conversation history"
             },
             "valueType": "EXPRESSION",
             "valueTypeConstraint": "ai:Memory|()",
@@ -652,7 +666,7 @@
             "typeMembers": [
               {
                 "type": "Memory",
-                "packageInfo": "ballerina:ai:1.7.0",
+                "packageInfo": "ballerinax:ai:1.0.1",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -734,19 +748,18 @@
         "flags": 1
       },
       {
-        "id": "34804",
+        "id": "34792",
         "metadata": {
-          "label": "getDefaultModelProvider",
-          "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png"
+          "label": "Class",
+          "description": "OpenAiProvider is a client class that provides an interface for interacting with OpenAI language models.",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
         },
         "codedata": {
-          "node": "FUNCTION_CALL",
-          "org": "ballerina",
+          "node": "CLASS_INIT",
+          "org": "ballerinax",
           "module": "ai",
-          "packageName": "ai",
-          "symbol": "getDefaultModelProvider",
-          "version": "1.7.0",
+          "object": "OpenAiProvider",
+          "symbol": "init",
           "lineRange": {
             "fileName": "agent_with_backticks_in_system_prompt.bal",
             "startLine": {
@@ -755,20 +768,608 @@
             },
             "endLine": {
               "line": 3,
-              "offset": 84
+              "offset": 72
             }
           },
-          "sourceCode": "final ai:Wso2ModelProvider _WorkflowAgentModel = check ai:getDefaultModelProvider();"
+          "sourceCode": "final ai:OpenAiProvider _WorkflowAgentModel = check new (\"\", ai:GPT_4O);"
         },
         "returning": false,
         "properties": {
+          "apiKey": {
+            "metadata": {
+              "label": "API Key",
+              "description": "The OpenAI API key"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "apiKey"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "modelType": {
+            "metadata": {
+              "label": "Model Type",
+              "description": "The OpenAI model name"
+            },
+            "valueType": "SINGLE_SELECT",
+            "valueTypeConstraint": [
+              "\"gpt-3.5-turbo-16k-0613\"",
+              "\"gpt-3.5-turbo-0125\"",
+              "\"gpt-3.5-turbo-1106\"",
+              "\"gpt-3.5-turbo-0613\"",
+              "\"gpt-3.5-turbo-0301\"",
+              "\"gpt-3.5-turbo-16k\"",
+              "\"gpt-3.5-turbo\"",
+              "\"gpt-4-32k-0613\"",
+              "\"gpt-4-32k-0314\"",
+              "\"gpt-4-32k\"",
+              "\"gpt-4-0613\"",
+              "\"gpt-4-0314\"",
+              "\"gpt-4\"",
+              "\"gpt-4-vision-preview\"",
+              "\"gpt-4-1106-preview\"",
+              "\"gpt-4-turbo-preview\"",
+              "\"gpt-4-0125-preview\"",
+              "\"gpt-4-turbo-2024-04-09\"",
+              "\"gpt-4-turbo\"",
+              "\"gpt-4o-mini-2024-07-18\"",
+              "\"gpt-4o-mini\"",
+              "\"gpt-4o-2024-05-13\"",
+              "\"gpt-4o-2024-08-06\"",
+              "\"gpt-4o-2024-11-20\"",
+              "\"gpt-4o\"",
+              "\"o1-2024-12-17\"",
+              "\"o1\"",
+              "\"o3-mini-2025-01-31\"",
+              "\"o3-mini\""
+            ],
+            "value": "ai:GPT_4O",
+            "placeholder": "\"gpt-3.5-turbo-16k-0613\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "modelType"
+            },
+            "typeMembers": [
+              {
+                "type": "OPEN_AI_MODEL_NAMES",
+                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          "serviceUrl": {
+            "metadata": {
+              "label": "Service URL",
+              "description": "The base URL of OpenAI API endpoint"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "serviceUrl"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "maxTokens": {
+            "metadata": {
+              "label": "Maximum Tokens",
+              "description": "The upper limit for the number of tokens in the response generated by the model"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "maxTokens"
+            },
+            "typeMembers": [
+              {
+                "type": "int",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0"
+          },
+          "temperature": {
+            "metadata": {
+              "label": "Temperature",
+              "description": "The temperature for controlling randomness in the model's output  "
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "temperature"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "httpVersion": {
+            "metadata": {
+              "label": "HTTP Version",
+              "description": "The HTTP version understood by the client"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:HttpVersion",
+            "placeholder": "\"2.0\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "httpVersion"
+            },
+            "typeMembers": [
+              {
+                "type": "HttpVersion",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "\"2.0\""
+          },
+          "http1Settings": {
+            "metadata": {
+              "label": "HTTP1 Settings",
+              "description": "Configurations related to HTTP/1.x protocol"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientHttp1Settings",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http1Settings"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientHttp1Settings",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "http2Settings": {
+            "metadata": {
+              "label": "HTTP2 Settings",
+              "description": "Configurations related to HTTP/2 protocol"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientHttp2Settings",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http2Settings"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientHttp2Settings",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "timeout": {
+            "metadata": {
+              "label": "Timeout",
+              "description": "The maximum time to wait (in seconds) for a response before closing the connection"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "decimal",
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "timeout"
+            },
+            "typeMembers": [
+              {
+                "type": "decimal",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "0.0d"
+          },
+          "forwarded": {
+            "metadata": {
+              "label": "Forwarded",
+              "description": "The choice of setting `forwarded`/`x-forwarded` header"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "forwarded"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "\"\""
+          },
+          "poolConfig": {
+            "metadata": {
+              "label": "Pool Configuration",
+              "description": "Configurations associated with request pooling"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:PoolConfiguration",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "poolConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "cache": {
+            "metadata": {
+              "label": "Cache Configuration",
+              "description": "HTTP caching related configurations"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CacheConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "cache"
+            },
+            "typeMembers": [
+              {
+                "type": "CacheConfig",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "compression": {
+            "metadata": {
+              "label": "Compression",
+              "description": "Specifies the way of handling compression (`accept-encoding`) header"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:Compression",
+            "placeholder": "\"AUTO\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "compression"
+            },
+            "typeMembers": [
+              {
+                "type": "Compression",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "\"AUTO\""
+          },
+          "circuitBreaker": {
+            "metadata": {
+              "label": "Circuit Breaker Configuration",
+              "description": "Configurations associated with the behaviour of the Circuit Breaker"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:CircuitBreakerConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "circuitBreaker"
+            },
+            "typeMembers": [
+              {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "retryConfig": {
+            "metadata": {
+              "label": "Retry Configuration",
+              "description": "Configurations associated with retrying"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:RetryConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryConfig"
+            },
+            "typeMembers": [
+              {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "responseLimits": {
+            "metadata": {
+              "label": "Response Limit Configuration",
+              "description": "Configurations associated with inbound response size limits"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ResponseLimitConfigs",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "responseLimits"
+            },
+            "typeMembers": [
+              {
+                "type": "ResponseLimitConfigs",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket Configuration",
+              "description": "SSL/TLS-related options"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ClientSecureSocket",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "typeMembers": [
+              {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "proxy": {
+            "metadata": {
+              "label": "Proxy Configuration",
+              "description": "Proxy server related options"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "http:ProxyConfig",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "proxy"
+            },
+            "typeMembers": [
+              {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.14.7",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "imports": {
+              "http": "ballerina/http"
+            },
+            "defaultValue": "{}"
+          },
+          "validation": {
+            "metadata": {
+              "label": "Payload Validation",
+              "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "validation"
+            },
+            "typeMembers": [
+              {
+                "type": "boolean",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
+              }
+            ],
+            "defaultValue": "false"
+          },
           "checkError": {
             "metadata": {
               "label": "Check Error",
-              "description": "Trigger error flow"
+              "description": "Terminate on error"
             },
             "valueType": "FLAG",
             "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
             "optional": false,
             "editable": true,
             "advanced": true,
@@ -776,8 +1377,8 @@
           },
           "variable": {
             "metadata": {
-              "label": "Result",
-              "description": "Name of the result variable"
+              "label": "Variable Name",
+              "description": "Name of the variable"
             },
             "valueType": "IDENTIFIER",
             "value": "_WorkflowAgentModel",
@@ -790,25 +1391,25 @@
                 "fileName": "agent_with_backticks_in_system_prompt.bal",
                 "startLine": {
                   "line": 3,
-                  "offset": 27
+                  "offset": 24
                 },
                 "endLine": {
                   "line": 3,
-                  "offset": 46
+                  "offset": 43
                 }
               }
             }
           },
           "type": {
             "metadata": {
-              "label": "Result Type",
+              "label": "Variable Type",
               "description": "Type of the variable"
             },
             "valueType": "TYPE",
-            "value": "ai:Wso2ModelProvider",
+            "value": "ai:OpenAiProvider",
             "placeholder": "var",
             "optional": false,
-            "editable": false,
+            "editable": true,
             "advanced": false,
             "hidden": false,
             "codedata": {}
