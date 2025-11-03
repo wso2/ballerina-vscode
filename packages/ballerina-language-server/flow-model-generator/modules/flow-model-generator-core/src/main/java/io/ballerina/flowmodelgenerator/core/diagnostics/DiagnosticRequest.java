@@ -124,8 +124,10 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 // account the existing indentation at the start)
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
-                endLinePosition = LinePosition.from(endLine, textEditLines.size() > 1 ? textLine.length()
-                        : startCharacter + textLine.length());
+                int numTextEdits = textEditLines.size();
+                int newNodeLineOffset = Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) ? numTextEdits - 1 : 0;
+                endLinePosition = LinePosition.from(endLine + newNodeLineOffset,
+                        numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
         }
         // If no edits were made, return null
