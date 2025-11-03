@@ -16,11 +16,13 @@
  * under the License.
  */
 
-import { FormExpressionEditor, Icon } from "@wso2/ui-toolkit";
+import { FormExpressionEditor } from "@wso2/ui-toolkit";
 import { ExpressionField } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
 import styled from "@emotion/styled";
+import { FloatingToggleButton } from "../ChipExpressionEditor/components/FloatingToggleButton";
+import { ExpandButton } from "../ChipExpressionEditor/components/FloatingButtonIcons";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -85,28 +87,11 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
                 placeholder={placeholder}
             />
             {onOpenExpandedMode && !isInExpandedMode && (
-                <Icon
-                    id="text-mode-editor-expand"
-                    sx={{
-                        position: 'absolute',
-                        bottom: '6px',
-                        right: '8px',
-                        width: '16px',
-                        height: '16px',
-                        cursor: 'pointer',
-                        backgroundColor: 'var(--vscode-menu-background)',
-                        zIndex: '5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '9px',
-                        borderRadius: '4px',
-                        border: '1px solid var(--dropdown-border)'
-                    }}
-                    iconSx={{ color: 'var(--vscode-editor-foreground)' }}
-                    name="expand"
-                    onClick={onOpenExpandedMode}
-                />
+                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                    <FloatingToggleButton onClick={onOpenExpandedMode} title="Expand Editor">
+                        <ExpandButton />
+                    </FloatingToggleButton>
+                </div>
             )}
         </EditorContainer>
     );

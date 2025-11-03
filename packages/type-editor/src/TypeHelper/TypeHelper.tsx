@@ -390,6 +390,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                     sx={{ display: 'flex', justifyContent: 'space-between' }}
                                     title="Open Type Browser"
                                     onClick={() => setIsTypeBrowserOpen(true)}
+                                    startIcon="bi-arrow-outward"
                                 />
                             </div>
                         </SlidingPane>
