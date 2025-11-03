@@ -11,9 +11,9 @@
   },
   "response": {
     "id": "16",
-    "name": "Solace Event Handler",
+    "name": "Solace Event Integration",
     "type": "solace",
-    "displayName": "Solace Event Handler",
+    "displayName": "Solace Event Integration",
     "moduleName": "solace",
     "orgName": "ballerinax",
     "version": "0.3.0",

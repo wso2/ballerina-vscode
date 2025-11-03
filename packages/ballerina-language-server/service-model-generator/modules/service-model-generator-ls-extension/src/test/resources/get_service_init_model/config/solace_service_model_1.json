@@ -7,7 +7,7 @@
   "response": {
     "serviceInitModel": {
       "id": "16",
-      "displayName": "Solace Event Handler",
+      "displayName": "Solace Event Integration",
       "description": "Create a service to handle messages from a Solace queue or topic",
       "orgName": "ballerinax",
       "packageName": "solace",

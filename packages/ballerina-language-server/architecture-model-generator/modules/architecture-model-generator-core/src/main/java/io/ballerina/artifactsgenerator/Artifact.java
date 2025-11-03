@@ -83,15 +83,15 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("tcp", "TCP Service"),
             Map.entry("file", "Directory Service"),
             Map.entry("ftp", "FTP Service"),
-            Map.entry("mqtt", "MQTT Event Handler"),
-            Map.entry("asb", "Azure Service Bus Event Handler"),
-            Map.entry("rabbitmq", "RabbitMQ Event Handler"),
-            Map.entry("kafka", "Kafka Event Handler"),
-            Map.entry("salesforce", "Salesforce Event Handler"),
-            Map.entry("github", "GitHub Event Handler"),
-            Map.entry("twilio", "Twilio Event Handler"),
+            Map.entry("mqtt", "MQTT Event Integration"),
+            Map.entry("asb", "Azure Service Bus Event Integration"),
+            Map.entry("rabbitmq", "RabbitMQ Event Integration"),
+            Map.entry("kafka", "Kafka Event Integration"),
+            Map.entry("salesforce", "Salesforce Event Integration"),
+            Map.entry("github", "GitHub Event Integration"),
+            Map.entry("twilio", "Twilio Event Integration"),
             Map.entry("ai", "AI Agent Services"),
-            Map.entry("solace", "Solace Event Handler")
+            Map.entry("solace", "Solace Event Integration")
     );
 
     /**

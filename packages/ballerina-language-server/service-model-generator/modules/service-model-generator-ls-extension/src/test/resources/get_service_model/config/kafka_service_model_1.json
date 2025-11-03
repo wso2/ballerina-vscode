@@ -7,9 +7,9 @@
   "response": {
     "service": {
       "id": "11",
-      "name": "Kafka Event Handler",
+      "name": "Kafka Event Integration",
       "type": "kafka",
-      "displayName": "Kafka Event Handler",
+      "displayName": "Kafka Event Integration",
       "moduleName": "kafka",
       "orgName": "ballerinax",
       "version": "4.5.0",
