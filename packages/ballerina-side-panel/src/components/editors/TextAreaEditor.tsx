@@ -104,7 +104,7 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 onChange={onChange}
                                 growRange={{ start: 4, offset: 12 }}
                             />
-                            <div id="textarea-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                            <div id="textarea-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
                                 <FloatingToggleButton onClick={handleOpenExpandedMode} title="Expand Editor">
                                     <ExpandButton />
                                 </FloatingToggleButton>
