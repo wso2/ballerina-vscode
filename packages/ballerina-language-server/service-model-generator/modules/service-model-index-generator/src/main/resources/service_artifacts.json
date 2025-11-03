@@ -493,7 +493,7 @@
       "version": "1.4.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "MQTT Event Handler",
+        "displayName": "MQTT Event Integration",
         "description": "Create a service to handle messages from an MQTT broker",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -709,7 +709,7 @@
       "version": "3.9.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Azure Service Bus Event Handler",
+        "displayName": "Azure Service Bus Event Integration",
         "description": "Create a service to handle messages from an Azure Service Bus entity",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -836,7 +836,7 @@
       "version": "3.2.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "RabbitMQ Event Handler",
+        "displayName": "RabbitMQ Event Integration",
         "description": "Create a service to handle messages from a RabbitMQ queue",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -1030,7 +1030,7 @@
       "version": "4.5.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Kafka Event Handler",
+        "displayName": "Kafka Event Integration",
         "description": "Create a service to handle messages from Kafka topic(s)",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -1152,7 +1152,7 @@
       "version": "8.2.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Salesforce Event Handler",
+        "displayName": "Salesforce Event Integration",
         "description": "Create a service to handle events from Salesforce",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -1197,7 +1197,7 @@
       "version": "0.10.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "GitHub Event Handler",
+        "displayName": "GitHub Event Integration",
         "description": "Create a service to handle events from GitHub",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
@@ -1280,7 +1280,7 @@
       "version": "0.10.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Twilio Event Handler",
+        "displayName": "Twilio Event Integration",
         "description": "Create a service to handle events from Twilio",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
@@ -1322,7 +1322,7 @@
       "version": "0.3.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Solace Event Handler",
+        "displayName": "Solace Event Integration",
         "description": "Create a service to handle messages from a Solace queue or topic",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
