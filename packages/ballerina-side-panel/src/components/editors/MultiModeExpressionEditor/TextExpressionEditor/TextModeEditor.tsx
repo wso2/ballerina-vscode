@@ -87,7 +87,7 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
                 placeholder={placeholder}
             />
             {onOpenExpandedMode && !isInExpandedMode && (
-                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
                     <FloatingToggleButton onClick={onOpenExpandedMode} title="Expand Editor">
                         <ExpandButton />
                     </FloatingToggleButton>
