@@ -35,6 +35,7 @@ export interface UpdateSourceCodeRequest {
     artifactData?: ArtifactData;
     description?: string;
     identifier?: string;
+    skipPayloadCheck?: boolean; // This is used to skip the payload check because the payload data might become empty as a result of a change. Example: Deleting a component.
 }
 
 export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest): Promise<ProjectStructureArtifactResponse[]> {
@@ -169,7 +170,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 const notificationHandler = ArtifactNotificationHandler.getInstance();
                 // Subscribe to artifact updated notifications
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, updateSourceCodeRequest.artifactData, async (payload) => {
-                    if (payload.data && payload.data.length > 0) {
+                    if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
                         console.log("Received notification:", payload);
                         clearTimeout(timeoutId);
                         resolve(payload.data);
