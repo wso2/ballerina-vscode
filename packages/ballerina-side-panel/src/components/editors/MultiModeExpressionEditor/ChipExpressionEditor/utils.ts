@@ -332,6 +332,16 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
     return offset;
 };
 
+export const hasTextSelection = (el: HTMLElement): boolean => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+    if (!el.contains(range.startContainer)) return false;
+    // Check if there's an actual selection (not just a cursor position)
+    // range.collapsed is false when there's a selection range
+    return !range.collapsed;
+};
+
 export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): number => {
     if (!model || model.length === 0) return 0;
     const active = document.activeElement as HTMLElement | null;
