@@ -159,6 +159,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -424,9 +425,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 throw new IllegalStateException("Location not found for the variable symbol: " +
                         variableSymbol);
             }
+            Document document = CommonUtils.getDocument(project, optLocation.get());
+            if (document == null) {
+                return;
+            }
             Optional<NonTerminalNode> varNodeOpt =
-                    CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                            optLocation.get()).syntaxTree());
+                    CommonUtil.findNode(variableSymbol, document.syntaxTree());
             if (varNodeOpt.isEmpty()) {
                 throw new IllegalStateException("Variable node not found for the variable symbol: " +
                         variableSymbol);
@@ -473,8 +477,8 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Finds the initialization expression for a field by searching through its references.
-     * Currently looks for assignments in the init method.
+     * Finds the initialization expression for a field by searching through its references. Currently looks for
+     * assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
      * @return Optional containing the initialization expression if found, empty otherwise
@@ -2571,8 +2575,12 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Location location = optLocation.get();
-        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
-                CommonUtils.getDocument(project, location).syntaxTree());
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return null;
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
 
         if (optNode.isEmpty()) {
             return null;
@@ -2598,8 +2606,12 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Location location = optLocation.get();
-        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
-                CommonUtils.getDocument(project, location).syntaxTree());
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return "()";
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
 
         if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
             return "()";

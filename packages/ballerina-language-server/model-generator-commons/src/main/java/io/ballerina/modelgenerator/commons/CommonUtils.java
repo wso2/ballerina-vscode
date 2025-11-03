@@ -433,13 +433,17 @@ public class CommonUtils {
      *
      * @param project  the project to retrieve the document from
      * @param location the location of the document
-     * @return the document at the specified location
+     * @return the document at the specified location, or null if the file does not belong to the current project
      */
     public static Document getDocument(Project project, Location location) {
-        DocumentId documentId = project.documentId(
-                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                        project.sourceRoot().resolve(location.lineRange().fileName()));
-        return project.currentPackage().getDefaultModule().document(documentId);
+        try {
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            return project.currentPackage().getDefaultModule().document(documentId);
+        } catch (RuntimeException ex) {
+            return null;
+        }
     }
 
     /***
