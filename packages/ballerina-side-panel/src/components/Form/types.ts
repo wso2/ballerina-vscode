@@ -59,7 +59,7 @@ export type FormField = {
     actionLabel?: string | JSX.Element;
     properties?: ConfigProperties;
     actionCallback?: () => void;
-    onValueChange?: (value: string) => void;
+    onValueChange?: (value: string | boolean) => void;
     isGraphqlId?: boolean;
 };
 
@@ -89,6 +89,12 @@ export type HelperPaneCompletionItem = {
 export type HelperPaneCompletionCategory = {
     label: string;
     items: HelperPaneCompletionItem[];
+}
+
+
+export type HelperpaneOnChangeOptions = {
+    closeHelperPane?: boolean;
+    replaceFullText?: boolean;
 }
 
 export type HelperPaneVariableInfo = {
@@ -173,7 +179,7 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string,  options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,

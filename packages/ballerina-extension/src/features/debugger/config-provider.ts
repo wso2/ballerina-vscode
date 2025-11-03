@@ -708,7 +708,10 @@ class BIRunAdapter extends LoggingDebugSession {
             runCommand = `${runCommand} --experimental`;
         }
 
-        const execution = new ShellExecution(runCommand);
+        // Use the current process environment which should have the updated PATH
+        const env = process.env;
+        debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
+        const execution = new ShellExecution(runCommand, { env: env as { [key: string]: string } });
         const task = new Task(
             taskDefinition,
             workspace.workspaceFolders![0], // Assumes at least one workspace folder is open

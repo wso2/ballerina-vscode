@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useLayoutEffect, useRef } from "react";
-import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel } from "../utils";
+import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel, hasTextSelection } from "../utils";
 import { ExpressionModel } from "../types";
 import { InvisibleSpan } from "../styles";
 import { FOCUS_MARKER } from "../constants";
@@ -25,6 +25,7 @@ import { FOCUS_MARKER } from "../constants";
 export const TextElement = (props: {
     element: ExpressionModel;
     expressionModel: ExpressionModel[];
+    sx?: React.CSSProperties;
     index: number;
     onTextFocus?: (e: React.FocusEvent<HTMLSpanElement>) => void;
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void;
@@ -36,6 +37,15 @@ export const TextElement = (props: {
     const isProgrammaticFocusRef = useRef<boolean>(false);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+        // Only call handleKeyDownInTextElement when there's no text selection (caret is at a single position)
+        // If there's a selection, let the browser handle the default behavior
+        // because we only have to handle the case where the cursor is in the starting position of
+        // a text element and user is trying to delete or move left or right
+        // if user has selected a range then we do not have to care about chip deletions
+        // (Chips cannot be selected)
+        if (spanRef.current && hasTextSelection(spanRef.current)) {
+            return;
+        }
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
     };
 
@@ -170,7 +180,10 @@ export const TextElement = (props: {
             onMouseUp={handleMouseUp}
             onKeyDown={handleKeyDown}
             contentEditable
-            suppressContentEditableWarning>{props.element.value}
+            suppressContentEditableWarning
+            style={props.sx}
+            >
+                {props.element.value}
         </InvisibleSpan>
     );
 };

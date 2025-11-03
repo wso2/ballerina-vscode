@@ -224,7 +224,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         };
         const res = await rpcClient
             .getServiceDesignerRpcClient()
-            .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+            .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
         const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
         if (serviceArtifact) {
             fetchService(serviceArtifact.position);
@@ -565,7 +565,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isNew) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .addResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+                .addResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
             const serviceArtifact = res.artifacts.find(res => res.isNew && res.name === serviceIdentifier);
             if (serviceArtifact) {
                 if (openDiagram) {
@@ -586,7 +586,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         } else {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
@@ -613,7 +613,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isNew) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+                .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 if (openDiagram) {
@@ -639,7 +639,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         } else {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
-                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, service: serviceModel });
+                .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
             const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);

@@ -84,10 +84,11 @@ const ButtonWrapper = styled.div`
 export interface ServiceEditViewProps {
     filePath: string;
     position: NodePosition;
+    onChange?: (data: ServiceModel, filePath: string, position: NodePosition) => void;
 }
 
 export function ServiceEditView(props: ServiceEditViewProps) {
-    const { filePath, position } = props;
+    const { filePath, position, onChange } = props;
     const { rpcClient } = useRpcContext();
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
 
@@ -99,7 +100,7 @@ export function ServiceEditView(props: ServiceEditViewProps) {
         rpcClient.getServiceDesignerRpcClient().getServiceModelFromCode({ filePath, codedata: { lineRange } }).then(res => {
             setServiceModel(res.service);
         })
-    }, []);
+    }, [props.filePath, props.position]);
 
     const onSubmit = async (value: ServiceModel) => {
         setSaving(true);
@@ -109,6 +110,12 @@ export function ServiceEditView(props: ServiceEditViewProps) {
             rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: updatedArtifact.path, position: updatedArtifact.position } });
             setSaving(false);
             return;
+        }
+    }
+
+    const handleServiceChange = async (data: ServiceModel) => {
+        if (onChange) {
+            onChange(data, filePath, position);
         }
     }
 
@@ -138,7 +145,7 @@ export function ServiceEditView(props: ServiceEditViewProps) {
 
     return (
         <>
-            {serviceModel && <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} />}
+            {serviceModel && <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} onChange={handleServiceChange} />}
         </>
     );
 };

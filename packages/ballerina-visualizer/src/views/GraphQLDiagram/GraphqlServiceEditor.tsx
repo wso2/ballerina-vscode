@@ -562,6 +562,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                         lineRange: lineRange,
                     },
                     function: updatedModel,
+                    artifactType: DIRECTORY_MAP.SERVICE
                 });
             } else {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().addFunctionSourceCode({
@@ -570,6 +571,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                         lineRange: lineRange,
                     },
                     function: updatedModel,
+                    artifactType: DIRECTORY_MAP.SERVICE
                 });
             }
 
