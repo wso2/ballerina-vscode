@@ -83,7 +83,7 @@ const MessageTypeNameFieldContainer = styled.div`
 `;
 
 const PayloadSection = styled.div`
-    padding-top: 12px;
+    // padding-top: 12px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -360,26 +360,28 @@ export function DatabindForm(props: DatabindFormProps) {
                             <MessageConfigContent>
                                 <PayloadSection>
                                     {/* Payload Section */}
-                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
-                                        {payloadFieldName} Schema
-                                    </Typography>
                                     {!payloadParameter && !editModel && (
                                         <AddButtonWrapper>
-                                            <Tooltip content="Define schema for easier access in the flow diagram" position="bottom">
+                                            <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
                                                 <LinkButton onClick={onAddPayloadClick}>
                                                     <Codicon name="add" />
-                                                    Define Schema
+                                                    Define {payloadFieldName}
                                                 </LinkButton>
                                             </Tooltip>
                                         </AddButtonWrapper>
                                     )}
                                     {payloadParameter && (
-                                        <Parameters
-                                            parameters={[payloadParameter]}
-                                            onChange={handlePayloadParamChange}
-                                            onEditClick={onEditPayloadClick}
-                                            showPayload={true}
-                                        />
+                                        <>
+                                            <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                                {payloadFieldName}
+                                            </Typography>
+                                            <Parameters
+                                                parameters={[payloadParameter]}
+                                                onChange={handlePayloadParamChange}
+                                                onEditClick={onEditPayloadClick}
+                                                showPayload={true}
+                                            />
+                                        </>
                                     )}
 
                                     {/* Payload Editor */}
@@ -566,7 +568,7 @@ export function DatabindForm(props: DatabindFormProps) {
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadTypeName()}
-                modalTitle={"Define " + payloadFieldName + " Schema"}
+                modalTitle={"Define " + payloadFieldName}
                 payloadContext={{
                     ...payloadContext,
                     queueOrTopic: getQueueDescriptionByModule(serviceModuleName)
