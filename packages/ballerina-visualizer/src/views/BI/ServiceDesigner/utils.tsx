@@ -84,3 +84,23 @@ export function getReadableListenerName(name: string) {
     const listenerType = match ? match[1] : "Unknown";
     return `${listenerType.charAt(0).toUpperCase() + listenerType.slice(1)} Listener`;
 }
+
+export function hasEditableParameters(parameters: FunctionModel['parameters']): boolean {
+    if (!parameters || parameters.length === 0) {
+        return false;
+    }
+    return parameters.some((param) => param.editable !== false);
+}
+
+/**
+ * Normalizes a value to an array for MULTIPLE_SELECT and EXPRESSION_SET types.
+ *
+ * @param value The value to normalize
+ * @returns An array containing the value(s), or an empty array if value is falsy
+ */
+export function normalizeValueToArray(value: any): any[] {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    return value ? [value] : [];
+}
