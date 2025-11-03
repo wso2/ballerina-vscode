@@ -477,8 +477,8 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Finds the initialization expression for a field by searching through its references. Currently looks for
-     * assignments in the init method.
+     * Finds the initialization expression for a field by searching through its references.
+     * Currently looks for assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
      * @return Optional containing the initialization expression if found, empty otherwise

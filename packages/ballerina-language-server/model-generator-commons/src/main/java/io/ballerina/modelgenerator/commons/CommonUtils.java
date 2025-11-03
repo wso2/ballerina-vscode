@@ -56,6 +56,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
@@ -441,7 +442,7 @@ public class CommonUtils {
                     project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                             project.sourceRoot().resolve(location.lineRange().fileName()));
             return project.currentPackage().getDefaultModule().document(documentId);
-        } catch (RuntimeException ex) {
+        } catch (ProjectException ex) {
             return null;
         }
     }
