@@ -9,12 +9,10 @@ import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri,
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
-import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
-import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
@@ -276,6 +274,8 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.viewLocation.position,
                                     identifier: (context, event) => event.viewLocation.identifier,
                                     serviceType: (context, event) => event.viewLocation.serviceType,
+                                    projectUri: (context, event) => event.viewLocation?.projectUri || context?.projectUri,
+                                    package: (context, event) => event.viewLocation?.package,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
@@ -463,12 +463,21 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
+                const projectTomlValues = await getProjectTomlValues(context.projectUri);
+                const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({ location: { view: MACHINE_VIEW.Overview, documentUri: context.documentUri } });
+                        history.push({
+                            location: {
+                                view: MACHINE_VIEW.Overview,
+                                documentUri: context.documentUri,
+                                package: packageName || context.package
+                            }
+                        });
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectUri);
+                    view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -478,6 +487,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
@@ -747,7 +757,7 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
 }
 
 async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerina(folder.uri));
+    const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
 
     if (balProjects.length > 1) {
         const projectPaths = balProjects.map(folder => folder.uri.fsPath);
@@ -777,7 +787,7 @@ async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFold
 }
 
 async function handleSingleWorkspace(workspaceURI: any) {
-    const isBallerina = checkIsBallerina(workspaceURI);
+    const isBallerina = checkIsBallerinaPackage(workspaceURI);
     const isBI = isBallerina && checkIsBI(workspaceURI);
     const scope = fetchScope(workspaceURI);
     const projectPath = isBallerina ? workspaceURI.fsPath : "";
