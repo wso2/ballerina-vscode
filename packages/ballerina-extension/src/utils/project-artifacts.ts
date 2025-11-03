@@ -426,6 +426,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-ftp";
         case "file":
             return "bi-file";
+        case "mcp":
+            return "bi-mcp";
         default:
             return "bi-globe";
     }
