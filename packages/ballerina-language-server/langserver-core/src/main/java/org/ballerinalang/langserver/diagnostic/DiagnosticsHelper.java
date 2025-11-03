@@ -63,8 +63,8 @@ public class DiagnosticsHelper {
             new LanguageServerContext.Key<>();
     private static final long DIAGNOSTIC_DELAY = 1;
     /**
-     * Holds file URIs that had diagnostics in the last publication for the purpose of clear-off when publishing new diagnostics.
-     * Key: package root path, Value: set of file URIs that had diagnostics
+     * Holds file URIs that had diagnostics in the last publication for the purpose of clear-off when publishing new
+     * diagnostics. Key: package root path, Value: set of file URIs that had diagnostics
      */
     private final Map<Path, Set<String>> lastDiagnosticFileUris;
     private CompletableFuture<Boolean> latestScheduled = null;
@@ -349,12 +349,19 @@ public class DiagnosticsHelper {
 
     /**
      * Helper class to hold diagnostics and file URIs for a single package.
+     *
+     * @param diagnostics Map of file URIs to their diagnostics
+     * @param fileUris    Set of file URIs that have diagnostics
      */
     private record PackageDiagnostics(Map<String, List<Diagnostic>> diagnostics, Set<String> fileUris) {
     }
 
     /**
      * Helper class to hold diagnostic results along with metadata about which packages were compiled.
+     *
+     * @param diagnostics       Map of file URIs to their diagnostics
+     * @param compiledPackages  List of package root paths that were compiled
+     * @param packageFileUris   Map of package root paths to the set of file URIs that have diagnostics
      */
     private record DiagnosticsResponse(Map<String, List<Diagnostic>> diagnostics, List<Path> compiledPackages,
                                        Map<Path, Set<String>> packageFileUris) {
