@@ -36,7 +36,7 @@ const NODE_ID = "clause-connector-node";
 export class ClauseConnectorNode extends DataMapperNodeModel {
 
     public sourcePorts: InputOutputPortModel[] = [];
-    public targetPort: InputOutputPortModel;
+    public targetMappedPort: InputOutputPortModel;
 
     public inPort: IntermediatePortModel;
     public outPort: IntermediatePortModel;
@@ -62,7 +62,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
     initPorts(): void {
         const prevSourcePorts = this.sourcePorts;
         this.sourcePorts = [];
-        this.targetPort = undefined;
+        this.targetMappedPort = undefined;
         this.inPort = new IntermediatePortModel(`${this.query.inputs.join('_')}_${this.query.output}_IN`, "IN");
         this.outPort = new IntermediatePortModel(`${this.query.inputs.join('_')}_${this.query.output}_OUT`, "OUT");
         this.addPort(this.inPort);
@@ -98,7 +98,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                 if (node instanceof QueryOutputNode) {
                     const targetPortPrefix = getTargetPortPrefix(node);
 
-                    this.targetPort = node.getPort(`${targetPortPrefix}.${this.query.output}.#.IN`) as InputOutputPortModel;
+                    this.targetMappedPort = node.getPort(`${targetPortPrefix}.${this.query.output}.#.IN`) as InputOutputPortModel;
 
                     if (prevSourcePorts.length !== this.sourcePorts.length ||
                         prevSourcePorts.map(port => port.getID()).join('') !== this.sourcePorts.map(port => port.getID()).join('')) {
@@ -120,7 +120,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
 
             if (sourcePort) {
                 sourcePort.addLinkedPort(this.inPort);
-                sourcePort.addLinkedPort(this.targetPort)
+                sourcePort.addLinkedPort(this.targetMappedPort)
 
                 lm.setTargetPort(this.inPort);
                 lm.setSourcePort(sourcePort);
@@ -139,13 +139,13 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
             }
         })
 
-        if (this.targetPort) {
+        if (this.targetMappedPort) {
             const outPort = this.outPort;
-            const targetPort = this.targetPort;
+            const targetPort = this.targetMappedPort;
 
             const lm = new DataMapperLinkModel(undefined, this.diagnostics, true, undefined, true);
 
-            lm.setTargetPort(this.targetPort);
+            lm.setTargetPort(this.targetMappedPort);
             lm.setSourcePort(this.outPort);
             lm.registerListener({
                 selectionChanged(event) {
@@ -160,8 +160,8 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
             })
 
             if (!this.label) {
-                const fieldFQN = this.targetPort.attributes.fieldFQN;
-                this.label = fieldFQN ? this.targetPort.attributes.fieldFQN.split('.').pop() : '';
+                const fieldFQN = this.targetMappedPort.attributes.fieldFQN;
+                this.label = fieldFQN ? this.targetMappedPort.attributes.fieldFQN.split('.').pop() : '';
             }
             this.getModel().addAll(lm as any);
         }
@@ -170,8 +170,8 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
     }
 
     public updatePosition() {
-        if (this.targetPort) {
-            const position = this.targetPort.getPosition();
+        if (this.targetMappedPort) {
+            const position = this.targetMappedPort.getPosition();
             this.setPosition(
                 this.hasError()
                     ? OFFSETS.LINK_CONNECTOR_NODE_WITH_ERROR.X
