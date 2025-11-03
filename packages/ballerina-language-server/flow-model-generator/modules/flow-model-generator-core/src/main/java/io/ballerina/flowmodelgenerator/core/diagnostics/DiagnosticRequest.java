@@ -125,7 +125,8 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
                 int numTextEdits = textEditLines.size();
-                int lineOffset = Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
+                int lineOffset =
+                        Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
                 endLinePosition = LinePosition.from(endLine + lineOffset,
                         numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
