@@ -30,7 +30,6 @@ import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.tools.text.LinePosition;
@@ -41,6 +40,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -96,38 +96,65 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(FieldAccessExpressionNode fieldAccessExpressionNode) {
+        handleFieldAccessLogic(fieldAccessExpressionNode, fieldAccessExpressionNode.expression(),
+                fieldAccessExpressionNode.fieldName());
+    }
+
+    @Override
+    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+        handleFieldAccessLogic(optionalFieldAccessExpressionNode, optionalFieldAccessExpressionNode.expression(),
+                optionalFieldAccessExpressionNode.fieldName());
+    }
+
+    /**
+     * Common method to handle both field access and optional field access expressions.
+     *
+     * @param node       The field access expression node (either regular or optional)
+     * @param expression The expression part of the field access
+     * @param fieldName  The field name part of the expression
+     */
+    private void handleFieldAccessLogic(Node node, ExpressionNode expression, Node fieldName) {
         // Find the leftmost node
-        ExpressionNode expression = fieldAccessExpressionNode.expression();
-        while (expression.kind() == SyntaxKind.FIELD_ACCESS) {
-            expression = ((FieldAccessExpressionNode) expression).expression();
+        ExpressionNode leftmostExpression = expression;
+        Optional<ExpressionNode> fieldExpressionNode = getFieldExpressionNode(expression);
+        while (fieldExpressionNode.isPresent()) {
+            leftmostExpression = fieldExpressionNode.get();
+            fieldExpressionNode = getFieldExpressionNode(leftmostExpression);
         }
 
         // Mark the field as variable if the expression is a variable reference
-        if (expression instanceof SimpleNameReferenceNode nameReferenceNode) {
+        if (leftmostExpression instanceof SimpleNameReferenceNode nameReferenceNode) {
             // Get the symbol name from the node
             String symbolName = nameReferenceNode.name().text();
             if (!validSymbolNames.contains(symbolName)) {
                 return;
             }
 
-            addSemanticToken(fieldAccessExpressionNode, ExpressionTokenTypes.VARIABLE.getId());
+            addSemanticToken(node, ExpressionTokenTypes.VARIABLE.getId());
             return;
         }
 
         // Mark the field name as PROPERTY, if the expression is not a variable
-        addSemanticToken(fieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
+        addSemanticToken(fieldName, ExpressionTokenTypes.PROPERTY.getId());
         // Visit the expression part (left side)
-        fieldAccessExpressionNode.expression().accept(this);
+        expression.accept(this);
     }
 
-    @Override
-    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
-        // Mark the field name as PROPERTY (same as regular field access)
-        addSemanticToken(optionalFieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
-        // Visit the expression part (left side)
-        optionalFieldAccessExpressionNode.expression().accept(this);
+    /**
+     * Return the inner expression if {@code expression} is a field access (regular or optional).
+     *
+     * @param expression expression to inspect
+     * @return optional inner {@link ExpressionNode} or {@link Optional#empty()} if not a field access
+     */
+    private static Optional<ExpressionNode> getFieldExpressionNode(ExpressionNode expression) {
+        if (expression instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
+            return Optional.of(fieldAccessExpressionNode.expression());
+        }
+        if (expression instanceof OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+            return Optional.of(optionalFieldAccessExpressionNode.expression());
+        }
+        return Optional.empty();
     }
-
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
         // Process arguments - they should all be marked as PARAMETER
@@ -232,14 +259,16 @@ public class SemanticTokenVisitor extends NodeVisitor {
             length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
         }
 
-        // Account for invalid tokens to the length and adjust column accordingly
-        for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
-            int tokenLength = leadingInvalidToken.text().length();
-            length += tokenLength;
-            column -= tokenLength;
-        }
-        for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
-            length += trailingInvalidToken.text().length();
+        // Account for invalid tokens to the length ONLY for PARAMETER tokens
+        if (type == ExpressionTokenTypes.PARAMETER.getId()) {
+            for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
+                int tokenLength = leadingInvalidToken.text().length();
+                length += tokenLength;
+                column -= tokenLength;
+            }
+            for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
+                length += trailingInvalidToken.text().length();
+            }
         }
 
         // Delegate to addSemanticTokenWithPosition for duplicate checking and token creation
