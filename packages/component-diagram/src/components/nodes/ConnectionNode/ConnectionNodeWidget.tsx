@@ -37,7 +37,6 @@ const Node = styled.div<NodeStyleProp>`
     justify-content: center;
     align-items: center;
     height: ${CON_NODE_HEIGHT}px;
-    width: ${CON_NODE_WIDTH}px;
     color: ${ThemeColors.ON_SURFACE};
     cursor: pointer;
 `;
@@ -61,6 +60,7 @@ const Circle = styled.div<NodeStyleProp>`
     border-radius: 50%;
     background-color: ${ThemeColors.SURFACE_DIM};
     color: ${ThemeColors.ON_SURFACE};
+    aspect-ratio: 1 / 1;
 `;
 
 const MenuButton = styled(Button)`

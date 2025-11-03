@@ -22,22 +22,35 @@ import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
-import { GetHelperButton } from "./FloatingButtonIcons";
-import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE } from '../constants';
+import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition } from "../utils";
+import styled from "@emotion/styled";
+import { HelperpaneOnChangeOptions } from "../../../../Form/types";
+
+const ChipEditorFieldContainer = styled.div`
+    width: 100%;
+    position: relative;
+
+    #floating-button-container {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #floating-button-container {
+        opacity: 1;
+    }
+`;
 
 export type AutoExpandingEditableDivProps = {
+    value: string;
     fieldContainerRef?: React.RefObject<HTMLDivElement>;
     children?: React.ReactNode;
     onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-    onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
-    onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
     onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
     style?: React.CSSProperties;
-    onFocusChange?: (isFocused: boolean, isEditableSpan: boolean) => void;
-    isExpanded?: boolean;
-    setIsExpanded?: (isExpanded: boolean) => void;
+    onFocusChange?: (isFocused: boolean) => void;
     isCompletionsOpen?: boolean;
     completions?: CompletionItem[];
     selectedCompletionItem?: number;
@@ -47,13 +60,15 @@ export type AutoExpandingEditableDivProps = {
     onCloseCompletions?: () => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string, closeHelperPane: boolean) => void;
+    handleHelperPaneValueChange?: (value: string,  options?: HelperpaneOnChangeOptions) => void;
+    isInExpandedMode?: boolean;
+    onOpenExpandedMode?: () => void;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -61,13 +76,10 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         children,
         onKeyUp,
         onKeyDown,
-        onMouseDown,
-        onMouseUp,
         onInput,
         fieldContainerRef,
-        style,
-        isExpanded,
-        setIsExpanded } = props;
+        style
+    } = props;
 
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
 
@@ -120,10 +132,9 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 top={menuPosition.top}
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
-                onMouseDown={(e) => e.preventDefault()}
             >
                 {props.getHelperPane(
-                    "var",
+                    props.value,
                     props.handleHelperPaneValueChange ? props.handleHelperPaneValueChange : () => { },
                     "3/4"
                 )}
@@ -158,7 +169,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
             lastFocusStateRef.current = { focused: newFocusState, isEditable: isEditableSpan };
 
             if (props.onFocusChange) {
-                props.onFocusChange(newFocusState, isEditableSpan);
+                props.onFocusChange(newFocusState);
             }
         }
     }, [fieldContainerRef]);
@@ -206,41 +217,44 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         };
     }, [props.isCompletionsOpen, props.isHelperPaneOpen, props.onCloseCompletions, props.onHelperPaneClose]);
 
-    return (
-        <>
-            {isExpanded ? (
-                <div
-                    style={{
-                        height: '100%',
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
+    const handleEditorClicked = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target instanceof HTMLSpanElement) return;
+        const spans = (e.target as HTMLElement).querySelectorAll('span[contenteditable]');
+        if (spans.length > 0) {
+            const lastSpan = spans[spans.length - 1] as HTMLSpanElement;
+            lastSpan.focus();
+        }
+    }
 
-                    <span>Editing in expanded mode</span>
-                </div>
-            ) : (
-                <ChipEditorField
-                    ref={fieldContainerRef}
-                    style={{ ...style, flex: 1 }}
-                    onKeyUp={onKeyUp}
-                    onKeyDown={onKeyDown}
-                    onMouseDown={onMouseDown}
-                    onMouseUp={onMouseUp}
-                    onInput={onInput}
-                >
+    return (
+        <ChipEditorFieldContainer>
+            <ChipEditorField
+                ref={fieldContainerRef}
+                style={{
+                    ...style,
+                    flex: 1,
+                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '200px',
+                    ...(props.isInExpandedMode && {
+                        height: `${EXPANDED_EDITOR_HEIGHT}px`,
+                        minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
+                    })
+                }}
+                onKeyUp={onKeyUp}
+                onClick={handleEditorClicked}
+                onKeyDown={onKeyDown}
+                onInput={onInput}
+            >
+                <div style={{ flex: 1, overflow: 'auto', height: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto' }}>
                     {children}
-                    <FloatingButtonContainer>
-                        <FloatingToggleButton isActive={props.isHelperPaneOpen || false} onClick={() => props.onToggleHelperPane?.()} title="Helper">
-                            <GetHelperButton />
-                        </FloatingToggleButton>
-                    </FloatingButtonContainer>
-                    {renderCompletionsMenu()}
-                    {renderHelperPane()}
-                </ChipEditorField>
-            )}
-        </>
+                </div>
+            </ChipEditorField>
+            {renderCompletionsMenu()}
+            {renderHelperPane()}
+            <FloatingButtonContainer id="floating-button-container">
+                <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
+                    {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                </FloatingToggleButton>
+            </FloatingButtonContainer>
+        </ChipEditorFieldContainer>
     )
 }

@@ -452,7 +452,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
+            await updateSourceCode({ textEdits: resp.textEdits, description: 'Error Handler Creation' });
         }
     }
 

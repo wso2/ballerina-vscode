@@ -99,10 +99,11 @@ export interface ResourcePathProps {
 	onChange: (method: PropertyModel, path: PropertyModel) => void;
 	onError: (hasErros: boolean) => void;
 	isNew?: boolean;
+	readonly?: boolean;
 }
 
 export function ResourcePath(props: ResourcePathProps) {
-	const { method, path, onChange, onError, isNew } = props;
+	const { method, path, onChange, onError, isNew, readonly } = props;
 
 	const [inputValue, setInputValue] = useState('');
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
@@ -213,7 +214,7 @@ export function ResourcePath(props: ResourcePathProps) {
 						marginRight: isNew ? 10 : 0
 					}}
 				>
-					{!isNew && (
+					{!isNew && !readonly && (
 						<Dropdown
 							sx={{ width: 100, background: getColorByMethod(method.value?.toUpperCase()), color: "#fff" }}
 							isRequired
@@ -225,7 +226,7 @@ export function ResourcePath(props: ResourcePathProps) {
 							value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
 						/>
 					)}
-					{isNew && (
+					{(isNew || readonly) && (
 						<>
 							<MethodLabel>HTTP Method</MethodLabel>
 							<MethodBox color={getColorByMethod(method.value?.toUpperCase())}>
@@ -245,6 +246,7 @@ export function ResourcePath(props: ResourcePathProps) {
 						const trimmedInput = input.startsWith('/') ? input.slice(1) : input;
 						handlePathChange(trimmedInput);
 					}}
+					disabled={readonly}
 					onKeyUp={handleBlur}
 					placeholder="path/foo"
 					value={removeForwardSlashes(path.value as string)}
@@ -262,12 +264,14 @@ export function ResourcePath(props: ResourcePathProps) {
 						isNew={true}
 					/>
 				) : (
-					<AddButtonWrapper>
-						<LinkButton onClick={handlePathAdd} >
-							<Codicon name="add" />
-							<>Path Param</>
-						</LinkButton>
-					</AddButtonWrapper>
+					!readonly && (
+						<AddButtonWrapper>
+							<LinkButton onClick={handlePathAdd} >
+								<Codicon name="add" />
+								<>Path Param</>
+							</LinkButton>
+						</AddButtonWrapper>
+					)
 				)}
 			</>
 		</>

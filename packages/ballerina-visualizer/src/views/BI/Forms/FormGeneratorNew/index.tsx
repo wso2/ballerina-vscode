@@ -42,7 +42,8 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    FormImports
+    FormImports,
+    HelperpaneOnChangeOptions
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -67,7 +68,6 @@ import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
-import { ContextBasedFormTypeEditor } from "../../../../components/ContextBasedFormTypeEditor";
 import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
@@ -344,20 +344,6 @@ export function FormGeneratorNew(props: FormProps) {
         };
     }
 
-    const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
-        const updatedFields = newFields.map((field) => {
-            if (field.type === 'TYPE') {
-                const oldField = oldFields.find(f => f.key === field.key);
-                if (oldField) {
-                    return { ...field, value: oldField.value };
-                }
-            }
-            return field;
-        });
-        return updatedFields;
-    }
-
-
     useEffect(() => {
         if (rpcClient) {
             // Set current theme
@@ -377,9 +363,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            const patchedFields = getPatchedFields(fieldsValues, fields);
-            setFields(patchedFields);
-            setFormImports(getImportsForFormFields(patchedFields));
+            setFields(fields);
+            setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
 
@@ -660,7 +645,7 @@ export function FormGeneratorNew(props: FormProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
@@ -962,19 +947,19 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 20px' }}>
-                        {stack.slice(0, i + 1).length > 1 && (
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "NewType"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
-                        )}
+                    {stack.slice(0, i + 1).length > 1 && (
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                        {stackItem?.type?.name || "NewType"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                    )}
+                    <div style={{ height: '560px', overflow: 'auto' }}>
                         <FormTypeEditor
                             type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -990,16 +975,6 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
-            <ContextBasedFormTypeEditor
-                isOpen={isTypeEditorOpen}
-                onClose={handleTypeEditorClose}
-                onTypeCreate={handleTypeCreated}
-                initialTypeName={editingTypeName || "PayloadType"}
-                editMode={!!editingTypeName}
-                modalTitle={"Define Payload"}
-                modalWidth={650}
-                modalHeight={600}
-            />
         </EditorContext.Provider>
     );
 }

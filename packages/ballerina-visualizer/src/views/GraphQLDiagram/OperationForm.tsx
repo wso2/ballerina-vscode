@@ -69,8 +69,8 @@ export function OperationForm(props: OperationFormProps) {
             const defaultField = paramFields.find(field => field.key === 'defaultable');
             const documentationField = paramFields.find(field => field.key === 'documentation');
 
-            // Read isGraphqlId from ActionTypeEditor (stored as type_isGraphqlId)
-            const isGraphqlId = param.formValues['type_isGraphqlId'] === true || param.formValues['isGraphqlId'] === true;
+            // Read isGraphqlId from ActionTypeEditor
+            const isGraphqlId = param.formValues['isGraphqlId'] === true;
 
             const parameterModel: ParameterModel = {
                 kind: 'REQUIRED',
@@ -247,8 +247,8 @@ export function OperationForm(props: OperationFormProps) {
         }
         newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
 
-        if (isGraphqlView && data['returnType_isGraphqlId'] !== undefined) {
-            (newFunctionModel.returnType as any).isGraphqlId = data['returnType_isGraphqlId'] === true || data['returnType_isGraphqlId'] === 'true';
+        if (isGraphqlView && data['isGraphqlId'] !== undefined) {
+            (newFunctionModel.returnType as any).isGraphqlId = data['isGraphqlId'] === true;
         }
 
         Object.entries(data).forEach(([key, value]) => {
@@ -361,7 +361,7 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
     newFormValues.type = param.type.value;
     newFormValues.defaultable = (param.defaultValue as PropertyModel)?.value || '';
     if (param.isGraphqlId !== undefined) {
-        newFormValues.type_isGraphqlId = param.isGraphqlId;
+        newFormValues.isGraphqlId = param.isGraphqlId;
     }
 
     return {
