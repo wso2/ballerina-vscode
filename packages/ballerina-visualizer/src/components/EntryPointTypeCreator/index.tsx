@@ -271,7 +271,7 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                         isPopupTypeForm={true}
                         onSaveType={onSaveType}
                         getNewTypeCreateForm={getNewTypeCreateForm}
-                        refetchTypes={true}
+                        refetchTypes={false}
                         isContextTypeForm={true}
                         payloadContext={payloadContext}
                     />
