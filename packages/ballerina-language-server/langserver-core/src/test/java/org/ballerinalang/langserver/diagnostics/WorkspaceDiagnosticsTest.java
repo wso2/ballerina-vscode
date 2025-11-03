@@ -178,6 +178,84 @@ public class WorkspaceDiagnosticsTest {
         Assert.assertTrue(actualAfterChangeDiagnostics.containsAll(List.of("BCE0600", "BCE2003", "BCE2066")));
     }
 
+    @Test(description = "Test the cleanup of diagnostics in a workspace project", enabled = false)
+    // TODO: Enable after resolving https://github.com/wso2/product-ballerina-integrator/issues/1488
+    // A `didChange` sent to `projB` incorrectly reverted the changes in `projA`.
+    public void testWorkspaceDiagnosticsAfterFunctionRename() throws IOException, WorkspaceDocumentException {
+        Path projAFile = testRoot.resolve("projA").resolve("main.bal").toAbsolutePath();
+        Path projBFile = testRoot.resolve("projB").resolve("main.bal").toAbsolutePath();
+        String projAOriginalContent = Files.readString(projAFile);
+        String projBOriginalContent = Files.readString(projBFile);
+
+        // Step 1: Open projA with original content
+        DidOpenTextDocumentParams openProjAParams = new DidOpenTextDocumentParams();
+        TextDocumentItem projAItem = new TextDocumentItem();
+        projAItem.setUri(projAFile.toUri().toString());
+        projAItem.setText(projAOriginalContent);
+        openProjAParams.setTextDocument(projAItem);
+        workspaceManager.didOpen(projAFile, openProjAParams);
+        DiagnosticsHelper diagnosticsHelper = DiagnosticsHelper.getInstance(serverContext);
+
+        // Step 2: Modify projA to call getMsg() instead of getMessage()
+        String modifiedProjAContent = projAOriginalContent.replace(
+                "projB:getMessage()",
+                "projB:getMsg()"
+        );
+        DidChangeTextDocumentParams changeProjAParams = new DidChangeTextDocumentParams();
+        changeProjAParams.setTextDocument(new VersionedTextDocumentIdentifier(projAFile.toUri().toString(), 1));
+        TextDocumentContentChangeEvent projAContentChange = new TextDocumentContentChangeEvent(modifiedProjAContent);
+        changeProjAParams.setContentChanges(List.of(projAContentChange));
+        workspaceManager.didChange(projAFile, changeProjAParams);
+
+        // Step 3: Verify diagnostics are shown in projA (undefined function error)
+        DocumentServiceContext afterProjAChangeContext = ContextBuilder.buildDocumentServiceContext(
+                projAFile.toUri().toString(),
+                this.workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                this.serverContext);
+        Map<String, List<Diagnostic>> afterProjAChangeDiagnosticsMap =
+                diagnosticsHelper.getLatestDiagnostics(afterProjAChangeContext);
+        List<String> afterProjAChangeDiagnostics = afterProjAChangeDiagnosticsMap.values().stream()
+                .flatMap(List::stream)
+                .map(d -> d.getCode().getLeft())
+                .toList();
+        Assert.assertTrue(afterProjAChangeDiagnostics.contains("BCE2003"),
+                "Should have BCE2003 (undefined function) error after renaming in projA");
+
+        // Step 4: Open projB and modify getMessage() to getMsg()
+        DidOpenTextDocumentParams openProjBParams = new DidOpenTextDocumentParams();
+        TextDocumentItem projBItem = new TextDocumentItem();
+        projBItem.setUri(projBFile.toUri().toString());
+        projBItem.setText(projBOriginalContent);
+        openProjBParams.setTextDocument(projBItem);
+        workspaceManager.didOpen(projBFile, openProjBParams);
+
+        String modifiedProjBContent = projBOriginalContent.replace(
+                "public function getMessage() returns string {",
+                "public function getMsg() returns string {"
+        );
+        DidChangeTextDocumentParams changeProjBParams = new DidChangeTextDocumentParams();
+        changeProjBParams.setTextDocument(new VersionedTextDocumentIdentifier(projBFile.toUri().toString(), 1));
+        TextDocumentContentChangeEvent projBContentChange = new TextDocumentContentChangeEvent(modifiedProjBContent);
+        changeProjBParams.setContentChanges(List.of(projBContentChange));
+        workspaceManager.didChange(projBFile, changeProjBParams);
+
+        // Step 5: Verify diagnostics are cleared in projA
+        DocumentServiceContext afterProjBChangeContext = ContextBuilder.buildDocumentServiceContext(
+                projBFile.toUri().toString(),
+                this.workspaceManager,
+                LSContextOperation.TXT_DID_CHANGE,
+                this.serverContext);
+        Map<String, List<Diagnostic>> finalDiagnosticsMap =
+                diagnosticsHelper.getLatestDiagnostics(afterProjBChangeContext);
+        List<String> finalDiagnostics = finalDiagnosticsMap.values().stream()
+                .flatMap(List::stream)
+                .map(d -> d.getCode().getLeft())
+                .toList();
+        Assert.assertFalse(finalDiagnostics.contains("BCE2003"),
+                "Should not have BCE2003 (undefined function) error after fixing projB");
+    }
+
     @AfterClass
     public void cleanupLanguageServer() {
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
