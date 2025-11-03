@@ -40,7 +40,7 @@ const PopupFormBox = styled.div<{ width?: number; height?: number }>`
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
@@ -63,6 +63,15 @@ export type PopupFormProps = {
     onClose?: () => void;
 };
 
+
+const PopupFormContent = styled.div`
+    flex: 1;
+    min-height: 0; /* Critical for nested flex scroll areas */
+    display: flex;
+    flex-direction: column;
+`;
+
+
 export const PopupForm = (props: PopupFormProps) => {
     const { width, height, title, children, onClose } = props;
 
@@ -76,7 +85,9 @@ export const PopupForm = (props: PopupFormProps) => {
                      <Codicon name="close" onClick={onClose} />
                 </PopupFormHeader>
                 <Divider />
-                <div><ScrollableContainer>{children}</ScrollableContainer></div>
+                <PopupFormContent>
+                    <ScrollableContainer>{children}</ScrollableContainer>
+                </PopupFormContent>
             </PopupFormBox>
         </PopupFormContainer>
     )
