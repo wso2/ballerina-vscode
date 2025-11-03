@@ -232,14 +232,16 @@ public class SemanticTokenVisitor extends NodeVisitor {
             length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
         }
 
-        // Account for invalid tokens to the length and adjust column accordingly
-        for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
-            int tokenLength = leadingInvalidToken.text().length();
-            length += tokenLength;
-            column -= tokenLength;
-        }
-        for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
-            length += trailingInvalidToken.text().length();
+        // Account for invalid tokens to the length ONLY for PARAMETER tokens
+        if (type == ExpressionTokenTypes.PARAMETER.getId()) {
+            for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
+                int tokenLength = leadingInvalidToken.text().length();
+                length += tokenLength;
+                column -= tokenLength;
+            }
+            for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
+                length += trailingInvalidToken.text().length();
+            }
         }
 
         // Delegate to addSemanticTokenWithPosition for duplicate checking and token creation
