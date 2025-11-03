@@ -134,6 +134,10 @@ public class AgentCallBuilder extends CallBuilder {
         String instructionsValue = (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
                 propertyValues.get(INSTRUCTIONS) : "";
 
+        // Restore backticks for UI display (in case values contain ${"`"} from templates)
+        roleValue = AiUtils.restoreBackticksFromStringTemplate(roleValue);
+        instructionsValue = AiUtils.restoreBackticksFromStringTemplate(instructionsValue);
+
         AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
         AiUtils.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
                 INSTRUCTIONS_PLACEHOLDER, instructionsValue);
@@ -323,9 +327,8 @@ public class AgentCallBuilder extends CallBuilder {
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
 
-        // Escape special characters to prevent injection in template strings
-        String escapedRole = AiUtils.escapeTemplateString(role);
-        String escapedInstructions = AiUtils.escapeTemplateString(instructions);
+        String escapedRole = AiUtils.replaceBackticksForStringTemplate(role);
+        String escapedInstructions = AiUtils.replaceBackticksForStringTemplate(instructions);
 
         String systemPromptValue =
                 "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";

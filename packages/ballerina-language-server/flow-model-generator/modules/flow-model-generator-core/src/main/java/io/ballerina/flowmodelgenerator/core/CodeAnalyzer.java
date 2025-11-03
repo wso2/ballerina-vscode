@@ -187,9 +187,9 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
@@ -473,8 +473,8 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Finds the initialization expression for a field by searching through its references.
-     * Currently looks for assignments in the init method.
+     * Finds the initialization expression for a field by searching through its references. Currently looks for
+     * assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
      * @return Optional containing the initialization expression if found, empty otherwise
@@ -585,6 +585,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     value = templateExpr.content().stream()
                             .map(Node::toString)
                             .collect(Collectors.joining());
+                    value = AiUtils.restoreBackticksFromStringTemplate(value);
                 } else {
                     value = valueExpr.toString().trim();
                 }
