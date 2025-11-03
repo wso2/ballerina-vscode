@@ -136,8 +136,10 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
         }
     };
 
-    const isBalWorkspaceOrHasMultiplePackages = useMemo(() => {
-        return workspaceType?.type === "BALLERINA_WORKSPACE" || workspaceType?.type === "MULTIPLE_PROJECTS";
+    const hasMultiplePackages = useMemo(() => {
+        return workspaceType?.type === "BALLERINA_WORKSPACE" ||
+            workspaceType?.type === "MULTIPLE_PROJECTS" ||
+            workspaceType?.type === "VSCODE_WORKSPACE";
     }, [workspaceType]);
 
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
@@ -165,7 +167,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                         name="wide-chevron" 
                                         iconSx={{
                                             color: "var(--vscode-foreground)",
-                                            fontSize: isBalWorkspaceOrHasMultiplePackages ? "20px" : "15px",
+                                            fontSize: hasMultiplePackages ? "20px" : "15px",
                                             opacity: 0.5 
                                         }} 
                                         sx={{ alignSelf: "center" }}
@@ -178,7 +180,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     >
                                         {shortName}
                                     </BreadcrumbText>
-                                    {isBalWorkspaceOrHasMultiplePackages && crumb.location.package && (
+                                    {hasMultiplePackages && crumb.location.package && (
                                         <PackageContainer>
                                             <Codicon 
                                                 name="project" 
