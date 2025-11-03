@@ -42,7 +42,8 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    FormImports
+    FormImports,
+    HelperpaneOnChangeOptions
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -644,7 +645,7 @@ export function FormGeneratorNew(props: FormProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
