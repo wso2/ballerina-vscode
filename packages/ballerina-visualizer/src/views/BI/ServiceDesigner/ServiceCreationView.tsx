@@ -30,7 +30,7 @@ import styled from "@emotion/styled";
 import { getImportsForProperty } from "../../../utils/bi";
 import { DownloadIcon } from "../../../components/DownloadIcon";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { sanitizedHttpPath } from "./utils";
+import { sanitizedHttpPath, normalizeValueToArray } from "./utils";
 
 const Container = styled.div`
     display: flex;
@@ -170,7 +170,7 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
         // Handle MULTIPLE_SELECT and EXPRESSION_SET types
         if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
-            property.values = Array.isArray(value) ? value : value ? [value] : [];
+            property.values = normalizeValueToArray(value);
         } else {
             property.value = value as string;
         }
@@ -367,7 +367,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                 // Handle MULTIPLE_SELECT and EXPRESSION_SET types
                                 if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
                                     const value = data[nestedKey];
-                                    nestedProperty.values = Array.isArray(value) ? value : value ? [value] : [];
+                                    nestedProperty.values = normalizeValueToArray(value);
                                 } else {
                                     nestedProperty.value = data[nestedKey] as string;
                                 }
@@ -389,7 +389,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                 if (data[nestedKey] !== undefined) {
                     if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
                         const value = data[nestedKey];
-                        nestedProperty.values = Array.isArray(value) ? value : value ? [value] : [];
+                        nestedProperty.values = normalizeValueToArray(value);
                     } else {
                         nestedProperty.value = data[nestedKey] as string;
                     }

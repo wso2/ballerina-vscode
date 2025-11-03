@@ -91,3 +91,16 @@ export function hasEditableParameters(parameters: FunctionModel['parameters']): 
     }
     return parameters.some((param) => param.editable !== false);
 }
+
+/**
+ * Normalizes a value to an array for MULTIPLE_SELECT and EXPRESSION_SET types.
+ *
+ * @param value The value to normalize
+ * @returns An array containing the value(s), or an empty array if value is falsy
+ */
+export function normalizeValueToArray(value: any): any[] {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    return value ? [value] : [];
+}
