@@ -96,36 +96,46 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(FieldAccessExpressionNode fieldAccessExpressionNode) {
+        handleFieldAccessLogic(fieldAccessExpressionNode, fieldAccessExpressionNode.expression(),
+                fieldAccessExpressionNode.fieldName());
+    }
+
+    @Override
+    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+        handleFieldAccessLogic(optionalFieldAccessExpressionNode, optionalFieldAccessExpressionNode.expression(),
+                optionalFieldAccessExpressionNode.fieldName());
+    }
+
+    /**
+     * Common method to handle both field access and optional field access expressions.
+     *
+     * @param node       The field access expression node (either regular or optional)
+     * @param expression The expression part of the field access
+     * @param fieldName  The field name part of the expression
+     */
+    private void handleFieldAccessLogic(Node node, ExpressionNode expression, Node fieldName) {
         // Find the leftmost node
-        ExpressionNode expression = fieldAccessExpressionNode.expression();
-        while (expression.kind() == SyntaxKind.FIELD_ACCESS) {
-            expression = ((FieldAccessExpressionNode) expression).expression();
+        ExpressionNode leftmostExpression = expression;
+        while (leftmostExpression.kind() == SyntaxKind.FIELD_ACCESS) {
+            leftmostExpression = ((FieldAccessExpressionNode) leftmostExpression).expression();
         }
 
         // Mark the field as variable if the expression is a variable reference
-        if (expression instanceof SimpleNameReferenceNode nameReferenceNode) {
+        if (leftmostExpression instanceof SimpleNameReferenceNode nameReferenceNode) {
             // Get the symbol name from the node
             String symbolName = nameReferenceNode.name().text();
             if (!validSymbolNames.contains(symbolName)) {
                 return;
             }
 
-            addSemanticToken(fieldAccessExpressionNode, ExpressionTokenTypes.VARIABLE.getId());
+            addSemanticToken(node, ExpressionTokenTypes.VARIABLE.getId());
             return;
         }
 
         // Mark the field name as PROPERTY, if the expression is not a variable
-        addSemanticToken(fieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
+        addSemanticToken(fieldName, ExpressionTokenTypes.PROPERTY.getId());
         // Visit the expression part (left side)
-        fieldAccessExpressionNode.expression().accept(this);
-    }
-
-    @Override
-    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
-        // Mark the field name as PROPERTY (same as regular field access)
-        addSemanticToken(optionalFieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
-        // Visit the expression part (left side)
-        optionalFieldAccessExpressionNode.expression().accept(this);
+        expression.accept(this);
     }
 
     @Override
