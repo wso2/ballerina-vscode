@@ -26,6 +26,7 @@ import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition } from "../utils";
 import styled from "@emotion/styled";
+import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 
 const ChipEditorFieldContainer = styled.div`
     width: 100%;
@@ -59,13 +60,13 @@ export type AutoExpandingEditableDivProps = {
     onCloseCompletions?: () => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string, closeHelperPane: boolean) => void;
+    handleHelperPaneValueChange?: (value: string,  options?: HelperpaneOnChangeOptions) => void;
     isInExpandedMode?: boolean;
     onOpenExpandedMode?: () => void;
 }

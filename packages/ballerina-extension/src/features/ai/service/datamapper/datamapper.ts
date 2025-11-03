@@ -62,6 +62,7 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const mappingsModel = dataMapperModelResponse.mappingsModel as DMModel;
             const existingMappings = mappingsModel.mappings;
             const userProvidedMappingHints = mappingsModel.mapping_fields || {};
+            const existingSubMappings = mappingsModel.subMappings as Mapping[] || [];
 
             if (!mappingsModel.inputs || !mappingsModel.output) {
                 throw new Error("Mappings model must contain both inputs and output fields");
@@ -77,7 +78,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const aiGeneratedMappings = await generateAIMappings(
                 dataModelStructure,
                 existingMappings,
-                userProvidedMappingHints
+                userProvidedMappingHints,
+                existingSubMappings
             );
 
             if (Object.keys(aiGeneratedMappings).length === 0) {
@@ -99,7 +101,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
 async function generateAIMappings(
     dataModelStructure: DataModelStructure,
     existingUserMappings: Mapping[],
-    userProvidedMappingHints: { [key: string]: MappingFields }
+    userProvidedMappingHints: { [key: string]: MappingFields },
+    existingSubMappings: Mapping[]
 ): Promise<Mapping[]> {
     if (!dataModelStructure.inputs || !dataModelStructure.output) {
         throw new Error("Data model structure must contain inputs and output");
@@ -109,7 +112,8 @@ async function generateAIMappings(
     const aiPrompt = getDataMappingPrompt(
         JSON.stringify(dataModelStructure),
         JSON.stringify(existingUserMappings || []),
-        JSON.stringify(userProvidedMappingHints || {})
+        JSON.stringify(userProvidedMappingHints || {}),
+        JSON.stringify(existingSubMappings || [])
     );
 
     const chatMessages: ModelMessage[] = [
@@ -338,8 +342,8 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
 
-    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits });
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits, skipPayloadCheck: true });
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string;
     let customFunctionsFileName: string;
@@ -642,7 +646,7 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context);
 
-    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits });
+    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string | undefined;

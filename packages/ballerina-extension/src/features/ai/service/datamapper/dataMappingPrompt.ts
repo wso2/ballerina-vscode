@@ -17,7 +17,7 @@
 /**
  * Generates the main data mapping prompt for AI
  */
-export function getDataMappingPrompt(DM_MODEL: string, userMappings: string, mappingTips: string): string {
+export function getDataMappingPrompt(DM_MODEL: string, userMappings: string, mappingTips: string, subMappings: string): string {
   return `You are a specialized code generation assistant for the Ballerina programming language. Your task is to generate syntactically correct Ballerina expressions that transform input data fields into output data fields based on provided specifications.
 
 Here is the data model schema that defines the structure and types:
@@ -25,6 +25,9 @@ ${DM_MODEL}
 
 **User-Defined Mappings:**
 ${userMappings}
+
+**Sub-Mappings (nested mappings or additional mapping context):**
+${subMappings}                                      
 
 **Mapping Context (These are mapping tips with HIGHEST PRIORITY):**
 ${mappingTips}

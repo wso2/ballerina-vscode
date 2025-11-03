@@ -34,6 +34,7 @@ import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
+import { HelperpaneOnChangeOptions } from '@wso2/ballerina-side-panel';
 
 
 export type ValueCreationOption = {
@@ -50,7 +51,7 @@ export type HelperPaneNewProps = {
     onClose: () => void;
     defaultValue: string;
     currentValue: string;
-    onChange: (value: string, closeHelperPane: boolean) => void;
+    onChange: (value: string, options?: HelperpaneOnChangeOptions) => void;
     helperPaneHeight: HelperPaneHeight;
     recordTypeField?: RecordTypeField;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
@@ -172,13 +173,18 @@ const HelperPaneNewEl = ({
 
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
         if (typeof insertText === 'string') {
-            onChange(insertText, !shouldKeepHelper);
+            onChange(insertText, {
+                closeHelperPane: !shouldKeepHelper,
+                replaceFullText: isRecordConfigureChange || false
+            });
         }
-       else {
+        else {
             const textToInsert = getInsertText(insertText);
-            const cursorOffset = getCursorOffset(insertText);
-            onChange(textToInsert, !shouldKeepHelper);
-       }
+            onChange(textToInsert, {
+                closeHelperPane: !shouldKeepHelper,
+                replaceFullText: isRecordConfigureChange || false
+            });
+        }
     };
 
     // Scroll selected item into view when selection changes
