@@ -613,23 +613,28 @@ public class AiUtils {
     }
 
     /**
-     * Escapes special characters in a string to prevent injection attacks in template strings. This method handles
-     * backslashes, backticks, dollar signs, and control characters.
+     * Replaces backticks in a string with an expression that works in string template.
      *
-     * @param input the string to escape
-     * @return the escaped string safe for use in template strings
+     * @param input the string that may contain backticks
+     * @return the string with backticks replaced by ${"`"} for safe use in string templates
      */
-    public static String escapeTemplateString(String input) {
+    public static String replaceBackticksForStringTemplate(String input) {
         if (input == null) {
             return "";
         }
+        return input.replace("`", "${\"`\"}");
+    }
 
-        return input
-                .replace("\\", "\\\\")     // Escape backslashes first
-                .replace("`", "\\`")       // Escape backticks (template string delimiter)
-                .replace("$", "\\$")       // Escape dollar signs (interpolation)
-                .replace("\n", "\\n")      // Escape newlines
-                .replace("\r", "\\r")      // Escape carriage returns
-                .replace("\t", "\\t");     // Escape tabs
+    /**
+     * Reverts template string interpolation expressions back to backticks.
+     *
+     * @param input the string that may contain ${"`"} expressions
+     * @return the string with ${"`"} expressions replaced by backticks
+     */
+    public static String restoreBackticksFromStringTemplate(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replace("${\"`\"}", "`");
     }
 }
