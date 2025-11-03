@@ -165,18 +165,23 @@ export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
 }
 
 export async function hasMultipleBallerinaPackages(uri: Uri): Promise<boolean> {
+    const packages = await getBallerinaPackages(uri);
+    return packages.length > 1;
+}
+
+export async function getBallerinaPackages(uri: Uri): Promise<string[]> {
     try {
         const ballerinaTomlPattern = `**${path.sep}Ballerina.toml`;
         const tomls = await workspace.findFiles(
             new RelativePattern(uri.fsPath, ballerinaTomlPattern)
         );
 
-        if (tomls.length <= 1) {
-            return false;
+        if (tomls.length === 0) {
+            return [];
         }
 
-        // Count valid packages (Ballerina.toml files with [package] section)
-        let packageCount = 0;
+        // Collect valid package paths (Ballerina.toml files with [package] section)
+        const packagePaths: string[] = [];
 
         for (const toml of tomls) {
             const projectRoot = path.dirname(toml.fsPath);
@@ -184,11 +189,7 @@ export async function hasMultipleBallerinaPackages(uri: Uri): Promise<boolean> {
                 const tomlValues = await getProjectTomlValues(projectRoot);
                 // Only count as a package if it has a package section
                 if (tomlValues?.package !== undefined) {
-                    packageCount++;
-                    // Early exit if we found more than one package
-                    if (packageCount > 1) {
-                        return true;
-                    }
+                    packagePaths.push(projectRoot);
                 }
             } catch (error) {
                 // Skip invalid TOML files
@@ -196,10 +197,10 @@ export async function hasMultipleBallerinaPackages(uri: Uri): Promise<boolean> {
             }
         }
 
-        return false;
+        return packagePaths;
     } catch (error) {
         console.error(`Error checking for multiple Ballerina packages: ${error}`);
-        return false;
+        return [];
     }
 }
 

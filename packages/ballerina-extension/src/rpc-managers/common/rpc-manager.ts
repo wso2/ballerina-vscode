@@ -47,10 +47,21 @@ import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, getProjectTomlValues, goToSource, hasMultipleBallerinaPackages } from "../../utils";
-import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
-import { parse } from 'toml';
-import * as fs from 'fs';
+import {
+    checkIsBallerinaPackage,
+    checkIsBallerinaWorkspace,
+    getBallerinaPackages,
+    getProjectTomlValues,
+    goToSource,
+    hasMultipleBallerinaPackages
+} from "../../utils";
+import {
+    askFileOrFolderPath,
+    askFilePath,
+    askProjectPath,
+    BALLERINA_INTEGRATOR_ISSUES_URL,
+    getUpdatedSource
+} from "./utils";
 import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
@@ -258,7 +269,18 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         if (workspaceFolders.length > 1) {
-            return { type: "VSCODE_WORKSPACE" };
+            let balPackagesCount = 0;
+            for (const folder of workspaceFolders) {
+                const packages = await getBallerinaPackages(folder.uri);
+                balPackagesCount += packages.length;
+            }
+
+            const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
+            if (balPackagesCount > 1 && isWorkspaceFile) {
+                return { type: "VSCODE_WORKSPACE" };
+            } else if (balPackagesCount > 1) {
+                return { type: "MULTIPLE_PROJECTS" };
+            }
         } else if (workspaceFolders.length === 1) {
             const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
 

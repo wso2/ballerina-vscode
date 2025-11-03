@@ -757,9 +757,9 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
 }
 
 async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
+    const balProjects = workspaceFolders.filter(async folder => await checkIsBallerinaPackage(folder.uri));
 
-    if (balProjects.length > 1) {
+    if (balProjects.length > 1 && workspace.workspaceFile?.scheme === "file") {
         const projectPaths = balProjects.map(folder => folder.uri.fsPath);
         let selectedProject = await window.showQuickPick(projectPaths, {
             placeHolder: 'Select a project to load the WSO2 Integrator'
@@ -787,7 +787,7 @@ async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFold
 }
 
 async function handleSingleWorkspace(workspaceURI: any) {
-    const isBallerina = checkIsBallerinaPackage(workspaceURI);
+    const isBallerina = await checkIsBallerinaPackage(workspaceURI);
     const isBI = isBallerina && checkIsBI(workspaceURI);
     const scope = fetchScope(workspaceURI);
     const projectPath = isBallerina ? workspaceURI.fsPath : "";
