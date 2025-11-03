@@ -50,7 +50,7 @@
         "metadata": {
           "label": "run",
           "description": "Executes the agent for a given user query.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png",
           "data": {
             "tools": [],
             "agent": {
@@ -75,7 +75,7 @@
           "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
-          "version": "1.6.1",
+          "version": "1.7.0",
           "lineRange": {
             "fileName": "agent_with_backticks_in_system_prompt.bal",
             "startLine": {
@@ -96,7 +96,7 @@
               "packageName": "ai",
               "object": "Agent",
               "symbol": "init",
-              "version": "1.6.1",
+              "version": "1.7.0",
               "lineRange": {
                 "fileName": "agent_with_backticks_in_system_prompt.bal",
                 "startLine": {
@@ -409,7 +409,7 @@
             "typeMembers": [
               {
                 "type": "Context",
-                "packageInfo": "ballerina:ai:1.6.1",
+                "packageInfo": "ballerina:ai:1.7.0",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -465,7 +465,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -508,7 +508,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerina:ai:1.6.1",
+                "packageInfo": "ballerina:ai:1.7.0",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -536,7 +536,7 @@
             "typeMembers": [
               {
                 "type": "ModelProvider",
-                "packageInfo": "ballerina:ai:1.6.1",
+                "packageInfo": "ballerina:ai:1.7.0",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -652,7 +652,7 @@
             "typeMembers": [
               {
                 "type": "Memory",
-                "packageInfo": "ballerina:ai:1.6.1",
+                "packageInfo": "ballerina:ai:1.7.0",
                 "packageName": "ai",
                 "kind": "OBJECT_TYPE",
                 "selected": false
@@ -738,7 +738,7 @@
         "metadata": {
           "label": "getDefaultModelProvider",
           "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.6.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -746,7 +746,7 @@
           "module": "ai",
           "packageName": "ai",
           "symbol": "getDefaultModelProvider",
-          "version": "1.6.1",
+          "version": "1.7.0",
           "lineRange": {
             "fileName": "agent_with_backticks_in_system_prompt.bal",
             "startLine": {
