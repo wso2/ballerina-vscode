@@ -47,13 +47,13 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
     const [deleteInProgress, setDeleteInProgress] = useState(false);
 
     const onClickEdit = () => {
-        const targetPort = node.targetPort;
+        const targetPort = node.targetMappedPort;
         setExprBarFocusedPort(targetPort);
     };
 
     const onFocusClause = () => {
         const sourcePorts = node.sourcePorts.map(port => port.attributes.portName);
-        const targetPort = node.targetPort.attributes.portName;
+        const targetPort = node.targetMappedPort.attributes.portName;
 
         sourcePorts.forEach((port) => {
             collapsedFieldsStore.removeField(port);
@@ -64,7 +64,7 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
 
         const context = node.context;
 	    const lastView = context.views[context.views.length - 1];
-        const mapping = node.targetPort.attributes.value; 
+        const mapping = node.targetMappedPort.attributes.value; 
         expandArrayFn(context, mapping.inputs[0], mapping.output, lastView.targetField);
     };
 
@@ -82,7 +82,7 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
                         appearance="icon"
                         tooltip="Map clause elements"
                         onClick={onFocusClause}
-                        data-testid={`expand-clause-fn-${node?.targetPort?.attributes.fieldFQN}`}
+                        data-testid={`expand-clause-fn-${node?.targetMappedPort?.attributes.fieldFQN}`}
                     >
                         <Codicon name="filter-filled" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
                     </Button>
