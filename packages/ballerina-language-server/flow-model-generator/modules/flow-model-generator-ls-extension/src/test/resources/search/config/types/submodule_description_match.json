@@ -304,31 +304,6 @@
         },
         {
           "metadata": {
-            "label": "aws.simpledb",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "OperationError",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.simpledb_2.2.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "aws.simpledb",
-                "packageName": "aws.simpledb",
-                "symbol": "OperationError",
-                "version": "2.2.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "mailchimp.marketing",
             "description": "",
             "keywords": []
@@ -427,6 +402,31 @@
         },
         {
           "metadata": {
+            "label": "aws.simpledb",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "OperationError",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.simpledb_2.2.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "aws.simpledb",
+                "packageName": "aws.simpledb",
+                "symbol": "OperationError",
+                "version": "2.2.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "file360",
             "description": "",
             "keywords": []
@@ -493,47 +493,6 @@
         },
         {
           "metadata": {
-            "label": "health.fhir.r4",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "OperationConfig",
-                "description": "Operation configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
-                "symbol": "OperationConfig",
-                "version": "6.2.2"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "OperationOutcomeIssueSeverity",
-                "description": "OperationOutcomeIssueSeverity enum",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
-                "symbol": "OperationOutcomeIssueSeverity",
-                "version": "6.2.2"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "health.fhir.r5",
             "description": "",
             "keywords": []
@@ -568,6 +527,47 @@
                 "packageName": "health.fhir.r5",
                 "symbol": "OperationOutcomeIssueSeverity",
                 "version": "1.0.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "health.fhir.r4",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "OperationConfig",
+                "description": "Operation configuration.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.2.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "OperationConfig",
+                "version": "6.2.2"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "OperationOutcomeIssueSeverity",
+                "description": "OperationOutcomeIssueSeverity enum",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.2.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "OperationOutcomeIssueSeverity",
+                "version": "6.2.2"
               },
               "enabled": true
             }

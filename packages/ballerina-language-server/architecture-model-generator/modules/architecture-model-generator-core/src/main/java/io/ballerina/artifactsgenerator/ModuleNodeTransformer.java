@@ -128,14 +128,16 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         // Derive the entry point name
         Optional<TypeDescriptorNode> typeDescriptorNode = serviceDeclarationNode.typeDescriptor();
         NodeList<Node> resourcePaths = serviceDeclarationNode.absoluteResourcePath();
-        if (typeDescriptorNode.isPresent()) {
-            serviceBuilder.serviceName(typeDescriptorNode.get().toSourceCode().strip());
-        } else if (!resourcePaths.isEmpty()) {
-            serviceBuilder.serviceNameWithPath(getPathString(resourcePaths));
-        } else if (firstExpression != null) {
-            serviceBuilder.serviceName(firstExpression.toSourceCode().strip());
-        } else {
-            serviceBuilder.name("");
+        if (!serviceBuilder.trySetNameFromAnnotation(serviceDeclarationNode)) {
+            if (typeDescriptorNode.isPresent()) {
+                serviceBuilder.serviceName(typeDescriptorNode.get().toSourceCode().strip());
+            } else if (!resourcePaths.isEmpty()) {
+                serviceBuilder.serviceNameWithPath(getPathString(resourcePaths));
+            } else if (firstExpression != null) {
+                serviceBuilder.serviceName(firstExpression.toSourceCode().strip());
+            } else {
+                serviceBuilder.name("");
+            }
         }
 
         // Generate the service path

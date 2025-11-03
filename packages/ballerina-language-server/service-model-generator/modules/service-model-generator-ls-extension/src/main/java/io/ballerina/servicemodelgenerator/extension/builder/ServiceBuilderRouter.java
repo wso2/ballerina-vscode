@@ -32,6 +32,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceB
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -61,6 +62,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 
 /**
@@ -80,6 +82,7 @@ public class ServiceBuilderRouter {
         put(MCP, McpServiceBuilder::new);
         put(KAFKA, KafkaServiceBuilder::new);
         put(ASB, AsbServiceBuilder::new);
+        put(SOLACE, SolaceServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

@@ -58,6 +58,7 @@ public class Constants {
     public static final String TCP = "tcp";
     public static final String AI = "ai";
     public static final String MCP = "mcp";
+    public static final String SOLACE = "solace";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -103,6 +104,7 @@ public class Constants {
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
+    public static final String VALUE_TYPE_FLAG = "FLAG";
     public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";

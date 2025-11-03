@@ -69,24 +69,24 @@
       "items": [
         {
           "metadata": {
-            "label": "optitune",
+            "label": "sql",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionStatusInfo",
+                "label": "ConnectionPool",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optitune_1.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "optitune",
-                "packageName": "optitune",
-                "symbol": "ConnectionStatusInfo",
-                "version": "1.5.1"
+                "org": "ballerina",
+                "module": "sql",
+                "packageName": "sql",
+                "symbol": "ConnectionPool",
+                "version": "1.17.1"
               },
               "enabled": true
             }
@@ -135,24 +135,24 @@
         },
         {
           "metadata": {
-            "label": "sql",
+            "label": "optitune",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionPool",
+                "label": "ConnectionStatusInfo",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optitune_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "sql",
-                "packageName": "sql",
-                "symbol": "ConnectionPool",
-                "version": "1.17.1"
+                "org": "ballerinax",
+                "module": "optitune",
+                "packageName": "optitune",
+                "symbol": "ConnectionStatusInfo",
+                "version": "1.5.1"
               },
               "enabled": true
             }
@@ -413,52 +413,29 @@
                 "version": "2.0.0"
               },
               "enabled": true
-            },
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "websocket",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
             {
               "metadata": {
-                "label": "Bank_connections_resource_ownership_refresh",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+                "label": "ConnectionError",
+                "description": "Raised during connection failures.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.14.2.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Bank_connections_resource_ownership_refresh",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Bank_connections_resource_transaction_refresh",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Bank_connections_resource_transaction_refresh",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Bank_connections_resource_balance_refresh",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Bank_connections_resource_balance_refresh",
-                "version": "2.0.0"
+                "org": "ballerina",
+                "module": "websocket",
+                "packageName": "websocket",
+                "symbol": "ConnectionError",
+                "version": "2.14.2"
               },
               "enabled": true
             }
@@ -484,31 +461,6 @@
                 "packageName": "power.bi",
                 "symbol": "ConnectionDetails",
                 "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "websocket",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionError",
-                "description": "Raised during connection failures.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.14.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "websocket",
-                "packageName": "websocket",
-                "symbol": "ConnectionError",
-                "version": "2.14.2"
               },
               "enabled": true
             }
@@ -616,7 +568,7 @@
         },
         {
           "metadata": {
-            "label": "azure.ad",
+            "label": "googleapis.people",
             "description": "",
             "keywords": []
           },
@@ -625,15 +577,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "azure.ad",
-                "packageName": "azure.ad",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
                 "symbol": "ConnectionConfig",
-                "version": "2.5.0"
+                "version": "2.4.0"
               },
               "enabled": true
             }
@@ -641,7 +593,7 @@
         },
         {
           "metadata": {
-            "label": "googleapis.calendar",
+            "label": "microsoft.excel",
             "description": "",
             "keywords": []
           },
@@ -650,15 +602,90 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "googleapis.calendar",
-                "packageName": "googleapis.calendar",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
                 "symbol": "ConnectionConfig",
-                "version": "3.2.1"
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.teams",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.teams",
+                "packageName": "microsoft.teams",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.sheets",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.sheets",
+                "packageName": "googleapis.sheets",
+                "symbol": "ConnectionConfig",
+                "version": "3.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "client.config",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_client.config_1.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "client.config",
+                "packageName": "client.config",
+                "symbol": "ConnectionConfig",
+                "version": "1.0.1"
               },
               "enabled": true
             }

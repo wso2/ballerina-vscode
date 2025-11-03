@@ -1316,6 +1316,142 @@
           ]
         }
       }
+    },
+    {
+      "name": "solace",
+      "version": "0.3.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "Solace Event Handler",
+        "description": "Create a service to handle messages from a Solace queue or topic",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "The name of the service contract type",
+        "typeDescriptorDefaultValue": "Service",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "SINGLE_SELECT",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "Service": {
+          "name": "Service",
+          "description": "",
+          "functions": [
+            {
+              "name": "onMessage",
+              "description": "Triggers when a message is received from a Solace queue or topic",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "parameters": [
+                {
+                  "name": "message",
+                  "label": "Message",
+                  "description": "The received Solace message",
+                  "kind": "REQUIRED",
+                  "type": "solace:Message",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The Solace caller to control transactions and message acknowledgement",
+                  "kind": "OPTIONAL",
+                  "type": "solace:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 0,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggers when an error occurs during message processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "solaceError",
+                  "label": "Solace Error",
+                  "description": "The error occurred during message processing",
+                  "kind": "REQUIRED",
+                  "type": "solace:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define advanced configurations like queue or topic name",
+          "typeConstraint": "solace:ServiceConfiguration"
+        }
+      },
+      "initForm": {
+        "url": {
+          "label": "Broker URL",
+          "description": "The Solace broker URL",
+          "defaultValue": "\"smf://localhost:55554\"",
+          "placeholder": "\"smf://localhost:55554\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "messageVpn": {
+          "label": "Message VPN",
+          "description": "The message VPN to connect to",
+          "defaultValue": "\"default\"",
+          "placeholder": "\"default\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }
