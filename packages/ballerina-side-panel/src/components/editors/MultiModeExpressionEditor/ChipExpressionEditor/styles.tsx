@@ -29,7 +29,7 @@ export const ChipEditorField = styled.div`
     width: 100%;
     padding: 1px 25px 1px 8px;
     background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground, #000000); /* Added text color with fallback */
+    color: var(--vscode-input-foreground, #000000);
     white-space: pre-wrap;
     outline: none;
     border: 1px solid var(--vscode-dropdown-border);
@@ -37,7 +37,7 @@ export const ChipEditorField = styled.div`
     position: relative;
 
     &:focus {
-        outline: 1px solid var(--vscode-focusBorder, #0078d4); /* Added fallback color */
+        outline: 1px solid var(--vscode-focusBorder, #0078d4);
     }
 `;
 
@@ -47,6 +47,7 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
+    margin-top: 4px;
 `;
 
 export const Chip = styled.div`
@@ -54,7 +55,7 @@ export const Chip = styled.div`
     background-color: rgba(0, 122, 204, 0.3);
     color: var(--vscode-input-foreground, white); /* Updated text color */
     cursor: pointer;
-    margin: 2px 4px;
+    margin: 2px 0px;
     font-size: 12px;
     padding: 2px 10px;
     display: inline-block;
@@ -222,7 +223,7 @@ interface CompletionsItemElProps {
 export const FloatingButtonContainer = styled.div`
     position: absolute;
     bottom: 6px;
-    right: 6px;
+    right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;
@@ -277,3 +278,39 @@ export const ExpandedPopupContainer = styled.div`
     align-items: center;
 `;
 
+const spin = keyframes`
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+`;
+
+export const Spinner = styled.span`
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    font-size: 14px;
+    animation: ${spin} 1s linear infinite;
+`;
+
+const loading = keyframes`
+    0% {
+        background: var(--vscode-editor-background);
+    }
+    100% {
+        background: var(--vscode-editor-inactiveSelectionBackground);
+    }
+`;
+
+export const SkeletonLoader = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--vscode-editor-background);
+    z-index: 1000;
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    animation: ${loading} 1s infinite alternate;
+`;

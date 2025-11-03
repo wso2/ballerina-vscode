@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import FXButton from "./components/FxButton";
-import { ChipEditorContainer } from "./styles";
+import { ChipEditorContainer, SkeletonLoader } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
 import { TokenizedExpression } from "./components/TokenizedExpression";
@@ -33,11 +33,11 @@ import {
     updateExpressionModelWithHelperValue,
     getAbsoluteCaretPositionFromModel,
     getWordBeforeCursor,
-    filterCompletionsByPrefix,
+    filterCompletionsByPrefixAndType,
     setCursorPositionToExpressionModel,
     updateTokens,
 } from "./utils";
-import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
@@ -54,8 +54,15 @@ export type ChipExpressionBaseComponentProps = {
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
     value: string;
     fileName?: string;
-    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<any>;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
     targetLineRange?: LineRange;
+    onOpenExpandedMode?: () => void;
+    isInExpandedMode?: boolean;
 }
 
 export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentProps) => {
@@ -66,9 +73,9 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState<boolean>(false);
     const [isAnyElementFocused, setIsAnyElementFocused] = useState(false);
     const [chipClicked, setChipClicked] = useState<ExpressionModel | null>(null);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState(false);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>(props.completions);
+    const [isLoading, setIsLoading] = useState(false);
 
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const fetchedInitialTokensRef = useRef<boolean>(false);
@@ -86,13 +93,32 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     );
 
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
-        const response = await expressionEditorRpcManager?.getExpressionTokens(
-            value,
-            props.fileName,
-            props.targetLineRange.startLine
-        );
-        return response || [];
+        setIsLoading(true);
+        try {
+            const response = await expressionEditorRpcManager?.getExpressionTokens(
+                value,
+                props.fileName,
+                props.targetLineRange.startLine
+            );
+            setIsLoading(false);
+            return response || [];
+        } catch (error) {
+            setIsLoading(false);
+            return [];
+        }
     }, [expressionEditorRpcManager]);
+
+    const getFnSignature = useCallback(async (value: string, cursorPosition: number) => {
+        if (props.extractArgsFromFunction) {
+            setIsLoading(true);
+            const fnSignature = await props.extractArgsFromFunction(value, cursorPosition);
+            setIsLoading(false);
+            if (fnSignature) {
+                return fnSignature
+            }
+        }
+        return undefined;
+    }, [props.extractArgsFromFunction]);
 
     const fetchInitialTokens = async (value: string) => {
         let updatedTokens = tokens;
@@ -178,7 +204,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
         // Update cursor and value
         pendingCursorPositionUpdateRef.current = cursorPosition;
-        props.onChange(updatedValue, updatedValue.length);
+        props.onChange(updatedValue, cursorPosition);
         setHasTypedSinceFocus(true);
     };
 
@@ -194,7 +220,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             return;
         }
 
-        if (valueBeforeCursor === '' ) {
+        if (valueBeforeCursor === '') {
             setIsHelperPaneOpen(true);
             setIsCompletionsOpen(false);
             return;
@@ -204,7 +230,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             setIsCompletionsOpen(false);
             return;
         }
-        const newFilteredCompletions = filterCompletionsByPrefix(props.completions, wordBeforeCursor);
+        const newFilteredCompletions = filterCompletionsByPrefixAndType(props.completions, wordBeforeCursor);
         setFilteredCompletions(newFilteredCompletions);
 
         if (newFilteredCompletions.length > 0) {
@@ -247,9 +273,22 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         return endsWithTriggerChar || isSpecialKey;
     };
 
+    const expandFunctionSignature = useCallback(async (value: string): Promise<string> => {
+        if (value.endsWith('()')) {
+            const signature = await getFnSignature(value, value.length - 1);
+            if (signature) {
+                const argsString = signature.args.map((_, index) => `$${index + 1}`).join(',');
+                return value.slice(0, -1) + argsString + ')';
+            }
+        }
+        return value;
+    }, [getFnSignature]);
+
     const handleCompletionSelect = async (item: CompletionItem) => {
+        const itemCopy = { ...item };
+        itemCopy.value = await expandFunctionSignature(item.value);
         const absoluteCaretPosition = getAbsoluteCaretPosition(expressionModel);
-        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, item.value || item.label);
+        const updatedExpressionModelInfo = updateExpressionModelWithCompletion(expressionModel, absoluteCaretPosition, itemCopy.value);
 
         if (updatedExpressionModelInfo) {
             const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
@@ -258,7 +297,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         setIsCompletionsOpen(false);
     };
 
-    const handleHelperPaneValueChange = async (value: string, closeHelperpane: boolean) => {
+    const handleHelperPaneValueChange = async (updatedValue: string, closeHelperpane: boolean) => {
+        let value = await expandFunctionSignature(updatedValue);
         if (
             chipClicked &&
             (chipClicked.type !== 'parameter' ||
@@ -328,11 +368,21 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         );
     }, [isCompletionsOpen, selectedCompletionItem, filteredCompletions]);
 
+    const handleHelperKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            setIsHelperPaneOpen(false);
+        }
+    }, []);
+
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (isCompletionsOpen) {
             handleCompletionKeyDown(e);
         }
-    }, [isCompletionsOpen, handleCompletionKeyDown]);
+        if (isHelperPaneOpen) {
+            handleHelperKeyDown(e);
+        }
+    }, [isCompletionsOpen, handleCompletionKeyDown, isHelperPaneOpen, handleHelperKeyDown]);
 
     useEffect(() => {
         if (filteredCompletions.length === 0) {
@@ -395,42 +445,45 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     return (
-        <> <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative' }}>
-            <FXButton />
-            <AutoExpandingEditableDiv
-                fieldContainerRef={fieldContainerRef}
-                onFocusChange={(focused, isEditableSpan) => {
-                    setIsAnyElementFocused(focused);
-                    if (!focused && expressionModel) {
-                        const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
-                        handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
-                    }
-                }}
-                onKeyDown={handleKeyDown}
-                isExpanded={isExpanded}
-                setIsExpanded={setIsExpanded}
-                isCompletionsOpen={isCompletionsOpen}
-                completions={filteredCompletions}
-                selectedCompletionItem={selectedCompletionItem}
-                onCompletionSelect={handleCompletionSelect}
-                onCompletionHover={setSelectedCompletionItem}
-                onCloseCompletions={() => setIsCompletionsOpen(false)}
-                getHelperPane={props.getHelperPane}
-                isHelperPaneOpen={isHelperPaneOpen}
-                handleHelperPaneValueChange={handleHelperPaneValueChange}
-                onHelperPaneClose={() => setIsHelperPaneOpen(false)}
-                onToggleHelperPane={toggleHelperPane}
-            >
-                <TokenizedExpression
-                    expressionModel={expressionModel || []}
-                    onExpressionChange={handleExpressionChange}
-                    onChipClick={handleChipClick}
-                    onTextFocus={handleTextFocus}
-                    onChipFocus={handleChipFocus}
-                    onChipBlur={handleChipBlur}
-                />
-            </AutoExpandingEditableDiv>
+        <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+            {!props.isInExpandedMode && <FXButton />}
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                {isLoading && <SkeletonLoader />}
+                <AutoExpandingEditableDiv
+                    value={props.value}
+                    fieldContainerRef={fieldContainerRef}
+                    onFocusChange={(focused) => {
+                        setIsAnyElementFocused(focused);
+                        if (!focused && expressionModel) {
+                            const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
+                            handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
+                        }
+                    }}
+                    onKeyDown={handleKeyDown}
+                    isCompletionsOpen={isCompletionsOpen}
+                    completions={filteredCompletions}
+                    selectedCompletionItem={selectedCompletionItem}
+                    onCompletionSelect={handleCompletionSelect}
+                    onCompletionHover={setSelectedCompletionItem}
+                    onCloseCompletions={() => setIsCompletionsOpen(false)}
+                    getHelperPane={props.getHelperPane}
+                    isHelperPaneOpen={isHelperPaneOpen}
+                    handleHelperPaneValueChange={handleHelperPaneValueChange}
+                    onHelperPaneClose={() => setIsHelperPaneOpen(false)}
+                    onToggleHelperPane={toggleHelperPane}
+                    isInExpandedMode={props.isInExpandedMode}
+                    onOpenExpandedMode={props.onOpenExpandedMode}
+                >
+                    <TokenizedExpression
+                        expressionModel={expressionModel || []}
+                        onExpressionChange={handleExpressionChange}
+                        onChipClick={handleChipClick}
+                        onTextFocus={handleTextFocus}
+                        onChipFocus={handleChipFocus}
+                        onChipBlur={handleChipBlur}
+                    />
+                </AutoExpandingEditableDiv>
+            </div>
         </ChipEditorContainer >
-        </>
     )
 }

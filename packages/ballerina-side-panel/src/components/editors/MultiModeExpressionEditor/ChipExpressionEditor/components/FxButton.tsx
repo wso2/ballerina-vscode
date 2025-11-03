@@ -18,8 +18,6 @@
 
 import { ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import React from "react";
-import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "../constants";
-import { S } from "../../../ExpressionEditor";
 import styled from "@emotion/styled";
 
 export const Ribbon = styled.div`
@@ -29,11 +27,13 @@ export const Ribbon = styled.div`
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 6px;
     border-top-left-radius: 2px;
     border-bottom-left-radius: 2px;
     border-right: none;
     cursor: pointer;
+    position: relative;
 `;
 
 const FXButton = ({ onClick }: { onClick?: () => void }) => {

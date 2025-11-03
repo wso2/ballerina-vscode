@@ -417,7 +417,8 @@ const stateMachine = createMachine<MachineContext>(
                         buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
                     }
 
-                    const execution = new ShellExecution(buildCommand);
+                    // Use the current process environment which should have the updated PATH
+                    const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
 
                     if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
                         resolve(true);
