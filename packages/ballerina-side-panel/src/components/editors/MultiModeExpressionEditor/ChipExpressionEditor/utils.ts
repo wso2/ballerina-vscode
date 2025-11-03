@@ -337,8 +337,6 @@ export const hasTextSelection = (el: HTMLElement): boolean => {
     if (!selection || selection.rangeCount === 0) return false;
     const range = selection.getRangeAt(0);
     if (!el.contains(range.startContainer)) return false;
-    // Check if there's an actual selection (not just a cursor position)
-    // range.collapsed is false when there's a selection range
     return !range.collapsed;
 };
 
