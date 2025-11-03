@@ -58,7 +58,8 @@ export enum IntermediateClauseType {
     WHERE = "where",
     FROM = "from",
     ORDER_BY = "order by",
-    LIMIT = "limit"
+    LIMIT = "limit",
+    JOIN = "join",
 }
 
 export enum ResultClauseType {
@@ -205,6 +206,9 @@ export interface IntermediateClauseProps {
     type?: string;
     expression: string;
     order?: "ascending" | "descending";
+    lhsExpression?: string;
+    rhsExpression?: string;
+    isOuter?: boolean;
 }
 
 export interface IntermediateClause {
