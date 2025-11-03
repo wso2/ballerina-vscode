@@ -515,7 +515,6 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                                 onSubmit={handleOnSubmit}
                                                 preserveFieldOrder={true}
                                                 recordTypeFields={recordTypeFields}
-                                                changeOptionalFieldTitle={"Optional Listener Configurations"}
                                             />
                                         )}
                                     </FormContainer>
