@@ -155,8 +155,6 @@ public class SemanticTokenVisitor extends NodeVisitor {
         }
         return Optional.empty();
     }
-
-
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
         // Process arguments - they should all be marked as PARAMETER
