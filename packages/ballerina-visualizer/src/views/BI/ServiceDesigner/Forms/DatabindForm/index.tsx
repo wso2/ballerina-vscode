@@ -158,13 +158,13 @@ export function DatabindForm(props: DatabindFormProps) {
         const lowerModuleName = moduleName.toLowerCase();
         if (lowerModuleName === "rabbitmq") {
             return serviceProperties.stringLiteral?.value;
-        } else if (lowerModuleName === "kafka") {
-            const metaValue = serviceProperties?.readOnlyMetaData?.value;
-            if (metaValue && typeof metaValue === "object") {
-                for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
-                    if (key === "Topics" && Array.isArray(val) && val.length > 0) {
-                        return String(val[0]);
-                    }
+        }
+        const metaValue = serviceProperties?.readOnlyMetadata?.value;
+        if (metaValue && typeof metaValue === "object") {
+            for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
+                const valueStr = String(val).toLowerCase();
+                if (valueStr.length > 0) {
+                    return valueStr;
                 }
             }
         }
