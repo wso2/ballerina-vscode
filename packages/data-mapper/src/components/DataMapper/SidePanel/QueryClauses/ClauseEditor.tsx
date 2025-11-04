@@ -40,7 +40,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
         { content: "local variable", value: IntermediateClauseType.LET },
         { content: "sort by", value: IntermediateClauseType.ORDER_BY },
         { content: "limit", value: IntermediateClauseType.LIMIT },
-        { content: "from", value: IntermediateClauseType.FROM }
+        { content: "from", value: IntermediateClauseType.FROM },
+        { content: "join", value: IntermediateClauseType.JOIN },
     ]
 
     const nameField: DMFormField = {
@@ -92,6 +93,42 @@ export function ClauseEditor(props: ClauseEditorProps) {
         items: ["ascending", "descending"]
     }
 
+    const isOuterField: DMFormField = {
+        key: "isOuter",
+        label: "Is Outer Join",
+        type: "FLAG",
+        optional: false,
+        editable: true,
+        documentation: "Specify whether the join is an outer join",
+        value: clauseProps?.isOuter ?? false,
+        valueTypeConstraint: "Global",
+        enabled: true,
+    }
+
+    const lhsExpressionField: DMFormField = {
+        key: "lhsExpression",
+        label: "LHS Expression",
+        type: "EXPRESSION",
+        optional: false,
+        editable: true,
+        documentation: "Enter the LHS expression of join-on condition.",
+        value: clauseProps?.lhsExpression ?? "",
+        valueTypeConstraint: "Global",
+        enabled: true,
+    }
+
+    const rhsExpressionField: DMFormField = {
+        key: "rhsExpression",
+        label: "RHS Expression",
+        type: "EXPRESSION",
+        optional: false,
+        editable: true,
+        documentation: "Enter the RHS expression of join-on condition.",
+        value: clauseProps?.rhsExpression ?? "",
+        valueTypeConstraint: "Global",
+        enabled: true,
+    }
+
     const handleSubmit = (data: DMFormFieldValues) => {
         onSubmit({
             type: clauseType as IntermediateClauseType,
@@ -107,6 +144,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 return [nameField, typeField, expressionField];
             case IntermediateClauseType.ORDER_BY:
                 return [expressionField, orderField];
+            case IntermediateClauseType.JOIN:
+                return [nameField, typeField, expressionField, isOuterField, lhsExpressionField, rhsExpressionField];
             default:
                 return [expressionField];
         }

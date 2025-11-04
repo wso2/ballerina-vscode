@@ -714,7 +714,7 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.name),
+    inputs: [...model.inputs.map(i => i.name), ...(model.query?.inputs || [])],
     output: model.output.name,
     subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''
