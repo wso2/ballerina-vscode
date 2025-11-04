@@ -450,7 +450,13 @@ public class AiUtils {
         for (ModuleInfo module : modules) {
             // The following method call may take additional time if the module is not already available,
             // as it may need to pull the module first.
-            Optional<SemanticModel> semanticModel = getSemanticModel(module);
+            Optional<SemanticModel> semanticModel;
+            try {
+                semanticModel = getSemanticModel(module);
+            } catch (Exception e) {
+                // Skip modules that fail to load due to dependency resolution or compilation issues
+                continue;
+            }
             if (semanticModel.isEmpty()) {
                 continue;
             }
