@@ -81,6 +81,7 @@
     "webpack": "^5.99.8",
     "@types/react-lottie": "^1.2.5",
     "@types/lodash.debounce": "^4.0.6",
+    "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.2.1"
   },
   "author": "wso2",
