@@ -58,6 +58,22 @@ export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
     return messages;
 }
 
+export function populateHistoryForAgent(chatHistory: any[]): ModelMessage[] {
+    if (!chatHistory || chatHistory.length === 0) {
+        return [];
+    }
+    const messages: ModelMessage[] = [];
+    for (const entry of chatHistory) {
+        if ('role' in entry) {
+            messages.push({
+                role: entry.role,
+                content: entry.content,
+            });
+        }
+    }
+    return messages;
+}
+
 export function transformProjectSource(project: ProjectSource): SourceFiles[] {
     const sourceFiles: SourceFiles[] = [];
     project.sourceFiles.forEach((file) => {
@@ -219,6 +235,23 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendAbortNotification(command: Command): void {
+    const msg: ChatNotify = {
+        type: "abort",
+        command
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendSaveChatNotification(command: Command, assistantMessageId: string): void {
+    const msg: ChatNotify = {
+        type: "save_chat",
+        command,
+        assistantMessageId
     };
     sendAIPanelNotification(msg);
 }

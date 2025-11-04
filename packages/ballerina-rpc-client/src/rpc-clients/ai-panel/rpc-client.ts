@@ -36,6 +36,7 @@ import {
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
+    GenerateAgentCodeRequest,
     GenerateMappingsResponse,
     GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
@@ -354,7 +355,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(generateCode, HOST_EXTENSION, params);
     }
 
-    generateDesign(params: GenerateCodeRequest): Promise<boolean> {
+    generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
         return this._messenger.sendRequest(generateDesign, HOST_EXTENSION, params);
     }
 

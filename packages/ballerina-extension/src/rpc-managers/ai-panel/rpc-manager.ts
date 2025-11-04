@@ -14,7 +14,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
@@ -43,6 +43,7 @@ import {
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
+    GenerateAgentCodeRequest,
     GenerateMappingsResponse,
     GenerateOpenAPIRequest,
     GenerateTypesFromRecordRequest,
@@ -1042,7 +1043,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async generateDesign(params: GenerateCodeRequest): Promise<boolean> {
+    async generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
         await generateDesign(params);
         return true;
     }

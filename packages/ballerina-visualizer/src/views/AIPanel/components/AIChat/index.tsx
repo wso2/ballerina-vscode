@@ -50,6 +50,7 @@ import {
     FileChanges,
     AIChatMachineEventType,
     AIChatMachineStateValue,
+    UIChatHistoryMessage,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -98,6 +99,55 @@ interface ChatIndexes {
     integratedChatIndex: number;
     previouslyIntegratedChatIndex: number;
 }
+
+// Helper function to convert chat history messages to UI format
+const convertToUIMessages = (messages: UIChatHistoryMessage[]) => {
+    return messages.map((msg) => {
+        let role, type;
+        if (msg.role === "user") {
+            role = "User";
+            type = "user_message";
+        } else if (msg.role === "assistant") {
+            role = "Copilot";
+            type = "assistant_message";
+        }
+        return {
+            role: role,
+            type: type,
+            content: msg.content,
+        };
+    });
+};
+
+// Helper function to load chat history from localStorage
+const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
+    const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
+    const storedChatArray = localStorage.getItem(localStorageFile);
+    if (storedChatArray) {
+        const chatArrayFromStorage = JSON.parse(storedChatArray);
+        chatArray.length = 0;
+        chatArray.push(...chatArrayFromStorage);
+        // Add the messages from the chat array to the view
+        setMessages((prevMessages) => [
+            ...prevMessages,
+            ...chatArray.map((entry: ChatEntry) => {
+                let role, type;
+                if (entry.actor === "user") {
+                    role = "User";
+                    type = "user_message";
+                } else if (entry.actor === "assistant") {
+                    role = "Copilot";
+                    type = "assistant_message";
+                }
+                return {
+                    role: role,
+                    type: type,
+                    content: entry.message,
+                };
+            }),
+        ]);
+    }
+};
 
 enum CodeGenerationType {
     CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
@@ -245,42 +295,26 @@ const AIChat: React.FC = () => {
                     previouslyIntegratedChatIndex = indexes.previouslyIntegratedChatIndex;
                 }
 
-                const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
-                const storedChatArray = localStorage.getItem(localStorageFile);
+                // TODO: Enable state machine-based chat history loading once fully tested
+                // Try to get chat history from state machine first
                 rpcClient
-                    .getAiPanelRpcClient()
-                    .getAIMachineSnapshot()
-                    .then((snapshot) => {
-                        if (storedChatArray) {
-                            const chatArrayFromStorage = JSON.parse(storedChatArray);
-                            chatArray = chatArrayFromStorage;
-                            // Add the messages from the chat array to the view
+                    .getAIChatUIHistory()
+                    .then((uiMessages: UIChatHistoryMessage[]) => {
+                        if (uiMessages && uiMessages.length > 0) {
+                            // Convert and set messages from state machine
                             setMessages((prevMessages) => [
                                 ...prevMessages,
-                                ...chatArray.map((entry: ChatEntry) => {
-                                    let role, type;
-                                    if (entry.actor === "user") {
-                                        role = "User";
-                                        type = "user_message";
-                                    } else if (entry.actor === "assistant") {
-                                        role = "Copilot";
-                                        type = "assistant_message";
-                                    }
-                                    return {
-                                        role: role,
-                                        type: type,
-                                        content: entry.message,
-                                    };
-                                }),
+                                ...convertToUIMessages(uiMessages)
                             ]);
-
-                            // Set initial messages only if chatArray's length is 0
                         } else {
-                            if (chatArray.length === 0) {
-                                setMessages((prevMessages) => [...prevMessages]);
-                            }
+                            // Fallback to localStorage if state machine has no messages
+                            loadFromLocalStorage(projectUuid, setMessages, chatArray);
                         }
-                        // }
+                    })
+                    .catch((error: any) => {
+                        // Fallback to localStorage if state machine call fails
+                        console.warn('[AIChat] Failed to get chat history from state machine, falling back to localStorage:', error);
+                        loadFromLocalStorage(projectUuid, setMessages, chatArray);
                     });
             });
     }, []);
@@ -527,48 +561,80 @@ const AIChat: React.FC = () => {
                 command != undefined && command == Command.Code
             ); // Handle this in input layer?
             addChatEntry("assistant", messages[messages.length - 1].content);
-        } else if (type === "error") {
-            console.log("Received error signal");
-            const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
+        } else if (type === "abort") {
+            console.log("Received abort signal");
+            const interruptedMessage = "\n\n*[Request interrupted by user]*";
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                let content = newMessages[newMessages.length - 1].content;
-
-                // Check if there's an unclosed code block and close it properly
-                const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
-                const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
-                const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
-
-                if (openCodeBlocks > closedCodeBlocks) {
-                    // Check what's missing at the end
-                    const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
-                    const endsWithBackticks = /```\s*$/.test(content.trim());
-                    const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
-
-                    if (endsWithPartialClose) {
-                        // Remove partial closing and add complete one
-                        content = content.replace(/```\s*<\/cod?e?$/, "");
-                        content += "\n```\n</code>";
-                    } else if (endsWithBackticks) {
-                        // Already has ```, just need </code>
-                        content += "\n</code>";
-                    } else if (endsWithPartialBackticks) {
-                        // Remove partial backticks and add complete closing
-                        content = content.replace(/`{1,2}$/, "");
-                        content += "\n```\n</code>";
-                    } else {
-                        // No closing elements, add both
-                        content += "\n```\n</code>";
-                    }
-                }
-
-                newMessages[newMessages.length - 1].content = content + errorTemplate;
-                console.log(newMessages);
+                newMessages[newMessages.length - 1].content += interruptedMessage;
                 return newMessages;
             });
             setIsCodeLoading(false);
             setIsLoading(false);
-            isErrorChunkReceivedRef.current = true;
+        } else if (type === "save_chat") {
+            console.log("Received save_chat signal");
+            const command = response.command;
+            const assistantMessageId = response.assistantMessageId;
+
+            // Save chat entries
+            addChatEntry(
+                "user",
+                messages[messages.length - 2].content,
+                command != undefined && command == Command.Code
+            );
+            addChatEntry("assistant", messages[messages.length - 1].content);
+
+            // Update assistant message in state machine with UI message
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                payload: {
+                    id: assistantMessageId,
+                    uiResponse: messages[messages.length - 1].content
+                }
+            });
+        } else if (type === "error") {
+            console.log("Received error signal");
+            const errorContent = response.content;
+            const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    let content = newMessages[newMessages.length - 1].content;
+
+                    // Check if there's an unclosed code block and close it properly
+                    const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
+                    const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
+                    const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
+
+                    if (openCodeBlocks > closedCodeBlocks) {
+                        // Check what's missing at the end
+                        const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
+                        const endsWithBackticks = /```\s*$/.test(content.trim());
+                        const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
+
+                        if (endsWithPartialClose) {
+                            // Remove partial closing and add complete one
+                            content = content.replace(/```\s*<\/cod?e?$/, "");
+                            content += "\n```\n</code>";
+                        } else if (endsWithBackticks) {
+                            // Already has ```, just need </code>
+                            content += "\n</code>";
+                        } else if (endsWithPartialBackticks) {
+                            // Remove partial backticks and add complete closing
+                            content = content.replace(/`{1,2}$/, "");
+                            content += "\n```\n</code>";
+                        } else {
+                            // No closing elements, add both
+                            content += "\n```\n</code>";
+                        }
+                    }
+
+                    newMessages[newMessages.length - 1].content = content + errorTemplate;
+                    console.log(newMessages);
+                    return newMessages;
+                });
+                setIsCodeLoading(false);
+                setIsLoading(false);
+                isErrorChunkReceivedRef.current = true;
         }
     });
 

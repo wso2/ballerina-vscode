@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, AIChatMachineEventType, AIChatMachineSendableEvent } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, getAIChatUIHistory, AIChatMachineEventType, AIChatMachineSendableEvent } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -102,6 +102,7 @@ export class RPCLayer {
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
         RPCLayer._messenger.onRequest(sendAIChatStateEvent, (event: AIChatMachineEventType | AIChatMachineSendableEvent) => AIChatStateMachine.sendEvent(event));
         RPCLayer._messenger.onRequest(getAIChatContext, () => AIChatStateMachine.context());
+        RPCLayer._messenger.onRequest(getAIChatUIHistory, () => AIChatStateMachine.getUIChatHistory());
 
         // ----- Data Mapper Webview RPC Methods
         registerDataMapperRpcHandlers(RPCLayer._messenger);

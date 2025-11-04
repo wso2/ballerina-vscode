@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateCodeRequest, ProjectSource, SourceFiles, Task, AIChatMachineEventType} from "@wso2/ballerina-core";
-import { ModelMessage, stepCountIs, streamText } from "ai";
+import { Command, GenerateAgentCodeRequest, ProjectSource, SourceFiles, AIChatMachineEventType} from "@wso2/ballerina-core";
+import { convertToModelMessages, ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
-import { getErrorMessage, populateHistory, transformProjectSource } from "../utils";
+import { getErrorMessage, populateHistoryForAgent, transformProjectSource } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
@@ -28,12 +28,13 @@ import { GenerationType, getAllLibraries } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 
-export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    const assistantMessageId = params.assistantMessageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const updatedSourceFiles: SourceFiles[] = [...sourceFiles];
     const updatedFileNames: string[] = [];
-    const historyMessages = populateHistory(params.chatHistory);
+    const historyMessages = populateHistoryForAgent(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
     const allMessages: ModelMessage[] = [
@@ -154,7 +155,7 @@ ${params.usecase}
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
-    const { fullStream } = streamText({
+    const { fullStream, response, steps } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 8192,
         temperature: 0,
@@ -164,6 +165,7 @@ ${params.usecase}
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
+
     AIChatStateMachine.sendEvent({
         type: AIChatMachineEventType.PLANNING_STARTED
     });
@@ -172,19 +174,24 @@ ${params.usecase}
 
     let selectedLibraries: string[] = [];
 
+    let accumulatedMessages: any[] = [];
+    let currentAssistantContent: any[] = [];
+
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
                 const textPart = part.text;
                 eventHandler({ type: "content_block", content: textPart });
+                accumulateTextContent(currentAssistantContent, textPart);
                 break;
             }
             case "tool-call": {
                 const toolName = part.toolName;
+                accumulateToolCall(currentAssistantContent, part);
+
                 if (toolName === "LibraryProviderTool") {
-                    selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
-                }
-                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+                    selectedLibraries = (part.input as any)?.libraryNames || [];
+                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
                     const input = part.input as any;
                     if (input && input.file_path) {
                         let fileName = input.file_path;
@@ -197,7 +204,7 @@ ${params.usecase}
             case "tool-result": {
                 const toolName = part.toolName;
                 const result = part.output;
-                console.log(`[Design] Tool result received from: ${toolName}`, result);
+                saveToolResult(part, accumulatedMessages, currentAssistantContent);
 
                 if (toolName === TASK_WRITE_TOOL_NAME && result) {
                     const taskResult = result as TaskWriteResult;
@@ -210,44 +217,87 @@ ${params.usecase}
                             allTasks: taskResult.tasks,
                         },
                     });
-                }
-                else if (toolName === "LibraryProviderTool") {
+                } else if (toolName === "LibraryProviderTool") {
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
                 }
                 else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
-                }
-                else {
+                } else {
                     eventHandler({ type: "tool_result", toolName });
                 }
                 break;
             }
-            case "text-start": {
-                eventHandler({ type: "content_block", content: " \n" });
-                break;
-            }
             case "error": {
                 const error = part.error;
-                console.error("Error during design generation:", error);
+                console.error("[Design] Error:", error);
                 eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "abort": {
+                console.log("[Design] Aborted by user.");
+                let messagesToSave: any[] = [];
+                try {
+                    const partialResponse = await response;
+                    messagesToSave = partialResponse.messages || [];
+                } catch (error) {
+                    if (currentAssistantContent.length > 0) {
+                        accumulatedMessages.push({
+                            role: "assistant",
+                            content: currentAssistantContent
+                        });
+                    }
+                    messagesToSave = accumulatedMessages;
+                }
+
+                if (messagesToSave.length > 0) {
+                    AIChatStateMachine.sendEvent({
+                        type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                        payload: {
+                            id: assistantMessageId,
+                            modelMessages: messagesToSave,
+                        },
+                    });
+                }
+
+                eventHandler({ type: "abort", command: Command.Design });
+                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
+                AIChatStateMachine.sendEvent({
+                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                });
+                break;
+            }
+            case "text-start": {
+                currentAssistantContent.push({ type: "text", text: "" });
+                eventHandler({ type: "content_block", content: " \n" });
                 break;
             }
             case "finish": {
                 const finishReason = part.finishReason;
+                const finalResponse = await response;
+                const assistantMessages = finalResponse.messages || [];
+
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
                 AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                    type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                    payload: {
+                        id: assistantMessageId,
+                        modelMessages: assistantMessages,
+                    },
                 });
 
                 eventHandler({ type: "stop", command: Command.Design });
+                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
+                AIChatStateMachine.sendEvent({
+                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                });
                 break;
             }
+            }
         }
-    }
 }
 
-export async function generateDesign(params: GenerateCodeRequest): Promise<void> {
+export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
         await generateDesignCore(params, eventHandler);
@@ -255,4 +305,50 @@ export async function generateDesign(params: GenerateCodeRequest): Promise<void>
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
     }
+}
+
+function accumulateTextContent(currentAssistantContent: any[], textPart: string): void {
+    const lastContent = currentAssistantContent[currentAssistantContent.length - 1];
+    if (lastContent && lastContent.type === "text") {
+        lastContent.text += textPart;
+    }
+}
+
+function accumulateToolCall(currentAssistantContent: any[], part: any): void {
+    currentAssistantContent.push({
+        type: "tool-call",
+        toolCallId: part.toolCallId,
+        toolName: part.toolName,
+        input: part.input
+    });
+}
+
+function saveToolResult(
+    part: any,
+    accumulatedMessages: any[],
+    currentAssistantContent: any[]
+): void {
+    if (currentAssistantContent.length > 0) {
+        accumulatedMessages.push({
+            role: "assistant",
+            content: [...currentAssistantContent]
+        });
+        currentAssistantContent.length = 0;
+    }
+
+    // Need to specify output type for tool result
+    const outputType: 'json' = 'json';
+
+    accumulatedMessages.push({
+        role: "tool",
+        content: [{
+            type: "tool-result",
+            toolCallId: part.toolCallId,
+            toolName: part.toolName,
+            output: {
+                type: outputType,
+                value: part.output
+            }
+        }]
+    });
 }
