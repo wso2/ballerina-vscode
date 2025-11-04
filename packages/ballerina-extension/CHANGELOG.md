@@ -8,8 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Added
 
-- **Workspace** — Multi-project support with Ballerina 2201.13.0.
-- **Editor** — Support for "Natural expressions" with Ballerina 2201.13.0.
+- **Editor** — Added visual editing for mono-repositories with multiple Ballerina projects, along with support for "Natural expressions" in Ballerina 2201.13.0.
 
 ## [5.5.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.2...ballerina-integrator-1.4.0) - 2025-11-05
 
