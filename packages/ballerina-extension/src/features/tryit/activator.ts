@@ -475,7 +475,7 @@ async function getOpenAPIDefinition(service: ServiceInfo): Promise<OAISpec> {
             throw new Error(`OpenAPI spec generation failed for the service with base path: '${service.basePath}'`);
         }
 
-        const matchingDefinition = (openapiDefinitions as OpenAPISpec).content.filter(content =>
+        const matchingDefinition = (openapiDefinitions as OpenAPISpec).content?.filter(content =>
             content.serviceName.toLowerCase() === service?.name.toLowerCase()
             || (service.basePath !== "" && service?.name === '' && content.spec?.servers[0]?.url?.endsWith(service.basePath))
             || (service?.name === '' && content.spec?.servers[0]?.url == undefined) // TODO: Update the condition after fixing the issue in the OpenAPI tool
