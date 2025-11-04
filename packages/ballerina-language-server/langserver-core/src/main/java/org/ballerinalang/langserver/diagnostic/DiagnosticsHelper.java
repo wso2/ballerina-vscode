@@ -41,9 +41,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
@@ -55,14 +57,16 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0.0
  */
 public class DiagnosticsHelper {
+
     private final List<Diagnostic> emptyDiagnosticList = new ArrayList<>(0);
     private static final LanguageServerContext.Key<DiagnosticsHelper> DIAGNOSTICS_HELPER_KEY =
             new LanguageServerContext.Key<>();
     private static final long DIAGNOSTIC_DELAY = 1;
     /**
-     * Holds last sent diagnostics for the purpose of clear-off when publishing new diagnostics.
+     * Holds file URIs that had diagnostics in the last publication for the purpose of clear-off when publishing new
+     * diagnostics. Key: package root path, Value: set of file URIs that had diagnostics
      */
-    private final Map<Path, Map<String, List<Diagnostic>>> lastDiagnosticMap;
+    private final Map<Path, Set<String>> lastDiagnosticFileUris;
     private CompletableFuture<Boolean> latestScheduled = null;
     private final Deque<String> cyclicDependencyErrors;
 
@@ -77,7 +81,7 @@ public class DiagnosticsHelper {
 
     private DiagnosticsHelper(LanguageServerContext serverContext) {
         serverContext.put(DIAGNOSTICS_HELPER_KEY, this);
-        this.lastDiagnosticMap = new HashMap<>();
+        this.lastDiagnosticFileUris = new HashMap<>();
         this.cyclicDependencyErrors = new ConcurrentLinkedDeque<>();
     }
 
@@ -129,8 +133,8 @@ public class DiagnosticsHelper {
         if (project.isEmpty()) {
             return;
         }
-        Map<String, List<Diagnostic>> latestDiagnostics = getLatestDiagnostics(context);
-        sendDiagnostics(client, latestDiagnostics, project.get().sourceRoot());
+        DiagnosticsResponse response = getLatestDiagnosticsWithPackages(context);
+        sendDiagnostics(client, response.diagnostics(), response.compiledPackages(), response.packageFileUris());
     }
 
     /**
@@ -143,28 +147,33 @@ public class DiagnosticsHelper {
     private synchronized void compileAndSendDiagnostics(ExtendedLanguageClient client, Path projectRoot,
                                                         PackageCompilation compilation,
                                                         WorkspaceManager workspaceManager) {
-        Map<String, List<Diagnostic>> diagnosticMap =
+        PackageDiagnostics packageDiagnostics =
                 toDiagnosticsMap(compilation.diagnosticResult().diagnostics(false), projectRoot, workspaceManager);
-        sendDiagnostics(client, diagnosticMap, projectRoot);
+        Map<Path, Set<String>> packageFileUris = new HashMap<>();
+        packageFileUris.put(projectRoot, packageDiagnostics.fileUris());
+        sendDiagnostics(client, packageDiagnostics.diagnostics(), List.of(projectRoot), packageFileUris);
     }
 
     private synchronized void sendDiagnostics(ExtendedLanguageClient client,
-                                              Map<String, List<Diagnostic>> diagnosticMap, Path projectRoot) {
+                                              Map<String, List<Diagnostic>> diagnosticMap,
+                                              List<Path> compiledPackages,
+                                              Map<Path, Set<String>> packageFileUris) {
         // If the client is null, returns
         if (client == null) {
             return;
         }
-        Map<String, List<Diagnostic>> lastProjectDiagnostics =
-                lastDiagnosticMap.getOrDefault(projectRoot, new HashMap<>());
 
-        // Clear old diagnostic entries of the project with an empty list
-        lastProjectDiagnostics.forEach((key, value) -> {
-            if (!diagnosticMap.containsKey(key)) {
-                client.publishDiagnostics(new PublishDiagnosticsParams(key, emptyDiagnosticList));
-            }
-        });
+        // Clear old diagnostic entries only from compiled packages
+        for (Path packageRoot : compiledPackages) {
+            Set<String> lastFileUris = lastDiagnosticFileUris.getOrDefault(packageRoot, new HashSet<>());
+            lastFileUris.forEach(fileUri -> {
+                if (!diagnosticMap.containsKey(fileUri)) {
+                    client.publishDiagnostics(new PublishDiagnosticsParams(fileUri, emptyDiagnosticList));
+                }
+            });
+        }
 
-        // Publish diagnostics for the project
+        // Publish diagnostics for all packages
         diagnosticMap.forEach((key, value) -> client.publishDiagnostics(new PublishDiagnosticsParams(key, value)));
 
         // Show cyclic dependency error message if exists
@@ -172,17 +181,19 @@ public class DiagnosticsHelper {
             CommandUtil.notifyClient(client, MessageType.Error, this.cyclicDependencyErrors.pop());
         }
 
-        // Replace old diagnostic map associated with the project
-        lastDiagnosticMap.put(projectRoot, diagnosticMap);
+        // Update tracked file URIs per package using the provided mappings
+        packageFileUris.forEach((packageRoot, fileUris) -> lastDiagnosticFileUris.put(packageRoot, fileUris));
     }
 
-    public Map<String, List<Diagnostic>> getLatestDiagnostics(DocumentServiceContext context) {
+    private DiagnosticsResponse getLatestDiagnosticsWithPackages(DocumentServiceContext context) {
         BallerinaWorkspaceManager workspace = (BallerinaWorkspaceManager) context.workspace();
         Map<String, List<Diagnostic>> diagnosticMap = new HashMap<>();
+        List<Path> compiledPackages = new ArrayList<>();
+        Map<Path, Set<String>> packageFileUris = new HashMap<>();
 
         Optional<Project> project = workspace.project(context.filePath());
         if (project.isEmpty()) {
-            return diagnosticMap;
+            return new DiagnosticsResponse(diagnosticMap, compiledPackages, packageFileUris);
         }
         // NOTE: We are not using `project.sourceRoot()` since it provides the single file project uses a temp path and
         // IDE requires the original path.
@@ -200,9 +211,14 @@ public class DiagnosticsHelper {
             // Get the current package compilation
             Optional<PackageCompilation> currentCompilation =
                     workspace.waitAndGetPackageCompilation(context.filePath());
-            currentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                    toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
-                            originalPath, workspace)));
+            currentCompilation.ifPresent(packageCompilation -> {
+                PackageDiagnostics pkgDiag = toDiagnosticsMap(
+                        compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                        originalPath, workspace);
+                diagnosticMap.putAll(pkgDiag.diagnostics());
+                compiledPackages.add(originalPath);
+                packageFileUris.put(originalPath, pkgDiag.fileUris());
+            });
 
             // Get diagnostics from all dependent packages
             Collection<Project> dependents = compilerApi.getWorkspaceDependents(workspaceProject, project.get());
@@ -210,9 +226,14 @@ public class DiagnosticsHelper {
                 Path dependentRoot = dependent.sourceRoot();
                 Optional<PackageCompilation> dependentCompilation =
                         workspace.waitAndGetPackageCompilation(dependentRoot);
-                dependentCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
-                                dependentRoot, workspace)));
+                dependentCompilation.ifPresent(packageCompilation -> {
+                    PackageDiagnostics pkgDiag = toDiagnosticsMap(
+                            compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                            dependentRoot, workspace);
+                    diagnosticMap.putAll(pkgDiag.diagnostics());
+                    compiledPackages.add(dependentRoot);
+                    packageFileUris.put(dependentRoot, pkgDiag.fileUris());
+                });
             }
         } else if (compilerApi.isWorkspaceProject(project.get())) {
             // Handle workspace project by iterating through all its packages
@@ -221,23 +242,38 @@ public class DiagnosticsHelper {
                 Path buildProjectRoot = buildProject.sourceRoot();
                 Optional<PackageCompilation> buildProjectCompilation =
                         workspace.waitAndGetPackageCompilation(buildProjectRoot);
-                buildProjectCompilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                        toDiagnosticsMap(compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
-                                buildProjectRoot, workspace)));
+                buildProjectCompilation.ifPresent(packageCompilation -> {
+                    PackageDiagnostics pkgDiag = toDiagnosticsMap(
+                            compilerApi.getDiagnostics(packageCompilation.diagnosticResult()),
+                            buildProjectRoot, workspace);
+                    diagnosticMap.putAll(pkgDiag.diagnostics());
+                    compiledPackages.add(buildProjectRoot);
+                    packageFileUris.put(buildProjectRoot, pkgDiag.fileUris());
+                });
             }
         } else {
             // Fall back to single package compilation
             Optional<PackageCompilation> compilation = workspace.waitAndGetPackageCompilation(context.filePath());
-            compilation.ifPresent(packageCompilation -> diagnosticMap.putAll(
-                    toDiagnosticsMap(packageCompilation.diagnosticResult().diagnostics(false), originalPath,
-                            workspace)));
+            compilation.ifPresent(packageCompilation -> {
+                PackageDiagnostics pkgDiag = toDiagnosticsMap(
+                        packageCompilation.diagnosticResult().diagnostics(false), originalPath, workspace);
+                diagnosticMap.putAll(pkgDiag.diagnostics());
+                compiledPackages.add(originalPath);
+                packageFileUris.put(originalPath, pkgDiag.fileUris());
+            });
         }
-        return diagnosticMap;
+        return new DiagnosticsResponse(diagnosticMap, compiledPackages, packageFileUris);
     }
 
-    private Map<String, List<Diagnostic>> toDiagnosticsMap(Collection<io.ballerina.tools.diagnostics.Diagnostic> diags,
-                                                           Path projectRoot, WorkspaceManager workspaceManager) {
+    public Map<String, List<Diagnostic>> getLatestDiagnostics(DocumentServiceContext context) {
+        return getLatestDiagnosticsWithPackages(context).diagnostics();
+    }
+
+    private PackageDiagnostics toDiagnosticsMap(Collection<io.ballerina.tools.diagnostics.Diagnostic> diags,
+                                                Path projectRoot, WorkspaceManager workspaceManager) {
         Map<String, List<Diagnostic>> diagnosticsMap = new HashMap<>();
+        Set<String> fileUris = new HashSet<>();
+
         for (io.ballerina.tools.diagnostics.Diagnostic diag : diags) {
             if (diag.diagnosticInfo().code()
                     .equals(DiagnosticErrorCode.CYCLIC_MODULE_IMPORTS_DETECTED.diagnosticId())) {
@@ -247,7 +283,7 @@ public class DiagnosticsHelper {
             Diagnostic diagnostic = getLSDiagnosticsFromCompilationDiagnostics(lineRange, diag);
 
             /*
-            If the project root is a directory, that means it is a build project and in the other case, a single 
+            If the project root is a directory, that means it is a build project and in the other case, a single
             file project. So we only append the file URI for the build project case.
              */
             Path resolvedPath = projectRoot.toFile().isDirectory()
@@ -257,8 +293,9 @@ public class DiagnosticsHelper {
             String fileURI = PathUtil.getModifiedUri(workspaceManager, resolvedUri);
             List<Diagnostic> clientDiagnostics = diagnosticsMap.computeIfAbsent(fileURI, s -> new ArrayList<>());
             clientDiagnostics.add(diagnostic);
+            fileUris.add(fileURI);
         }
-        return diagnosticsMap;
+        return new PackageDiagnostics(diagnosticsMap, fileUris);
     }
 
     private synchronized void compileAndSendDiagnostics(WorkspaceManager workspaceManager,
@@ -308,5 +345,25 @@ public class DiagnosticsHelper {
                 break;
         }
         return diagnostic;
+    }
+
+    /**
+     * Helper class to hold diagnostics and file URIs for a single package.
+     *
+     * @param diagnostics Map of file URIs to their diagnostics
+     * @param fileUris    Set of file URIs that have diagnostics
+     */
+    private record PackageDiagnostics(Map<String, List<Diagnostic>> diagnostics, Set<String> fileUris) {
+    }
+
+    /**
+     * Helper class to hold diagnostic results along with metadata about which packages were compiled.
+     *
+     * @param diagnostics       Map of file URIs to their diagnostics
+     * @param compiledPackages  List of package root paths that were compiled
+     * @param packageFileUris   Map of package root paths to the set of file URIs that have diagnostics
+     */
+    private record DiagnosticsResponse(Map<String, List<Diagnostic>> diagnostics, List<Path> compiledPackages,
+                                       Map<Path, Set<String>> packageFileUris) {
     }
 }
