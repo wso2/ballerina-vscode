@@ -310,10 +310,10 @@ export function FormGeneratorNew(props: FormProps) {
         closePopup: closeModal
     }
 
-    const defaultType = (): Type => {
+    const defaultType = (typeName?: string): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
-                name: typeEditorState.newTypeValue || "MyType",
+                name: typeName || typeEditorState.newTypeValue || "MyType",
                 editable: true,
                 metadata: {
                     label: "",
@@ -328,7 +328,7 @@ export function FormGeneratorNew(props: FormProps) {
                 allowAdditionalFields: false
             };
         } return {
-            name: typeEditorState.newTypeValue || "MyType",
+            name: typeName || typeEditorState.newTypeValue || "MyType",
             editable: true,
             metadata: {
                 label: "",
@@ -818,9 +818,9 @@ export function FormGeneratorNew(props: FormProps) {
         setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
-    const getNewTypeCreateForm = () => {
+    const getNewTypeCreateForm = (typeName?: string) => {
         pushTypeStack({
-            type: defaultType(),
+            type: defaultType(typeName),
             isDirty: false
         })
     }
