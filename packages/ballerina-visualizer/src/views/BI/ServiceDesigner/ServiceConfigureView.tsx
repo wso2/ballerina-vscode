@@ -27,7 +27,6 @@ import ListenerConfigForm from "./Forms/ListenerConfigForm";
 import { ServiceEditView } from "./ServiceEditView";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
-import DynamicModal from "../../../components/Modal";
 import { getReadableListenerName } from "./utils";
 import { POPUP_IDS, useModalStack } from "../../../Context";
 
