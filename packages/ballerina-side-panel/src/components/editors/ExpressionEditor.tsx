@@ -367,6 +367,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
+    const { nodeInfo } = useFormContext();
+
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
         fetchedInitialDiagnostics: false,
@@ -532,6 +534,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
+    const isModeSwitcherAvailable = () => {
+        if (nodeInfo?.kind === "FOREACH") return false;
+        if (!(focused || isExpressionEditorHovered)) return false;
+        if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
+        return true;
+    }
+
     return (
         <FieldProvider
             initialField={props.field}
@@ -563,13 +572,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 </S.EditorMdContainer>
                             </div>
                             <S.FieldInfoSection>
-                                {(focused || isExpressionEditorHovered)
-                                    && getInputModeFromTypes(field.valueTypeConstraint)
-                                    && (
-                                        <ModeSwitcher
-                                            value={inputMode}
-                                            onChange={handleModeChange}
-                                            valueTypeConstraint={field.valueTypeConstraint}
+                                {isModeSwitcherAvailable() && (
+                                    <ModeSwitcher
+                                        value={inputMode}
+                                        onChange={handleModeChange}
+                                        valueTypeConstraint={field.valueTypeConstraint}
                                         />
                                     )}
                             </S.FieldInfoSection>
