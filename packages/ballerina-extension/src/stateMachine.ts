@@ -695,7 +695,7 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     }
 
     // Check for service class model in the new location
-    if (!newLocationFound && lastView.location.type) {
+    if (!newLocationFound && lastView?.location?.type) {
         let currentArtifact: ProjectStructureArtifactResponse;
         StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
             if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
