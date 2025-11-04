@@ -41,5 +41,8 @@
   ],
   "rabbitmq": [
     "Caller"
+  ],
+  "solace": [
+    "Caller"
   ]
 }

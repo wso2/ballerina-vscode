@@ -22,12 +22,16 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.InterpolationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.SemanticTokens;
 
@@ -36,6 +40,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -91,44 +96,145 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(FieldAccessExpressionNode fieldAccessExpressionNode) {
+        handleFieldAccessLogic(fieldAccessExpressionNode, fieldAccessExpressionNode.expression(),
+                fieldAccessExpressionNode.fieldName());
+    }
+
+    @Override
+    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+        handleFieldAccessLogic(optionalFieldAccessExpressionNode, optionalFieldAccessExpressionNode.expression(),
+                optionalFieldAccessExpressionNode.fieldName());
+    }
+
+    /**
+     * Common method to handle both field access and optional field access expressions.
+     *
+     * @param node       The field access expression node (either regular or optional)
+     * @param expression The expression part of the field access
+     * @param fieldName  The field name part of the expression
+     */
+    private void handleFieldAccessLogic(Node node, ExpressionNode expression, Node fieldName) {
         // Find the leftmost node
-        ExpressionNode expression = fieldAccessExpressionNode.expression();
-        while (expression.kind() == SyntaxKind.FIELD_ACCESS) {
-            expression = ((FieldAccessExpressionNode) expression).expression();
+        ExpressionNode leftmostExpression = expression;
+        Optional<ExpressionNode> fieldExpressionNode = getFieldExpressionNode(expression);
+        while (fieldExpressionNode.isPresent()) {
+            leftmostExpression = fieldExpressionNode.get();
+            fieldExpressionNode = getFieldExpressionNode(leftmostExpression);
         }
 
         // Mark the field as variable if the expression is a variable reference
-        if (expression instanceof SimpleNameReferenceNode nameReferenceNode) {
+        if (leftmostExpression instanceof SimpleNameReferenceNode nameReferenceNode) {
             // Get the symbol name from the node
             String symbolName = nameReferenceNode.name().text();
             if (!validSymbolNames.contains(symbolName)) {
                 return;
             }
 
-            addSemanticToken(fieldAccessExpressionNode, ExpressionTokenTypes.VARIABLE.getId());
+            addSemanticToken(node, ExpressionTokenTypes.VARIABLE.getId());
             return;
         }
 
         // Mark the field name as PROPERTY, if the expression is not a variable
-        addSemanticToken(fieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
+        addSemanticToken(fieldName, ExpressionTokenTypes.PROPERTY.getId());
         // Visit the expression part (left side)
-        fieldAccessExpressionNode.expression().accept(this);
+        expression.accept(this);
     }
 
-    @Override
-    public void visit(OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
-        // Mark the field name as PROPERTY (same as regular field access)
-        addSemanticToken(optionalFieldAccessExpressionNode.fieldName(), ExpressionTokenTypes.PROPERTY.getId());
-        // Visit the expression part (left side)
-        optionalFieldAccessExpressionNode.expression().accept(this);
+    /**
+     * Return the inner expression if {@code expression} is a field access (regular or optional).
+     *
+     * @param expression expression to inspect
+     * @return optional inner {@link ExpressionNode} or {@link Optional#empty()} if not a field access
+     */
+    private static Optional<ExpressionNode> getFieldExpressionNode(ExpressionNode expression) {
+        if (expression instanceof FieldAccessExpressionNode fieldAccessExpressionNode) {
+            return Optional.of(fieldAccessExpressionNode.expression());
+        }
+        if (expression instanceof OptionalFieldAccessExpressionNode optionalFieldAccessExpressionNode) {
+            return Optional.of(optionalFieldAccessExpressionNode.expression());
+        }
+        return Optional.empty();
     }
-
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
         // Process arguments - they should all be marked as PARAMETER
         functionCallExpressionNode.arguments().forEach(arg -> {
             addSemanticToken(arg, ExpressionTokenTypes.PARAMETER.getId());
         });
+    }
+
+    @Override
+    public void visit(InterpolationNode interpolationNode) {
+        // Add START_EVENT token for ${ (length 2)
+        Token startToken = interpolationNode.interpolationStartToken();
+        addSemanticTokenWithPosition(startToken.lineRange().startLine().line(),
+                startToken.lineRange().startLine().offset(),
+                2,
+                ExpressionTokenTypes.START_EVENT.getId());
+
+        // Visit the expression inside the interpolation
+        interpolationNode.expression().accept(this);
+
+        // Add END_EVENT token for } (length 1)
+        Token endToken = interpolationNode.interpolationEndToken();
+        if (endToken.isMissing()) {
+            return;
+        }
+        addSemanticTokenWithPosition(endToken.lineRange().startLine().line(),
+                endToken.lineRange().startLine().offset(),
+                1,
+                ExpressionTokenTypes.END_EVENT.getId());
+    }
+
+    @Override
+    public void visit(TypeCastExpressionNode typeCastExpressionNode) {
+        // Mark the entire type cast (<Type>) as TYPE_CAST token
+        LinePosition linePosition = typeCastExpressionNode.ltToken().lineRange().startLine();
+        int startLine = linePosition.line();
+        int startCol = linePosition.offset();
+        int endCol = typeCastExpressionNode.gtToken().lineRange().endLine().offset() + 1;
+        int length = endCol - startCol;
+        addSemanticTokenWithPosition(startLine, startCol, length, ExpressionTokenTypes.TYPE_CAST.getId());
+
+        // If it's a mapping constructor, visit field values individually
+        ExpressionNode expression = typeCastExpressionNode.expression();
+        if (expression instanceof MappingConstructorExpressionNode mappingConstructor) {
+            for (MappingFieldNode field : mappingConstructor.fields()) {
+                if (field instanceof SpecificFieldNode specificField) {
+                    // Mark only the value expression, not the field name
+                    specificField.valueExpr().ifPresent(valueExpr ->
+                            addSemanticToken(valueExpr, ExpressionTokenTypes.VALUE.getId())
+                    );
+                }
+            }
+        } else {
+            // For non-mapping expressions, mark the entire expression as VALUE
+            addSemanticToken(expression, ExpressionTokenTypes.VALUE.getId());
+        }
+    }
+
+    /**
+     * Adds a semantic token with explicit position and length.
+     *
+     * @param line   Line number (0-indexed)
+     * @param column Column offset (0-indexed)
+     * @param length Token length
+     * @param type   Semantic token type's index
+     */
+    private void addSemanticTokenWithPosition(int line, int column, int length, int type) {
+        // Efficient O(1) duplicate check using position hash (line << 32 | column)
+        long positionKey = ((long) line << 32) | column;
+        if (!seenPositions.add(positionKey)) {
+            return; // Already processed this position
+        }
+
+        if (length <= 0) {
+            return; // Skip zero-length tokens
+        }
+
+        SemanticToken semanticToken = new SemanticToken(line, column);
+        semanticToken.setProperties(length, type, 0);
+        semanticTokens.add(semanticToken);
     }
 
     /**
@@ -142,12 +248,6 @@ public class SemanticTokenVisitor extends NodeVisitor {
         int line = startLine.line();
         int column = startLine.offset();
 
-        // Efficient O(1) duplicate check using position hash (line << 32 | column)
-        long positionKey = ((long) line << 32) | column;
-        if (!seenPositions.add(positionKey)) {
-            return; // Already processed this position
-        }
-
         // Calculate token length using pattern matching
         int length;
         if (node instanceof Token token) {
@@ -159,23 +259,20 @@ public class SemanticTokenVisitor extends NodeVisitor {
             length = textRangeLength > 0 ? textRangeLength : node.toSourceCode().length();
         }
 
-        // Account for invalid tokens to the length and adjust column accordingly
-        for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
-            int tokenLength = leadingInvalidToken.text().length();
-            length += tokenLength;
-            column -= tokenLength;
-        }
-        for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
-            length += trailingInvalidToken.text().length();
+        // Account for invalid tokens to the length ONLY for PARAMETER tokens
+        if (type == ExpressionTokenTypes.PARAMETER.getId()) {
+            for (Token leadingInvalidToken : node.leadingInvalidTokens()) {
+                int tokenLength = leadingInvalidToken.text().length();
+                length += tokenLength;
+                column -= tokenLength;
+            }
+            for (Token trailingInvalidToken : node.trailingInvalidTokens()) {
+                length += trailingInvalidToken.text().length();
+            }
         }
 
-        // Create and add new semantic token
-        if (length <= 0) {
-            return; // Skip zero-length tokens
-        }
-        SemanticToken semanticToken = new SemanticToken(line, column);
-        semanticToken.setProperties(length, type, 0);
-        semanticTokens.add(semanticToken);
+        // Delegate to addSemanticTokenWithPosition for duplicate checking and token creation
+        addSemanticTokenWithPosition(line, column, length, type);
     }
 
     /**

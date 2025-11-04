@@ -36,6 +36,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueSt
  * @since 1.0.0
  */
 public class Service {
+
     private final String id;
     private final String name;
     private final String type;
@@ -225,6 +226,7 @@ public class Service {
     }
 
     public static class ServiceModelBuilder {
+
         private String id;
         private String name;
         private String type;

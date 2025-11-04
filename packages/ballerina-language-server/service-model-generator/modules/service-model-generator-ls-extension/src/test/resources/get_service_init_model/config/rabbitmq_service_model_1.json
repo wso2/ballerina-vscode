@@ -7,7 +7,7 @@
   "response": {
     "serviceInitModel": {
       "id": "10",
-      "displayName": "RabbitMQ Event Handler",
+      "displayName": "RabbitMQ Event Integration",
       "description": "Create a service to handle messages from a RabbitMQ queue",
       "orgName": "ballerinax",
       "packageName": "rabbitmq",

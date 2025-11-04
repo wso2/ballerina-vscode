@@ -17,7 +17,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -32,6 +32,7 @@
     },
     "properties": {
       "name": {
+        "imports": {},
         "metadata": {
           "label": "Class Name",
           "description": "The name of the class definition"
@@ -52,7 +53,6 @@
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
         "value": "Book",
-        "imports": {},
         "enabled": true,
         "editable": false,
         "optional": false,

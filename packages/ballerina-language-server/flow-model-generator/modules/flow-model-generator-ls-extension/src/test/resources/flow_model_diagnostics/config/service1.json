@@ -1,0 +1,159 @@
+{
+  "source": "service.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "Declare Variable",
+      "description": "New variable with type"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 7,
+          "offset": 40
+        },
+        "endLine": {
+          "line": 7,
+          "offset": 40
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "var1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "int",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "modified": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "valueType": "ACTION_OR_EXPRESSION",
+        "value": "\"S\"\n",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "39960",
+    "metadata": {
+      "label": "Declare Variable",
+      "description": "Assign a value to a variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "service.bal",
+        "startLine": {
+          "line": 7,
+          "offset": 40
+        },
+        "endLine": {
+          "line": 8,
+          "offset": 1
+        }
+      },
+      "sourceCode": "int var1 = \"S\"\n;"
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "valueType": "ACTION_OR_EXPRESSION",
+        "value": "\"S\"\n",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible types: expected 'int', found 'string'"
+            }
+          ]
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "var1",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "service.bal",
+            "startLine": {
+              "line": 7,
+              "offset": 44
+            },
+            "endLine": {
+              "line": 7,
+              "offset": 48
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "int",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0
+  }
+}
