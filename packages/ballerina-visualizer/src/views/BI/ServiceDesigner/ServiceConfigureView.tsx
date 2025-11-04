@@ -498,7 +498,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
         await fetchService(updatedArtifact.position);
-        closeModal(POPUP_IDS.ATTACH_LISTNER);
+        closeModal(POPUP_IDS.ATTACH_LISTENER);
         setChangeMap({});
     }
 
@@ -747,7 +747,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 onAttachListener={handleOnAttachListener}
                                                                                 attachedListeners={listeners.map(listener => listener.name)}
                                                                             />
-                                                                            , POPUP_IDS.ATTACH_LISTNER, "Attach Listener", 600, 500);
+                                                                            , POPUP_IDS.ATTACH_LISTENER, "Attach Listener", 600, 500);
                                                                     }}> <Codicon name="add" /> Attach Listener</LinkButton>
                                                                 )}
                                                             </div>
