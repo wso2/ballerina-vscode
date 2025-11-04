@@ -276,10 +276,10 @@ export class CommonRpcManager implements CommonRPCAPI {
             }
 
             const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
-            if (balPackagesCount > 1 && isWorkspaceFile) {
-                return { type: "VSCODE_WORKSPACE" };
-            } else if (balPackagesCount > 1) {
-                return { type: "MULTIPLE_PROJECTS" };
+            if (balPackagesCount > 1) {
+                return isWorkspaceFile
+                    ? { type: "VSCODE_WORKSPACE" }
+                    : { type: "MULTIPLE_PROJECTS" };
             }
         } else if (workspaceFolders.length === 1) {
             const workspaceFolderPath = workspaceFolders[0].uri.fsPath;

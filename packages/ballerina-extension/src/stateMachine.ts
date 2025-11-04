@@ -788,7 +788,15 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
 }
 
 async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(async folder => await checkIsBallerinaPackage(folder.uri));
+    const balProjectChecks = await Promise.all(
+        workspaceFolders.map(async folder => ({
+            folder,
+            isBallerinaPackage: await checkIsBallerinaPackage(folder.uri)
+        }))
+    );
+    const balProjects = balProjectChecks
+        .filter(result => result.isBallerinaPackage)
+        .map(result => result.folder);
 
     if (balProjects.length > 1 && workspace.workspaceFile?.scheme === "file") {
         const projectPaths = balProjects.map(folder => folder.uri.fsPath);
