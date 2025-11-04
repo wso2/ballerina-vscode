@@ -1217,10 +1217,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     };
 
-    const getDefaultValue = () => {
+    const getDefaultValue = (typeName?: string) => {
         return ({
             type: {
-                name: "MyType",
+                name: typeName || "MyType",
                 members: [] as Member[],
                 editable: true,
                 metadata: {
@@ -1238,8 +1238,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         })
     }
 
-    const getNewTypeCreateForm = () => {
-        pushTypeStack(getDefaultValue());
+    const getNewTypeCreateForm = (typeName?: string) => {
+        pushTypeStack(getDefaultValue(typeName));
     }
 
     // handle if node form
