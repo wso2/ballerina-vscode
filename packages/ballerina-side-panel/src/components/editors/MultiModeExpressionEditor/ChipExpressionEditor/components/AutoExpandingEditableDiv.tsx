@@ -239,6 +239,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 }
             } else if (spanRect.left <= e.clientX && e.clientX <= spanRect.right) {
                 closestSpan = span;
+                matchNotFound = false;
                 break;
             }
         }
