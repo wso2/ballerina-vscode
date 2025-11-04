@@ -32,9 +32,13 @@ export interface UpdateSourceCodeRequest {
         [key: string]: TextEdit[];
     };
     resolveMissingDependencies?: boolean;
+    artifactData?: ArtifactData;
+    description?: string;
+    identifier?: string;
+    skipPayloadCheck?: boolean; // This is used to skip the payload check because the payload data might become empty as a result of a change. Example: Deleting a component.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, artifactData?: ArtifactData, description?: string, identifier?: string): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest): Promise<ProjectStructureArtifactResponse[]> {
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
@@ -142,7 +146,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
                 }
             }
-            undoRedoManager?.commitBatchOperation(description ? description : (artifactData ? `Change in ${artifactData?.artifactType} ${artifactData?.identifier}` : "Update Source Code"));
+            undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
 
             // Apply all formatted changes at once
             await workspace.applyEdit(formattedWorkspaceEdit);
@@ -165,13 +169,13 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 // Get the artifact notification handler instance
                 const notificationHandler = ArtifactNotificationHandler.getInstance();
                 // Subscribe to artifact updated notifications
-                let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, artifactData, async (payload) => {
-                    if (payload.data && payload.data.length > 0) {
+                let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, updateSourceCodeRequest.artifactData, async (payload) => {
+                    if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
                         console.log("Received notification:", payload);
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
-                        checkAndNotifyWebview(payload.data, identifier);
+                        checkAndNotifyWebview(payload.data, updateSourceCodeRequest.identifier);
                         unsubscribe();
                     }
                 });

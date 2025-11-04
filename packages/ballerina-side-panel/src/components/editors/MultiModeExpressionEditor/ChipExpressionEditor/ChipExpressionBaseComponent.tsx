@@ -39,15 +39,16 @@ import {
 } from "./utils";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
-import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER } from "./constants";
+import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { HelperpaneOnChangeOptions } from "../../../Form/types";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     completions: CompletionItem[];
@@ -162,10 +163,12 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         cursorPosition: number,
         lastTypedText?: string
     ) => {
+        const updatedValue = getTextValueFromExpressionModel(updatedModel);
+
         // Calculate cursor movement
         const cursorPositionBeforeUpdate = getAbsoluteCaretPositionFromModel(expressionModel);
         const cursorPositionAfterUpdate = getAbsoluteCaretPositionFromModel(updatedModel);
-        const cursorDelta = cursorPositionAfterUpdate - cursorPositionBeforeUpdate;
+        const cursorDelta = updatedValue.length - props.value.length;
 
         // Update tokens based on cursor movement
         const previousFullText = getTextValueFromExpressionModel(expressionModel);
@@ -178,8 +181,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             pendingForceSetTokensRef.current = updatedTokens;
         }
 
-        // Get updated values
-        const updatedValue = getTextValueFromExpressionModel(updatedModel);
         const wordBeforeCursor = getWordBeforeCursor(updatedModel);
         const valueBeforeCursor = updatedValue.substring(0, cursorPositionAfterUpdate);
 
@@ -264,7 +265,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
         const isSpecialKey = lastTypedText === BACKSPACE_MARKER
             || lastTypedText === COMPLETIONS_MARKER
-            || lastTypedText === HELPER_MARKER;
+            || lastTypedText === HELPER_MARKER
+            || lastTypedText === DELETE_MARKER;
 
         const endsWithTriggerChar = lastTypedText.endsWith('+')
             || lastTypedText.endsWith(' ')
@@ -297,7 +299,13 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         setIsCompletionsOpen(false);
     };
 
-    const handleHelperPaneValueChange = async (updatedValue: string, closeHelperpane: boolean) => {
+    const handleHelperPaneValueChange = async (updatedValue: string, options?: HelperpaneOnChangeOptions) => {
+        if (options?.replaceFullText) {
+            const updatedTokens = await fetchUpdatedFilteredTokens(updatedValue);
+            let exprModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
+            handleExpressionChange(exprModel, updatedValue.length, HELPER_MARKER);
+            return;
+        }
         let value = await expandFunctionSignature(updatedValue);
         if (
             chipClicked &&
@@ -346,7 +354,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 handleExpressionChange(exprModel, newCursorPosition, HELPER_MARKER);
             }
         }
-        if (closeHelperpane) {
+        if (options?.closeHelperPane) {
             setIsHelperPaneOpen(false);
         }
         else {

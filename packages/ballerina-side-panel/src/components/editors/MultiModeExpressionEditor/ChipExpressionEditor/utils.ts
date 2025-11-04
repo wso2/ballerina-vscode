@@ -332,6 +332,14 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
     return offset;
 };
 
+export const hasTextSelection = (el: HTMLElement): boolean => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+    if (!el.contains(range.startContainer)) return false;
+    return !range.collapsed;
+};
+
 export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): number => {
     if (!model || model.length === 0) return 0;
     const active = document.activeElement as HTMLElement | null;
@@ -683,9 +691,6 @@ const handleBackspace = (
     if (caretOffset === 0) {
         handleBackspaceAtStart(e, expressionModel, index, onExpressionChange);
     }
-    // else {
-    //     handleBackspaceInMiddle(e, expressionModel, index, caretOffset);
-    // }
 };
 
 const handleBackspaceAtStart = (
@@ -754,24 +759,6 @@ const mergeWithPreviousElement = (
     onExpressionChange?.(newExpressionModel, newCursorPosition, BACKSPACE_MARKER);
 };
 
-// const handleBackspaceInMiddle = (
-//     e: React.KeyboardEvent<HTMLSpanElement>,
-//     expressionModel: ExpressionModel[],
-//     index: number,
-//     caretOffset: number
-// ) => {
-//     const hasPreviousParameterToken = 
-//         caretOffset === 1 &&
-//         index - 1 >= 0 &&
-//         expressionModel[index - 1].isToken &&
-//         expressionModel[index - 1].type === 'parameter';
-
-//     if (hasPreviousParameterToken) {
-//         e.preventDefault();
-//         e.stopPropagation();
-//     }
-// };
-
 const handleDelete = (
     e: React.KeyboardEvent<HTMLSpanElement>,
     expressionModel: ExpressionModel[],
@@ -782,50 +769,69 @@ const handleDelete = (
 ) => {
     if (caretOffset !== textLength) return;
 
+    e.preventDefault();
+    e.stopPropagation();
+
     const currentElement = expressionModel[index];
     if (!currentElement || index === expressionModel.length - 1) return;
 
+    let newExpressionModel = [...expressionModel];
+    const tokensToRemove: number[] = [];
+
+    // Scan forward to find first non-token or collect all tokens
     for (let i = index + 1; i < expressionModel.length; i++) {
-        if (!expressionModel[i].isToken) {
-            mergeWithNextElement(expressionModel, index, i, currentElement, onExpressionChange);
+        if (expressionModel[i].isToken) {
+            tokensToRemove.push(i);
+        } else {
+            deleteFirstCharFromNextElement(
+                expressionModel,
+                index,
+                i,
+                tokensToRemove,
+                onExpressionChange
+            );
             return;
         }
     }
+
+    // If we only found tokens, remove them
+    if (tokensToRemove.length > 0) {
+        newExpressionModel = newExpressionModel.filter(
+            (_, idx) => !tokensToRemove.includes(idx)
+        );
+        const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+        onExpressionChange?.(newExpressionModel, newCursorPosition, DELETE_MARKER);
+    }
 };
 
-const mergeWithNextElement = (
+const deleteFirstCharFromNextElement = (
     expressionModel: ExpressionModel[],
     currentIndex: number,
     nextIndex: number,
-    currentElement: ExpressionModel,
+    tokensToRemove: number[],
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
 ) => {
+    const currentElement = expressionModel[currentIndex];
     const nextElement = expressionModel[nextIndex];
-    const updatedValue = currentElement.value + nextElement.value.slice(1);
+    const updatedNextValue = nextElement.value.slice(1);
+    const shouldRemoveNext = updatedNextValue.length === 0;
 
-    const updatedModel = expressionModel.map((el, idx) => {
-        if (idx === currentIndex) {
-            return {
-                ...currentElement,
-                value: updatedValue,
-                length: updatedValue.length,
-                isFocused: true,
-                focusOffset: currentElement.value.length
-            };
-        } else if (idx === nextIndex) {
-            return {
-                ...nextElement,
-                value: nextElement.value.slice(1),
-                length: nextElement.value.length - 1,
-                isFocused: false,
-                focusOffset: undefined
-            };
-        }
-        return el;
-    });
+    const newExpressionModel = expressionModel
+        .map((el, idx) => {
+            if (idx === currentIndex) {
+                return { ...el, isFocused: true, focusOffset: el.length };
+            } else if (idx === nextIndex && !shouldRemoveNext) {
+                return { ...el, value: updatedNextValue, length: updatedNextValue.length };
+            }
+            return el;
+        })
+        .filter((_, idx) => {
+            if (idx === nextIndex) return !shouldRemoveNext;
+            return !tokensToRemove.includes(idx);
+        });
 
-    const newCursorPosition = getAbsoluteCaretPositionFromModel(updatedModel);
-    onExpressionChange?.(updatedModel, newCursorPosition, DELETE_MARKER);
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+    onExpressionChange?.(newExpressionModel, newCursorPosition, DELETE_MARKER);
 };
 
 const handleArrowRight = (

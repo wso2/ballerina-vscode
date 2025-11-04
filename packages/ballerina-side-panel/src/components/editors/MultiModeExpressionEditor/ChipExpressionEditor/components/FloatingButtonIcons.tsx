@@ -42,11 +42,16 @@ export const CloseHelperButton = () => {
 
 export const ExpandButton = () => {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-            <path
-                fill="currentColor"
-                d="m12 15.15l-1.875-1.875q-.3-.3-.7-.3t-.7.3t-.3.713t.3.712l2.575 2.6q.3.3.7.3t.7-.3l2.6-2.6q.3-.3.3-.712t-.3-.713t-.712-.3t-.713.3zm0-6.3l1.875 1.875q.3.3.7.3t.7-.3t.3-.712t-.3-.713L12.7 6.7q-.3-.3-.7-.3t-.7.3L8.7 9.3q-.3.3-.287.7t.312.7t.713.3t.712-.3zM5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zM5 5v14z"
-            />
+        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
+            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8V3h5m8 0h5v5m0 8v5h-5m-8 0H3v-5"></path>
+        </svg>
+    );
+};
+
+export const CompressButton = () => {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24">
+            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8h5V3m8 0v5h5m-5 13v-5h5M3 16h5v5"></path>
         </svg>
     );
 };

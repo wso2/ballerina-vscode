@@ -173,7 +173,7 @@ export function NodeSelector({ nodes, onNodeSelect }: NodeSelectorProps) {
         }
 
         // Sort alphabetically
-        return filtered.sort((a, b) => a.name.localeCompare(b.name));
+        return filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }, [nodes, searchTerm]);
 
     const handleOnSearch = (text: string) => {

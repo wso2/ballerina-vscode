@@ -23,7 +23,7 @@ import { EditorModeProps } from "./types";
 
 const TextArea = styled.textarea`
     width: 100%;
-    min-height: 500px;
+    height: 100%;
     padding: 12px !important;
     fontSize: 13px;
     font-family: var(--vscode-editor-font-family);
@@ -31,7 +31,7 @@ const TextArea = styled.textarea`
     color: ${ThemeColors.ON_SURFACE};
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
-    resize: vertical;
+    resize: none;
     outline: none;
     box-sizing: border-box;
 

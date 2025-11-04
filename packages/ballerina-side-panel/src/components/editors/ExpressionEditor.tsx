@@ -31,7 +31,7 @@ import {
     Tooltip
 } from '@wso2/ui-toolkit';
 import { getPropertyFromFormField, sanitizeType } from './utils';
-import { FormField, FormExpressionEditorProps } from '../Form/types';
+import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
     LineRange,
@@ -387,8 +387,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 fetchedInitialDiagnostics: true,
                 diagnosticsFetchedTargetLineRange: targetLineRange
             };
+            // Only validate on initial render if the field has a non-empty value
             getExpressionEditorDiagnostics(
-                (required ?? !field.optional) || fieldValue !== '',
+                fieldValue !== '',
                 fieldValue,
                 key,
                 getPropertyFromFormField(field)
@@ -454,7 +455,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleGetHelperPane = (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => {
         return getHelperPane?.(
