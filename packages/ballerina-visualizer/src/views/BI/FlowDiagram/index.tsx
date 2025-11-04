@@ -1263,7 +1263,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
             })
             .then(async (response) => {
-                console.log(">>> Source code update response", response);
                 if (response.artifacts.length > 0) {
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
