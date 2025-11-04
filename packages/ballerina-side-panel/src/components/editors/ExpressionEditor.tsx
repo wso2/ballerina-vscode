@@ -387,8 +387,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 fetchedInitialDiagnostics: true,
                 diagnosticsFetchedTargetLineRange: targetLineRange
             };
+            // Only validate on initial render if the field has a non-empty value
             getExpressionEditorDiagnostics(
-                (required ?? !field.optional) || fieldValue !== '',
+                fieldValue !== '',
                 fieldValue,
                 key,
                 getPropertyFromFormField(field)
