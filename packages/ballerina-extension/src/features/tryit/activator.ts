@@ -76,7 +76,11 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             }
             // If currentProjectRoot is a file (single file project), use its directory
             // Otherwise, use the current project root
-            projectPath = getProjectWorkingDirectory(currentProjectRoot);
+            try {
+                projectPath = getProjectWorkingDirectory(currentProjectRoot);
+            } catch (error) {
+                throw new Error(`Failed to determine working directory`);
+            }
         }
 
         let services: ServiceInfo[] | null = await getAvailableServices(projectPath);

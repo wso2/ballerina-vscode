@@ -664,8 +664,16 @@ class BIRunAdapter extends LoggingDebugSession {
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
             
             // Determine the correct working directory for the task
-            const cwd = getProjectWorkingDirectory(projectRoot);
-            debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
+            let cwd: string;
+            try {
+                cwd = getProjectWorkingDirectory(projectRoot);
+                debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
+            } catch (error) {
+                window.showErrorMessage(`Failed to determine working directory`);
+                response.success = false;
+                this.sendResponse(response);
+                throw error;
+            }
             
             const execution = new ShellExecution(runCommand, { 
                 env: env as { [key: string]: string },
