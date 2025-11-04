@@ -297,6 +297,21 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     const handleHelperPaneValueChange = async (updatedValue: string, options?: HelperpaneOnChangeOptions) => {
+        let currentModel = expressionModel;
+        if (expressionModel.length === 0) {
+            currentModel.push({
+                id: "1",
+                value: "",
+                isToken: false,
+                startColumn: 0,
+                startLine: 0,
+                length: 0,
+                type: 'literal',
+                isFocused: false,
+                focusOffsetStart: 0,
+                focusOffsetEnd: 0
+            });
+        }
         if (options?.replaceFullText) {
             const updatedTokens = await fetchUpdatedFilteredTokens(updatedValue);
             let exprModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
@@ -310,14 +325,14 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 chipClicked.length > 0)
         ) {
             let absoluteCaretPosition = 0;
-            for (let i = 0; i < expressionModel?.length; i++) {
-                if (expressionModel && expressionModel[i].isFocused) {
-                    absoluteCaretPosition += expressionModel[i]?.focusOffsetStart || 0;
+            for (let i = 0; i < currentModel?.length; i++) {
+                if (currentModel && currentModel[i].isFocused) {
+                    absoluteCaretPosition += currentModel[i]?.focusOffsetStart || 0;
                     break;
                 }
-                absoluteCaretPosition += expressionModel ? expressionModel[i].value.length : 0;
+                absoluteCaretPosition += currentModel ? currentModel[i].value.length : 0;
             }
-            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value, true);
+            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, true);
 
             if (updatedExpressionModelInfo) {
                 const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
@@ -335,9 +350,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             }
         }
         else {
-            const selectedElement = expressionModel.find(el => el.isFocused);
+            let selectedElement = currentModel.find(el => el.isFocused);
             let shouldReplaceEntireValue = false;
-            if (!selectedElement) return;
+            if (!selectedElement) {
+                selectedElement = currentModel[currentModel.length - 1];
+            };
             if (selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd) {
                 // If there's a selection, replace the selected text
                 const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
@@ -347,8 +364,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 shouldReplaceEntireValue = true;
 
             }
-            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(expressionModel);
-            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value, shouldReplaceEntireValue);
+            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
+            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, shouldReplaceEntireValue);
             if (updatedExpressionModelInfo) {
                 const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
 
