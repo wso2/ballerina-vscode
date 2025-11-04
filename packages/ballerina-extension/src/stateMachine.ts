@@ -2,16 +2,14 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
-import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
-import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
 import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
@@ -660,6 +658,7 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     }
 
     let newLocation: VisualizerLocation = lastView?.location;
+    let newLocationFound = false;
     if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
         newLocation = { ...lastView.location };
         const currentIdentifier = lastView.location?.identifier;
@@ -692,6 +691,36 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
             ...lastView,
             location: newLocation
         });
+        newLocationFound = true;
+    }
+
+    // Check for service class model in the new location
+    if (!newLocationFound && lastView?.location?.type) {
+        let currentArtifact: ProjectStructureArtifactResponse;
+        StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
+            if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
+                currentArtifact = artifact;
+            }
+        });
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        const updatedType: Type = {
+            ...lastView.location.type,
+            codedata: {
+                ...lastView.location.type.codedata,
+                lineRange: {
+                    ...lastView.location.type.codedata.lineRange,
+                    startLine: { line: newPosition.startLine, offset: newPosition.startColumn },
+                    endLine: { line: newPosition.endLine, offset: newPosition.endColumn }
+                }
+            }
+        };
+
+        newLocation = { ...lastView.location, position: newPosition, type: updatedType };
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+        });
+
     }
 
 
