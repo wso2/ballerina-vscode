@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { HistoryEntry, MACHINE_VIEW, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
 const NavContainer = styled.div`
     display: flex;
@@ -60,7 +60,14 @@ const IconButton = styled.div`
     }
 `;
 
-const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
+const BreadcrumbItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+`;
+
+const BreadcrumbText = styled.span<{ clickable?: boolean }>`
     ${({ clickable }: { clickable?: boolean }) =>
         clickable &&
         `
@@ -71,6 +78,26 @@ const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
     `}
 `;
 
+const PackageContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    max-width: 120px;
+    overflow: hidden;
+    padding: 3px 4px;
+    font-size: 10px;
+    border-radius: 5px;
+    line-height: 1;
+`;
+
+const PackageName = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
 interface TopNavigationBarProps {
     onBack?: () => void;
     onHome?: () => void;
@@ -79,16 +106,18 @@ interface TopNavigationBarProps {
 export function TopNavigationBar(props: TopNavigationBarProps) {
     const { onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
 
     useEffect(() => {
-        rpcClient
-            .getVisualizerRpcClient()
-            .getHistory()
-            .then((history) => {
-                console.log(">>> history", history);
-                setHistory(history);
-            });
+        Promise.all([
+            rpcClient.getVisualizerRpcClient().getHistory(),
+            rpcClient.getCommonRpcClient().getWorkspaceType()
+        ]).then(([history, workspaceType]) => {
+            console.log(">>> history", history);
+            setHistory(history);
+            setWorkspaceType(workspaceType);
+        });
     }, []);
 
     const handleBack = () => {
@@ -106,6 +135,13 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             rpcClient.getVisualizerRpcClient().goSelected(index);
         }
     };
+
+    const hasMultiplePackages = useMemo(() => {
+        return workspaceType?.type === "BALLERINA_WORKSPACE" ||
+            workspaceType?.type === "MULTIPLE_PROJECTS" ||
+            workspaceType?.type === "VSCODE_WORKSPACE";
+    }, [workspaceType]);
+
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
     const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
     const existingLabels = new Set<string>();
@@ -126,12 +162,34 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                         existingLabels.add(shortName);
                         return (
                             <React.Fragment key={index}>
-                                {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                <BreadcrumbItem
-                                    clickable={index < history.length - 1}
-                                    onClick={() => index < history.length - 1 && handleCrumbClick(index)}
-                                >
-                                    {shortName}
+                                {index > 0 && (
+                                    <Icon 
+                                        name="wide-chevron" 
+                                        iconSx={{
+                                            color: "var(--vscode-foreground)",
+                                            fontSize: hasMultiplePackages ? "20px" : "15px",
+                                            opacity: 0.5 
+                                        }} 
+                                        sx={{ alignSelf: "center" }}
+                                    />
+                                )}
+                                <BreadcrumbItem>
+                                    <BreadcrumbText
+                                        clickable={index < history.length - 1}
+                                        onClick={() => index < history.length - 1 && handleCrumbClick(index)}
+                                    >
+                                        {shortName}
+                                    </BreadcrumbText>
+                                    {hasMultiplePackages && crumb.location.package && (
+                                        <PackageContainer>
+                                            <Codicon 
+                                                name="project" 
+                                                sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }} 
+                                            />
+                                            <PackageName>{crumb.location.package}</PackageName>
+                                        </PackageContainer>
+                                    )}
                                 </BreadcrumbItem>
                             </React.Fragment>
                         );
