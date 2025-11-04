@@ -81,8 +81,7 @@ export async function fetchDataMapperCodeData(
     const response = await StateMachine
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
-
-    if (StateMachine.context().view === MACHINE_VIEW.DataMapper) {
+    if (response.codedata && StateMachine.context().view === MACHINE_VIEW.DataMapper) {
         const { node, ...cleanCodeData } = response.codedata;
         return cleanCodeData;
     }
