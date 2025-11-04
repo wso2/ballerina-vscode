@@ -1095,3 +1095,7 @@ export const getModelWithModifiedParamsChip = (expressionModel: ExpressionModel[
     }
     )
 }
+
+export const isBetween = (a: number, b: number, target: number): boolean => {
+    return target >= Math.min(a, b) && target <= Math.max(a, b);
+}
