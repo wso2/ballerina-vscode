@@ -17,11 +17,5 @@
  */
 
 export { activateTracing, TRACE_WINDOW_COMMAND, ENABLE_TRACING_COMMAND, TRACE_VIEW_ID } from './activate';
-export { TraceTreeDataProvider } from './trace-tree-view';
 export { TracerMachine } from './tracer-machine';
-export type { TracerMachineContext } from './tracer-machine';
 export { TraceServer } from './trace-server';
-export type { Trace, Span, Resource, Scope, Attribute, TraceServer as TraceServerType } from './trace-server';
-export { createTraceServerTask, executeTraceServerTask } from './trace-server-task';
-export { generateSampleOtlpData, publishSampleOtlpData } from './test/test-utils';
-export { setTracingConfig, removeTracingConfig } from './utils';
