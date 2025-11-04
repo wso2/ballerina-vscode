@@ -758,7 +758,7 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-async function getCurrentProjectRoot(): Promise<string> {
+export async function getCurrentProjectRoot(): Promise<string> {
     // 1. Check if the project path is already set in the state machine context
     let currentProjectRoot = StateMachine.context().projectUri;
     if (currentProjectRoot) {
