@@ -150,7 +150,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         hasInputsOutputsChanged = false
     } = modelState;
 
-    const initialView = [{
+    const initialView: View[] = [{
         label: model.output.name,
         targetField: name
     }];

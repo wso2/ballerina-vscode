@@ -31,7 +31,6 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode,
     QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
@@ -218,7 +217,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, inputId: string, outputId: string, viewId: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputIds: string[], outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -242,7 +241,7 @@ export function expandArrayFn(context: IDataMapperContext, inputId: string, outp
     // Create base view properties
     const baseView: View = {
         label: label,
-        sourceField: inputId,
+        sourceFields: inputIds,
         targetField: targetField
     };
 
