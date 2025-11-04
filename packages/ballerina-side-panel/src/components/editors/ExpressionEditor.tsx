@@ -401,6 +401,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     useEffect(() => {
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        if (isModeSwitcherRestricted()) {
+            setInputMode(InputMode.EXP);
+            return;
+        }
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
@@ -534,8 +538,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
+    const isModeSwitcherRestricted = () => {
+        if (nodeInfo?.kind === "FOREACH") return true;
+        return false;
+    };
+
     const isModeSwitcherAvailable = () => {
-        if (nodeInfo?.kind === "FOREACH") return false;
+        if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
         if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
         return true;
