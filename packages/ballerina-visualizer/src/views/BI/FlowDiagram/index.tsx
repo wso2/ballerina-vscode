@@ -898,29 +898,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        const currentArtifact = await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
-        if (currentArtifact) {
-            console.log(">>> currentArtifact", currentArtifact);
-            if (isCreatingNewModelProvider.current) {
-                isCreatingNewModelProvider.current = false;
-                await handleModelProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorStore.current) {
-                isCreatingNewVectorStore.current = false;
-                await handleVectorStoreAdded();
-                return;
-            }
-            if (isCreatingNewEmbeddingProvider.current) {
-                isCreatingNewEmbeddingProvider.current = false;
-                await handleEmbeddingProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorKnowledgeBase.current) {
-                isCreatingNewVectorKnowledgeBase.current = false;
-                await handleVectorKnowledgeBaseAdded();
-                return;
-            }
+        await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
+        
+        if (isCreatingNewModelProvider.current) {
+            isCreatingNewModelProvider.current = false;
+            await handleModelProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorStore.current) {
+            isCreatingNewVectorStore.current = false;
+            await handleVectorStoreAdded();
+            return;
+        }
+        if (isCreatingNewEmbeddingProvider.current) {
+            isCreatingNewEmbeddingProvider.current = false;
+            await handleEmbeddingProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorKnowledgeBase.current) {
+            isCreatingNewVectorKnowledgeBase.current = false;
+            await handleVectorKnowledgeBaseAdded();
+            return;
         }
         if (isCreatingNewDataLoader.current) {
             isCreatingNewDataLoader.current = false;
@@ -1265,6 +1263,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
             })
             .then(async (response) => {
+                console.log(">>> Source code update response", response);
                 if (response.artifacts.length > 0) {
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
