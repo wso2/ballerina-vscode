@@ -563,6 +563,12 @@
                 }
             },
             {
+                "command": "ballerina.showTraceWindow",
+                "title": "Open Trace Window (Experimental)",
+                "category": "Ballerina",
+                "icon": "$(pulse)"
+            },
+            {
                 "command": "ballerina.open.bi.welcome",
                 "title": "Open Welcome",
                 "category": "BI"
@@ -719,9 +725,41 @@
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
                 "category": "BI"
+            },
+            {
+                "command": "ballerina.showTraceWindow",
+                "title": "Show Traces",
+                "icon": "$(list-tree)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.enableTracing",
+                "title": "Enable Tracing",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.disableTracing",
+                "title": "Disable Tracing",
+                "category": "Ballerina",
+                "icon": "$(circle-slash)"
+            },
+            {
+                "command": "ballerina.clearTraces",
+                "title": "Clear Traces",
+                "category": "Ballerina",
+                "icon": "$(clear-all)"
             }
         ],
         "views": {
+            "ballerina-traceView": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Tracing",
+                    "name": "Tracing",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                }
+            ],
             "notebook-variables": [
                 {
                     "type": "webview",
@@ -733,12 +771,28 @@
         },
         "viewsWelcome": [
             {
+                "view": "ballerina-traceView",
+                "contents": "Tracing is disabled. Enable tracing to view traces from your Ballerina program.\n[Enable Tracing](command:ballerina.enableTracing)",
+                "when": "!ballerina.tracingEnabled"
+            },
+            {
+                "view": "ballerina-traceView",
+                "contents": "No traces collected yet. Run your Ballerina program to see traces here.",
+                "when": "ballerina.tracingEnabled && ballerina.tracesEmpty"
+            },
+            {
                 "view": "testing",
                 "contents": "[Add Unit Test](command:BI.test.add.function)"
             }
         ],
         "viewsContainers": {
             "panel": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Tracing",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                },
                 {
                     "id": "notebook-variables",
                     "title": "Ballerina Notebook",
@@ -774,6 +828,18 @@
                     "command": "BI.test.add.function",
                     "when": "view == workbench.view.testing",
                     "group": "navigation"
+                },
+                {
+                    "command": "ballerina.disableTracing",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled",
+                    "group": "navigation",
+                    "title": "Disable Tracing"
+                },
+                {
+                    "command": "ballerina.clearTraces",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
+                    "group": "navigation",
+                    "title": "Clear Traces"
                 }
             ],
             "editor/title": [
@@ -1175,7 +1241,8 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "zod": "^4.1.8"
+        "zod": "^4.1.8",
+        "protobufjs": "^7.2.5"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
