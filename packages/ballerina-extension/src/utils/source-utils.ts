@@ -36,6 +36,7 @@ export interface UpdateSourceCodeRequest {
     description?: string;
     identifier?: string;
     skipPayloadCheck?: boolean; // This is used to skip the payload check because the payload data might become empty as a result of a change. Example: Deleting a component.
+    isRenameOperation?: boolean; // This is used to identify if the update is a rename operation.
 }
 
 export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest): Promise<ProjectStructureArtifactResponse[]> {
@@ -175,7 +176,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
-                        checkAndNotifyWebview(payload.data, updateSourceCodeRequest.identifier);
+                        checkAndNotifyWebview(payload.data, updateSourceCodeRequest);
                         unsubscribe();
                     }
                 });
@@ -213,10 +214,16 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 //** 
 // Notify webview unless a new TYPE artifact is created outside the type diagram view
 // */
-function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[], identifier?: string) {
+function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[], request: UpdateSourceCodeRequest) {
     const newArtifact = response.find(artifact => artifact.isNew);
-    const selectedArtifact = response.find(artifact => artifact.id === identifier);
+    const selectedArtifact = response.find(artifact => artifact.id === request.identifier);
     const stateContext = StateMachine.context().view;
+
+    if (request.isRenameOperation) {
+        notifyCurrentWebview();
+        return;
+    }
+
     if ((selectedArtifact?.type === "TYPE " || newArtifact?.type === "TYPE") && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
     } else {
