@@ -33,7 +33,8 @@ import {
     IOTypeField,
     IORoot,
     ExpandModelOptions,
-    ExpandedDMModel
+    ExpandedDMModel,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
@@ -80,6 +81,10 @@ export async function fetchDataMapperCodeData(
     const response = await StateMachine
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
+    if (response.codedata && StateMachine.context().view === MACHINE_VIEW.DataMapper) {
+        const { node, ...cleanCodeData } = response.codedata;
+        return cleanCodeData;
+    }
     return response.codedata;
 }
 
@@ -368,7 +373,9 @@ function updateView(codeData: CodeData | null, varName: string): void {
         return;
     }
 
-    applySourceCodeHack(codeData);
+    if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper) {
+        applySourceCodeHack(codeData);
+    }
     updateDataMapperView(codeData, varName);
 }
 
