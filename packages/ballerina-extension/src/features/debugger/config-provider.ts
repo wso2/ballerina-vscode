@@ -41,6 +41,7 @@ import {
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
 import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -663,9 +664,7 @@ class BIRunAdapter extends LoggingDebugSession {
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
             
             // Determine the correct working directory for the task
-            // If projectRoot is a file (single file project), use its directory
-            // Otherwise, use the projectRoot itself (which is the project directory)
-            const cwd = fs.statSync(projectRoot).isFile() ? path.dirname(projectRoot) : projectRoot;
+            const cwd = getProjectWorkingDirectory(projectRoot);
             debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
             
             const execution = new ShellExecution(runCommand, { 

@@ -25,6 +25,7 @@ import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
 import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
 import { BIDesignModelResponse, OpenAPISpec } from "@wso2/ballerina-core";
+import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
 import { v4 as uuidv4 } from "uuid";
 import { createGraphqlView } from "../../views/graphql";
@@ -75,9 +76,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             }
             // If currentProjectRoot is a file (single file project), use its directory
             // Otherwise, use the current project root
-            projectPath = fs.statSync(currentProjectRoot).isFile()
-                ? path.dirname(currentProjectRoot)
-                : currentProjectRoot;
+            projectPath = getProjectWorkingDirectory(currentProjectRoot);
         }
 
         let services: ServiceInfo[] | null = await getAvailableServices(projectPath);
