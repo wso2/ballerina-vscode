@@ -791,12 +791,14 @@ export async function getCurrentProjectRoot(): Promise<string> {
 
     // 3. Fallback to workspace root
     const workspaceRoot = getWorkspaceRoot();
-    if (!workspaceRoot && StateMachine.context().isBI) {
+    if (!workspaceRoot) {
         throw new Error("Unable to determine the current workspace root.");
     }
     if (isBallerinaProject(workspaceRoot)) {
         return workspaceRoot;
     }
+
+    throw new Error(`No valid Ballerina project found`);
 }
 
 function getJavaCommand(): string {
