@@ -82,6 +82,8 @@ export async function fetchDataMapperCodeData(
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
     if (response.codedata && StateMachine.context().view === MACHINE_VIEW.DataMapper) {
+        // Following is a temporary hack to remove the node property from the code data
+        // TODO: Remove this once the LS API is updated (https://github.com/wso2/product-ballerina-integrator/issues/1732)
         const { node, ...cleanCodeData } = response.codedata;
         return cleanCodeData;
     }
@@ -373,9 +375,7 @@ function updateView(codeData: CodeData | null, varName: string): void {
         return;
     }
 
-    if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper) {
-        applySourceCodeHack(codeData);
-    }
+    applySourceCodeHack(codeData);
     updateDataMapperView(codeData, varName);
 }
 
