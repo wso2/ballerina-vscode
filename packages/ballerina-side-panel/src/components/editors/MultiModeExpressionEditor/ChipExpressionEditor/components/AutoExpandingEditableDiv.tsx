@@ -24,7 +24,7 @@ import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
 import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
-import { getCompletionsMenuPosition } from "../utils";
+import { getCompletionsMenuPosition, isBetween } from "../utils";
 import styled from "@emotion/styled";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 
@@ -219,10 +219,34 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
 
     const handleEditorClicked = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target instanceof HTMLSpanElement) return;
-        const spans = (e.target as HTMLElement).querySelectorAll('span[contenteditable]');
-        if (spans.length > 0) {
-            const lastSpan = spans[spans.length - 1] as HTMLSpanElement;
-            lastSpan.focus();
+        const spans = (e.target as HTMLElement).querySelectorAll('span[contenteditable="true"]');
+        if (spans.length <= 0) return;
+
+        let closestSpan: HTMLSpanElement | null = null;
+        let smallestDistance = Number.MAX_VALUE;
+        let matchNotFound = true;
+
+        for (let i = 0; i < spans.length; i++) {
+            const span = spans[i] as HTMLSpanElement;
+            const spanRect = span.getBoundingClientRect();
+            if (!isBetween(spanRect.top, spanRect.bottom, e.clientY)) continue;
+            if (spanRect.right < e.clientX) {
+                const distance = e.clientX - spanRect.right;
+                if (distance < smallestDistance) {
+                    smallestDistance = distance;
+                    closestSpan = span;
+                    matchNotFound = false;
+                }
+            } else if (spanRect.left <= e.clientX && e.clientX <= spanRect.right) {
+                closestSpan = span;
+                break;
+            }
+        }
+        if (matchNotFound) {
+            (spans[spans.length - 1] as HTMLSpanElement).focus();
+        }
+        if (closestSpan) {
+            closestSpan.focus();
         }
     }
 
