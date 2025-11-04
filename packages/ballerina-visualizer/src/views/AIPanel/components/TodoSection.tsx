@@ -29,29 +29,29 @@ const spin = keyframes`
 const TodoContainer = styled.div`
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
-    border-radius: 6px;
-    padding: 12px;
-    margin: 8px 0;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin: 6px 0;
     font-family: var(--vscode-editor-font-family);
     font-size: 12px;
     color: var(--vscode-editor-foreground);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 `;
 
 const TodoHeader = styled.div<{ clickable?: boolean }>`
     font-weight: 500;
-    font-size: 13px;
-    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '8px'};
-    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '8px' : '8px'};
+    font-size: 12px;
+    margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '6px'};
+    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '6px' : '6px'};
     border-bottom: ${(props: { clickable?: boolean }) =>
         props.clickable ? 'none' : '1px solid var(--vscode-widget-border)'};
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     cursor: ${(props: { clickable?: boolean }) => props.clickable ? 'pointer' : 'default'};
     user-select: none;
-    padding: 4px 6px;
-    border-radius: 4px;
+    padding: 2px 4px;
+    border-radius: 3px;
     transition: background-color 0.15s ease;
 
     &:hover {
@@ -77,25 +77,25 @@ const MinimalTaskInfo = styled.span`
 const TodoList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     overflow-y: auto;
-    max-height: 300px;
-    padding: 2px;
+    max-height: 250px;
+    padding: 0;
 `;
 
 const TodoItem = styled.div<{ status: string }>`
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 4px;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 3px;
     background-color: ${(props: { status: string }) =>
         props.status === "completed"
             ? "var(--vscode-list-hoverBackground)"
             : props.status === "in_progress"
-            ? "rgba(75, 110, 175, 0.1)"
+            ? "rgba(75, 110, 175, 0.08)"
             : "transparent"};
-    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.65 : 1)};
+    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.6 : 1)};
     transition: all 0.2s ease;
     border-left: 2px solid ${(props: { status: string }) =>
         props.status === "in_progress"
@@ -110,8 +110,8 @@ const TodoIcon = styled.span<{ status: string }>`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 
     &.pending {
         .codicon {
@@ -150,12 +150,16 @@ const TodoNumber = styled.span`
 interface TodoSectionProps {
     tasks: Task[];
     message?: string;
+    isLoading?: boolean;
 }
 
-const getStatusIcon = (status: string): { className: string; icon: string } => {
+const getStatusIcon = (status: string, isLoading: boolean): { className: string; icon: string } => {
     switch (status) {
         case "in_progress":
-            return { className: "in_progress", icon: "codicon-sync" };
+            return {
+                className: isLoading ? "in_progress" : "pending",
+                icon: isLoading ? "codicon-sync" : "codicon-circle-outline",
+            };
         case "review":
             return { className: "review", icon: "codicon-eye" };
         case "completed":
@@ -166,7 +170,7 @@ const getStatusIcon = (status: string): { className: string; icon: string } => {
     }
 };
 
-const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
+const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = false }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const inProgressRef = useRef<HTMLDivElement>(null);
     const todoListRef = useRef<HTMLDivElement>(null);
@@ -220,9 +224,9 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
     }, [hasInProgress, inProgressTask?.description]);
 
     const getStatusText = () => {
-        if (allCompleted) return "completed";
-        if (hasInProgress) return "in progress";
-        return "ongoing";
+        if (allCompleted) return "done";
+        if (hasInProgress) return "building";
+        return "ready";
     };
 
     return (
@@ -231,10 +235,9 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
                 <ChevronIcon expanded={isExpanded}>
                     <span className="codicon codicon-chevron-right"></span>
                 </ChevronIcon>
-                <span className="codicon codicon-tasklist"></span>
+                <span className="codicon codicon-list-ordered"></span>
                 <span>
-                    Implementation Tasks ({completedCount}/{tasks.length}{" "}
-                    {getStatusText()})
+                    Build Steps ({completedCount}/{tasks.length} {getStatusText()})
                 </span>
                 {!isExpanded && inProgressTask && (
                     <MinimalTaskInfo>
@@ -247,23 +250,23 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message }) => {
                     {message && (
                         <div
                             style={{
-                                marginTop: "8px",
-                                marginBottom: "12px",
-                                padding: "8px 10px",
+                                marginTop: "6px",
+                                marginBottom: "8px",
+                                padding: "6px 8px",
                                 fontSize: "11px",
                                 color: "var(--vscode-descriptionForeground)",
                                 fontStyle: "italic",
                                 backgroundColor: "var(--vscode-textBlockQuote-background)",
-                                borderRadius: "4px",
-                                borderLeft: "3px solid var(--vscode-textBlockQuote-border)",
+                                borderRadius: "3px",
+                                borderLeft: "2px solid var(--vscode-textBlockQuote-border)",
                             }}
                         >
                             {message}
                         </div>
                     )}
-                    <TodoList style={{ marginTop: "6px" }} ref={todoListRef}>
+                    <TodoList style={{ marginTop: "4px" }} ref={todoListRef}>
                         {tasks.map((task, index) => {
-                            const statusInfo = getStatusIcon(task.status);
+                            const statusInfo = getStatusIcon(task.status, isLoading);
                             const isInProgress = task.status === "in_progress";
                             const isReview = task.status === "review";
                             return (

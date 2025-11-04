@@ -61,7 +61,7 @@ import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import RoleContainer from "../RoleContainter";
-import { Attachment, AttachmentStatus, Task, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
@@ -208,8 +208,6 @@ const AIChat: React.FC = () => {
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
-    const [todoTasks, setTodoTasks] = useState<Task[] | null>(null);
-    const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -413,13 +411,6 @@ const AIChat: React.FC = () => {
             } else if (response.toolName == "TaskWrite") {
                 const taskOutput = response.toolOutput;
 
-                if (taskOutput.success && taskOutput.allTasks && taskOutput.allTasks.length > 0) {
-                    if (todoTasks && todoTasks.length > 0) {
-                        setTodoTasks(taskOutput.allTasks);
-                        setTasksMessage(taskOutput.message);
-                    }
-                }
-
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
@@ -519,19 +510,15 @@ const AIChat: React.FC = () => {
                             message: response.message
                         };
                         const todoJson = JSON.stringify(todoData);
-                        const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
-                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+                        let lastMessageContent = newMessages[newMessages.length - 1].content;
 
-                        if (indicatorPattern.test(lastMessageContent)) {
-                            // Replace Planning indicator with todo
-                            newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                                indicatorPattern,
-                                `<todo>${todoJson}</todo>`
-                            );
-                        } else {
-                            // Append todo if Planning indicator not found
-                            newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
-                        }
+                        const planningPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                        const todoPattern = /<todo>.*?<\/todo>/s;
+
+                        lastMessageContent = lastMessageContent.replace(planningPattern, '');
+                        lastMessageContent = lastMessageContent.replace(todoPattern, '');
+
+                        newMessages[newMessages.length - 1].content = lastMessageContent + `\n\n<todo>${todoJson}</todo>`;
                     }
                     return newMessages;
                 });
@@ -1951,8 +1938,6 @@ const AIChat: React.FC = () => {
         );
 
         setMessages((prevMessages) => []);
-        setTodoTasks(null);
-        setTasksMessage(undefined);
         setApprovalRequest(null);
 
         localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
@@ -2186,8 +2171,6 @@ const AIChat: React.FC = () => {
                 type: AIChatMachineEventType.APPROVE_PLAN,
                 payload: {}
             });
-            setTodoTasks(approvalRequest.tasks);
-            setTasksMessage(approvalRequest.message);
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
@@ -2361,10 +2344,12 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
+                                            const isLastMessage = index === otherMessages.length - 1;
                                             return (
                                                 <TodoSection
-                                                    tasks={approvalRequest?.tasks || todoTasks || []}
-                                                    message={approvalRequest?.message || tasksMessage}
+                                                    tasks={segment.tasks || []}
+                                                    message={segment.message}
+                                                    isLoading={isLoading && isLastMessage}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Attachment) {
