@@ -515,7 +515,11 @@ function urlToUniqueID(url) {
 }
 
 export function getProjectWorkingDirectory(projectPath: string): string {
-    return fs.statSync(projectPath).isFile() ? path.dirname(projectPath) : projectPath;
+    try {
+        return fs.statSync(projectPath).isFile() ? path.dirname(projectPath) : projectPath;
+    } catch (error) {
+        throw error;
+    }
 }
 
 export async function goToSource(nodePosition: NodePosition, documentUri: string) {
