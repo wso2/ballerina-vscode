@@ -375,9 +375,7 @@ function updateView(codeData: CodeData | null, varName: string): void {
         return;
     }
 
-    if (StateMachine.context().view === MACHINE_VIEW.InlineDataMapper) {
-        applySourceCodeHack(codeData);
-    }
+    applySourceCodeHack(codeData);
     updateDataMapperView(codeData, varName);
 }
 
