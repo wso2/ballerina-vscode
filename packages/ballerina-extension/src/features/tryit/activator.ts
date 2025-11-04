@@ -29,6 +29,7 @@ import { startDebugging } from "../editor-support/activator";
 import { v4 as uuidv4 } from "uuid";
 import { createGraphqlView } from "../../views/graphql";
 import { StateMachine } from "../../stateMachine";
+import { getCurrentProjectRoot } from "../debugger";
 
 // File constants
 const FILE_NAMES = {
@@ -66,9 +67,17 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             throw new Error('Ballerina Language Server is not connected');
         }
 
-        const projectPath = StateMachine.context().projectUri;
+        let projectPath = StateMachine.context().projectUri;
         if (!projectPath) {
-            throw new Error('Please open a workspace first');
+            const currentProjectRoot = await getCurrentProjectRoot();
+            if (!currentProjectRoot) {
+                throw new Error('Please open a workspace first');
+            }
+            // If currentProjectRoot is a file (single file project), use its directory
+            // Otherwise, use the current project root
+            projectPath = fs.statSync(currentProjectRoot).isFile()
+                ? path.dirname(currentProjectRoot)
+                : currentProjectRoot;
         }
 
         let services: ServiceInfo[] | null = await getAvailableServices(projectPath);
