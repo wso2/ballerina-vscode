@@ -297,8 +297,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     const handleHelperPaneValueChange = async (updatedValue: string, options?: HelperpaneOnChangeOptions) => {
-        let currentModel = expressionModel;
-        if (expressionModel.length === 0) {
+        let currentModel = expressionModel ? [...expressionModel] : [];
+        if (currentModel.length === 0) {
             currentModel.push({
                 id: "1",
                 value: "",
