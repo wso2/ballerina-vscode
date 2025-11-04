@@ -926,9 +926,9 @@ const deleteFirstCharFromNextElement = (
     const newExpressionModel = expressionModel
         .map((el, idx) => {
             if (idx === currentIndex) {
-                return { ...el, isFocused: true, focusOffsetStart: el.length };
+                return { ...el, isFocused: true, focusOffsetStart: el.length, focusOffsetEnd: el.length };
             } else if (idx === nextIndex && !shouldRemoveNext) {
-                return { ...el, value: updatedNextValue, length: updatedNextValue.length };
+                return { ...el, value: updatedNextValue, length: updatedNextValue.length, isFocused: false, focusOffsetStart: 0, focusOffsetEnd: 0 };
             }
             return el;
         })
@@ -970,9 +970,9 @@ const moveToNextElement = (
         if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
                 if (idx === i) {
-                    return { ...el, isFocused: true, focusOffsetStart: 0 };
+                    return { ...el, isFocused: true, focusOffsetStart: 0, focusOffsetEnd: 0 };
                 } else if (idx === index) {
-                    return { ...el, isFocused: false, focusOffsetStart: undefined };
+                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined };
                 }
                 return el;
             });
@@ -992,7 +992,7 @@ const moveCaretForward = (
 ) => {
     const newExpressionModel = expressionModel.map((el, idx) => {
         if (idx === index) {
-            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset + 1) };
+            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset + 1), focusOffsetEnd: Math.max(0, caretOffset + 1) };
         }
         return el;
     });
@@ -1030,9 +1030,9 @@ const moveToPreviousElement = (
         if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
                 if (idx === i) {
-                    return { ...el, isFocused: true, focusOffsetStart: el.length };
+                    return { ...el, isFocused: true, focusOffsetStart: el.length, focusOffsetEnd: el.length };
                 } else if (idx === index) {
-                    return { ...el, isFocused: false, focusOffsetStart: undefined };
+                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined};
                 }
                 return el;
             });
@@ -1052,7 +1052,7 @@ const moveCaretBackward = (
 ) => {
     const newExpressionModel = expressionModel.map((el, idx) => {
         if (idx === index) {
-            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset - 1) };
+            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset - 1), focusOffsetEnd: Math.max(0, caretOffset - 1)};
         }
         return el;
     });
