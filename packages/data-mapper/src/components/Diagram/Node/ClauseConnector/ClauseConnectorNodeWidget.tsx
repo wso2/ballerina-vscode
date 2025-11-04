@@ -16,17 +16,16 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import React, { useState } from "react";
+import React from "react";
 import { DiagramEngine } from '@projectstorm/react-diagrams-core';
 import { Button, Codicon, ProgressRing } from '@wso2/ui-toolkit';
 import classnames from 'classnames';
 
 import { useIntermediateNodeStyles } from '../../../styles';
 import { ClauseConnectorNode } from './ClauseConnectorNode';
-import { renderDeleteButton, renderEditButton, renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
+import { renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
 import { DiagnosticWidget } from "../../Diagnostic/DiagnosticWidget";
-import { expandArrayFn } from "../../utils/common-utils";
-import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from "../../../../store/store";
+import { useDMExpressionBarStore, useDMQueryClausesPanelStore } from "../../../../store/store";
 
 export interface ClauseConnectorNodeWidgetProps {
     node: ClauseConnectorNode;
@@ -38,34 +37,18 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
 
     const classes = useIntermediateNodeStyles();
     const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
-    const collapsedFieldsStore = useDMCollapsedFieldsStore();
-    const expandedFieldsStore = useDMExpandedFieldsStore();
 
     const diagnostic = node.hasError() ? node.diagnostics[0] : null;
     const value = node.value;
 
-    const [deleteInProgress, setDeleteInProgress] = useState(false);
+    const setIsQueryClausesPanelOpen = useDMQueryClausesPanelStore(state => state.setIsQueryClausesPanelOpen);
+    const onClickOpenClausePanel = () => {
+        setIsQueryClausesPanelOpen(true);
+    };
 
     const onClickEdit = () => {
         const targetPort = node.targetMappedPort;
         setExprBarFocusedPort(targetPort);
-    };
-
-    const onFocusClause = () => {
-        const sourcePorts = node.sourcePorts.map(port => port.attributes.portName);
-        const targetPort = node.targetMappedPort.attributes.portName;
-
-        sourcePorts.forEach((port) => {
-            collapsedFieldsStore.removeField(port);
-            expandedFieldsStore.removeField(port);
-        });
-        collapsedFieldsStore.removeField(targetPort);
-        expandedFieldsStore.removeField(targetPort);
-
-        const context = node.context;
-	    const lastView = context.views[context.views.length - 1];
-        const mapping = node.targetMappedPort.attributes.value; 
-        expandArrayFn(context, mapping.inputs[0], mapping.output, lastView.targetField);
     };
 
     const loadingScreen = (
@@ -81,7 +64,7 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
                     <Button
                         appearance="icon"
                         tooltip="Map clause elements"
-                        onClick={onFocusClause}
+                        onClick={onClickOpenClausePanel}
                         data-testid={`expand-clause-fn-${node?.targetMappedPort?.attributes.fieldFQN}`}
                     >
                         <Codicon name="filter-filled" iconSx={{ color: "var(--vscode-input-placeholderForeground)" }} />
