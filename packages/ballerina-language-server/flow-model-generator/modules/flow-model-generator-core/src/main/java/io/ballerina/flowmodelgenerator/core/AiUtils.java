@@ -144,6 +144,10 @@ public class AiUtils {
         dependentModules.put("1.6.0", List.of(
                 new Module("ballerinax", "ai.azure", "1.2.0")
         ));
+
+        dependentModules.put("1.7.0", List.of(
+                new Module("ballerinax", "ai.azure", "1.3.0")
+        ));
     }
 
     /**
