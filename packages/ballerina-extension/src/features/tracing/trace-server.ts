@@ -1,3 +1,21 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 import express from 'express';
 import { EventEmitter } from 'events';
 
@@ -59,11 +77,28 @@ let server: ReturnType<typeof app.listen> | undefined;
 app.use(express.json());
 app.use(express.raw({ type: 'application/x-protobuf', limit: '10mb' }));
 
-// In-memory trace storage
+// In-memory trace storage with LRU eviction
+const MAX_TRACES = 100;
 const traceStore = new Map(); // Map<traceId, { traceId, spans: [], resource, scope, firstSeen, lastSeen }>
 
 // Event emitter for trace updates
 const traceEvents = new EventEmitter();
+
+// Enforce trace limit with LRU eviction
+function enforceTraceLimit(): void {
+    if (traceStore.size > MAX_TRACES) {
+        // Convert to array and sort by lastSeen (oldest first)
+        const traces = Array.from(traceStore.entries()).sort((a, b) =>
+            a[1].lastSeen.getTime() - b[1].lastSeen.getTime()
+        );
+
+        // Remove oldest traces until we're at the limit
+        const numToRemove = traceStore.size - MAX_TRACES;
+        for (let i = 0; i < numToRemove; i++) {
+            traceStore.delete(traces[i][0]);
+        }
+    }
+}
 
 // Color codes for better readability
 const colors = {
@@ -379,6 +414,9 @@ app.post('/v1/traces', async (req, res) => {
                     });
                 }
             });
+
+            // Enforce LRU eviction if we exceed the limit
+            enforceTraceLimit();
 
             // Emit event for trace updates
             traceEvents.emit('tracesUpdated');
