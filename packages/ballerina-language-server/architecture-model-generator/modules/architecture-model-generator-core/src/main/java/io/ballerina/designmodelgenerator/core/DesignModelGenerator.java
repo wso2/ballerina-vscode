@@ -105,7 +105,8 @@ public class DesignModelGenerator {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
                         otherFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        otherFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                        otherFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
                 buildConnectionGraph(intermediateModel, otherFunction, serviceModel);
@@ -120,7 +121,8 @@ public class DesignModelGenerator {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
                         remoteFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        remoteFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                        remoteFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
                 buildConnectionGraph(intermediateModel, remoteFunction, serviceModel);
@@ -135,7 +137,8 @@ public class DesignModelGenerator {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
                         resourceFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        resourceFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                        resourceFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
                 buildConnectionGraph(intermediateModel, resourceFunction, serviceModel);
