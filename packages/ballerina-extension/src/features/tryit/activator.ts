@@ -239,7 +239,7 @@ async function openChatView(basePath: string, port: string) {
 }
 
 async function openMcpInspector(serverUrl: string) {
-    const extensionId = 'wso2.mcp-inspector';
+    const extensionId = 'wso2.mcp-server-inspector';
 
     const extension = vscode.extensions.getExtension(extensionId);
 

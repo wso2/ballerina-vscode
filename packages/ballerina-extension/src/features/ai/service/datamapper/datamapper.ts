@@ -32,8 +32,7 @@ import { getErrorMessage } from "../utils";
 import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
 import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../../../../src/utils/source-utils";
-import { getBallerinaProjectRoot } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
-import { StateMachine } from "../../../../../src/stateMachine";
+import { StateMachine } from "../../../../stateMachine";
 import { extractVariableDefinitionSource, getHasStopped, setHasStopped } from "../../../../../src/rpc-managers/data-mapper/utils";
 import { commands, Uri, window } from "vscode";
 import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
@@ -261,7 +260,7 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     const biDiagramRpcManager = new BiDiagramRpcManager();
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectUri;
 
     const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -641,7 +640,7 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectUri;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context);
