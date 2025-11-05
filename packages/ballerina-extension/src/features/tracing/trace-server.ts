@@ -35,6 +35,7 @@ export interface Span {
     parentSpanId: string;
     name: string;
     kind: string;
+    attributes?: Attribute[];
 }
 
 export interface Resource {
