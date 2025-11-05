@@ -23,23 +23,20 @@ import { extension } from '../../BalExtensionContext';
 import { Trace, Span } from './trace-server';
 
 export class TraceDetailsWebview {
-    private static panels = new Map<string, TraceDetailsWebview>();
+    private static instance: TraceDetailsWebview | undefined;
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _trace: Trace | undefined;
 
-    private constructor(trace: Trace) {
-        this._trace = trace;
-        this._panel = TraceDetailsWebview.createWebview(trace);
+    private constructor() {
+        this._panel = TraceDetailsWebview.createWebview();
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        this.updateWebview();
     }
 
-    private static createWebview(trace: Trace): vscode.WebviewPanel {
-        const sanitizedTraceId = trace.traceId.replace(/[^a-zA-Z0-9]/g, '_');
+    private static createWebview(): vscode.WebviewPanel {
         const panel = vscode.window.createWebviewPanel(
             'ballerina.trace-details',
-            `Trace Details: ${trace.traceId.substring(0, 8)}...`,
+            'Trace Details',
             ViewColumn.Active,
             {
                 enableScripts: true,
@@ -55,19 +52,16 @@ export class TraceDetailsWebview {
     }
 
     public static show(trace: Trace): void {
-        const sanitizedTraceId = trace.traceId.replace(/[^a-zA-Z0-9]/g, '_');
-        const existingPanel = TraceDetailsWebview.panels.get(sanitizedTraceId);
-        
-        if (existingPanel && existingPanel._panel) {
-            // Panel already exists, reveal it
-            existingPanel._panel.reveal();
-            existingPanel._trace = trace;
-            existingPanel.updateWebview();
-        } else {
-            // Create new panel
-            const panel = new TraceDetailsWebview(trace);
-            TraceDetailsWebview.panels.set(sanitizedTraceId, panel);
+        if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
+            // Create new instance if it doesn't exist or was disposed
+            TraceDetailsWebview.instance = new TraceDetailsWebview();
         }
+        
+        // Update the trace and reveal the panel
+        const instance = TraceDetailsWebview.instance;
+        instance._trace = trace;
+        instance._panel!.reveal();
+        instance.updateWebview();
     }
 
     private updateWebview(): void {
@@ -362,10 +356,6 @@ export class TraceDetailsWebview {
     }
 
     public dispose(): void {
-        if (this._trace) {
-            const sanitizedTraceId = this._trace.traceId.replace(/[^a-zA-Z0-9]/g, '_');
-            TraceDetailsWebview.panels.delete(sanitizedTraceId);
-        }
         this._panel?.dispose();
 
         while (this._disposables.length) {
@@ -377,6 +367,11 @@ export class TraceDetailsWebview {
 
         this._panel = undefined;
         this._trace = undefined;
+        
+        // Clear the static instance when disposed
+        if (TraceDetailsWebview.instance === this) {
+            TraceDetailsWebview.instance = undefined;
+        }
     }
 }
 

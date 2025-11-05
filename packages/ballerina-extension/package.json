@@ -563,12 +563,6 @@
                 }
             },
             {
-                "command": "ballerina.showTraceWindow",
-                "title": "Open Trace Window (Experimental)",
-                "category": "Ballerina",
-                "icon": "$(pulse)"
-            },
-            {
                 "command": "ballerina.open.bi.welcome",
                 "title": "Open Welcome",
                 "category": "BI"
@@ -734,20 +728,21 @@
             },
             {
                 "command": "ballerina.enableTracing",
-                "title": "Enable Tracing",
+                "title": "Enable Tracing (Experimental)",
                 "category": "Ballerina"
             },
             {
                 "command": "ballerina.disableTracing",
-                "title": "Disable Tracing",
+                "title": "Disable Tracing (Experimental)",
                 "category": "Ballerina",
                 "icon": "$(circle-slash)"
             },
             {
                 "command": "ballerina.clearTraces",
-                "title": "Clear Traces",
+                "title": "Clear Traces (Experimental)",
                 "category": "Ballerina",
-                "icon": "$(clear-all)"
+                "icon": "$(clear-all)",
+                "hidden": true
             }
         ],
         "views": {
@@ -789,7 +784,7 @@
             "panel": [
                 {
                     "id": "ballerina-traceView",
-                    "title": "Tracing",
+                    "title": "Traces",
                     "icon": "$(list-tree)",
                     "when": "ballerina.tracingEnabled"
                 },
