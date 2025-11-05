@@ -175,13 +175,12 @@ public class DesignModelGenerator {
             if (symbol instanceof VariableSymbol variableSymbol) {
                 TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
                 if (typeSymbol instanceof ObjectTypeSymbol objectTypeSymbol) {
-                    boolean isAiClass = CommonUtils.isAgentClass(objectTypeSymbol) ||
-                            CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
-                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiClass) {
+                    boolean isHiddenAiClass = CommonUtils.isHiddenAiClass(objectTypeSymbol);
+                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isHiddenAiClass) {
                         LineRange lineRange = variableSymbol.getLocation().get().lineRange();
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());
-                        boolean showConnection = !isAiClass; // Hide agent class connections
+                        boolean showConnection = !isHiddenAiClass; // Hide AI non-client classes
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
                                 CommonUtils.getConnectionKind(objectTypeSymbol));
