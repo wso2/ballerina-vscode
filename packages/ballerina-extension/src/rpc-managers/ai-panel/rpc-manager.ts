@@ -209,17 +209,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
-        return new Promise(async (resolve) => {
-            const projectPath = StateMachine.context().projectUri;
-            const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-            if (!fs.existsSync(ballerinaProjectFile)) {
-                throw new Error("Not a Ballerina project.");
-            }
+        const projectPath = StateMachine.context().projectUri;
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
+        if (!fs.existsSync(ballerinaProjectFile)) {
+            throw new Error("Not a Ballerina project.");
+        }
 
-            const balFilePath = path.join(projectPath, req.filePath);
-            const content = fs.promises.readFile(balFilePath, 'utf-8');
-            resolve(content);
-        });
+        const balFilePath = path.join(projectPath, req.filePath);
+        try {
+            const content = await fs.promises.readFile(balFilePath, 'utf-8');
+            return content;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
