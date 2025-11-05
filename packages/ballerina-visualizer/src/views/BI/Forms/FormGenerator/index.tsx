@@ -74,6 +74,7 @@ import {
     injectHighlightTheme,
     removeDuplicateDiagnostics,
     updateLineRange,
+    convertRecordTypeToCompletionItem,
 } from "../../../../utils/bi";
 import IfForm from "../IfForm";
 import { cloneDeep, debounce } from "lodash";
@@ -838,7 +839,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }
             return field;
         });
-        handleSelectedTypeByName(type.name);
+        if (type.codedata.node === "RECORD") {
+            handleSelectedTypeChange(convertRecordTypeToCompletionItem(type));
+        }
         setFields(updatedFields);
     };
 
@@ -1036,6 +1039,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             setRefetchForCurrentModal(true);
             popTypeStack();
         }
+        handleSelectedTypeChange(typeof type === 'string' ? type : (type as Type).name);
         setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
 
