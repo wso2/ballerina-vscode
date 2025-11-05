@@ -293,7 +293,8 @@ public class ConnectionFinder {
                     symbol.get().getLocation().isPresent()) {
                 TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
                 if (rawType instanceof ClassSymbol classSymbol) {
-                    if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+                    boolean isHiddenAiClass = CommonUtils.isHiddenAiClass(classSymbol);
+                    if (classSymbol.qualifiers().contains(Qualifier.CLIENT) || isHiddenAiClass) {
                         String hashCode = String.valueOf(symbol.get().getLocation().get().hashCode());
                         if (intermediateModel.connectionMap.containsKey(hashCode)) {
                             Connection dependentConnection = intermediateModel.connectionMap.get(hashCode);

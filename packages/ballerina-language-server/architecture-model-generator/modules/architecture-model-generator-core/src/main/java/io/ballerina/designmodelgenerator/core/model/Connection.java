@@ -19,6 +19,7 @@
 package io.ballerina.designmodelgenerator.core.model;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -113,6 +114,35 @@ public class Connection extends DesignGraphNode {
 
     public String getKind() {
         return kind;
+    }
+
+    public Set<String> getAllTransitiveDependentConnections(Map<String, Connection> uuidToConnectionMap) {
+        Set<String> result = new HashSet<>();
+        Set<String> visited = new HashSet<>();
+        collectTransitiveDependencies(uuidToConnectionMap, visited, result);
+        result.remove(this.getUuid());
+        return result;
+    }
+
+    private void collectTransitiveDependencies(Map<String, Connection> uuidToConnectionMap,
+                                               Set<String> visited, Set<String> result) {
+        // Avoid processing the same connection multiple times (cycle detection)
+        if (visited.contains(this.getUuid())) {
+            return;
+        }
+
+        visited.add(this.getUuid());
+
+        // Add all direct dependent connections
+        result.addAll(this.dependentConnection);
+
+        // Recursively process each dependent connection to get their transitive dependencies
+        for (String dependentConnectionUuid : this.dependentConnection) {
+            Connection dependentConnection = uuidToConnectionMap.get(dependentConnectionUuid);
+            if (dependentConnection != null) {
+                dependentConnection.collectTransitiveDependencies(uuidToConnectionMap, visited, result);
+            }
+        }
     }
 
     @Override
