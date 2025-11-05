@@ -17,7 +17,7 @@
  */
 
 import React, { useState } from "react";
-import { ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
+import { ProgressRing, Icon, TabPanel, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse, PayloadContext } from "@wso2/ballerina-core";
@@ -29,7 +29,7 @@ import { BrowseTypesTab } from "./BrowseTypesTab";
 
 export const TabContainer = styled.div`
         height: 100%;
-        overflow: scroll;
+        overflow: auto;
         display: flex;
         flex-direction: column;
         padding-bottom: 0px;
@@ -48,6 +48,29 @@ export const Footer = styled.div`
     align-items: center;
     padding-top: 16px;
     flex-shrink: 0;
+`;
+
+export const StickyFooterContainer = styled.div`
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+`;
+
+export const FloatingFooter = styled.div`
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border-top: 1px solid var(--vscode-panel-border);
+    box-shadow: 0 -1px 10px 0 rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    padding-top: 16px;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 `;
 
 interface ContextTypeEditorProps {
@@ -199,7 +222,6 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         ]}
                         currentViewId={activeTab}
                         onViewChange={handleTabChange}
-                        sx={{ marginBottom: '10px' }}
                         childrenSx={{ height: '100%', overflow: 'hidden' }}
                     >
                         <TabContainer id="import" data-testid="import-tab">
@@ -210,6 +232,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
                                 payloadContext={payloadContext}
+                                onTypeSelect={props.onSaveType}
                             />
                         </TabContainer>
                         <TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">

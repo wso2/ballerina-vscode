@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { Button, TextField, Typography, ProgressRing, Codicon } from '@wso2/ui-toolkit';
 import { TypeHelperCategory, TypeHelperItem } from '../../TypeHelper';
 import { Type } from '@wso2/ballerina-core';
-import { ContentBody, Footer } from './ContextTypeEditor';
+import { ContentBody, StickyFooterContainer, FloatingFooter } from './ContextTypeEditor';
 
 
 const SearchContainer = styled.div`
@@ -150,6 +150,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         simpleType
     } = props;
 
+    const firstRender = useRef<boolean>(true);
     const [searchText, setSearchText] = useState<string>('');
     const [selectedType, setSelectedType] = useState<TypeHelperItem | null>(null);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
@@ -164,12 +165,16 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         }
     }, [simpleType]);
 
-    // Trigger search when component mounts
+    // Trigger initial search when component mounts
     useEffect(() => {
-        onSearchTypeHelper('', true);
+        if (firstRender.current) {
+            firstRender.current = false;
+            onSearchTypeHelper('', true);
+            return;
+        }
     }, []);
 
-    const handleSearchChange = (value: string) => {
+    const handleSearch = (value: string) => {
         setSearchText(value);
         onSearchTypeHelper(value, true);
     };
@@ -325,17 +330,17 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     };
 
     return (
-        <>
+        <StickyFooterContainer>
             <ContentBody>
                 <SearchContainer>
                     <TextField
                         value={searchText}
-                        onChange={(e) => handleSearchChange(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search types..."
                         autoFocus
                     />
                 </SearchContainer>
-                {loading ? (
+                {(loading && (!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0)) ? (
                     <LoadingContainer>
                         <ProgressRing />
                     </LoadingContainer>
@@ -343,7 +348,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                     <ScrollableSection>
                         {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
                         {importedTypes && importedTypes.length > 0 && renderTypeItems(importedTypes)}
-                        {(!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && (
+                        {(!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && !loading && (
                             <EmptyState>
                                 <Typography variant="body3">No matching types found</Typography>
                             </EmptyState>
@@ -351,16 +356,15 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                     </ScrollableSection>
                 )}
             </ContentBody>
-
-            <Footer>
+            <FloatingFooter>
                 <Button
                     onClick={handleSelectType}
                     disabled={!selectedType || isSelecting}
                 >
                     {isSelecting ? <Typography variant="progress">Saving...</Typography> : 'Save'}
                 </Button>
-            </Footer>
-        </>
+            </FloatingFooter>
+        </StickyFooterContainer>
     );
 }
 

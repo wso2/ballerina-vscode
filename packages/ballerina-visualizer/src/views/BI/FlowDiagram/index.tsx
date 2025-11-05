@@ -898,29 +898,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        const currentArtifact = await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
-        if (currentArtifact) {
-            console.log(">>> currentArtifact", currentArtifact);
-            if (isCreatingNewModelProvider.current) {
-                isCreatingNewModelProvider.current = false;
-                await handleModelProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorStore.current) {
-                isCreatingNewVectorStore.current = false;
-                await handleVectorStoreAdded();
-                return;
-            }
-            if (isCreatingNewEmbeddingProvider.current) {
-                isCreatingNewEmbeddingProvider.current = false;
-                await handleEmbeddingProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorKnowledgeBase.current) {
-                isCreatingNewVectorKnowledgeBase.current = false;
-                await handleVectorKnowledgeBaseAdded();
-                return;
-            }
+        await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
+        
+        if (isCreatingNewModelProvider.current) {
+            isCreatingNewModelProvider.current = false;
+            await handleModelProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorStore.current) {
+            isCreatingNewVectorStore.current = false;
+            await handleVectorStoreAdded();
+            return;
+        }
+        if (isCreatingNewEmbeddingProvider.current) {
+            isCreatingNewEmbeddingProvider.current = false;
+            await handleEmbeddingProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorKnowledgeBase.current) {
+            isCreatingNewVectorKnowledgeBase.current = false;
+            await handleVectorKnowledgeBaseAdded();
+            return;
         }
         if (isCreatingNewDataLoader.current) {
             isCreatingNewDataLoader.current = false;
