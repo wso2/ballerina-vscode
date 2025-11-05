@@ -35,6 +35,8 @@ export interface Span {
     parentSpanId: string;
     name: string;
     kind: string;
+    startTime?: string;
+    endTime?: string;
     attributes?: Attribute[];
 }
 
@@ -382,11 +384,22 @@ app.post('/v1/traces', async (req, res) => {
                                     });
                                 }
                                 // Convert span IDs to hex strings to match interface
+                                // Convert timestamps from nanoseconds to ISO strings
+                                const startTime = span.startTimeUnixNano
+                                    ? new Date(Number(span.startTimeUnixNano) / 1_000_000).toISOString()
+                                    : undefined;
+                                const endTime = span.endTimeUnixNano
+                                    ? new Date(Number(span.endTimeUnixNano) / 1_000_000).toISOString()
+                                    : undefined;
+
                                 const processedSpan = {
                                     ...span,
                                     spanId: bytesToHex(span.spanId),
                                     traceId: traceId,
-                                    parentSpanId: bytesToHex(span.parentSpanId || '')
+                                    parentSpanId: bytesToHex(span.parentSpanId || ''),
+                                    startTime,
+                                    endTime,
+                                    attributes: processAttributes(span.attributes)
                                 };
                                 traceMap.get(traceId).spans.push(processedSpan);
                                 totalSpans++;
