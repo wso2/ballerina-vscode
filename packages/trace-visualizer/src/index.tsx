@@ -35,6 +35,9 @@ export interface SpanData {
     parentSpanId: string;
     name: string;
     kind: string | number;
+    startTime?: string;
+    endTime?: string;
+    attributes?: AttributeData[];
 }
 
 export interface ResourceData {

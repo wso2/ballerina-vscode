@@ -39,6 +39,9 @@ interface SpanData {
     parentSpanId: string;
     name: string;
     kind: string | number;
+    startTime?: string;
+    endTime?: string;
+    attributes?: AttributeData[];
 }
 
 interface ResourceData {
@@ -152,6 +155,9 @@ export class TraceDetailsWebview {
                 parentSpanId: span.parentSpanId,
                 name: span.name,
                 kind: span.kind,
+                startTime: span.startTime,
+                endTime: span.endTime,
+                attributes: span.attributes || [],
             })),
             resource: {
                 name: trace.resource.name,
