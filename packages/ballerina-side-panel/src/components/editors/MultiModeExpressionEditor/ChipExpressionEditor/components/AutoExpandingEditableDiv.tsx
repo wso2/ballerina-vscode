@@ -258,7 +258,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 style={{
                     ...style,
                     flex: 1,
-                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '200px',
+                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px',
                     ...(props.isInExpandedMode && {
                         height: `${EXPANDED_EDITOR_HEIGHT}px`,
                         minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
