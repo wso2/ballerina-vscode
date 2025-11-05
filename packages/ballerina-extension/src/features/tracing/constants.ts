@@ -16,4 +16,4 @@
  * under the License.
  */
 
-export const OTLP_PORT = 59500; // OTLP/HTTP default port
+export const OTLP_PORT = 59500; // Custom OTLP/HTTP port

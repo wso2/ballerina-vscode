@@ -100,14 +100,12 @@ let terminal: Terminal;
 export function runCommand(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     ...args: string[]) {
     TracerMachine.startServer();
-    console.log('TracerMachine.startServer()');
     runCommandWithConf(file, executor, cmd, '', ...args);
 }
 
 export function runCommandWithConf(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     confPath: string, ...args: string[]) {
     TracerMachine.startServer();
-    console.log('TracerMachine.startServer()');
     if (terminal) {
         terminal.dispose();
     }
