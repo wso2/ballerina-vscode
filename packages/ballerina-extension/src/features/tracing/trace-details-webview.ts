@@ -18,9 +18,44 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Uri, ViewColumn } from 'vscode';
+import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
-import { Trace, Span } from './trace-server';
+import { Trace } from './trace-server';
+import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } from '../../utils/webview-utils';
+
+// TraceData interface matching the trace-visualizer component
+interface TraceData {
+    traceId: string;
+    spans: SpanData[];
+    resource: ResourceData;
+    scope: ScopeData;
+    firstSeen: string;
+    lastSeen: string;
+}
+
+interface SpanData {
+    spanId: string;
+    traceId: string;
+    parentSpanId: string;
+    name: string;
+    kind: string | number;
+}
+
+interface ResourceData {
+    name: string;
+    attributes: AttributeData[];
+}
+
+interface ScopeData {
+    name: string;
+    version?: string;
+    attributes?: AttributeData[];
+}
+
+interface AttributeData {
+    key: string;
+    value: string;
+}
 
 export class TraceDetailsWebview {
     private static instance: TraceDetailsWebview | undefined;
@@ -40,7 +75,10 @@ export class TraceDetailsWebview {
             ViewColumn.Active,
             {
                 enableScripts: true,
-                localResourceRoots: [Uri.file(path.join(extension.context.extensionPath, 'resources'))],
+                localResourceRoots: [
+                    Uri.file(path.join(extension.context.extensionPath, 'resources', 'jslibs')),
+                    Uri.file(path.join(extension.context.extensionPath, 'resources')),
+                ],
                 retainContextWhenHidden: true,
             }
         );
@@ -69,291 +107,72 @@ export class TraceDetailsWebview {
             return;
         }
 
-        this._panel.webview.html = this.getWebviewContent(this._trace);
+        this._panel.webview.html = this.getWebviewContent(this._trace, this._panel.webview);
     }
 
-    private getWebviewContent(trace: Trace): string {
-        const traceInfoHtml = this.formatTraceInfo(trace);
-        const spansHtml = this.formatSpans(trace);
-
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trace Details</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: var(--vscode-font-family);
-            background-color: var(--vscode-editor-background);
-            color: var(--vscode-editor-foreground);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        .header {
-            border-bottom: 2px solid var(--vscode-panel-border);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-            color: var(--vscode-textLink-foreground);
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--vscode-textLink-foreground);
-            border-bottom: 1px solid var(--vscode-panel-border);
-            padding-bottom: 5px;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .info-label {
-            font-weight: 600;
-            color: var(--vscode-descriptionForeground);
-        }
-        .info-value {
-            font-family: 'Consolas', 'Monaco', monospace;
-            word-break: break-all;
-        }
-        .attributes {
-            margin-top: 10px;
-        }
-        .attribute-item {
-            padding: 4px 0;
-            border-left: 3px solid var(--vscode-textLink-foreground);
-            padding-left: 10px;
-            margin-bottom: 5px;
-        }
-        .attribute-key {
-            font-weight: 600;
-            color: var(--vscode-textLink-foreground);
-        }
-        .attribute-value {
-            font-family: 'Consolas', 'Monaco', monospace;
-            margin-left: 10px;
-        }
-        .span-item {
-            margin-bottom: 15px;
-            padding: 12px;
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            background-color: var(--vscode-editor-background);
-        }
-        .span-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .span-name {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--vscode-textLink-foreground);
-        }
-        .span-kind {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 3px;
-            background-color: var(--vscode-badge-background);
-            color: var(--vscode-badge-foreground);
-        }
-        .span-details {
-            font-size: 12px;
-            color: var(--vscode-descriptionForeground);
-            font-family: 'Consolas', 'Monaco', monospace;
-        }
-        .span-details div {
-            margin: 4px 0;
-        }
-        .span-children {
-            margin-left: 30px;
-            margin-top: 10px;
-            border-left: 2px solid var(--vscode-panel-border);
-            padding-left: 15px;
-        }
-        .empty-state {
-            text-align: center;
-            color: var(--vscode-descriptionForeground);
-            padding: 40px;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Trace Details</h1>
-    </div>
-    
-    ${traceInfoHtml}
-    
-    <div class="section">
-        <div class="section-title">Spans (${trace.spans.length} total)</div>
-        ${trace.spans.length > 0 ? spansHtml : '<div class="empty-state">No spans found in this trace.</div>'}
-    </div>
-</body>
-</html>`;
+    private convertTraceToTraceData(trace: Trace): TraceData {
+        return {
+            traceId: trace.traceId,
+            spans: trace.spans.map(span => ({
+                spanId: span.spanId,
+                traceId: span.traceId,
+                parentSpanId: span.parentSpanId,
+                name: span.name,
+                kind: span.kind,
+            })),
+            resource: {
+                name: trace.resource.name,
+                attributes: trace.resource.attributes || [],
+            },
+            scope: {
+                name: trace.scope.name,
+                version: trace.scope.version,
+                attributes: trace.scope.attributes || [],
+            },
+            firstSeen: trace.firstSeen.toISOString(),
+            lastSeen: trace.lastSeen.toISOString(),
+        };
     }
 
-    private formatTraceInfo(trace: Trace): string {
-        const duration = trace.lastSeen.getTime() - trace.firstSeen.getTime();
-        
-        const resourceAttributesHtml = trace.resource.attributes && trace.resource.attributes.length > 0
-            ? `<div class="attributes">
-                ${trace.resource.attributes.map(attr => `
-                    <div class="attribute-item">
-                        <span class="attribute-key">${this.escapeHtml(attr.key)}:</span>
-                        <span class="attribute-value">${this.escapeHtml(attr.value)}</span>
-                    </div>
-                `).join('')}
-            </div>`
-            : '<div style="color: var(--vscode-descriptionForeground); font-style: italic;">No attributes</div>';
-
-        const scopeAttributesHtml = trace.scope.attributes && trace.scope.attributes.length > 0
-            ? `<div class="attributes">
-                ${trace.scope.attributes.map(attr => `
-                    <div class="attribute-item">
-                        <span class="attribute-key">${this.escapeHtml(attr.key)}:</span>
-                        <span class="attribute-value">${this.escapeHtml(attr.value)}</span>
-                    </div>
-                `).join('')}
-            </div>`
-            : '<div style="color: var(--vscode-descriptionForeground); font-style: italic;">No attributes</div>';
-
-        return `
-            <div class="section">
-                <div class="section-title">Trace Information</div>
-                <div class="info-grid">
-                    <div class="info-label">Trace ID:</div>
-                    <div class="info-value">${this.escapeHtml(trace.traceId)}</div>
-                    
-                    <div class="info-label">First Seen:</div>
-                    <div class="info-value">${trace.firstSeen.toLocaleString()}</div>
-                    
-                    <div class="info-label">Last Seen:</div>
-                    <div class="info-value">${trace.lastSeen.toLocaleString()}</div>
-                    
-                    <div class="info-label">Duration:</div>
-                    <div class="info-value">${duration}ms</div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Resource</div>
-                <div class="info-grid">
-                    <div class="info-label">Name:</div>
-                    <div class="info-value">${this.escapeHtml(trace.resource.name)}</div>
-                </div>
-                <div style="margin-top: 10px;">
-                    <div class="info-label" style="margin-bottom: 8px;">Attributes:</div>
-                    ${resourceAttributesHtml}
-                </div>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Instrumentation Scope</div>
-                <div class="info-grid">
-                    <div class="info-label">Name:</div>
-                    <div class="info-value">${this.escapeHtml(trace.scope.name)}</div>
-                    ${trace.scope.version ? `
-                    <div class="info-label">Version:</div>
-                    <div class="info-value">${this.escapeHtml(trace.scope.version)}</div>
-                    ` : ''}
-                </div>
-                ${trace.scope.attributes && trace.scope.attributes.length > 0 ? `
-                <div style="margin-top: 10px;">
-                    <div class="info-label" style="margin-bottom: 8px;">Attributes:</div>
-                    ${scopeAttributesHtml}
-                </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    private formatSpans(trace: Trace): string {
-        // Build span hierarchy
-        const spanMap = new Map<string, Span>();
-        const rootSpans: Span[] = [];
-        
-        trace.spans.forEach(span => {
-            spanMap.set(span.spanId, span);
-        });
-        
-        trace.spans.forEach(span => {
-            const parentSpanId = span.parentSpanId || '';
-            if (!parentSpanId || 
-                parentSpanId === '0000000000000000' || 
-                parentSpanId === '' ||
-                !spanMap.has(parentSpanId)) {
-                rootSpans.push(span);
+    private getWebviewContent(trace: Trace, webView: Webview): string {
+        const traceData = this.convertTraceToTraceData(trace);
+        const body = `<div class="container" id="webview-container"></div>`;
+        const bodyCss = ``;
+        const styles = `
+            .container {
+                background-color: var(--vscode-editor-background);
+                height: 100vh;
+                width: 100%;
             }
-        });
+        `;
+        const scripts = `
+            function loadedScript() {
+                function renderTraceDetails() {
+                    if (window.traceVisualizer && window.traceVisualizer.renderWebview) {
+                        const container = document.getElementById("webview-container");
+                        if (container) {
+                            window.traceVisualizer.renderWebview(${JSON.stringify(traceData)}, container);
+                        }
+                    } else {
+                        console.error("TraceVisualizer not loaded");
+                        setTimeout(renderTraceDetails, 100);
+                    }
+                }
+                renderTraceDetails();
+            }
+        `;
 
-        const formatSpan = (span: Span, indent: number = 0): string => {
-            const childSpans = trace.spans.filter(s => s.parentSpanId === span.spanId);
-            const spanKind = this.getSpanKindLabel(span.kind);
-            
-            return `
-                <div class="span-item" style="margin-left: ${indent * 20}px;">
-                    <div class="span-header">
-                        <span class="span-name">${this.escapeHtml(span.name)}</span>
-                        <span class="span-kind">${this.escapeHtml(spanKind)}</span>
-                    </div>
-                    <div class="span-details">
-                        <div><strong>Span ID:</strong> ${this.escapeHtml(span.spanId)}</div>
-                        <div><strong>Trace ID:</strong> ${this.escapeHtml(span.traceId)}</div>
-                        ${span.parentSpanId && span.parentSpanId !== '0000000000000000' 
-                            ? `<div><strong>Parent Span ID:</strong> ${this.escapeHtml(span.parentSpanId)}</div>`
-                            : '<div><strong>Parent:</strong> Root Span</div>'}
-                        ${childSpans.length > 0 ? `<div><strong>Child Spans:</strong> ${childSpans.length}</div>` : ''}
-                    </div>
-                    ${childSpans.length > 0 ? `
-                        <div class="span-children">
-                            ${childSpans.map(child => formatSpan(child, indent + 1)).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
+        const webViewOptions: WebViewOptions = {
+            ...getComposerWebViewOptions("TraceVisualizer", webView, {devHost:'http://localhost:9001'}),
+            body,
+            scripts,
+            styles,
+            bodyCss,
         };
 
-        return rootSpans.map(span => formatSpan(span, 0)).join('');
+        return getLibraryWebViewContent(webViewOptions, webView);
     }
 
-    private getSpanKindLabel(kind: string | number): string {
-        if (typeof kind === 'string') {
-            return kind;
-        }
-        const kindMap: { [key: number]: string } = {
-            0: 'UNSPECIFIED',
-            1: 'INTERNAL',
-            2: 'SERVER',
-            3: 'CLIENT',
-            4: 'PRODUCER',
-            5: 'CONSUMER'
-        };
-        return kindMap[kind] || `UNKNOWN(${kind})`;
-    }
-
-    private escapeHtml(text: string): string {
-        const map: { [key: string]: string } = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
 
     public dispose(): void {
         this._panel?.dispose();
