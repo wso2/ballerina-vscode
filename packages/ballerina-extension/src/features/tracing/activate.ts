@@ -71,6 +71,10 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
     const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, () => {
         TracerMachine.enable();
+        // Focus the VS Code panel section
+        vscode.commands.executeCommand('workbench.action.focusPanel');
+        // Reveal/focus the ballerina-traceView (shows trace panel in panel)
+        vscode.commands.executeCommand('workbench.view.extension.ballerina-traceView');
     });
 
     const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, () => {
@@ -80,7 +84,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     const clearTracesCommand = vscode.commands.registerCommand(CLEAR_TRACES_COMMAND, () => {
         // Clear traces from the server
         TraceServer.clearTraces();
-        
+
         // The TraceServer.onTracesCleared callback will update the context and refresh the tree
     });
 
@@ -107,7 +111,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
  * Update VS Code context based on TracerMachine state
  */
 async function updateContextFromState(state: any): Promise<void> {
-    const isEnabled = typeof state === 'string' 
+    const isEnabled = typeof state === 'string'
         ? state === 'enabled'
         : (typeof state === 'object' && state !== null && 'enabled' in state);
 
@@ -132,10 +136,10 @@ async function showTraceWindow(): Promise<void> {
         // Show the view by executing the show command for the debug container
         // The trace view is in the debug container (bottom panel)
         await vscode.commands.executeCommand('workbench.view.debug');
-        
+
         // Small delay to ensure the view is ready
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         // If there are traces, try to reveal the first one
         const traces = TraceServer.getTraces();
         if (traces.length > 0 && treeDataProvider) {

@@ -200,15 +200,15 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
     // Build span hierarchy
     const spanMap = new Map<string, SpanData>();
     const rootSpans: SpanData[] = [];
-    
+
     traceData.spans.forEach(span => {
         spanMap.set(span.spanId, span);
     });
-    
+
     traceData.spans.forEach(span => {
         const parentSpanId = span.parentSpanId || '';
-        if (!parentSpanId || 
-            parentSpanId === '0000000000000000' || 
+        if (!parentSpanId ||
+            parentSpanId === '0000000000000000' ||
             parentSpanId === '' ||
             !spanMap.has(parentSpanId)) {
             rootSpans.push(span);
@@ -222,7 +222,7 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
     const renderSpan = (span: SpanData, indent: number = 0): React.ReactNode => {
         const childSpans = traceData.spans.filter(s => s.parentSpanId === span.spanId);
         const spanKind = getSpanKindLabel(span.kind);
-        
+
         return (
             <SpanItem key={span.spanId} indent={indent}>
                 <SpanHeader>
@@ -266,13 +266,13 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
                     <InfoGrid>
                         <InfoLabel>Trace ID:</InfoLabel>
                         <InfoValue>{traceData.traceId}</InfoValue>
-                        
+
                         <InfoLabel>First Seen:</InfoLabel>
                         <InfoValue>{formatDate(traceData.firstSeen)}</InfoValue>
-                        
+
                         <InfoLabel>Last Seen:</InfoLabel>
                         <InfoValue>{formatDate(traceData.lastSeen)}</InfoValue>
-                        
+
                         <InfoLabel>Duration:</InfoLabel>
                         <InfoValue>{duration}ms</InfoValue>
                     </InfoGrid>
