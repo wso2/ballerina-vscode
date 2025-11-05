@@ -84,6 +84,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const pendingForceSetTokensRef = useRef<number[] | null>(null);
     const fetchnewTokensRef = useRef<boolean>(true);
     const focusedTextElementRef = useRef<HTMLSpanElement | null>(null);
+    const scheduledCompletionFilterRef = useRef<boolean>(false);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -158,6 +159,13 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         fetchInitialTokens(props.value);
     }, [props.value]);
 
+    useEffect(() => {
+        if (!scheduledCompletionFilterRef.current) return;
+        const newFilteredCompletions = filterCompletionsByPrefixAndType(props.completions, '');
+        setFilteredCompletions(newFilteredCompletions);
+        scheduledCompletionFilterRef.current = false;
+    }, [props.completions]);
+
     const handleExpressionChange = async (
         updatedModel: ExpressionModel[],
         cursorPosition: number,
@@ -226,6 +234,10 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         if (valueBeforeCursor === '') {
             setIsHelperPaneOpen(true);
             setIsCompletionsOpen(false);
+            return;
+        }
+        if (valueBeforeCursor.endsWith('.')) {
+            scheduledCompletionFilterRef.current = true;
             return;
         }
         if (!wordBeforeCursor || wordBeforeCursor.trim() === '') {
