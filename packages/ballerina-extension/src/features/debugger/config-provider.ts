@@ -26,7 +26,8 @@ import {
     TaskExecution,
     DebugAdapterTrackerFactory,
     DebugAdapterTracker,
-    ViewColumn
+    ViewColumn,
+    TaskScope
 } from 'vscode';
 import * as child_process from "child_process";
 import { getPortPromise } from 'portfinder';
@@ -40,6 +41,7 @@ import {
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
 import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -530,7 +532,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
             });
         }
 
-        if (session.configuration.noDebug && StateMachine.context().isBI) {
+        if (session.configuration.noDebug) {
             return new Promise((resolve) => {
                 resolve(new DebugAdapterInlineImplementation(new BIRunAdapter()));
             });
@@ -640,51 +642,73 @@ class BIRunAdapter extends LoggingDebugSession {
     taskTerminationListener: Disposable | null = null;
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        const taskDefinition: TaskDefinition = {
-            type: 'shell',
-            task: 'run'
-        };
+        getCurrentProjectRoot().then((projectRoot) => {
+            const taskDefinition: TaskDefinition = {
+                type: 'shell',
+                task: 'run'
+            };
 
-        let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
 
-        const programArgs = (args as any).programArgs;
-        if (programArgs && programArgs.length > 0) {
-            runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
-        }
+            const programArgs = (args as any).programArgs;
+            if (programArgs && programArgs.length > 0) {
+                runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
+            }
 
-        if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
-            runCommand = `${runCommand} --experimental`;
-        }
+            if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+                runCommand = `${runCommand} --experimental`;
+            }
 
-        // Use the current process environment which should have the updated PATH
-        const env = process.env;
-        debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
-        const execution = new ShellExecution(runCommand, { env: env as { [key: string]: string } });
-        const task = new Task(
-            taskDefinition,
-            workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
-            'Ballerina Run',
-            'ballerina',
-            execution
-        );
+            // Use the current process environment which should have the updated PATH
+            const env = process.env;
+            debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
-        try {
-            tasks.executeTask(task).then((taskExecution) => {
-                this.task = taskExecution;
-
-                // Add task termination listener
-                this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
-                    if (e.execution === this.task) {
-                        this.sendEvent(new TerminatedEvent());
-                    }
-                });
-
-                response.success = true;
+            // Determine the correct working directory for the task
+            let cwd: string;
+            try {
+                cwd = getProjectWorkingDirectory(projectRoot);
+                debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
+            } catch (error) {
+                window.showErrorMessage(`Failed to determine working directory`);
+                response.success = false;
                 this.sendResponse(response);
+                throw error;
+            }
+
+            const execution = new ShellExecution(runCommand, {
+                env: env as { [key: string]: string },
+                cwd: cwd
             });
-        } catch (error) {
-            window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
-        }
+            const task = new Task(
+                taskDefinition,
+                TaskScope.Workspace,
+                'Ballerina Run',
+                'ballerina',
+                execution
+            );
+
+            try {
+                tasks.executeTask(task).then((taskExecution) => {
+                    this.task = taskExecution;
+
+                    // Add task termination listener
+                    this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
+                        if (e.execution === this.task) {
+                            this.sendEvent(new TerminatedEvent());
+                        }
+                    });
+
+                    response.success = true;
+                    this.sendResponse(response);
+                });
+            } catch (error) {
+                window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
+            }
+        }).catch((error) => {
+            window.showErrorMessage(`Failed to determine project root: ${error}`);
+            response.success = false;
+            this.sendResponse(response);
+        });
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
@@ -741,7 +765,7 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-async function getCurrentProjectRoot(): Promise<string> {
+export async function getCurrentProjectRoot(): Promise<string> {
     // 1. Check if the project path is already set in the state machine context
     let currentProjectRoot = StateMachine.context().projectPath;
     if (currentProjectRoot) {
@@ -767,12 +791,14 @@ async function getCurrentProjectRoot(): Promise<string> {
 
     // 3. Fallback to workspace root
     const workspaceRoot = getWorkspaceRoot();
-    if (!workspaceRoot && StateMachine.context().isBI) {
+    if (!workspaceRoot ) {
         throw new Error("Unable to determine the current workspace root.");
     }
     if (isBallerinaProject(workspaceRoot)) {
         return workspaceRoot;
     }
+
+    throw new Error(`No valid Ballerina project found`);
 }
 
 function getJavaCommand(): string {

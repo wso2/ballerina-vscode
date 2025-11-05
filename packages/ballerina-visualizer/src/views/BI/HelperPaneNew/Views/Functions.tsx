@@ -62,7 +62,6 @@ export const FunctionsPage = ({
     const { rpcClient } = useRpcContext();
     const firstRender = useRef<boolean>(true);
     const [searchValue, setSearchValue] = useState<string>('');
-    const [isLibraryBrowserOpen, setIsLibraryBrowserOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
@@ -165,13 +164,7 @@ export const FunctionsPage = ({
 
     const handleFunctionSearch = (searchText: string) => {
         setSearchValue(searchText);
-
-        // Search functions
-        if (isLibraryBrowserOpen) {
-            fetchFunctionInfo(searchText, 'true');
-        } else {
-            fetchFunctionInfo(searchText);
-        }
+        fetchFunctionInfo(searchText);
     };
 
     const handleFunctionSave = (value: string) => {
@@ -197,6 +190,20 @@ export const FunctionsPage = ({
                 defaultType={selectedType?.label}
             />, POPUP_IDS.FUNCTION, "New Function", 500, 400);
         onClose();
+    }
+
+    const handleOpenLibraryBrowser = () => {
+        addModal(
+            <LibraryBrowser
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                onClose={() => closeModal(POPUP_IDS.LIBRARY_BROWSER)}
+                onChange={(insertText) => {
+                    onChange(insertText);
+                    onClose();
+                }}
+                onFunctionItemSelect={onFunctionItemSelect}
+            />, POPUP_IDS.LIBRARY_BROWSER, "Function Browser", 600, 550);
     }
 
     return (
@@ -295,20 +302,13 @@ export const FunctionsPage = ({
             <Divider sx={{ margin: '0px' }} />
             <div style={{ margin: '4px 0' }}>
                 <FooterButtons onClick={handleNewFunctionClick} title="New Function" />
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+                <FooterButtons
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                    title="Open Function Browser"
+                    onClick={handleOpenLibraryBrowser}
+                    startIcon="bi-arrow-outward"
+                />            
             </div>
-            {isLibraryBrowserOpen && (
-                <LibraryBrowser
-                    anchorRef={anchorRef}
-                    isLoading={isLoading}
-                    libraryBrowserInfo={libraryBrowserInfo as HelperPaneFunctionInfo}
-                    setFilterText={handleFunctionSearch}
-                    onBack={() => setIsLibraryBrowserOpen(false)}
-                    onClose={onClose}
-                    onChange={onChange}
-                    onFunctionItemSelect={onFunctionItemSelect}
-                />
-            )}
         </div>
     )
 }

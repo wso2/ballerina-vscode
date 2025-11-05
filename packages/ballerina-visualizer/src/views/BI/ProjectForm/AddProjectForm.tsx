@@ -78,10 +78,10 @@ export function AddProjectForm() {
     useEffect(() => {
         Promise.all([
             rpcClient.getCommonRpcClient().getWorkspaceRoot(),
-            rpcClient.getCommonRpcClient().isBallerinaWorkspace()
-        ]).then(([path, isWorkspace]) => {
+            rpcClient.getCommonRpcClient().getWorkspaceType()
+        ]).then(([path, workspaceType]) => {
             setPath(path.path);
-            setIsInWorkspace(isWorkspace);
+            setIsInWorkspace(workspaceType.type === "BALLERINA_WORKSPACE");
         });
     }, []);
 

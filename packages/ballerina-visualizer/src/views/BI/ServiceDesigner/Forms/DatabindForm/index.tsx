@@ -29,12 +29,14 @@ import {
     SidePanelBody,
     TextField,
     ThemeColors,
+    Tooltip,
     Typography,
 } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
+import { hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -81,7 +83,7 @@ const MessageTypeNameFieldContainer = styled.div`
 `;
 
 const PayloadSection = styled.div`
-    padding-top: 12px;
+    // padding-top: 12px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -156,13 +158,13 @@ export function DatabindForm(props: DatabindFormProps) {
         const lowerModuleName = moduleName.toLowerCase();
         if (lowerModuleName === "rabbitmq") {
             return serviceProperties.stringLiteral?.value;
-        } else if (lowerModuleName === "kafka") {
-            const metaValue = serviceProperties?.readOnlyMetaData?.value;
-            if (metaValue && typeof metaValue === "object") {
-                for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
-                    if (key === "Topics" && Array.isArray(val) && val.length > 0) {
-                        return String(val[0]);
-                    }
+        }
+        const metaValue = serviceProperties?.readOnlyMetadata?.value;
+        if (metaValue && typeof metaValue === "object") {
+            for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
+                const valueStr = String(val).toLowerCase();
+                if (valueStr.length > 0) {
+                    return valueStr;
                 }
             }
         }
@@ -358,24 +360,28 @@ export function DatabindForm(props: DatabindFormProps) {
                             <MessageConfigContent>
                                 <PayloadSection>
                                     {/* Payload Section */}
-                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
-                                        {payloadFieldName} Schema
-                                    </Typography>
                                     {!payloadParameter && !editModel && (
                                         <AddButtonWrapper>
-                                            <LinkButton onClick={onAddPayloadClick}>
-                                                <Codicon name="add" />
-                                                Define Schema
-                                            </LinkButton>
+                                            <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
+                                                <LinkButton onClick={onAddPayloadClick}>
+                                                    <Codicon name="add" />
+                                                    Define {payloadFieldName}
+                                                </LinkButton>
+                                            </Tooltip>
                                         </AddButtonWrapper>
                                     )}
                                     {payloadParameter && (
-                                        <Parameters
-                                            parameters={[payloadParameter]}
-                                            onChange={handlePayloadParamChange}
-                                            onEditClick={onEditPayloadClick}
-                                            showPayload={true}
-                                        />
+                                        <>
+                                            <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                                {payloadFieldName}
+                                            </Typography>
+                                            <Parameters
+                                                parameters={[payloadParameter]}
+                                                onChange={handlePayloadParamChange}
+                                                onEditClick={onEditPayloadClick}
+                                                showPayload={true}
+                                            />
+                                        </>
                                     )}
 
                                     {/* Payload Editor */}
@@ -450,12 +456,12 @@ export function DatabindForm(props: DatabindFormProps) {
                             </MessageConfigContent>
                         </MessageConfigSection>
                     </MessageConfigContainer>
-                    <Divider sx={{ margin: 0 }} />
 
 
                     {/* Advanced Parameters Section - Only show if there are additional parameters beyond the first */}
-                    {advancedParameters.length > 0 && (
+                    {hasEditableParameters(advancedParameters) && (
                         <>
+                            <Divider sx={{ margin: 0 }} />
                             <OptionalConfigRow>
                                 Advanced Parameters
                                 <OptionalConfigButtonContainer>
@@ -562,7 +568,7 @@ export function DatabindForm(props: DatabindFormProps) {
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadTypeName()}
-                modalTitle={"Define " + payloadFieldName + " Schema"}
+                modalTitle={"Define " + payloadFieldName}
                 payloadContext={{
                     ...payloadContext,
                     queueOrTopic: getQueueDescriptionByModule(serviceModuleName)

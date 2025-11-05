@@ -421,7 +421,7 @@ export const Form = forwardRef((props: FormProps) => {
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
-    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Optional Configurations");
+    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Advanced Configurations");
 
     const markdownRef = useRef<HTMLDivElement>(null);
 
@@ -493,7 +493,7 @@ export const Form = forwardRef((props: FormProps) => {
             reset(defaultValues);
 
             if (changeOptionalFieldTitle) {
-                setOptionalFieldsTitle("Optional Listener Configurations");
+                setOptionalFieldsTitle("Advanced Configurations");
             }
         }
     }, [formFields, reset]);
@@ -613,7 +613,10 @@ export const Form = forwardRef((props: FormProps) => {
         },
         targetLineRange,
         fileName,
-        popupManager: popupManager
+        popupManager: popupManager,
+        nodeInfo: {
+            kind: selectedNode,
+        }
     };
 
     // Find the first editable field

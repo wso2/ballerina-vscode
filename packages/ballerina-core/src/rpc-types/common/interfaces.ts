@@ -109,3 +109,7 @@ export interface WorkspaceTomlValues {
 export interface PackageTomlValues {
     package: TomlPackage;
 }
+
+export interface WorkspaceTypeResponse {
+    type: "SINGLE_PROJECT" | "MULTIPLE_PROJECTS" | "BALLERINA_WORKSPACE" | "VSCODE_WORKSPACE" | "UNKNOWN"
+}
