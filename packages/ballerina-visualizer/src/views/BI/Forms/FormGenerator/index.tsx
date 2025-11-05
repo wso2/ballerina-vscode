@@ -1340,6 +1340,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
+        // HACK: make the type field optional for variable declaration form
+        const typeField = fields.find(field => field.key === "type");
+        if (typeField) {
+            typeField.optional = true;
+        }
+
         return (
             <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
                 <VariableForm
