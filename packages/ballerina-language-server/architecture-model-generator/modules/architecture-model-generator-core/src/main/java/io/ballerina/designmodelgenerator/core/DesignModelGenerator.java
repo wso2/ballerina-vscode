@@ -102,6 +102,16 @@ public class DesignModelGenerator {
             List<Function> functions = new ArrayList<>();
             serviceModel.otherFunctions.values().forEach(otherFunction -> {
                 buildConnectionGraph(intermediateModel, otherFunction, serviceModel);
+                otherFunction.connections.forEach(connection -> {
+                    Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
+                    if (conn != null) {
+                        otherFunction.dependentFuncs.addAll(conn.getDependentFunctions());
+                        otherFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                    }
+                });
+                otherFunction.analyzed = false;
+                otherFunction.visited = false;
+                buildConnectionGraph(intermediateModel, otherFunction, serviceModel);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
                         otherFunction.allDependentConnections));
                 connections.addAll(otherFunction.allDependentConnections);
@@ -113,13 +123,13 @@ public class DesignModelGenerator {
                 remoteFunction.connections.forEach(connection -> {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
-                        remoteFunction.dependentFuncs.clear();
                         remoteFunction.dependentFuncs.addAll(conn.getDependentFunctions());
                         remoteFunction.allDependentConnections.addAll(conn.getDependentConnection());
                     }
                 });
                 remoteFunction.analyzed = false;
                 remoteFunction.visited = false;
+                buildConnectionGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
                         remoteFunction.allDependentConnections));
                 connections.addAll(remoteFunction.allDependentConnections);
@@ -131,7 +141,6 @@ public class DesignModelGenerator {
                 resourceFunction.connections.forEach(connection -> {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
-                        resourceFunction.dependentFuncs.clear();
                         resourceFunction.dependentFuncs.addAll(conn.getDependentFunctions());
                         resourceFunction.allDependentConnections.addAll(conn.getDependentConnection());
                     }
@@ -234,7 +243,8 @@ public class DesignModelGenerator {
         for (String connectionUuid : functionModel.connections) {
             Connection connection = intermediateModel.uuidToConnectionMap.get(connectionUuid);
             if (connection != null) {
-                functionModel.allDependentConnections.addAll(connection.getDependentConnection());
+                functionModel.allDependentConnections.addAll(
+                        connection.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
             }
         }
         functionModel.allDependentConnections.addAll(connections);
