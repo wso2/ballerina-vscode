@@ -17,6 +17,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",
+    "@wso2/ui-toolkit": "workspace:*",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },

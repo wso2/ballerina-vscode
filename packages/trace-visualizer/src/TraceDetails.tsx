@@ -19,6 +19,7 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { TraceData, SpanData, AttributeData } from "./index";
+import { Codicon } from "@wso2/ui-toolkit";
 
 interface TraceDetailsProps {
     traceData: TraceData;
@@ -64,7 +65,7 @@ const SectionTitle = styled.div`
 const InfoGrid = styled.div`
     display: grid;
     grid-template-columns: 150px 1fr;
-    gap: 8px;
+    gap: 2px;
     margin-bottom: 15px;
 `;
 
@@ -253,36 +254,26 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
     return (
         <Container>
             <Header>
-                <Title>Trace Details</Title>
+                <Title>Trace : {traceData.traceId}</Title>
             </Header>
-
-            <Section>
-                <CollapsibleSection onClick={() => toggleSection('trace')}>
-                    <SectionTitle>
-                        {expandedSections.has('trace') ? '▼' : '▶'} Trace Information
-                    </SectionTitle>
-                </CollapsibleSection>
-                <CollapsibleContent isOpen={expandedSections.has('trace')}>
-                    <InfoGrid>
-                        <InfoLabel>Trace ID:</InfoLabel>
-                        <InfoValue>{traceData.traceId}</InfoValue>
-
-                        <InfoLabel>First Seen:</InfoLabel>
-                        <InfoValue>{formatDate(traceData.firstSeen)}</InfoValue>
-
-                        <InfoLabel>Last Seen:</InfoLabel>
-                        <InfoValue>{formatDate(traceData.lastSeen)}</InfoValue>
-
-                        <InfoLabel>Duration:</InfoLabel>
-                        <InfoValue>{duration}ms</InfoValue>
-                    </InfoGrid>
-                </CollapsibleContent>
-            </Section>
+            <InfoGrid>
+                <InfoLabel>Trace ID:</InfoLabel>
+                <InfoValue>{traceData.traceId}</InfoValue>
+                <InfoLabel>First Seen:</InfoLabel>
+                <InfoValue>{formatDate(traceData.firstSeen)}</InfoValue>
+                <InfoLabel>Last Seen:</InfoLabel>
+                <InfoValue>{formatDate(traceData.lastSeen)}</InfoValue>
+                <InfoLabel>Duration:</InfoLabel>
+                <InfoValue>{duration}ms</InfoValue>
+            </InfoGrid>
 
             <Section>
                 <CollapsibleSection onClick={() => toggleSection('resource')}>
                     <SectionTitle>
-                        {expandedSections.has('resource') ? '▼' : '▶'} Resource
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Codicon name={expandedSections.has('resource') ? 'chevron-down' : 'chevron-right'} />
+                            Resource
+                        </span>
                     </SectionTitle>
                 </CollapsibleSection>
                 <CollapsibleContent isOpen={expandedSections.has('resource')}>
@@ -311,7 +302,10 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
             <Section>
                 <CollapsibleSection onClick={() => toggleSection('scope')}>
                     <SectionTitle>
-                        {expandedSections.has('scope') ? '▼' : '▶'} Instrumentation Scope
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Codicon name={expandedSections.has('scope') ? 'chevron-down' : 'chevron-right'} />
+                            Instrumentation Scope
+                        </span>
                     </SectionTitle>
                 </CollapsibleSection>
                 <CollapsibleContent isOpen={expandedSections.has('scope')}>
@@ -342,7 +336,10 @@ export function TraceDetails({ traceData }: TraceDetailsProps) {
             <Section>
                 <CollapsibleSection onClick={() => toggleSection('spans')}>
                     <SectionTitle>
-                        {expandedSections.has('spans') ? '▼' : '▶'} Spans ({traceData.spans.length} total)
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Codicon name={expandedSections.has('spans') ? 'chevron-down' : 'chevron-right'} />
+                            Spans ({traceData.spans.length} total)
+                        </span>
                     </SectionTitle>
                 </CollapsibleSection>
                 <CollapsibleContent isOpen={expandedSections.has('spans')}>
