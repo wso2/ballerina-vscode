@@ -35,6 +35,7 @@ export const ChipEditorField = styled.div`
     border: 1px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
+    overflow: auto;
 
     &:focus {
         outline: 1px solid var(--vscode-focusBorder, #0078d4);
