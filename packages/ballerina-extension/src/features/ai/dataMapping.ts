@@ -25,7 +25,6 @@ import { Uri } from "vscode";
 import { extractRecordTypeDefinitionsFromFile, generateMappingExpressionsFromModel, repairSourceFilesWithAI } from "../../rpc-managers/ai-panel/utils";
 import { writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { ExtendedLangClient, NOT_SUPPORTED } from "../../core";
-import { getBallerinaProjectRoot } from "../../../src/rpc-managers/ai-panel/rpc-manager";
 import { DefaultableParam, FunctionDefinition, IncludedRecordParam, ModulePart, RequiredParam, RestParam, STKindChecker, STNode } from "@wso2/syntax-tree";
 import { addMissingRequiredFields, attemptRepairProject, checkProjectDiagnostics } from "../../../src/rpc-managers/ai-panel/repair-utils";
 import { NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "./constants";
@@ -33,6 +32,7 @@ import { INVALID_RECORD_REFERENCE } from "../../../src/views/ai-panel/errorCodes
 import { PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
 import { URI } from "vscode-uri";
 import { getAllDataMapperSource } from "./service/datamapper/datamapper";
+import { StateMachine } from "../../stateMachine";
 
 // Set to false to include mappings with default values
 const OMIT_DEFAULT_MAPPINGS_ENABLED = true;
@@ -210,7 +210,7 @@ async function createTempBallerinaFile(
 }
 
 export async function createTempBallerinaDir(): Promise<string> {
-  const projectRoot = await getBallerinaProjectRoot();
+  const projectRoot = StateMachine.context().projectUri;
   const randomNum = Math.floor(Math.random() * 90000) + 10000;
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), `ballerina-data-mapping-${randomNum}-`)

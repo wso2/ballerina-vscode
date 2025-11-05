@@ -18,15 +18,15 @@
 
 import { DocGenerationRequest } from '@wso2/ballerina-core';
 import { getServiceDeclaration } from '../../testGenerator';
-import { getBallerinaProjectRoot } from '../../../../rpc-managers/ai-panel/rpc-manager';
 import { generateDocumentation, DocumentationGenerationRequest } from './documentation';
 import { getProjectSource, getOpenAPISpecification } from '../../utils';
+import { StateMachine } from '../../../../stateMachine';
 
 // Main documentation generator function that handles all the logic
 export async function generateDocumentationForService(params: DocGenerationRequest): Promise<void> {
     try {
         // Get the project root
-        const projectRoot = await getBallerinaProjectRoot();
+        const projectRoot = StateMachine.context().projectUri;
 
         // Get the project source files
         const projectSource = await getProjectSource(projectRoot);
