@@ -1074,11 +1074,13 @@ export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string 
 
 export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
-        return completions;
+        return completions.filter(completion =>
+            completion.kind === 'field'
+        );
     }
 
     return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable') &&
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
 };
