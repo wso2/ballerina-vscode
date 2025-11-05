@@ -161,9 +161,9 @@ export class TraceDetailsWebview {
                 renderTraceDetails();
             }
         `;
-
+        const options = process.env.TRACE_WEBVIEW_DEV_HOST ? { devHost: process.env.TRACE_WEBVIEW_DEV_HOST } : {};
         const webViewOptions: WebViewOptions = {
-            ...getComposerWebViewOptions("TraceVisualizer", webView, {devHost:'http://localhost:9001'}),
+            ...getComposerWebViewOptions("TraceVisualizer", webView, options),
             body,
             scripts,
             styles,
