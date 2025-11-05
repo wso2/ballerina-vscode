@@ -66,6 +66,31 @@ export class TraceDetailsWebview {
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this.setupMessageHandler();
+    }
+
+    private setupMessageHandler(): void {
+        if (!this._panel) {
+            return;
+        }
+
+        this._panel.webview.onDidReceiveMessage(
+            (message) => {
+                switch (message.command) {
+                    case 'requestTraceData':
+                        if (this._trace) {
+                            const traceData = this.convertTraceToTraceData(this._trace);
+                            this._panel!.webview.postMessage({
+                                command: 'traceData',
+                                data: traceData,
+                            });
+                        }
+                        break;
+                }
+            },
+            null,
+            this._disposables
+        );
     }
 
     private static createWebview(): vscode.WebviewPanel {
@@ -108,6 +133,14 @@ export class TraceDetailsWebview {
         }
 
         this._panel.webview.html = this.getWebviewContent(this._trace, this._panel.webview);
+        
+        // Send trace data immediately after updating HTML (in case webview is already loaded)
+        // The webview will also request it if needed
+        const traceData = this.convertTraceToTraceData(this._trace);
+        this._panel.webview.postMessage({
+            command: 'traceData',
+            data: traceData,
+        });
     }
 
     private convertTraceToTraceData(trace: Trace): TraceData {
@@ -135,7 +168,6 @@ export class TraceDetailsWebview {
     }
 
     private getWebviewContent(trace: Trace, webView: Webview): string {
-        const traceData = this.convertTraceToTraceData(trace);
         const body = `<div class="container" id="webview-container"></div>`;
         const bodyCss = ``;
         const styles = `
@@ -146,19 +178,38 @@ export class TraceDetailsWebview {
             }
         `;
         const scripts = `
-            function loadedScript() {
-                function renderTraceDetails() {
-                    if (window.traceVisualizer && window.traceVisualizer.renderWebview) {
-                        const container = document.getElementById("webview-container");
-                        if (container) {
-                            window.traceVisualizer.renderWebview(${JSON.stringify(traceData)}, container);
-                        }
-                    } else {
-                        console.error("TraceVisualizer not loaded");
-                        setTimeout(renderTraceDetails, 100);
+            const vscode = acquireVsCodeApi();
+            let traceData = null;
+
+            function renderTraceDetails() {
+                if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
+                    const container = document.getElementById("webview-container");
+                    if (container) {
+                        window.traceVisualizer.renderWebview(traceData, container);
                     }
+                } else if (!traceData) {
+                    // Request trace data from extension
+                    vscode.postMessage({ command: 'requestTraceData' });
+                } else {
+                    console.error("TraceVisualizer not loaded");
+                    setTimeout(renderTraceDetails, 100);
                 }
-                renderTraceDetails();
+            }
+
+            // Listen for messages from the extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'traceData':
+                        traceData = message.data;
+                        renderTraceDetails();
+                        break;
+                }
+            });
+
+            function loadedScript() {
+                // Request trace data when script is loaded
+                vscode.postMessage({ command: 'requestTraceData' });
             }
         `;
         const options = process.env.TRACE_WEB_VIEW_DEV_HOST ? { devHost: process.env.TRACE_WEB_VIEW_DEV_HOST } : {};

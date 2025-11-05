@@ -46,7 +46,6 @@ function activateRunCmdCommand() {
 
     async function run(args: any[]) {
         try {
-            TracerMachine.startServer();
 
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {
