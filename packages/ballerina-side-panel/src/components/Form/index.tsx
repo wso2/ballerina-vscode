@@ -613,7 +613,10 @@ export const Form = forwardRef((props: FormProps) => {
         },
         targetLineRange,
         fileName,
-        popupManager: popupManager
+        popupManager: popupManager,
+        nodeInfo: {
+            kind: selectedNode,
+        }
     };
 
     // Find the first editable field

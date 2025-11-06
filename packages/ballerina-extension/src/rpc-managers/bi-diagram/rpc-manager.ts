@@ -1664,7 +1664,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         try {
             const workspaceEdit = await StateMachine.langClient().rename(request);
             if (workspaceEdit && 'changes' in workspaceEdit && workspaceEdit.changes) {
-                await updateSourceCode({ textEdits: workspaceEdit.changes, description: 'Rename for ' + params.newName });
+                await updateSourceCode({ textEdits: workspaceEdit.changes, description: 'Rename for ' + params.newName, isRenameOperation: true });
             }
         } catch (error) {
             console.error('Error in renameIdentifier:', error);

@@ -206,6 +206,21 @@ const ReadmeButtonContainer = styled.div`
 const ReadmeContent = styled.div`
     margin-top: 16px;
     text-wrap: pretty;
+    overflow-wrap: break-word;
+
+    p, li, td, th, blockquote {
+        overflow-wrap: break-word;
+    }
+
+    pre {
+        overflow-x: auto;
+        overflow-wrap: break-word;
+    }
+    
+    code {
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+    }
 `;
 
 const TitleContainer = styled.div`

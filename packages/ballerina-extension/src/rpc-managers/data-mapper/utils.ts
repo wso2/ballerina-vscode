@@ -33,7 +33,8 @@ import {
     IOTypeField,
     IORoot,
     ExpandModelOptions,
-    ExpandedDMModel
+    ExpandedDMModel,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
@@ -80,6 +81,12 @@ export async function fetchDataMapperCodeData(
     const response = await StateMachine
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
+    if (response.codedata && StateMachine.context().view === MACHINE_VIEW.DataMapper) {
+        // Following is a temporary hack to remove the node property from the code data
+        // TODO: Remove this once the LS API is updated (https://github.com/wso2/product-ballerina-integrator/issues/1732)
+        const { node, ...cleanCodeData } = response.codedata;
+        return cleanCodeData;
+    }
     return response.codedata;
 }
 
