@@ -4,6 +4,7 @@
     "character": 30
   },
   "source": "expression_context/source/mapping_expr_ctx_source32c.bal",
+  "description": "",
   "items": [
     {
       "label": "readonly",
@@ -16,6 +17,9 @@
     },
     {
       "label": "employee",
+      "labelDetails": {
+        "detail": " Employee"
+      },
       "kind": "Variable",
       "detail": "Employee",
       "sortText": "B",

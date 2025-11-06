@@ -30,6 +30,7 @@ public class FunctionReturnType extends Value {
     private List<HttpResponse> responses;
     private Map<String, HttpResponse> schema;
     private boolean hasError;
+    private boolean isGraphqlId;
 
     public FunctionReturnType(Value value) {
         super(value);
@@ -57,5 +58,13 @@ public class FunctionReturnType extends Value {
 
     public void setHasError(boolean hasError) {
         this.hasError = hasError;
+    }
+
+    public boolean isGraphqlId() {
+        return isGraphqlId;
+    }
+
+    public void setIsGraphqlId(boolean isGraphqlId) {
+        this.isGraphqlId = isGraphqlId;
     }
 }

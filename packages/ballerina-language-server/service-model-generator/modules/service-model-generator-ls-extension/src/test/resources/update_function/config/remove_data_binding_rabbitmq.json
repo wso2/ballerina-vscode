@@ -1,5 +1,5 @@
 {
-  "filePath": "rabbitmq_service_with_databind.bal",
+  "filePath": "rabbitmq_databind/main.bal",
   "description": "Remove data binding from rabbitmq event handler",
   "function": {
     "metadata": {
@@ -24,7 +24,50 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
+      {
+        "metadata": {
+          "label": "Data Binding",
+          "description": "Data binding parameter"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "valueType": "TYPE",
+          "value": "Order",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "message",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
       {
         "metadata": {
           "label": "message",
@@ -73,11 +116,19 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -127,43 +178,24 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
-      },
-      {
-        "metadata": {
-          "label": "Data Binding",
-          "description": "Data binding parameter"
-        },
-        "kind": "DATA_BINDING",
-        "type": {
-          "valueType": "TYPE",
-          "value": "Order",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "valueType": "IDENTIFIER",
-          "value": "message",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "enabled": false,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "returnType": {
       "hasError": true,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
@@ -195,6 +227,20 @@
       "moduleName": "rabbitmq"
     },
     "properties": {
+      "wrapperTypeName": {
+        "value": "RabbitMQAnydataMessage1",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "payloadFieldName": {
+        "value": "content",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
       "canDataBind": {
         "value": "true",
         "enabled": false,
@@ -205,7 +251,7 @@
     }
   },
   "output": {
-    "rabbitmq_service_with_databind.bal": [
+    "rabbitmq_databind/main.bal": [
       {
         "range": {
           "start": {
@@ -214,7 +260,7 @@
           },
           "end": {
             "line": 5,
-            "character": 103
+            "character": 101
           }
         },
         "newText": "(rabbitmq:AnydataMessage message, rabbitmq:Caller caller) returns error? "

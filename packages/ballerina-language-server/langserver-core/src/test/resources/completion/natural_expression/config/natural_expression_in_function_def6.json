@@ -618,6 +618,10 @@
     },
     {
       "label": "fName",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",
@@ -645,6 +649,10 @@
     },
     {
       "label": "lName",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "ACB",

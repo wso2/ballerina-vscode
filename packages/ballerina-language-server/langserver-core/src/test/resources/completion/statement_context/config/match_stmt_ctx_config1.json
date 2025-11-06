@@ -399,6 +399,9 @@
     },
     {
       "label": "var1",
+      "labelDetails": {
+        "detail": " string|int|boolean"
+      },
       "kind": "Variable",
       "detail": "string|int|boolean",
       "sortText": "B",
@@ -407,6 +410,9 @@
     },
     {
       "label": "var2",
+      "labelDetails": {
+        "detail": " [string, int, boolean]"
+      },
       "kind": "Variable",
       "detail": "[string, int, boolean]",
       "sortText": "B",
@@ -442,6 +448,9 @@
     },
     {
       "label": "var4",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -450,6 +459,10 @@
     },
     {
       "label": "i",
+      "labelDetails": {
+        "detail": " string|int|boolean",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string|int|boolean",
       "sortText": "B",
@@ -469,6 +482,9 @@
     },
     {
       "label": "var5",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",

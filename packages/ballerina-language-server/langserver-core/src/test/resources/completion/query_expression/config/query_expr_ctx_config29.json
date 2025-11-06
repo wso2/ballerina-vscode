@@ -387,6 +387,9 @@
     },
     {
       "label": "stringValue",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "BB",
@@ -395,6 +398,9 @@
     },
     {
       "label": "intValue",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "CB",
@@ -403,6 +409,9 @@
     },
     {
       "label": "intArray",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "BB",
@@ -468,6 +477,9 @@
     },
     {
       "label": "tsvStream",
+      "labelDetails": {
+        "detail": " stream<string[], error?>"
+      },
       "kind": "Variable",
       "detail": "stream<string[], error?>",
       "sortText": "BB",

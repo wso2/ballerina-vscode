@@ -20,6 +20,8 @@ package io.ballerina.flowmodelgenerator.core.model;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -39,6 +41,8 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.formatter.core.FormattingTreeModifier;
@@ -116,12 +120,12 @@ public class SourceBuilder {
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {
         if (Boolean.TRUE.equals(isNew) || lineRange == null) {
             String defaultFile = switch (node) {
-                case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, VECTOR_KNOWLEDGE_BASE,
+                case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, KNOWLEDGE_BASE,
                      DATA_LOADER, CHUNKER, CLASS_INIT -> CONNECTIONS_BAL;
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
-                case AGENT -> AGENTS_BAL;
+                case AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
@@ -274,28 +278,77 @@ public class SourceBuilder {
     }
 
     public Optional<String> getExpressionBodyText(String typeName, Map<String, String> imports) {
-        PackageUtil.loadProject(workspaceManager, filePath);
+        Project project = PackageUtil.loadProject(workspaceManager, filePath);
         Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+
+        // Fetch the module ids of the project
+        String packageName = project.currentPackage().packageName().value();
+        Set<String> subModuleIds = new HashSet<>();
+        Map<String, ModuleId> subModuleIdMap = new HashMap<>();
+        project.currentPackage().moduleIds().forEach(moduleId -> {
+            String subModuleId = moduleId.moduleName();
+            if (subModuleId.equals(packageName)) {
+                return;
+            }
+            subModuleIds.add(subModuleId);
+            subModuleIdMap.put(subModuleId, moduleId);
+        });
 
         // Obtain the symbols of the imports
         Map<String, BLangPackage> packageMap = new HashMap<>();
         if (imports != null) {
             imports.values().forEach(moduleId -> {
                 ModuleInfo moduleInfo = ModuleInfo.from(moduleId);
-                PackageUtil.pullModuleAndNotify(lsClientLogger, moduleInfo).ifPresent(pkg ->
-                        packageMap.put(CommonUtils.getDefaultModulePrefix(pkg.packageName().value()),
-                                PackageUtil.getCompilation(pkg).defaultModuleBLangPackage())
-                );
+                if (!subModuleIds.contains(moduleInfo.packageName())) {
+                    PackageUtil.pullModuleAndNotify(lsClientLogger, moduleInfo).ifPresent(pkg ->
+                            packageMap.put(CommonUtils.getDefaultModulePrefix(pkg.packageName().value()),
+                                    PackageUtil.getCompilation(pkg).defaultModuleBLangPackage())
+                    );
+                }
             });
         }
 
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
         Optional<TypeSymbol> optionalType =
                 BallerinaCompilerApi.getInstance().getType(semanticModel.types(), document, typeName, packageMap);
-        if (optionalType.isEmpty()) {
-            return Optional.empty();
+        TypeSymbol typeSymbol;
+        if (optionalType.isPresent()) {
+            typeSymbol = optionalType.get();
+        } else {
+            // Failover mechanism: check if the type belongs to a local submodule
+            // TODO: The following implementation is a temporary workaround. We need to explore ways to enhance the
+            //  semantic APIs to properly account for submodules as well.
+            String[] typeNameParts = typeName.split(":");
+            if (typeNameParts.length != 2) {
+                return Optional.empty();
+            }
+
+            String fullModuleName = packageName + "." + typeNameParts[0];
+            ModuleId moduleId = subModuleIdMap.get(fullModuleName);
+            if (moduleId == null) {
+                return Optional.empty();
+            }
+
+            SemanticModel localModuleSemanticModel =
+                    project.currentPackage().getCompilation().getSemanticModel(moduleId);
+            Optional<Symbol> moduleSymbol = localModuleSemanticModel.moduleSymbols()
+                    .stream()
+                    .filter(symbol -> symbol.nameEquals(typeNameParts[1]))
+                    .findFirst();
+
+            if (moduleSymbol.isEmpty()) {
+                return Optional.empty();
+            }
+
+            Symbol symbol = moduleSymbol.get();
+            if (symbol instanceof TypeSymbol tSymbol) {
+                typeSymbol = tSymbol;
+            } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
+                typeSymbol = typeDefinitionSymbol.typeDescriptor();
+            } else {
+                return Optional.empty();
+            }
         }
-        TypeSymbol typeSymbol = optionalType.get();
 
         if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeDefinitionSymbol = (TypeReferenceTypeSymbol) typeSymbol;
@@ -686,6 +739,11 @@ public class SourceBuilder {
 
         public TokenBuilder name(String name) {
             sb.append(name);
+            return this;
+        }
+
+        public TokenBuilder source(String source) {
+            sb.append(source);
             return this;
         }
 

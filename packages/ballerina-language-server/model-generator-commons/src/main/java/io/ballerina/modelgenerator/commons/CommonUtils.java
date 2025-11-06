@@ -56,6 +56,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
@@ -95,12 +96,15 @@ public class CommonUtils {
     private static final String CENTRAL_ICON_URL = "https://bcentral-packageicons.azureedge.net/images/%s_%s_%s.png";
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
-    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+    private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
     private static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
     private static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
     private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
     private static final String DATA_LOADER_TYPE_NAME = "DataLoader";
     private static final String CHUNKER_TYPE_NAME = "Chunker";
+    private static final String MEMORY_TYPE_NAME = "Memory";
+    private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
+    private static final String MCP_BASE_TOOL_KIT_TYPE_NAME = "McpBaseToolKit";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
@@ -264,6 +268,19 @@ public class CommonUtils {
     }
 
     /**
+     * Converts a LineRange to a TextRange using the provided TextDocument.
+     *
+     * @param textDocument the text document
+     * @param lineRange    the line range to convert
+     * @return the corresponding TextRange
+     */
+    public static TextRange toTextRange(TextDocument textDocument, LineRange lineRange) {
+        int start = textDocument.textPositionFrom(lineRange.startLine());
+        int end = textDocument.textPositionFrom(lineRange.endLine());
+        return TextRange.from(start, end - start);
+    }
+
+    /**
      * Convert the syntax-node line range into a lsp4j range.
      *
      * @param lineRange line range
@@ -298,7 +315,7 @@ public class CommonUtils {
      * Converts syntax-node line position into a lsp4j position.
      *
      * @param start start line position
-     * @param end end line position
+     * @param end   end line position
      * @return {@link Range} converted range
      */
     public static Range toRange(LinePosition start, LinePosition end) {
@@ -417,13 +434,17 @@ public class CommonUtils {
      *
      * @param project  the project to retrieve the document from
      * @param location the location of the document
-     * @return the document at the specified location
+     * @return the document at the specified location, or null if the file does not belong to the current project
      */
     public static Document getDocument(Project project, Location location) {
-        DocumentId documentId = project.documentId(
-                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                        project.sourceRoot().resolve(location.lineRange().fileName()));
-        return project.currentPackage().getDefaultModule().document(documentId);
+        try {
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            return project.currentPackage().getDefaultModule().document(documentId);
+        } catch (ProjectException ex) {
+            return null;
+        }
     }
 
     /***
@@ -973,10 +994,9 @@ public class CommonUtils {
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 
-    public static boolean isAiVectorKnowledgeBase(Symbol symbol) {
-        Optional<ModuleSymbol> module = symbol.getModule();
-        return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
-                && symbol.getName().isPresent() && symbol.getName().get().equals(VECTOR_KNOWLEDGE_BASE_TYPE_NAME);
+    public static boolean isAiKnowledgeBase(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, KNOWLEDGE_BASE_TYPE_NAME);
     }
 
     public static boolean isAiVectorStore(Symbol symbol) {
@@ -1004,6 +1024,22 @@ public class CommonUtils {
         return classSymbol != null && hasAiTypeInclusion(classSymbol, CHUNKER_TYPE_NAME);
     }
 
+    public static boolean isAiMemory(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && (hasAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME) ||
+                hasBallerinaxAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME));
+    }
+
+    public static boolean isAiMemoryStore(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME);
+    }
+
+    public static boolean isAiMcpBaseToolKit(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, MCP_BASE_TOOL_KIT_TYPE_NAME);
+    }
+
     private static ClassSymbol getClassSymbol(Symbol symbol) {
         if (symbol instanceof ClassSymbol) {
             return (ClassSymbol) symbol;
@@ -1027,7 +1063,19 @@ public class CommonUtils {
                 .map(TypeSymbol::getModule)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .anyMatch(moduleId -> BALLERINA_ORG_NAME.equals(moduleId.id().orgName()) &&
+                .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName())) &&
+                        AI.equals(moduleId.id().moduleName()));
+    }
+
+    private static boolean hasBallerinaxAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleId -> BALLERINAX_ORG_NAME.equals(moduleId.id().orgName()) &&
                         AI.equals(moduleId.id().moduleName()));
     }
 

@@ -1,5 +1,5 @@
 {
-  "filePath": "kafka_service_with_databind.bal",
+  "filePath": "kafka_databind/main.bal",
   "description": "Remove data binding from kafka event handler",
   "function": {
     "metadata": {
@@ -24,11 +24,54 @@
       "optional": false,
       "advanced": false
     },
+    "documentation": {
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
     "parameters": [
       {
         "metadata": {
-          "label": "records",
-          "description": "The records received for Kafka topic(s)"
+          "label": "Data Binding",
+          "description": "Data binding parameter"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "valueType": "TYPE",
+          "value": "Order",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "records",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "messages",
+          "description": "The messages received for Kafka topic(s)"
         },
         "kind": "REQUIRED",
         "type": {
@@ -46,15 +89,15 @@
         },
         "name": {
           "metadata": {
-            "label": "records",
-            "description": "The records received for Kafka topic(s)"
+            "label": "messages",
+            "description": "The messages received for Kafka topic(s)"
           },
           "codedata": {
             "type": "PARAMETER_NAME"
           },
-          "placeholder": "records",
+          "placeholder": "messages",
           "valueType": "IDENTIFIER",
-          "value": "records",
+          "value": "messages",
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -73,11 +116,19 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -127,43 +178,24 @@
           "optional": true,
           "advanced": false
         },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "enabled": false,
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
-      },
-      {
-        "metadata": {
-          "label": "Data Binding",
-          "description": "Data binding parameter"
-        },
-        "kind": "DATA_BINDING",
-        "type": {
-          "valueType": "TYPE",
-          "value": "Order",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "name": {
-          "valueType": "IDENTIFIER",
-          "value": "records",
-          "enabled": true,
-          "editable": false,
-          "optional": false,
-          "advanced": false
-        },
-        "enabled": false,
-        "editable": true,
-        "optional": false,
-        "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "returnType": {
       "hasError": true,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return Type",
         "description": "The return type of the function"
@@ -195,6 +227,20 @@
       "moduleName": "kafka"
     },
     "properties": {
+      "wrapperTypeName": {
+        "value": "KafkaAnydataConsumer",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "payloadFieldName": {
+        "value": "value",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
       "canDataBind": {
         "value": "true",
         "enabled": false,
@@ -205,7 +251,7 @@
     }
   },
   "output": {
-    "kafka_service_with_databind.bal": [
+    "kafka_databind/main.bal": [
       {
         "range": {
           "start": {
@@ -214,10 +260,10 @@
           },
           "end": {
             "line": 5,
-            "character": 114
+            "character": 83
           }
         },
-        "newText": "(kafka:AnydataConsumerRecord[] records) returns error? "
+        "newText": "(kafka:AnydataConsumerRecord[] messages) returns error? "
       }
     ]
   }

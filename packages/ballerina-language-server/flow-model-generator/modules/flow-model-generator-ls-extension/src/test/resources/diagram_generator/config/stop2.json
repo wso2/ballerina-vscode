@@ -106,11 +106,10 @@
               {
                 "id": "37959",
                 "metadata": {
-                  "label": "Stop",
-                  "description": "Stop the flow"
+                  "label": "Return"
                 },
                 "codedata": {
-                  "node": "STOP",
+                  "node": "RETURN",
                   "lineRange": {
                     "fileName": "stop.bal",
                     "startLine": {
@@ -211,11 +210,10 @@
       {
         "id": "41799",
         "metadata": {
-          "label": "Stop",
-          "description": "Stop the flow"
+          "label": "Return"
         },
         "codedata": {
-          "node": "STOP",
+          "node": "RETURN",
           "lineRange": {
             "fileName": "stop.bal",
             "startLine": {

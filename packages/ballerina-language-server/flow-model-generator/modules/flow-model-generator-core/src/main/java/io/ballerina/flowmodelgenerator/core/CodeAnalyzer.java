@@ -48,6 +48,7 @@ import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.BreakStatementNode;
 import io.ballerina.compiler.syntax.tree.ByteArrayLiteralNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ClientResourceAccessActionNode;
 import io.ballerina.compiler.syntax.tree.CommentNode;
 import io.ballerina.compiler.syntax.tree.CommitActionNode;
@@ -80,6 +81,7 @@ import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
@@ -119,12 +121,16 @@ import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
+import io.ballerina.flowmodelgenerator.core.model.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
@@ -145,6 +151,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -152,13 +159,16 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,9 +187,12 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
@@ -199,6 +212,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final DiagnosticHandler diagnosticHandler;
     private final boolean forceAssign;
     private final String connectionScope;
+    private final WorkspaceManager workspaceManager;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -219,7 +233,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     public CodeAnalyzer(Project project, SemanticModel semanticModel, String connectionScope,
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
-                        TextDocument textDocument, ModuleInfo moduleInfo, boolean forceAssign) {
+                        TextDocument textDocument, ModuleInfo moduleInfo,
+                        boolean forceAssign,
+                        WorkspaceManager workspaceManager) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -231,6 +247,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeList = new ArrayList<>();
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
+        this.workspaceManager = workspaceManager;
     }
 
     @Override
@@ -299,6 +316,19 @@ public class CodeAnalyzer extends NodeVisitor {
                     .type(objectFieldNode.typeName(), true)
                     .data(objectFieldNode.fieldName(), false, new HashSet<>());
             endNode(objectFieldNode);
+        } else {
+            // No inline expression - try to find initialization in init method
+            Optional<Symbol> fieldSymbol = semanticModel.symbol(objectFieldNode.fieldName());
+            if (fieldSymbol.isPresent() && fieldSymbol.get().kind() == SymbolKind.CLASS_FIELD) {
+                Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
+                if (initExpr.isPresent()) {
+                    initExpr.get().accept(this);
+                    nodeBuilder.properties()
+                            .type(objectFieldNode.typeName(), true)
+                            .data(objectFieldNode.fieldName(), false, new HashSet<>());
+                    endNode(objectFieldNode);
+                }
+            }
         }
     }
 
@@ -330,14 +360,10 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(ReturnStatementNode returnStatementNode) {
         Optional<ExpressionNode> optExpr = returnStatementNode.expression();
-        if (optExpr.isEmpty()) {
-            startNode(NodeKind.STOP, returnStatementNode);
-        } else {
-            ExpressionNode expr = optExpr.get();
-            startNode(NodeKind.RETURN, returnStatementNode)
-                    .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
-                    .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false);
-        }
+        NodeBuilder builder = startNode(NodeKind.RETURN, returnStatementNode);
+        optExpr.ifPresent(expr -> builder
+                .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
+                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false));
         nodeBuilder.returning();
         endNode(returnStatementNode);
     }
@@ -361,7 +387,7 @@ public class CodeAnalyzer extends NodeVisitor {
         ClassSymbol classSymbol = optClassSymbol.get();
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
-            populateAgentMetaData(expressionNode, remoteMethodCallActionNode, classSymbol);
+            populateAgentMetaData(expressionNode, classSymbol);
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -369,64 +395,116 @@ public class CodeAnalyzer extends NodeVisitor {
                 classSymbol.getName().orElseThrow());
     }
 
-    private void populateAgentMetaData(ExpressionNode expressionNode, NonTerminalNode callNode,
-                                       ClassSymbol classSymbol) {
+    private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
+        Map<String, String> agentData = new HashMap<>();
         if (isClassField(expressionNode)) {
-            ServiceDeclarationNode serviceDeclaration = getParentServiceDeclaration(callNode);
-            for (Node member : serviceDeclaration.members()) {
-                if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
-                    continue;
-                }
-                FunctionDefinitionNode funcDef = (FunctionDefinitionNode) member;
-                if (funcDef.functionName().text().equals("init")) {
-                    for (StatementNode statement : ((FunctionBodyBlockNode) funcDef.functionBody()).statements()) {
-                        if (statement.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
-                            continue;
-                        }
-                        AssignmentStatementNode assignmentStmtNode = (AssignmentStatementNode) statement;
-                        if (!assignmentStmtNode.varRef().toSourceCode().trim()
-                                .equals(expressionNode.toSourceCode())) {
-                            continue;
-                        }
-                        ImplicitNewExpressionNode newExpressionNode = getNewExpr(assignmentStmtNode.expression());
-                        genAgentData(newExpressionNode, classSymbol);
-                    }
-                }
+            FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) expressionNode;
+            Optional<Symbol> fieldSymbol = semanticModel.symbol(fieldAccess.fieldName());
+            if (fieldSymbol.isEmpty() || fieldSymbol.get().kind() != SymbolKind.CLASS_FIELD) {
+                return;
+            }
+
+            // Find the initialization expression for the field
+            Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
+            if (initExpr.isPresent()) {
+                ImplicitNewExpressionNode newExpr = getNewExpr(initExpr.get());
+                agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                genAgentData(newExpr, classSymbol, agentData);
             }
         } else {
-            for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
-                if (moduleSymbol.kind() != SymbolKind.VARIABLE) {
-                    continue;
+            Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
+            if (symbol.isEmpty()) {
+                throw new IllegalStateException("Symbol not found for the expression: " + expressionNode);
+            }
+            if (!(symbol.get() instanceof VariableSymbol variableSymbol)) {
+                throw new IllegalStateException("Expected a VariableSymbol but found: " +
+                        symbol.get().getClass().getSimpleName());
+            }
+            Optional<Location> optLocation = variableSymbol.getLocation();
+            if (optLocation.isEmpty()) {
+                throw new IllegalStateException("Location not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            Document document = CommonUtils.getDocument(project, optLocation.get());
+            if (document == null) {
+                return;
+            }
+            Optional<NonTerminalNode> varNodeOpt =
+                    CommonUtil.findNode(variableSymbol, document.syntaxTree());
+            if (varNodeOpt.isEmpty()) {
+                throw new IllegalStateException("Variable node not found for the variable symbol: " +
+                        variableSymbol);
+            }
+            NonTerminalNode varNode = varNodeOpt.get();
+            ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
+            if (initializerExpr != null) {
+                // Determine scope based on variable declaration type
+                NonTerminalNode scopeNode = varNode;
+                while (scopeNode != null) {
+                    if (scopeNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                        agentData.put(Property.SCOPE_KEY, Property.GLOBAL_SCOPE);
+                        break;
+                    } else if (scopeNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+                        agentData.put(Property.SCOPE_KEY, Property.LOCAL_SCOPE);
+                        break;
+                    }
+                    scopeNode = scopeNode.parent();
                 }
-                VariableSymbol variableSymbol = (VariableSymbol) moduleSymbol;
-                if (!variableSymbol.getName().orElseThrow().equals(expressionNode.toSourceCode())) {
-                    continue;
-                }
-                Optional<Location> optLocation = variableSymbol.getLocation();
-                if (optLocation.isEmpty()) {
-                    throw new IllegalStateException("Location not found for the variable symbol: " +
-                            variableSymbol);
-                }
-                NonTerminalNode parent = CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                        optLocation.get()).syntaxTree()).get().parent().parent();
-                if (parent.kind() != SyntaxKind.MODULE_VAR_DECL) {
-                    throw new IllegalStateException("Parent is not a module variable declaration: " + parent);
-                }
-                ModuleVariableDeclarationNode moduleVariableDeclarationNode =
-                        (ModuleVariableDeclarationNode) parent;
-                Optional<ExpressionNode> optInitializer = moduleVariableDeclarationNode.initializer();
-                if (optInitializer.isEmpty()) {
-                    throw new IllegalStateException("Initializer not found for the module variable declaration: " +
-                            moduleVariableDeclarationNode);
-                }
-                ImplicitNewExpressionNode newExpressionNode = getNewExpr(optInitializer.get());
-                genAgentData(newExpressionNode, classSymbol);
-                break;
+                ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
+                genAgentData(newExpressionNode, classSymbol, agentData);
             }
         }
     }
 
-    private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol) {
+    private ExpressionNode getInitializerFromVariableNode(NonTerminalNode varNode) {
+        // Find the actual variable declaration node by traversing up the tree
+        NonTerminalNode currentNode = varNode;
+        while (currentNode != null) {
+            switch (currentNode.kind()) {
+                case MODULE_VAR_DECL -> {
+                    ModuleVariableDeclarationNode moduleVarDecl = (ModuleVariableDeclarationNode) currentNode;
+                    return moduleVarDecl.initializer().orElse(null);
+                }
+                case LOCAL_VAR_DECL -> {
+                    VariableDeclarationNode localVarDecl = (VariableDeclarationNode) currentNode;
+                    return localVarDecl.initializer().orElse(null);
+                }
+                default -> // Continue traversing up to find a variable declaration
+                        currentNode = currentNode.parent();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the initialization expression for a field by searching through its references.
+     * Currently looks for assignments in the init method.
+     *
+     * @param fieldSymbol The field symbol to find initialization for
+     * @return Optional containing the initialization expression if found, empty otherwise
+     */
+    private Optional<ExpressionNode> findFieldInitExpression(Symbol fieldSymbol) {
+        // Get all references to this field
+        List<Location> references = semanticModel.references(fieldSymbol);
+
+        // Find the assignment in the init method
+        for (Location location : references) {
+            ModulePartNode modulePartNode = CommonUtils.getDocument(project, location).syntaxTree().rootNode();
+            NonTerminalNode node = modulePartNode.findNode(location.textRange());
+
+            // Check if this reference is part of an assignment statement
+            if (node.parent() instanceof AssignmentStatementNode assignmentStmt) {
+                FunctionDefinitionNode parentFunc = getParentFunction(assignmentStmt);
+                if (parentFunc != null && parentFunc.functionName().text().equals("init")) {
+                    return Optional.of(assignmentStmt.expression());
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol,
+                              Map<String, String> agentData) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
             throw new IllegalStateException("ParenthesizedArgList not found for the new expression: " +
@@ -436,6 +514,7 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode modelArg = null;
         ExpressionNode systemPromptArg = null;
         ExpressionNode memory = null;
+
         for (FunctionArgumentNode arg : argList.get().arguments()) {
             if (arg.kind() == SyntaxKind.NAMED_ARG) {
                 NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
@@ -448,11 +527,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 } else if (namedArgumentNode.argumentName().name().text().equals("memory")) {
                     memory = namedArgumentNode.expression();
                 }
+                agentData.put(namedArgumentNode.argumentName().name().text(),
+                        namedArgumentNode.expression().toString().trim());
             }
-        }
-        if (toolsArg == null) {
-            throw new IllegalStateException("Tools argument not found for the new expression: " +
-                    newExpressionNode);
         }
         if (modelArg == null) {
             throw new IllegalStateException("Model argument not found for the new expression: " +
@@ -463,7 +540,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     newExpressionNode);
         }
 
-        if (toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+        if (toolsArg != null && toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             List<ToolData> toolsData = new ArrayList<>();
             ListConstructorExpressionNode listCtrExprNode = (ListConstructorExpressionNode) toolsArg;
             for (Node node : listCtrExprNode.expressions()) {
@@ -483,9 +560,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 boolean isMcpToolKit = nodeSymbol
                         .filter(newSymbol -> symbol.kind() == SymbolKind.VARIABLE)
                         .map(newSymbol -> ((VariableSymbol) symbol).typeDescriptor())
-                        .filter(typeSymbol -> typeSymbol.getModule().isPresent()
-                                && typeSymbol.nameEquals(MCP_TOOL_KIT)
-                                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT))
+                        .filter(typeSymbol -> isMcpToolKitAiClass(typeSymbol) || isGeneratedMcpToolKit(typeSymbol))
                         .isPresent();
                 if (isMcpToolKit) {
                     toolsData.add(new ToolData(toolName, ICON_PATH, getToolDescription(""), MCP_SERVER));
@@ -501,23 +576,34 @@ public class CodeAnalyzer extends NodeVisitor {
             MappingConstructorExpressionNode mappingCtrExprNode =
                     (MappingConstructorExpressionNode) systemPromptArg;
             SeparatedNodeList<MappingFieldNode> fields = mappingCtrExprNode.fields();
-            Map<String, String> agentData = new HashMap<>();
             for (MappingFieldNode field : fields) {
                 SyntaxKind kind = field.kind();
                 if (kind != SyntaxKind.SPECIFIC_FIELD) {
                     continue;
                 }
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) field;
-                agentData.put(specificFieldNode.fieldName().toString().trim(),
-                        specificFieldNode.valueExpr().orElseThrow().toSourceCode());
+                ExpressionNode valueExpr = specificFieldNode.valueExpr().orElseThrow();
+                String value;
+                if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+                    TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
+                    value = templateExpr.content().stream()
+                            .map(Node::toString)
+                            .collect(Collectors.joining());
+                    value = AiUtils.restoreBackticksFromStringTemplate(value);
+                } else {
+                    value = valueExpr.toString().trim();
+                }
+                agentData.put(specificFieldNode.fieldName().toString().trim(), value);
             }
             nodeBuilder.metadata().addData("agent", agentData);
         }
 
         if (memory == null) {
             String defaultMemoryManagerName = getDefaultMemoryManagerName(classSymbol);
-            nodeBuilder.metadata().addData("memory",
-                    new MemoryManagerData(defaultMemoryManagerName, "10"));
+            if (!defaultMemoryManagerName.isEmpty()) {
+                nodeBuilder.metadata().addData("memory",
+                        new MemoryManagerData(defaultMemoryManagerName, AiUtils.MEMORY_DEFAULT_VALUE));
+            }
         } else if (memory.kind() == SyntaxKind.EXPLICIT_NEW_EXPRESSION) {
             ExplicitNewExpressionNode newExpr = (ExplicitNewExpressionNode) memory;
             SeparatedNodeList<FunctionArgumentNode> arguments = newExpr.parenthesizedArgList().arguments();
@@ -527,12 +613,68 @@ public class CodeAnalyzer extends NodeVisitor {
             }
             nodeBuilder.metadata().addData("memory",
                     new MemoryManagerData(newExpr.typeDescriptor().toSourceCode(), size));
+        } else if (memory.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+            Optional<TypeSymbol> optSymbolType = semanticModel.typeOf(memory);
+            optSymbolType.ifPresent(typeSymbol -> nodeBuilder.metadata()
+                    .addData("memory",
+                            new MemoryManagerData(typeSymbol.getName().orElse("Memory Not Configured"),
+                                    AiUtils.MEMORY_DEFAULT_VALUE)));
         }
 
         ModelData modelUrl = getModelIconUrl(modelArg);
         if (modelUrl != null) {
             nodeBuilder.metadata().addData("model", modelUrl);
         }
+
+        // Find the agent variable declaration to get the correct line range and source code
+        NonTerminalNode statementNode = newExpressionNode.parent();
+        while (statementNode != null && statementNode.kind() != SyntaxKind.LOCAL_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.MODULE_VAR_DECL &&
+                statementNode.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+            statementNode = statementNode.parent();
+        }
+
+        // Create agent codedata using the agent variable declaration
+        Optional<ModuleID> moduleId = classSymbol.getModule().map(ModuleSymbol::id);
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.AGENT)
+                .lineRange(statementNode != null ? statementNode.lineRange() : newExpressionNode.lineRange())
+                .object(Constants.Ai.AGENT_TYPE_NAME)
+                .org(moduleId.map(ModuleID::orgName).orElse(""))
+                .module(moduleId.map(ModuleID::moduleName).orElse(""))
+                .packageName(moduleId.map(ModuleID::packageName).orElse(""))
+                .symbol(Constants.Ai.AGENT_SYMBOL_NAME)
+                .sourceCode(statementNode != null ? statementNode.toSourceCode().strip() :
+                        newExpressionNode.toSourceCode().strip())
+                .version(moduleId.map(ModuleID::version).orElse(""))
+                .isNew(false)
+                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY))
+                .build();
+
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePathFromCodedata(codedata, project.sourceRoot());
+
+        NodeBuilder.TemplateContext context =
+                new NodeBuilder.TemplateContext(workspaceManager, agentFilePath,
+                        statementNode != null ? statementNode.lineRange().startLine() :
+                                newExpressionNode.lineRange().startLine(), codedata, null);
+
+        AgentCallBuilder.setAgentProperties(nodeBuilder, context, agentData);
+        AgentCallBuilder.setAdditionalAgentProperties(nodeBuilder, agentData);
+
+        nodeBuilder.codedata().addData(Constants.Ai.AGENT_CODEDATA, codedata);
+    }
+
+    private boolean isMcpToolKitAiClass(TypeSymbol typeSymbol) {
+        // Enables backward-compatible rendering of the MCP tool in the UI
+        return typeSymbol.getModule().isPresent() && (typeSymbol.nameEquals(MCP_TOOL_KIT)
+                && typeSymbol.getModule().get().id().moduleName().equals(AI_AGENT));
+    }
+
+    private boolean isGeneratedMcpToolKit(TypeSymbol typeSymbol) {
+        return typeSymbol instanceof TypeReferenceTypeSymbol referenceTypeSymbol
+                && referenceTypeSymbol.typeDescriptor() instanceof ClassSymbol classSymbol
+                && isAiMcpBaseToolKit(classSymbol);
     }
 
     private boolean isClassField(ExpressionNode expr) {
@@ -542,15 +684,13 @@ public class CodeAnalyzer extends NodeVisitor {
         return false;
     }
 
-    private ServiceDeclarationNode getParentServiceDeclaration(NonTerminalNode node) {
+    private FunctionDefinitionNode getParentFunction(NonTerminalNode node) {
         NonTerminalNode currentNode = node;
-        while (currentNode != null && currentNode.kind() != SyntaxKind.SERVICE_DECLARATION) {
+        while (currentNode != null && currentNode.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION &&
+                currentNode.kind() != SyntaxKind.FUNCTION_DEFINITION) {
             currentNode = currentNode.parent();
         }
-        if (currentNode == null) {
-            throw new IllegalStateException("Service declaration not found");
-        }
-        return (ServiceDeclarationNode) currentNode;
+        return currentNode instanceof FunctionDefinitionNode ? (FunctionDefinitionNode) currentNode : null;
     }
 
     private NonTerminalNode getParentNode(NonTerminalNode node) {
@@ -1358,7 +1498,19 @@ public class CodeAnalyzer extends NodeVisitor {
                     .org(org)
                     .module(packageName)
                     .object(name)
-                    .symbol(NewConnectionBuilder.INIT_SYMBOL)
+                    .symbol(NewConnectionBuilder.INIT_SYMBOL);
+
+        if (kind == NodeKind.MCP_TOOL_KIT && isAiMcpBaseToolKit(classSymbol)) {
+            Map<String, Object> classDefinitionData = getClassDefinitionCodedata(classSymbol);
+            if (classDefinitionData != null) {
+                nodeBuilder.codedata().data(McpToolKitBuilder.MCP_CLASS_DEFINITION, classDefinitionData);
+                McpToolKitBuilder.setToolKitNameProperty(nodeBuilder, name);
+                String permittedTools = getPermittedToolsFromClass(classSymbol);
+                McpToolKitBuilder.setPermittedToolsProperty(nodeBuilder, permittedTools);
+            }
+        }
+
+        nodeBuilder.codedata()
                     .stepOut()
                 .properties()
                 .scope(connectionScope)
@@ -1375,8 +1527,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAiEmbeddingProvider(classSymbol)) {
             return NodeKind.EMBEDDING_PROVIDER;
         }
-        if (isAiVectorKnowledgeBase(classSymbol)) {
-            return NodeKind.VECTOR_KNOWLEDGE_BASE;
+        if (isAiKnowledgeBase(classSymbol)) {
+            return NodeKind.KNOWLEDGE_BASE;
         }
         if (isAiVectorStore(classSymbol)) {
             return NodeKind.VECTOR_STORE;
@@ -1393,8 +1545,14 @@ public class CodeAnalyzer extends NodeVisitor {
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
             return NodeKind.NEW_CONNECTION;
         }
-        if (classSymbol.nameEquals(MCP_TOOL_KIT)) {
-            return NodeKind.MCP_TOOLKIT;
+        if (classSymbol.nameEquals(MCP_TOOL_KIT) || isAiMcpBaseToolKit(classSymbol)) {
+            return NodeKind.MCP_TOOL_KIT;
+        }
+        if (isAiMemory(classSymbol)) {
+            return NodeKind.MEMORY;
+        }
+        if (isAiMemoryStore(classSymbol)) {
+            return NodeKind.MEMORY_STORE;
         }
         return null;
     }
@@ -1403,10 +1561,12 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<Predicate<ClassSymbol>, FunctionData.Kind> kindMappings = Map.of(
                 CommonUtils::isAiModelProvider, FunctionData.Kind.MODEL_PROVIDER,
                 CommonUtils::isAiEmbeddingProvider, FunctionData.Kind.EMBEDDING_PROVIDER,
-                CommonUtils::isAiVectorKnowledgeBase, FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
+                CommonUtils::isAiKnowledgeBase, FunctionData.Kind.KNOWLEDGE_BASE,
                 CommonUtils::isAiVectorStore, FunctionData.Kind.VECTOR_STORE,
                 CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
-                CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER
+                CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER,
+                CommonUtils::isAiMemory, FunctionData.Kind.MEMORY,
+                CommonUtils::isAiMemoryStore, FunctionData.Kind.MEMORY_STORE
         );
 
         return kindMappings.entrySet().stream().filter(entry -> entry.getKey().test(classSymbol))
@@ -1567,6 +1727,19 @@ public class CodeAnalyzer extends NodeVisitor {
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);
+        } else if (nodeBuilder instanceof AgentBuilder) {
+            // If an agent node was identified, set the variable property on it
+            String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
+            nodeBuilder.properties().custom()
+                    .metadata()
+                        .label(AssignBuilder.VARIABLE_LABEL)
+                        .description(AssignBuilder.VARIABLE_DOC)
+                        .stepOut()
+                    .type(Property.ValueType.LV_EXPRESSION)
+                    .value(variableName)
+                    .editable()
+                    .stepOut()
+                    .addProperty(Property.VARIABLE_KEY);
         }
         endNode(assignmentStatementNode);
     }
@@ -1640,9 +1813,9 @@ public class CodeAnalyzer extends NodeVisitor {
         ClassSymbol classSymbol = optClassSymbol.get();
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
-            populateAgentMetaData(expressionNode, methodCallExpressionNode, classSymbol);
-        } else if (isAiVectorKnowledgeBase(classSymbol)) {
-            startNode(NodeKind.VECTOR_KNOWLEDGE_BASE_CALL, expressionNode.parent());
+            populateAgentMetaData(expressionNode, classSymbol);
+        } else if (isAiKnowledgeBase(classSymbol)) {
+            startNode(NodeKind.KNOWLEDGE_BASE_CALL, expressionNode.parent());
         } else {
             startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         }
@@ -2313,7 +2486,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     protected void visitSyntaxNode(Node node) {
-        // SKip visiting the child node of non-overridden nodes
+        // Skip visiting the child nodes of non-overridden methods.
     }
 
     private void genCommentNode(CommentMetadata comment) {
@@ -2387,6 +2560,122 @@ public class CodeAnalyzer extends NodeVisitor {
             return (ImplicitNewExpressionNode) expr;
         }
         throw new IllegalStateException("Implicit new expression not found");
+    }
+
+    /**
+     * Extracts class definition information for MCP toolkit classes. Returns a Map containing the class definition's
+     * codedata.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A Map containing "lineRange" if found, null otherwise
+     */
+    private Map<String, Object> getClassDefinitionCodedata(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return null;
+        }
+
+        Location location = optLocation.get();
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return null;
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
+
+        if (optNode.isEmpty()) {
+            return null;
+        }
+
+        NonTerminalNode classNode = optNode.get();
+        Map<String, Object> classDefinitionData = new LinkedHashMap<>();
+        classDefinitionData.put("lineRange", classNode.lineRange());
+
+        return classDefinitionData;
+    }
+
+    /**
+     * Extracts the permitted tools from the `permittedTools` map in the MCP toolkit class's init method.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A list of permitted tool names, or an empty list if not found
+     */
+    private String getPermittedToolsFromClass(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return "()";
+        }
+
+        Location location = optLocation.get();
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return "()";
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
+
+        if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
+            return "()";
+        }
+
+        // Find the init method in the class
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            if (!methodNode.functionName().text().equals("init")) {
+                continue;
+            }
+
+            // Find the permittedTools variable in the init method
+            FunctionBodyNode bodyNode = methodNode.functionBody();
+            if (!(bodyNode instanceof FunctionBodyBlockNode blockNode)) {
+                continue;
+            }
+
+            for (StatementNode statement : blockNode.statements()) {
+                if (statement.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+                    continue;
+                }
+
+                VariableDeclarationNode varDecl = (VariableDeclarationNode) statement;
+                String variableName = varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+
+                if (!variableName.equals("permittedTools")) {
+                    continue;
+                }
+
+                // Extract the keys from the mapping constructor
+                Optional<ExpressionNode> optInitializer = varDecl.initializer();
+                if (optInitializer.isEmpty() ||
+                        optInitializer.get().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+
+                MappingConstructorExpressionNode mappingExpr =
+                        (MappingConstructorExpressionNode) optInitializer.get();
+
+                List<String> toolNames = new ArrayList<>();
+                for (MappingFieldNode field : mappingExpr.fields()) {
+                    if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                        SpecificFieldNode specificField = (SpecificFieldNode) field;
+                        String fieldName = specificField.fieldName().toSourceCode().trim();
+                        // Remove quotes if present
+                        if (fieldName.startsWith("\"") && fieldName.endsWith("\"")) {
+                            fieldName = fieldName.substring(1, fieldName.length() - 1);
+                        }
+                        toolNames.add(fieldName);
+                    }
+                }
+                // Convert list to JSON array string format
+                return toolNames.stream()
+                        .map(name -> "\"" + name + "\"")
+                        .collect(Collectors.joining(", ", "[", "]"));
+            }
+        }
+        return "()";
     }
 
     // Check whether a type symbol is subType of `RawTemplate`

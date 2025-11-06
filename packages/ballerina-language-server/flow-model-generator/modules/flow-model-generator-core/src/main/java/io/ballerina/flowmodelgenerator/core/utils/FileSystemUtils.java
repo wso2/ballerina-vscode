@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
@@ -132,6 +133,31 @@ public class FileSystemUtils {
                         fileCreationException);
             }
         }
+    }
+
+    /**
+     * Resolves the file path based on the provided codedata and project root.
+     * <p>
+     * If the codedata does not have a line range, returns the project root. Otherwise, resolves the file path by
+     * combining the project root with the filename from the codedata's line range.
+     *
+     * @param codedata    The codedata containing file information
+     * @param projectRoot The project root path
+     * @return The resolved file path
+     */
+    public static Path resolveFilePathFromCodedata(Codedata codedata, Path projectRoot) {
+        if (codedata.lineRange() != null) {
+            String fileName = codedata.lineRange().fileName();
+            Path actualProjectRoot = projectRoot;
+            if (Files.isRegularFile(projectRoot)) {
+                Path parent = projectRoot.getParent();
+                if (parent != null) {
+                    actualProjectRoot = parent;
+                }
+            }
+            return actualProjectRoot.resolve(fileName);
+        }
+        return projectRoot;
     }
 
     /**

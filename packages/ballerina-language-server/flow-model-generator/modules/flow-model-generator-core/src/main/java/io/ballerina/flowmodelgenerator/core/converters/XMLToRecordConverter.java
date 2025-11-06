@@ -56,6 +56,7 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.formatter.core.options.ForceFormattingOptions;
 import org.ballerinalang.formatter.core.options.FormattingOptions;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -64,6 +65,7 @@ import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -81,11 +83,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.escapeIdentifier;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.extractTypeDescriptorNodes;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.extractUnionTypeDescNode;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractTypeDescriptorNodes;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractUnionTypeDescNode;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getAndUpdateFieldNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getExistingTypeNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.sortTypeDescriptorNodes;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.getPrimitiveTypeName;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.XMLToRecordConverterUtils.sortTypeDescriptorNodes;
 
 /**
  * APIs for conversion from XML to Ballerina records.
@@ -97,11 +101,14 @@ public final class XMLToRecordConverter {
     private static final Gson gson = new Gson();
     private final Project project;
     private final io.ballerina.projects.Document document;
+    private final Path filePath;
     private final TypesManager typesManager;
 
-    public XMLToRecordConverter(Project project, io.ballerina.projects.Document document, TypesManager typesManager) {
+    public XMLToRecordConverter(Project project, io.ballerina.projects.Document document, Path filePath,
+                                TypesManager typesManager) {
         this.project = project;
         this.document = document;
+        this.filePath = filePath;
         this.typesManager = typesManager;
     }
 
@@ -112,11 +119,13 @@ public final class XMLToRecordConverter {
     public JsonElement convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
                                boolean forceFormatRecordFields,
                                String textFieldName, boolean withNameSpaces, boolean withoutAttributes,
-                               boolean withoutAttributeAnnot, String prefix) throws FormatterException, IOException,
-            SAXException, ParserConfigurationException {
+                               boolean withoutAttributeAnnot, String prefix, WorkspaceManager workspaceManager)
+            throws FormatterException, IOException, SAXException, ParserConfigurationException {
         Map<String, NonTerminalNode> recordToTypeDescNodes = new LinkedHashMap<>();
         Map<String, AnnotationNode> recordToAnnotationNodes = new LinkedHashMap<>();
         Map<String, Element> recordToElementNodes = new LinkedHashMap<>();
+        List<String> existingFieldNames = getExistingTypeNames(workspaceManager, this.filePath);
+        Map<String, String> updatedFieldNames = new HashMap<>();
 
         // Convert the XML string to an InputStream
         ByteArrayInputStream inputStream = new ByteArrayInputStream(xmlValue.getBytes(StandardCharsets.UTF_8));
@@ -130,7 +139,7 @@ public final class XMLToRecordConverter {
         Element rootElement = doc.getDocumentElement();
         generateRecords(rootElement, isClosed, recordToTypeDescNodes, recordToAnnotationNodes,
                 recordToElementNodes, textFieldName, withNameSpaces, withoutAttributes,
-                withoutAttributeAnnot, prefix);
+                withoutAttributeAnnot, prefix, existingFieldNames, updatedFieldNames);
 
         NodeList<ImportDeclarationNode> imports = AbstractNodeFactory.createEmptyNodeList();
         Set<String> typeNames = new HashSet<>();
@@ -146,6 +155,7 @@ public final class XMLToRecordConverter {
                     } else {
                         recordTypeName = getRecordNameWithPrefix(prefix, recordName);
                     }
+                    recordTypeName = getAndUpdateFieldNames(recordTypeName, existingFieldNames, updatedFieldNames);
 
                     if ((recordToTypeDescNodeEntries.indexOf(entry) == recordToTypeDescNodeEntries.size() - 1) &&
                             !recordName.equals(recordTypeName)) {
@@ -197,9 +207,10 @@ public final class XMLToRecordConverter {
     }
 
     public JsonElement convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
-                               boolean forceFormatRecordFields) throws FormatterException,
-            ParserConfigurationException, IOException, SAXException {
-        return convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields, null, true, false, false, "");
+                               boolean forceFormatRecordFields, WorkspaceManager workspaceManager)
+            throws FormatterException, ParserConfigurationException, IOException, SAXException {
+        return convert(xmlValue, isRecordTypeDesc, isClosed, forceFormatRecordFields, null, true, false, false, "",
+                workspaceManager);
     }
 
     private static void generateRecords(Element xmlElement, boolean isClosed,
@@ -207,7 +218,8 @@ public final class XMLToRecordConverter {
                                         Map<String, AnnotationNode> recordToAnnotationsNodes,
                                         Map<String, Element> recordToElementNodes,
                                         String textFieldName, boolean withNameSpace, boolean withoutAttributes,
-                                        boolean withoutAttributeAnnot, String prefix) {
+                                        boolean withoutAttributeAnnot, String prefix,
+                                        List<String> existingFieldNames, Map<String, String> updatedFieldNames) {
         Token recordKeyWord = AbstractNodeFactory.createToken(SyntaxKind.RECORD_KEYWORD);
         Token bodyStartDelimiter = AbstractNodeFactory.createToken(isClosed ? SyntaxKind.OPEN_BRACE_PIPE_TOKEN :
                 SyntaxKind.OPEN_BRACE_TOKEN);
@@ -216,7 +228,8 @@ public final class XMLToRecordConverter {
 
         List<Node> recordFields = getRecordFieldsForXMLElement(xmlElement, isClosed, recordToTypeDescNodes,
                 recordToAnnotationsNodes, recordToElementNodes, textFieldName,
-                withNameSpace, withoutAttributes, withoutAttributeAnnot, prefix);
+                withNameSpace, withoutAttributes, withoutAttributeAnnot, prefix, existingFieldNames,
+                updatedFieldNames);
         if (recordToTypeDescNodes.containsKey(xmlNodeName)) {
             RecordTypeDescriptorNode previousRecordTypeDescriptorNode =
                     (RecordTypeDescriptorNode) recordToTypeDescNodes.get(xmlNodeName);
@@ -250,7 +263,8 @@ public final class XMLToRecordConverter {
                                                            Map<String, Element> recordToElementNodes,
                                                            String textFieldName, boolean withNameSpace,
                                                            boolean withoutAttributes, boolean withoutAttributeAnnot,
-                                                           String prefix) {
+                                                           String prefix, List<String> existingFieldNames,
+                                                           Map<String, String> updatedFieldNames) {
         List<Node> recordFields = new ArrayList<>();
 
         String xmlNodeName = xmlElement.getNodeName();
@@ -267,12 +281,12 @@ public final class XMLToRecordConverter {
                         && !XMLNS_PREFIX.equals(xmlAttributesMap.item(0).getPrefix()))))) {
                     generateRecords(xmlElementNode, isClosed, recordToTypeDescNodes, recordToAnnotationNodes,
                             recordToElementNodes, textFieldName, withNameSpace, withoutAttributes,
-                            withoutAttributeAnnot, prefix);
+                            withoutAttributeAnnot, prefix, existingFieldNames, updatedFieldNames);
                 }
                 Map<String, Boolean> prefixMap = hasMultipleFieldsWithSameName(xmlNodeList,
                         xmlElementNode.getLocalName());
                 RecordFieldNode recordField = getRecordField(xmlElementNode, false, withNameSpace,
-                        prefixMap.size() > 1, withoutAttributes, prefix);
+                        prefixMap.size() > 1, withoutAttributes, prefix, existingFieldNames, updatedFieldNames);
 
                 if (withNameSpace && xmlElementNode.getPrefix() != null) {
                     int indexOfRecordFieldNode = IntStream.range(0, recordFields.size())
@@ -482,7 +496,9 @@ public final class XMLToRecordConverter {
 
     private static RecordFieldNode getRecordField(Element xmlElementNode, boolean isOptionalField,
                                                   boolean withNameSpace, boolean sameFieldExists,
-                                                  boolean withoutAttributes, String prefix) {
+                                                  boolean withoutAttributes, String prefix,
+                                                  List<String> existingFieldNames,
+                                                  Map<String, String> updatedFieldNames) {
         Token typeName;
         Token questionMarkToken = AbstractNodeFactory.createToken(SyntaxKind.QUESTION_MARK_TOKEN);
         IdentifierToken fieldName =
@@ -499,7 +515,8 @@ public final class XMLToRecordConverter {
             // At the moment all are considered as Objects here
             String elementKey = xmlElementNode.getNodeName().trim();
             String type = getRecordNameWithPrefix(prefix, elementKey);
-            typeName = AbstractNodeFactory.createIdentifierToken(type);
+            String validatedType = getAndUpdateFieldNames(type, existingFieldNames, updatedFieldNames);
+            typeName = AbstractNodeFactory.createIdentifierToken(validatedType);
         }
         List<AnnotationNode> xmlNameNode = new ArrayList<>();
         if (sameFieldExists) {

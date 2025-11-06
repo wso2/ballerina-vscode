@@ -73,15 +73,15 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractTypeDescriptorNodes;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.extractUnionTypeDescNode;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getExistingTypeNames;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.getNumberOfDimensions;
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.sortTypeDescriptorNodes;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.extractArrayTypeDescNode;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.extractTypeDescriptorNodes;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.extractUnionTypeDescNode;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getAndUpdateFieldNames;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getExistingTypeNames;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getNumberOfDimensions;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.getPrimitiveTypeName;
-import static io.ballerina.flowmodelgenerator.core.converters.utils.JsonToRecordMapperConverterUtils.sortTypeDescriptorNodes;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.ListOperationUtils.difference;
 import static io.ballerina.flowmodelgenerator.core.converters.utils.ListOperationUtils.intersection;
 

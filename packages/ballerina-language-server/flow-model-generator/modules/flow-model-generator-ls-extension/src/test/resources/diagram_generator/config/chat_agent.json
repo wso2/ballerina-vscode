@@ -54,8 +54,12 @@
           "data": {
             "tools": [],
             "agent": {
-              "instructions": "string ``",
-              "role": "\"\""
+              "systemPrompt": "{role: \"\", instructions: string ``}",
+              "instructions": "",
+              "role": "\"\"",
+              "scope": "Global",
+              "model": "_WorkflowAgentModel",
+              "tools": "[]"
             },
             "memory": {
               "type": "ai:MessageWindowChatMemory",
@@ -87,10 +91,259 @@
               "offset": 97
             }
           },
-          "sourceCode": "string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);"
+          "sourceCode": "string stringResult = check _WorkflowAgentAgent->run(request.message, request.sessionId);",
+          "data": {
+            "agentCodedata": {
+              "node": "AGENT",
+              "org": "ballerinax",
+              "module": "ai",
+              "packageName": "ai",
+              "object": "Agent",
+              "symbol": "init",
+              "version": "1.0.1",
+              "lineRange": {
+                "fileName": "chat_agent.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 0
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 2
+                }
+              },
+              "sourceCode": "final ai:Agent _WorkflowAgentAgent = check new (systemPrompt = {role: \"\", instructions: string ``},\n    model = _WorkflowAgentModel,\n    tools = []\n);",
+              "isNew": false,
+              "data": {
+                "scope": "Global"
+              }
+            }
+          }
         },
         "returning": false,
         "properties": {
+          "systemPrompt": {
+            "metadata": {
+              "label": "System Prompt",
+              "description": "The system prompt assigned to the agent"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ai:SystemPrompt",
+            "value": "{role: \"\", instructions: string ``}",
+            "placeholder": "{role: \"\", instructions: \"\"}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "{role: \"\", instructions: \"\"}"
+          },
+          "model": {
+            "metadata": {
+              "label": "Model",
+              "description": "The model used by the agent"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ai:ModelProvider",
+            "value": "_WorkflowAgentModel",
+            "placeholder": "object {}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "object {}"
+          },
+          "tools": {
+            "metadata": {
+              "label": "Tools",
+              "description": "The tools available for the agent"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "value": "[]",
+            "placeholder": "[]",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "[]"
+          },
+          "agentType": {
+            "metadata": {
+              "label": "Agent Type",
+              "description": "Type of the agent"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ai:AgentType",
+            "placeholder": "\"FUNCTION_CALL_AGENT\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+          },
+          "maxIter": {
+            "metadata": {
+              "label": "Maximum Iterations",
+              "description": "The maximum number of iterations the agent performs to complete the task"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "0"
+          },
+          "verbose": {
+            "metadata": {
+              "label": "Verbose",
+              "description": "Specifies whether verbose logging is enabled"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "boolean",
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "false"
+          },
+          "memory": {
+            "metadata": {
+              "label": "Memory",
+              "description": "The memory used by the agent to store and manage conversation history"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "ai:Memory|()",
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": "INCLUDED_FIELD"
+            },
+            "defaultValue": "()"
+          },
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "stringResult",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "chat_agent.bal",
+                "startLine": {
+                  "line": 14,
+                  "offset": 15
+                },
+                "endLine": {
+                  "line": 14,
+                  "offset": 27
+                }
+              }
+            }
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true,
+            "codedata": {
+              "kind": ""
+            }
+          },
+          "role": {
+            "metadata": {
+              "label": "Role",
+              "description": "Define the agent's primary function"
+            },
+            "valueType": "STRING",
+            "value": "\"\"",
+            "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED"
+            },
+            "defaultValue": ""
+          },
+          "instructions": {
+            "metadata": {
+              "label": "Instructions",
+              "description": "Detailed instructions for the agent"
+            },
+            "valueType": "STRING",
+            "value": "",
+            "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED"
+            },
+            "defaultValue": ""
+          },
           "connection": {
             "metadata": {
               "label": "Connection",
@@ -157,57 +410,6 @@
               }
             ],
             "defaultValue": "\"\""
-          },
-          "checkError": {
-            "metadata": {
-              "label": "Check Error",
-              "description": "Trigger error flow"
-            },
-            "valueType": "FLAG",
-            "value": true,
-            "optional": false,
-            "editable": true,
-            "advanced": true,
-            "hidden": true
-          },
-          "variable": {
-            "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
-            },
-            "valueType": "IDENTIFIER",
-            "value": "stringResult",
-            "optional": false,
-            "editable": false,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "lineRange": {
-                "fileName": "chat_agent.bal",
-                "startLine": {
-                  "line": 14,
-                  "offset": 15
-                },
-                "endLine": {
-                  "line": 14,
-                  "offset": 27
-                }
-              }
-            }
-          },
-          "type": {
-            "metadata": {
-              "label": "Variable Type",
-              "description": "Type of the variable"
-            },
-            "valueType": "TYPE",
-            "value": "string",
-            "placeholder": "var",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {}
           }
         },
         "flags": 1
@@ -757,7 +959,7 @@
             "typeMembers": [
               {
                 "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -787,7 +989,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -817,7 +1019,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -901,7 +1103,7 @@
             "typeMembers": [
               {
                 "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -931,7 +1133,7 @@
             "typeMembers": [
               {
                 "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -961,7 +1163,7 @@
             "typeMembers": [
               {
                 "type": "Compression",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -991,7 +1193,7 @@
             "typeMembers": [
               {
                 "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1021,7 +1223,7 @@
             "typeMembers": [
               {
                 "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1051,7 +1253,7 @@
             "typeMembers": [
               {
                 "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1081,7 +1283,7 @@
             "typeMembers": [
               {
                 "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1111,7 +1313,7 @@
             "typeMembers": [
               {
                 "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.6",
+                "packageInfo": "ballerina:http:2.14.7",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false

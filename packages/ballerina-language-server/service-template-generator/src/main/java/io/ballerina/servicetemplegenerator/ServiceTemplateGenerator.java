@@ -25,14 +25,17 @@ import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.centralconnector.response.Function;
 import io.ballerina.centralconnector.response.Listener;
 import io.ballerina.centralconnector.response.Listeners;
-import io.ballerina.servicetemplegenerator.model.ServiceTemplates;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,7 +65,6 @@ public class ServiceTemplateGenerator {
                 .resolve(PACKAGE_JSON).toString(), StandardCharsets.UTF_8)) {
             Map<String, List<PackageMetadataInfo>> packagesMap = gson.fromJson(reader, typeToken);
 
-            List<ServiceTemplates.ServiceTemplate> serviceTemplateList = new ArrayList<>();
             Map<String, Map<String, Map<String, List<ListenerData>>>> listenersMap = new HashMap<>();
             for (Map.Entry<String, List<PackageMetadataInfo>> pkgMap : packagesMap.entrySet()) {
                 String orgName = pkgMap.getKey();

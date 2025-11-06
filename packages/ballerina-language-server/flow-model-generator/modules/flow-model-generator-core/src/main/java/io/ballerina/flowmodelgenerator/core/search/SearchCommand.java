@@ -75,8 +75,10 @@ public abstract class SearchCommand {
             case AGENT -> new AgentSearchCommand(module, position, queryMap);
             case CLASS_INIT -> new ClassInitSearchCommand(module, position,
                     queryMap); // This is a temporary implementation, to support ballerinax/ai usage
-            case MEMORY_MANAGER -> new MemoryManagerSearchCommand(module, position, queryMap);
+            case MEMORY -> new MemoryManagerSearchCommand(module, position, queryMap);
+            case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
+            case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
         };
     }
 
@@ -203,7 +205,9 @@ public abstract class SearchCommand {
         CHUNKER,
         AGENT,
         CLASS_INIT,
-        MEMORY_MANAGER,
-        AGENT_TOOL
+        MEMORY,
+        MEMORY_STORE,
+        AGENT_TOOL,
+        KNOWLEDGE_BASE
     }
 }

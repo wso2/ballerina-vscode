@@ -44,7 +44,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "http:Listener",
         "value": "",
         "values": [
@@ -60,6 +60,84 @@
           "default:globalListener",
           "new http:Listener(port = 8080)"
         ],
+        "properties": {
+          "default:globalListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 7,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 43
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 7,
+                  "offset": 77
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 89
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "new http:Listener(port = 8080)": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 7,
+                  "offset": 45
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 75
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "githubListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 7,
+                  "offset": 91
+                },
+                "endLine": {
+                  "line": 7,
+                  "offset": 105
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -67,7 +145,7 @@
       },
       "basePath": {
         "metadata": {
-          "label": "Service Base Path",
+          "label": "Base Path",
           "description": ""
         },
         "codedata": {
@@ -106,7 +184,23 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Base Path": [
+            "/api/test"
+          ]
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {

@@ -126,8 +126,8 @@ public abstract class AbstractLSTest {
         Mockito.when(this.lsPackageLoader.getLocalRepoModules()).thenReturn(LOCAL_PACKAGES);
         Mockito.when(this.lsPackageLoader.getCentralPackages()).thenReturn(CENTRAL_PACKAGES);
         Mockito.when(this.lsPackageLoader.getDistributionRepoModules()).thenReturn(DISTRIBUTION_PACKAGES);
-        Mockito.when(this.lsPackageLoader.checkAndResolvePackagesFromRepository(Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any())).thenCallRealMethod();
+        Mockito.when(this.lsPackageLoader.checkAndResolvePackagesFromRepository(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any())).thenCallRealMethod();
         Mockito.doNothing().when(this.lsPackageLoader).loadModules(Mockito.any());
         Mockito.when(this.lsPackageLoader.getAllVisiblePackages(Mockito.any())).thenCallRealMethod();
         Mockito.when(this.lsPackageLoader.getPackagesFromBallerinaUserHome(Mockito.any())).thenCallRealMethod();

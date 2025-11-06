@@ -1,0 +1,6 @@
+{
+  "description": "Function call with no arguments",
+  "filePath": "main.bal",
+  "expression": "fn()",
+  "expectedTokens": []
+}

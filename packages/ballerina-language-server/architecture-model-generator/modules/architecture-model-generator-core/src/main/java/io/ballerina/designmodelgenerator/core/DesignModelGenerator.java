@@ -175,12 +175,13 @@ public class DesignModelGenerator {
             if (symbol instanceof VariableSymbol variableSymbol) {
                 TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
                 if (typeSymbol instanceof ObjectTypeSymbol objectTypeSymbol) {
-                    boolean isAgentClass = CommonUtils.isAgentClass(objectTypeSymbol);
-                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isAgentClass) {
+                    boolean isAiClass = CommonUtils.isAgentClass(objectTypeSymbol) ||
+                            CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
+                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiClass) {
                         LineRange lineRange = variableSymbol.getLocation().get().lineRange();
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());
-                        boolean showConnection = !isAgentClass; // Hide agent class connections
+                        boolean showConnection = !isAiClass; // Hide agent class connections
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
                                 CommonUtils.getConnectionKind(objectTypeSymbol));
@@ -230,6 +231,13 @@ public class DesignModelGenerator {
         }
         functionModel.visited = true;
         functionModel.allDependentConnections.addAll(functionModel.connections);
+        // Also add transitive dependent connections
+        for (String connectionUuid : functionModel.connections) {
+            Connection connection = intermediateModel.uuidToConnectionMap.get(connectionUuid);
+            if (connection != null) {
+                functionModel.allDependentConnections.addAll(connection.getDependentConnection());
+            }
+        }
         functionModel.allDependentConnections.addAll(connections);
         functionModel.analyzed = true;
     }

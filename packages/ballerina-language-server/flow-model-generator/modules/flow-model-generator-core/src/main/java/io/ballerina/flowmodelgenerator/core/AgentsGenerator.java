@@ -113,11 +113,11 @@ public class AgentsGenerator {
     private static final String INIT = "init";
     private static final String AGENT_FILE = "agents.bal";
     public static final String AGENT = "Agent";
+    public static final String RUN = "run";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
     private static final String OPENAI_MODEL_PROVIDER = "OpenAiModelProvider";
-
 
     public AgentsGenerator() {
         this.gson = new Gson();
@@ -339,6 +339,7 @@ public class AgentsGenerator {
         NodeKind nodeKind = flowNode.codedata().node();
         SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
         String path = flowNode.metadata().icon();
+        sourceBuilder.acceptImport(Constants.Ai.BALLERINA_ORG, Constants.Ai.AI_PACKAGE);
         if (nodeKind == NodeKind.FUNCTION_DEFINITION) {
             boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
@@ -453,7 +454,6 @@ public class AgentsGenerator {
             sourceBuilder.token().name(toolName).keyword(SyntaxKind.OPEN_PAREN_TOKEN);
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
-
 
             if (!returnType.isEmpty()) {
                 sourceBuilder.token()
@@ -577,7 +577,8 @@ public class AgentsGenerator {
                 if (property.isEmpty()) {
                     continue;
                 }
-                PropertyCodedata propCodedata = property.get().codedata();
+                PropertyCodedata propCodedata = property.get()
+                        .codedata();
                 if (propCodedata == null) {
                     continue;
                 }
@@ -803,7 +804,7 @@ public class AgentsGenerator {
     }
 
     public JsonElement getMethodCallFlowNode(FunctionDefinitionNode functionDefinitionNode, Project project,
-                                             Document document) {
+                                             Document document, WorkspaceManager workspaceManager) {
         FunctionBodyNode fnBodyNode = functionDefinitionNode.functionBody();
         if (functionDefinitionNode.functionBody().kind() != SyntaxKind.FUNCTION_BODY_BLOCK) {
             return null;
@@ -813,7 +814,8 @@ public class AgentsGenerator {
             return null;
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()),
+                false, workspaceManager);
         StatementNode firstStmt = statements.get(0);
         firstStmt.accept(codeAnalyzer);
 

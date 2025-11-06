@@ -8,6 +8,7 @@
       "offset": 0
     },
     "offset": 1,
+    "lineOffset": 0,
     "codedata": {
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
@@ -50,11 +51,14 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "admission",
+      "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
-      "detail": "Admission",
+      "detail": "string",
       "sortText": "F",
-      "insertText": "admission",
+      "insertText": "secondVal",
       "insertTextFormat": "Snippet"
     },
     {
@@ -72,19 +76,27 @@
       "insertTextFormat": "Snippet"
     },
     {
+      "label": "admission",
+      "labelDetails": {
+        "detail": " Admission",
+        "description": "Parameter"
+      },
+      "kind": "Variable",
+      "detail": "Admission",
+      "sortText": "F",
+      "insertText": "admission",
+      "insertTextFormat": "Snippet"
+    },
+    {
       "label": "person",
+      "labelDetails": {
+        "detail": " Person",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "Person",
       "sortText": "F",
       "insertText": "person",
-      "insertTextFormat": "Snippet"
-    },
-    {
-      "label": "secondVal",
-      "kind": "Variable",
-      "detail": "string",
-      "sortText": "F",
-      "insertText": "secondVal",
       "insertTextFormat": "Snippet"
     }
   ]

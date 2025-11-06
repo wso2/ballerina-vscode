@@ -47,6 +47,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.Diagram;
 import io.ballerina.flowmodelgenerator.core.model.ExtendedDiagram;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -61,6 +62,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Position;
 
 import java.nio.file.Path;
@@ -73,9 +75,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
@@ -89,12 +93,22 @@ public class ModelGenerator {
     private final Path filePath;
     private final Gson gson;
     private final Project project;
+    private final WorkspaceManager workspaceManager;
 
-    public ModelGenerator(Project project, SemanticModel model, Path filePath) {
+    private static final Comparator<FlowNode> FLOW_NODE_COMPARATOR = Comparator.comparing(
+            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                    .map(property -> property.value().toString())
+                    .orElse("")
+    );
+    private static final String NODE_KIND_FILTER = "kind";
+    private static final String EXACT_MATCH_FILTER = "exactMatch";
+
+    public ModelGenerator(Project project, SemanticModel model, Path filePath, WorkspaceManager workspaceManager) {
         this.semanticModel = model;
         this.filePath = filePath;
         this.project = project;
         this.gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        this.workspaceManager = workspaceManager;
     }
 
     /**
@@ -152,7 +166,8 @@ public class ModelGenerator {
 
         // Analyze the code block to find the flow nodes
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, dataMappings,
-                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true);
+                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true,
+                workspaceManager);
         canvasNode.accept(codeAnalyzer);
 
         // Generate the flow model
@@ -172,9 +187,9 @@ public class ModelGenerator {
             }
         }
         Comparator<FlowNode> comparator = Comparator.comparing(
-            node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                          .map(property -> property.value().toString())
-                          .orElse("")
+                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
+                        .map(property -> property.value().toString())
+                        .orElse("")
         );
         connectionsList.sort(comparator);
         variablesList.sort(comparator);
@@ -235,7 +250,7 @@ public class ModelGenerator {
                     }
                     CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.SERVICE_SCOPE,
                             Map.of(), Map.of(), document.textDocument(),
-                            ModuleInfo.from(document.module().descriptor()), false);
+                            ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
                     statement.accept(codeAnalyzer);
                     List<FlowNode> nodes = codeAnalyzer.getFlowNodes();
                     connections.add(nodes.stream().findFirst().orElseThrow());
@@ -245,6 +260,57 @@ public class ModelGenerator {
             return gson.toJsonTree(diagram);
         }
         return null;
+    }
+
+    /**
+     * Search semantic model symbols with given configurations and convert them to FlowNodes.
+     *
+     * @param document the document to search in
+     * @param position the line position (nullable - if null, uses moduleSymbols, else visibleSymbols)
+     * @param queryMap the map containing query parameters (kind, exactMatch)
+     * @return List of FlowNodes that match the search criteria
+     */
+    public List<FlowNode> searchNodes(Document document, LinePosition position, Map<String, String> queryMap) {
+        // Get symbols based on position
+        List<Symbol> symbols = position != null
+                ? semanticModel.visibleSymbols(document, position)
+                : semanticModel.moduleSymbols();
+
+        // Extract filter parameters
+        String kindFilter = queryMap != null ? queryMap.get(NODE_KIND_FILTER) : null;
+        String exactMatchFilter = queryMap != null ? queryMap.get(EXACT_MATCH_FILTER) : null;
+
+        // Apply symbol-level filters first (exactMatch)
+        Stream<Symbol> stream = symbols.stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE || symbol.kind() == SymbolKind.CLASS_FIELD)
+                .sorted(Comparator.comparing(symbol -> symbol.getName().orElse("")));
+        if (exactMatchFilter != null) {
+            // Strip "self." prefix if present for class field matching
+            String fieldName = exactMatchFilter.startsWith("self.")
+                    ? exactMatchFilter.substring(5)
+                    : exactMatchFilter;
+            stream = stream.filter(symbol -> symbol.nameEquals(fieldName));
+        }
+        List<Symbol> filteredSymbols = stream.toList();
+
+        // Convert symbols to FlowNodes
+        List<FlowNode> flowNodesList = new ArrayList<>();
+        for (Symbol symbol : filteredSymbols) {
+            buildFlowNode(symbol).ifPresent(flowNodesList::add);
+        }
+
+        // Apply NodeKind filter if present
+        if (kindFilter != null && !kindFilter.isEmpty()) {
+            try {
+                NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+                flowNodesList = flowNodesList.stream()
+                        .filter(node -> node.codedata().node() == requiredNodeKind)
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                flowNodesList.clear();
+            }
+        }
+        return flowNodesList;
     }
 
     /**
@@ -295,7 +361,8 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
@@ -344,16 +411,203 @@ public class ModelGenerator {
             return Optional.empty();
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
-                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false);
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()),
+                false, workspaceManager);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
     }
 
+    private Optional<FlowNode> buildFlowNode(Symbol symbol) {
+        Function<NonTerminalNode, NonTerminalNode> getStatementNode;
+        NonTerminalNode statementNode;
+        TypeSymbol typeSymbol;
+        String scope;
+        Document document;
+
+        switch (symbol.kind()) {
+            case VARIABLE -> {
+                getStatementNode = (NonTerminalNode node) -> node.parent().parent();
+                typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+                scope = Property.GLOBAL_SCOPE;
+            }
+            case CLASS_FIELD -> {
+                ClassFieldSymbol classFieldSymbol = (ClassFieldSymbol) symbol;
+                typeSymbol = classFieldSymbol.typeDescriptor();
+
+                // Check if the field is initialized in init() function
+                Optional<NonTerminalNode> initAssignment = getInitAssignmentNode(classFieldSymbol);
+                if (initAssignment.isPresent()) {
+                    // Field is initialized in init() - use the assignment statement node
+                    scope = Property.SERVICE_INIT_SCOPE;
+                    statementNode = initAssignment.get();
+
+                    // Get the document for the assignment
+                    try {
+                        Location location = classFieldSymbol.getLocation().orElseThrow();
+                        DocumentId documentId = project.documentId(
+                                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                                        project.sourceRoot().resolve(location.lineRange().fileName()));
+                        document = project.currentPackage().getDefaultModule().document(documentId);
+                    } catch (RuntimeException ignored) {
+                        return Optional.empty();
+                    }
+
+                    // Process and return early
+                    TypeSymbol typeDescriptorSymbol;
+                    boolean shouldProcess = false;
+
+                    try {
+                        typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+                        shouldProcess = isClassOrObject(typeDescriptorSymbol);
+                    } catch (ClassCastException e) {
+                        // TypeReferenceTypeSymbol cast failed, this is fine
+                    }
+
+                    if (!shouldProcess) {
+                        try {
+                            typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
+                            shouldProcess = !isClassOrObject(typeDescriptorSymbol);
+                        } catch (RuntimeException ignored) {
+                            return Optional.empty();
+                        }
+                    }
+
+                    if (!shouldProcess) {
+                        return Optional.empty();
+                    }
+
+                    CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                            document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                            workspaceManager);
+                    statementNode.accept(codeAnalyzer);
+                    return codeAnalyzer.getFlowNodes().stream().findFirst();
+                }
+
+                // Not initialized in init() - use the field declaration
+                getStatementNode = (NonTerminalNode node) -> node;
+                scope = Property.SERVICE_SCOPE;
+            }
+            default -> {
+                return Optional.empty();
+            }
+        }
+
+        TypeSymbol typeDescriptorSymbol;
+        boolean shouldProcess = false;
+
+        try {
+            // Try connection path (TypeReferenceTypeSymbol cast)
+            typeDescriptorSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            shouldProcess = isClassOrObject(typeDescriptorSymbol);
+        } catch (ClassCastException e) {
+            // TypeReferenceTypeSymbol cast failed, this is fine
+        }
+
+        if (!shouldProcess) {
+            // Try variable path with getRawType
+            try {
+                typeDescriptorSymbol = CommonUtils.getRawType(typeSymbol);
+                shouldProcess = !isClassOrObject(typeDescriptorSymbol);
+            } catch (RuntimeException ignored) {
+                return Optional.empty();
+            }
+        }
+
+        if (!shouldProcess) {
+            return Optional.empty();
+        }
+
+        // Continue with common processing
+        try {
+            Location location = symbol.getLocation().orElseThrow();
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            document = project.currentPackage().getDefaultModule().document(documentId);
+            NonTerminalNode childNode =
+                    symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
+                            .orElseThrow();
+            statementNode = getStatementNode.apply(childNode);
+        } catch (RuntimeException ignored) {
+            return Optional.empty();
+        }
+
+        if (statementNode == null) {
+            return Optional.empty();
+        }
+
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+                document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
+                workspaceManager);
+        statementNode.accept(codeAnalyzer);
+        return codeAnalyzer.getFlowNodes().stream().findFirst();
+    }
+
+    /**
+     * Gets the assignment statement node if a ClassFieldSymbol is initialized in an init() function.
+     *
+     * @param classFieldSymbol the class field symbol to check
+     * @return Optional containing the assignment statement node if initialized in init(), empty otherwise
+     */
+    private Optional<NonTerminalNode> getInitAssignmentNode(ClassFieldSymbol classFieldSymbol) {
+        try {
+            // If the field has a default value at declaration, it's not initialized in init()
+            if (classFieldSymbol.hasDefaultValue()) {
+                return Optional.empty();
+            }
+
+            // Get all references to this field
+            List<Location> references = semanticModel.references(classFieldSymbol);
+
+            for (Location location : references) {
+                try {
+                    DocumentId documentId = project.documentId(
+                            project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                                    project.sourceRoot().resolve(location.lineRange().fileName()));
+                    Document document = project.currentPackage().getDefaultModule().document(documentId);
+                    NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
+
+                    // Check if this reference is within an assignment statement
+                    NonTerminalNode current = node;
+                    while (current != null && current.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+                        current = current.parent();
+                    }
+
+                    if (current == null || current.kind() != SyntaxKind.ASSIGNMENT_STATEMENT) {
+                        continue;
+                    }
+
+                    NonTerminalNode assignmentNode = current;
+
+                    // Now check if this assignment is within an init() function
+                    current = current.parent();
+                    while (current != null && current.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                        current = current.parent();
+                    }
+
+                    if (current != null && current.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                        FunctionDefinitionNode functionNode = (FunctionDefinitionNode) current;
+                        if (functionNode.functionName().text().equals("init")) {
+                            return Optional.of(assignmentNode);
+                        }
+                    }
+                } catch (RuntimeException ignored) {
+                    // Continue to next reference
+                }
+            }
+
+            return Optional.empty();
+        } catch (RuntimeException e) {
+            // If we can't determine, return empty
+            return Optional.empty();
+        }
+    }
+
     private boolean isClassOrObject(TypeSymbol typeSymbol) {
         if (typeSymbol.kind() == SymbolKind.CLASS) {
-            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol)
-                    || isAiVectorStore(typeSymbol) || isAiVectorKnowledgeBase(typeSymbol)) {
+            if (((ClassSymbol) typeSymbol).qualifiers().contains(Qualifier.CLIENT) || isAgentClass(typeSymbol) ||
+                    isAiVectorStore(typeSymbol) || isAiKnowledgeBase(typeSymbol) || isAiMemoryStore(typeSymbol)) {
                 return true;
             }
         }

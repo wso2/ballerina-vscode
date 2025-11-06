@@ -183,6 +183,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
     public static final String SCOPE_DOC = "Scope of the connection, Global or Local";
     public static final String GLOBAL_SCOPE = "Global";
     public static final String SERVICE_SCOPE = "Service";
+    public static final String SERVICE_INIT_SCOPE = "ServiceInit";
     public static final String OBJECT_SCOPE = "Object";
     public static final String LOCAL_SCOPE = "Local";
 
@@ -266,7 +267,8 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         RAW_TEMPLATE,
         REPEATABLE_PROPERTY,
         ACTION_PATH,
-        ACTION_TYPE
+        ACTION_TYPE,
+        DATA_MAPPING_EXPRESSION
     }
 
     public static ValueType valueTypeFrom(String s) {
@@ -406,7 +408,7 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             if (this.imports == null) {
                 this.imports = new HashMap<>();
             }
-            String[] importList = importStatements.split(";");
+            String[] importList = importStatements.split(",");
             for (String importStatement : importList) {
                 if (importStatement.trim().isEmpty()) {
                     continue;

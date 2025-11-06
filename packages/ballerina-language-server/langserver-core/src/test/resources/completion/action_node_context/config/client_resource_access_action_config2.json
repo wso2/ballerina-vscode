@@ -476,6 +476,10 @@
     },
     {
       "label": "cl",
+      "labelDetails": {
+        "detail": " MyClient",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "MyClient",
       "sortText": "B",
@@ -510,6 +514,9 @@
     },
     {
       "label": "i",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -526,6 +533,9 @@
     },
     {
       "label": "s",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",

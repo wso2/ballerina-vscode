@@ -372,6 +372,9 @@
     },
     {
       "label": "var1",
+      "labelDetails": {
+        "detail": " MyType"
+      },
       "kind": "Variable",
       "detail": "MyType",
       "sortText": "F",
@@ -426,6 +429,10 @@
     },
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

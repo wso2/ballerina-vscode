@@ -88,26 +88,6 @@
       }
     },
     "refs": {
-      "-782972947": {
-        "fields": [
-          {
-            "name": "code",
-            "displayName": "code",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "number",
-            "displayName": "number",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "SecondaryPhones",
-        "kind": "record"
-      },
       "1372788890": {
         "fields": [
           {

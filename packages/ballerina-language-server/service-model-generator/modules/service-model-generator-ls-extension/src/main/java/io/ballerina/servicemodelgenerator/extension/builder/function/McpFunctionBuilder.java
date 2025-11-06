@@ -63,65 +63,17 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
     // Regex pattern for parameter documentation
     private static final Pattern PARAM_PATTERN = Pattern.compile("^\\s*#\\s*\\+\\s+(\\w+)\\s*-\\s*(.*)$");
-    
-    @Override
-    public Optional<Function> getModelTemplate(GetModelContext context) {
-        return getMcpFunctionModel();
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        Map<String, List<TextEdit>> textEdits = super.addModel(context);
-        String toolDescription = extractToolDescription(context.function());
-        return addFunctionDocumentation(textEdits, context, toolDescription);
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        Map<String, List<TextEdit>> result = super.updateModel(context);
-
-        String toolDescription = extractToolDescription(context.function());
-        String returnType = getReturnTypeDescription(context.function());
-
-        Optional<TextEdit> firstEdit = findFirstEdit(result);
-        if (firstEdit.isEmpty()) {
-            return result;
-        }
-
-        TextEdit edit = firstEdit.get();
-        String originalText = edit.getNewText();
-
-        if (originalText == null) {
-            return result;
-        }
-
-        String stripped = originalText.stripLeading();
-
-        if (stripped.startsWith("#")) {
-            // Has documentation - keep it and add tool desc + return type
-            updateDocumentationEdit(edit, originalText, toolDescription, returnType);
-        } else if (stripped.isEmpty()) {
-            // Empty string - add only tool desc and return type
-            String newDoc = buildCompleteDocumentation(toolDescription, "", returnType);
-            edit.setNewText(newDoc);
-        } else {
-            // Non-documentation content - skip update
-            // This could be other code content that shouldn't have documentation prepended
-        }
-
-        return result;
-    }
 
     /**
      * Updates a TextEdit containing existing documentation.
      *
-     * @param edit The TextEdit to update
-     * @param originalText The original text content
+     * @param edit            The TextEdit to update
+     * @param originalText    The original text content
      * @param toolDescription The tool description to add
-     * @param returnType The return type description
+     * @param returnType      The return type description
      */
     private static void updateDocumentationEdit(TextEdit edit, String originalText,
-                                                 String toolDescription, String returnType) {
+                                                String toolDescription, String returnType) {
         int firstHashIndex = originalText.indexOf('#');
         String leading = originalText.substring(0, firstHashIndex);
         String docContent = originalText.substring(firstHashIndex);
@@ -142,28 +94,6 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         edit.setNewText(newDoc.toString());
     }
 
-    @Override
-    public Function getModelFromSource(ModelFromSourceContext context) {
-        Function function = super.getModelFromSource(context);
-
-        // Extract and parse documentation from the function node
-        FunctionDefinitionNode functionNode = (FunctionDefinitionNode) context.node();
-        if (functionNode.metadata().isPresent()) {
-            MetadataNode metadata = functionNode.metadata().get();
-            if (metadata.documentationString().isPresent()) {
-                String documentation = metadata.documentationString().get().toString();
-                parseDocumentation(function, documentation);
-            }
-        }
-
-        return function;
-    }
-
-    @Override
-    public String kind() {
-        return MCP;
-    }
-    
     /**
      * Loads the MCP function model template from resources.
      *
@@ -189,7 +119,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
             return Optional.empty();
         }
     }
-    
+
     private static Map<String, List<TextEdit>> addFunctionDocumentation(Map<String, List<TextEdit>> textEdits,
                                                                         AddModelContext context,
                                                                         String toolDescription) {
@@ -225,14 +155,14 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     /**
      * Inserts tool description before parameter documentation.
      *
-     * @param originalText The original text content
-     * @param toolDescription The tool description to add
-     * @param returnType The return type description
+     * @param originalText          The original text content
+     * @param toolDescription       The tool description to add
+     * @param returnType            The return type description
      * @param remoteFunctionPattern The pattern to find the function signature
      * @return Updated text with documentation
      */
     private static String insertToolDescriptionBeforeParams(String originalText, String toolDescription,
-                                                             String returnType, String remoteFunctionPattern) {
+                                                            String returnType, String remoteFunctionPattern) {
         String result = originalText;
 
         // Add tool description before first parameter if present
@@ -289,7 +219,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
             return "";
         }
         return DOC_COMMENT_PREFIX + toolDescription + NEW_LINE +
-               DOC_COMMENT_SEPARATOR + NEW_LINE;
+                DOC_COMMENT_SEPARATOR + NEW_LINE;
     }
 
     /**
@@ -306,8 +236,8 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
      * Builds complete documentation with tool description, parameters, and return type.
      *
      * @param toolDescription The tool description (can be null)
-     * @param parameterDocs Existing parameter documentation (can be empty)
-     * @param returnType The return type description
+     * @param parameterDocs   Existing parameter documentation (can be empty)
+     * @param returnType      The return type description
      * @return Complete formatted documentation
      */
     private static String buildCompleteDocumentation(String toolDescription, String parameterDocs, String returnType) {
@@ -335,12 +265,12 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     /**
      * Finds the TextEdit containing the remote function pattern.
      *
-     * @param textEdits Map of text edits
+     * @param textEdits    Map of text edits
      * @param functionName The function name to search for
      * @return Optional containing the matching TextEdit
      */
     private static Optional<TextEdit> findRemoteFunctionEdit(Map<String, List<TextEdit>> textEdits,
-                                                              String functionName) {
+                                                             String functionName) {
         String remoteFunctionPattern = REMOTE + SPACE + "function" + SPACE + functionName;
         return textEdits.values().stream()
                 .flatMap(List::stream)
@@ -363,7 +293,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     /**
      * Parses the markdown documentation string and populates the function model.
      *
-     * @param function The function model to populate
+     * @param function      The function model to populate
      * @param documentation The markdown documentation string
      */
     public static void parseDocumentation(Function function, String documentation) {
@@ -398,17 +328,17 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         // Set tool description in function properties
         if (toolDescription != null && !toolDescription.isEmpty()) {
             Value toolDescValue =
-                new Value.ValueBuilder()
-                        .metadata("Tool Description", "Description of what this MCP tool does")
-                        .setPlaceholder("Describe what this tool does...")
-                        .valueType("STRING")
-                        .setValueTypeConstraint("string")
-                        .value(toolDescription)
-                        .enabled(true)
-                        .editable(true)
-                        .optional(true)
-                        .setAdvanced(false)
-                        .build();
+                    new Value.ValueBuilder()
+                            .metadata("Tool Description", "Description of what this MCP tool does")
+                            .setPlaceholder("Describe what this tool does...")
+                            .valueType("STRING")
+                            .setValueTypeConstraint("string")
+                            .value(toolDescription)
+                            .enabled(true)
+                            .editable(true)
+                            .optional(true)
+                            .setAdvanced(false)
+                            .build();
             function.getProperties().put(TOOL_DESCRIPTION_PROPERTY, toolDescValue);
         }
 
@@ -419,9 +349,9 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 if (paramDocs.containsKey(paramName)) {
                     if (param.getDocumentation() == null) {
                         Value paramDocValue =
-                            new Value.ValueBuilder()
-                                .value(paramDocs.get(paramName))
-                                .build();
+                                new Value.ValueBuilder()
+                                        .value(paramDocs.get(paramName))
+                                        .build();
                         param.setDocumentation(paramDocValue);
                     } else {
                         param.getDocumentation().setValue(paramDocs.get(paramName));
@@ -429,5 +359,75 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 }
             }
         }
+    }
+
+    @Override
+    public Optional<Function> getModelTemplate(GetModelContext context) {
+        return getMcpFunctionModel();
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        Map<String, List<TextEdit>> textEdits = super.addModel(context);
+        String toolDescription = extractToolDescription(context.function());
+        return addFunctionDocumentation(textEdits, context, toolDescription);
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        Map<String, List<TextEdit>> result = super.updateModel(context);
+
+        String toolDescription = extractToolDescription(context.function());
+        String returnType = getReturnTypeDescription(context.function());
+
+        Optional<TextEdit> firstEdit = findFirstEdit(result);
+        if (firstEdit.isEmpty()) {
+            return result;
+        }
+
+        TextEdit edit = firstEdit.get();
+        String originalText = edit.getNewText();
+
+        if (originalText == null) {
+            return result;
+        }
+
+        String stripped = originalText.stripLeading();
+
+        if (stripped.startsWith("#")) {
+            // Has documentation - keep it and add tool desc + return type
+            updateDocumentationEdit(edit, originalText, toolDescription, returnType);
+        } else if (stripped.isEmpty()) {
+            // Empty string - add only tool desc and return type
+            String newDoc = buildCompleteDocumentation(toolDescription, "", returnType);
+            edit.setNewText(newDoc);
+        } else {
+            // Non-documentation content - skip update
+            // This could be other code content that shouldn't have documentation prepended
+        }
+
+        return result;
+    }
+
+    @Override
+    public Function getModelFromSource(ModelFromSourceContext context) {
+        Function function = super.getModelFromSource(context);
+
+        // Extract and parse documentation from the function node
+        FunctionDefinitionNode functionNode = (FunctionDefinitionNode) context.node();
+        if (functionNode.metadata().isPresent()) {
+            MetadataNode metadata = functionNode.metadata().get();
+            if (metadata.documentationString().isPresent()) {
+                String documentation = metadata.documentationString().get().toString();
+                parseDocumentation(function, documentation);
+            }
+        }
+
+        return function;
+    }
+
+    @Override
+    public String kind() {
+        return MCP;
     }
 }

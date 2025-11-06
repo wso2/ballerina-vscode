@@ -8,4 +8,3 @@ function transform(Person person, Admission admission) returns Employee => {
         country: person.address.country
     }
 };
-

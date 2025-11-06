@@ -7,9 +7,9 @@
   "response": {
     "service": {
       "id": "10",
-      "name": "RabbitMQ Event Handler",
+      "name": "RabbitMQ Event Integration",
       "type": "rabbitmq",
-      "displayName": "RabbitMQ Event Handler",
+      "displayName": "RabbitMQ Event Integration",
       "moduleName": "rabbitmq",
       "orgName": "ballerinax",
       "version": "3.2.0",
@@ -19,7 +19,7 @@
       "documentation": {
         "metadata": {
           "label": "Description",
-          "description": "The description of the object"
+          "description": "The description of the class"
         },
         "codedata": {
           "type": "DOCUMENTATION"
@@ -41,7 +41,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
           "valueTypeConstraint": "rabbitmq:Listener",
           "value": "",
           "values": [],
@@ -85,6 +85,20 @@
           "valueTypeConstraint": "string",
           "value": "",
           "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {
+            "Queue Name": []
+          },
           "enabled": true,
           "editable": true,
           "optional": false,

@@ -11,17 +11,16 @@
   },
   "response": {
     "listener": {
-      "id": "1",
       "name": "Http Listener",
       "type": "http",
       "displayName": "Http",
-      "description": "This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to\nremote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.",
+      "description": "Gets invoked during module initialization to initialize the listener.\n",
       "moduleName": "http",
       "orgName": "ballerina",
-      "version": "2.14.0",
+      "version": "2.14.7",
       "packageName": "http",
       "listenerProtocol": "http",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -91,7 +90,7 @@
           "typeMembers": [
             {
               "type": "ServerSocketConfig",
-              "packageInfo": "ballerina:http:2.14.0",
+              "packageInfo": "ballerina:http:2.14.7",
               "kind": "RECORD_TYPE",
               "selected": false
             }
@@ -99,7 +98,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "server": {
           "metadata": {
@@ -116,13 +115,13 @@
           "value": "\"0.0.0.0\"",
           "typeMembers": [
             {
-              "type": "()",
+              "type": "string",
               "packageInfo": "",
               "kind": "BASIC_TYPE",
               "selected": false
             },
             {
-              "type": "string",
+              "type": "()",
               "packageInfo": "",
               "kind": "BASIC_TYPE",
               "selected": false
@@ -131,7 +130,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "host": {
           "metadata": {
@@ -142,7 +141,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "host"
           },
-          "placeholder": "\"0.0.0.0\"",
+          "placeholder": "\"\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "string",
           "value": "",
@@ -157,7 +156,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "http1Settings": {
           "metadata": {
@@ -175,7 +174,7 @@
           "typeMembers": [
             {
               "type": "ListenerHttp1Settings",
-              "packageInfo": "ballerina:http:2.14.0",
+              "packageInfo": "ballerina:http:2.14.7",
               "kind": "RECORD_TYPE",
               "selected": false
             }
@@ -183,7 +182,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "secureSocket": {
           "metadata": {
@@ -200,22 +199,22 @@
           "value": "",
           "typeMembers": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "type": "ListenerSecureSocket",
+              "packageInfo": "ballerina:http:2.14.7",
+              "kind": "RECORD_TYPE",
               "selected": false
             },
             {
-              "type": "ListenerSecureSocket",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "type": "()",
+              "packageInfo": "",
+              "kind": "BASIC_TYPE",
               "selected": false
             }
           ],
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "httpVersion": {
           "metadata": {
@@ -226,14 +225,14 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "httpVersion"
           },
-          "placeholder": "http:HTTP_2_0",
+          "placeholder": "\"2.0\"",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "http:HttpVersion",
           "value": "",
           "typeMembers": [
             {
               "type": "HttpVersion",
-              "packageInfo": "ballerina:http:2.14.0",
+              "packageInfo": "ballerina:http:2.14.7",
               "kind": "BASIC_TYPE",
               "selected": false
             }
@@ -241,7 +240,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "timeout": {
           "metadata": {
@@ -252,7 +251,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "timeout"
           },
-          "placeholder": "http:DEFAULT_LISTENER_TIMEOUT",
+          "placeholder": "0.0d",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "decimal",
           "value": "",
@@ -267,7 +266,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "requestLimits": {
           "metadata": {
@@ -285,7 +284,7 @@
           "typeMembers": [
             {
               "type": "RequestLimitConfigs",
-              "packageInfo": "ballerina:http:2.14.0",
+              "packageInfo": "ballerina:http:2.14.7",
               "kind": "RECORD_TYPE",
               "selected": false
             }
@@ -293,7 +292,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "gracefulStopTimeout": {
           "metadata": {
@@ -304,7 +303,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "gracefulStopTimeout"
           },
-          "placeholder": "http:DEFAULT_GRACEFULSTOP_TIMEOUT",
+          "placeholder": "0.0d",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "decimal",
           "value": "",
@@ -319,7 +318,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "http2InitialWindowSize": {
           "metadata": {
@@ -330,7 +329,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "http2InitialWindowSize"
           },
-          "placeholder": "65535",
+          "placeholder": "0",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "int",
           "value": "",
@@ -345,7 +344,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "minIdleTimeInStaleState": {
           "metadata": {
@@ -356,7 +355,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "minIdleTimeInStaleState"
           },
-          "placeholder": "300",
+          "placeholder": "0.0d",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "decimal",
           "value": "",
@@ -371,7 +370,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         },
         "timeBetweenStaleEviction": {
           "metadata": {
@@ -382,7 +381,7 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "timeBetweenStaleEviction"
           },
-          "placeholder": "30",
+          "placeholder": "0.0d",
           "valueType": "EXPRESSION",
           "valueTypeConstraint": "decimal",
           "value": "",
@@ -397,7 +396,7 @@
           "enabled": true,
           "editable": true,
           "optional": true,
-          "advanced": true
+          "advanced": false
         }
       },
       "codedata": {

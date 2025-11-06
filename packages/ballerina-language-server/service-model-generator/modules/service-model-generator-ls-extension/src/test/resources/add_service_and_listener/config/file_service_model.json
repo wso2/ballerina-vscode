@@ -94,7 +94,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener file:Listener fileListener = new (path = \"/Users\", recursive = true);\nservice file:Service on fileListener {\n\tremote function onCreate(file:FileEvent event) {\n\t}\n}\n"
+        "newText": "\nlistener file:Listener fileListener = new (path = \"/Users\", recursive = true);\nservice file:Service on fileListener {\n\n}\n"
       }
     ]
   }

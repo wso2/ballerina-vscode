@@ -56,15 +56,52 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  */
 public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
+    public static final String PAYLOAD_FIELD_NAME = "content";
+    public static final String TYPE_PREFIX = "RabbitMQAnydataMessage";
     private static final String ON_MESSAGE = "onMessage";
     private static final String ON_REQUEST = "onRequest";
+
+    /**
+     * Filters the RabbitMQ service functions to ensure that only one of `onMessage` or `onRequest` is present. If both
+     * are present, it retains the enabled one and removes the other.
+     *
+     * @param functions List of functions in the RabbitMQ service
+     * @return The name of the enabled function (onMessage or onRequest), or null if neither is enabled
+     */
+    private static String filterRabbitMqFunctions(List<Function> functions) {
+        boolean hasOnMessage = false;
+        boolean hasOnRequest = false;
+        int onMessageIndex = -1;
+        int onRequestIndex = -1;
+        for (int i = 0; i < functions.size(); i++) {
+            Function function = functions.get(i);
+            String functionName = function.getName().getValue();
+            if (functionName.equals(ON_MESSAGE)) {
+                hasOnMessage = function.isEnabled();
+                onMessageIndex = i;
+            } else if (functionName.equals(ON_REQUEST)) {
+                hasOnRequest = function.isEnabled();
+                onRequestIndex = i;
+            }
+        }
+        if (hasOnMessage) {
+            functions.remove(onRequestIndex);
+            return ON_MESSAGE;
+        } else if (hasOnRequest) {
+            functions.remove(onMessageIndex);
+            return ON_REQUEST;
+        }
+        return null;
+    }
 
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Service service = super.getModelFromSource(context);
         String enabledFunction = filterRabbitMqFunctions(service.getFunctions());
         if (enabledFunction != null) {
-            addDataBindingParam(service, enabledFunction, context);
+            addDataBindingParam(service, enabledFunction, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
+        } else {
+            addDataBindingParam(service, ON_MESSAGE, context, PAYLOAD_FIELD_NAME, TYPE_PREFIX);
         }
         return service;
     }
@@ -156,39 +193,6 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
                 .setAdvanced(false)
                 .setProperties(existingListenerProps)
                 .build();
-    }
-
-    /**
-     * Filters the RabbitMQ service functions to ensure that only one of `onMessage` or `onRequest` is present. If both
-     * are present, it retains the enabled one and removes the other.
-     *
-     * @param functions List of functions in the RabbitMQ service
-     * @return The name of the enabled function (onMessage or onRequest), or null if neither is enabled
-     */
-    private static String filterRabbitMqFunctions(List<Function> functions) {
-        boolean hasOnMessage = false;
-        boolean hasOnRequest = false;
-        int onMessageIndex = -1;
-        int onRequestIndex = -1;
-        for (int i = 0; i < functions.size(); i++) {
-            Function function = functions.get(i);
-            String functionName = function.getName().getValue();
-            if (functionName.equals(ON_MESSAGE)) {
-                hasOnMessage = function.isEnabled();
-                onMessageIndex = i;
-            } else if (functionName.equals(ON_REQUEST)) {
-                hasOnRequest = function.isEnabled();
-                onRequestIndex = i;
-            }
-        }
-        if (hasOnMessage) {
-            functions.remove(onRequestIndex);
-            return ON_MESSAGE;
-        } else if (hasOnRequest) {
-            functions.remove(onMessageIndex);
-            return ON_REQUEST;
-        }
-        return null;
     }
 
     @Override

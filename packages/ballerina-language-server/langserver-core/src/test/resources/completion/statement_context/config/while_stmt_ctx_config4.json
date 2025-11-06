@@ -8,6 +8,9 @@
   "items": [
     {
       "label": "testInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",

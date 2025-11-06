@@ -83,21 +83,22 @@ class GraphQlClient {
         return gson.fromJson(response, FunctionsResponse.class);
     }
 
-    static Type listenersType = new TypeToken<List<Listener>>(){}.getType();
+    static Type listenersType = new TypeToken<List<Listener>>() {
+    }.getType();
 
     public Listeners getListeners(String org, String module, String version) {
-        String queryTemplate = "query ApiDocs {\n" +
-                "    apiDocs(\n" +
-                "        inputFilter: {\n" +
-                "            moduleInfo: { orgName: \\\"%s\\\", moduleName: \\\"%s\\\", version: \\\"%s\\\" }\n" +
-                "        }\n" +
-                "    ) {\n" +
-                "        docsData {\n" +
-                "            modules {\n" +
-                "                listeners\n" +
-                "            }\n" +
-                "        }\n" +
-                "    }\n" +
+        String queryTemplate = "query ApiDocs {%n" +
+                "    apiDocs(%n" +
+                "        inputFilter: {%n" +
+                "            moduleInfo: { orgName: \\\"%s\\\", moduleName: \\\"%s\\\", version: \\\"%s\\\" }%n" +
+                "        }%n" +
+                "    ) {%n" +
+                "        docsData {%n" +
+                "            modules {%n" +
+                "                listeners%n" +
+                "            }%n" +
+                "        }%n" +
+                "    }%n" +
                 "}";
         String queryBody = String.format(queryTemplate, org, module, version);
         String response = query(queryBody);

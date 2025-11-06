@@ -3,582 +3,647 @@
   "description": "Get the list of http status code types",
   "context": "HTTP_STATUS_CODE",
   "result": {
-    "left": [ {
-      "label" : "Continue",
-      "labelDetails" : {
-        "detail" : "100",
-        "description" : "1XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Continue",
-      "insertText" : "Continue"
-    }, {
-      "label" : "Switching Protocols",
-      "labelDetails" : {
-        "detail" : "101",
-        "description" : "1XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:SwitchingProtocols",
-      "insertText" : "Switching Protocols"
-    }, {
-      "label" : "Processing",
-      "labelDetails" : {
-        "detail" : "102",
-        "description" : "1XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Processing",
-      "insertText" : "Processing"
-    }, {
-      "label" : "Early Hints",
-      "labelDetails" : {
-        "detail" : "103",
-        "description" : "1XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:EarlyHints",
-      "insertText" : "Early Hints"
-    }, {
-      "label" : "Ok",
-      "labelDetails" : {
-        "detail" : "200",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Ok",
-      "insertText" : "Ok"
-    }, {
-      "label" : "Created",
-      "labelDetails" : {
-        "detail" : "201",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Created",
-      "insertText" : "Created"
-    }, {
-      "label" : "Accepted",
-      "labelDetails" : {
-        "detail" : "202",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Accepted",
-      "insertText" : "Accepted"
-    }, {
-      "label" : "Non Authoritative Information",
-      "labelDetails" : {
-        "detail" : "203",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NonAuthoritativeInformation",
-      "insertText" : "Non Authoritative Information"
-    }, {
-      "label" : "No Content",
-      "labelDetails" : {
-        "detail" : "204",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NoContent",
-      "insertText" : "No Content"
-    }, {
-      "label" : "Reset Content",
-      "labelDetails" : {
-        "detail" : "205",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:ResetContent",
-      "insertText" : "Reset Content"
-    }, {
-      "label" : "Partial Content",
-      "labelDetails" : {
-        "detail" : "206",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PartialContent",
-      "insertText" : "Partial Content"
-    }, {
-      "label" : "Multi Status",
-      "labelDetails" : {
-        "detail" : "207",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:MultiStatus",
-      "insertText" : "Multi Status"
-    }, {
-      "label" : "Already Reported",
-      "labelDetails" : {
-        "detail" : "208",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:AlreadyReported",
-      "insertText" : "Already Reported"
-    }, {
-      "label" : "IM Used",
-      "labelDetails" : {
-        "detail" : "226",
-        "description" : "2XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:IMUsed",
-      "insertText" : "IM Used"
-    }, {
-      "label" : "Multiple Choices",
-      "labelDetails" : {
-        "detail" : "300",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:MultipleChoices",
-      "insertText" : "Multiple Choices"
-    }, {
-      "label" : "Moved Permanently",
-      "labelDetails" : {
-        "detail" : "301",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:MovedPermanently",
-      "insertText" : "Moved Permanently"
-    }, {
-      "label" : "Found",
-      "labelDetails" : {
-        "detail" : "302",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Found",
-      "insertText" : "Found"
-    }, {
-      "label" : "See Other",
-      "labelDetails" : {
-        "detail" : "303",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:SeeOther",
-      "insertText" : "See Other"
-    }, {
-      "label" : "Not Modified",
-      "labelDetails" : {
-        "detail" : "304",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NotModified",
-      "insertText" : "Not Modified"
-    }, {
-      "label" : "Use Proxy",
-      "labelDetails" : {
-        "detail" : "305",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UseProxy",
-      "insertText" : "Use Proxy"
-    }, {
-      "label" : "Temporary Redirect",
-      "labelDetails" : {
-        "detail" : "307",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:TemporaryRedirect",
-      "insertText" : "Temporary Redirect"
-    }, {
-      "label" : "Permanent Redirect",
-      "labelDetails" : {
-        "detail" : "308",
-        "description" : "3XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PermanentRedirect",
-      "insertText" : "Permanent Redirect"
-    }, {
-      "label" : "Bad Request",
-      "labelDetails" : {
-        "detail" : "400",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:BadRequest",
-      "insertText" : "Bad Request"
-    }, {
-      "label" : "Unauthorized",
-      "labelDetails" : {
-        "detail" : "401",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Unauthorized",
-      "insertText" : "Unauthorized"
-    }, {
-      "label" : "Payment Required",
-      "labelDetails" : {
-        "detail" : "402",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PaymentRequired",
-      "insertText" : "Payment Required"
-    }, {
-      "label" : "Forbidden",
-      "labelDetails" : {
-        "detail" : "403",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Forbidden",
-      "insertText" : "Forbidden"
-    }, {
-      "label" : "Not Found",
-      "labelDetails" : {
-        "detail" : "404",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NotFound",
-      "insertText" : "Not Found"
-    }, {
-      "label" : "Method Not Allowed",
-      "labelDetails" : {
-        "detail" : "405",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:MethodNotAllowed",
-      "insertText" : "Method Not Allowed"
-    }, {
-      "label" : "Not Acceptable",
-      "labelDetails" : {
-        "detail" : "406",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NotAcceptable",
-      "insertText" : "Not Acceptable"
-    }, {
-      "label" : "Proxy Authentication Required",
-      "labelDetails" : {
-        "detail" : "407",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:ProxyAuthenticationRequired",
-      "insertText" : "Proxy Authentication Required"
-    }, {
-      "label" : "Request Time Out",
-      "labelDetails" : {
-        "detail" : "408",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:RequestTimeOut",
-      "insertText" : "Request Time Out"
-    }, {
-      "label" : "Conflict",
-      "labelDetails" : {
-        "detail" : "409",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Conflict",
-      "insertText" : "Conflict"
-    }, {
-      "label" : "Gone",
-      "labelDetails" : {
-        "detail" : "410",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Gone",
-      "insertText" : "Gone"
-    }, {
-      "label" : "Length Required",
-      "labelDetails" : {
-        "detail" : "411",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:LengthRequired",
-      "insertText" : "Length Required"
-    }, {
-      "label" : "Precondition Failed",
-      "labelDetails" : {
-        "detail" : "412",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PreconditionFailed",
-      "insertText" : "Precondition Failed"
-    }, {
-      "label" : "Payload Too Large",
-      "labelDetails" : {
-        "detail" : "413",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PayloadTooLarge",
-      "insertText" : "Payload Too Large"
-    }, {
-      "label" : "URI Too Long",
-      "labelDetails" : {
-        "detail" : "414",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UriTooLong",
-      "insertText" : "URI Too Long"
-    }, {
-      "label" : "Unsupported Media Type",
-      "labelDetails" : {
-        "detail" : "415",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UnsupportedMediaType",
-      "insertText" : "Unsupported Media Type"
-    }, {
-      "label" : "Range Not Satisfiable",
-      "labelDetails" : {
-        "detail" : "416",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:RangeNotSatisfiable",
-      "insertText" : "Range Not Satisfiable"
-    }, {
-      "label" : "Expectation Failed",
-      "labelDetails" : {
-        "detail" : "417",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:ExpectationFailed",
-      "insertText" : "Expectation Failed"
-    }, {
-      "label" : "Misdirected Request",
-      "labelDetails" : {
-        "detail" : "421",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:MisdirectedRequest",
-      "insertText" : "Misdirected Request"
-    }, {
-      "label" : "Unprocessable Entity",
-      "labelDetails" : {
-        "detail" : "422",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UnprocessableEntity",
-      "insertText" : "Unprocessable Entity"
-    }, {
-      "label" : "Locked",
-      "labelDetails" : {
-        "detail" : "423",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:Locked",
-      "insertText" : "Locked"
-    }, {
-      "label" : "Failed Dependency",
-      "labelDetails" : {
-        "detail" : "424",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:FailedDependency",
-      "insertText" : "Failed Dependency"
-    }, {
-      "label" : "Too Early",
-      "labelDetails" : {
-        "detail" : "425",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:TooEarly",
-      "insertText" : "Too Early"
-    }, {
-      "label" : "Upgrade Required",
-      "labelDetails" : {
-        "detail" : "426",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UpgradeRequired",
-      "insertText" : "Upgrade Required"
-    }, {
-      "label" : "Precondition Required",
-      "labelDetails" : {
-        "detail" : "428",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:PreconditionRequired",
-      "insertText" : "Precondition Required"
-    }, {
-      "label" : "Too Many Requests",
-      "labelDetails" : {
-        "detail" : "429",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:TooManyRequests",
-      "insertText" : "Too Many Requests"
-    }, {
-      "label" : "Request Header Fields Too Large",
-      "labelDetails" : {
-        "detail" : "431",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:RequestHeaderFieldsTooLarge",
-      "insertText" : "Request Header Fields Too Large"
-    }, {
-      "label" : "Unavailable Due to Legal Reasons",
-      "labelDetails" : {
-        "detail" : "451",
-        "description" : "4XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:UnavailableDueToLegalReasons",
-      "insertText" : "Unavailable Due to Legal Reasons"
-    }, {
-      "label" : "Internal Server Error",
-      "labelDetails" : {
-        "detail" : "500",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:InternalServerError",
-      "insertText" : "Internal Server Error"
-    }, {
-      "label" : "Not Implemented",
-      "labelDetails" : {
-        "detail" : "501",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NotImplemented",
-      "insertText" : "Not Implemented"
-    }, {
-      "label" : "Bad Gateway",
-      "labelDetails" : {
-        "detail" : "502",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:BadGateway",
-      "insertText" : "Bad Gateway"
-    }, {
-      "label" : "Service Unavailable",
-      "labelDetails" : {
-        "detail" : "503",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:ServiceUnavailable",
-      "insertText" : "Service Unavailable"
-    }, {
-      "label" : "Gateway Timeout",
-      "labelDetails" : {
-        "detail" : "504",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:GatewayTimeout",
-      "insertText" : "Gateway Timeout"
-    }, {
-      "label" : "HTTP Version Not Supported",
-      "labelDetails" : {
-        "detail" : "505",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:HttpVersionNotSupported",
-      "insertText" : "HTTP Version Not Supported"
-    }, {
-      "label" : "Variant Also Negotiates",
-      "labelDetails" : {
-        "detail" : "506",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:VariantAlsoNegotiates",
-      "insertText" : "Variant Also Negotiates"
-    }, {
-      "label" : "Insufficient Storage",
-      "labelDetails" : {
-        "detail" : "507",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:InsufficientStorage",
-      "insertText" : "Insufficient Storage"
-    }, {
-      "label" : "Loop Detected",
-      "labelDetails" : {
-        "detail" : "508",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:LoopDetected",
-      "insertText" : "Loop Detected"
-    }, {
-      "label" : "Not Extended",
-      "labelDetails" : {
-        "detail" : "510",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NotExtended",
-      "insertText" : "Not Extended"
-    }, {
-      "label" : "Network Authentication Required",
-      "labelDetails" : {
-        "detail" : "511",
-        "description" : "5XX"
-      },
-      "kind" : "Class",
-      "detail" : "http:NetworkAuthenticationRequired",
-      "insertText" : "Network Authentication Required"
-    }, {
-      "label" : "Json202Accepted",
-      "labelDetails" : {
-        "detail" : "202",
-        "description" : "User-Defined"
-      },
-      "kind" : "Interface",
-      "detail" : "Json202Accepted",
-      "insertText" : "Json202Accepted"
-    }, {
-      "label" : "Response",
-      "labelDetails" : {
-        "detail" : "Dynamic",
-        "description" : "Dynamic"
-      },
-      "kind" : "Class",
-      "detail" : "http:Response",
-      "insertText" : "Response"
-    }, {
-      "label" : "error",
-      "labelDetails" : {
-        "detail" : "500",
-        "description" : "Error Type"
-      },
-      "kind" : "Class",
-      "detail" : "error",
-      "insertText" : "error"
-    } ]
+    "left": [
+      {
+        "label": "Continue",
+        "labelDetails": {
+          "detail": "100",
+          "description": "1XX"
+        },
+        "kind": "Class",
+        "detail": "http:Continue",
+        "insertText": "Continue"
+      },
+      {
+        "label": "Switching Protocols",
+        "labelDetails": {
+          "detail": "101",
+          "description": "1XX"
+        },
+        "kind": "Class",
+        "detail": "http:SwitchingProtocols",
+        "insertText": "Switching Protocols"
+      },
+      {
+        "label": "Processing",
+        "labelDetails": {
+          "detail": "102",
+          "description": "1XX"
+        },
+        "kind": "Class",
+        "detail": "http:Processing",
+        "insertText": "Processing"
+      },
+      {
+        "label": "Early Hints",
+        "labelDetails": {
+          "detail": "103",
+          "description": "1XX"
+        },
+        "kind": "Class",
+        "detail": "http:EarlyHints",
+        "insertText": "Early Hints"
+      },
+      {
+        "label": "Ok",
+        "labelDetails": {
+          "detail": "200",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:Ok",
+        "insertText": "Ok"
+      },
+      {
+        "label": "Created",
+        "labelDetails": {
+          "detail": "201",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:Created",
+        "insertText": "Created"
+      },
+      {
+        "label": "Accepted",
+        "labelDetails": {
+          "detail": "202",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:Accepted",
+        "insertText": "Accepted"
+      },
+      {
+        "label": "Non Authoritative Information",
+        "labelDetails": {
+          "detail": "203",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:NonAuthoritativeInformation",
+        "insertText": "Non Authoritative Information"
+      },
+      {
+        "label": "No Content",
+        "labelDetails": {
+          "detail": "204",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:NoContent",
+        "insertText": "No Content"
+      },
+      {
+        "label": "Reset Content",
+        "labelDetails": {
+          "detail": "205",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:ResetContent",
+        "insertText": "Reset Content"
+      },
+      {
+        "label": "Partial Content",
+        "labelDetails": {
+          "detail": "206",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:PartialContent",
+        "insertText": "Partial Content"
+      },
+      {
+        "label": "Multi Status",
+        "labelDetails": {
+          "detail": "207",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:MultiStatus",
+        "insertText": "Multi Status"
+      },
+      {
+        "label": "Already Reported",
+        "labelDetails": {
+          "detail": "208",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:AlreadyReported",
+        "insertText": "Already Reported"
+      },
+      {
+        "label": "IM Used",
+        "labelDetails": {
+          "detail": "226",
+          "description": "2XX"
+        },
+        "kind": "Class",
+        "detail": "http:IMUsed",
+        "insertText": "IM Used"
+      },
+      {
+        "label": "Multiple Choices",
+        "labelDetails": {
+          "detail": "300",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:MultipleChoices",
+        "insertText": "Multiple Choices"
+      },
+      {
+        "label": "Moved Permanently",
+        "labelDetails": {
+          "detail": "301",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:MovedPermanently",
+        "insertText": "Moved Permanently"
+      },
+      {
+        "label": "Found",
+        "labelDetails": {
+          "detail": "302",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:Found",
+        "insertText": "Found"
+      },
+      {
+        "label": "See Other",
+        "labelDetails": {
+          "detail": "303",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:SeeOther",
+        "insertText": "See Other"
+      },
+      {
+        "label": "Not Modified",
+        "labelDetails": {
+          "detail": "304",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:NotModified",
+        "insertText": "Not Modified"
+      },
+      {
+        "label": "Use Proxy",
+        "labelDetails": {
+          "detail": "305",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:UseProxy",
+        "insertText": "Use Proxy"
+      },
+      {
+        "label": "Temporary Redirect",
+        "labelDetails": {
+          "detail": "307",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:TemporaryRedirect",
+        "insertText": "Temporary Redirect"
+      },
+      {
+        "label": "Permanent Redirect",
+        "labelDetails": {
+          "detail": "308",
+          "description": "3XX"
+        },
+        "kind": "Class",
+        "detail": "http:PermanentRedirect",
+        "insertText": "Permanent Redirect"
+      },
+      {
+        "label": "Bad Request",
+        "labelDetails": {
+          "detail": "400",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:BadRequest",
+        "insertText": "Bad Request"
+      },
+      {
+        "label": "Unauthorized",
+        "labelDetails": {
+          "detail": "401",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:Unauthorized",
+        "insertText": "Unauthorized"
+      },
+      {
+        "label": "Payment Required",
+        "labelDetails": {
+          "detail": "402",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:PaymentRequired",
+        "insertText": "Payment Required"
+      },
+      {
+        "label": "Forbidden",
+        "labelDetails": {
+          "detail": "403",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:Forbidden",
+        "insertText": "Forbidden"
+      },
+      {
+        "label": "Not Found",
+        "labelDetails": {
+          "detail": "404",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:NotFound",
+        "insertText": "Not Found"
+      },
+      {
+        "label": "Method Not Allowed",
+        "labelDetails": {
+          "detail": "405",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:MethodNotAllowed",
+        "insertText": "Method Not Allowed"
+      },
+      {
+        "label": "Not Acceptable",
+        "labelDetails": {
+          "detail": "406",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:NotAcceptable",
+        "insertText": "Not Acceptable"
+      },
+      {
+        "label": "Proxy Authentication Required",
+        "labelDetails": {
+          "detail": "407",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:ProxyAuthenticationRequired",
+        "insertText": "Proxy Authentication Required"
+      },
+      {
+        "label": "Request Time Out",
+        "labelDetails": {
+          "detail": "408",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:RequestTimeOut",
+        "insertText": "Request Time Out"
+      },
+      {
+        "label": "Conflict",
+        "labelDetails": {
+          "detail": "409",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:Conflict",
+        "insertText": "Conflict"
+      },
+      {
+        "label": "Gone",
+        "labelDetails": {
+          "detail": "410",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:Gone",
+        "insertText": "Gone"
+      },
+      {
+        "label": "Length Required",
+        "labelDetails": {
+          "detail": "411",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:LengthRequired",
+        "insertText": "Length Required"
+      },
+      {
+        "label": "Precondition Failed",
+        "labelDetails": {
+          "detail": "412",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:PreconditionFailed",
+        "insertText": "Precondition Failed"
+      },
+      {
+        "label": "Payload Too Large",
+        "labelDetails": {
+          "detail": "413",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:PayloadTooLarge",
+        "insertText": "Payload Too Large"
+      },
+      {
+        "label": "URI Too Long",
+        "labelDetails": {
+          "detail": "414",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:UriTooLong",
+        "insertText": "URI Too Long"
+      },
+      {
+        "label": "Unsupported Media Type",
+        "labelDetails": {
+          "detail": "415",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:UnsupportedMediaType",
+        "insertText": "Unsupported Media Type"
+      },
+      {
+        "label": "Range Not Satisfiable",
+        "labelDetails": {
+          "detail": "416",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:RangeNotSatisfiable",
+        "insertText": "Range Not Satisfiable"
+      },
+      {
+        "label": "Expectation Failed",
+        "labelDetails": {
+          "detail": "417",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:ExpectationFailed",
+        "insertText": "Expectation Failed"
+      },
+      {
+        "label": "Misdirected Request",
+        "labelDetails": {
+          "detail": "421",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:MisdirectedRequest",
+        "insertText": "Misdirected Request"
+      },
+      {
+        "label": "Unprocessable Entity",
+        "labelDetails": {
+          "detail": "422",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:UnprocessableEntity",
+        "insertText": "Unprocessable Entity"
+      },
+      {
+        "label": "Locked",
+        "labelDetails": {
+          "detail": "423",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:Locked",
+        "insertText": "Locked"
+      },
+      {
+        "label": "Failed Dependency",
+        "labelDetails": {
+          "detail": "424",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:FailedDependency",
+        "insertText": "Failed Dependency"
+      },
+      {
+        "label": "Too Early",
+        "labelDetails": {
+          "detail": "425",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:TooEarly",
+        "insertText": "Too Early"
+      },
+      {
+        "label": "Upgrade Required",
+        "labelDetails": {
+          "detail": "426",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:UpgradeRequired",
+        "insertText": "Upgrade Required"
+      },
+      {
+        "label": "Precondition Required",
+        "labelDetails": {
+          "detail": "428",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:PreconditionRequired",
+        "insertText": "Precondition Required"
+      },
+      {
+        "label": "Too Many Requests",
+        "labelDetails": {
+          "detail": "429",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:TooManyRequests",
+        "insertText": "Too Many Requests"
+      },
+      {
+        "label": "Request Header Fields Too Large",
+        "labelDetails": {
+          "detail": "431",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:RequestHeaderFieldsTooLarge",
+        "insertText": "Request Header Fields Too Large"
+      },
+      {
+        "label": "Unavailable Due to Legal Reasons",
+        "labelDetails": {
+          "detail": "451",
+          "description": "4XX"
+        },
+        "kind": "Class",
+        "detail": "http:UnavailableDueToLegalReasons",
+        "insertText": "Unavailable Due to Legal Reasons"
+      },
+      {
+        "label": "Internal Server Error",
+        "labelDetails": {
+          "detail": "500",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:InternalServerError",
+        "insertText": "Internal Server Error"
+      },
+      {
+        "label": "Not Implemented",
+        "labelDetails": {
+          "detail": "501",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:NotImplemented",
+        "insertText": "Not Implemented"
+      },
+      {
+        "label": "Bad Gateway",
+        "labelDetails": {
+          "detail": "502",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:BadGateway",
+        "insertText": "Bad Gateway"
+      },
+      {
+        "label": "Service Unavailable",
+        "labelDetails": {
+          "detail": "503",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:ServiceUnavailable",
+        "insertText": "Service Unavailable"
+      },
+      {
+        "label": "Gateway Timeout",
+        "labelDetails": {
+          "detail": "504",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:GatewayTimeout",
+        "insertText": "Gateway Timeout"
+      },
+      {
+        "label": "HTTP Version Not Supported",
+        "labelDetails": {
+          "detail": "505",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:HttpVersionNotSupported",
+        "insertText": "HTTP Version Not Supported"
+      },
+      {
+        "label": "Variant Also Negotiates",
+        "labelDetails": {
+          "detail": "506",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:VariantAlsoNegotiates",
+        "insertText": "Variant Also Negotiates"
+      },
+      {
+        "label": "Insufficient Storage",
+        "labelDetails": {
+          "detail": "507",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:InsufficientStorage",
+        "insertText": "Insufficient Storage"
+      },
+      {
+        "label": "Loop Detected",
+        "labelDetails": {
+          "detail": "508",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:LoopDetected",
+        "insertText": "Loop Detected"
+      },
+      {
+        "label": "Not Extended",
+        "labelDetails": {
+          "detail": "510",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:NotExtended",
+        "insertText": "Not Extended"
+      },
+      {
+        "label": "Network Authentication Required",
+        "labelDetails": {
+          "detail": "511",
+          "description": "5XX"
+        },
+        "kind": "Class",
+        "detail": "http:NetworkAuthenticationRequired",
+        "insertText": "Network Authentication Required"
+      },
+      {
+        "label": "Json202Accepted",
+        "labelDetails": {
+          "detail": "202",
+          "description": "User-Defined"
+        },
+        "kind": "Interface",
+        "detail": "Json202Accepted",
+        "insertText": "Json202Accepted"
+      },
+      {
+        "label": "Response",
+        "labelDetails": {
+          "detail": "Dynamic",
+          "description": "Dynamic"
+        },
+        "kind": "Class",
+        "detail": "http:Response",
+        "insertText": "Response"
+      },
+      {
+        "label": "error",
+        "labelDetails": {
+          "detail": "500",
+          "description": "Error Type"
+        },
+        "kind": "Class",
+        "detail": "error",
+        "insertText": "error"
+      }
+    ]
   }
 }

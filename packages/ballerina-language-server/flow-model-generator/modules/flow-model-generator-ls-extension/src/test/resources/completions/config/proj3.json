@@ -494,6 +494,10 @@
     },
     {
       "label": "numbers",
+      "labelDetails": {
+        "detail": " int[]",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AABB",
@@ -540,6 +544,9 @@
     },
     {
       "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AABB",

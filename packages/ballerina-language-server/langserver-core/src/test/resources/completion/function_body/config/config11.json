@@ -4,6 +4,7 @@
     "character": 9
   },
   "source": "function_body/source/source11.bal",
+  "description": "",
   "items": [
     {
       "label": "TEST_INT_CONST1",
@@ -181,6 +182,10 @@
     },
     {
       "label": "listener1",
+      "labelDetails": {
+        "detail": " mod1:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "mod1:Listener",
       "sortText": "D",
@@ -257,6 +262,9 @@
     },
     {
       "label": "TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "D",
@@ -265,6 +273,9 @@
     },
     {
       "label": "GLOBAL_VAR",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "D",

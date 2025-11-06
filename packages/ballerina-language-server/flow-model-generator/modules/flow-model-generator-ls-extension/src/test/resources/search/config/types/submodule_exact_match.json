@@ -1,0 +1,693 @@
+{
+  "description": "Test exact match - highest priority ranking",
+  "kind": "TYPE",
+  "source": "proj2/automation.bal",
+  "queryMap": {
+    "q": "Search",
+    "limit": "30"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "mod1.Weather",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Search",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Search",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAutocompleteWeatherQueries",
+                "description": "Represents the Queries record for the operation: search-autocomplete-weather"
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "SearchAutocompleteWeatherQueries",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ArrayOfSearch",
+                "description": ""
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ArrayOfSearch",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "azure.ai.search",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchIndexerLimits",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "azure.ai.search",
+                "packageName": "azure.ai.search",
+                "symbol": "SearchIndexerLimits",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "optimizely",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResult",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optimizely_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "optimizely",
+                "packageName": "optimizely",
+                "symbol": "SearchResult",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "smartsheet",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultItem",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultItem",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResult",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResult",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResultData",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultData",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResponse",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "icons8",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Search",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_icons8_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "icons8",
+                "packageName": "icons8",
+                "symbol": "Search",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "geonames",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_geonames_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "geonames",
+                "packageName": "geonames",
+                "symbol": "SearchResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "squareup",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchCatalogObjectsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchCatalogObjectsRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAvailabilityRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchAvailabilityRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalCheckoutsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalCheckoutsRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchCatalogObjectsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchCatalogObjectsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAvailabilityResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchAvailabilityResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalCheckoutsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalCheckoutsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalRefundsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalRefundsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalRefundsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalRefundsRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "prodpad",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchProduct",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchProduct",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchFeedback",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchFeedback",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchfeedbackCustomer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchfeedbackCustomer",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchPersona",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchPersona",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResults",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchResults",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "sugarcrm",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchOptions",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "sugarcrm",
+                "packageName": "sugarcrm",
+                "symbol": "SearchOptions",
+                "version": "1.4.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchBackendStatus",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_sugarcrm_1.4.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "sugarcrm",
+                "packageName": "sugarcrm",
+                "symbol": "SearchBackendStatus",
+                "version": "1.4.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "edocs",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchData",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edocs_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "edocs",
+                "packageName": "edocs",
+                "symbol": "SearchData",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "shortcut",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Search",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_shortcut_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "shortcut",
+                "packageName": "shortcut",
+                "symbol": "Search",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchStories",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_shortcut_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "shortcut",
+                "packageName": "shortcut",
+                "symbol": "SearchStories",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultTextMatches",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "SearchResultTextMatches",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "automata",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_automata_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "automata",
+                "packageName": "automata",
+                "symbol": "SearchResponse",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "visiblethread",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Search",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_visiblethread_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "visiblethread",
+                "packageName": "visiblethread",
+                "symbol": "Search",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "spotto",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchableSortFields",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_spotto_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "spotto",
+                "packageName": "spotto",
+                "symbol": "SearchableSortFields",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

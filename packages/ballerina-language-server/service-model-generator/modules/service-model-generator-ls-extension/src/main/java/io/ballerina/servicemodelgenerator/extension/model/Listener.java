@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -77,27 +77,74 @@ public class Listener {
                 codedata.getArgType().equals("REQUIRED");
     }
 
-    public String getDeclaration() {
-        List<String> params = new ArrayList<>();
-        StringBuilder listenerDeclaration = new StringBuilder();
-        listenerDeclaration.append("listener ");
-        listenerDeclaration.append(listenerProtocol);
-        listenerDeclaration.append(":Listener ");
-        listenerDeclaration.append(getValueString(getVariableNameProperty()));
-        listenerDeclaration.append(" = new ");
-        listenerDeclaration.append("(");
-        properties.forEach((key, value) -> { // TODO: Order could go wrong here
+    /**
+     * Generates the complete listener definition based on whether a variable name is provided.
+     * Returns either a listener declaration with variable assignment or an explicit listener expression.
+     *
+     * @return the complete listener definition as a string
+     */
+    public String getListenerDefinition() {
+        if (properties.containsKey(PROP_KEY_VARIABLE_NAME)) {
+            return getListenerDeclaration();
+        }
+        return getInlineListenerExpression();
+    }
+
+    /**
+     * Generates a listener declaration statement with variable assignment.
+     * Creates a statement in the format:
+     * {@code listener protocol:Listener variableName = new protocol:Listener(params);}
+     *
+     * @return the listener declaration statement as a string
+     */
+    public String getListenerDeclaration() {
+        StringBuilder declaration = new StringBuilder();
+        declaration.append("listener ")
+                .append(listenerProtocol)
+                .append(":Listener ")
+                .append(getValueString(getVariableNameProperty()))
+                .append(" = new ");
+
+        appendListenerConstructorCall(declaration);
+        declaration.append(";");
+
+        return declaration.toString();
+    }
+
+    /**
+     * Generates an inline listener expression without variable assignment.
+     * Creates an expression in the format: {@code new protocol:Listener(params)}
+     *
+     * @return the inline listener expression as a string
+     */
+    public String getInlineListenerExpression() {
+        StringBuilder expression = new StringBuilder("new ");
+        expression.append(listenerProtocol).append(":Listener ");
+        appendListenerConstructorCall(expression);
+        return expression.toString();
+    }
+
+    /**
+     * Appends the listener constructor call with parameters to the provided StringBuilder.
+     * Processes all enabled listener initialization properties and formats them as constructor arguments.
+     * Required arguments are added as positional parameters, while optional arguments are added as named parameters.
+     *
+     * @param builder the StringBuilder to append the constructor call to
+     */
+    private void appendListenerConstructorCall(StringBuilder builder) {
+        List<String> parameters = new ArrayList<>();
+        properties.forEach((key, value) -> {
             if (value.isEnabledWithValue() && isListenerInitProperty(value)) {
                 if (isRequiredArgument(value)) {
-                    params.add(getValueString(value));
+                    parameters.add(getValueString(value));
                 } else {
-                    params.add(String.format("%s = %s", key, getValueString(value)));
+                    parameters.add(String.format("%s = %s", key, getValueString(value)));
                 }
             }
         });
-        listenerDeclaration.append(String.join(", ", params));
-        listenerDeclaration.append(");");
-        return listenerDeclaration.toString();
+        builder.append("(")
+                .append(String.join(", ", parameters))
+                .append(")");
     }
 
     public String getOrgName() {
@@ -113,11 +160,15 @@ public class Listener {
     }
 
     public Value getVariableNameProperty() {
-        return properties.get(VARIABLE_NAME_KEY);
+        return properties.get(PROP_KEY_VARIABLE_NAME);
     }
 
     public Map<String, Value> getProperties() {
         return properties;
+    }
+
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
     }
 
     public String getListenerProtocol() {
@@ -162,10 +213,6 @@ public class Listener {
 
     public void setCodedata(Codedata codedata) {
         this.codedata = codedata;
-    }
-
-    public void setProperties(Map<String, Value> properties) {
-        this.properties = properties;
     }
 
     public static class ListenerBuilder {

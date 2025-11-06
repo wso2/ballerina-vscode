@@ -49,7 +49,8 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 
 /**
@@ -127,14 +128,16 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         // Derive the entry point name
         Optional<TypeDescriptorNode> typeDescriptorNode = serviceDeclarationNode.typeDescriptor();
         NodeList<Node> resourcePaths = serviceDeclarationNode.absoluteResourcePath();
-        if (typeDescriptorNode.isPresent()) {
-            serviceBuilder.serviceName(typeDescriptorNode.get().toSourceCode().strip());
-        } else if (!resourcePaths.isEmpty()) {
-            serviceBuilder.serviceNameWithPath(getPathString(resourcePaths));
-        } else if (firstExpression != null) {
-            serviceBuilder.serviceName(firstExpression.toSourceCode().strip());
-        } else {
-            serviceBuilder.name("");
+        if (!serviceBuilder.trySetNameFromAnnotation(serviceDeclarationNode)) {
+            if (typeDescriptorNode.isPresent()) {
+                serviceBuilder.serviceName(typeDescriptorNode.get().toSourceCode().strip());
+            } else if (!resourcePaths.isEmpty()) {
+                serviceBuilder.serviceNameWithPath(getPathString(resourcePaths));
+            } else if (firstExpression != null) {
+                serviceBuilder.serviceName(firstExpression.toSourceCode().strip());
+            } else {
+                serviceBuilder.name("");
+            }
         }
 
         // Generate the service path
@@ -239,8 +242,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
             TypeReferenceTypeSymbol typeDescriptorSymbol =
                     (TypeReferenceTypeSymbol) ((VariableSymbol) symbol).typeDescriptor();
             ClassSymbol classSymbol = (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
-            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiVectorKnowledgeBase(classSymbol)
-                    || isAiVectorStore(symbol)) {
+            if (classSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiKnowledgeBase(classSymbol)
+                    || isAiVectorStore(symbol) || isAiMemoryStore(symbol)) {
                 return Optional.of(classSymbol);
             }
         } catch (Throwable e) {

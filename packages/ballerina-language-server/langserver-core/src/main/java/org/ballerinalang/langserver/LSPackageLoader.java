@@ -90,7 +90,8 @@ public class LSPackageLoader {
 
     private final CentralPackageDescriptorLoader centralPackageDescriptorLoader;
     private static final Type listenerDataTypeToken =
-            new TypeToken<Map<String, Map<String, Map<String, List<ListenerData>>>>>() {}.getType();
+            new TypeToken<Map<String, Map<String, Map<String, List<ListenerData>>>>>() {
+            }.getType();
 
     public static LSPackageLoader getInstance(LanguageServerContext context) {
         LSPackageLoader lsPackageLoader = context.get(LS_PACKAGE_LOADER_KEY);
@@ -508,9 +509,10 @@ public class LSPackageLoader {
         }
     }
 
-    private record ListenerData (
+    private record ListenerData(
             String symbolName,
             String args,
             int index
-    ) {}
+    ) {
+    }
 }

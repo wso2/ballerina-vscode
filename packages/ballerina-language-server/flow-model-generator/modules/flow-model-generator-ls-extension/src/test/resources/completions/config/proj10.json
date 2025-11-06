@@ -8,6 +8,7 @@
       "offset": 0
     },
     "offset": 1,
+    "lineOffset": 0,
     "codedata": {
       "node": "ASSIGN",
       "lineRange": {
@@ -41,6 +42,9 @@
   "completions": [
     {
       "label": "i",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -49,6 +53,9 @@
     },
     {
       "label": "rec",
+      "labelDetails": {
+        "detail": " MyRecord"
+      },
       "kind": "Variable",
       "detail": "MyRecord",
       "sortText": "AB",
@@ -57,6 +64,9 @@
     },
     {
       "label": "strucrturedRec",
+      "labelDetails": {
+        "detail": " MyRecord"
+      },
       "kind": "Variable",
       "detail": "MyRecord",
       "sortText": "AB",
@@ -65,6 +75,9 @@
     },
     {
       "label": "structuredArray",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "AB",
@@ -73,6 +86,9 @@
     },
     {
       "label": "structuredMap",
+      "labelDetails": {
+        "detail": " map<string>"
+      },
       "kind": "Variable",
       "detail": "map<string>",
       "sortText": "AB",

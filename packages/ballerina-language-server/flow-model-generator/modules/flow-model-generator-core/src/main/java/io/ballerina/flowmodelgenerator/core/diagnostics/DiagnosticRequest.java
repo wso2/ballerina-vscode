@@ -124,8 +124,11 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 // account the existing indentation at the start)
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
-                endLinePosition = LinePosition.from(endLine, textEditLines.size() > 1 ? textLine.length()
-                        : startCharacter + textLine.length());
+                int numTextEdits = textEditLines.size();
+                int lineOffset =
+                        Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
+                endLinePosition = LinePosition.from(endLine + lineOffset,
+                        numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
         }
         // If no edits were made, return null
@@ -152,7 +155,8 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         SemanticModel semanticModel = project.currentPackage().getCompilation()
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),
-                Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true);
+                Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true,
+                workspaceManager);
         node.accept(codeAnalyzer);
         List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
         if (flowNodes.size() != 1) {

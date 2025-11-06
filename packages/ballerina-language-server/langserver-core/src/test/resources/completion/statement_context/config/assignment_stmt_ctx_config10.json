@@ -414,6 +414,9 @@
     },
     {
       "label": "hello",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -430,6 +433,9 @@
     },
     {
       "label": "myStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -465,6 +471,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -492,6 +501,10 @@
     },
     {
       "label": "myType",
+      "labelDetails": {
+        "detail": " MyType",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "MyType",
       "sortText": "F",
@@ -500,6 +513,10 @@
     },
     {
       "label": "paramStr",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -519,6 +536,10 @@
     },
     {
       "label": "func",
+      "labelDetails": {
+        "detail": " function () returns string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "function () returns string",
       "sortText": "F",

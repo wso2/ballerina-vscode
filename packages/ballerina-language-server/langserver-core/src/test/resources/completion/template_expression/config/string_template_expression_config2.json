@@ -288,6 +288,9 @@
     },
     {
       "label": "another",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AAB",
@@ -296,6 +299,9 @@
     },
     {
       "label": "val",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AAB",
@@ -304,6 +310,9 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AAB",
@@ -312,6 +321,9 @@
     },
     {
       "label": "last",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AAB",

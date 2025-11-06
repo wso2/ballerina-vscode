@@ -503,6 +503,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -511,6 +514,10 @@
     },
     {
       "label": "cls",
+      "labelDetails": {
+        "detail": " MyClass",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "MyClass",
       "sortText": "F",
@@ -519,6 +526,9 @@
     },
     {
       "label": "myStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",

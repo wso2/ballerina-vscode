@@ -1,0 +1,14 @@
+{
+  "description": "XML attribute access",
+  "filePath": "main.bal",
+  "expression": "xmlVar.attr",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 11,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

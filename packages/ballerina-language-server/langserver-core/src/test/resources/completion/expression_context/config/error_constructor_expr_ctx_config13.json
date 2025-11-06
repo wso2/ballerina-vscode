@@ -562,6 +562,9 @@
     },
     {
       "label": "errorCause",
+      "labelDetails": {
+        "detail": " error?"
+      },
       "kind": "Variable",
       "detail": "error?",
       "sortText": "AB",
@@ -570,6 +573,9 @@
     },
     {
       "label": "newError",
+      "labelDetails": {
+        "detail": " error"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "AB",

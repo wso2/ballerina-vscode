@@ -421,6 +421,9 @@
     },
     {
       "label": "constructor",
+      "labelDetails": {
+        "detail": " object {public int field1;}"
+      },
       "kind": "Variable",
       "detail": "object {public int field1;}",
       "sortText": "F",
@@ -429,6 +432,9 @@
     },
     {
       "label": "value1",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

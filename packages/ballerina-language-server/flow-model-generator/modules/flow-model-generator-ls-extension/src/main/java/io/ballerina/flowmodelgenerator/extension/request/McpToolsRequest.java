@@ -19,13 +19,13 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 /**
- * Request to initialize MCP tools with a service URL and configuration.
+ * Request to initialize MCP tools with a service URL and optional authentication.
  *
  * @param serviceUrl The URL of the MCP service
- * @param config Configuration details for the MCP tools
+ * @param accessToken Optional OAuth 2.0 bearer token for authentication
  *
  * @since 1.1.0
  */
-public record McpToolsRequest(String serviceUrl, String config) {
+public record McpToolsRequest(String serviceUrl, String accessToken) {
 }
 

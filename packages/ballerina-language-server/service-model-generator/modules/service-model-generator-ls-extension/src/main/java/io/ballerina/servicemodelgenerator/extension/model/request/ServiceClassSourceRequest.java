@@ -23,9 +23,8 @@ import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 /**
  * ServiceClassSourceRequest class to hold the service class source request.
  *
- * @param filePath file path
+ * @param filePath     file path
  * @param serviceClass service class model
- *
  * @since 1.0.0
  */
 public record ServiceClassSourceRequest(String filePath, ServiceClass serviceClass) {

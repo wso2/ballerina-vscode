@@ -19,7 +19,7 @@
       "documentation": {
         "metadata": {
           "label": "Description",
-          "description": "The description of the object"
+          "description": "The description of the class"
         },
         "codedata": {
           "type": "DOCUMENTATION"
@@ -41,7 +41,7 @@
             "type": "LISTENER"
           },
           "placeholder": "",
-          "valueType": "MULTIPLE_SELECT",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
           "valueTypeConstraint": "graphql:Listener",
           "value": "",
           "values": [],
@@ -87,6 +87,18 @@
           "valueTypeConstraint": "string",
           "value": "/graphql",
           "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {},
           "enabled": true,
           "editable": true,
           "optional": false,

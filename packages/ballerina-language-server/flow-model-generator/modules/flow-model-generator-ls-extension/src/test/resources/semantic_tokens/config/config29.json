@@ -1,0 +1,35 @@
+{
+  "description": "AI ImageDocument with URL string in template expression",
+  "filePath": "",
+  "expression": "`Describe this image. ${<ai:ImageDocument>{content: \"https://ballerina.io/img/branding/ballerina_logo_dgrey_png.png\"}}`",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 22,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 24,
+      "length": 19,
+      "type": 3,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 52,
+      "length": 64,
+      "type": 4,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 117,
+      "length": 1,
+      "type": 6,
+      "modifiers": 0
+    }
+  ]
+}

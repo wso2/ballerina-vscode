@@ -98,7 +98,7 @@
           },
           {
             "metadata": {
-              "label": "Open Model Provider",
+              "label": "OpenAI Model Provider",
               "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models."
             },
             "codedata": {
