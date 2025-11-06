@@ -39,7 +39,7 @@ export function traverseNode(model: ExpandedDMModel, visitor: BaseVisitor) {
     // Visit sub mappings
     if (model?.subMappings && model.subMappings.length > 0) {
         for (const subMapping of model.subMappings) {
-            traverseSubMappingType(subMapping, model, visitor);
+            traverseSubMappingType(subMapping as IOType, model, visitor);
         }
     }
 

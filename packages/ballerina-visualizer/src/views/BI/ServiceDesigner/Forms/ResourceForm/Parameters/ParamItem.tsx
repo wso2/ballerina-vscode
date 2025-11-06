@@ -21,6 +21,7 @@ import { ParamIcon } from "./ParamIcon";
 import { Codicon } from "@wso2/ui-toolkit";
 import { ActionIconWrapper, ContentSection, DeleteIconWrapper, EditIconWrapper, HeaderLabel, IconTextWrapper, IconWrapper, OptionLabel, disabledHeaderLabel, headerLabelStyles } from "../../../styles";
 import { ParameterModel, PropertyModel } from "@wso2/ballerina-core";
+import styled from "@emotion/styled";
 
 interface ParamItemProps {
     param: ParameterModel;
@@ -29,14 +30,69 @@ interface ParamItemProps {
     onEditClick: (param: ParameterModel) => void;
 }
 
+const ParamLabelContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--vscode-font-family);
+`;
+
+const ParamName = styled.span`
+    color: var(--vscode-editor-foreground, #222);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--vscode-font-family);
+`;
+
+const ParamType = styled.span`
+    font-size: 13px;
+    color: var(--vscode-descriptionForeground, #888);
+    background: var(--vscode-editorWidget-background, #f5f5f5);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.1px;
+`;
+
+const ParamDefault = styled.span`
+    font-size: 13px;
+    color: var(--vscode-editorHint-foreground, #b0b0b0);
+    margin-left: 8px;
+    font-style: italic;
+`;
+
 export function ParamItem(props: ParamItemProps) {
     const { param, readonly, onDelete, onEditClick } = props;
 
-    const label = param?.type.value
-        ? `${param.type.value} ${param.name.value}${
-              (param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel).value}` : ""
-          }`
-        : `${param.name.value}`;
+
+
+    const label = (
+        <ParamLabelContainer>
+            <ParamType>
+                {param.type.value}
+            </ParamType>
+            {param?.type?.value ? (
+                <>
+                    {param.httpParamType === "HEADER" && param.headerName.value && (
+                        <ParamName>{param.headerName.value.replace(/(^")|("$)/g, '')}</ParamName>
+                    )}
+                    {param.httpParamType !== "HEADER" && param.name?.value && (
+                        <ParamName>{param.name.value}</ParamName>
+                    )}
+                    {(param.defaultValue as PropertyModel)?.value && (
+                        <ParamDefault>
+                            = {(param.defaultValue as PropertyModel).value}
+                        </ParamDefault>
+                    )}
+                </>
+            ) : (
+                <ParamName>
+                    {param.name.value}
+                </ParamName>
+            )}
+        </ParamLabelContainer>
+    );
 
     const handleDelete = () => {
         onDelete(param);
@@ -53,19 +109,19 @@ export function ParamItem(props: ParamItemProps) {
 
     return (
         <HeaderLabel haveErrors={haveErrors()} data-testid={`${label}-item`}>
-            <IconTextWrapper onClick={handleEdit}>
+            {/* <IconTextWrapper onClick={handleEdit}>
                 <IconWrapper>
                     <ParamIcon option={param?.httpParamType?.toLowerCase()} />
                 </IconWrapper>
                 <OptionLabel>
                     {param?.httpParamType ? param?.httpParamType.toUpperCase() : param?.metadata?.label.toUpperCase()}
                 </OptionLabel>
-            </IconTextWrapper>
+            </IconTextWrapper> */}
             <ContentSection>
                 <div
                     data-test-id={`${label}-param`}
                     className={readonly ? disabledHeaderLabel : headerLabelStyles}
-                    onClick={handleEdit}
+                    onClick={!readonly ? handleEdit : undefined}
                 >
                     {label}
                 </div>

@@ -132,6 +132,15 @@ const colors = {
     "HEAD": '#9012fe'
 }
 
+const ActionButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    & > vscode-button::part(control) {
+        padding: 4px 8px;
+    }
+`;
+
 
 export interface ResourceAccordionPropsV2 {
     resource: ProjectStructureArtifactResponse;
@@ -139,10 +148,12 @@ export interface ResourceAccordionPropsV2 {
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
     readOnly?: boolean;
+    methodName?: string;
+    isMcpTool?: boolean;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -222,31 +233,33 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(resource.icon)}>
-                        {resource.icon.split("-")[0].toUpperCase()}
+                        {methodName ? methodName : resource.icon ? resource.icon.split("-")[0].toUpperCase() : "REMOTE"}
                     </MethodBox>
                     <MethodPath>{resource.name}</MethodPath>
                 </MethodSection>
                 <ButtonSection>
                     <>
-                        <Button appearance="icon" tooltip="Edit Resource" onClick={handleEditResource} disabled={readOnly}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
                             <Icon
-                                name="editIcon"
+                                name="bi-settings"
                                 sx={{
-                                    marginTop: 3.5,
-                                    cursor: readOnly ? "not-allowed" : "pointer",
-                                    opacity: readOnly ? 0.5 : 1,
+                                    cursor: "pointer",
+                                    opacity: 1,
+                                    fontSize: "16px",
+                                    width: "16px",
                                 }}
                             />
-                        </Button>
-                        <Button appearance="icon" tooltip="Delete Resource" onClick={handleDeleteResource} disabled={readOnly}>
+                        </ActionButton >
+                        <ActionButton id="bi-delete" appearance="secondary" onClick={handleDeleteResource} disabled={readOnly}>
                             <Codicon
                                 name="trash"
                                 sx={{
                                     cursor: readOnly ? "not-allowed" : "pointer",
                                     opacity: readOnly ? 0.5 : 1,
+                                    width: "16px",
                                 }}
                             />
-                        </Button>
+                        </ActionButton >
                     </>
                 </ButtonSection>
 
@@ -260,7 +273,6 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
             />
-        </AccordionContainer>
+        </AccordionContainer >
     );
 };
-

@@ -514,6 +514,14 @@ function urlToUniqueID(url) {
     return hash.digest('hex');
 }
 
+export function getProjectWorkingDirectory(projectPath: string): string {
+    try {
+        return fs.statSync(projectPath).isFile() ? path.dirname(projectPath) : projectPath;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export async function goToSource(nodePosition: NodePosition, documentUri: string) {
     const { startLine, startColumn, endLine, endColumn } = nodePosition;
     if (!existsSync(documentUri)) {

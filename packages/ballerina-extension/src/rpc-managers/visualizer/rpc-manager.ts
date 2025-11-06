@@ -23,21 +23,20 @@ import {
     MACHINE_VIEW,
     OpenViewRequest,
     PopupVisualizerLocation,
+    ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
     UndoRedoStateResponse,
-    UpdateUndoRedoMangerRequest,
+    UpdatedArtifactsResponse,
     VisualizerAPI,
-    VisualizerLocation,
-    vscode,
+    VisualizerLocation
 } from "@wso2/ballerina-core";
+import fs from "fs";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
-import fs from "fs";
+import { notifyCurrentWebview } from "../../RPCLayer";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
-import { notifyCurrentWebview } from "../../RPCLayer";
-import { updateCurrentArtifactLocation } from "../../utils/state-machine-utils";
 import { refreshDataMapper } from "../data-mapper/utils";
 
 export class VisualizerRpcManager implements VisualizerAPI {
@@ -109,9 +108,13 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
-                updateCurrentArtifactLocation({ artifacts: payload.data });
+                const currentArtifact = await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
+                if (!currentArtifact) {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                    resolve("Undo successful"); // resolve the undo string
+                }
                 notifyCurrentWebview();
                 await this.refreshDataMapperView();
                 unsubscribe();
@@ -154,7 +157,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
-                updateCurrentArtifactLocation({ artifacts: payload.data });
+                await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
@@ -204,5 +207,58 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
         return undoRedoManager.getUIState();
+    }
+
+    async updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
+        return new Promise((resolve) => {
+            if (params.artifacts.length === 0) {
+                resolve(undefined);
+                return;
+            }
+            console.log(">>> Updating current artifact location", { artifacts: params.artifacts });
+            // Get the updated component and update the location
+            const currentIdentifier = StateMachine.context().identifier;
+            const currentType = StateMachine.context().type;
+            const parentIdentifier = StateMachine.context().parentIdentifier;
+
+            // Find the correct artifact by currentIdentifier (id)
+            let currentArtifact = undefined;
+            for (const artifact of params.artifacts) {
+                if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
+                    currentArtifact = artifact;
+                    if (artifact.resources && artifact.resources.length > 0) {
+                        const resource = artifact.resources.find(
+                            (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                        );
+                        if (resource) {
+                            currentArtifact = resource;
+                            break;
+                        }
+                    }
+
+                } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                    currentArtifact = artifact;
+                }
+
+                // Check if parent artifact is matched and has resources and find within those
+                if (parentIdentifier && artifact.name === parentIdentifier && artifact.resources && artifact.resources.length > 0) {
+                    const resource = artifact.resources.find(
+                        (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                    );
+                    if (resource) {
+                        currentArtifact = resource;
+                    }
+                }
+            }
+
+            if (currentArtifact) {
+                openView(EVENT_TYPE.UPDATE_PROJECT_LOCATION, {
+                    documentUri: currentArtifact.path,
+                    position: currentArtifact.position,
+                    identifier: currentIdentifier,
+                });
+            }
+            resolve(currentArtifact);
+        });
     }
 }

@@ -50,6 +50,7 @@ import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../components/Modal";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
 import React from "react";
+import { removeForwardSlashes } from "../BI/ServiceDesigner/utils";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -394,13 +395,19 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         title="GraphQL"
                         subtitleElement={
                             <SubTitleWrapper>
-                                <Path>{graphqlTypeModel?.type.name}</Path>
+                                <Path>{removeForwardSlashes(graphqlTypeModel?.type.name)}</Path>
                             </SubTitleWrapper>
                         }
                         actions={
                             <ActionButton appearance="secondary" onClick={handleServiceEdit} data-testid="edit-service-btn">
-                                <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                                Edit
+                                <Icon
+                                    name="bi-settings"
+                                    sx={{
+                                        marginRight: 5,
+                                        fontSize: "16px",
+                                        width: "16px",
+                                    }}
+                                /> Configure
                             </ActionButton>
                         }
                     />
@@ -486,17 +493,17 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                             title="Create New Type"
                             openState={isTypeEditorOpen}
                             setOpenState={handleTypeEditorStateChange}>
-                            <div style={{ padding: '0px 20px' }}>
-                                <BreadcrumbContainer>
-                                    {stack.slice(1, i + 2).map((stackItem, index) => (
-                                        <React.Fragment key={index}>
-                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                            <BreadcrumbItem>
-                                                {stackItem?.type?.name || "NewType"}
-                                            </BreadcrumbItem>
-                                        </React.Fragment>
-                                    ))}
-                                </BreadcrumbContainer>
+                            <BreadcrumbContainer>
+                                {stack.slice(1, i + 2).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <div style={{ height: '560px', overflow: 'auto' }}>
                                 <FormTypeEditor
                                     key={editingType?.name ?? 'new-type'}
                                     type={peekTypeStack()?.type}
