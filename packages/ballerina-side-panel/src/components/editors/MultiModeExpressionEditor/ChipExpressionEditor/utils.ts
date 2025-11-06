@@ -355,8 +355,8 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
     const range = selection.getRangeAt(0);
     
     if (!el.contains(range.startContainer) || !el.contains(range.endContainer)) {
-        const elId = el.id ? `id: ${el.id}` : `tag: ${el.tagName}`;
-        throw new Error(`Selection is not within the specified element (${elId})`);
+        const offset = getCaretOffsetWithin(el);
+        return { start: offset, end: offset };
     }
     if (range.collapsed) {
         const offset = getCaretOffsetWithin(el);
