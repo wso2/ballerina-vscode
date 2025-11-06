@@ -19,7 +19,7 @@
         "type": "CONNECTION",
         "name": "httpClient",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {}
       }
@@ -41,7 +41,7 @@
         "type": "LISTENER",
         "name": "refListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {}
       },
@@ -61,7 +61,7 @@
         "type": "LISTENER",
         "name": "securedEP",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {}
       }
@@ -83,7 +83,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /root/path-id",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {
           "post#data": {
@@ -199,7 +199,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {
           "init": {
@@ -257,7 +257,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /api/v1",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "module": "http",
         "children": {
           "get#path": {
