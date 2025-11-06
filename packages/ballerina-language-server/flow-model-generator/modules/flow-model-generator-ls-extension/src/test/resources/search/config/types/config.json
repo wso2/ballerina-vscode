@@ -29,7 +29,7 @@
               "metadata": {
                 "label": "CookieConfig",
                 "description": "Client configuration for cookies.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -37,7 +37,7 @@
                 "module": "http",
                 "packageName": "http",
                 "symbol": "CookieConfig",
-                "version": "2.14.2"
+                "version": "2.14.7"
               },
               "enabled": true
             }
@@ -226,6 +226,31 @@
         },
         {
           "metadata": {
+            "label": "microsoft.onedrive",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigurationManagerClientEnabledFeatures",
+                "description": "configuration Manager client enabled features",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_3.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.onedrive",
+                "packageName": "microsoft.onedrive",
+                "symbol": "ConfigurationManagerClientEnabledFeatures",
+                "version": "3.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "commercetools.configuration",
             "description": "",
             "keywords": []
@@ -310,7 +335,7 @@
               "metadata": {
                 "label": "ClientConfiguration",
                 "description": "Configuration for FTP client.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.14.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -318,7 +343,7 @@
                 "module": "ftp",
                 "packageName": "ftp",
                 "symbol": "ClientConfiguration",
-                "version": "2.13.1"
+                "version": "2.14.1"
               },
               "enabled": true
             }
@@ -383,6 +408,81 @@
                 "org": "ballerinax",
                 "module": "microsoft.onenote",
                 "packageName": "microsoft.onenote",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.people",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.excel",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.teams",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.teams",
+                "packageName": "microsoft.teams",
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
@@ -460,106 +560,6 @@
                 "packageName": "salesforce",
                 "symbol": "ConnectionConfig",
                 "version": "8.2.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "microsoft.onedrive",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "microsoft.onedrive",
-                "packageName": "microsoft.onedrive",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.people",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.people",
-                "packageName": "googleapis.people",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.calendar",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.calendar",
-                "packageName": "googleapis.calendar",
-                "symbol": "ConnectionConfig",
-                "version": "3.2.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "microsoft.excel",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "microsoft.excel",
-                "packageName": "microsoft.excel",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
               },
               "enabled": true
             }

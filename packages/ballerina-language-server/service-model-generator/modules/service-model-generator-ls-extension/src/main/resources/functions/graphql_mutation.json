@@ -158,6 +158,7 @@
         },
         "enabled": true,
         "editable": true,
+        "valueType": "EXPRESSION",
         "isType": false,
         "optional": true,
         "advanced": false,

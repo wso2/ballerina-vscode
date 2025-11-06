@@ -10,7 +10,7 @@
       "metadata": {
         "label": "FTP",
         "description": "Represents an FTP client that intracts with an FTP server",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.14.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "ftp",
         "object": "Client",
         "symbol": "init",
-        "version": "2.13.1",
+        "version": "2.14.1",
         "isGenerated": false
       },
       "enabled": true

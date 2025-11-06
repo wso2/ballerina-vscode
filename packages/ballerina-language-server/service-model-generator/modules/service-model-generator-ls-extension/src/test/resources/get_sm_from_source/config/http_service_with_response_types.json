@@ -130,10 +130,7 @@
         "value": {
           "Base Path": [
             "/api"
-          ],
-          "Host Address": [],
-          "Service Configuration": [],
-          "Port Number": []
+          ]
         },
         "enabled": true,
         "editable": true,

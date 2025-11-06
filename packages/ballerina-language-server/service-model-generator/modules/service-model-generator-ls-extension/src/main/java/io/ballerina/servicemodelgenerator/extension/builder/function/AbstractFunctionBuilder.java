@@ -240,6 +240,11 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
         Utils.addFunctionDocTextEdits(context.function(), context.functionNode(), edits);
         Utils.addFunctionAnnotationTextEdits(context.function(), context.functionNode(), edits, imports);
 
+        if (!context.function().isEnabled()) {
+            edits.add(new TextEdit(Utils.toRange(context.functionNode().lineRange()), ""));
+            return Map.of(context.filePath(), edits);
+        }
+
         String functionName = context.functionNode().functionName().text().trim();
         LineRange nameRange = context.functionNode().functionName().lineRange();
         String functionKind = context.function().getKind();

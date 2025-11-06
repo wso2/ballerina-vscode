@@ -1,0 +1,14 @@
+{
+  "description": "Valid variable followed by an invalid variable",
+  "filePath": "",
+  "expression": "myVar nonExistentVar",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

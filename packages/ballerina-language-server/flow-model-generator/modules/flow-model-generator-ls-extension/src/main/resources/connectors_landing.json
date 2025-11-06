@@ -35,5 +35,19 @@
     "github:Client",
     "stripe:Client",
     "shopify:Client"
+  ],
+  "AI": [
+    "azure.openai.chat:Client",
+    "azure.openai.embeddings:Client",
+    "openai.chat:Client",
+    "openai.embeddings:Client",
+    "stabilityai:Client",
+    "mistral:Client",
+    "mcp:StreamableHttpClient",
+    "webscraping.ai:Client",
+    "pinecone.vector:Client",
+    "pinecone.index:Client",
+    "weaviate:Client",
+    "milvus:Client"
   ]
 }

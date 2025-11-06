@@ -33,7 +33,11 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Tests for the expression editor semantic tokens service.
@@ -72,7 +76,7 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
                     testConfig.expression(),
                     actualReadable
             );
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)%nExpected: %s%nActual: %s",
                     testConfig.description(), configJsonPath,
                     testConfig.expectedTokens(), actualReadable));
@@ -105,25 +109,21 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
      * @param tokens List of expected tokens to validate
      */
     private void validateTokenTypes(List<ExpectedToken> tokens) {
+        // Build a set of valid token type IDs from the enum
+        Set<Integer> validTokenTypes = new HashSet<>();
+        for (ExpressionTokenTypes tokenType : ExpressionTokenTypes.values()) {
+            validTokenTypes.add(tokenType.getId());
+        }
+
+        // Validate each token type
         for (ExpectedToken token : tokens) {
-            switch (token.type()) {
-                case 0 -> {
-                    if (ExpressionTokenTypes.VARIABLE.getId() != 0) {
-                        Assert.fail("Token type 0 should be VARIABLE but enum mismatch detected");
-                    }
-                }
-                case 1 -> {
-                    if (ExpressionTokenTypes.PROPERTY.getId() != 1) {
-                        Assert.fail("Token type 1 should be PROPERTY but enum mismatch detected");
-                    }
-                }
-                case 2 -> {
-                    if (ExpressionTokenTypes.PARAMETER.getId() != 2) {
-                        Assert.fail("Token type 2 should be PARAMETER but enum mismatch detected");
-                    }
-                }
-                default -> Assert.fail(String.format("Invalid token type: %d. Valid types are 0 (VARIABLE), " +
-                        "1 (PROPERTY), 2 (PARAMETER)", token.type()));
+            if (!validTokenTypes.contains(token.type())) {
+                // Build error message with all valid types
+                String validTypesStr = Arrays.stream(ExpressionTokenTypes.values())
+                        .map(t -> t.getId() + " (" + t.name() + ")")
+                        .collect(Collectors.joining(", "));
+                Assert.fail(String.format("Invalid token type: %d. Valid types are: %s",
+                        token.type(), validTypesStr));
             }
         }
     }
@@ -265,7 +265,7 @@ public class ExpressionEditorSemanticTokensTest extends AbstractLSTest {
      * @param line      Line number (0-indexed)
      * @param col       Column offset (0-indexed)
      * @param length    Token length in characters
-     * @param type      Token type ID (0=VARIABLE, 1=PROPERTY, 2=PARAMETER)
+     * @param type      Token type ID
      * @param modifiers Token modifiers bitmask (0=none)
      */
     private record ExpectedToken(
