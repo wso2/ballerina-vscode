@@ -97,11 +97,11 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const isOuterField: DMFormField = {
         key: "isOuter",
-        label: "Is Outer Join",
+        label: "Left Outer Equijoin",
         type: "FLAG",
         optional: false,
         editable: true,
-        documentation: "Specify whether the join is an outer join",
+        documentation: "Specify whether the join is a left outer equijoin",
         value: clauseProps?.isOuter ?? false,
         valueTypeConstraint: "Global",
         enabled: true,
