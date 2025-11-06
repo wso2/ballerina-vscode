@@ -155,7 +155,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     useEffect(() => {
-        if (!props.value) return;
+        if (props.value === undefined || props.value === null) return;
         fetchInitialTokens(props.value);
     }, [props.value]);
 
