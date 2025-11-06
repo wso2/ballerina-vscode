@@ -321,7 +321,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.updateResourceSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: params.artifactType ? { artifactType: params.artifactType } : undefined, description: 'Resource Update' });
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: params.artifactType ? { artifactType: params.artifactType } : null, description: 'Resource Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -466,7 +466,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
                 const edits = { textEdits: res.textEdits, resolveMissingDependencies: false };
 
-                const artifacts = await updateSourceCode({ textEdits: edits.textEdits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: 'Service and Listener Creation' });
+                const artifacts = await updateSourceCode({ ...edits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: 'Service and Listener Creation' });
                 let result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };

@@ -47,7 +47,7 @@ type FormTypeEditorProps = {
     isGraphql?: boolean;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
-    getNewTypeCreateForm: () => void;
+    getNewTypeCreateForm: (typeName?: string) => void;
     onSaveType: (type: Type | string) => void
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
@@ -239,7 +239,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     };
 
     const handleTypeCreate = (typeName?: string) => {
-        getNewTypeCreateForm();
+        getNewTypeCreateForm(typeName);
     };
 
     return (

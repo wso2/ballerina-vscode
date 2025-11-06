@@ -114,14 +114,6 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
     const [knowledgeBaseFormValues, setKnowledgeBaseFormValues] = useState<FormValues>({});
     const [saving, setSaving] = useState<boolean>(false);
 
-    const CONNECTIONS_FILE = "connections.bal";
-    const projectPath = useRef<string>("");
-    const targetLineRangeRef = useRef<LineRange>({
-        startLine: { line: 0, offset: 0 },
-        endLine: { line: 0, offset: 0 }
-    });
-    const connectionsFilePath = useRef<string>("");
-
     useEffect(() => {
         initializeForm();
         handleFormOpen();
@@ -179,27 +171,11 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
             if (originalName === "chunker") {
                 // hack: set default value for chunker field
                 field.defaultValue = DEFAULT_CHUNKER_VALUE;
-                field.value ??= field.defaultValue;
+                field.advanced = true;
             }
         });
         setKnowledgeBaseFields(fields);
         setFormImports(getImportsForFormFields(fields));
-
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
-        connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
-        const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
-            filePath: connectionsFilePath.current
-        });
-        targetLineRangeRef.current = {
-            startLine: {
-                line: endPosition.line,
-                offset: endPosition.offset
-            },
-            endLine: {
-                line: endPosition.line,
-                offset: endPosition.offset
-            }
-        }
     };
 
     const updateNodePropertyValue = (fieldKey: string, value: any): void => {
@@ -236,8 +212,8 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
                         <S.FormWrapper>
                             <Form
                                 formFields={knowledgeBaseFields}
-                                fileName={connectionsFilePath.current}
-                                targetLineRange={targetLineRangeRef.current}
+                                fileName={fileName}
+                                targetLineRange={targetLineRange}
                                 selectedNode={node.codedata.node}
                                 expressionEditor={expressionEditor}
                                 openSubPanel={openSubPanel}

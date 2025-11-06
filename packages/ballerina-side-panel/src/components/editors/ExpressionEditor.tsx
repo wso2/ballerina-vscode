@@ -31,7 +31,7 @@ import {
     Tooltip
 } from '@wso2/ui-toolkit';
 import { getPropertyFromFormField, sanitizeType } from './utils';
-import { FormField, FormExpressionEditorProps } from '../Form/types';
+import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
     LineRange,
@@ -367,6 +367,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
+    const { nodeInfo } = useFormContext();
+
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
         fetchedInitialDiagnostics: false,
@@ -387,8 +389,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 fetchedInitialDiagnostics: true,
                 diagnosticsFetchedTargetLineRange: targetLineRange
             };
+            // Only validate on initial render if the field has a non-empty value
             getExpressionEditorDiagnostics(
-                (required ?? !field.optional) || fieldValue !== '',
+                fieldValue !== '',
                 fieldValue,
                 key,
                 getPropertyFromFormField(field)
@@ -398,6 +401,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     useEffect(() => {
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        if (isModeSwitcherRestricted()) {
+            setInputMode(InputMode.EXP);
+            return;
+        }
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
@@ -454,7 +461,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleGetHelperPane = (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => {
         return getHelperPane?.(
@@ -531,6 +538,18 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
+    const isModeSwitcherRestricted = () => {
+        if (nodeInfo?.kind === "FOREACH") return true;
+        return false;
+    };
+
+    const isModeSwitcherAvailable = () => {
+        if (isModeSwitcherRestricted()) return false;
+        if (!(focused || isExpressionEditorHovered)) return false;
+        if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
+        return true;
+    }
+
     return (
         <FieldProvider
             initialField={props.field}
@@ -562,13 +581,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 </S.EditorMdContainer>
                             </div>
                             <S.FieldInfoSection>
-                                {(focused || isExpressionEditorHovered)
-                                    && getInputModeFromTypes(field.valueTypeConstraint)
-                                    && (
-                                        <ModeSwitcher
-                                            value={inputMode}
-                                            onChange={handleModeChange}
-                                            valueTypeConstraint={field.valueTypeConstraint}
+                                {isModeSwitcherAvailable() && (
+                                    <ModeSwitcher
+                                        value={inputMode}
+                                        onChange={handleModeChange}
+                                        valueTypeConstraint={field.valueTypeConstraint}
                                         />
                                     )}
                             </S.FieldInfoSection>

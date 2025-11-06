@@ -33,6 +33,7 @@ import {
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
+    getWorkspaceType,
     goToSource,
     isNPSupported,
     openExternalUrl,
@@ -60,4 +61,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
+    messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
 }

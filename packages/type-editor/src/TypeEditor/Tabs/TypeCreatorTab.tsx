@@ -193,6 +193,9 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 default:
                     setSelectedTypeKind(TypeKind.RECORD);
             }
+
+            // Ensure tempName is initialized when editing a new type (prevents focus loss due to replacing the main type on each keystroke)
+            setTempName(editingType.name);
         }
 
         setIsNewType(newType);
@@ -420,9 +423,23 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
     }
 
     const handleOnTypeNameChange = (value: string) => {
+        if (isNewType) {
+            setTempName(value);
+            validateTypeName(value);
+            return;
+        }
         handleSetType({ ...type, name: value });
         validateTypeName(value);
     }
+
+    const commitNewTypeName = () => {
+        if (!isNewType) {
+            return;
+        }
+        if (tempName && tempName !== type.name) {
+            handleSetType({ ...type, name: tempName } as Type);
+        }
+    };
 
     // Function to validate before saving to verify names created in nested forms
     const handleSaveWithValidation = async (typeToSave: Type) => {
@@ -600,13 +617,18 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                     <TextFieldWrapper>
                         <TextField
                             label="Name"
-                            value={type.name}
+                            value={tempName}
                             errorMsg={nameError}
-                            onBlur={handleOnBlur}
+                            onBlur={(e) => {
+                                // commit local name into type on blur and validate
+                                commitNewTypeName();
+                                handleOnBlur(e);
+                            }}
                             onChange={(e) => handleOnTypeNameChange(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
-                                    handleOnTypeNameChange((e.target as HTMLInputElement).value);
+                                    // commit on Enter
+                                    commitNewTypeName();
                                 }
                             }}
                             onFocus={(e) => { e.target.select(); validateTypeName(e.target.value) }}
@@ -622,7 +644,11 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
             <Footer>
                 <Button
                     data-testid="type-create-save"
-                    onClick={() => handleSaveWithValidation(type)}
+                    onClick={() => {
+                        // Ensure Save uses the latest tempName for new types without causing extra re-renders
+                        const typeToSave = isNewType ? { ...type, name: tempName } : type;
+                        handleSaveWithValidation(typeToSave);
+                    }}
                     disabled={onValidationError || !isTypeNameValid || isEditing || isSaving}>
                     {isSaving ? <Typography variant="progress">Saving...</Typography> : "Save"}
                 </Button>
