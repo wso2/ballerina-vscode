@@ -23,3 +23,11 @@ export interface ChatReqMessage {
 export interface ChatRespMessage {
     message: string;
 }
+
+export interface TraceStatus {
+    enabled: boolean;
+}
+
+export interface TraceInput {
+    message: string;
+}

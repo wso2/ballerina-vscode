@@ -17,10 +17,10 @@
 import { TestGenerationTarget, TestGeneratorIntermediaryState, Command } from "@wso2/ballerina-core";
 import { getErrorMessage } from "../utils";
 import { generateTest, getDiagnostics } from "../../testGenerator";
-import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { StateMachine } from "../../../../stateMachine";
 
 // Core function test generation that emits events
 export async function generateFunctionTestsCore(
@@ -39,7 +39,7 @@ export async function generateFunctionTestsCore(
         content: `\n\n<progress>Generating tests for the function ${functionIdentifier}. This may take a moment.</progress>`,
     });
 
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = StateMachine.context().projectUri;
     const response = await generateTest(projectRoot, {
         targetType: TestGenerationTarget.Function,
         targetIdentifier: functionIdentifier,

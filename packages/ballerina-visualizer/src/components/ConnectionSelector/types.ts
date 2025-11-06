@@ -40,6 +40,7 @@ export interface ConnectionSpecialConfig {
 }
 
 export interface ConnectionConfigProps {
+    fileName: string;
     connectionKind: ConnectionKind;
     selectedNode: FlowNode;
     onSave?: (selectedCallNode: FlowNode) => void;
