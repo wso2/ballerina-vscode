@@ -35,6 +35,7 @@ export const ChipEditorField = styled.div`
     border: 1px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
+    overflow: auto;
 
     &:focus {
         outline: 1px solid var(--vscode-focusBorder, #0078d4);
@@ -47,6 +48,7 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
+    margin-top: 4px;
 `;
 
 export const Chip = styled.div`
@@ -222,7 +224,7 @@ interface CompletionsItemElProps {
 export const FloatingButtonContainer = styled.div`
     position: absolute;
     bottom: 6px;
-    right: 6px;
+    right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;
@@ -288,4 +290,28 @@ export const Spinner = styled.span`
     margin: auto;
     font-size: 14px;
     animation: ${spin} 1s linear infinite;
+`;
+
+const loading = keyframes`
+    0% {
+        background: var(--vscode-editor-background);
+    }
+    100% {
+        background: var(--vscode-editor-inactiveSelectionBackground);
+    }
+`;
+
+export const SkeletonLoader = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--vscode-editor-background);
+    z-index: 1000;
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    animation: ${loading} 1s infinite alternate;
 `;

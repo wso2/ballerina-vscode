@@ -2,7 +2,7 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
@@ -12,7 +12,17 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBallerinaWorkspace, checkIsBI, fetchScope, filterPackagePaths, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getWorkspaceTomlValues } from './utils';
+import {
+    checkIsBallerinaPackage,
+    checkIsBallerinaWorkspace,
+    checkIsBI,
+    fetchScope,
+    filterPackagePaths,
+    getOrgPackageName,
+    UndoRedoManager,
+    getProjectTomlValues,
+    getWorkspaceTomlValues
+} from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 export interface ProjectMetadata {
@@ -490,6 +500,7 @@ const stateMachine = createMachine<MachineContext>(
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
                     view.location.package = packageName || context.package;
+                    view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -682,6 +693,7 @@ export function updateView(refreshTreeView?: boolean) {
     }
 
     let newLocation: VisualizerLocation = lastView?.location;
+    let newLocationFound = false;
     if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
         newLocation = { ...lastView.location };
         const currentIdentifier = lastView.location?.identifier;
@@ -714,6 +726,36 @@ export function updateView(refreshTreeView?: boolean) {
             ...lastView,
             location: newLocation
         });
+        newLocationFound = true;
+    }
+
+    // Check for service class model in the new location
+    if (!newLocationFound && lastView?.location?.type) {
+        let currentArtifact: ProjectStructureArtifactResponse;
+        StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
+            if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
+                currentArtifact = artifact;
+            }
+        });
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        const updatedType: Type = {
+            ...lastView.location.type,
+            codedata: {
+                ...lastView.location.type.codedata,
+                lineRange: {
+                    ...lastView.location.type.codedata.lineRange,
+                    startLine: { line: newPosition.startLine, offset: newPosition.startColumn },
+                    endLine: { line: newPosition.endLine, offset: newPosition.endColumn }
+                }
+            }
+        };
+
+        newLocation = { ...lastView.location, position: newPosition, type: updatedType };
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+        });
+
     }
 
 
@@ -769,9 +811,17 @@ async function checkForProjects(): Promise<ProjectMetadata> {
 }
 
 async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerinaPackage(folder.uri));
+    const balProjectChecks = await Promise.all(
+        workspaceFolders.map(async folder => ({
+            folder,
+            isBallerinaPackage: await checkIsBallerinaPackage(folder.uri)
+        }))
+    );
+    const balProjects = balProjectChecks
+        .filter(result => result.isBallerinaPackage)
+        .map(result => result.folder);
 
-    if (balProjects.length > 1) {
+    if (balProjects.length > 1 && workspace.workspaceFile?.scheme === "file") {
         // Show notification to guide users to use Ballerina workspaces instead of VSCode workspaces
         window.showInformationMessage(
             'Multiple Ballerina projects detected in VSCode workspace. Please use Ballerina workspaces for better project management and native support.',
@@ -860,7 +910,6 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         return { isBI, projectPath, scope, orgName, packageName };
     }
 }
-
 function setBIContext(isBI: boolean) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
 }

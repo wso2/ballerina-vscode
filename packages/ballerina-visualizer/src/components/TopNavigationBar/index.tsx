@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { HistoryEntry, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { HistoryEntry, MACHINE_VIEW, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
 const NavContainer = styled.div`
     display: flex;
@@ -107,16 +107,16 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     const { onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
-    const [isBallerinaWorkspace, setIsBallerinaWorkspace] = useState<boolean>(false);
+    const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
 
     useEffect(() => {
         Promise.all([
             rpcClient.getVisualizerRpcClient().getHistory(),
-            rpcClient.getCommonRpcClient().isBallerinaWorkspace()
-        ]).then(([history, isWorkspace]) => {
+            rpcClient.getCommonRpcClient().getWorkspaceType()
+        ]).then(([history, workspaceType]) => {
             console.log(">>> history", history);
             setHistory(history);
-            setIsBallerinaWorkspace(isWorkspace);
+            setWorkspaceType(workspaceType);
         });
     }, []);
 
@@ -135,6 +135,12 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             rpcClient.getVisualizerRpcClient().goSelected(index);
         }
     };
+
+    const hasMultiplePackages = useMemo(() => {
+        return workspaceType?.type === "BALLERINA_WORKSPACE" ||
+            workspaceType?.type === "MULTIPLE_PROJECTS" ||
+            workspaceType?.type === "VSCODE_WORKSPACE";
+    }, [workspaceType]);
 
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
     const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
@@ -157,13 +163,13 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                         return (
                             <React.Fragment key={index}>
                                 {index > 0 && (
-                                    <Icon 
-                                        name="wide-chevron" 
+                                    <Icon
+                                        name="wide-chevron"
                                         iconSx={{
                                             color: "var(--vscode-foreground)",
-                                            fontSize: isBallerinaWorkspace ? "20px" : "15px",
-                                            opacity: 0.5 
-                                        }} 
+                                            fontSize: hasMultiplePackages ? "20px" : "15px",
+                                            opacity: 0.5
+                                        }}
                                         sx={{ alignSelf: "center" }}
                                     />
                                 )}
@@ -174,12 +180,12 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     >
                                         {shortName}
                                     </BreadcrumbText>
-                                    {isBallerinaWorkspace && crumb.location.package && (
+                                    {hasMultiplePackages && crumb.location.package && (
                                         <PackageContainer>
-                                            <Codicon 
-                                                name="project" 
+                                            <Codicon
+                                                name="project"
                                                 sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
-                                                iconSx={{ fontSize: "10px", lineHeight: "1" }} 
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }}
                                             />
                                             <PackageName>{crumb.location.package}</PackageName>
                                         </PackageContainer>

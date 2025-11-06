@@ -33,8 +33,8 @@ import {
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
+    getWorkspaceType,
     goToSource,
-    isBallerinaWorkspace,
     isNPSupported,
     openExternalUrl,
     runBackgroundTerminalCommand,
@@ -61,5 +61,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
-    messenger.onRequest(isBallerinaWorkspace, () => rpcManger.isBallerinaWorkspace());
+    messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
 }

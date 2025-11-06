@@ -18,7 +18,7 @@
 
 import { PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
-import { WorkspaceConfiguration, workspace, Uri } from 'vscode';
+import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from 'toml';
@@ -145,6 +145,7 @@ export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
     }
 }
 
+
 export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
 
@@ -160,6 +161,46 @@ export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
         // If there's an error reading the file, it's not a valid Ballerina workspace
         console.error(`Error reading workspace Ballerina.toml: ${error}`);
         return false;
+    }
+}
+
+export async function hasMultipleBallerinaPackages(uri: Uri): Promise<boolean> {
+    const packages = await getBallerinaPackages(uri);
+    return packages.length > 1;
+}
+
+export async function getBallerinaPackages(uri: Uri): Promise<string[]> {
+    try {
+        const ballerinaTomlPattern = `**${path.sep}Ballerina.toml`;
+        const tomls = await workspace.findFiles(
+            new RelativePattern(uri.fsPath, ballerinaTomlPattern)
+        );
+
+        if (tomls.length === 0) {
+            return [];
+        }
+
+        // Collect valid package paths (Ballerina.toml files with [package] section)
+        const packagePaths: string[] = [];
+
+        for (const toml of tomls) {
+            const projectRoot = path.dirname(toml.fsPath);
+            try {
+                const tomlValues = await getProjectTomlValues(projectRoot);
+                // Only count as a package if it has a package section
+                if (tomlValues?.package !== undefined) {
+                    packagePaths.push(projectRoot);
+                }
+            } catch (error) {
+                // Skip invalid TOML files
+                console.error(`Error reading Ballerina.toml at ${toml.fsPath}: ${error}`);
+            }
+        }
+
+        return packagePaths;
+    } catch (error) {
+        console.error(`Error checking for multiple Ballerina packages: ${error}`);
+        return [];
     }
 }
 

@@ -91,6 +91,12 @@ export type HelperPaneCompletionCategory = {
     items: HelperPaneCompletionItem[];
 }
 
+
+export type HelperpaneOnChangeOptions = {
+    closeHelperPane?: boolean;
+    replaceFullText?: boolean;
+}
+
 export type HelperPaneVariableInfo = {
     category: HelperPaneCompletionCategory[];
 }
@@ -173,7 +179,7 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string,  options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,

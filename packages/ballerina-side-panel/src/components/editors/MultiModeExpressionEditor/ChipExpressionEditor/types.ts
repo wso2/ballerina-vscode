@@ -52,10 +52,11 @@ export type ExpressionModel = {
   length: number,
   type: 'variable' | 'function' | 'literal' | 'parameter',
   isFocused?: boolean
-  focusOffset?: number
+  focusOffsetStart?: number,
+  focusOffsetEnd?: number
 }
 
-export type CursorPosition = { 
-  start: number; 
-  end: number; 
+export type CursorPosition = {
+  start: number;
+  end: number;
 }
