@@ -367,16 +367,39 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             if (!selectedElement) {
                 selectedElement = currentModel[currentModel.length - 1];
             };
-            if (selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd) {
-                // If there's a selection, replace the selected text
+            let absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
+            if (
+                selectedElement.focusOffsetStart !== undefined &&
+                selectedElement.focusOffsetEnd !== undefined &&
+                selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd
+            ) {
                 const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
-                    value +
                     selectedElement.value.substring(selectedElement.focusOffsetEnd);
-                value = newValue;
-                shouldReplaceEntireValue = true;
-
+                
+                currentModel = currentModel.map(el => {
+                    if (el === selectedElement) {
+                        return {
+                            ...el,
+                            value: newValue,
+                            length: newValue.length,
+                            focusOffsetStart: selectedElement.focusOffsetStart,
+                            focusOffsetEnd: selectedElement.focusOffsetStart,
+                            isFocused: true
+                        };
+                    }
+                    return el;
+                });
+                
+                let sumBeforeSelected = 0;
+                for (let i = 0; i < currentModel.length; i++) {
+                    if (currentModel[i].isFocused) {
+                        break;
+                    }
+                    sumBeforeSelected += currentModel[i].length;
+                }
+                absoluteCaretPosition = sumBeforeSelected + selectedElement.focusOffsetStart;
+                shouldReplaceEntireValue = false;
             }
-            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
             const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, shouldReplaceEntireValue);
             if (updatedExpressionModelInfo) {
                 const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
