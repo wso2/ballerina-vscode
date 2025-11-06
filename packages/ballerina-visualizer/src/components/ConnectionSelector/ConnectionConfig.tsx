@@ -30,7 +30,7 @@ import { URI, Utils } from "vscode-uri";
 import { CONNECTIONS_FILE } from "../../constants";
 
 export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
-    const { connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
+    const { fileName, connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
     const config = useMemo(() => getConnectionKindConfig(connectionKind), [connectionKind]);
     const { rpcClient } = useRpcContext();
 
@@ -40,7 +40,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const projectPath = useRef<string>("");
-    const connectionsFilePath = useRef<string>("");
+    const currentFilePath = useRef<string>("");
     const targetLineRangeRef = useRef<LineRange | undefined>(undefined);
 
     useEffect(() => {
@@ -56,26 +56,22 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const initPanel = async () => {
         setLoading(true);
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
-        connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
-        
-        if (!selectedNode?.codedata?.lineRange || selectedNode?.codedata?.node === "NP_FUNCTION") {
-            const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
-                filePath: connectionsFilePath.current
-            });
-            targetLineRangeRef.current = {
-                startLine: {
-                    line: endPosition.line,
-                    offset: endPosition.offset
-                },
-                endLine: {
-                    line: endPosition.line,
-                    offset: endPosition.offset
-                }
-            };
-        } else {
-            targetLineRangeRef.current = selectedNode.codedata.lineRange;
-        }
-        
+        currentFilePath.current = fileName;
+
+        const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+            filePath: currentFilePath.current
+        });
+        targetLineRangeRef.current = {
+            startLine: {
+                line: endPosition.line,
+                offset: endPosition.offset
+            },
+            endLine: {
+                line: endPosition.line,
+                offset: endPosition.offset
+            }
+        };
+
         await fetchSelectedConnection();
         setLoading(false);
     };
@@ -111,7 +107,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                 <>
                     <FormGeneratorNew
                         key={selectedConnection?.id}
-                        fileName={projectPath.current}
+                        fileName={currentFilePath.current || projectPath.current}
                         targetLineRange={targetLineRangeRef.current}
                         fields={selectedConnectionFields}
                         onSubmit={handleOnSave}
@@ -120,8 +116,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                         helperPaneSide="left"
                     />
                 </>
-            )
-            }
+            )}
         </>
     );
 }

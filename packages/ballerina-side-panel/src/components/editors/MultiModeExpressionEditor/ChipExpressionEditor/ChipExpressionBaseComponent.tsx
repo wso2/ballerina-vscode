@@ -84,6 +84,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const pendingForceSetTokensRef = useRef<number[] | null>(null);
     const fetchnewTokensRef = useRef<boolean>(true);
     const focusedTextElementRef = useRef<HTMLSpanElement | null>(null);
+    const scheduledCompletionFilterRef = useRef<boolean>(false);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -154,9 +155,16 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     useEffect(() => {
-        if (!props.value) return;
+        if (props.value === undefined || props.value === null) return;
         fetchInitialTokens(props.value);
     }, [props.value]);
+
+    useEffect(() => {
+        if (!scheduledCompletionFilterRef.current) return;
+        const newFilteredCompletions = filterCompletionsByPrefixAndType(props.completions, '');
+        setFilteredCompletions(newFilteredCompletions);
+        scheduledCompletionFilterRef.current = false;
+    }, [props.completions]);
 
     const handleExpressionChange = async (
         updatedModel: ExpressionModel[],
@@ -164,6 +172,13 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         lastTypedText?: string
     ) => {
         const updatedValue = getTextValueFromExpressionModel(updatedModel);
+
+        if (lastTypedText === FOCUS_MARKER) {
+            setExpressionModel(updatedModel);
+            setChipClicked(null);
+            setIsHelperPaneOpen(true);
+            return;
+        }
 
         // Calculate cursor movement
         const cursorPositionBeforeUpdate = getAbsoluteCaretPositionFromModel(expressionModel);
@@ -183,11 +198,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
         const wordBeforeCursor = getWordBeforeCursor(updatedModel);
         const valueBeforeCursor = updatedValue.substring(0, cursorPositionAfterUpdate);
-
-        // Handle chip click reset on focus
-        if (lastTypedText === FOCUS_MARKER) {
-            setChipClicked(null);
-        }
 
         // Handle helper pane and completions visibility
         handleHelperPaneVisibility(updatedValue, valueBeforeCursor, wordBeforeCursor);
@@ -226,6 +236,10 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             setIsCompletionsOpen(false);
             return;
         }
+        if (valueBeforeCursor.endsWith('.')) {
+            scheduledCompletionFilterRef.current = true;
+            return;
+        }
         if (!wordBeforeCursor || wordBeforeCursor.trim() === '') {
             setIsHelperPaneOpen(false);
             setIsCompletionsOpen(false);
@@ -245,17 +259,12 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
 
     const isNavigationKey = (lastTypedText?: string): boolean => {
         return lastTypedText === ARROW_LEFT_MARKER
-            || lastTypedText === ARROW_RIGHT_MARKER
-            || lastTypedText === FOCUS_MARKER;
+            || lastTypedText === ARROW_RIGHT_MARKER;
     };
 
     const handleNavigationKey = (cursorPosition: number, lastTypedText?: string) => {
         pendingCursorPositionUpdateRef.current = cursorPosition;
         fetchInitialTokens(props.value);
-
-        if (lastTypedText === FOCUS_MARKER) {
-            setIsHelperPaneOpen(true);
-        }
     };
 
     const shouldFetchNewTokens = (lastTypedText?: string): boolean => {
@@ -300,6 +309,21 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     const handleHelperPaneValueChange = async (updatedValue: string, options?: HelperpaneOnChangeOptions) => {
+        let currentModel = expressionModel ? [...expressionModel] : [];
+        if (currentModel.length === 0) {
+            currentModel.push({
+                id: "1",
+                value: "",
+                isToken: false,
+                startColumn: 0,
+                startLine: 0,
+                length: 0,
+                type: 'literal',
+                isFocused: false,
+                focusOffsetStart: 0,
+                focusOffsetEnd: 0
+            });
+        }
         if (options?.replaceFullText) {
             const updatedTokens = await fetchUpdatedFilteredTokens(updatedValue);
             let exprModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
@@ -313,14 +337,14 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 chipClicked.length > 0)
         ) {
             let absoluteCaretPosition = 0;
-            for (let i = 0; i < expressionModel?.length; i++) {
-                if (expressionModel && expressionModel[i].isFocused) {
-                    absoluteCaretPosition += expressionModel[i]?.focusOffset || 0;
+            for (let i = 0; i < currentModel?.length; i++) {
+                if (currentModel && currentModel[i].isFocused) {
+                    absoluteCaretPosition += currentModel[i]?.focusOffsetStart || 0;
                     break;
                 }
-                absoluteCaretPosition += expressionModel ? expressionModel[i].value.length : 0;
+                absoluteCaretPosition += currentModel ? currentModel[i].value.length : 0;
             }
-            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value, true);
+            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, true);
 
             if (updatedExpressionModelInfo) {
                 const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
@@ -338,10 +362,24 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             }
         }
         else {
-            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(expressionModel);
-            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(expressionModel, absoluteCaretPosition, value);
+            let selectedElement = currentModel.find(el => el.isFocused);
+            let shouldReplaceEntireValue = false;
+            if (!selectedElement) {
+                selectedElement = currentModel[currentModel.length - 1];
+            };
+            if (selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd) {
+                // If there's a selection, replace the selected text
+                const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
+                    value +
+                    selectedElement.value.substring(selectedElement.focusOffsetEnd);
+                value = newValue;
+                shouldReplaceEntireValue = true;
+
+            }
+            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
+            const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, shouldReplaceEntireValue);
             if (updatedExpressionModelInfo) {
-                const { updatedModel, updatedValue, newCursorPosition } = updatedExpressionModelInfo;
+                const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
 
                 const textValue = getTextValueFromExpressionModel(updatedModel || []);
                 const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
@@ -414,7 +452,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         if (chipId && expressionModel) {
             const updatedExpressionModel = expressionModel.map(model => {
                 if (model.id === chipId) {
-                    return { ...model, isFocused: true, focusOffset: Math.max(model.length - 1, 0) };
+                    return { ...model, isFocused: true, focusOffsetStart: Math.max(model.length - 1, 0) };
                 }
                 return { ...model, isFocused: false };
             });
@@ -430,9 +468,9 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         if (chipId && expressionModel) {
             const updatedExpressionModel = expressionModel.map(model => {
                 if (model.id === chipId) {
-                    return { ...model, isFocused: true, focusOffset: 0 };
+                    return { ...model, isFocused: true, focusOffsetStart: 0, focusOffsetEnd: 0 };
                 }
-                return { ...model, isFocused: false, focusOffset: undefined };
+                return { ...model, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined };
             });
             setExpressionModel(updatedExpressionModel);
         }

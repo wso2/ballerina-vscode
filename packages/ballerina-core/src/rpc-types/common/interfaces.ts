@@ -91,6 +91,10 @@ export interface ShowErrorMessageRequest {
     message: string;
 }
 
+export interface TomlWorkspace {
+    packages: string[];
+}
+
 export interface TomlPackage {
     org: string;
     name: string;
@@ -98,6 +102,14 @@ export interface TomlPackage {
     title: string;
 }
 
-export interface TomlValues {
+export interface WorkspaceTomlValues {
+    workspace: TomlWorkspace;
+}
+
+export interface PackageTomlValues {
     package: TomlPackage;
+}
+
+export interface WorkspaceTypeResponse {
+    type: "SINGLE_PROJECT" | "MULTIPLE_PROJECTS" | "BALLERINA_WORKSPACE" | "VSCODE_WORKSPACE" | "UNKNOWN"
 }
