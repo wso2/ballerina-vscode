@@ -29,15 +29,14 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 /**
  * Context for adding a service model.
  *
- * @param service         the service to be added
- * @param function        the function associated with the service
- * @param semanticModel   the semantic model of the project
- * @param project         the Ballerina project
+ * @param service          the service to be added
+ * @param function         the function associated with the service
+ * @param semanticModel    the semantic model of the project
+ * @param project          the Ballerina project
  * @param workspaceManager the workspace manager for handling workspace operations
- * @param filePath        the path to the Ballerina file
- * @param document        the document representing the Ballerina file
- * @param node            the syntax tree node where the service is defined
- *
+ * @param filePath         the path to the Ballerina file
+ * @param document         the document representing the Ballerina file
+ * @param node             the syntax tree node where the service is defined
  * @since 1.2.0
  */
 public record AddModelContext(Service service, Function function, SemanticModel semanticModel, Project project,

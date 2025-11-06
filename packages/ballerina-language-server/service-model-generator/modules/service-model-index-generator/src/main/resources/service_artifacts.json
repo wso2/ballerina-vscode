@@ -21,11 +21,11 @@
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
         "optionalAbsoluteResourcePath": 0,
-        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathLabel": "Base Path",
         "absoluteResourcePathDescription": "",
         "absoluteResourcePathDefaultValue": "/",
         "optionalStringLiteral": 1,
-        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralLabel": "Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/\"",
         "listenerKind": "MULTIPLE_SELECT",
@@ -57,7 +57,14 @@
         }
       },
       "initForm": {
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "basePath",
+          "displayName": "Base Path",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "graphql",
@@ -174,6 +181,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "caller",
@@ -203,7 +211,14 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "attachpoint",
+          "displayName": "Service Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "file",
@@ -243,7 +258,8 @@
               "returnType": "",
               "returnError": 0,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -267,6 +283,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -290,6 +307,7 @@
               "returnError": 0,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "event",
@@ -330,7 +348,14 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "path",
+          "displayName": "Path",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "ftp",
@@ -370,7 +395,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "event",
@@ -453,14 +479,21 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "protocol",
+          "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "mqtt",
       "version": "1.4.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "MQTT Event Handler",
+        "displayName": "MQTT Event Integration",
         "description": "Create a service to handle messages from an MQTT broker",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -491,7 +524,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 0,
               "canAddParameter": 0,
               "parameters": [
                 {
@@ -544,7 +578,19 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "subscriptions",
+          "displayName": "Topic(s)",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "arg3",
+          "displayName": "Topic(s)",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "ai",
@@ -663,7 +709,7 @@
       "version": "3.9.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Azure Service Bus Event Handler",
+        "displayName": "Azure Service Bus Event Integration",
         "description": "Create a service to handle messages from an Azure Service Bus entity",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -694,7 +740,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "message",
@@ -718,6 +765,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "asbErr",
@@ -769,14 +817,26 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "CUSTOM"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic(s)",
+          "kind": "CUSTOM"
+        }
+      ]
     },
     {
       "name": "rabbitmq",
       "version": "3.2.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "RabbitMQ Event Handler",
+        "displayName": "RabbitMQ Event Integration",
         "description": "Create a service to handle messages from a RabbitMQ queue",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -807,7 +867,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -842,6 +903,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -875,7 +937,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "message",
@@ -948,14 +1011,26 @@
           "sourceKind": "LISTENER_PARAM_REQUIRED",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "attachPoint",
+          "displayName": "Queue Name",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "kafka",
       "version": "4.5.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Kafka Event Handler",
+        "displayName": "Kafka Event Integration",
         "description": "Create a service to handle messages from Kafka topic(s)",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -986,12 +1061,13 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 0,
               "parameters": [
                 {
-                  "name": "records",
-                  "label": "Consumer records",
-                  "description": "The records received for Kafka topic(s)",
+                  "name": "messages",
+                  "label": "Consumer messages",
+                  "description": "The messages received for Kafka topic(s)",
                   "kind": "REQUIRED",
                   "type": "kafka:AnydataConsumerRecord[]",
                   "defaultValue": "",
@@ -1020,7 +1096,8 @@
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
-              "enable": 1,
+              "enable": 0,
+              "optional": 1,
               "parameters": [
                 {
                   "name": "kafkaError",
@@ -1061,14 +1138,21 @@
           "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
           "selections": []
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "topics",
+          "displayName": "Topic(s)",
+          "kind": "LISTENER_PARAM"
+        }
+      ]
     },
     {
       "name": "salesforce",
       "version": "8.2.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Salesforce Event Handler",
+        "displayName": "Salesforce Event Integration",
         "description": "Create a service to handle events from Salesforce",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -1113,7 +1197,7 @@
       "version": "0.10.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "GitHub Event Handler",
+        "displayName": "GitHub Event Integration",
         "description": "Create a service to handle events from GitHub",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
@@ -1156,7 +1240,14 @@
             "ProjectCardService"
           ]
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     },
     {
       "name": "ai",
@@ -1189,7 +1280,7 @@
       "version": "0.10.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
-        "displayName": "Twilio Event Handler",
+        "displayName": "Twilio Event Integration",
         "description": "Create a service to handle events from Twilio",
         "optionalTypeDescriptor": 0,
         "typeDescriptorLabel": "Event Channel",
@@ -1225,6 +1316,142 @@
           ]
         }
       }
+    },
+    {
+      "name": "solace",
+      "version": "0.3.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "Solace Event Integration",
+        "description": "Create a service to handle messages from a Solace queue or topic",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "The name of the service contract type",
+        "typeDescriptorDefaultValue": "Service",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "SINGLE_SELECT",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "Service": {
+          "name": "Service",
+          "description": "",
+          "functions": [
+            {
+              "name": "onMessage",
+              "description": "Triggers when a message is received from a Solace queue or topic",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "parameters": [
+                {
+                  "name": "message",
+                  "label": "Message",
+                  "description": "The received Solace message",
+                  "kind": "REQUIRED",
+                  "type": "solace:Message",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "caller",
+                  "label": "Caller",
+                  "description": "The Solace caller to control transactions and message acknowledgement",
+                  "kind": "OPTIONAL",
+                  "type": "solace:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 0,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggers when an error occurs during message processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "solaceError",
+                  "label": "Solace Error",
+                  "description": "The error occurred during message processing",
+                  "kind": "REQUIRED",
+                  "type": "solace:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define advanced configurations like queue or topic name",
+          "typeConstraint": "solace:ServiceConfiguration"
+        }
+      },
+      "initForm": {
+        "url": {
+          "label": "Broker URL",
+          "description": "The Solace broker URL",
+          "defaultValue": "\"smf://localhost:55554\"",
+          "placeholder": "\"smf://localhost:55554\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_REQUIRED",
+          "selections": []
+        },
+        "messageVpn": {
+          "label": "Message VPN",
+          "description": "The message VPN to connect to",
+          "defaultValue": "\"default\"",
+          "placeholder": "\"default\"",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "string",
+          "typeMembers": [],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
+          "selections": []
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "queueName",
+          "displayName": "Queue Name",
+          "kind": "ANNOTATION"
+        },
+        {
+          "key": "topicName",
+          "displayName": "Topic Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }

@@ -122,7 +122,7 @@
       "hidden": true
     }
   ],
-  "schema" : {
+  "schema": {
     "parameter": {
       "type": {
         "metadata": {
@@ -132,7 +132,7 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "TYPE",
+        "valueType": "ACTION_TYPE",
         "isType": true,
         "optional": false,
         "advanced": false,
@@ -159,6 +159,7 @@
         },
         "enabled": true,
         "editable": true,
+        "valueType": "EXPRESSION",
         "isType": false,
         "optional": true,
         "advanced": false,

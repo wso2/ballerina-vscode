@@ -67,6 +67,7 @@ public abstract class CallBuilder extends NodeBuilder {
                         codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
+                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
                 .userModuleInfo(moduleInfo);
 
         NodeKind functionNodeKind = getFunctionNodeKind();
@@ -100,6 +101,8 @@ public abstract class CallBuilder extends NodeBuilder {
                 .object(codedata.object())
                 .version(codedata.version())
                 .symbol(codedata.symbol())
+                .lineRange(codedata.lineRange())
+                .sourceCode(codedata.sourceCode())
                 .inferredReturnType(functionData.inferredReturnType() ? functionData.returnType() : null);
 
         if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.AGENT &&

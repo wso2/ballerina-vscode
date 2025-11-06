@@ -410,6 +410,10 @@
     },
     {
       "label": "x",
+      "labelDetails": {
+        "detail": " float",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "float",
       "sortText": "AB",

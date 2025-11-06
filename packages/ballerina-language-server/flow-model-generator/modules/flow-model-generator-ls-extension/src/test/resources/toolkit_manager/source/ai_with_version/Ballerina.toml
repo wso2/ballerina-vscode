@@ -1,0 +1,13 @@
+[package]
+org = "admin"
+name = "ai_with_version"
+version = "0.1.0"
+distribution = "2201.12.7"
+
+[build-options]
+observabilityIncluded = true
+
+[[dependency]]
+org = "ballerina"
+name = "ai"
+version = "1.5.4"

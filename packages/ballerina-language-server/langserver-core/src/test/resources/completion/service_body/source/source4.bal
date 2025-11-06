@@ -9,3 +9,6 @@ service  on new module1:Listener(8080) {
 
 function testFunction() {
 }
+
+configurable int port = ?;
+configurable string host = ?;

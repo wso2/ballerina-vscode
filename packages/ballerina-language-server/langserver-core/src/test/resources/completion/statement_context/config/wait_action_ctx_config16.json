@@ -4,9 +4,13 @@
     "character": 55
   },
   "source": "statement_context/source/wait_action_ctx_source16.bal",
+  "description": "",
   "items": [
     {
       "label": "TEST_FUTURE_INT",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "G",

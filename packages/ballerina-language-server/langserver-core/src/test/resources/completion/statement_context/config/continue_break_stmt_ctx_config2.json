@@ -544,6 +544,9 @@
     },
     {
       "label": "numberList",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "B",
@@ -552,6 +555,9 @@
     },
     {
       "label": "item",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -560,6 +566,9 @@
     },
     {
       "label": "breakValue",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -568,6 +577,9 @@
     },
     {
       "label": "counter",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",

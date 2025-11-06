@@ -881,6 +881,9 @@
     },
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",

@@ -57,7 +57,7 @@ public class UpdateFunctionTest extends AbstractLSTest {
 
         FunctionModifierRequest request = new FunctionModifierRequest(
                 sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString(), testConfig.function());
-        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        JsonObject jsonMap = getResponseAndCloseFile(request, testConfig.filePath()).getAsJsonObject("textEdits");
 
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
 

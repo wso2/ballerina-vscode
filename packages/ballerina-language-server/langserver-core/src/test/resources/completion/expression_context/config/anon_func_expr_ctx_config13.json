@@ -438,6 +438,9 @@
     },
     {
       "label": "strVal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -457,6 +460,9 @@
     },
     {
       "label": "testFunc",
+      "labelDetails": {
+        "detail": " function (int i, string s) returns int"
+      },
       "kind": "Variable",
       "detail": "function (int i, string s) returns int",
       "sortText": "AB",
@@ -465,6 +471,9 @@
     },
     {
       "label": "anonFunc",
+      "labelDetails": {
+        "detail": " function (int i, string s) returns int"
+      },
       "kind": "Variable",
       "detail": "function (int i, string s) returns int",
       "sortText": "AB",
@@ -473,6 +482,9 @@
     },
     {
       "label": "intVal",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",

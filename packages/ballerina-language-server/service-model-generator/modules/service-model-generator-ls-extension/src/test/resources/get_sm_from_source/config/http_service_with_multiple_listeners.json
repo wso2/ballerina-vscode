@@ -44,7 +44,7 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "http:Listener",
         "value": "",
         "values": [
@@ -58,6 +58,65 @@
           "(+) Create and use the default HTTP listener (port: 9090)",
           "new http:Listener(port = 8080)"
         ],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 53
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 65
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "new http:Listener(port = 8080)": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 51
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "githubListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 67
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 81
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -65,7 +124,7 @@
       },
       "basePath": {
         "metadata": {
-          "label": "Service Base Path",
+          "label": "Base Path",
           "description": ""
         },
         "codedata": {
@@ -104,7 +163,23 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {
+          "Base Path": [
+            "/api/test"
+          ]
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
       }
     },
     "codedata": {

@@ -94,7 +94,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener kafka:Listener kafkaListener = new (\"localhost:9092\", topics = \"sales-data\");\nservice kafka:Service on kafkaListener {\n\tremote function onConsumerRecord(kafka:AnydataConsumerRecord[] records, kafka:Caller caller) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onError(kafka:Error kafkaError) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+        "newText": "\nlistener kafka:Listener kafkaListener = new (\"localhost:9092\", topics = \"sales-data\");\nservice kafka:Service on kafkaListener {\n\n}\n"
       }
     ]
   }

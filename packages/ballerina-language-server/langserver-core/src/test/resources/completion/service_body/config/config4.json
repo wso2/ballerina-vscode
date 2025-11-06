@@ -502,6 +502,9 @@
     },
     {
       "label": "s",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",
@@ -510,6 +513,9 @@
     },
     {
       "label": "self",
+      "labelDetails": {
+        "detail": " isolated service object {isolated resource function get foo/[string bar] () returns ();}"
+      },
       "kind": "Variable",
       "detail": "isolated service object {isolated resource function get foo/[string bar] () returns ();}",
       "sortText": "B",
@@ -518,6 +524,10 @@
     },
     {
       "label": "bar",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",
@@ -909,6 +919,30 @@
       "detail": "type",
       "sortText": "R",
       "insertText": "natural",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "host",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Configurable"
+      },
+      "kind": "Variable",
+      "detail": "string",
+      "sortText": "B",
+      "insertText": "host",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "port",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Configurable"
+      },
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "B",
+      "insertText": "port",
       "insertTextFormat": "Snippet"
     }
   ]

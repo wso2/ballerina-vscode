@@ -526,6 +526,9 @@
     },
     {
       "label": "age",
+      "labelDetails": {
+        "detail": " function () returns int"
+      },
       "kind": "Variable",
       "detail": "function () returns int",
       "sortText": "B",

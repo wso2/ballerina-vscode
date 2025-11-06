@@ -206,7 +206,7 @@ public class ServiceModelAPITests {
     @Test
     public void testGetServiceModelWithoutListener() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample1/main.bal");
-        ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina", 
+        ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
                 "http", null);
         CompletableFuture<?> result = serviceEndpoint.request("serviceDesign/getServiceModel", request);
         ServiceModelResponse response = (ServiceModelResponse) result.get();
@@ -350,7 +350,7 @@ public class ServiceModelAPITests {
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }
-    
+
     @Test
     public void testAddHttpResource() throws ExecutionException, InterruptedException {
         FunctionModelRequest request = new FunctionModelRequest("http", "resource");

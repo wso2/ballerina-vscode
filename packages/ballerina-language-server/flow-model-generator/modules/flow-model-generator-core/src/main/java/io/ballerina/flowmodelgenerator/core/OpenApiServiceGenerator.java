@@ -340,16 +340,16 @@ public class OpenApiServiceGenerator {
             if (!typeStr.contains(BALLERINA_HTTP)) {
                 return "";
             }
-            if (typeStr.contains("InternalServerError")) {
+            if (typeStr.contains("http:InternalServerError")) {
                 return "http:INTERNAL_SERVER_ERROR";
             }
-            if (typeStr.contains("NotFound")) {
+            if (typeStr.contains("http:NotFound")) {
                 return "http:NOT_FOUND";
             }
-            if (typeStr.contains("MethodNotAllowed")) {
+            if (typeStr.contains("http:MethodNotAllowed")) {
                 return "http:METHOD_NOT_ALLOWED";
             }
-            if (typeStr.contains("BadRequest")) {
+            if (typeStr.contains("http:BadRequest")) {
                 return "http:BAD_REQUEST";
             }
             // TODO: Add more possible status codes

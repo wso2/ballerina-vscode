@@ -4,6 +4,7 @@
     "character": 8
   },
   "source": "expression_context/source/mapping_expr_ctx_source38_negative.bal",
+  "description": "",
   "items": [
     {
       "label": "readonly",
@@ -16,6 +17,9 @@
     },
     {
       "label": "c",
+      "labelDetails": {
+        "detail": " Outer"
+      },
       "kind": "Variable",
       "detail": "Outer",
       "sortText": "B",

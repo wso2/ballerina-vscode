@@ -62,7 +62,6 @@
             "selected": false
           }
         ],
-        "imports": {},
         "defaultValue": "{}"
       },
       "serviceUrl": {

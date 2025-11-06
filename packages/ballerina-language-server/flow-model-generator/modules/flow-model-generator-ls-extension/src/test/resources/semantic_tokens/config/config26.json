@@ -1,0 +1,6 @@
+{
+  "description": "Simple variable reference that does not exist",
+  "filePath": "main.bal",
+  "expression": "undefinedVar",
+  "expectedTokens": []
+}

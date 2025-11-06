@@ -31,6 +31,7 @@ replay_pid*
 .gradle/
 build/
 **/bin/
+.cache/
 
 # macOS metadata files
 .DS_Store

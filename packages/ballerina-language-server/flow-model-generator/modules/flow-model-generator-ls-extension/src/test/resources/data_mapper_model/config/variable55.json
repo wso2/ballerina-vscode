@@ -6,105 +6,59 @@
     "lineRange": {
       "fileName": "variable33.bal",
       "startLine": {
-        "line": 23,
+        "line": 12,
         "offset": 12
       },
       "endLine": {
-        "line": 23,
-        "offset": 33
+        "line": 12,
+        "offset": 41
       }
     },
-    "sourceCode": ""
+    "sourceCode": "Student student = {};"
   },
   "position": {
-    "line": 23,
+    "line": 12,
     "offset": 12
   },
   "propertyKey": "expression",
-  "targetField": "student",
+  "targetField": "details",
   "model": {
-    "inputs": [
-      {
-        "name": "CONST",
-        "displayName": "CONST",
-        "typeName": "string",
-        "kind": "string",
-        "category": "constant"
-      },
-      {
-        "fields": [],
-        "name": "myStudent",
-        "displayName": "myStudent",
-        "typeName": "Student",
-        "kind": "record",
-        "category": "module-variable",
-        "ref": "545732303"
-      },
-      {
-        "fields": [],
-        "name": "user",
-        "displayName": "user",
-        "typeName": "UserInfo",
-        "kind": "record",
-        "category": "local-variable",
-        "ref": "1889977605"
-      }
-    ],
+    "inputs": [],
     "output": {
       "fields": [],
-      "name": "student",
-      "displayName": "student",
-      "typeName": "Student",
+      "name": "details",
+      "displayName": "details",
+      "typeName": "PurchaseDetails",
       "kind": "record",
-      "ref": "545732303"
+      "ref": "2079257237"
     },
     "mappings": [],
     "refs": {
-      "545732303": {
+      "2079257237": {
         "fields": [
           {
-            "name": "username",
-            "displayName": "username",
+            "name": "rewardId",
+            "displayName": "rewardId",
             "typeName": "string",
             "kind": "string",
-            "optional": false
+            "optional": true
           },
           {
-            "name": "password",
-            "displayName": "password",
+            "name": "skuId",
+            "displayName": "skuId",
             "typeName": "string",
             "kind": "string",
-            "optional": false
+            "optional": true
           },
           {
-            "name": "'record",
-            "displayName": "'record",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
+            "name": "quantity",
+            "displayName": "quantity",
+            "typeName": "int:Signed32",
+            "kind": "int:Signed32",
+            "optional": true
           }
         ],
-        "typeName": "Student",
-        "kind": "record"
-      },
-      "1889977605": {
-        "fields": [
-          {
-            "name": "username",
-            "displayName": "username",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          },
-          {
-            "name": "password",
-            "displayName": "password",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "UserInfo",
+        "typeName": "PurchaseDetails",
         "kind": "record"
       }
     }

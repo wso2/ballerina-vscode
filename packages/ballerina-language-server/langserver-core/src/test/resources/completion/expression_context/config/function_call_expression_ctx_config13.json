@@ -399,6 +399,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -430,6 +433,9 @@
     },
     {
       "label": "myStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",

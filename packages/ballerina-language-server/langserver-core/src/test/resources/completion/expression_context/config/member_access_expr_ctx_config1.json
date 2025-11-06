@@ -348,6 +348,9 @@
     },
     {
       "label": "indexVal",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -364,6 +367,9 @@
     },
     {
       "label": "listValue",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -387,6 +393,9 @@
     },
     {
       "label": "myList",
+      "labelDetails": {
+        "detail": " int[]"
+      },
       "kind": "Variable",
       "detail": "int[]",
       "sortText": "B",

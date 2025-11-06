@@ -124,8 +124,8 @@
           "choices": [
             {
               "metadata": {
-                "label": "Shared Listener (Port 8080)",
-                "description": "Shared Listener (Port 8080)"
+                "label": "Shared Listener (Port 9090)",
+                "description": "Shared Listener (Port 9090)"
               },
               "placeholder": "true",
               "valueType": "FORM",
@@ -153,10 +153,10 @@
                   "codedata": {
                     "argType": "LISTENER_PARAM_REQUIRED"
                   },
-                  "placeholder": "8080",
+                  "placeholder": "9090",
                   "valueType": "EXPRESSION",
                   "valueTypeConstraint": "int",
-                  "value": "8080",
+                  "value": "9090",
                   "typeMembers": [],
                   "enabled": true,
                   "editable": true,

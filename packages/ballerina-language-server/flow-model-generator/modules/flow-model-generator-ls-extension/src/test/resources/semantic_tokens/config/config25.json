@@ -1,0 +1,21 @@
+{
+  "description": "Arithmetic expression with newline and operator",
+  "filePath": "main.bal",
+  "expression": "var1 +\n    var2",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 1,
+      "col": 4,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

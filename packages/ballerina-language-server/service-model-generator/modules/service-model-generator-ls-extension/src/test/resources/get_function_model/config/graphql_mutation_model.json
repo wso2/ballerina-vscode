@@ -77,7 +77,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -112,7 +113,8 @@
         "editable": false,
         "optional": false,
         "advanced": true,
-        "hidden": true
+        "hidden": true,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -122,7 +124,7 @@
             "label": "Argument Type",
             "description": "The type of the argument"
           },
-          "valueType": "TYPE",
+          "valueType": "ACTION_TYPE",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -146,6 +148,7 @@
             "label": "Default Value",
             "description": "The default value of the argument"
           },
+          "valueType": "EXPRESSION",
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -166,11 +169,13 @@
         "editable": false,
         "optional": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     },
     "returnType": {
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Field Type",
         "description": "The type of the field"

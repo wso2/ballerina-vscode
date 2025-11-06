@@ -407,6 +407,9 @@
     },
     {
       "label": "myStr",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -442,6 +445,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",
@@ -469,6 +475,10 @@
     },
     {
       "label": "coordinates",
+      "labelDetails": {
+        "detail": " Coordinates",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "Coordinates",
       "sortText": "F",
@@ -488,6 +498,10 @@
     },
     {
       "label": "city",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "AB",
@@ -496,6 +510,10 @@
     },
     {
       "label": "func",
+      "labelDetails": {
+        "detail": " function () returns string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "function () returns string",
       "sortText": "F",

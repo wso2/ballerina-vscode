@@ -511,6 +511,10 @@
     },
     {
       "label": "newErr",
+      "labelDetails": {
+        "detail": " error",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "error",
       "sortText": "F",
@@ -527,6 +531,9 @@
     },
     {
       "label": "testError",
+      "labelDetails": {
+        "detail": " ERR"
+      },
       "kind": "Variable",
       "detail": "ERR",
       "sortText": "F",
@@ -535,6 +542,10 @@
     },
     {
       "label": "z",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",

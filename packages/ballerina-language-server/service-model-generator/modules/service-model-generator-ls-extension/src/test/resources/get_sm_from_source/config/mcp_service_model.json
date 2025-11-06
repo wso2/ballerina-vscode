@@ -23,7 +23,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -45,13 +45,34 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT",
+        "valueType": "MULTIPLE_SELECT_LISTENER",
         "valueTypeConstraint": "mcp:Listener",
         "value": "mcpListener",
         "values": [],
         "items": [
           "mcpListener"
         ],
+        "properties": {
+          "mcpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 11,
+                  "offset": 28
+                },
+                "endLine": {
+                  "line": 11,
+                  "offset": 39
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -96,6 +117,18 @@
         "optional": false,
         "advanced": false
       },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "valueType": "SINGLE_SELECT",
+        "value": {},
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
       "annotServiceConfig": {
         "metadata": {
           "label": "Service Configuration",
@@ -121,7 +154,7 @@
         "enabled": true,
         "editable": true,
         "optional": true,
-        "advanced": true
+        "advanced": false
       }
     },
     "codedata": {
@@ -135,7 +168,10 @@
           "line": 36,
           "offset": 1
         }
-      }
+      },
+      "orgName": "ballerina",
+      "packageName": "mcp",
+      "moduleName": "mcp"
     },
     "functions": [
       {
@@ -224,7 +260,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -277,11 +314,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -294,7 +333,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {
@@ -310,7 +349,24 @@
             }
           }
         },
-        "properties": {}
+        "properties": {
+          "annotTool": {
+            "metadata": {
+              "label": "Tool",
+              "description": "Tool"
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "Tool",
+              "moduleName": "mcp"
+            },
+            "value": "{\n        description: string `\n            **Description**: Get current weather conditions for a location\n            **Parameters**:\n            - location (string, required): City name or coordinates (e.g., \"London\", \"40.7128,-74.0060\")\n            `\n    }",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
       },
       {
         "metadata": {
@@ -407,7 +463,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           },
           {
             "metadata": {
@@ -466,7 +523,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -519,11 +577,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -536,7 +596,7 @@
           "advanced": false
         },
         "enabled": true,
-        "optional": false,
+        "optional": true,
         "editable": false,
         "canAddParameters": true,
         "codedata": {

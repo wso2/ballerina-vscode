@@ -1,0 +1,14 @@
+{
+  "description": "Optional field access",
+  "filePath": "main.bal",
+  "expression": "parent?.child",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 13,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

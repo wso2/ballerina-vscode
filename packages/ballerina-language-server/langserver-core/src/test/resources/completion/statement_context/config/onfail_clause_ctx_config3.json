@@ -538,6 +538,9 @@
     },
     {
       "label": "animals",
+      "labelDetails": {
+        "detail": " string[]"
+      },
       "kind": "Variable",
       "detail": "string[]",
       "sortText": "B",
@@ -561,6 +564,9 @@
     },
     {
       "label": "animal",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "B",

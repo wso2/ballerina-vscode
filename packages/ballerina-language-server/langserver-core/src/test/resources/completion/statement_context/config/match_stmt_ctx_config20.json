@@ -404,6 +404,9 @@
     },
     {
       "label": "moduleVar",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",
@@ -431,6 +434,10 @@
     },
     {
       "label": "v",
+      "labelDetails": {
+        "detail": " any",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "any",
       "sortText": "B",
@@ -439,6 +446,9 @@
     },
     {
       "label": "localVar",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "B",

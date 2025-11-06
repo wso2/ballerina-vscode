@@ -457,6 +457,9 @@
     },
     {
       "label": "testFunc",
+      "labelDetails": {
+        "detail": " function (int i) returns function (int i, string s) returns int"
+      },
       "kind": "Variable",
       "detail": "function (int i) returns function (int i, string s) returns int",
       "sortText": "F",
@@ -474,6 +477,9 @@
     },
     {
       "label": "intVal",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "F",

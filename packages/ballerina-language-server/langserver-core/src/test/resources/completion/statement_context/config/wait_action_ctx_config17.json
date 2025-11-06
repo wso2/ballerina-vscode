@@ -8,6 +8,9 @@
   "items": [
     {
       "label": "fint",
+      "labelDetails": {
+        "detail": " future<int>"
+      },
       "kind": "Variable",
       "detail": "future<int>",
       "sortText": "F",
@@ -32,6 +35,9 @@
     },
     {
       "label": "fstr",
+      "labelDetails": {
+        "detail": " future<string>"
+      },
       "kind": "Variable",
       "detail": "future<string>",
       "sortText": "F",
@@ -40,6 +46,9 @@
     },
     {
       "label": "r",
+      "labelDetails": {
+        "detail": " Result"
+      },
       "kind": "Variable",
       "detail": "Result",
       "sortText": "AB",

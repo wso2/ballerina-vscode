@@ -658,6 +658,9 @@
     },
     {
       "label": "mp",
+      "labelDetails": {
+        "detail": " map<int>"
+      },
       "kind": "Variable",
       "detail": "map<int>",
       "sortText": "F",

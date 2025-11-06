@@ -555,6 +555,9 @@
     },
     {
       "label": "testError",
+      "labelDetails": {
+        "detail": " ERR"
+      },
       "kind": "Variable",
       "detail": "ERR",
       "sortText": "AB",

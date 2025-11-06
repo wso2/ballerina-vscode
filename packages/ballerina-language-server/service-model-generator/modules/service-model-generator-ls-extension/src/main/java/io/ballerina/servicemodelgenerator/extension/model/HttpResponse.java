@@ -34,20 +34,18 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_
 public class HttpResponse {
     private Value statusCode;
     private Value body;
+    private Value mediaType;
     private Value name;
     private Value type;
     private Value headers;
     private boolean enabled = true;
     private boolean editable = false;
     private boolean advanced = false;
-    private boolean isHttpResponseType = false;
 
-    public HttpResponse() {
-    }
-
-    public HttpResponse(Value statusCode, Value body, Value name, Value type, Value headers) {
+    public HttpResponse(Value statusCode, Value body, Value mediaType, Value name, Value type, Value headers) {
         this.statusCode = statusCode;
         this.body = body;
+        this.mediaType = mediaType;
         this.name = name;
         this.type = type;
         this.headers = headers;
@@ -67,35 +65,8 @@ public class HttpResponse {
         this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
         this.body = createOptionalValue(type, VALUE_TYPE_TYPE, true);
         this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
-        this.type = createOptionalValue(body, VALUE_TYPE_TYPE, true);
+        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, true);
         this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
-    }
-
-    public HttpResponse(String statusCode, String type, String body, Object headers, boolean editable) {
-        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
-        this.body =  createOptionalValue(body, VALUE_TYPE_TYPE, editable);
-        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, editable);
-        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
-        this.headers = createOptionalValue(headers, VALUE_TYPE_HEADER_SET, editable);
-        this.editable = editable;
-    }
-
-    public HttpResponse(String statusCode, String type, boolean editable) {
-        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
-        this.body = createOptionalValue("", VALUE_TYPE_TYPE, editable);
-        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, editable);
-        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
-        this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, editable);
-        this.editable = editable;
-    }
-
-    public static HttpResponse getAnonResponse(String code, String typeStr) {
-        Value statusCode = createValue(code, VALUE_TYPE_SINGLE_SELECT, true);
-        Value body = createValue("", VALUE_TYPE_EXPRESSION, true);
-        Value name = createValue("", VALUE_TYPE_EXPRESSION, true);
-        Value type = createValue(typeStr, VALUE_TYPE_EXPRESSION, true);
-        Value headers = createValue("", VALUE_TYPE_HEADER_SET, true);
-        return new HttpResponse(statusCode, body, name, type, headers);
     }
 
     private static Value createValue(Object value, String valueType, boolean editable) {
@@ -118,7 +89,6 @@ public class HttpResponse {
                 .setImports(new HashMap<>())
                 .build();
     }
-
 
     public Value getStatusCode() {
         return statusCode;
@@ -152,39 +122,94 @@ public class HttpResponse {
         this.type = type;
     }
 
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
-
-    public void setAdvanced(boolean advanced) {
-        this.advanced = advanced;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public Value getHeaders() {
         return headers;
+    }
+
+    public Value getMediaType() {
+        return mediaType;
     }
 
     public boolean isEnabled() {
         return enabled;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public boolean isAdvanced() {
         return advanced;
+    }
+
+    public void setAdvanced(boolean advanced) {
+        this.advanced = advanced;
     }
 
     public boolean isEditable() {
         return editable;
     }
 
-    public boolean isHttpResponseType() {
-        return isHttpResponseType;
+    public void setEditable(boolean editable) {
+        this.editable = editable;
     }
 
-    public void setHttpResponseType(boolean httpResponseType) {
-        isHttpResponseType = httpResponseType;
+    public static class Builder {
+        private Value statusCode;
+        private Value body;
+        private Value mediaType;
+        private Value name;
+        private Value type;
+        private Value headers;
+
+        public Builder statusCode(String statusCode, boolean editable) {
+            this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
+            return this;
+        }
+
+        public Builder body(String body, boolean editable) {
+            this.body = createOptionalValue(body, VALUE_TYPE_TYPE, editable);
+            return this;
+        }
+
+        public Builder mediaType(String mediaType, boolean editable) {
+            this.mediaType = createValue(mediaType, VALUE_TYPE_EXPRESSION, editable);
+            return this;
+        }
+
+        public Builder name(String name, boolean editable) {
+            this.name = createOptionalValue(name, VALUE_TYPE_IDENTIFIER, editable);
+            ;
+            return this;
+        }
+
+        public Builder type(String type, boolean editable) {
+            this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
+            return this;
+        }
+
+        public Builder headers(Object headers, boolean editable) {
+            this.headers = createOptionalValue(headers, VALUE_TYPE_HEADER_SET, editable);
+            return this;
+        }
+
+        public HttpResponse build() {
+            if (mediaType == null) {
+                this.mediaType = createValue("", VALUE_TYPE_EXPRESSION, true);
+            }
+            if (name == null) {
+                this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
+            }
+            if (type == null) {
+                this.type = createOptionalValue("", VALUE_TYPE_TYPE, true);
+            }
+            if (headers == null) {
+                this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
+            }
+            if (body == null) {
+                this.body = createOptionalValue("", VALUE_TYPE_EXPRESSION, true);
+            }
+            return new HttpResponse(statusCode, body, mediaType, name, type, headers);
+        }
     }
 }

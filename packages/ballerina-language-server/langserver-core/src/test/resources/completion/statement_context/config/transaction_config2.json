@@ -399,6 +399,9 @@
     },
     {
       "label": "res",
+      "labelDetails": {
+        "detail": " ()"
+      },
       "kind": "Variable",
       "detail": "()",
       "sortText": "DB",

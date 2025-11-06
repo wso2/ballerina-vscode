@@ -1,0 +1,49 @@
+{
+  "description": "String template with variable and field access interpolations",
+  "filePath": "main.bal",
+  "expression": "string `This is my variable ${myVar} and this is my field ${rec.field1}`",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 28,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 30,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 35,
+      "length": 1,
+      "type": 6,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 58,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 60,
+      "length": 10,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 70,
+      "length": 1,
+      "type": 6,
+      "modifiers": 0
+    }
+  ]
+}

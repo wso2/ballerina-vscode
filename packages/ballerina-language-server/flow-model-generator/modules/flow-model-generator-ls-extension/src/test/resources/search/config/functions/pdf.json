@@ -73,7 +73,7 @@
               "metadata": {
                 "label": "toTextFromURL",
                 "description": "Extracts text content from a PDF document accessible via a given URL.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_0.1.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_1.0.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -81,7 +81,7 @@
                 "module": "pdfbox",
                 "packageName": "pdfbox",
                 "symbol": "toTextFromURL",
-                "version": "0.1.0"
+                "version": "1.0.1"
               },
               "enabled": true
             },
@@ -89,7 +89,7 @@
               "metadata": {
                 "label": "toTextFromBytes",
                 "description": "Extracts text content from a PDF document provided as a byte array.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_0.1.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_1.0.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -97,7 +97,7 @@
                 "module": "pdfbox",
                 "packageName": "pdfbox",
                 "symbol": "toTextFromBytes",
-                "version": "0.1.0"
+                "version": "1.0.1"
               },
               "enabled": true
             },
@@ -105,7 +105,7 @@
               "metadata": {
                 "label": "toTextFromFile",
                 "description": "Extracts text content from a PDF document located at the specified file path.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_0.1.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_pdfbox_1.0.1.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -113,7 +113,7 @@
                 "module": "pdfbox",
                 "packageName": "pdfbox",
                 "symbol": "toTextFromFile",
-                "version": "0.1.0"
+                "version": "1.0.1"
               },
               "enabled": true
             }

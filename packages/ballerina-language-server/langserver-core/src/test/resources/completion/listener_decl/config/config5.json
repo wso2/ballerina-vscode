@@ -8,6 +8,10 @@
   "items": [
     {
       "label": "test",
+      "labelDetails": {
+        "detail": " mod:Listener",
+        "description": "Listener"
+      },
       "kind": "Variable",
       "detail": "mod:Listener",
       "sortText": "A",

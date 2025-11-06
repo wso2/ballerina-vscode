@@ -17,7 +17,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -32,6 +32,7 @@
     },
     "properties": {
       "name": {
+        "imports": {},
         "metadata": {
           "label": "Class Name",
           "description": "The name of the class definition"
@@ -52,7 +53,6 @@
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
         "value": "Book",
-        "imports": {},
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -183,7 +183,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -236,11 +237,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the function"
@@ -401,11 +404,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the resource"
@@ -573,7 +578,8 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         ],
         "schema": {
@@ -626,11 +632,13 @@
             "editable": true,
             "optional": false,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "isGraphqlId": false
           }
         },
         "returnType": {
           "hasError": false,
+          "isGraphqlId": false,
           "metadata": {
             "label": "Return Type",
             "description": "The return type of the resource"
@@ -755,7 +763,8 @@
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "isPrivate": true,
@@ -825,7 +834,8 @@
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "isPrivate": true,
@@ -896,7 +906,8 @@
         "editable": true,
         "optional": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ]
   }

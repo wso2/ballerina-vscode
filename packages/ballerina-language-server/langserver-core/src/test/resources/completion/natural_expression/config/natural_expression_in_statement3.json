@@ -654,6 +654,10 @@
     },
     {
       "label": "address",
+      "labelDetails": {
+        "detail": " string",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "DB",
@@ -662,6 +666,10 @@
     },
     {
       "label": "age",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "DB",
@@ -689,6 +697,9 @@
     },
     {
       "label": "person",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "DB",

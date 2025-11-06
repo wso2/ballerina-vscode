@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.designmodelgenerator.core.CommonUtils;
 import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.tools.text.LineRange;
@@ -82,14 +83,23 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("tcp", "TCP Service"),
             Map.entry("file", "Directory Service"),
             Map.entry("ftp", "FTP Service"),
-            Map.entry("mqtt", "MQTT Event Handler"),
-            Map.entry("asb", "Azure Service Bus Event Handler"),
-            Map.entry("rabbitmq", "RabbitMQ Event Handler"),
-            Map.entry("kafka", "Kafka Event Handler"),
-            Map.entry("salesforce", "Salesforce Event Handler"),
-            Map.entry("github", "GitHub Event Handler"),
-            Map.entry("twilio", "Twilio Event Handler"),
-            Map.entry("ai", "AI Agent Services")
+            Map.entry("mqtt", "MQTT Event Integration"),
+            Map.entry("asb", "Azure Service Bus Event Integration"),
+            Map.entry("rabbitmq", "RabbitMQ Event Integration"),
+            Map.entry("kafka", "Kafka Event Integration"),
+            Map.entry("salesforce", "Salesforce Event Integration"),
+            Map.entry("github", "GitHub Event Integration"),
+            Map.entry("twilio", "Twilio Event Integration"),
+            Map.entry("ai", "AI Agent Services"),
+            Map.entry("solace", "Solace Event Integration")
+    );
+
+    /**
+     * Mapping of module names to annotation field names for services that derive their name from annotations. Each
+     * module can have multiple field names to try in order of preference.
+     */
+    private static final Map<String, String[]> moduleAnnotationFields = Map.of(
+            "solace", new String[]{"queueName", "topicName"}
     );
 
     public static String getCategory(String type) {
@@ -224,6 +234,28 @@ public record Artifact(String id, LineRange location, String type, String name, 
                 this.name = entryPointMap.get(module);
             }
             return this;
+        }
+
+        /**
+         * Attempts to set the service name from annotations if applicable for the module.
+         *
+         * @param serviceNode the service declaration node
+         * @return true if name was successfully extracted from annotation, false otherwise
+         */
+        public boolean trySetNameFromAnnotation(ServiceDeclarationNode serviceNode) {
+            if (module != null && moduleAnnotationFields.containsKey(module)) {
+                String[] fieldNames = moduleAnnotationFields.get(module);
+
+                for (String fieldName : fieldNames) {
+                    Optional<String> extractedValue = CommonUtils.extractServiceAnnotationField(serviceNode, fieldName);
+                    if (extractedValue.isPresent()) {
+                        this.name = Objects.requireNonNullElse(entryPointMap.get(module), "") + " - " +
+                                extractedValue.get();
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public Artifact build() {

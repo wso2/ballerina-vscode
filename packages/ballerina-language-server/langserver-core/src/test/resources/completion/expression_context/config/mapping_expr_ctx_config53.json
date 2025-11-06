@@ -4,9 +4,13 @@
     "character": 27
   },
   "source": "expression_context/source/mapping_expr_ctx_source53.bal",
+  "description": "",
   "items": [
     {
       "label": "a",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -29,6 +33,10 @@
     },
     {
       "label": "param2",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -37,6 +45,10 @@
     },
     {
       "label": "param1",
+      "labelDetails": {
+        "detail": " int",
+        "description": "Parameter"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
@@ -45,6 +57,9 @@
     },
     {
       "label": "b",
+      "labelDetails": {
+        "detail": " map<any>"
+      },
       "kind": "Variable",
       "detail": "map<any>",
       "sortText": "AB",

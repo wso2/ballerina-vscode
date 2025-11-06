@@ -650,6 +650,10 @@
     },
     {
       "label": "cl",
+      "labelDetails": {
+        "detail": " MyClass",
+        "description": "Client"
+      },
       "kind": "Variable",
       "detail": "MyClass",
       "sortText": "F",
@@ -666,6 +670,9 @@
     },
     {
       "label": "myString",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Variable",
       "detail": "string",
       "sortText": "F",
@@ -708,6 +715,9 @@
     },
     {
       "label": "myInt",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Variable",
       "detail": "int",
       "sortText": "AB",
