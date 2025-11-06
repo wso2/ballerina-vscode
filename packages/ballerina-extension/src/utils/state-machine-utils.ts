@@ -196,7 +196,24 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
                     view: MACHINE_VIEW.DataMapper,
                     identifier: node.syntaxTree.functionName.value,
                     documentUri: documentUri,
-                    position: position
+                    position: position,
+                    artifactType: DIRECTORY_MAP.DATA_MAPPER,
+                    dataMapperMetadata: {
+                        name: node.syntaxTree.functionName.value,
+                        codeData: {
+                            lineRange: {
+                                fileName: documentUri,
+                                startLine: {
+                                    line: position.startLine,
+                                    offset: position.startColumn
+                                },
+                                endLine: {
+                                    line: position.endLine,
+                                    offset: position.endColumn
+                                }
+                            }
+                        }
+                    },
                 },
                 dataMapperDepth: 0
             };
@@ -483,52 +500,3 @@ function getSTByRangeReq(documentUri: string, position: NodePosition) {
         }
     };
 }
-
-export async function updateCurrentArtifactLocation(artifacts: UpdatedArtifactsResponse) {
-    if (artifacts.artifacts.length === 0) {
-        return;
-    }
-    console.log(">>> Updating current artifact location", { artifacts });
-    // Get the updated component and update the location
-    const currentIdentifier = StateMachine.context().identifier;
-    const currentType = StateMachine.context().type;
-
-    // Find the correct artifact by currentIdentifier (id)
-    let currentArtifact = undefined;
-    for (const artifact of artifacts.artifacts) {
-        if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
-            currentArtifact = artifact;
-            if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find(
-                    (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
-                );
-                if (resource) {
-                    currentArtifact = resource;
-                    break;
-                }
-            }
-
-        } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
-            currentArtifact = artifact;
-        }
-
-        // Check if artifact has resources and find within those
-        if (artifact.resources && artifact.resources.length > 0) {
-            const resource = artifact.resources.find(
-                (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
-            );
-            if (resource) {
-                currentArtifact = resource;
-            }
-        }
-    }
-
-    if (currentArtifact) {
-        openView(EVENT_TYPE.UPDATE_PROJECT_LOCATION, {
-            documentUri: currentArtifact.path,
-            position: currentArtifact.position,
-            identifier: currentIdentifier,
-        });
-    }
-}
-

@@ -24,7 +24,6 @@ import {
     addNewArrayElement,
     addSubMapping,
     AddSubMappingRequest,
-    AllDataMapperSourceRequest,
     clearTypeCache,
     convertToQuery,
     ConvertToQueryRequest,
@@ -37,7 +36,6 @@ import {
     deleteSubMapping,
     DeleteSubMappingRequest,
     DMModelRequest,
-    getAllDataMapperSource,
     getDataMapperCodedata,
     GetDataMapperCodedataRequest,
     getDataMapperModel,
@@ -77,7 +75,6 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(mapWithTransformFn, (args: MapWithFnRequest) => rpcManger.mapWithTransformFn(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
-    messenger.onRequest(getAllDataMapperSource, (args: AllDataMapperSourceRequest) => rpcManger.getAllDataMapperSource(args));
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
     messenger.onRequest(getExpandedDMFromDMModel, (args: DMModelRequest) => rpcManger.getExpandedDMFromDMModel(args));
     messenger.onRequest(getProcessTypeReference, (args: ProcessTypeReferenceRequest) => rpcManger.getProcessTypeReference(args));

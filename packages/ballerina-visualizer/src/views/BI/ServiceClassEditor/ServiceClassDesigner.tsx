@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Type, ServiceClassModel, ModelFromCodeRequest, FieldType, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { Type, ServiceClassModel, ModelFromCodeRequest, FieldType, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, MACHINE_VIEW, DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { Codicon, Typography, ProgressRing, Menu, MenuItem, Popover, Item, ThemeColors, LinkButton, View } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
@@ -215,7 +215,8 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             endLine: { line: serviceClassModel.codedata.lineRange.endLine.line, offset: serviceClassModel.codedata.lineRange.endLine.offset }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 lsResponse = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -226,7 +227,8 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             endLine: { line: serviceClassModel.codedata.lineRange.endLine.line, offset: serviceClassModel.codedata.lineRange.endLine.offset }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 
@@ -607,7 +609,6 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             model={editingFunction}
                             filePath={serviceClassFilePath}
                             lineRange={serviceClassModel.codedata.lineRange}
-                            isGraphqlView={isGraphql}
                             isSaving={isSaving}
                             isServiceClass={true}
                             onClose={handleCloseFunctionForm}
@@ -630,7 +631,6 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}
-                            isGraphqlEditor={isGraphql}
                         />
                     </PanelContainer>
                 )}

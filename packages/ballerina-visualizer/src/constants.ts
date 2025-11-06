@@ -29,6 +29,12 @@ export const BALLERINAX = "ballerinax";
 
 export const AI = "ai";
 
+export enum TypeHelperContext {
+    GRAPHQL_FIELD_TYPE = 'GRAPHQL_FIELD_TYPE',
+    GRAPHQL_INPUT_TYPE = 'GRAPHQL_INPUT_TYPE',
+    HTTP_STATUS_CODE = 'HTTP_STATUS_CODE',
+}
+
 export const GET_DEFAULT_MODEL_PROVIDER = "getDefaultModelProvider";
 export const WSO2_MODEL_PROVIDER = "Default Model Provider (WSO2)";
 
@@ -49,3 +55,5 @@ export const METHOD_CALL = "METHOD_CALL";
 export const LOADING_MESSAGE = "Loading...";
 export const AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT = 3000; // Timeout (ms) before showing the 'fetching from Central' progress message
 export const AI_COMPONENT_PROGRESS_MESSAGE = "Fetching resources from Ballerina Central. This may take a few moments...";
+
+export const CONNECTIONS_FILE = "connections.bal";

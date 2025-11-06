@@ -32,7 +32,8 @@ import {
     WorkspacesFileResponse,
     FileOrDirRequest,
     WorkspaceRootResponse,
-    ShowErrorMessageRequest
+    ShowErrorMessageRequest,
+    WorkspaceTypeResponse
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -51,3 +52,4 @@ export const isNPSupported: RequestType<void, boolean> = { method: `${_preFix}/i
 export const getWorkspaceRoot: RequestType<void, WorkspaceRootResponse> = { method: `${_preFix}/getWorkspaceRoot` };
 export const showErrorMessage: NotificationType<ShowErrorMessageRequest> = { method: `${_preFix}/showErrorMessage` };
 export const getCurrentProjectTomlValues: RequestType<void, void> = { method: `${_preFix}/getCurrentProjectTomlValues` };
+export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { method: `${_preFix}/getWorkspaceType` };

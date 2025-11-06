@@ -27,11 +27,15 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFiles,
+    SourceFile,
     TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
     Command,
-    DocumentationGeneratorIntermediaryState
+    DocumentationGeneratorIntermediaryState,
+    PayloadContext,
+    HttpPayloadContext,
+    MessageQueuePayloadContext
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./types";
@@ -211,6 +215,14 @@ export function sendToolResultNotification(toolName: string, toolOutput: any): v
     sendAIPanelNotification(msg);
 }
 
+export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void {
+    const msg: ChatNotify = {
+        type: "generated_sources",
+        fileArray: fileArray,
+    };
+    sendAIPanelNotification(msg);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
@@ -225,6 +237,9 @@ export function getGenerationMode(generationType: GenerationType) {
 export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
+        if (error.name === "UsageLimitError") {
+            return "Usage limit exceeded. Please try again later.";
+        }
         if (error.name === "AI_RetryError") {
             return "An error occured connecting with the AI service. Please try again later.";
         }
@@ -234,13 +249,17 @@ export function getErrorMessage(error: unknown): string {
 
         return error.message;
     }
-    // If it’s an object with a .message field, use that
+    // If it's an object with a .message field, use that
     if (
         typeof error === "object" &&
         error !== null &&
         "message" in error &&
         typeof (error as Record<string, unknown>).message === "string"
     ) {
+        // Check if it has a statusCode property indicating 429
+        if ("statusCode" in error && (error as any).statusCode === 429) {
+            return "Usage limit exceeded. Please try again later.";
+        }
         return (error as { message: string }).message;
     }
     // Fallback: try to JSON-stringify, otherwise call toString()
@@ -249,4 +268,12 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {
+    return context.protocol === "HTTP";
+}
+
+export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
+    return context.protocol === "MESSAGE_BROKER";
 }

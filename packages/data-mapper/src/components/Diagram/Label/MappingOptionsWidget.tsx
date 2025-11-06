@@ -27,6 +27,7 @@ import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { createNewMapping, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
+import { genArrayElementAccessSuffix } from '../utils/common-utils';
 
 export const useStyles = () => ({
     arrayMappingMenu: css({
@@ -110,7 +111,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     };
 
     const onClickMapArraysAccessSingleton = async () => {
-       await createNewMapping(link, (expr: string) => `${expr}[0]`);
+       await createNewMapping(link, (expr: string) => `${expr}${genArrayElementAccessSuffix(link)}`);
     };
 
     const onClickAggregateArray = async () => {

@@ -17,11 +17,10 @@
  */
 
 import { ExpandableList } from "../Components/ExpandableList"
-import { VariableTypeIndicator } from "../Components/VariableTypeIndicator"
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane"
+import { TypeIndicator } from "../Components/TypeIndicator"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, Divider, getIcon, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
@@ -29,8 +28,13 @@ import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
-import styled from "@emotion/styled"
 import { POPUP_IDS, useModalStack } from "../../../../Context"
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
+import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
+import { shouldShowNavigationArrow } from "../utils/types"
+import { HelperPaneListItem } from "../Components/HelperPaneListItem"
+import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
+import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
 
 type VariablesPageProps = {
     fileName: string;
@@ -55,75 +59,48 @@ type VariableItemProps = {
 }
 
 const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
-    const [isHovered, setIsHovered] = useState(false);
+    const showArrow = shouldShowNavigationArrow(item);
+
+    const mainContent = (
+        <>
+            {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
+            <Typography variant="body3" sx={{ flex: 1, mr: 1 }}>
+                {item.label}
+            </Typography>
+            <Tooltip content={item.description} position="top">
+                <TypeIndicator>
+                    {item.description}
+                </TypeIndicator>
+            </Tooltip>
+        </>
+    );
+
+    const endAction = showArrow ? (
+        <Codicon 
+            name="chevron-right" 
+        />
+    ) : undefined;
 
     return (
-        <SlidingPaneNavContainer
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+        <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
-            data
-            sx={{
-                maxHeight: isHovered ? "none" : "32px"
-            }}
-            endIcon={
-                <VariablesMoreIconContainer style={{ height: "10px" }} onClick={(event) => {
-                    event.stopPropagation();
-                    onMoreIconClick(item.label);
-                }}>
-                    <Tooltip content={item.description} position="top">
-                        <VariableTypeIndicator >
-                            {item.description}
-                        </VariableTypeIndicator>
-                    </Tooltip>
-                    <Codicon name="chevron-right" />
-                </VariablesMoreIconContainer>}
+            endAction={endAction}
+            onClickEndAction={() => onMoreIconClick(item.label)}
         >
-            <ExpandableList.Item>
-                {getIcon(item.kind)}
-                <Typography
-                    variant="body3"
-                    sx={{
-                        maxWidth: isHovered ? '30ch' : '20ch',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: isHovered ? 'normal' : 'nowrap',
-                        transition: 'all 0.3s ease'
-                    }}
-                >
-                    {item.label}
-                </Typography>
-            </ExpandableList.Item>
-        </SlidingPaneNavContainer>
+            {mainContent}
+        </HelperPaneListItem>
     );
 };
 
-const VariablesMoreIconContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-     &:hover {
-        cursor: pointer;
-    }
-`;
-
-type BreadCrumbStep = {
-    label: string;
-    replaceText: string
-}
-
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, recordTypeField, isInModal, handleRetrieveCompletions } = props;
+    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, isInModal, handleRetrieveCompletions } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
-        label: "Variables",
-        replaceText: ""
-    }]);
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Variables");
     const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
@@ -133,12 +110,24 @@ export const Variables = (props: VariablesPageProps) => {
     }, []);
 
     useEffect(() => {
+        setIsLoading(true);
         const triggerCharacter =
             currentValue.length > 0
                 ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
                 : undefined;
 
-        handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter);
+        // Only apply minimum loading time if we don't have any completions yet
+        const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
+        const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+        Promise.all([
+            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            minLoadingTime
+        ]).finally(() => {
+            setIsLoading(false);
+            setShowContent(true);
+        });
+
     }, [targetLineRange])
 
     const getProjectInfo = async () => {
@@ -165,13 +154,19 @@ export const Variables = (props: VariablesPageProps) => {
             },
         );
     };
-    const fields = filteredCompletions.filter((completion) => (completion.kind === "field" || completion.kind === "variable") && completion.label !== 'self')
-    const methods = filteredCompletions.filter((completion) => completion.kind === "function")
 
-    const dropdownItems =
-        currentValue.length > 0
-            ? fields.concat(methods)
-            : fields;
+    const dropdownItems = useMemo(() => {
+        const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
+        
+        return filteredCompletions.filter(
+            (completion) =>
+                (completion.kind === "field" || completion.kind === "variable") &&
+                completion.label !== "self" &&
+                !excludedDescriptions.some(desc => 
+                    completion.labelDetails?.description?.includes(desc)
+                )
+        );
+    }, [filteredCompletions]);
 
     const filteredDropDownItems = useMemo(() => {
         if (!searchValue || searchValue.length === 0) return dropdownItems;
@@ -205,20 +200,11 @@ export const Variables = (props: VariablesPageProps) => {
         onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {
-        const newBreadCrumSteps = [...breadCrumbSteps, {
-            label: value,
-            replaceText: currentValue + value
-        }];
-        setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(value + '.', false, true);
+        navigateToNext(value, currentValue, onChange);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
-        onChange(replaceText, true);
-        const index = breadCrumbSteps.findIndex(item => item.label === step.label);
-        const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
-        setBreadCrumbSteps(newSteps);
+        navigateToBreadcrumb(step, onChange);
     }
 
     const ExpandableListItems = () => {
@@ -332,36 +318,38 @@ export const Variables = (props: VariablesPageProps) => {
             overflow: "hidden"
         }}>
 
-            {
-                breadCrumbSteps.length > 1 && (
-                    <div style={{ display: "flex", gap: '8px', padding: '5px 8px', backgroundColor: ThemeColors.SURFACE_DIM_2 }}>
-                        {breadCrumbSteps.map((step, index) => (
-                            <span key={index} style={{ cursor: 'pointer', color: ThemeColors.HIGHLIGHT }}>
-                                <span onClick={() => handleBreadCrumbItemClicked(step)}>
-                                    {step.label}
-                                </span>
-                                {index < breadCrumbSteps.length - 1 && <span style={{ margin: '0 8px' }}>{'>'}</span>}
-                            </span>
-                        ))}
-
-                    </div>
-                )}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
-                <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
-            </div>
+            <BreadcrumbNavigation
+                breadCrumbSteps={breadCrumbSteps}
+                onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
+            />
+            {dropdownItems.length >= 6 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 5px", height: "20px", gap: '5px' }}>
+                    <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />
+                </div>
+            )}
 
             <ScrollableContainer style={{ margin: '8px 0px' }}>
-                {isLoading ? (
+                {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
                 ) : (
-                    <ExpandableList>
-                        <ExpandableListItems />
-                    </ExpandableList>
+                    <>
+                        {filteredDropDownItems.length === 0 ? (
+                            <EmptyItemsPlaceHolder message={searchValue ? "No variables found for your search" : "No variables found"} />
+                        ) : (
+                            <ExpandableList>
+                                <ExpandableListItems />
+                            </ExpandableList>
+                        )}
+                    </>
                 )}
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
-            {isInModal ? null : <div style={{ padding: '3px' }}><FooterButtons onClick={handleAddNewVariable} startIcon='add' title="New Variable" /></div>}
+            {!isInModal && (
+                <div style={{ margin: '4px 0' }}>
+                    <FooterButtons onClick={handleAddNewVariable} title="New Variable" />
+                </div>
+            )}
         </div>
     )
 }
