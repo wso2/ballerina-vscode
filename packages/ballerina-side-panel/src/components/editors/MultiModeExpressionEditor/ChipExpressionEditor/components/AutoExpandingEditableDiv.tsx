@@ -133,8 +133,8 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
                 onMouseDown={(e) => {
-                    //HACK: Replace this with a proper solution to
-                    //handle helperpane clicks and 
+                    //HACK: Replace this with a proper solution to handle helperpane clicks.
+                    //TODO: Track in issue #XXX - Need comprehensive focus management solution
                     const target = e.target as HTMLElement;
                     if (
                         target instanceof HTMLInputElement ||
