@@ -40,6 +40,8 @@ import {
     ServiceInfoVisibilityEnum,
     ConnectionConfigurations,
     GetConnectionItemReq,
+    StartProxyServerResp,
+    StopProxyServerReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -53,7 +55,7 @@ import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
 import { CommonRpcManager } from "../common/rpc-manager";
 import Handlebars from "handlebars";
-import { CaptureBindingPattern, ModulePart, ModuleVarDecl } from "@wso2/syntax-tree";
+import { CaptureBindingPattern, ModulePart, ModuleVarDecl, STKindChecker } from "@wso2/syntax-tree";
 import * as yaml from "js-yaml";
 import { DeleteBiDevantConnectionReq, OpenAPIDefinition } from "./types";
 
@@ -174,6 +176,53 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         try {
             const platformExt = await this.getPlatformExt();
             return platformExt.getDevantConsoleUrl();
+        } catch (err) {
+            log(`Failed to delete connection config: ${err}`);
+        }
+    }
+
+    async stopProxyServer(params: StopProxyServerReq): Promise<void> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt.stopProxyServer(params);
+        } catch (err) {
+            log(`Failed to delete connection config: ${err}`);
+        }
+    }
+
+    async startProxyServer(): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
+        // todo: need to take in params from config
+        try {
+            const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
+            const configBalFileUri = Uri.file(configBalFile);
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: configBalFileUri.toString() },
+            })) as SyntaxTree;
+            let requiresProxy = false;
+            if (
+                (syntaxTree?.syntaxTree as ModulePart)?.members?.find(
+                    (member) =>
+                        STKindChecker.isModuleVarDecl(member) &&
+                        (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                            "devantProxyConfig"
+                )
+            ) {
+                requiresProxy = true;
+            }
+            if (await this.isLoggedIn()) {
+                const selected = await this.getSelectedContext();
+                if (selected?.org && selected?.project) {
+                    const selectedComp = await this.getDirectoryComponent(StateMachine.context().projectUri);
+                    const platformExt = await this.getPlatformExt();
+                    const resp = await platformExt.startProxyServer({
+                        orgId: selected?.org?.id?.toString(),
+                        project: selected?.project?.id,
+                        component: selectedComp?.metadata?.id || "",
+                    });
+                    return { ...resp, requiresProxy };
+                }
+            }
+            return { envVars: {}, proxyServerPort: 0, requiresProxy };
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
         }
@@ -311,22 +360,31 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         try {
             const selected = await this.getSelectedContext();
 
-            let visibility: string = ServiceInfoVisibilityEnum.Public;
-            if(params.connectionListItem?.schemaName.toLowerCase()?.includes("organization")){
+            let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
+            if (params.connectionListItem?.schemaName.toLowerCase()?.includes("organization")) {
                 visibility = ServiceInfoVisibilityEnum.Organization;
-            }else if(params.connectionListItem?.schemaName.toLowerCase()?.includes("project")){
+            } else if (params.connectionListItem?.schemaName.toLowerCase()?.includes("project")) {
                 visibility = ServiceInfoVisibilityEnum.Project;
             }
 
-            const connectionItem = await this.getConnection({orgId: selected?.org?.id?.toString(), connectionGroupId: params.connectionListItem?.groupUuid});
+            const connectionItem = await this.getConnection({
+                orgId: selected?.org?.id?.toString(),
+                connectionGroupId: params.connectionListItem?.groupUuid,
+            });
 
-            const marketplaceItem = await this.getMarketplaceItem({orgId: selected?.org?.id?.toString(), serviceId: params?.connectionListItem?.serviceId});
+            const marketplaceItem = await this.getMarketplaceItem({
+                orgId: selected?.org?.id?.toString(),
+                serviceId: params?.connectionListItem?.serviceId,
+            });
 
             const resp = await this.initializeDevantConnection({
                 name: params.connectionListItem.name,
                 marketplaceItem: marketplaceItem,
                 visibility: visibility,
-                configurations: (connectionItem as any)?.configurations
+                configurations: (connectionItem as any)?.configurations,
+                securityType: params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")
+                    ? "oauth"
+                    : "apikey",
             });
 
             StateMachine.setReadyMode();
@@ -364,7 +422,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 name: params.params.name,
                 marketplaceItem: params.marketplaceItem,
                 visibility: params.params.visibility!,
-                configurations: createdConnection.configurations
+                configurations: createdConnection.configurations,
+                securityType: createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey",
             });
 
             StateMachine.setReadyMode();
@@ -376,12 +435,17 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-     async initializeDevantConnection(params: {name: string, visibility: string, marketplaceItem: MarketplaceItem, configurations: ConnectionConfigurations}): Promise<{connectionName: string}> {
+    async initializeDevantConnection(params: {
+        name: string;
+        visibility: string;
+        securityType: "oauth" | "apikey";
+        marketplaceItem: MarketplaceItem;
+        configurations: ConnectionConfigurations;
+    }): Promise<{ connectionName: string }> {
         StateMachine.setEditMode();
         const projectPath = StateMachine.context().projectUri;
         const platformExt = await this.getPlatformExt();
 
-        const component = await this.getDirectoryComponent(projectPath);
         const selected = await this.getSelectedContext();
 
         await platformExt.createConnectionConfig({
@@ -405,7 +469,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
 
         if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
-            const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content);
+            const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content, params.securityType);
             fs.writeFileSync(filePath, updatedDef, "utf8");
         } else {
             // todo: show button to open up devant connection documentation UI
@@ -430,9 +494,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             ...tomlValues,
             tool: {
                 ...tomlValues?.tool,
-                openapi: tomlValues.tool?.openapi?.map(item=>{
-                    if(item.id === moduleName){
-                        return {...item, devantConnection: params?.name };
+                openapi: tomlValues.tool?.openapi?.map((item) => {
+                    if (item.id === moduleName) {
+                        return { ...item, devantConnection: params?.name };
                     }
                     return item;
                 }),
@@ -453,6 +517,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         interface Ikeys {
             ChoreoAPIKey?: IkeyVal;
             ServiceURL?: IkeyVal;
+            TokenURL?: IkeyVal;
+            ConsumerKey?: IkeyVal;
+            ConsumerSecret?: IkeyVal;
         }
         const keys: Ikeys = {};
         const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
@@ -472,7 +539,23 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 candidate = `${baseName}${counter}`;
                 counter++;
             }
-            keys[entry] = { keyname: candidate, envName: connectionKeys[entry].envVariableName };
+
+            const getInjectedEnvVarNames = (key: string): string => {
+                const parts = key.split("_");
+                if (parts.length > 1) {
+                    let lastPart = parts[parts.length - 1];
+                    if (lastPart.startsWith("CHOREO")) {
+                        lastPart = lastPart.slice("CHOREO".length);
+                    }
+                    parts[parts.length - 1] = lastPart;
+                }
+                return parts.join("_");
+            };
+
+            keys[entry] = {
+                keyname: candidate,
+                envName: getInjectedEnvVarNames(connectionKeys[entry].envVariableName),
+            };
         }
 
         await addConfigurable(
@@ -480,17 +563,25 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
         );
 
-        if (keys?.ChoreoAPIKey && keys?.ServiceURL) {
-            const resp = await addConnection(moduleName, {
-                apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
-                svsUrlVarName: keys?.ServiceURL?.keyname,
-            });
+        const requireProxy = [
+            ServiceInfoVisibilityEnum.Organization.toString(),
+            ServiceInfoVisibilityEnum.Project.toString(),
+        ].includes(params.visibility);
 
-            StateMachine.setReadyMode();
-            return { connectionName: resp.connName };
+        if (requireProxy) {
+            await addProxyConfigurable(configFileUri);
         }
 
-        return { connectionName: "" };
+        const resp = await addConnection(moduleName, params.securityType, requireProxy, {
+            apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
+            svsUrlVarName: keys?.ServiceURL?.keyname,
+            tokenClientIdVarName: keys?.ConsumerKey?.keyname,
+            tokenClientSecretVarName: keys?.ConsumerSecret?.keyname,
+            tokenUrlVarName: keys?.TokenURL?.keyname,
+        });
+
+        StateMachine.setReadyMode();
+        return { connectionName: resp.connName };
     }
 }
 
@@ -532,15 +623,51 @@ const addConfigurable = async (configBalFileUri: Uri, params: { configName: stri
     await workspace.applyEdit(configBalEdits);
 };
 
+const addProxyConfigurable = async (configBalFileUri: Uri) => {
+    const configBalEdits = new WorkspaceEdit();
+
+    const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+        documentIdentifier: { uri: configBalFileUri.toString() },
+    })) as SyntaxTree;
+    if (
+        !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes("import ballerina/http"))
+    ) {
+        const importHttpTemplate = Templates.importBalHttp();
+        configBalEdits.insert(configBalFileUri, new vscode.Position(0, 0), importHttpTemplate);
+    }
+
+    if (
+        !(syntaxTree?.syntaxTree as ModulePart)?.members?.find(
+            (member) =>
+                STKindChecker.isModuleVarDecl(member) &&
+                (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                    "devantProxyConfig"
+        )
+    ) {
+        const proxyConfigTemplate = Templates.proxyConfigurable();
+        const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+        configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), proxyConfigTemplate);
+    }
+
+    await workspace.applyEdit(configBalEdits);
+};
+
 const addConnection = async (
     moduleName: string,
-    configs: { apiKeyVarName: string; svsUrlVarName: string }
+    securityType: "oauth" | "apikey",
+    requireProxy: boolean,
+    configs: {
+        apiKeyVarName: string;
+        svsUrlVarName: string;
+        tokenUrlVarName?: string;
+        tokenClientIdVarName?: string;
+        tokenClientSecretVarName?: string;
+    }
 ): Promise<{ connName: string; connFileUri: Uri }> => {
     const packageName = StateMachine.context().package;
     const connectionBalFile = path.join(StateMachine.context().projectUri, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
     if (!fs.existsSync(connectionBalFile)) {
-        // create new connections.bal if it doesn't exist
         fs.writeFileSync(connectionBalFile, "");
     }
 
@@ -575,21 +702,36 @@ const addConnection = async (
         counter++;
     }
 
-    const newConnTemplate = Templates.newConnectionWithApiKey({
-        API_KEY_VAR_NAME: configs.apiKeyVarName,
-        CONNECTION_NAME: candidate,
-        MODULE_NAME: moduleName,
-        SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
-    });
+    const newConnTemplate =
+        securityType === "oauth"
+            ? Templates.newConnectionWithOAuth({
+                  requireProxy,
+                  API_KEY_VAR_NAME: configs.apiKeyVarName,
+                  CONNECTION_NAME: candidate,
+                  MODULE_NAME: moduleName,
+                  SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+                  CLIENT_ID: configs.tokenClientIdVarName,
+                  CLIENT_SECRET: configs.tokenClientSecretVarName,
+                  TOKEN_URL: configs.tokenUrlVarName,
+              })
+            : Templates.newConnectionWithApiKey({
+                  requireProxy,
+                  API_KEY_VAR_NAME: configs.apiKeyVarName,
+                  CONNECTION_NAME: candidate,
+                  MODULE_NAME: moduleName,
+                  SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+              });
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
     await workspace.applyEdit(connBalEdits);
     return { connName: candidate, connFileUri: connectionBalFileUri };
 };
 
-export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
+export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "oauth" | "apikey"): string => {
     try {
         const openApiDefinition = yaml.load(yamlString) as OpenAPIDefinition;
+        const oAuthSchemaName = "DevantOAuth2";
+        const apiKeySchemaName = "DevantApiKeyAuth";
 
         if (!openApiDefinition) {
             throw new Error("Invalid YAML: Unable to parse OpenAPI definition");
@@ -603,21 +745,45 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
             openApiDefinition.components.securitySchemes = {};
         }
 
-        openApiDefinition.components.securitySchemes.ApiKeyAuth = {
+        openApiDefinition.components.securitySchemes[apiKeySchemaName] = {
             type: "apiKey",
             in: "header",
             name: "Choreo-API-Key",
         };
 
-        if (openApiDefinition.security && openApiDefinition.security.length > 0) {
-            openApiDefinition.security.push({ ApiKeyAuth: [] });
+        if (securityType === "oauth") {
+            openApiDefinition.components.securitySchemes[oAuthSchemaName] = {
+                type: "oauth2",
+                flows: {
+                    clientCredentials: {
+                        tokenUrl: "tokenURL",
+                        scopes: {},
+                    },
+                },
+            };
+        }
+
+        if (!openApiDefinition.security) {
+            openApiDefinition.security = [];
+        }
+        if (securityType === "oauth") {
+            openApiDefinition.security.push({ [oAuthSchemaName]: [], [apiKeySchemaName]: [] });
+        } else {
+            openApiDefinition.security.push({ [apiKeySchemaName]: [] });
         }
 
         if (openApiDefinition.paths) {
             for (const path in openApiDefinition.paths) {
                 for (const method in openApiDefinition.paths[path]) {
                     if (openApiDefinition.paths[path]?.[method]?.security) {
-                        openApiDefinition.paths[path]?.[method]?.security?.push({ ApiKeyAuth: [] });
+                        if (securityType === "oauth") {
+                            openApiDefinition.paths[path]?.[method]?.security.push({
+                                [oAuthSchemaName]: [],
+                                [apiKeySchemaName]: [],
+                            });
+                        } else {
+                            openApiDefinition.paths[path]?.[method]?.security.push({ [apiKeySchemaName]: [] });
+                        }
                     }
                 }
             }
@@ -626,6 +792,12 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string): string => {
         if (!openApiDefinition.servers || openApiDefinition.servers.length === 0) {
             openApiDefinition.servers = [{ url: "http://localhost:8080" }];
         }
+
+        openApiDefinition.servers.forEach((server) => {
+            if (typeof server.url === "string" && server.url.endsWith("/")) {
+                server.url = server.url.slice(0, -1);
+            }
+        });
 
         return yaml.dump(openApiDefinition);
     } catch (error) {
@@ -650,19 +822,53 @@ const Templates = {
         const template = Handlebars.compile(`import ballerina/os;\n`);
         return template({});
     },
+    importBalHttp: () => {
+        const template = Handlebars.compile(`import ballerina/http;\n`);
+        return template({});
+    },
     importConnection: (params: { PACKAGE_NAME: string; MODULE_NAME: string }) => {
         const template = Handlebars.compile(`import {{PACKAGE_NAME}}.{{MODULE_NAME}};\n`);
         return template(params);
     },
+    proxyConfigurable: () => {
+        const template = Handlebars.compile(`
+configurable string? devantProxyHost = ();
+configurable int? devantProxyPort = ();
+http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPort is int ? { host: <string> devantProxyHost, port: <int> devantProxyPort } : ();
+\n`);
+        return template({});
+    },
     newConnectionWithApiKey: (params: {
+        requireProxy: boolean;
         MODULE_NAME: string;
         CONNECTION_NAME: string;
         SERVICE_URL_VAR_NAME: string;
         API_KEY_VAR_NAME: string;
     }) => {
-        // check new (apiKeyConfig = {choreoAPIKey: ""},config = {},serviceUrl = "")
-        // const template = Handlebars.compile(`final {{MODULE_NAME}}:Client {{CONNECTION_NAME}} = check new (apiKeyConfig = {choreoAPIKey: {{API_KEY_VAR_NAME}}},config = {},serviceUrl = {{SERVICE_URL_VAR_NAME}})l;\n`);
-        // return template(params);
-        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = {choreoAPIKey: ${params.API_KEY_VAR_NAME}},config = {},serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
+        // todo: get params from LS, use Choreo\\-API\-Key
+        return `final ${params.MODULE_NAME}:Client ${
+            params.CONNECTION_NAME
+        } = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME}}, config = { ${
+            params.requireProxy ? "proxy: devantProxyConfig, " : ""
+        }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
+    },
+    newConnectionWithOAuth: (params: {
+        requireProxy: boolean;
+        MODULE_NAME: string;
+        CONNECTION_NAME: string;
+        SERVICE_URL_VAR_NAME: string;
+        API_KEY_VAR_NAME: string;
+        TOKEN_URL: string;
+        CLIENT_ID: string;
+        CLIENT_SECRET: string;
+    }) => {
+        // todo: get params from LS
+        return `final ${params.MODULE_NAME}:Client ${
+            params.CONNECTION_NAME
+        } = check new (config = { auth: { tokenUrl: ${params.TOKEN_URL}, clientId: ${params.CLIENT_ID}, clientSecret: ${
+            params.CLIENT_SECRET
+        } }, ${params.requireProxy ? "proxy: devantProxyConfig, " : ""}timeout: 60 }, serviceUrl = ${
+            params.SERVICE_URL_VAR_NAME
+        });\n`;
     },
 };
