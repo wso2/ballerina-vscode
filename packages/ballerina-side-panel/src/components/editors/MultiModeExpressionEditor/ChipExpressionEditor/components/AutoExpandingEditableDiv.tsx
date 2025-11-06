@@ -24,8 +24,9 @@ import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
 import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
-import { getCompletionsMenuPosition } from "../utils";
+import { getCompletionsMenuPosition, isBetween } from "../utils";
 import styled from "@emotion/styled";
+import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 
 const ChipEditorFieldContainer = styled.div`
     width: 100%;
@@ -59,13 +60,13 @@ export type AutoExpandingEditableDivProps = {
     onCloseCompletions?: () => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string, closeHelperPane: boolean) => void;
+    handleHelperPaneValueChange?: (value: string,  options?: HelperpaneOnChangeOptions) => void;
     isInExpandedMode?: boolean;
     onOpenExpandedMode?: () => void;
 }
@@ -131,7 +132,6 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 top={menuPosition.top}
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
-                onMouseDown={(e) => e.preventDefault()}
             >
                 {props.getHelperPane(
                     props.value,
@@ -219,10 +219,35 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
 
     const handleEditorClicked = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target instanceof HTMLSpanElement) return;
-        const spans = (e.target as HTMLElement).querySelectorAll('span[contenteditable]');
-        if (spans.length > 0) {
-            const lastSpan = spans[spans.length - 1] as HTMLSpanElement;
-            lastSpan.focus();
+        const spans = (e.target as HTMLElement).querySelectorAll('span[contenteditable="true"]');
+        if (spans.length <= 0) return;
+
+        let closestSpan: HTMLSpanElement | null = null;
+        let smallestDistance = Number.MAX_VALUE;
+        let matchNotFound = true;
+
+        for (let i = 0; i < spans.length; i++) {
+            const span = spans[i] as HTMLSpanElement;
+            const spanRect = span.getBoundingClientRect();
+            if (!isBetween(spanRect.top, spanRect.bottom, e.clientY)) continue;
+            if (spanRect.right < e.clientX) {
+                const distance = e.clientX - spanRect.right;
+                if (distance < smallestDistance) {
+                    smallestDistance = distance;
+                    closestSpan = span;
+                    matchNotFound = false;
+                }
+            } else if (spanRect.left <= e.clientX && e.clientX <= spanRect.right) {
+                closestSpan = span;
+                matchNotFound = false;
+                break;
+            }
+        }
+        if (matchNotFound) {
+            (spans[spans.length - 1] as HTMLSpanElement).focus();
+        }
+        if (closestSpan) {
+            closestSpan.focus();
         }
     }
 
@@ -233,7 +258,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 style={{
                     ...style,
                     flex: 1,
-                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '200px',
+                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px',
                     ...(props.isInExpandedMode && {
                         height: `${EXPANDED_EDITOR_HEIGHT}px`,
                         minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
