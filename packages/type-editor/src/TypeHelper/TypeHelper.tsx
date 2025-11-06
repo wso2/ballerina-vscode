@@ -308,7 +308,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                     level={0}
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
-                                                        {category.items.map((item) => (
+                                                        {category.items.filter((item) => item.name !== "record").map((item) => (
                                                             <SlidingPaneNavContainer
                                                                 key={`${category.category}-${item.name}`}
                                                                 onClick={() => handleTypeItemClick(item)}
