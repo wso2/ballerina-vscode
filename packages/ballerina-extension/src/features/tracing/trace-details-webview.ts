@@ -65,6 +65,7 @@ export class TraceDetailsWebview {
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _trace: Trace | undefined;
+    private _isAgentChat: boolean = false;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
@@ -86,6 +87,7 @@ export class TraceDetailsWebview {
                             this._panel!.webview.postMessage({
                                 command: 'traceData',
                                 data: traceData,
+                                isAgentChat: this._isAgentChat,
                             });
                         }
                         break;
@@ -117,15 +119,22 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace): void {
+    public static show(trace: Trace, isAgentChat: boolean = false): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
         }
-        
+
         // Update the trace and reveal the panel
         const instance = TraceDetailsWebview.instance;
         instance._trace = trace;
+        instance._isAgentChat = isAgentChat;
+
+        // Update title based on isAgentChat flag
+        if (instance._panel) {
+            instance._panel.title = isAgentChat ? 'Agent Chat Logs' : 'Trace Details';
+        }
+
         instance._panel!.reveal();
         instance.updateWebview();
     }
@@ -136,13 +145,14 @@ export class TraceDetailsWebview {
         }
 
         this._panel.webview.html = this.getWebviewContent(this._trace, this._panel.webview);
-        
+
         // Send trace data immediately after updating HTML (in case webview is already loaded)
         // The webview will also request it if needed
         const traceData = this.convertTraceToTraceData(this._trace);
         this._panel.webview.postMessage({
             command: 'traceData',
             data: traceData,
+            isAgentChat: this._isAgentChat,
         });
     }
 
@@ -186,12 +196,13 @@ export class TraceDetailsWebview {
         const scripts = `
             const vscode = acquireVsCodeApi();
             let traceData = null;
+            let isAgentChat = false;
 
             function renderTraceDetails() {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, container);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container);
                     }
                 } else if (!traceData) {
                     // Request trace data from extension
@@ -208,6 +219,7 @@ export class TraceDetailsWebview {
                 switch (message.command) {
                     case 'traceData':
                         traceData = message.data;
+                        isAgentChat = message.isAgentChat || false;
                         renderTraceDetails();
                         break;
                 }
