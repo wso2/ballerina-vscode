@@ -368,7 +368,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 selectedElement = currentModel[currentModel.length - 1];
             };
             let absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
-            if (selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd) {
+            if (
+                selectedElement.focusOffsetStart !== undefined &&
+                selectedElement.focusOffsetEnd !== undefined &&
+                selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd
+            ) {
                 const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
                     selectedElement.value.substring(selectedElement.focusOffsetEnd);
                 
