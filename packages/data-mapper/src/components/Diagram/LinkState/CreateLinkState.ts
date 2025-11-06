@@ -97,7 +97,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 							// select the target port of the link to create a mapping
 							const targetPort = (element as DataMapperLinkModel).getTargetPort();
 
-							if (targetPort instanceof InputOutputPortModel && !isQueryHeaderPort(targetPort)) {
+							if (targetPort instanceof InputOutputPortModel) {
 								element = targetPort;
 							}
 
@@ -120,7 +120,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.clearState();
 						this.eject();
 					} else if (element instanceof PortModel && !this.sourcePort) {
-						if (element instanceof InputOutputPortModel && !isQueryHeaderPort(element)) {
+						if (element instanceof InputOutputPortModel) {
 							if (element.attributes.portType === "OUT") {
 								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
@@ -142,7 +142,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 							}
 						}
 					} else if (element instanceof PortModel && this.sourcePort && element !== this.sourcePort) {
-						if ((element instanceof InputOutputPortModel && !isQueryHeaderPort(element))) {
+						if ((element instanceof InputOutputPortModel)) {
 							if (element.attributes.portType === "IN") {
 								let isDisabled = false;
 								if (element instanceof InputOutputPortModel) {
