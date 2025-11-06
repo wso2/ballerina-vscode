@@ -171,10 +171,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             // Restore previously selected tools if in edit mode and URL matches
             const shouldRestoreTools = editMode && url === mcpToolKitNodeRef.current?.properties?.serverUrl?.value;
-            if (shouldRestoreTools) {
-                const permittedToolsValue = mcpToolKitNodeRef.current?.properties?.permittedTools?.value;
+            const permittedToolsValue = mcpToolKitNodeRef.current?.properties?.permittedTools?.value;
+            if (shouldRestoreTools && permittedToolsValue) {
                 const permittedTools = parseToolsString(permittedToolsValue as string, true);
                 setSelectedMcpTools(new Set(permittedTools));
+            } else {
+                // Select all tools by default when not in edit mode or when URL changed
+                setSelectedMcpTools(new Set(response.tools.map(tool => tool.name)));
             }
 
             setLoadingMcpTools(false);
