@@ -111,7 +111,7 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Schema Configuration</Typography>
+            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Configuration</Typography>
             <Divider />
             {filePath && targetLineRange && (
                 <FormGeneratorNew

@@ -208,17 +208,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
-        return new Promise(async (resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-            const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-            if (!fs.existsSync(ballerinaProjectFile)) {
-                throw new Error("Not a Ballerina project.");
-            }
+        const projectPath = StateMachine.context().projectPath;
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
+        if (!fs.existsSync(ballerinaProjectFile)) {
+            throw new Error("Not a Ballerina project.");
+        }
 
-            const balFilePath = path.join(projectPath, req.filePath);
-            const content = fs.promises.readFile(balFilePath, 'utf-8');
-            resolve(content);
-        });
+        const balFilePath = path.join(projectPath, req.filePath);
+        try {
+            const content = await fs.promises.readFile(balFilePath, 'utf-8');
+            return content;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
@@ -419,7 +421,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
+            await updateSourceCode({ textEdits: resp.textEdits, description: 'Error Handler Creation' });
         }
     }
 
@@ -652,7 +654,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            const projectPath = StateMachine.context().projectPath; 
+            const projectPath = StateMachine.context().projectPath;
 
             const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {
@@ -900,7 +902,6 @@ async function populateModules(modulesDir: string, project: BallerinaProject) {
         }
     }
 }
-
 
 export async function postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
     let assist_resp = req.assistant_response;

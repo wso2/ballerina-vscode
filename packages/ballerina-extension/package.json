@@ -966,21 +966,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f18b"
+                    "fontCharacter": "\\f19a"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f200"
+                    "fontCharacter": "\\f210"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f186"
+                    "fontCharacter": "\\f195"
                 }
             },
             "distro-source-view": {
@@ -994,7 +994,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1db"
+                    "fontCharacter": "\\f1eb"
                 }
             },
             "distro-cached-rounded": {

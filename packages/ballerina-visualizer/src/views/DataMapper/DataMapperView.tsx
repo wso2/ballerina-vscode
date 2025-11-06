@@ -57,7 +57,6 @@ import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } fro
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
 import { UndoRedoGroup } from "../../components/UndoRedoGroup";
-import { p } from "@tanstack/query-core/build/legacy/hydration-Cvr-9VdO";
 
 // Types for model comparison
 interface ModelSignature {

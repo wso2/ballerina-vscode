@@ -17,7 +17,7 @@
  */
 
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { Codicon, COMPLETION_ITEM_KIND, getIcon, HelperPane, Overlay, ThemeColors } from '@wso2/ui-toolkit';
+import { Codicon, COMPLETION_ITEM_KIND, getIcon, HelperPane, Icon, Overlay, ThemeColors } from '@wso2/ui-toolkit';
 import { LibraryBrowser } from './LibraryBrowser';
 import { HelperPaneCompletionItem, HelperPaneFunctionInfo } from '@wso2/ballerina-side-panel';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -231,14 +231,12 @@ export const FunctionsPage = ({
             </HelperPane.Footer>
             {isLibraryBrowserOpen && (
                 <LibraryBrowser
-                    anchorRef={anchorRef}
-                    isLoading={isLoading}
-                    libraryBrowserInfo={libraryBrowserInfo as HelperPaneFunctionInfo}
-                    setFilterText={handleFunctionSearch}
-                    onBack={() => setIsLibraryBrowserOpen(false)}
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
                     onClose={onClose}
                     onChange={onChange}
                     onFunctionItemSelect={onFunctionItemSelect}
+            
                 />
             )}
             {isAddingFunction && createPortal(

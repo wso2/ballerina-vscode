@@ -22,7 +22,7 @@ import React, { RefObject, useEffect, useState } from 'react';
 import { EditorContainer } from './styles';
 import { Parameter } from './ParamManager';
 import Form from '../Form';
-import { FormField, FormValues } from '../Form/types';
+import { FormField, FormValues, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import { RecordTypeField, TextEdit } from '@wso2/ballerina-core';
 import { HelperPaneHeight } from '@wso2/ui-toolkit';
@@ -51,7 +51,7 @@ export function ParamEditor(props: ParamProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField

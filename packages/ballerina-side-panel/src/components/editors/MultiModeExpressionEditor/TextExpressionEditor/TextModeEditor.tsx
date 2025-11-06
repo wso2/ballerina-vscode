@@ -20,8 +20,25 @@ import { FormExpressionEditor } from "@wso2/ui-toolkit";
 import { ExpressionField } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
+import styled from "@emotion/styled";
+import { FloatingToggleButton } from "../ChipExpressionEditor/components/FloatingToggleButton";
+import { ExpandButton } from "../ChipExpressionEditor/components/FloatingButtonIcons";
 
-type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef'>;
+const EditorContainer = styled.div`
+    width: 100%;
+    position: relative;
+
+    #text-mode-editor-expand {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #text-mode-editor-expand {
+        opacity: 1;
+    }
+`;
+
+type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
 
 export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     name,
@@ -38,6 +55,8 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     growRange,
     exprRef,
     anchorRef,
+    onOpenExpandedMode,
+    isInExpandedMode,
 }) => {
 
     const handleOnChange = async (value: string, updatedCursorPosition: number) => {
@@ -46,26 +65,35 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
     }
 
     return (
-        <FormExpressionEditor
-            ref={exprRef}
-            anchorRef={anchorRef}
-            name={name}
-            completions={[]}
-            value={getValueForTextModeEditor(value)}
-            autoFocus={autoFocus}
-            startAdornment={<></>}
-            ariaLabel={ariaLabel}
-            onChange={handleOnChange}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            onSave={onSave}
-            onCancel={onCancel}
-            onRemove={onRemove}
-            enableExIcon={false}
-            growRange={growRange}
-            sx={{ paddingInline: '0' }}
-            placeholder={placeholder}
-        />
+        <EditorContainer>
+            <FormExpressionEditor
+                ref={exprRef}
+                anchorRef={anchorRef}
+                name={name}
+                completions={[]}
+                value={getValueForTextModeEditor(value)}
+                autoFocus={autoFocus}
+                startAdornment={<></>}
+                ariaLabel={ariaLabel}
+                onChange={handleOnChange}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onSave={onSave}
+                onCancel={onCancel}
+                onRemove={onRemove}
+                enableExIcon={false}
+                growRange={growRange}
+                sx={{ paddingInline: '0' }}
+                placeholder={placeholder}
+            />
+            {onOpenExpandedMode && !isInExpandedMode && (
+                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
+                    <FloatingToggleButton onClick={onOpenExpandedMode} title="Expand Editor">
+                        <ExpandButton />
+                    </FloatingToggleButton>
+                </div>
+            )}
+        </EditorContainer>
     );
 };
 
