@@ -228,10 +228,10 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             const context = new DataMapperContext(
                 model, 
                 views, 
+                hasInputsOutputsChanged,
                 addView, 
                 applyModifications, 
                 addArrayElement,
-                hasInputsOutputsChanged,
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
