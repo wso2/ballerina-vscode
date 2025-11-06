@@ -76,7 +76,6 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        
         const targetNode = targetPort.getNode();
         if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
             return MappingType.ArrayToSingletonAggregate;
@@ -102,8 +101,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
-            if (dimDelta == 0) return MappingType.ArrayToArray;
-            if (dimDelta > 0) return MappingType.ArrayToSingleton;
+            if (dimDelta == 0) {
+                if(targetPort.attributes.portName.endsWith(".#")) {
+                    return MappingType.ArrayJoin;
+                }
+                return MappingType.ArrayToArray;
+            }
+            if (dimDelta > 0) {
+                return MappingType.ArrayToSingleton;
+            }
         }
 
         if ((sourceField.kind !== targetField.kind ||

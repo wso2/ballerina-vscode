@@ -20,6 +20,7 @@ import React from "react";
 import { EditorContainer } from "./styles";
 import { Divider, Dropdown, OptionProps, Typography } from "@wso2/ui-toolkit";
 import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps } from "@wso2/ballerina-core";
+import { useDMQueryClausesPanelStore } from "../../../../store/store";
 
 export interface ClauseEditorProps {
     clause?: IntermediateClause;
@@ -32,7 +33,8 @@ export interface ClauseEditorProps {
 
 export function ClauseEditor(props: ClauseEditorProps) {
     const { clause, onSubmitText, isSaving, onSubmit, onCancel, generateForm } = props;
-    const { type: _clauseType, properties: clauseProps } = clause ?? {};
+    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
+    const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
     const [clauseType, setClauseType] = React.useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
     const clauseTypeItems: OptionProps[] = [
@@ -130,10 +132,16 @@ export function ClauseEditor(props: ClauseEditorProps) {
     }
 
     const handleSubmit = (data: DMFormFieldValues) => {
+        setClauseToAdd(undefined);
         onSubmit({
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
         });
+    }
+
+    const handleCancel = () => {
+        setClauseToAdd(undefined);
+        onCancel();
     }
 
     // function with select case to gen fields based on clause type
@@ -158,7 +166,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         cancelText: "Cancel",
         nestedForm: true,
         onSubmit: handleSubmit,
-        onCancel,
+        onCancel: handleCancel,
         isSaving
     }
 
