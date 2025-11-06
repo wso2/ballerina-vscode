@@ -530,6 +530,7 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.CONNECTION_CONFIG:
                 return (
                     <ConnectionConfig
+                        fileName={fileName}
                         connectionKind={selectedConnectionKind}
                         selectedNode={selectedNode}
                         onSave={onUpdateNodeWithConnection}
