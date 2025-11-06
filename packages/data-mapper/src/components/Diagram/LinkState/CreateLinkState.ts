@@ -29,8 +29,8 @@ import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired } 
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
-import { LinkConnectorNode } from '../Node/LinkConnector/LinkConnectorNode';
 import { isQueryHeaderPort } from '../utils/port-utils';
+import { ClauseConnectorNode, LinkConnectorNode } from '../Node';
 /**
  * This state is controlling the creation of a link.
  */
@@ -103,7 +103,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 
 							if (targetPort instanceof IntermediatePortModel) {
 								const parentNode = targetPort.getNode();
-								if (parentNode instanceof LinkConnectorNode) {
+								if (parentNode instanceof LinkConnectorNode || parentNode instanceof ClauseConnectorNode) {
 									element = parentNode.targetMappedPort;
 								}
 							}
