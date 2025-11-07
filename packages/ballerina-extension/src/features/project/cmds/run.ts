@@ -25,6 +25,7 @@ import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, runComm
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
 import { prepareAndGenerateConfig } from '../../config-generator/configGenerator';
 import { LANGUAGE } from "../../../core";
+import { TracerMachine } from "../../../features/tracing";
 
 function activateRunCmdCommand() {
 
@@ -45,6 +46,7 @@ function activateRunCmdCommand() {
 
     async function run(args: any[]) {
         try {
+
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {
                 await commands.executeCommand(PALETTE_COMMANDS.SAVE_ALL);

@@ -22,8 +22,9 @@ import {
     ColorThemeKind,
     HistoryEntry,
     OpenViewRequest,
+    ProjectStructureArtifactResponse,
     UndoRedoStateResponse,
-    UpdateUndoRedoMangerRequest,
+    UpdatedArtifactsResponse,
     VisualizerAPI,
     addToHistory,
     addToUndoStack,
@@ -36,7 +37,8 @@ import {
     openView,
     redo,
     undo,
-    undoRedoState
+    undoRedoState,
+    updateCurrentArtifactLocation
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -94,5 +96,9 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     getThemeKind(): Promise<ColorThemeKind> {
         return this._messenger.sendRequest(getThemeKind, HOST_EXTENSION);
+    }
+
+    updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
+        return this._messenger.sendRequest(updateCurrentArtifactLocation, HOST_EXTENSION, params);
     }
 }

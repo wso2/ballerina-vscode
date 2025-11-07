@@ -24,18 +24,18 @@ import { convertToHelperPaneFunction, extractFunctionInsertText } from "../../..
 import { CompletionInsertText, FunctionKind, LineRange } from "@wso2/ballerina-core";
 import { useMutation } from "@tanstack/react-query";
 import { ExpandableList } from "../Components/ExpandableList";
-import { SlidingPaneNavContainer } from "@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane";
-import { COMPLETION_ITEM_KIND, CompletionItem, getIcon, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
+import { CompletionItem, HelperPaneCustom } from "@wso2/ui-toolkit/lib/components/ExpressionEditor";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import styled from "@emotion/styled";
 import { Divider, SearchBox } from "@wso2/ui-toolkit";
 import { LibraryBrowser } from "../../HelperPane/LibraryBrowser";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
-import DynamicModal from "../../../../components/Modal";
 import { URI, Utils } from "vscode-uri";
 import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
+import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
+import { HelperPaneListItem } from "../Components/HelperPaneListItem";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -62,15 +62,13 @@ export const FunctionsPage = ({
     const { rpcClient } = useRpcContext();
     const firstRender = useRef<boolean>(true);
     const [searchValue, setSearchValue] = useState<string>('');
-    const [isLibraryBrowserOpen, setIsLibraryBrowserOpen] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [projectUri, setProjectUri] = useState<string>('');
 
-    const { addModal , closeModal} = useModalStack();
-
-
+    const { addModal, closeModal } = useModalStack();
 
     //TODO: get the correct filepath
     let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
@@ -78,32 +76,42 @@ export const FunctionsPage = ({
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
             setIsLoading(true);
-            rpcClient
-                .getBIDiagramRpcClient()
-                .search({
-                    position: targetLineRange,
-                    filePath: fileName,
-                    queryMap: {
-                        q: searchText.trim(),
-                        limit: 12,
-                        offset: 0,
-                        ...(!!includeAvailableFunctions && { includeAvailableFunctions })
-                    },
-                    searchKind: "FUNCTION"
-                })
-                .then((response) => {
-                    if (response.categories?.length) {
-                        if (!!includeAvailableFunctions) {
-                            setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
-                        } else {
-                            setFunctionInfo(convertToHelperPaneFunction(response.categories));
+
+            // Only apply minimum loading time if we don't have any function info yet
+            const shouldShowMinLoader = !functionInfo && !showContent;
+            const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
+
+            Promise.all([
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .search({
+                        position: targetLineRange,
+                        filePath: fileName,
+                        queryMap: {
+                            q: searchText.trim(),
+                            limit: 12,
+                            offset: 0,
+                            ...(!!includeAvailableFunctions && { includeAvailableFunctions })
+                        },
+                        searchKind: "FUNCTION"
+                    })
+                    .then((response) => {
+                        if (response.categories?.length) {
+                            if (!!includeAvailableFunctions) {
+                                setLibraryBrowserInfo(convertToHelperPaneFunction(response.categories));
+                            } else {
+                                setFunctionInfo(convertToHelperPaneFunction(response.categories));
+                            }
                         }
-                    }
-                    console.log(response);
-                })
-                .then(() => setIsLoading(false));
+                        console.log(response);
+                    }),
+                minLoadingTime
+            ]).finally(() => {
+                setIsLoading(false);
+                setShowContent(true);
+            });
         }, 150),
-        [rpcClient, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, functionInfo, showContent]
     );
 
     const fetchFunctionInfo = useCallback(
@@ -113,7 +121,7 @@ export const FunctionsPage = ({
         [debounceFetchFunctionInfo, searchValue]
     );
 
-    const { mutateAsync: addFunction, isPending: isAddingFunction } = useMutation({
+    const { mutateAsync: addFunction } = useMutation({
         mutationFn: (item: HelperPaneCompletionItem) =>
             rpcClient.getBIDiagramRpcClient().addFunction({
                 filePath: fileName,
@@ -156,13 +164,7 @@ export const FunctionsPage = ({
 
     const handleFunctionSearch = (searchText: string) => {
         setSearchValue(searchText);
-
-        // Search functions
-        if (isLibraryBrowserOpen) {
-            fetchFunctionInfo(searchText, 'true');
-        } else {
-            fetchFunctionInfo(searchText);
-        }
+        fetchFunctionInfo(searchText);
     };
 
     const handleFunctionSave = (value: string) => {
@@ -190,6 +192,20 @@ export const FunctionsPage = ({
         onClose();
     }
 
+    const handleOpenLibraryBrowser = () => {
+        addModal(
+            <LibraryBrowser
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                onClose={() => closeModal(POPUP_IDS.LIBRARY_BROWSER)}
+                onChange={(insertText) => {
+                    onChange(insertText);
+                    onClose();
+                }}
+                onFunctionItemSelect={onFunctionItemSelect}
+            />, POPUP_IDS.LIBRARY_BROWSER, "Function Browser", 600, 550);
+    }
+
     return (
         <div style={{
             display: "flex",
@@ -197,96 +213,102 @@ export const FunctionsPage = ({
             height: "100%",
             overflow: "hidden"
         }}>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 5px", height: "20px" }}>
                 <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleFunctionSearch} />
             </div>
+
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {
 
-                    isLoading ? (
+                    isLoading || !showContent ? (
                         <HelperPaneCustom.Loader />
                     ) : (
                         <>
-                            {
-                                !functionInfo || !functionInfo.category || functionInfo.category.length === 0 ? (
-                                    <EmptyItemsPlaceHolder />
-                                ) : (
-                                    functionInfo.category.map((category) => {
-                                        if (!category.subCategory) {
-                                            if (!category.items || category.items.length === 0) {
+                            {(() => {
+                                // Check if we have any functions to display
+                                const hasAnyFunctions = functionInfo?.category?.some(category => {
+                                    if (category.items && category.items.length > 0) {
+                                        return true;
+                                    }
+                                    if (category.subCategory && category.subCategory.some(sub => sub.items && sub.items.length > 0)) {
+                                        return true;
+                                    }
+                                    return false;
+                                });
+
+                                if (!functionInfo || !functionInfo.category || functionInfo.category.length === 0 || !hasAnyFunctions) {
+                                    return <EmptyItemsPlaceHolder message={searchValue ? "No functions found for your search" : "No functions found"} />;
+                                }
+
+                                return (
+                                    <>
+                                        {functionInfo.category.map((category) => {
+                                            if (!category.subCategory) {
+                                                if (!category.items || category.items.length === 0) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <ExpandableList>
+                                                        <ExpandableList.Section key={category.label} title={category.label} level={0}>
+                                                            <div style={{ marginTop: '10px' }}>
+                                                                {category.items.map((item) => (
+                                                                    <HelperPaneListItem
+                                                                        key={item.label}
+                                                                        onClick={async () => await handleFunctionItemSelect(item)}
+                                                                    >
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                    </HelperPaneListItem>
+                                                                ))}
+                                                            </div>
+                                                        </ExpandableList.Section>
+                                                    </ExpandableList>
+                                                )
+                                            }
+
+                                            //if sub category is empty
+                                            if (category.subCategory.length === 0) {
                                                 return null;
                                             }
 
                                             return (
                                                 <ExpandableList>
-                                                    <ExpandableList.Section key={category.label} title={category.label} level={0}>
-                                                        <div style={{ marginTop: '10px' }}>
-                                                            {category.items.map((item) => (
-                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                    <ExpandableList.Item
+                                                    {category.subCategory.map((subCategory) => (
+                                                        <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={0}>
+                                                            <div style={{ marginTop: '10px' }}>
+                                                                {subCategory.items.map((item) => (
+                                                                    <HelperPaneListItem
                                                                         key={item.label}
+                                                                        onClick={async () => await handleFunctionItemSelect(item)}
                                                                     >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
+                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                                                         <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </ExpandableList.Item>
-                                                                </SlidingPaneNavContainer>
-                                                            ))}
-                                                        </div>
-                                                    </ExpandableList.Section>
+                                                                    </HelperPaneListItem>
+                                                                ))}
+                                                            </div>
+                                                        </ExpandableList.Section>
+                                                    ))}
                                                 </ExpandableList>
                                             )
-                                        }
-
-                                        //if sub category is empty
-                                        if (category.subCategory.length === 0) {
-                                            return null;
-                                        }
-
-                                        return (
-                                            <ExpandableList>
-                                                {category.subCategory.map((subCategory) => (
-                                                    <ExpandableList.Section sx={{ marginTop: '20px' }} key={subCategory.label} title={subCategory.label} level={0}>
-                                                        <div style={{ marginTop: '10px' }}>
-                                                            {subCategory.items.map((item) => (
-                                                                <SlidingPaneNavContainer onClick={async () => await handleFunctionItemSelect(item)}>
-                                                                    <ExpandableList.Item
-                                                                        key={item.label}
-                                                                    >
-                                                                        {getIcon(COMPLETION_ITEM_KIND.Function)}
-                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </ExpandableList.Item>
-                                                                </SlidingPaneNavContainer>
-                                                            ))}
-                                                        </div>
-                                                    </ExpandableList.Section>
-                                                ))}
-                                            </ExpandableList>
-                                        )
-                                    })
-                                )
-                            }
+                                        })}
+                                    </>
+                                );
+                            })()}
                         </>
                     )
                 }
             </ScrollableContainer>
             <Divider sx={{ margin: '0px' }} />
-            <div style={{padding: '0px'}}>
-                <FooterButtons onClick={handleNewFunctionClick} startIcon='add' title="New Function" />
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} startIcon='add' title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
-
+            <div style={{ margin: '4px 0' }}>
+                <FooterButtons onClick={handleNewFunctionClick} title="New Function" />
+                <FooterButtons
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                    title="Open Function Browser"
+                    onClick={handleOpenLibraryBrowser}
+                    startIcon="bi-arrow-outward"
+                />            
             </div>
-            {isLibraryBrowserOpen && (
-                <LibraryBrowser
-                    anchorRef={anchorRef}
-                    isLoading={isLoading}
-                    libraryBrowserInfo={libraryBrowserInfo as HelperPaneFunctionInfo}
-                    setFilterText={handleFunctionSearch}
-                    onBack={() => setIsLibraryBrowserOpen(false)}
-                    onClose={onClose}
-                    onChange={onChange}
-                    onFunctionItemSelect={onFunctionItemSelect}
-                />
-            )}
         </div>
     )
 }

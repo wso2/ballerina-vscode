@@ -22,10 +22,10 @@ import {
     Codicon,
     Divider,
     FormExpressionEditorRef,
-    getIcon,
     HelperPane,
     HelperPaneCustom,
     HelperPaneHeight,
+    Icon,
     SearchBox,
     ThemeColors
 } from '@wso2/ui-toolkit';
@@ -36,6 +36,7 @@ import { getTypeCreateText, isTypePanelOpen } from './utils';
 import ExpandableList from './ExpandableList';
 import { ScrollableContainer, SlidingPane, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit/lib/components/ExpressionEditor/components/Common/SlidingPane';
 import { EMPTY_SEARCH_RESULT_MSG } from './constant';
+import FooterButtons from './FooterButtons';
 
 /* Constants */
 const PANEL_TABS = {
@@ -307,13 +308,13 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                     level={0}
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
-                                                        {category.items.map((item) => (
+                                                        {category.items.filter((item) => item.name !== "record").map((item) => (
                                                             <SlidingPaneNavContainer
                                                                 key={`${category.category}-${item.name}`}
                                                                 onClick={() => handleTypeItemClick(item)}
                                                             >
                                                                 <ExpandableList.Item>
-                                                                    {getIcon(item.type)}
+                                                                    <Icon name="bi-type" sx={{ fontSize: '16px' }} />
                                                                     <FunctionItemLabel>{item.name}</FunctionItemLabel>
                                                                 </ExpandableList.Item>
                                                             </SlidingPaneNavContainer>
@@ -350,7 +351,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                                             <ExpandableList.Item
                                                                                 key={`${subCategory.category}-${item.name}`}
                                                                             >
-                                                                                {getIcon(item.type)}
+                                                                                <Icon name="bi-type" sx={{ fontSize: '16px' }} />
                                                                                 <FunctionItemLabel>{item.name}</FunctionItemLabel>
                                                                             </ExpandableList.Item>
                                                                         </SlidingPaneNavContainer>
@@ -374,25 +375,22 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
                             <Divider sx={{ margin: '0px' }} />
                             <div style={{
-                                marginTop: "auto",
+                                margin: '4px 0',
                                 display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'space-around',
-                                padding: '8px'
+                                flexDirection: 'column'
                             }}>
                                 {onTypeCreate && (
                                     <FooterButtons
                                         sx={{ display: 'flex', justifyContent: 'space-between' }}
-                                        startIcon='add'
                                         title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
                                         onClick={() => onTypeCreate(newTypeName.current)}
                                     />
                                 )}
                                 <FooterButtons
                                     sx={{ display: 'flex', justifyContent: 'space-between' }}
-                                    startIcon='library'
                                     title="Open Type Browser"
                                     onClick={() => setIsTypeBrowserOpen(true)}
+                                    startIcon="bi-arrow-outward"
                                 />
                             </div>
                         </SlidingPane>
@@ -414,40 +412,40 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     );
 };
 
-const InvisibleButton = styled.button`
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    text-align: inherit;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    outline: none;
-    box-shadow: none;
-    appearance: none;
-    display: inline-flex;
-    align-items: center;
-`;
+// const InvisibleButton = styled.button`
+//     background: none;
+//     border: none;
+//     padding: 0;
+//     margin: 0;
+//     text-align: inherit;
+//     color: inherit;
+//     font: inherit;
+//     cursor: pointer;
+//     outline: none;
+//     box-shadow: none;
+//     appearance: none;
+//     display: inline-flex;
+//     align-items: center;
+// `;
 
-type FooterButtonProps = {
-    onClick?: () => void;
-    startIcon: string;
-    title: string;
-    sx?: React.CSSProperties;
-    disabled?: boolean;
-}
+// type FooterButtonProps = {
+//     onClick?: () => void;
+//     startIcon: string;
+//     title: string;
+//     sx?: React.CSSProperties;
+//     disabled?: boolean;
+// }
 
-const FooterButtons = (props: FooterButtonProps) => {
-    const { onClick, startIcon, title, sx } = props;
-    return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
-            <InvisibleButton
-                disabled={props.disabled}
-                onClick={onClick}>
-                <Codicon name={startIcon} sx={{ color: ThemeColors.PRIMARY }} />
-                <span style={{ color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
-            </InvisibleButton>
-        </div>
-    )
-}
+// const FooterButtons = (props: FooterButtonProps) => {
+//     const { onClick, startIcon, title, sx } = props;
+//     return (
+//         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
+//             <InvisibleButton
+//                 disabled={props.disabled}
+//                 onClick={onClick}>
+//                 <Codicon name={startIcon} sx={{ color: ThemeColors.PRIMARY }} />
+//                 <span style={{ color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
+//             </InvisibleButton>
+//         </div>
+//     )
+// }

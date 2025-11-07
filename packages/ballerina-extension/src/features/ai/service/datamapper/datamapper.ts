@@ -14,1003 +14,814 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ModelMessage, generateObject } from "ai";
+import { CoreMessage, ModelMessage, generateObject } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import {
     DatamapperResponse,
-    AIDataMappings,
-    MappingJson,
-    MappingRecord,
-    MappingOperation,
-    FieldMetadata,
-    ParameterMetadata,
+    DataModelStructure,
     MappingFields,
-    Mapping,
-    Operation,
-    DataMappingRequest,
-    DataMappingResponse,
-    IOTypeVisitor,
-    VisitorContext,
-    Payload
+    RepairedFiles,
 } from "./types";
-import { MappingSchema } from "./schema";
+import { GeneratedMappingSchema, RepairedSourceFilesSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-import { ADDITION, DIRECT, DIVISION, LENGTH, MODULAR, MULTIPLICATION, NAME, PARAMETER_1, SPLIT, SUBTRACTION } from "./constant";
-import { ExpandedDMModel, DataMapperModelResponse, IOType, TypeKind } from "@wso2/ballerina-core";
-import { getDataMappingPrompt } from "./prompt";
-
-// Operations table - In a real implementation, this would be loaded from JSON files
-const operationsTable: Map<string, Operation> = new Map([
-    [
-        DIRECT,
-        {
-            name: DIRECT,
-            structure: {
-                operation: "DIRECT",
-                outputType: ["int", "float", "decimal", "string", "boolean"],
-                inputType: ["int", "float", "decimal", "string", "boolean"],
-                imports: {},
-                errorReturned: false,
-                expression: "${LHS} : ${PA_1}",
-            },
-        },
-    ],
-    [
-        ADDITION,
-        {
-            name: ADDITION,
-            structure: {
-                operation: "ADDITION",
-                outputType: ["int", "float", "decimal"],
-                inputType: ["int", "float", "decimal"],
-                imports: {},
-                errorReturned: false,
-                expression: "+",
-            },
-        },
-    ],
-    [
-        DIVISION,
-        {
-            name: DIVISION,
-            structure: {
-                operation: "DIVISION",
-                outputType: ["int", "float", "decimal"],
-                inputType: ["int", "float", "decimal"],
-                imports: {},
-                errorReturned: false,
-                expression: "/",
-            },
-        },
-    ],
-    [
-        LENGTH,
-        {
-            name: LENGTH,
-            structure: {
-                operation: "LENGTH",
-                outputType: ["int"],
-                inputType: ["string[]", "int[]", "float[]", "decimal[]", "boolean[]", "record[]"],
-                imports: {},
-                errorReturned: false,
-                expression: "${LHS} : ${RHS}.length()",
-            },
-        },
-    ],
-    [
-        MODULAR,
-        {
-            name: MODULAR,
-            structure: {
-                operation: "MODULAR",
-                outputType: ["int"],
-                inputType: ["int"],
-                imports: {},
-                errorReturned: false,
-                expression: "%",
-            },
-        },
-    ],
-    [
-        MULTIPLICATION,
-        {
-            name: MULTIPLICATION,
-            structure: {
-                operation: "MULTIPLICATION",
-                outputType: ["int", "float", "decimal"],
-                inputType: ["int", "float", "decimal"],
-                imports: {},
-                errorReturned: false,
-                expression: "*",
-            },
-        },
-    ],
-    [
-        SPLIT,
-        {
-            name: SPLIT,
-            structure: {
-                operation: "SPLIT",
-                outputType: ["string[]", "string"],
-                inputType: ["string"],
-                imports: { org: "ballerina", package: "lang.regexp" },
-                errorReturned: false,
-                expression: "${LHS} : re `,`.split(${RHS})",
-            },
-        },
-    ],
-    [
-        SUBTRACTION,
-        {
-            name: SUBTRACTION,
-            structure: {
-                operation: "SUBTRACTION",
-                outputType: ["int", "float", "decimal"],
-                inputType: ["int", "float", "decimal"],
-                imports: {},
-                errorReturned: false,
-                expression: "-",
-            },
-        },
-    ],
-]);
-
-// =============================================================================
-// UTILITY FUNCTIONS FOR SCHEMA PROCESSING
-// =============================================================================
-
-/**
- * Finds a schema type by path in the input schemas array
- */
-
-class IOTypeVisitorImpl implements IOTypeVisitor {
-    visitIOType(ioType: IOType, context: VisitorContext): IOType | null {
-        if (ioType.id === context.targetPath) {
-            context.found = ioType;
-            return this.isContainerWithRecordFields(ioType) ? null : ioType;
-        }
-
-        // Visit all child types
-        const childTypes = [
-            ...(ioType.fields || []),
-            ...(ioType.members || []),
-            ...(ioType.member ? [ioType.member] : [])
-        ];
-
-        for (const child of childTypes) {
-            const result = this.visitIOType(child, context);
-            if (result) { return result; }
-        }
-
-        return null;
-    }
-
-    private isContainerWithRecordFields(ioType: IOType): boolean {
-        return this.hasRecordFields(ioType);
-    }
-
-    private hasRecordFields(type: IOType): boolean {
-        if (!type) { return false; }
-        
-        // Direct record with fields
-        if (type.kind === TypeKind.Record && type.fields?.length) {
-            return true;
-        }
-        
-        // Array containing records
-        if (type.kind === TypeKind.Array) {
-            return this.hasRecordFields(type.member);
-        }
-        
-        // Union containing records
-        if (type.kind === TypeKind.Union && type.members?.length) {
-            return type.members.some(member => this.hasRecordFields(member));
-        }
-        
-        return false;
-    }
-}
-
-
-function findSchemaTypeByPath(inputs: IOType[], path: string): IOType | null {
-    const context: VisitorContext = {
-        targetPath: path,
-        found: null
-    };
-
-    const visitor = new IOTypeVisitorImpl();
-
-    for (const inputSchema of inputs) {
-        const result = visitor.visitIOType(inputSchema, context);
-        if (result) { return result; }
-    }
-
-    return null;
-}
-
-/**
- * Removes array indices from path to normalize field paths
- */
-function removeArrayIndicesFromPath(path: string): string {
-    const pathParts = path.split('.');
-    const cleanParts: string[] = [];
-
-    for (const part of pathParts) {
-        // Skip numeric indices
-        if (!isNaN(parseInt(part))) {
-            continue;
-        }
-        cleanParts.push(part);
-    }
-    
-    return cleanParts.join('.');
-}
-
-/**
- * Removes output record prefix from field name
- */
-function removeOutputRecordPrefix(fieldName: string, output: IOType): string {
-    const outputRecordName = output.name;
-    if (outputRecordName) {
-        const prefix = outputRecordName + ".";
-        if (fieldName.startsWith(prefix)) {
-            return fieldName.substring(prefix.length);
-        }
-    }
-    return fieldName;
-}
-
-// =============================================================================
-// MAPPING EVALUATION FUNCTIONS
-// =============================================================================
-
-/**
- * Main function to evaluate mappings with enhanced schema support
- */
-async function evaluateMappings(
-    path: string[], 
-    llmGeneratedMappings: AIDataMappings, 
-    initialRecords: DataMappingRequest
-): Promise<MappingJson | null> {
-    if (isMapping(llmGeneratedMappings)) {
-        return await processMappingOperation(path, llmGeneratedMappings, initialRecords);
-    } else {
-        return await processNestedMappings(path, llmGeneratedMappings as { [key: string]: AIDataMappings }, initialRecords);
-    }
-}
-
-/**
- * Processes individual mapping operations with schema validation
- */
-async function processMappingOperation(
-    path: string[], 
-    llmGeneratedMappings: Mapping, 
-    initialRecords: DataMappingRequest
-): Promise<MappingJson | null> {
-    try {
-        const operationRecord = llmGeneratedMappings.OPERATION;
-        const parametersTypes: { [key: string]: ParameterMetadata } = {};
-        let validParameters = false;
-
-        for (const subKey of Object.keys(operationRecord)) {
-            if (subKey === NAME) {
-                continue;
-            }
-            
-            const subPathString = operationRecord[subKey as keyof MappingOperation] as string;
-            if (!subPathString) {
-                continue;
-            }
-            
-            const operationName = operationRecord.NAME;
-            const inputType = findSchemaTypeByPath(initialRecords.input, subPathString);
-            if (!inputType) {
-                continue;
-            }
-
-            const fieldMetadata = getFieldMetadataFromSchemaType(inputType, subKey, operationName);
-            if (!fieldMetadata) {
-                continue;
-            }
-
-            parametersTypes[subKey] = {
-                type: fieldMetadata.type,
-                input: subPathString,
-                optional: fieldMetadata.optional,
-                nullable: fieldMetadata.nullable
-            };
-            validParameters = true;
-        }
-
-        if (validParameters) {
-            const outputType = getOutputFieldMetadata(initialRecords.output, path);
-            if (!outputType) {
-                return null;
-            }
-            
-            const mapping = validateMappingOperation(
-                operationRecord, 
-                parametersTypes, 
-                outputType, 
-                path[path.length - 1], 
-                initialRecords.input
-            );
-            return mapping;
-        }
-        return null;
-    } catch (error) {
-        console.error('Error processing mapping operation:', error);
-        return null;
-    }
-}
-
-/**
- * Processes nested mapping structures
- */
-async function processNestedMappings(
-    path: string[], 
-    llmGeneratedMappings: { [key: string]: AIDataMappings }, 
-    initialRecords: DataMappingRequest
-): Promise<MappingJson | null> {
-    const returnRec: { [key: string]: MappingJson } = {};
-
-    for (const [key, value] of Object.entries(llmGeneratedMappings)) {
-        if (value === null || value === undefined) {
-            continue;
-        }
-        
-        const newPath = [...path];
-        let cleanKey = removeOutputRecordPrefix(key, initialRecords.output);
-        newPath.push(key);
-
-        const temporaryRecord = await evaluateMappings(newPath, value, initialRecords);
-        if (temporaryRecord) {
-            if (isMappingRecord(temporaryRecord) || 
-                (typeof temporaryRecord === 'object' && Object.keys(temporaryRecord).length > 0)) {
-                returnRec[removeArrayIndicesFromPath(cleanKey)] = temporaryRecord;
-            }
-        }
-    }
-
-    return convertFlatToNestedMap(returnRec);
-}
-
-// =============================================================================
-// MAPPING OPERATION VALIDATION
-// =============================================================================
-
-/**
- * Validates mapping operations with enhanced error handling
- */
-function validateMappingOperation(
-    mapping: MappingOperation,
-    inputType: { [key: string]: ParameterMetadata },
-    outputType: FieldMetadata,
-    name: string,
-    inputs: IOType[]
-): MappingJson | null {
-    const operation = mapping.NAME;
-    // STEP 1: Verify operation exists in operations database
-    const op = operationsTable.get(operation);
-    
-    if (!op) {
-        return null;
-    }
-
-    switch (op.name) {
-        // STEP 2: Validate DIRECT mapping operation
-        case DIRECT: {
-            const param = inputType[PARAMETER_1];
-            if (!param) {
-                return null;
-            }
-            
-            if (!findSchemaTypeByPath(inputs, param.input)) {
-                throw new Error(`Input path not found for DIRECT operation: ${param.input}`);
-            }
-            
-            return {
-                operation: DIRECT,
-                targetType: outputType.type,
-                parameters: [removeArrayIndicesFromPath(param.input)]
-            };
-        }
-        // STEP 3: Validate LENGTH operation
-        case LENGTH: {
-            const param = inputType[PARAMETER_1];
-            if (!param) {
-                throw new Error("Parameter 1 not found in input type for LENGTH operation");
-            }
-            
-            if (!(outputType.type === "int" || outputType.type === "int|()")) {
-                throw new Error("Invalid output type for LENGTH operation");
-            }
-            
-            if (!findSchemaTypeByPath(inputs, param.input)) {
-                throw new Error(`Input path not found for LENGTH operation: ${param.input}`);
-            }
-            
-            return {
-                operation: LENGTH,
-                targetType: outputType.type,
-                parameters: [removeArrayIndicesFromPath(param.input)]
-            };
-        }
-        // STEP 4: Validate SPLIT operation
-        case SPLIT: {
-            const paramOne = inputType[PARAMETER_1];
-            const paramTwo = mapping.PARAMETER_2;
-            
-            if (!paramOne || !paramTwo) {
-                throw new Error("Required parameters not found in input type for SPLIT operation");
-            }
-            
-            if (paramOne.type !== "regex" ||
-                !(
-                    outputType.type === "string[]" ||
-                    outputType.type === "string[]|()" ||
-                    outputType.type === "(string|())[]" ||
-                    outputType.type === "(string|())[]|()"
-                )
-            ) {
-                throw new Error("Invalid input or output type for SPLIT operation");
-            }
-            
-            if (!findSchemaTypeByPath(inputs, paramOne.input)) {
-                throw new Error(`Input path not found for SPLIT operation: ${paramOne.input}`);
-            }
-            
-            return {
-                operation: SPLIT,
-                targetType: outputType.type,
-                parameters: [paramOne.input, paramTwo]
-            };
-        }
-        
-        default:
-            return null;
-    }
-}
-
-// =============================================================================
-// FIELD METADATA EXTRACTION FUNCTIONS
-// =============================================================================
-
-/**
- * Extracts field metadata from schema type with enhanced type checking
- */
-function getFieldMetadataFromSchemaType(
-    inputType: IOType, 
-    paramName?: string, 
-    operationName?: string
-): FieldMetadata | null {
-    if (paramName && operationName) {
-        if (operationName === SPLIT && paramName === PARAMETER_1) {
-            return { type: "regex", optional: inputType.optional, nullable: false };
-        }
-    }
-
-    const kind = inputType.kind;
-    const typeName = inputType.typeName;
-
-    if (!kind || !typeName) {
-        throw new Error("Missing kind or typeName in SchemaType");
-    }
-
-    const typeString = typeName;
-    const isOptional = inputType.optional;
-    let isNullable = false;
-
-    // Check if type is nullable (contains ? or ())
-    if (typeName.includes("?") || typeName.includes("()")) {
-        isNullable = true;
-    }
-
-    return { 
-        type: typeString, 
-        optional: isOptional, 
-        nullable: isNullable 
-    };
-}
-
-/**
- * Gets output field metadata from schema type
- */
-function getOutputFieldMetadata(output: IOType, path: string[]): FieldMetadata | null {
-    let current = output;
-
-    for (const pathSegment of path) {
-        const found = findFieldInSchemaType(current, pathSegment);
-        if (!found) {
-            return null;
-        }
-        current = found;
-    }
-
-    return getFieldMetadataFromSchemaType(current);
-}
-
-/**
- * Finds a field within a schema type structure
- */
-function findFieldInSchemaType(schemaType: IOType, fieldId: string): IOType | null {
-    const fields = schemaType.fields || schemaType.members;
-    if (fields && Array.isArray(fields)) {
-        for (const field of fields) {
-            if (field.id === fieldId || field.name === fieldId) {
-                return field;
-            }
-            
-            const found = findFieldInSchemaType(field, fieldId);
-            if (found) {
-                return found;
-            }
-        }
-    }
-
-    const member = schemaType.member;
-    if (member) {
-        if (member.id === fieldId || member.name === fieldId) {
-            return member;
-        }
-        return findFieldInSchemaType(member, fieldId);
-    }
-
-    return null;
-}
-
-/**
- * Converts flat mapping structure to nested format
- */
-function convertFlatToNestedMap(flatMap: { [key: string]: MappingJson }): { [key: string]: MappingJson } {
-    const nested: { [key: string]: MappingJson } = {};
-
-    for (const [flatKey, value] of Object.entries(flatMap)) {
-        const parts = flatKey.split('.');
-        let current = nested;
-
-        for (let i = 0; i < parts.length - 1; i++) {
-            const part = parts[i];
-            if (!(part in current)) {
-                current[part] = {};
-            } else if (typeof current[part] !== 'object' || current[part] === null) {
-                current[part] = {};
-            }
-            current = current[part] as { [key: string]: MappingJson };
-        }
-
-        const lastPart = parts[parts.length - 1];
-        current[lastPart] = value;
-    }
-    
-    return nested;
-}
+import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, DiagnosticList, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest } from "@wso2/ballerina-core";
+import { getDataMappingPrompt } from "./dataMappingPrompt";
+import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
+import { CopilotEventHandler, createWebviewEventHandler } from "../event";
+import { getErrorMessage } from "../utils";
+import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
+import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
+import { updateSourceCode } from "../../../../../src/utils/source-utils";
+import { StateMachine } from "../../../../stateMachine";
+import { extractVariableDefinitionSource, getHasStopped, setHasStopped } from "../../../../../src/rpc-managers/data-mapper/utils";
+import { commands, Uri, window } from "vscode";
+import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
+import path from "path";
+import { URI } from "vscode-uri";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
 // =============================================================================
 
-/**
- * Enhanced main function for AI-powered data mapping generation with schema support
- */
-async function mapData(payload: DataMapperModelResponse): Promise<DatamapperResponse> {
+// Generates AI-powered data mappings with retry logic for handling failures
+async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapperModelResponse): Promise<DatamapperResponse> {
+    if (!dataMapperModelResponse.mappingsModel) {
+        throw new Error("Mappings model is required in the data mapper response");
+    }
+
     const maxRetries = 3;
-    let retries = 0;
     let lastError: Error;
 
-    while (retries < maxRetries) {
-        if (retries > 0) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        if (attempt > 0) {
             console.debug("Retrying to generate mappings for the payload.");
         }
 
         try {
-            // Extract existing mapping field hints
-            const mappingFields: { [key: string]: MappingFields } = payload.mappingsModel.mapping_fields || {};
+            const mappingsModel = dataMapperModelResponse.mappingsModel as DMModel;
+            const existingMappings = mappingsModel.mappings;
+            const userProvidedMappingHints = mappingsModel.mapping_fields || {};
+            const existingSubMappings = mappingsModel.subMappings as Mapping[] || [];
 
-            // STEP 1: Generate AI-powered mappings using Claude
-            const generatedMappings = await getMappings((payload.mappingsModel as ExpandedDMModel)?.inputs, (payload.mappingsModel as ExpandedDMModel)?.output, payload.mappingsModel.mappings, mappingFields);
-
-            if (Object.keys(generatedMappings).length === 0) {
-                const error = new Error("No valid fields were identified for mapping between the given input and output records.");
-                lastError = error;
-                retries += 1;
-                continue;
+            if (!mappingsModel.inputs || !mappingsModel.output) {
+                throw new Error("Mappings model must contain both inputs and output fields");
             }
 
-            // STEP 2: Prepare inputs for validation
-            const inputs: DataMappingRequest = {
-                input: (payload.mappingsModel as ExpandedDMModel)?.inputs,
-                output: (payload.mappingsModel as ExpandedDMModel)?.output
+            // Extract only inputs, output, and refs from mappingsModel
+            const dataModelStructure: DataModelStructure = {
+                inputs: mappingsModel.inputs,
+                output: mappingsModel.output,
+                refs: mappingsModel.refs
             };
 
-            // STEP 3: Validate and process AI-generated mappings with schema
-            const evaluateMappingsResult = await evaluateMappings([], generatedMappings, inputs);
+            const aiGeneratedMappings = await generateAIMappings(
+                dataModelStructure,
+                existingMappings,
+                userProvidedMappingHints,
+                existingSubMappings
+            );
 
-            if (evaluateMappingsResult) {
-                // STEP 4: Extract and structure the validated mappings
-                const mappings = extractMappings(evaluateMappingsResult);
-                return mappings;
-            } else {
-                throw new Error("Failed to generate mappings for the payload.");
+            if (Object.keys(aiGeneratedMappings).length === 0) {
+                throw new Error("No valid fields were identified for mapping between the given input and output records.");
             }
+
+            return { mappings: aiGeneratedMappings };
+
         } catch (error) {
             console.error(`Error occurred while generating mappings: ${error}`);
             lastError = error as Error;
-            retries += 1;
-            continue;
         }
     }
-    throw lastError;
+
+    throw lastError!;
 }
 
-// Import all existing functions from the original implementation
-async function getMappings(
-    inputJsonRecord: IOType[],
-    outputJsonRecord: IOType,
-    userMappings: DataMappingResponse[],
-    mappingTips: { [key: string]: MappingFields }
-): Promise<AIDataMappings> {
-    const prompt = getDataMappingPrompt(
-        JSON.stringify(inputJsonRecord),
-        JSON.stringify(outputJsonRecord),
-        JSON.stringify(userMappings),
-        JSON.stringify(mappingTips)
+// Calls Claude AI to generate mappings based on data model, user mappings, and mapping hints
+async function generateAIMappings(
+    dataModelStructure: DataModelStructure,
+    existingUserMappings: Mapping[],
+    userProvidedMappingHints: { [key: string]: MappingFields },
+    existingSubMappings: Mapping[]
+): Promise<Mapping[]> {
+    if (!dataModelStructure.inputs || !dataModelStructure.output) {
+        throw new Error("Data model structure must contain inputs and output");
+    }
+
+    // Build prompt for AI
+    const aiPrompt = getDataMappingPrompt(
+        JSON.stringify(dataModelStructure),
+        JSON.stringify(existingUserMappings || []),
+        JSON.stringify(userProvidedMappingHints || {}),
+        JSON.stringify(existingSubMappings || [])
     );
 
-    const messages: ModelMessage[] = [
-        { role: "user", content: prompt }
+    const chatMessages: ModelMessage[] = [
+        { role: "user", content: aiPrompt }
     ];
 
     try {
         const { object } = await generateObject({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-            maxOutputTokens: 4096,
+            maxOutputTokens: 8192,
             temperature: 0,
-            messages: messages,
-            schema: MappingSchema,
+            messages: chatMessages,
+            schema: GeneratedMappingSchema,
             abortSignal: AIPanelAbortController.getInstance().signal,
         });
 
-        const generatedMappings = object.generatedMappings as AIDataMappings;
-        return generatedMappings;
+        const aiGeneratedMappings = object.generatedMappings as Mapping[];
+        return aiGeneratedMappings;
     } catch (error) {
         console.error("Failed to parse response:", error);
         throw new Error(`Failed to parse mapping response: ${error}`);
     }
 }
 
-function extractMappings(evaluateMappingsResult: MappingJson): DatamapperResponse {
-    const mappings: { [key: string]: MappingJson } = {};
-
-    if (isMappingRecord(evaluateMappingsResult)) {
-        throw new Error("EvaluateMappingsResult is a MappingRecord, expected map structure.");
+// Uses Claude AI to repair Ballerina source files based on diagnostics and import information
+async function repairBallerinaCode(
+    filesToRepair: SourceFile[],
+    compilationDiagnostics: DiagnosticList,
+    availableImports: ImportInfo[]
+): Promise<SourceFile[]> {
+    if (!filesToRepair || filesToRepair.length === 0) {
+        throw new Error("Source files to repair are required and cannot be empty");
     }
 
-    if (typeof evaluateMappingsResult === "object" && evaluateMappingsResult !== null) {
-        for (const [key, value] of Object.entries(evaluateMappingsResult)) {
-            if (isMappingRecord(value)) {
-                mappings[key] = value;
-            } else if (typeof value === "object" && value !== null) {
-                const nestedMappingsResult = extractMappings(value as MappingJson);
-                mappings[key] = nestedMappingsResult.mappings;
-            }
-        }
+    if (!compilationDiagnostics) {
+        throw new Error("Compilation diagnostics are required for code repair");
     }
 
-    return { mappings };
-}
+    // Build repair prompt
+    const codeRepairPrompt = getBallerinaCodeRepairPrompt(
+        JSON.stringify(filesToRepair),
+        JSON.stringify(compilationDiagnostics),
+        JSON.stringify(availableImports || [])
+    );
 
-// =============================================================================
-// UTILITY FUNCTIONS
-// =============================================================================
+    const chatMessages: CoreMessage[] = [
+        { role: "user", content: codeRepairPrompt }
+    ];
 
-/**
- * Type guard to check if value is a MappingRecord
- */
-function isMappingRecord(value: any): value is MappingRecord {
-    return value && typeof value === "object" && "operation" in value && "targetType" in value && "parameters" in value;
-}
+    try {
+        const { object } = await generateObject({
+            model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+            maxOutputTokens: 8192,
+            temperature: 0,
+            messages: chatMessages,
+            schema: RepairedSourceFilesSchema,
+            abortSignal: AIPanelAbortController.getInstance().signal,
+        });
 
-/**
- * Type guard to check if value is a Mapping
- */
-function isMapping(value: any): value is { OPERATION: MappingOperation } {
-    return value && typeof value === "object" && "OPERATION" in value;
+        return object.repairedFiles as SourceFile[];
+    } catch (error) {
+        console.error("Failed to parse response:", error);
+        throw new Error(`Failed to parse repaired files response: ${error}`);
+    }
 }
 
 // =============================================================================
 // MAIN EXPORT FUNCTION
 // =============================================================================
 
-export async function generateAutoMappings(payload?: DataMapperModelResponse): Promise<DatamapperResponse> {
-    if (!payload) {
-        throw new Error("Payload is required for generating auto mappings");
+// Main entry point for generating automatic data mappings from data mapper model
+export async function generateAutoMappings(dataMapperModelResponse?: DataMapperModelResponse): Promise<Mapping[]> {
+    if (!dataMapperModelResponse) {
+        throw new Error("Data mapper model response is required for generating auto mappings");
     }
     try {
-        return await mapData(payload);
+        const mappingResponse: DatamapperResponse = await generateAIPoweredDataMappings(dataMapperModelResponse);
+        return mappingResponse.mappings;
     } catch (error) {
         console.error(`Error generating auto mappings: ${error}`);
         throw error;
     }
 }
 
-/**
- * Helper function to create a sample payload for testing
- */
-export function createSamplePayload(): Payload {
+// Generates repaired Ballerina code by fixing diagnostics with retry logic
+export async function generateRepairCode(codeRepairRequest?: repairCodeRequest): Promise<RepairedFiles> {
+    if (!codeRepairRequest) {
+        throw new Error("Code repair request is required for generating repair code");
+    }
+
+    const maxRetries = 3;
+    let attemptCount = 0;
+    let lastError: Error;
+
+    while (attemptCount < maxRetries) {
+        if (attemptCount > 0) {
+            console.debug("Retrying to generate repair code for the payload.");
+        }
+
+        try {
+            // Generate AI-powered repaired source files using Claude
+            const aiRepairedFiles = await repairBallerinaCode(codeRepairRequest.sourceFiles, codeRepairRequest.diagnostics, codeRepairRequest.imports);
+
+            if (!aiRepairedFiles || aiRepairedFiles.length === 0) {
+                const error = new Error("No repaired files were generated. Unable to fix the provided source code.");
+                lastError = error;
+                attemptCount += 1;
+                continue;
+            }
+
+            return { repairedFiles: aiRepairedFiles };
+
+        } catch (error) {
+            console.error(`Error occurred while generating repaired code: ${error}`);
+            lastError = error as Error;
+            attemptCount += 1;
+            continue;
+        }
+    }
+
+    throw lastError!;
+}
+
+// =============================================================================
+// MAPPING CODE GENERATION WITH EVENT HANDLERS
+// =============================================================================
+
+// Core mapping code generation function that emits events
+export async function generateMappingCodeCore(mappingRequest: ProcessMappingParametersRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    if (!mappingRequest.parameters) {
+        throw new Error("Parameters are required in the mapping request");
+    }
+
+    if (!mappingRequest.parameters.functionName) {
+        throw new Error("Function name is required in the mapping parameters");
+    }
+
+    if (!eventHandler) {
+        throw new Error("Event handler is required for code generation");
+    }
+
+    // Initialize generation process
+    eventHandler({ type: "start" });
+    let assistantResponse: string = "";
+    const biDiagramRpcManager = new BiDiagramRpcManager();
+    const langClient = StateMachine.langClient();
+    const context = StateMachine.context();
+    const projectRoot = context.projectUri;
+
+    const targetFunctionName = mappingRequest.parameters.functionName;
+
+    const [projectImports, currentActiveFile, projectComponents] = await Promise.all([
+        collectAllImportsFromProject(),
+        getCurrentActiveFileName(),
+        biDiagramRpcManager.getProjectComponents(),
+        langClient
+    ]);
+
+    const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
+
+    // Remove duplicates based on moduleName
+    const uniqueImportStatements = Array.from(
+        new Map(allImportStatements.map(imp => [imp.moduleName, imp])).values()
+    );
+
+    const moduleInfoList = collectModuleInfo(projectComponents);
+    const moduleDirectoryMap = new Map<string, string>();
+
+    for (const moduleInfo of moduleInfoList) {
+        const moduleDirectoryType = getModuleDirectory({
+            moduleName: moduleInfo.moduleName,
+            filePath: moduleInfo.packageFilePath
+        });
+        moduleDirectoryMap.set(moduleInfo.moduleName, moduleDirectoryType);
+    }
+
+    const recordTypeMap = buildRecordMap(projectComponents, moduleDirectoryMap);
+    const existingFunctionsInProject = collectExistingFunctions(projectComponents, moduleDirectoryMap);
+
+    const functionFileContents = new Map<string, string>();
+    if (existingFunctionsInProject.length > 0) {
+        const uniqueFunctionFilePaths = getUniqueFunctionFilePaths(existingFunctionsInProject);
+        const fileContentResults = await Promise.all(
+            uniqueFunctionFilePaths.map(async (filePath) => {
+                const projectFsPath = URI.parse(filePath).fsPath;
+                const fs = require("fs");
+                const fileContent = await fs.promises.readFile(projectFsPath, "utf-8");
+                return { filePath, content: fileContent };
+            })
+        );
+        fileContentResults.forEach(({ filePath, content }) => {
+            functionFileContents.set(filePath, content);
+        });
+    }
+
+    const mappingContext = await prepareMappingContext(
+        mappingRequest.parameters,
+        recordTypeMap,
+        existingFunctionsInProject,
+        uniqueImportStatements,
+        functionFileContents,
+        currentActiveFile,
+        langClient,
+        projectRoot
+    );
+
+    const tempDirectory = await createTempBallerinaDir();
+    const doesFunctionAlreadyExist = existingFunctionsInProject.some(func => func.name === targetFunctionName);
+
+    const tempFileMetadata = await createTempFileAndGenerateMetadata({
+        tempDir: tempDirectory,
+        filePath: mappingContext.filePath,
+        metadata: mappingRequest.metadata,
+        inputs: mappingContext.mappingDetails.inputs,
+        output: mappingContext.mappingDetails.output,
+        functionName: targetFunctionName,
+        inputNames: mappingContext.mappingDetails.inputNames,
+        imports: mappingContext.mappingDetails.imports,
+        hasMatchingFunction: doesFunctionAlreadyExist,
+    }, langClient, context);
+
+    const allMappingsRequest = await generateMappings({
+        metadata: tempFileMetadata,
+        attachments: mappingRequest.attachments
+    }, context);
+
+    const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
+
+    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits, skipPayloadCheck: true });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    let customFunctionsTargetPath: string;
+    let customFunctionsFileName: string;
+    
+    if (allMappingsRequest.customFunctionsFilePath) {
+        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
+        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+    }
+
+    // Check if mappings file and custom functions file are the same
+    const mainFilePath = tempFileMetadata.codeData.lineRange.fileName;
+    const isSameFile = customFunctionsTargetPath && 
+        path.resolve(mainFilePath) === path.resolve(path.join(tempDirectory, customFunctionsFileName));
+
+    let codeRepairResult: { finalContent: string; customFunctionsContent: string };
+    const customContent = await getCustomFunctionsContent(allMappingsRequest.customFunctionsFilePath);
+
+    if (isSameFile) {
+        const fs = require('fs');
+        const mainContent = fs.readFileSync(mainFilePath, 'utf8');
+
+        if (customContent) {
+            // Merge: main content + custom functions
+            const mergedContent = `${mainContent}\n\n${customContent}`;
+            fs.writeFileSync(mainFilePath, mergedContent, 'utf8');
+        }
+        
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata,
+            customFunctionsFilePath: undefined,
+            imports: uniqueImportStatements,
+            tempDir: tempDirectory
+        }, langClient, projectRoot);
+
+        codeRepairResult.customFunctionsContent = '';
+    } else {
+        // Files are different, repair them separately
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata,
+            customFunctionsFilePath: allMappingsRequest.customFunctionsFilePath,
+            imports: uniqueImportStatements,
+            tempDir: tempDirectory
+        }, langClient, projectRoot);
+    }
+
+    const generatedFunctionDefinition = await getFunctionDefinitionFromSyntaxTree(
+        langClient,
+        tempFileMetadata.codeData.lineRange.fileName,
+        targetFunctionName
+    );
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    let targetFilePath = path.join(projectRoot, mappingContext.filePath);
+
+    const generatedSourceFiles = buildMappingFileArray(
+        targetFilePath,
+        codeRepairResult.finalContent,
+        customFunctionsTargetPath,
+        codeRepairResult.customFunctionsContent,
+    );
+
+    // Build assistant response
+    assistantResponse = `Mappings consist of the following:\n`;
+    if (mappingRequest.parameters.inputRecord.length === 1) {
+        assistantResponse += `- **Input Record**: ${mappingContext.mappingDetails.inputParams[0]}\n`;
+    } else {
+        assistantResponse += `- **Input Records**: ${mappingContext.mappingDetails.inputParams.join(", ")}\n`;
+    }
+    assistantResponse += `- **Output Record**: ${mappingContext.mappingDetails.outputParam}\n`;
+    assistantResponse += `- **Function Name**: ${targetFunctionName}\n`;
+
+    if (isSameFile) {
+        const mergedContent = `${generatedFunctionDefinition.source}\n${customContent}`;
+        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
+    } else {
+        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
+
+        if (codeRepairResult.customFunctionsContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        }
+    }
+
+    eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });
+    eventHandler({ type: "content_block", content: assistantResponse });
+    eventHandler({ type: "stop", command: Command.DataMap });
+}
+
+// Main public function that uses the default event handler for mapping generation
+export async function generateMappingCode(mappingRequest: ProcessMappingParametersRequest): Promise<void> {
+    const eventHandler = createWebviewEventHandler(Command.DataMap);
+    try {
+        await generateMappingCodeCore(mappingRequest, eventHandler);
+    } catch (error) {
+        console.error("Error during mapping code generation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+        throw error;
+    }
+}
+
+async function collectAllImportsFromProject(): Promise<ProjectImports> {
+    const projectUri = StateMachine.context().projectUri;
+
+    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
+
+    const importStatements: ImportStatements[] = [];
+
+    for (const ballerinaFile of ballerinaSourceFiles) {
+        const fs = require("fs");
+        const sourceFileContent = fs.readFileSync(ballerinaFile, "utf8");
+        const extractedImports = extractImports(sourceFileContent, ballerinaFile);
+        importStatements.push(extractedImports);
+    }
+
     return {
-        inputs: {
-            person: {
-                id: { type: "string", comment: "Unique identifier for the person" },
-                firstName: { type: "string", comment: "First name of the person" },
-                lastName: { type: "string", comment: "Last name of the person" },
-                age: { type: "int", comment: "Age of the person" },
-                country: { type: "string", comment: "Country of the person" },
-                courses: {
-                    id: { type: "string", comment: "Unique identifier for the course" },
-                    name: { type: "string", comment: "Name of the course" },
-                    credits: { type: "int", comment: "Credits of the course" },
-                },
-            },
-        },
-        output: {
-            id: { type: "string", comment: "Unique identifier for the student" },
-            firstName: { type: "string", comment: "First name of the student" },
-            age: { type: "int", comment: "Age of the student" },
-            country: { type: "string", comment: "Country of the student" },
-            courses: {
-                id: { type: "string", comment: "Unique identifier for the course" },
-                name: { type: "string", comment: "Name of the course" },
-                credits: { type: "int", comment: "Credits of the course" },
-            },
-        },
-        inputMetadata: {
-            person: {
-                parameterType: "Person",
-                parameterName: "person",
-                isArrayType: false,
-                type: "record",
-                fields: {
-                    id: {
-                        type: "string",
-                        typeInstance: "id",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    firstName: {
-                        type: "string",
-                        typeInstance: "firstName",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    lastName: {
-                        type: "string",
-                        typeInstance: "lastName",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    age: {
-                        type: "int",
-                        typeInstance: "age",
-                        typeName: "int",
-                        nullable: false,
-                        optional: false,
-                    },
-                    country: {
-                        type: "string",
-                        typeInstance: "country",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    courses: {
-                        type: "record[]",
-                        typeInstance: "courses",
-                        typeName: "record[]",
-                        nullable: false,
-                        optional: false,
-                        fields: {
-                            id: {
-                                type: "string",
-                                typeInstance: "id",
-                                typeName: "string",
-                                nullable: false,
-                                optional: false,
-                            },
-                            name: {
-                                type: "string",
-                                typeInstance: "name",
-                                typeName: "string",
-                                nullable: false,
-                                optional: false,
-                            },
-                            credits: {
-                                type: "int",
-                                typeInstance: "credits",
-                                typeName: "int",
-                                nullable: false,
-                                optional: false,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-        outputMetadata: {
-            id: {
-                type: "string",
-                typeInstance: "id",
-                typeName: "string",
-                nullable: false,
-                optional: false,
-            },
-            firstName: {
-                type: "string",
-                typeInstance: "firstName",
-                typeName: "string",
-                nullable: false,
-                optional: false,
-            },
-            age: {
-                type: "int",
-                typeInstance: "age",
-                typeName: "int",
-                nullable: false,
-                optional: false,
-            },
-            country: {
-                type: "string",
-                typeInstance: "country",
-                typeName: "string",
-                nullable: false,
-                optional: false,
-            },
-            courses: {
-                type: "record[]",
-                typeInstance: "courses",
-                typeName: "record[]",
-                nullable: false,
-                optional: false,
-                fields: {
-                    id: {
-                        type: "string",
-                        typeInstance: "id",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    name: {
-                        type: "string",
-                        typeInstance: "name",
-                        typeName: "string",
-                        nullable: false,
-                        optional: false,
-                    },
-                    credits: {
-                        type: "int",
-                        typeInstance: "credits",
-                        typeName: "int",
-                        nullable: false,
-                        optional: false,
-                    },
-                },
-            },
-        },
+        projectPath: projectUri,
+        imports: importStatements,
     };
 }
 
-/**
- * Helper function to validate the structure of a mapping response
- */
-export function validateMappingResponse(response: DatamapperResponse): boolean {
-    if (!response || !response.mappings) {
-        return false;
-    }
+function getCurrentActiveFileName(): string {
+    const activeTabGroup = window.tabGroups.all.find(group => {
+        return group.activeTab.isActive && group.activeTab?.input;
+    });
 
-    for (const [key, mapping] of Object.entries(response.mappings)) {
-        if (!isValidMapping(mapping)) {
-            console.warn(`Invalid mapping found for key: ${key}`);
-            return false;
+    if (activeTabGroup && activeTabGroup.activeTab && activeTabGroup.activeTab.input) {
+        const activeTabInput = activeTabGroup.activeTab.input as { uri: { fsPath: string } };
+
+        if (activeTabInput.uri) {
+            const activeFileUri = activeTabInput.uri;
+            const activeFileName = activeFileUri.fsPath.split('/').pop();
+            return activeFileName || '';
         }
     }
-
-    return true;
 }
 
-/**
- * Recursive function to validate a mapping structure
- */
-function isValidMapping(mapping: MappingJson): boolean {
-    if (isMappingRecord(mapping)) {
-        return Boolean(
-            mapping.operation && mapping.targetType && mapping.parameters && Array.isArray(mapping.parameters)
-        );
+function getModuleDirectory(params: GetModuleDirParams): string {
+    const { filePath, moduleName } = params;
+    const generatedPath = path.join(filePath, "generated", moduleName);
+    const fs = require("fs");
+    if (fs.existsSync(generatedPath) && fs.statSync(generatedPath).isDirectory()) {
+        return "generated";
+    } else {
+        return "modules";
     }
-
-    if (typeof mapping === "object" && mapping !== null) {
-        return Object.values(mapping).every((value) => isValidMapping(value));
-    }
-
-    return false;
 }
 
-// =============================================================================
-// EXPORTS
-// =============================================================================
+export async function getAllDataMapperSource(
+    mappingSourceRequest: AllDataMapperSourceRequest
+): Promise<DataMapperSourceResponse> {
+    setHasStopped(false);
 
-export {
-    operationsTable
-};
-// Default export for the main function
-export default generateAutoMappings;
+    const individualSourceRequests = buildSourceRequests(mappingSourceRequest);
+    const sourceResponses = await processSourceRequests(individualSourceRequests);
+    const consolidatedTextEdits = consolidateTextEdits(sourceResponses, mappingSourceRequest.mappings.length);
 
-/*
-// Example Usage:
-async function testDataMapping() {
-    try {
-        // Create sample payload
-        const payload = createSamplePayload();
-        
-        // Generate mappings
-        const response = await generateAutoMappings(payload);
-        
-        // Validate response
-        const isValid = validateMappingResponse(response);
-        
-        if (isValid) {
-            console.log("Generated mappings:", JSON.stringify(response, null, 2));
+    return { textEdits: consolidatedTextEdits };
+}
+
+
+// Builds individual source requests from the provided parameters by creating a request for each mapping
+export function buildSourceRequests(allMappingsRequest: AllDataMapperSourceRequest): DataMapperSourceRequest[] {
+    return allMappingsRequest.mappings.map(singleMapping => ({
+        filePath: allMappingsRequest.filePath,
+        codedata: allMappingsRequest.codedata,
+        varName: allMappingsRequest.varName,
+        targetField: allMappingsRequest.targetField,
+        mapping: singleMapping
+    }));
+}
+
+// Processes source requests with cancellation support and error handling for each request
+export async function processSourceRequests(sourceRequests: DataMapperSourceRequest[]): Promise<PromiseSettledResult<DataMapperSourceResponse>[]> {
+    return Promise.allSettled(
+        sourceRequests.map(async (singleRequest) => {
+            if (getHasStopped()) {
+                throw new Error("Operation was stopped");
+            }
+            try {
+                return await StateMachine.langClient().getDataMapperSource(singleRequest);
+            } catch (error) {
+                console.error("Error in getDataMapperSource:", error);
+                throw error;
+            }
+        })
+    );
+}
+
+// Consolidates text edits from multiple source responses into a single optimized collection
+export function consolidateTextEdits(
+    sourceResponses: PromiseSettledResult<DataMapperSourceResponse>[],
+    totalMappingCount: number
+): { [key: string]: TextEdit[] } {
+    const allTextEditsByFile: { [key: string]: TextEdit[] } = {};
+
+    sourceResponses.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+            console.log(`>>> Completed mapping ${index + 1}/${totalMappingCount}`);
+            mergeTextEdits(allTextEditsByFile, result.value.textEdits);
         } else {
-            console.error("Invalid mapping response");
+            console.error(`>>> Failed mapping ${index + 1}:`, result.reason);
+        }
+    });
+
+    return optimizeTextEdits(allTextEditsByFile);
+}
+
+// Merges new text edits into the existing collection, grouping by file path
+export function mergeTextEdits(
+    existingTextEdits: { [key: string]: TextEdit[] },
+    newTextEditsToMerge?: { [key: string]: TextEdit[] }
+): void {
+    if (!newTextEditsToMerge) { return; }
+
+    Object.entries(newTextEditsToMerge).forEach(([filePath, editsForFile]) => {
+        if (!existingTextEdits[filePath]) {
+            existingTextEdits[filePath] = [];
+        }
+        existingTextEdits[filePath].push(...editsForFile);
+    });
+}
+
+// Optimizes text edits by sorting and combining them into single edits per file
+export function optimizeTextEdits(allTextEditsByFile: { [key: string]: TextEdit[] }): { [key: string]: TextEdit[] } {
+    const optimizedEditsByFile: { [key: string]: TextEdit[] } = {};
+
+    Object.entries(allTextEditsByFile).forEach(([filePath, editsForFile]) => {
+        if (editsForFile.length === 0) { return; }
+
+        const sortedEditsForFile = sortTextEdits(editsForFile);
+        const combinedEditForFile = combineTextEdits(sortedEditsForFile);
+
+        optimizedEditsByFile[filePath] = [combinedEditForFile];
+    });
+
+    return optimizedEditsByFile;
+}
+
+// Sorts text edits by line number and character position to ensure proper ordering
+export function sortTextEdits(textEdits: TextEdit[]): TextEdit[] {
+    return textEdits.sort((editA, editB) => {
+        if (editA.range.start.line !== editB.range.start.line) {
+            return editA.range.start.line - editB.range.start.line;
+        }
+        return editA.range.start.character - editB.range.start.character;
+    });
+}
+
+// Combines multiple text edits into a single edit with comma-separated content
+export function combineTextEdits(sortedTextEdits: TextEdit[]): TextEdit {
+    const formattedTextArray = sortedTextEdits.map((singleEdit, editIndex) => {
+        const editContent = singleEdit.newText.trim();
+        return editIndex < sortedTextEdits.length - 1 ? `${editContent},` : editContent;
+    });
+
+    return {
+        range: sortedTextEdits[0].range,
+        newText: formattedTextArray.join('\n').trimStart()
+    };
+}
+
+// =============================================================================
+// INLINE MAPPING CODE GENERATION WITH EVENT HANDLERS
+// =============================================================================
+
+// Core inline mapping code generation function that emits events and generates mappings inline
+export async function generateInlineMappingCodeCore(inlineMappingRequest: MetadataWithAttachments, eventHandler: CopilotEventHandler): Promise<void> {
+    if (!inlineMappingRequest.metadata) {
+        throw new Error("Metadata is required in the inline mapping request");
+    }
+
+    if (!inlineMappingRequest.metadata.codeData) {
+        throw new Error("Code data is required in the metadata");
+    }
+
+    if (!eventHandler) {
+        throw new Error("Event handler is required for code generation");
+    }
+
+    // Initialize generation process
+    eventHandler({ type: "start" });
+    let assistantResponse: string = "";
+    const projectImports = await collectAllImportsFromProject();
+    const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
+
+    // Remove duplicates based on moduleName
+    const uniqueImportStatements = Array.from(
+        new Map(allImportStatements.map(imp => [imp.moduleName, imp])).values()
+    );
+
+    let targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
+
+    if (!targetFileName) {
+        throw new Error("Target file name could not be determined from code data");
+    }
+
+    const langClient = StateMachine.langClient();
+    const context = StateMachine.context();
+    const projectRoot = context.projectUri;
+
+    const inlineMappingsResult: InlineMappingsSourceResult =
+        await generateInlineMappingsSource(inlineMappingRequest, langClient, context);
+
+    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    let customFunctionsTargetPath: string | undefined;
+    let customFunctionsFileName: string | undefined;
+    
+    if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
+        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, targetFileName);
+        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+    }
+
+    // Check if mappings file and custom functions file are the same
+    const mainFilePath = inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName;
+    const isSameFile = customFunctionsTargetPath && 
+        path.resolve(mainFilePath) === path.resolve(path.join(inlineMappingsResult.tempDir, customFunctionsFileName));
+
+    let codeRepairResult: { finalContent: string; customFunctionsContent: string };
+    const customContent = await getCustomFunctionsContent(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath);
+
+    if (isSameFile) {
+        const fs = require('fs');
+        const mainContent = fs.readFileSync(mainFilePath, 'utf8');
+
+        if (customContent) {
+            // Merge: main content + custom functions
+            const mergedContent = `${mainContent}\n\n${customContent}`;
+            fs.writeFileSync(mainFilePath, mergedContent, 'utf8');
         }
         
-        // Expected output structure:
-        // {
-        //   "mappings": {
-        //     "id": {
-        //       "operation": "DIRECT",
-        //       "targetType": "string",
-        //       "parameters": ["person.id"]
-        //     },
-        //     "firstName": {
-        //       "operation": "DIRECT",
-        //       "targetType": "string", 
-        //       "parameters": ["person.firstName"]
-        //     },
-        //     "age": {
-        //       "operation": "DIRECT",
-        //       "targetType": "int",
-        //       "parameters": ["person.age"]
-        //     },
-        //     "courses": {
-        //       "id": {
-        //         "operation": "DIRECT",
-        //         "targetType": "string",
-        //         "parameters": ["person.courses.id"]
-        //       },
-        //       "name": {
-        //         "operation": "DIRECT",
-        //         "targetType": "string",
-        //         "parameters": ["person.courses.name"]
-        //       },
-        //       "credits": {
-        //         "operation": "DIRECT",
-        //         "targetType": "int",
-        //         "parameters": ["person.courses.credits"]
-        //       }
-        //     },
-        //     "country": {
-        //       "operation": "DIRECT",
-        //       "targetType": "string",
-        //       "parameters": ["person.country"]
-        //     }
-        //   }
-        // }
-        
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata: inlineMappingsResult.tempFileMetadata,
+            customFunctionsFilePath: undefined,
+            imports: uniqueImportStatements,
+            tempDir: inlineMappingsResult.tempDir
+        }, langClient, projectRoot);
+
+        codeRepairResult.customFunctionsContent = '';
+    } else {
+        // Files are different, repair them separately
+        codeRepairResult = await repairCodeAndGetUpdatedContent({
+            tempFileMetadata: inlineMappingsResult.tempFileMetadata,
+            customFunctionsFilePath: inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
+            tempDir: inlineMappingsResult.tempDir
+        }, langClient, projectRoot);
+    }
+
+    const generatedSourceFiles = buildMappingFileArray(
+        context.documentUri,
+        codeRepairResult.finalContent,
+        customFunctionsTargetPath,
+        codeRepairResult.customFunctionsContent,
+    );
+
+    const variableName = inlineMappingRequest.metadata.name || inlineMappingsResult.tempFileMetadata.name;
+
+    let codeToDisplay = codeRepairResult.finalContent;
+    if (variableName) {
+        const extractedVariableDefinition = await extractVariableDefinitionSource(
+            inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName,
+            inlineMappingsResult.tempFileMetadata.codeData,
+            variableName
+        );
+        if (extractedVariableDefinition) {
+            codeToDisplay = extractedVariableDefinition;
+        }
+    }
+
+    // Build assistant response
+    assistantResponse = `Here are the data mappings:\n\n`;
+    assistantResponse += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
+
+    if (isSameFile) {
+        const mergedCodeDisplay = customContent ? `${codeToDisplay}\n${customContent}` : codeToDisplay;
+        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
+    } else {
+        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
+
+        if (codeRepairResult.customFunctionsContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        }
+    }
+
+    eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });
+    eventHandler({ type: "content_block", content: assistantResponse });
+    eventHandler({ type: "stop", command: Command.DataMap });
+}
+
+// Main public function that uses the default event handler for inline mapping generation
+export async function generateInlineMappingCode(inlineMappingRequest: MetadataWithAttachments): Promise<void> {
+    const eventHandler = createWebviewEventHandler(Command.DataMap);
+    try {
+        await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler);
     } catch (error) {
-        console.error("Error generating mappings:", error);
+        console.error("Error during inline mapping code generation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+        throw error;
     }
 }
-*/
+
+// =============================================================================
+// CONTEXT TYPE CREATION WITH EVENT HANDLERS
+// =============================================================================
+
+// Core context type creation function that emits events and generates Ballerina record types
+export async function generateContextTypesCore(typeCreationRequest: ProcessContextTypeCreationRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    if (!typeCreationRequest.attachments || typeCreationRequest.attachments.length === 0) {
+        throw new Error("Attachments are required for type creation");
+    }
+
+    if (!eventHandler) {
+        throw new Error("Event handler is required for type creation");
+    }
+
+    // Initialize generation process
+    eventHandler({ type: "start" });
+    let assistantResponse: string = "";
+
+    try {
+        const biDiagramRpcManager = new BiDiagramRpcManager();
+        const projectComponents = await biDiagramRpcManager.getProjectComponents();
+
+        // Generate types from context
+        const { typesCode, filePath, recordMap } = await generateTypesFromContext(
+            typeCreationRequest.attachments,
+            projectComponents
+        );
+
+        const extractedNewRecords = extractRecordTypes(typesCode);
+        for (const newRecord of extractedNewRecords) {
+            if (recordMap.has(newRecord.name)) {
+                throw new Error(`Record "${newRecord.name}" already exists in the workspace.`);
+            }
+        }
+
+        // Build assistant response
+        const sourceAttachmentName = typeCreationRequest.attachments?.[0]?.name || "attachment";
+        assistantResponse = `Record types generated from the ${sourceAttachmentName} file shown below.\n`;
+        assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
+
+        // Send assistant response through event handler
+        eventHandler({ type: "content_block", content: assistantResponse });
+        eventHandler({ type: "stop", command: Command.TypeCreator });
+    } catch (error) {
+        console.error("Error during context type creation:", error);
+        throw error;
+    }
+}
+
+// Main public function that uses the default event handler for context type creation
+export async function generateContextTypes(typeCreationRequest: ProcessContextTypeCreationRequest): Promise<void> {
+    const eventHandler = createWebviewEventHandler(Command.TypeCreator);
+    try {
+        await generateContextTypesCore(typeCreationRequest, eventHandler);
+    } catch (error) {
+        console.error("Error during context type creation:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+        throw error;
+    }
+}
+
+export async function openChatWindowWithCommand(): Promise<void> {
+    const langClient = StateMachine.langClient();
+    const context = StateMachine.context();
+    const model = await generateDataMapperModel({}, langClient, context);
+
+    // Automatically open AI mapping chat window with the generated model
+    const { identifier, dataMapperMetadata } = context;
+
+    commands.executeCommand(CLOSE_AI_PANEL_COMMAND);
+    commands.executeCommand(OPEN_AI_PANEL_COMMAND, {
+        type: 'command-template',
+        command: Command.DataMap,
+        templateId: identifier ? TemplateId.MappingsForFunction : TemplateId.InlineMappings,
+        ...(identifier && { params: { functionName: identifier } }),
+        metadata: {
+            ...dataMapperMetadata,
+            mappingsModel: model.mappingsModel as DMModel
+        }
+    });
+}

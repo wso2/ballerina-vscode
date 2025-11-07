@@ -22,6 +22,8 @@ import styled from "@emotion/styled";
 import { CallIcon, LogIcon } from "../../resources";
 import { Category, Node } from "./../NodeList/types";
 import { stripHtmlTags } from "../Form/utils";
+import { formatMethodName } from "../../utils/formatMethodName";
+
 
 namespace S {
     export const Card = styled.div<{}>`
@@ -229,7 +231,8 @@ function getComponentTitle(node: Node) {
         return stripHtmlTags(node.description);
     }
 
-    return stripHtmlTags(node.label);
+    const label = stripHtmlTags(node.label);
+    return formatMethodName(label);
 }
 
 function getComponentDescription(node: Node) {
