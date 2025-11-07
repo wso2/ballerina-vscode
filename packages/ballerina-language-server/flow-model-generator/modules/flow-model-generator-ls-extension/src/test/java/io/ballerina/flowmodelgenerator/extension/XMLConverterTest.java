@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.TypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.XMLToRecordRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
@@ -69,14 +70,31 @@ public class XMLConverterTest extends AbstractLSTest {
         JsonArray records = getResponse(request).getAsJsonArray("types");
 
         StringBuilder sb = new StringBuilder();
-        for (JsonElement record : records) {
-            TypeUpdateRequest updateRequest =
-                    new TypeUpdateRequest(sourceFile, ((JsonObject) record).get("type"));
-            JsonElement response = getResponse(updateRequest, "typesManager/updateType").getAsJsonObject("textEdits");
+
+        if (records.size() > 1) {
+            JsonArray recordArray = new JsonArray();
+            records.forEach(rec -> recordArray.add(rec.getAsJsonObject().get("type")));
+
+            MultipleTypeUpdateRequest multipleTypeUpdateRequest
+                    = new MultipleTypeUpdateRequest(sourceFile, recordArray);
+            JsonElement response = getResponse(multipleTypeUpdateRequest,
+                    "typesManager/updateTypes").getAsJsonObject("textEdits");
             Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(response, textEditListType);
             for (Map.Entry<String, List<TextEdit>> entry : actualTextEdits.entrySet()) {
                 for (TextEdit textEdit : entry.getValue()) {
                     sb.append(textEdit.getNewText()).append(System.lineSeparator());
+                }
+            }
+        } else {
+            for (JsonElement record : records) {
+                TypeUpdateRequest updateRequest =
+                        new TypeUpdateRequest(sourceFile, ((JsonObject) record).get("type"));
+                JsonElement response = getResponse(updateRequest, "typesManager/updateType").getAsJsonObject("textEdits");
+                Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(response, textEditListType);
+                for (Map.Entry<String, List<TextEdit>> entry : actualTextEdits.entrySet()) {
+                    for (TextEdit textEdit : entry.getValue()) {
+                        sb.append(textEdit.getNewText()).append(System.lineSeparator());
+                    }
                 }
             }
         }
@@ -87,7 +105,7 @@ public class XMLConverterTest extends AbstractLSTest {
         if (!generatedRecords.equals(expectedRecords)) {
             TestConfig updatedConfig = new TestConfig(testConfig.filePath(), testConfig.xmlString(),
                     testConfig.prefix(), testConfig.isClosed(), testConfig.isRecordTypeDesc(), sb.toString());
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.filePath(), configJsonPath));
         }
     }
