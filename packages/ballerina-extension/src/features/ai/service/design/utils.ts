@@ -67,7 +67,7 @@ export function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileName
     const codeBlocks = updatedFileNames
         .map(fileName => {
             const sourceFile = updatedSourceFiles.find(sf => sf.filePath === fileName);
-            if (!sourceFile) return null;
+            if (!sourceFile) { return null; }
 
             return `<code filename="${sourceFile.filePath}">
 \`\`\`ballerina

@@ -55,7 +55,8 @@ import {
     CompletionInsertText,
     SubPanel,
     SubPanelView,
-    NodeMetadata
+    NodeMetadata,
+    Type,
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -174,17 +175,22 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
 }
 
 export function convertVectorStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
-        <NodeIcon type={codedata?.node} size={24} />
-    ));
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => {
+        return <AIModelIcon type={codedata?.module} codedata={codedata} />;
+    });
 }
 
 export function convertEmbeddingProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertModelProviderCategoriesToSidePanelCategories(categories);
 }
 
-export function convertVectorKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
-    return convertModelProviderCategoriesToSidePanelCategories(categories);
+export function convertKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => {
+        if ((codedata?.module as string).includes("azure")) {
+            return <AIModelIcon type="ai.azure" />;
+        }
+        return <NodeIcon type={codedata?.node} size={24} />
+    });
 }
 
 export function convertCategoriesToSidePanelCategoriesWithIcon(
@@ -213,6 +219,12 @@ export function convertDataLoaderCategoriesToSidePanelCategories(categories: Cat
 }
 
 export function convertChunkerCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
+        <NodeIcon type={codedata?.node} size={24} />
+    ));
+}
+
+export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata) => (
         <NodeIcon type={codedata?.node} size={24} />
     ));
@@ -371,8 +383,6 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
     switch (view) {
         case SidePanelView.NODE_LIST:
             return ""; // Show switch instead of title
-        case SidePanelView.NEW_AGENT:
-            return "AI Agent";
         case SidePanelView.CONNECTION_CONFIG:
             return `Configure ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.CONNECTION_SELECT:
@@ -395,11 +405,12 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return "Create Tool from Connection";
         case SidePanelView.NEW_TOOL_FROM_FUNCTION:
             return "Create Tool from Function";
-        case SidePanelView.AGENT_CONFIG:
-            return "Configure Agent";
         case SidePanelView.FORM:
             if (!activeNode) {
                 return "";
+            }
+            if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
+                return `ai: Vector Knowledge Base`;
             }
             if (
                 activeNode.codedata?.node === "REMOTE_ACTION_CALL" ||
@@ -470,6 +481,15 @@ export function enrichFormTemplatePropertiesWithValues(
             ) {
                 // Copy the value from formProperties to formTemplateProperties
                 enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
+                
+                if (formProperty.hasOwnProperty('editable')) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].editable = formProperty.editable;
+                    enrichedFormTemplateProperties[key as NodePropertyKey].codedata = formProperty?.codedata;
+                }
+
+                if (formProperty.diagnostics) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
+               }
             }
         }
     }
@@ -500,10 +520,7 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     const description = completion.detail;
     const sortText = completion.sortText;
     const additionalTextEdits = completion.additionalTextEdits;
-    const labelDetails = {
-        description,
-        detail: completion.detail,
-    };
+    const labelDetails = completion.labelDetails;
 
     return {
         tag,
@@ -730,6 +747,26 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
     }));
 }
 
+export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
+    const label = type?.name ?? "";
+    const value = label; 
+    const kind = "struct";
+    const description = type?.metadata?.description;
+    const labelDetails = (() => {
+        const descriptionText = "Record";
+        return descriptionText ? { description: descriptionText } : undefined;
+    })();
+
+    return {
+        label,
+        value,
+        kind,
+        description,
+        labelDetails,
+        sortText: label?.toLowerCase?.() || label,
+    };
+}
+
 export const clearDiagramZoomAndPosition = () => {
     localStorage.removeItem("diagram-file-path");
     localStorage.removeItem("diagram-zoom-level");
@@ -918,9 +955,9 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     }
 }
 
-export function convertConfig(properties: NodeProperties, skipKeys: string[] = []): FormField[] {
+export function convertConfig(properties: NodeProperties, skipKeys: string[] = [], sortKeys: boolean = true): FormField[] {
     const formFields: FormField[] = [];
-    const sortedKeys = Object.keys(properties).sort();
+    const sortedKeys = sortKeys ? Object.keys(properties).sort() : Object.keys(properties);
 
     for (const key of sortedKeys) {
         if (skipKeys.includes(key)) {

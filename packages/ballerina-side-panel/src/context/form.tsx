@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import { LineRange } from '@wso2/ballerina-core';
+import { LineRange, NodeKind } from '@wso2/ballerina-core';
 import React, { createContext, FC, useContext } from 'react';
-import { 
+import {
     Control,
-    FieldValues, 
-    UseFormWatch, 
-    UseFormRegister, 
-    UseFormSetValue, 
-    UseFormUnregister, 
+    FieldValues,
+    UseFormWatch,
+    UseFormRegister,
+    UseFormSetValue,
+    UseFormUnregister,
     UseFormSetError,
     UseFormClearErrors,
     FieldErrors,
@@ -47,6 +47,15 @@ export interface FormContext {
     expressionEditor?: FormExpressionEditorProps;
     targetLineRange: LineRange;
     fileName: string;
+    popupManager: {
+        addPopup: (modal: React.ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => void;
+        removeLastPopup: () => void;
+        closePopup: (id: string) => void;
+
+    },
+    nodeInfo: {
+        kind: NodeKind
+    }
 }
 
 const defaultState: any = {};

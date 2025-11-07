@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import * as React from 'react';
 import { DiagramEngine } from '@projectstorm/react-diagrams-core';
-import { Button, Codicon, Icon } from '@wso2/ui-toolkit';
+import { Button, Codicon, Icon, TruncatedLabel } from '@wso2/ui-toolkit';
 
 import { DataMapperPortWidget, IntermediatePortModel } from '../../Port';
 import { LinkConnectorNode } from './LinkConnectorNode';
@@ -77,6 +77,24 @@ export const renderIconButton = (node: LinkConnectorNode) => {
     }
     return renderExpressionIcon();
 }
+
+export const renderIndexingButton = (onClick: () => void, node: LinkConnectorNode) => (
+    <Button
+        appearance="icon"
+        onClick={onClick}
+        data-testid={`link-connector-indexing-${node?.value}`}
+        tooltip='indexing'
+    >
+        <div style={{ maxWidth: '40px', display: 'flex' }}>
+            {"["}
+            <TruncatedLabel>
+                {node.mapping.elementAccessIndex.toString()}
+            </TruncatedLabel>
+            {"]"}
+        </div>
+    </Button>
+);
+
 
 export const renderEditButton = (onClick: () => void, nodeValue: string) => (
     <Button

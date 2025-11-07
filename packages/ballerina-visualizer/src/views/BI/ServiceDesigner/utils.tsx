@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ResponseCode } from '@wso2/ballerina-core';
+import { FunctionModel, ResponseCode, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 
 export enum HTTP_METHOD {
     "GET" = "GET",
@@ -43,23 +43,64 @@ export function getDefaultResponse(httpMethod: HTTP_METHOD): string {
     }
 }
 
-export function getTitleFromStatusCodeAndType(responseCodes: ResponseCode[], statusCode: string, type: string): string {
-    let responseCode: ResponseCode | undefined;
+export function getTitleFromStatusCodeAndType(responseCodes: VisibleTypesResponse, statusCode: string, type: string): string {
+    let responseCode: VisibleTypeItem | undefined;
 
     if (statusCode && type) {
         // If both statusCode and type are provided, find by both
-        responseCode = responseCodes.find(res => res.statusCode === statusCode && res.type === type);
+        responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode && res.detail === type);
         // If not found with both, fallback to statusCode only
         if (!responseCode) {
-            responseCode = responseCodes.find(res => res.statusCode === statusCode);
+            responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode);
         }
     } else if (statusCode) {
         // If only statusCode is provided, find by statusCode only
-        responseCode = responseCodes.find(res => res.statusCode === statusCode);
+        responseCode = responseCodes.find(res => res.labelDetails.detail === statusCode);
     } else if (type) {
         // If only type is provided, find by type only
-        responseCode = responseCodes.find(res => res.type === type);
+        responseCode = responseCodes.find(res => res.detail === type);
     }
 
-    return responseCode ? `${responseCode.statusCode} - ${responseCode.label}` : "";
+    return responseCode ? `${responseCode.labelDetails.detail} - ${responseCode.label}` : "";
+}
+
+
+export function sanitizedHttpPath(value: string): string {
+    return removeForwardSlashes(value).replace(/-/g, '\\-').replace(/\./g, '\\.');
+}
+
+export function removeForwardSlashes(value: string): string {
+    return value?.replace(/\\/g, '');
+}
+
+export function canDataBind(functionModel: FunctionModel): boolean {
+    return functionModel.properties?.canDataBind?.value === "true";
+}
+
+export function getReadableListenerName(name: string) {
+    // Examples names: new http:Listener(8090);, new mcp:Listener("mcp://localhost:8090")
+    // Convert the name to human readable name like "HTTP Listener" or "MCP Listener" etc..
+    const match = name.match(/new\s+([a-zA-Z0-9_]+):Listener/i);
+    const listenerType = match ? match[1] : "Unknown";
+    return `${listenerType.charAt(0).toUpperCase() + listenerType.slice(1)} Listener`;
+}
+
+export function hasEditableParameters(parameters: FunctionModel['parameters']): boolean {
+    if (!parameters || parameters.length === 0) {
+        return false;
+    }
+    return parameters.some((param) => param.editable !== false);
+}
+
+/**
+ * Normalizes a value to an array for MULTIPLE_SELECT and EXPRESSION_SET types.
+ *
+ * @param value The value to normalize
+ * @returns An array containing the value(s), or an empty array if value is falsy
+ */
+export function normalizeValueToArray(value: any): any[] {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    return value ? [value] : [];
 }

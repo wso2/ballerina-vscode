@@ -18,7 +18,7 @@
 
 import { FlowNode, SearchKind } from "@wso2/ballerina-core";
 
-export type ConnectionKind = 'MODEL_PROVIDER' | 'VECTOR_STORE' | 'EMBEDDING_PROVIDER' | 'CHUNKER';
+export type ConnectionKind = 'MODEL_PROVIDER' | 'VECTOR_STORE' | 'EMBEDDING_PROVIDER' | 'CHUNKER' | 'MEMORY_STORE';
 
 export interface ConnectionKindConfig {
     displayName: string;
@@ -40,8 +40,9 @@ export interface ConnectionSpecialConfig {
 }
 
 export interface ConnectionConfigProps {
+    fileName: string;
     connectionKind: ConnectionKind;
-    selectedNode?: FlowNode;
+    selectedNode: FlowNode;
     onSave?: (selectedCallNode: FlowNode) => void;
     onNavigateToSelectionList?: () => void;
 }

@@ -94,6 +94,7 @@ export interface DiagramProps {
         visible: boolean;
         onClickOverlay: () => void;
     }
+    isUserAuthenticated?: boolean;
     expressionContext?: ExpressionContextProps;
 }
 
@@ -120,6 +121,7 @@ export function Diagram(props: DiagramProps) {
         breakpointInfo,
         readOnly,
         overlay,
+        isUserAuthenticated,
         expressionContext,
     } = props;
 
@@ -325,6 +327,7 @@ export function Diagram(props: DiagramProps) {
         suggestions: suggestions,
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
+        isUserAuthenticated: isUserAuthenticated,
         expressionContext: expressionContext,
     };
 

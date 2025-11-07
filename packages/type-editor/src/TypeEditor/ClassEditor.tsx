@@ -18,10 +18,11 @@
 
 import React, { useRef, useState } from 'react';
 import { Imports, Type, TypeFunctionModel } from '@wso2/ballerina-core';
-import { Codicon, Button, TextField, LinkButton } from '@wso2/ui-toolkit';
+import { Codicon, Button, TextField, LinkButton, CheckBox } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { TypeField } from './TypeField';
 import { IdentifierField } from './IdentifierField';
+import { isGraphQLScalarType } from './TypeUtil';
 
 namespace S {
     export const Container = styled.div`
@@ -147,6 +148,7 @@ interface ParameterFormData {
     type: string;
     defaultValue: string;
     imports: Imports;
+    isGraphqlId?: boolean;
 }
 
 interface FunctionValidationError {
@@ -162,7 +164,8 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
         name: '',
         type: '',
         defaultValue: '',
-        imports: {}
+        imports: {},
+        isGraphqlId: false
     });
     const [editingParamIndex, setEditingParamIndex] = useState<number | null>(null);
     const [paramNameError, setParamNameError] = useState<string>('');
@@ -273,12 +276,13 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                 name: String(param.name),
                 type: String(param.type),
                 defaultValue: param.defaultValue ? String(param.defaultValue) : '',
-                imports: param.imports
+                imports: param.imports,
+                isGraphqlId: param.isGraphqlId || false
             });
             setEditingParamIndex(paramIndex);
         } else {
             // Adding new parameter
-            setParameterForm({ name: '', type: '', defaultValue: '', imports: {} });
+            setParameterForm({ name: '', type: '', defaultValue: '', imports: {}, isGraphqlId: false });
             setEditingParamIndex(null);
         }
         setShowParameterForm(functionIndex);
@@ -299,7 +303,8 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
             editable: true,
             optional: false,
             advanced: false,
-            imports: parameterForm.imports
+            imports: parameterForm.imports,
+            isGraphqlId: parameterForm.isGraphqlId || false
         };
 
         if (editingParamIndex !== null) {
@@ -324,7 +329,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
         });
 
         // Reset form and hide it
-        setParameterForm({ name: '', type: '', defaultValue: '', imports: {} });
+        setParameterForm({ name: '', type: '', defaultValue: '', imports: {}, isGraphqlId: false });
         setShowParameterForm(null);
         setEditingParamIndex(null);
         setParamNameError(''); // Clear any error message
@@ -390,6 +395,15 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
 
                     {expandedFunctions.includes(index) && (
                         <S.ParameterContainer>
+
+                            {isGraphql && isGraphQLScalarType(func.returnType) &&
+                                <CheckBox
+                                    label="ID Type"
+                                    checked={func.isGraphqlId || false}
+                                    onChange={() => updateFunction(index, { isGraphqlId: !func.isGraphqlId })}
+                                    disabled={false}
+                                />
+                            }
                             <S.AddParameterLink
                                 onClick={() => openParameterForm(index)}
                             >
@@ -449,10 +463,18 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                                         value={parameterForm.defaultValue}
                                         onChange={(e) => setParameterForm(prev => ({ ...prev, defaultValue: e.target.value }))}
                                     />
+                                    {isGraphql && isGraphQLScalarType(parameterForm.type) &&
+                                        <CheckBox
+                                            label="ID Type"
+                                            checked={parameterForm.isGraphqlId || false}
+                                            onChange={() => setParameterForm(prev => ({ ...prev, isGraphqlId: !prev.isGraphqlId }))}
+                                            disabled={false}
+                                        />
+                                    }
                                     <S.ButtonGroup>
                                         <Button onClick={() => {
                                             setShowParameterForm(null);
-                                            setParameterForm({ name: '', type: '', defaultValue: '', imports: {} });
+                                            setParameterForm({ name: '', type: '', defaultValue: '', imports: {}, isGraphqlId: false });
                                             setParamNameError('');
                                         }}>
                                             Cancel

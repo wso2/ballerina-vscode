@@ -26,6 +26,7 @@ const Row = styled.div`
     display: flex;
     flex-direction: column;
     margin: 0;
+    width: 100%;
 `;
 
 const actionButtonStyles = {

@@ -27,9 +27,11 @@ export const HorizontalListContainer = styled.div`
 export const HorizontalListItem = styled.div`
     display: flex;
     width: 100%;
-    gap: 3px;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    padding-left: 8px;
+    padding-right: 10px;
 `;
 
 export const HorizontalListItemLeftContent = styled.div`

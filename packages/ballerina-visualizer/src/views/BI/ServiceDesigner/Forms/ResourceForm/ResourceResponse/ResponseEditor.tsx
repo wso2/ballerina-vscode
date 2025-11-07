@@ -17,23 +17,18 @@
  */
 // tslint:disable: jsx-no-multiline-js
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse } from '@wso2/ballerina-core';
+import { LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { TypeHelperContext } from '../../../../../../constants';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { URI, Utils } from 'vscode-uri';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
-
-enum Views {
-    NEW = "NEW",
-    EXISTING = "EXISTING",
-}
 
 export interface ParamProps {
     index: number;
@@ -50,16 +45,16 @@ export function ResponseEditor(props: ParamProps) {
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string>('');
-    const [responseCodes, setResponseCodes] = useState<ResponseCode[]>([]);
+    const [responseCodes, setResponseCodes] = useState<VisibleTypesResponse>([]);
 
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const [newFields, setNewFields] = useState<FormField[]>([]);
+    const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
-            console.log("Resource Return Types: ", res);
-            setResponseCodes(res.completions);
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
+            setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
             });
@@ -116,11 +111,12 @@ export function ResponseEditor(props: ParamProps) {
                 key: `statusCode`,
                 value: getTitleFromStatusCodeAndType(responseCodes, res.statusCode.value, res.type.value),
                 itemOptions: getCategorizedOptions(responseCodes),
-                onValueChange: (value: string) => {
-                    const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === value);
-                    res.statusCode.value = responseCodeData.statusCode;
-                    res.type.value = responseCodeData.type;
-                    if (NO_BODY_TYPES.includes(responseCodeData.type)) {
+                onValueChange: (value: string | boolean) => {
+                    const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === value);
+                    res.statusCode.value = responseCodeData.labelDetails.detail;
+                    const description = responseCodeData.labelDetails.description as string;
+                    res.type.value = responseCodeData.detail;
+                    if (NO_BODY_TYPES.includes(responseCodeData.detail) || description === "User-Defined") {
                         updateNewFields(res, false);
                     } else {
                         updateNewFields(res, true);
@@ -133,22 +129,113 @@ export function ResponseEditor(props: ParamProps) {
             fields.push({
                 ...convertPropertyToFormField(res.body),
                 key: `body`,
+                onValueChange: (value: string | boolean) => {
+                    switch (value) {
+                        case "json":
+                            res.mediaType.value = "application/json";
+                            break;
+                        case "xml":
+                            res.mediaType.value = "application/xml";
+                            break;
+                        case "string":
+                            res.mediaType.value = "text/plain";
+                            break;
+                    }
+                    // Update the mediaType field in the fields array
+                    const updatedFields = newFieldsRef.current.map(field => {
+                        if (field.key === 'mediaType') {
+                            return {
+                                ...field,
+                                value: res.mediaType.value,
+                                defaultValue: res.mediaType.value
+                            };
+                        }
+                        if (field.key === 'body') {
+                            return {
+                                ...field,
+                                value: value as string,
+                                defaultValue: value as string
+                            };
+                        }
+                        return field;
+                    });
+                    newFieldsRef.current = updatedFields;
+                    setNewFields([...updatedFields]);
+                }
             });
-            fields.push({
-                ...convertPropertyToFormField(res.name),
-                key: `name`,
-            },);
-            fields.push({
-                ...convertPropertyToFormField(res.headers, defaultItems),
-                key: `headers`,
-            });
+            if (res.mediaType) {
+                fields.push({
+                    ...convertPropertyToFormField(res.mediaType),
+                    type: "AUTOCOMPLETE",
+                    items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
+                    key: `mediaType`,
+                    defaultValue: res.mediaType.value,
+                });
+            }
+            if (response.editable || res.headers.value !== undefined) {
+                fields.push({
+                    ...convertPropertyToFormField(res.headers, defaultItems),
+                    key: `headers`,
+                });
+            }
+            if (response.editable) {
+                fields.push({
+                    ...convertPropertyToFormField(res.name),
+                    key: `check`,
+                    type: "FLAG",
+                    label: "Make this response reusable",
+                    documentation: "Check this option to make this response reusable",
+                    onValueChange: (value: string | boolean) => {
+                        if (value === true) {
+
+                            // Get a default value for the response name
+                            const responseCodeData = responseCodes.find(code => code.labelDetails.detail === res.statusCode.value);
+                            const responseCodeName = responseCodeData?.label || "";
+
+                            // Default name for the response: removes spaces from response code name and appends 'Response'. Example: AcceptedResponse.
+                            const defaultName = `${responseCodeName.replace(/\s+/g, '')}Response`;
+
+                            // When checked, add the name field after the checkbox
+                            const nameField: FormField = {
+                                ...convertPropertyToFormField(res.name),
+                                key: `name`,
+                                value: defaultName,
+                                defaultValue: defaultName
+                            };
+                            // Insert name field right after the checkbox
+                            const checkboxIndex = newFieldsRef.current.findIndex(f => f.key === 'check');
+                            newFieldsRef.current.splice(checkboxIndex + 1, 0, nameField);
+                            newFieldsRef.current = [...newFieldsRef.current];
+                            setNewFields([...newFieldsRef.current]);
+                        } else {
+                            // When unchecked, remove the name field and clear its value
+                            res.name.value = "";
+                            const filteredFields = newFieldsRef.current.filter(f => f.key !== 'name');
+                            newFieldsRef.current = [...filteredFields];
+                            setNewFields([...newFieldsRef.current]);
+                        }
+                    }
+                });
+            }
+
+            // If name already has a value, add the name field by default
+            if (res.name.value) {
+                fields.push({
+                    ...convertPropertyToFormField(res.name),
+                    key: `name`,
+                    label: "Response Name",
+                    documentation: "Enter a unique name for this reusable response",
+                    type: "STRING",
+                });
+            }
         }
 
-        setNewFields(fields);
+        newFieldsRef.current = [...fields];
+        setNewFields([...newFieldsRef.current]);
     };
 
     useEffect(() => {
-        if (responseCodes.length > 0) {
+        if (responseCodes?.length > 0) {
             updateNewFields(response);
         }
     }, [response, responseCodes]);
@@ -166,7 +253,7 @@ export function ResponseEditor(props: ParamProps) {
         if (dataValues['name']) {
             return true;
         }
-        const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
+        const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === dataValues['statusCode']).labelDetails.detail;
         const defaultCode = getDefaultResponse(method);
 
         // Set optional false for the response name
@@ -178,20 +265,21 @@ export function ResponseEditor(props: ParamProps) {
         response.body.value = dataValues['body'];
         response.name.value = dataValues['name'];
         response.headers.values = dataValues['headers'];
+        response.mediaType.value = dataValues['mediaType'];
 
-        if (code === defaultCode) { // Case 1: Use select the default response success for the accessor
-            // If the user add a header type then user should fill the name field as well
-            if (dataValues['headers'] && dataValues['headers'].length > 0) {
-                updateNewFields({ ...response });
-                return false;
-            }
-        } else { // Case 2: User select a response other than the default success response
-            // If user add a body or header values then user must add a name.
-            if (dataValues['body'] || (dataValues['headers'] && dataValues['headers'].length > 0)) {
-                updateNewFields({ ...response });
-                return false;
-            }
-        }
+        // if (code === defaultCode) { // Case 1: Use select the default response success for the accessor
+        //     // If the user add a header type then user should fill the name field as well
+        //     if (dataValues['headers'] && dataValues['headers'].length > 0) {
+        //         updateNewFields({ ...response });
+        //         return false;
+        //     }
+        // } else { // Case 2: User select a response other than the default success response
+        //     // If user add a body or header values then user must add a name.
+        //     if (dataValues['body'] || (dataValues['headers'] && dataValues['headers'].length > 0)) {
+        //         updateNewFields({ ...response });
+        //         return false;
+        //     }
+        // }
         return true;
     }
 
@@ -200,11 +288,12 @@ export function ResponseEditor(props: ParamProps) {
         console.log("Add New Response: ", dataValues);
         if (isValidResponse(dataValues)) {
             // Set the values
-            const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.statusCode, code.type) === dataValues['statusCode']).statusCode;
+            const code = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === dataValues['statusCode']).labelDetails.detail;
             response.statusCode.value = String(code);
             response.body.value = dataValues['body'];
             response.name.value = dataValues['name'];
             response.headers.values = dataValues['headers'];
+            response.mediaType.value = dataValues['mediaType'];
             response.body.imports = getImportsForProperty('body', formImports);
             onSave(response, index);
         }
@@ -235,23 +324,23 @@ export function ResponseEditor(props: ParamProps) {
     });
 
     // Helper to create a regular option
-    const createOption = (item: ResponseCode): OptionProps => ({
-        id: `${item.statusCode}-${item.type}`,
+    const createOption = (item: VisibleTypeItem): OptionProps => ({
+        id: `${item.labelDetails.detail}-${item.detail}`,
         content: (
             <span style={{ padding: "4px" }}>
-                {item.statusCode !== "Dynamic" ? `${item.statusCode} ` : "Dynamic"} - {item.label}
+                {item.labelDetails.detail !== "Dynamic" ? `${item.labelDetails.detail} ` : "Dynamic"} - {item.label}
             </span>
         ),
-        value: `${item.statusCode} - ${item.label}`,
+        value: `${item.labelDetails.detail} - ${item.label}`,
     });
 
     // Main function to categorize and flatten the list
-    function getCategorizedOptions(responseCodes: ResponseCode[]): OptionProps[] {
-        const dynamic = responseCodes.filter(i => i.type === "http:Response");
-        const error = responseCodes.filter(i => i.type === "error");
-        const userDefined = responseCodes.filter(i => i.category === "User Defined");
+    function getCategorizedOptions(responseCodes: VisibleTypesResponse): OptionProps[] {
+        const dynamic = responseCodes.filter(i => i.detail === "http:Response");
+        const error = responseCodes.filter(i => i.detail === "error");
+        const userDefined = responseCodes.filter(i => i.labelDetails.description === "User-Defined");
         const preBuilt = responseCodes.filter(i =>
-            ["1XX", "2XX", "3XX", "4XX", "5XX"].includes(i.category)
+            ["1XX", "2XX", "3XX", "4XX", "5XX"].includes(i.labelDetails.description)
         );
         let options: OptionProps[] = [];
 
@@ -259,25 +348,25 @@ export function ResponseEditor(props: ParamProps) {
             options.push(createHeaderOption("User Defined Responses", 0));
             options = options.concat(userDefined.map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "2XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "2XX").length > 0) {
             options.push(createHeaderOption("2XX - Success", userDefined.length > 0 ? 3 : 0));
-            options = options.concat(preBuilt.filter(i => i.category === "2XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "2XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "1XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "1XX").length > 0) {
             options.push(createHeaderOption("1XX - Informational"));
-            options = options.concat(preBuilt.filter(i => i.category === "1XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "1XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "3XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "3XX").length > 0) {
             options.push(createHeaderOption("3XX - Redirection"));
-            options = options.concat(preBuilt.filter(i => i.category === "3XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "3XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "4XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "4XX").length > 0) {
             options.push(createHeaderOption("4XX - Client Error"));
-            options = options.concat(preBuilt.filter(i => i.category === "4XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "4XX").map(createOption));
         }
-        if (preBuilt.filter(i => i.category === "5XX").length > 0) {
+        if (preBuilt.filter(i => i.labelDetails.description === "5XX").length > 0) {
             options.push(createHeaderOption("5XX - Server Error"));
-            options = options.concat(preBuilt.filter(i => i.category === "5XX").map(createOption));
+            options = options.concat(preBuilt.filter(i => i.labelDetails.description === "5XX").map(createOption));
         }
         if (error.length) {
             options.push(createHeaderOption("Error Response"));
@@ -293,22 +382,20 @@ export function ResponseEditor(props: ParamProps) {
     return (
         <EditorContainer>
             <EditorContent>
-                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Response Configuration</Typography>
+                <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">Response Configuration</Typography>
             </EditorContent>
             <Divider />
             {filePath && targetLineRange &&
-                <div>
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={newFields}
-                        onBack={handleOnCancel}
-                        onSubmit={handleOnNewSubmit}
-                        submitText={isEdit ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                    />
-                </div>
+                <FormGeneratorNew
+                    fileName={filePath}
+                    targetLineRange={targetLineRange}
+                    fields={newFields}
+                    onBack={handleOnCancel}
+                    onSubmit={handleOnNewSubmit}
+                    submitText={isEdit ? "Save" : "Add"}
+                    nestedForm={true}
+                    helperPaneSide='left'
+                />
             }
         </EditorContainer >
     );
