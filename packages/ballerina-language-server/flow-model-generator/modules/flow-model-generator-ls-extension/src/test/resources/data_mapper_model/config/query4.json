@@ -103,7 +103,8 @@
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "u.info.secondaryPhones"
+          "expression": "u.info.secondaryPhones",
+          "isOuter": false
         }
       },
       "intermediateClauses": [
@@ -112,20 +113,23 @@
           "properties": {
             "name": "email",
             "type": "var",
-            "expression": "u.info.emails"
+            "expression": "u.info.emails",
+            "isOuter": false
           }
         },
         {
           "type": "where",
           "properties": {
-            "expression": "secondaryPhonesItem.code == \"123\""
+            "expression": "secondaryPhonesItem.code == \"123\"",
+            "isOuter": false
           }
         }
       ],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number, email: email}"
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number, email: email}",
+          "isOuter": false
         }
       }
     },
