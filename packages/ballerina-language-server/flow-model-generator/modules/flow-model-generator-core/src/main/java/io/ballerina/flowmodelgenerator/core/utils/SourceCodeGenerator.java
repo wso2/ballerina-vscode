@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * Code snippet generator.
@@ -118,6 +119,12 @@ public class SourceCodeGenerator {
         if (typeData.metadata() != null && typeData.metadata().description() != null) {
             docs = generateDocs(typeData.metadata().description(), "");
         }
+        String annots = "";
+        if (typeData.annotationAttachments() != null && !typeData.annotationAttachments().isEmpty()) {
+            annots = typeData.annotationAttachments().stream()
+                    .map(annot -> annot.toString() + LS)
+                    .collect(Collectors.joining());
+        }
         String typeDescriptor = generateTypeDescriptor(typeData);
 
         // Check for readonly property to generate `readonly & <type-desc>` type
@@ -129,9 +136,9 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%stype %s %s;";
+        String template = "%s%stype %s %s;";
 
-        return template.formatted(docs, typeData.name(), typeDescriptor);
+        return template.formatted(docs, annots, typeData.name(), typeDescriptor);
     }
 
     private String generateAnnotatedTypeDescriptor(Object typeData,
