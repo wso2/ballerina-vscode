@@ -75,6 +75,7 @@ public class LSPackageLoader {
 
     public static final LanguageServerContext.Key<LSPackageLoader> LS_PACKAGE_LOADER_KEY =
             new LanguageServerContext.Key<>();
+    public static final String SERVICE_TEMPLATES = "service_templates.json";
 
     private final List<ModuleInfo> distRepoPackages = new ArrayList<>();
     private final List<ModuleInfo> remoteRepoPackages = new ArrayList<>();
@@ -147,7 +148,7 @@ public class LSPackageLoader {
                 lsClientLogger.logTrace("Loading packages from Ballerina distribution");
 
                 try {
-                    String moduleInfo = FileUtils.readFileAsString("service_templates.json");
+                    String moduleInfo = FileUtils.readFileAsString(SERVICE_TEMPLATES);
                     Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData =
                             new Gson().fromJson(moduleInfo, listenerDataTypeToken);
                     this.distRepoPackages.addAll(checkAndResolvePackagesFromRepository(packageRepository,
@@ -320,13 +321,10 @@ public class LSPackageLoader {
                             ResolutionOptions.builder().setOffline(true).build());
                     if (optRepoPackage.isPresent()) {
                         Package repoPackage = optRepoPackage.get();
-                        List<ListenerData> listenerDataForPackage = getListenerDataForPackage(listenerData,
-                                packageOrg.value(), packageName.value(), pkgVersion.value().toString());
-                        if (listenerDataForPackage.isEmpty()) {
-                            packages.add(new ModuleInfo(repoPackage));
-                        } else {
-                            packages.add(new ModuleInfo(repoPackage, listenerDataForPackage));
-                        }
+                        List<ServiceTemplateGenerator.ListenerMetaData> listenerMetadata =
+                                getListenerMetadata(listenerData, packageOrg.value(), packageName.value(),
+                                        pkgVersion.value().toString(), repoPackage.project().sourceRoot());
+                        packages.add(new ModuleInfo(repoPackage, listenerMetadata));
                     }
                 } catch (Throwable e) {
                     clientLogger.logTrace("Failed to resolve package "
@@ -352,6 +350,38 @@ public class LSPackageLoader {
             }
         }
         return Collections.emptyList();
+    }
+
+    private List<ServiceTemplateGenerator.ListenerMetaData> getListenerMetadata(
+            Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData, String org,
+            String module, String version, Path sourceRoot) {
+        if (!listenerData.containsKey(org)) {
+            return Collections.emptyList();
+        }
+        Map<String, Map<String, List<ListenerData>>> modules = listenerData.get(org);
+        if (!modules.containsKey(module)) {
+            return Collections.emptyList();
+        }
+        Map<String, List<ListenerData>> versions = modules.get(module);
+        List<ServiceTemplateGenerator.ListenerMetaData> listenerMetaData = new ArrayList<>();
+        if (versions.containsKey(version)) {
+            ModuleID moduleID = CodeActionModuleId.from(org, module, version);
+            for (ListenerData listener : versions.get(version)) {
+                listenerMetaData.add(ServiceTemplateGenerator.generateServiceSnippetMetaData(listener.symbolName(),
+                        listener.args(), listener.index(), moduleID));
+            }
+        } else {
+            Project project = ProjectLoader.loadProject(sourceRoot);
+            PackageCompilation packageCompilation = project.currentPackage().getCompilation();
+            ModuleID moduleID = CodeActionModuleId.from(org, module, version);
+            SemanticModel semanticModel =
+                    packageCompilation.getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
+            semanticModel.moduleSymbols().stream().filter(ServiceTemplateGenerator.listenerPredicate())
+                    .forEach(listener ->
+                            ServiceTemplateGenerator.generateServiceSnippetMetaData(listener, moduleID)
+                                    .ifPresent(listenerMetaData::add));
+        }
+        return listenerMetaData;
     }
 
     public List<ModuleInfo> updatePackageMap(DocumentServiceContext context) {
@@ -428,13 +458,13 @@ public class LSPackageLoader {
             addServiceTemplateMetaData();
         }
 
-        public ModuleInfo(Package pkg, List<ListenerData> listenerData) {
+        public ModuleInfo(Package pkg, List<ServiceTemplateGenerator.ListenerMetaData> listenerMetaData) {
             this.packageOrg = pkg.packageOrg().value();
             this.packageName = pkg.packageName().value();
             this.packageVersion = pkg.packageVersion().value().toString();
             this.sourceRoot = pkg.project().sourceRoot();
             this.moduleIdentifier = packageOrg + "/" + packageName;
-            addServiceTemplateMetaData(listenerData);
+            this.listenerMetaData.addAll(listenerMetaData);
         }
 
         public List<ServiceTemplateGenerator.ListenerMetaData> getListenerMetaData() {
@@ -489,23 +519,6 @@ public class LSPackageLoader {
                     .forEach(listener ->
                             ServiceTemplateGenerator.generateServiceSnippetMetaData(listener, moduleID)
                                     .ifPresent(listenerMetaData::add));
-        }
-
-        private void addServiceTemplateMetaData(List<ListenerData> listenersData) {
-            String orgName = ModuleUtil.escapeModuleName(this.packageOrg());
-            // TODO: Try to remove load project here
-            Project project = ProjectLoader.loadProject(this.sourceRoot());
-            //May take some time as we are compiling projects.
-            Module module = project.currentPackage().getDefaultModule();
-
-            String moduleName = module.descriptor().name().toString();
-            String version = module.packageInstance().descriptor().version().value().toString();
-            ModuleID moduleID = CodeActionModuleId.from(orgName, moduleName, version);
-
-            for (ListenerData listener : listenersData) {
-                listenerMetaData.add(ServiceTemplateGenerator.generateServiceSnippetMetaData(listener.symbolName(),
-                        listener.args(), listener.index(), moduleID));
-            }
         }
     }
 

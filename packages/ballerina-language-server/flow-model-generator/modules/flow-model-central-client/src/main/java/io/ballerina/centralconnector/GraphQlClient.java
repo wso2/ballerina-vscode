@@ -103,12 +103,16 @@ class GraphQlClient {
         String queryBody = String.format(queryTemplate, org, module, version);
         String response = query(queryBody);
         ListenerResponse listenerResponse = gson.fromJson(response, ListenerResponse.class);
-        List<ListenerResponse.Module> modules = listenerResponse.data().apiDocs().docsData().modules();
+        ListenerResponse.ApiDocs apiDocs = listenerResponse.data().apiDocs();
         List<Listener> newListeners = new ArrayList<>();
-        for (ListenerResponse.Module mod : modules) {
-            String listeners = mod.listeners();
-            newListeners.addAll(gson.fromJson(listeners, listenersType));
+        if (apiDocs != null) {
+            List<ListenerResponse.Module> modules = apiDocs.docsData().modules();
+            for (ListenerResponse.Module mod : modules) {
+                String listeners = mod.listeners();
+                newListeners.addAll(gson.fromJson(listeners, listenersType));
+            }
         }
+
         return new Listeners(org, module, version, newListeners);
     }
 

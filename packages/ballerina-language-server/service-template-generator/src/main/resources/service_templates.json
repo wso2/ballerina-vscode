@@ -1,77 +1,7 @@
 {
-  "ballerinax": {
-    "salesforce": {
-      "8.2.0": [
-        {
-          "symbolName": "Listener",
-          "args": "",
-          "index": 3
-        }
-      ]
-    },
-    "nats": {
-      "3.2.0": [
-        {
-          "symbolName": "JetStreamListener",
-          "args": "\"\"",
-          "index": 3
-        },
-        {
-          "symbolName": "Listener",
-          "args": "\"\"",
-          "index": 4
-        }
-      ]
-    },
-    "java.jms": {
-      "1.0.1": [
-        {
-          "symbolName": "Listener",
-          "args": "",
-          "index": 3
-        }
-      ]
-    },
-    "kafka": {
-      "4.5.0": [
-        {
-          "symbolName": "Listener",
-          "args": "\"\"",
-          "index": 4
-        }
-      ]
-    },
-    "mysql": {
-      "1.16.1": [
-        {
-          "symbolName": "CdcListener",
-          "args": "",
-          "index": 3
-        }
-      ]
-    },
-    "rabbitmq": {
-      "3.2.0": [
-        {
-          "symbolName": "Listener",
-          "args": "\"\",0,{}",
-          "index": 6
-        }
-      ]
-    },
-    "mssql": {
-      "1.16.1": [
-        {
-          "symbolName": "CdcListener",
-          "args": "",
-          "index": 3
-        }
-      ]
-    }
-  },
   "ballerina": {
     "udp": {
-      "1.13.0": [
+      "1.13.2": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -80,7 +10,7 @@
       ]
     },
     "tcp": {
-      "1.13.0": [
+      "1.13.2": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -98,11 +28,47 @@
       ]
     },
     "ftp": {
-      "2.13.0": [
+      "2.14.1": [
         {
           "symbolName": "Listener",
           "args": "",
           "index": 3
+        }
+      ]
+    },
+    "ai": {
+      "1.6.1": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 3
+        }
+      ]
+    },
+    "websubhub": {
+      "1.15.0": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "grpc": {
+      "1.14.2": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "messaging": {
+      "1.0.0": [
+        {
+          "symbolName": "StoreListener",
+          "args": "new ()",
+          "index": 4
         }
       ]
     },
@@ -115,8 +81,17 @@
         }
       ]
     },
+    "task": {
+      "2.11.0": [
+        {
+          "symbolName": "Listener",
+          "args": "",
+          "index": 3
+        }
+      ]
+    },
     "websocket": {
-      "2.14.0": [
+      "2.14.2": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -134,7 +109,7 @@
       ]
     },
     "http": {
-      "2.14.2": [
+      "2.14.6": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -142,8 +117,8 @@
         }
       ]
     },
-    "websubhub": {
-      "1.15.0": [
+    "mcp": {
+      "1.0.1": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -152,7 +127,7 @@
       ]
     },
     "graphql": {
-      "1.16.0": [
+      "1.16.1": [
         {
           "symbolName": "Listener",
           "args": "0",
@@ -171,15 +146,6 @@
           "symbolName": "PopListener",
           "args": "{}",
           "index": 3
-        }
-      ]
-    },
-    "grpc": {
-      "1.14.0": [
-        {
-          "symbolName": "Listener",
-          "args": "0",
-          "index": 4
         }
       ]
     }
