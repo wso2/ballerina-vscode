@@ -185,6 +185,8 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
+    | ChatAbort
+    | SaveChat
     | ChatError
     | ToolCall
     | ToolResult
@@ -221,6 +223,17 @@ export interface CodeMessages {
 export interface ChatStop {
     type: "stop";
     command: Command | undefined;
+}
+
+export interface ChatAbort {
+    type: "abort";
+    command: Command | undefined;
+}
+
+export interface SaveChat {
+    type: "save_chat";
+    command: Command | undefined;
+    assistantMessageId: string;
 }
 
 export interface ChatError {
@@ -350,6 +363,7 @@ export type AIChatMachineStateValue =
 
 export enum AIChatMachineEventType {
     SUBMIT_PROMPT = 'SUBMIT_PROMPT',
+    UPDATE_ASSISTANT_MESSAGE = 'UPDATE_ASSISTANT_MESSAGE',
     RESET = 'RESET',
     PLANNING_STARTED = 'PLANNING_STARTED',
     PLAN_GENERATED = 'PLAN_GENERATED',
@@ -367,12 +381,23 @@ export enum AIChatMachineEventType {
     RETRY = 'RETRY',
 }
 
-export interface ChatMessage {
+interface BaseChatMessage {
     id: string;
-    role: 'user' | 'assistant' | 'system';
-    content: string;
     timestamp: number;
 }
+
+export interface UserMessage extends BaseChatMessage {
+    role: 'user';
+    content: string;
+}
+
+export interface AssistantMessage extends BaseChatMessage {
+    role: 'assistant';
+    uiResponse: string;
+    modelMessages: any[];
+}
+
+export type ChatMessage = UserMessage | AssistantMessage;
 
 /**
  * Task status enum
@@ -418,7 +443,6 @@ export interface UserApproval {
 }
 
 export interface AIChatMachineContext {
-    initialPrompt?: string;
     chatHistory: ChatMessage[];
     currentPlan?: Plan;
     currentTaskIndex: number;
@@ -432,6 +456,7 @@ export interface AIChatMachineContext {
 
 export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string } }
+    | { type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
     | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
@@ -501,6 +526,11 @@ export enum ColorThemeKind {
     HighContrastLight = 4
 }
 
+export interface UIChatHistoryMessage {
+    role: "user" | "assistant";
+    content: string;
+}
+
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
 export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };
@@ -508,3 +538,4 @@ export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: '
 export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { method: 'aiChatStateChanged' };
 export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
 export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
+export const getAIChatUIHistory: RequestType<void, UIChatHistoryMessage[]> = { method: 'getAIChatUIHistory' };
