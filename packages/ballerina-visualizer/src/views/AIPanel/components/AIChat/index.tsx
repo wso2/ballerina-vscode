@@ -59,9 +59,8 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
-import ApprovalDialog from "../ApprovalDialog";
 import RoleContainer from "../RoleContainter";
-import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, Task, TaskApprovalRequest } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, TodoPanel } from "../../styles";
@@ -154,18 +153,11 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
+    const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
 
-    // Approval dialog state
-    const [approvalRequest, setApprovalRequest] = useState<{
-        approvalType: "plan" | "completion";
-        tasks: any[];
-        taskId?: string;
-        message?: string;
-        codeSegments?: any[];
-    } | null>(null);
+    const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
-    // Top-level tasks state for the todo panel
-    const [activeTasks, setActiveTasks] = useState<any[] | null>(null);
+    const [todoTasks, setTodoTasks] = useState<Task[] | null>(null);
     const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
@@ -292,6 +284,21 @@ const AIChat: React.FC = () => {
             });
     }, []);
 
+    useEffect(() => {
+        const initializeAutoApproveState = async () => {
+            try {
+                const context = await rpcClient.getAIChatContext();
+                if (context && context.autoApproveEnabled !== undefined) {
+                    setIsAutoApproveEnabled(context.autoApproveEnabled);
+                }
+            } catch (error) {
+                console.error("[AIChat] Failed to initialize auto-approve state:", error);
+            }
+        };
+
+        initializeAutoApproveState();
+    }, [rpcClient]);
+
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
     });
@@ -322,15 +329,16 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
-            } else if (response.toolName == "TaskWrite") {
+            } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
+                const fileName = response.toolInput?.fileName || "file";
+                const message = response.toolName === "file_read"
+                    ? `Reading ${fileName}...`
+                    : `Generating code for ${fileName}...`;
+
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        // Show different indicator based on whether tasks exist
-                        if (!activeTasks || activeTasks.length === 0) {
-                            // Initial task creation
-                            newMessages[newMessages.length - 1].content += ` <toolcall>Planning...</toolcall>`;
-                        }
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>${message}</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -361,15 +369,10 @@ const AIChat: React.FC = () => {
                 });
             } else if (response.toolName == "TaskWrite") {
                 const taskOutput = response.toolOutput;
-                console.log("[TaskWrite] Tool result received:", taskOutput);
-                console.log("[TaskWrite] All tasks count:", taskOutput?.allTasks?.length);
 
-                // Update the top-level tasks if they exist (after approval)
                 if (taskOutput.success && taskOutput.allTasks && taskOutput.allTasks.length > 0) {
-                    // Only update if activeTasks is already set (meaning plan was approved)
-                    if (activeTasks && activeTasks.length > 0) {
-                        console.log("[TaskWrite] Updating top-level tasks display");
-                        setActiveTasks(taskOutput.allTasks);
+                    if (todoTasks && todoTasks.length > 0) {
+                        setTodoTasks(taskOutput.allTasks);
                         setTasksMessage(taskOutput.message);
                     }
                 }
@@ -378,121 +381,99 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         if (!taskOutput.success || !taskOutput.allTasks || taskOutput.allTasks.length === 0) {
-                            // Check if this is an internal validation error that shouldn't be shown to user
                             const isInternalError = taskOutput.message &&
-                                taskOutput.message.includes("You MUST send ALL tasks with their current statuses");
+                                taskOutput.message.includes("ERROR: Missing");
 
-                            const indicatorPattern = /<toolcall>(Planning\.\.\.|Updating\.\.\.)<\/toolcall>/;
-                            if (!isInternalError) {
-                                // Parse and simplify the backend message
+                            const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+
+                            if (isInternalError) {
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(indicatorPattern, "");
+                            } else {
                                 let simplifiedMessage = "Task update failed";
+
                                 if (taskOutput.message) {
-                                    // Extract the key parts: "Plan not approved" or "Work not approved" + user comment
+                                    const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
+                                    const userComment = commentMatch ? commentMatch[1] : null;
+
                                     if (taskOutput.message.includes("Plan not approved")) {
-                                        // Extract user comment if present
-                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                        simplifiedMessage = commentMatch
-                                            ? `Plan not approved: ${commentMatch[1]}`
+                                        simplifiedMessage = userComment
+                                            ? `Plan not approved: ${userComment}`
                                             : "Plan not approved";
-                                    } else if (taskOutput.message.includes("Work not approved")) {
-                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                        simplifiedMessage = commentMatch
-                                            ? `Work not approved: ${commentMatch[1]}`
-                                            : "Work not approved";
                                     }
                                 }
 
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(
-                                    indicatorPattern,
-                                    `<toolcall>${simplifiedMessage}</toolcall>`
-                                );
-                            } else {
-                                // For internal errors, just remove the Planning indicator without showing an error
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, "");
+                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`);
                             }
                         } else {
-                            // Prepare todo data with ALL tasks
                             const todoData = {
-                                tasks: taskOutput.allTasks, // This should contain ALL tasks with updated statuses
+                                tasks: taskOutput.allTasks,
                                 message: taskOutput.message
                             };
                             const todoJson = JSON.stringify(todoData);
 
-                            console.log("[TaskWrite] Creating todo with", todoData.tasks.length, "tasks");
-
-                            // Replace "Planning..." or "Updating tasks..." toolcall or existing todo section with new todo section
-                            const taskPattern = /<toolcall>(Planning\.\.\.|Updating tasks\.\.\.)<\/toolcall>|<todo>.*?<\/todo>/s;
+                            const taskPattern = /<toolcall>Planning\.\.\.<\/toolcall>|<todo>.*?<\/todo>/s;
                             const lastMessageContent = newMessages[newMessages.length - 1].content;
 
                             if (taskPattern.test(lastMessageContent)) {
-                                console.log("[TaskWrite] Replacing existing todo section");
                                 newMessages[newMessages.length - 1].content = lastMessageContent.replace(
                                     taskPattern,
                                     `<todo>${todoJson}</todo>`
                                 );
                             } else {
-                                console.log("[TaskWrite] Appending new todo section");
                                 newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
                             }
                         }
                     }
                     return newMessages;
                 });
+            } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+                        const generatingPattern = /<toolcall>Generating code for (.+?)\.\.\.<\/toolcall>/;
+                        const readingPattern = /<toolcall>Reading (.+?)\.\.\.<\/toolcall>/;
+
+                        let updatedContent = lastMessageContent;
+
+                        if (response.toolName === "file_read") {
+                            updatedContent = lastMessageContent.replace(
+                                readingPattern,
+                                (_match, fileName) => `<toolcall>Read ${fileName}</toolcall>`
+                            );
+                        } else {
+                            updatedContent = lastMessageContent.replace(
+                                generatingPattern,
+                                (_match, fileName) => `<toolcall>Generated ${fileName}</toolcall>`
+                            );
+                        }
+
+                        newMessages[newMessages.length - 1].content = updatedContent;
+                    }
+                    return newMessages;
+                });
             }
         } else if (type === "task_approval_request") {
             // Handle approval request from the backend
-            console.log("[Approval] Received approval request:", response);
-
-            // Only extract code segments for completion approval (not plan approval)
-            const codeSegments: any[] = [];
-
-            if (response.approvalType === "completion") {
-                setMessages((currentMessages) => {
-                    console.log("[Approval] Total current messages:", currentMessages.length);
-
-                    const lastAssistantMessage = currentMessages
-                        .slice()
-                        .reverse()
-                        .find((msg: any) => msg.role === "Copilot");
-
-                    console.log("[Approval] Last Copilot message:", lastAssistantMessage ? "found" : "not found");
-
-                    if (lastAssistantMessage) {
-                        const segments = splitContent(lastAssistantMessage.content);
-                        console.log("[Approval] Found total segments:", segments.length);
-
-                        // Efficiently filter and map only Code segments using filter + map
-                        const extractedCodeSegments = segments
-                            .filter((segment) => segment.type === SegmentType.Code)
-                            .map((segment) => ({
-                                segmentText: segment.text.trim(),
-                                filePath: segment.fileName,
-                                language: segment.language,
-                            }));
-
-                        codeSegments.push(...extractedCodeSegments);
-                        console.log("[Approval] Extracted code segments:", codeSegments.length);
+            if (response.approvalType === "plan") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += ` <toolcall>Planning...</toolcall>`;
                     }
-
-                    // Return unchanged messages
-                    return currentMessages;
+                    return newMessages;
                 });
             }
 
-            console.log("[Approval] Approval type:", response.approvalType);
-            console.log("[Approval] Final code segments count:", codeSegments.length);
-
-            // Set approval request after extracting code segments
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
-                taskId: response.taskId,
+                taskDescription: response.taskDescription,
                 message: response.message,
-                codeSegments: codeSegments.length > 0 ? codeSegments : undefined,
             });
         } else if (type === "intermediary_state") {
             const state = response.state;
@@ -1877,14 +1858,24 @@ const AIChat: React.FC = () => {
         );
 
         setMessages((prevMessages) => []);
-        // Clear active tasks when clearing chat
-        setActiveTasks(null);
+        setTodoTasks(null);
         setTasksMessage(undefined);
+        setApprovalRequest(null);
 
         localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
 
         rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
+
+    const handleToggleAutoApprove = () => {
+        const newValue = !isAutoApproveEnabled;
+        setIsAutoApproveEnabled(newValue);
+        if (newValue) {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
+        } else {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        }
+    };
 
     const questionMessages = messages.filter((message) => message.type === "question");
     if (questionMessages.length > 0) {
@@ -2086,23 +2077,20 @@ const AIChat: React.FC = () => {
         });
     };
 
-    // Handle approval dialog approve action
     const handleApprovalApprove = (comment?: string) => {
         if (!approvalRequest) return;
 
-        console.log("[Approval] User approved:", comment);
-
-        // Send approval event to state machine based on approval type
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_PLAN,
                 payload: { comment }
             });
+            setTodoTasks(approvalRequest.tasks);
+            setTasksMessage(approvalRequest.message);
         } else if (approvalRequest.approvalType === "completion") {
-            // Find the index of the last task in review status
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.id === lastReviewTask?.id);
+            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.description === lastReviewTask?.description);
 
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_TASK,
@@ -2113,21 +2101,12 @@ const AIChat: React.FC = () => {
             });
         }
 
-        // Show tasks in the top panel after approval (for both plan and completion)
-        setActiveTasks(approvalRequest.tasks);
-        setTasksMessage(approvalRequest.message);
-
-        // Close dialog
         setApprovalRequest(null);
     };
 
-    // Handle approval dialog reject action
     const handleApprovalReject = (comment?: string) => {
         if (!approvalRequest) return;
 
-        console.log("[Approval] User rejected:", comment);
-
-        // Send rejection event to state machine based on approval type
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.REJECT_PLAN,
@@ -2140,49 +2119,9 @@ const AIChat: React.FC = () => {
             });
         }
 
-        // Close dialog
         setApprovalRequest(null);
     };
 
-    // Handle adding code to workspace from approval dialog
-    const handleAddCodeToWorkspaceFromApproval = async () => {
-        if (!approvalRequest || !approvalRequest.codeSegments || approvalRequest.codeSegments.length === 0) {
-            console.log("[Approval] No code segments to add");
-            return;
-        }
-
-        console.log("[Approval] Adding code segments to workspace:", approvalRequest.codeSegments);
-
-        // Get the command from the latest message
-        const lastAssistantMessage = messagesRef.current
-            .slice()
-            .reverse()
-            .find((msg: any) => msg.role === "assistant");
-
-        let command = "ai_design"; // default command
-        if (lastAssistantMessage) {
-            const segments = splitContent(lastAssistantMessage.content);
-            // Find the first code segment that has a command
-            const codeSegmentWithCommand = segments.find((s) => s.type === SegmentType.Code && s.command);
-            if (codeSegmentWithCommand && codeSegmentWithCommand.command) {
-                command = codeSegmentWithCommand.command;
-            }
-        }
-
-        // Create a dummy setState function since we don't need to track individual code section state
-        const dummySetIsCodeAdded = () => {};
-
-        try {
-            await handleAddAllCodeSegmentsToWorkspace(
-                approvalRequest.codeSegments,
-                dummySetIsCodeAdded,
-                command
-            );
-            console.log("[Approval] Successfully added code segments to workspace");
-        } catch (error) {
-            console.error("[Approval] Error adding code segments to workspace:", error);
-        }
-    };
 
     return (
         <>
@@ -2198,6 +2137,14 @@ const AIChat: React.FC = () => {
                         <HeaderButtons>
                             <Button
                                 appearance="icon"
+                                onClick={handleToggleAutoApprove}
+                                tooltip={isAutoApproveEnabled ? "Disable auto-approval" : "Enable auto-approval"}
+                            >
+                                <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
+                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: ON" : "Auto-Approve: OFF"}
+                            </Button>
+                            <Button
+                                appearance="icon"
                                 onClick={() => handleClearChat()}
                                 tooltip="Clear Chat"
                                 disabled={isLoading}
@@ -2211,9 +2158,15 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
-                    {activeTasks && activeTasks.length > 0 && (
+                    {(approvalRequest?.tasks || todoTasks) && (
                         <TodoPanel>
-                            <TodoSection tasks={activeTasks} message={tasksMessage} />
+                            <TodoSection
+                                tasks={approvalRequest?.tasks || todoTasks || []}
+                                message={approvalRequest?.message || tasksMessage}
+                                onApprove={approvalRequest ? handleApprovalApprove : undefined}
+                                onReject={approvalRequest ? handleApprovalReject : undefined}
+                                approvalType={approvalRequest?.approvalType}
+                            />
                         </TodoPanel>
                     )}
                     <main style={{ flex: 1, overflowY: "auto" }}>
@@ -2482,30 +2435,6 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
-            {approvalRequest && (() => {
-                const shouldShowAddButton = approvalRequest.approvalType === "completion" && approvalRequest.codeSegments;
-                console.log("[ApprovalDialog Render]", {
-                    approvalType: approvalRequest.approvalType,
-                    hasCodeSegments: !!approvalRequest.codeSegments,
-                    codeSegmentsLength: approvalRequest.codeSegments?.length,
-                    shouldShowAddButton,
-                });
-                return (
-                    <ApprovalDialog
-                        approvalType={approvalRequest.approvalType}
-                        tasks={approvalRequest.tasks}
-                        taskId={approvalRequest.taskId}
-                        message={approvalRequest.message}
-                        onApprove={handleApprovalApprove}
-                        onReject={handleApprovalReject}
-                        onAddToWorkspace={
-                            shouldShowAddButton
-                                ? handleAddCodeToWorkspaceFromApproval
-                                : undefined
-                        }
-                    />
-                );
-            })()}
         </>
     );
 };

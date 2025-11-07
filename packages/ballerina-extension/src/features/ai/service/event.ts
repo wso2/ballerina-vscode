@@ -45,7 +45,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendMessagesNotification(event.messages);
                 break;
             case "tool_call":
-                sendToolCallNotification(event.toolName);
+                sendToolCallNotification(event.toolName, event.toolInput);
                 break;
             case "tool_result":
                 sendToolResultNotification(event.toolName, event.toolOutput);
@@ -55,7 +55,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendTaskApprovalRequestNotification(
                     event.approvalType,
                     event.tasks,
-                    event.taskId,
+                    event.taskDescription,
                     event.message
                 );
                 break;

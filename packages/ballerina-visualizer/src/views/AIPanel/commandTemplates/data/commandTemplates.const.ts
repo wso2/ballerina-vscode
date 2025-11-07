@@ -205,7 +205,7 @@ export const suggestedCommandTemplates: AIPanelPrompt[] = [
         type: "command-template",
         command: Command.Design,
         templateId: TemplateId.Wildcard,
-        text: "design an API for a task management system",
+        text: "create an API for a task management system with mysql",
     },
     {
         type: "command-template",

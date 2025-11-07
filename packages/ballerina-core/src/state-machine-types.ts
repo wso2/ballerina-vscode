@@ -231,12 +231,13 @@ export interface ChatError {
 export interface ToolCall {
     type: "tool_call";
     toolName: string;
+    toolInput?: any;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
-    toolOutput: any;
+    toolOutput?: any;
 }
 
 export interface EvalsToolResult {
@@ -259,8 +260,8 @@ export interface UsageMetricsEvent {
 export interface TaskApprovalRequest {
     type: "task_approval_request";
     approvalType: "plan" | "completion";
-    tasks: any[];
-    taskId?: string;
+    tasks: Task[];
+    taskDescription?: string;
     message?: string;
 }
 
@@ -358,6 +359,8 @@ export enum AIChatMachineEventType {
     TASK_COMPLETED = 'TASK_COMPLETED',
     FINISH_EXECUTION = 'FINISH_EXECUTION',
     APPROVE_TASK = 'APPROVE_TASK',
+    ENABLE_AUTO_APPROVE = 'ENABLE_AUTO_APPROVE',
+    DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
     REJECT_TASK = 'REJECT_TASK',
     RESTORE_STATE = 'RESTORE_STATE',
     ERROR = 'ERROR',
@@ -377,9 +380,8 @@ export interface ChatMessage {
 export enum TaskStatus {
     PENDING = "pending",
     IN_PROGRESS = "in_progress",
-    REVIEW = "review",
-    DONE = "done",
-    REJECTED = "rejected"
+    COMPLETED = "completed",
+    REVIEW = "review"
 }
 
 export enum TaskTypes {
@@ -392,7 +394,6 @@ export enum TaskTypes {
  * Task interface representing a single implementation task
  */
 export interface Task {
-    id: string;
     description: string;
     status: TaskStatus;
     type : TaskTypes;
@@ -426,6 +427,7 @@ export interface AIChatMachineContext {
     sessionId?: string;
     projectId?: string;
     currentApproval?: UserApproval;
+    autoApproveEnabled?: boolean;
 }
 
 export type AIChatMachineSendableEvent =
@@ -438,6 +440,8 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.TASK_COMPLETED }
     | { type: AIChatMachineEventType.FINISH_EXECUTION }
     | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
+    | { type: AIChatMachineEventType.ENABLE_AUTO_APPROVE }
+    | { type: AIChatMachineEventType.DISABLE_AUTO_APPROVE }
     | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
@@ -503,3 +507,4 @@ export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: '
 
 export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { method: 'aiChatStateChanged' };
 export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
+export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
