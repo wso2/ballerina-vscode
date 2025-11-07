@@ -26,6 +26,40 @@ export interface McpTool {
     description?: string;
 }
 
+// Utility function to clean up error messages
+const formatErrorMessage = (error: string): string => {
+    if (!error) return error;
+    
+    // Check if it's an HTML response (GitHub 404, etc.)
+    if (error.includes('<!DOCTYPE') || error.includes('<html>')) {
+        // Try to extract meaningful info from HTML
+        const httpMatch = error.match(/HTTP (\d+):/i);
+        if (httpMatch) {
+            const statusCode = httpMatch[1];
+            if (statusCode === '404') {
+                return 'Server URL not found (404). Please check the URL and try again.';
+            }
+            if (statusCode === '422') {
+                return 'Invalid request (422). The server URL may not be a valid MCP server.';
+            }
+            return `Server returned HTTP ${statusCode}. Please check the URL and try again.`;
+        }
+        return 'The server returned an HTML page instead of MCP tools. Please verify the URL is correct.';
+    }
+    
+    // Check for network errors
+    if (error.includes('Network error') || error.includes('Failed to fetch')) {
+        return 'Network error. Please check your connection and the server URL.';
+    }
+    
+    // Truncate very long error messages
+    if (error.length > 500) {
+        return error.substring(0, 500) + '...';
+    }
+    
+    return error;
+};
+
 interface McpToolsSelectionProps {
     tools: McpTool[];
     selectedTools: Set<string>;
@@ -88,6 +122,10 @@ const ErrorMessage = styled.div`
     color: ${ThemeColors.ERROR};
     font-size: 12px;
     padding: 0 0 12px 12px;
+    max-height: 100px;
+    overflow-y: auto;
+    word-break: break-word;
+    white-space: pre-wrap;
 `;
 const WarningMessage = styled.div`
     color: ${ThemeColors.HIGHLIGHT};
@@ -383,6 +421,7 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     showValidationError = false
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const formattedError = useMemo(() => formatErrorMessage(error), [error]);
 
     return (
         <>
@@ -420,7 +459,7 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                         <InfoMessage>
                             Unable to load tools from MCP server.
                         </InfoMessage>
-                        <ErrorMessage>{error}</ErrorMessage>
+                        <ErrorMessage>{formattedError}</ErrorMessage>
                     </>
                 )}
                 {!loading && tools.length > 0 && (
