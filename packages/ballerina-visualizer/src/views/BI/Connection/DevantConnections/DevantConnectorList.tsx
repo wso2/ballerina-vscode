@@ -31,6 +31,7 @@ import {
 } from "@wso2/wso2-platform-core";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
 import { PlatformExtHooks } from "../../../../PlatformExtHooks";
+import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
     display: grid;
@@ -46,12 +47,9 @@ export const DevantConnectorList: FC<{
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
+    const { platformExtState, projectPath } = usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
-    const isLoggedIn = PlatformExtHooks.isLoggedIn();
-    const selected = PlatformExtHooks.getSelectedContext();
-    const directoryComponent = PlatformExtHooks.getDirectoryComp()
-    const projectPath = PlatformExtHooks.getProjectPath();
-
+    
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
@@ -63,35 +61,35 @@ export const DevantConnectorList: FC<{
         queryKey: [
             "devant-marketplace",
             {
-                org: selected?.org?.uuid,
-                project: selected?.project?.id,
+                org: platformExtState?.selectedContext?.org?.uuid,
+                project: platformExtState?.selectedContext?.project?.id,
                 debouncedSearch,
-                isLoggedIn,
-                component: directoryComponent?.metadata?.id,
+                isLoggedIn: platformExtState.isLoggedIn,
+                component: platformExtState?.selectedComponent?.metadata?.id,
             },
         ],
         queryFn: () =>
             rpcClient.getPlatformRpcClient().getMarketplaceItems({
-                orgId: selected?.org?.id.toString(),
+                orgId: platformExtState?.selectedContext?.org?.id.toString(),
                 request: {
                     limit: 60,
                     offset: 0,
                     networkVisibilityFilter: "all",
-                    networkVisibilityprojectId: selected?.project?.id,
+                    networkVisibilityprojectId: platformExtState?.selectedContext?.project?.id,
                     sortBy: "createdTime",
                     query: debouncedSearch || undefined,
                     searchContent: false,
                     isThirdParty: false,
                 },
             }),
-        enabled: isLoggedIn && !!selected?.project,
+        enabled: platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
         select: (data) => ({
             ...data,
-            data: data.data.filter((item) => item.component?.componentId !== directoryComponent?.metadata?.id),
+            data: data.data.filter((item) => item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id),
         }),
     });
 
-    if (!isLoggedIn) {
+    if (!platformExtState.isLoggedIn) {
         return (
             <>
                 <Typography variant="body3">
@@ -113,7 +111,7 @@ export const DevantConnectorList: FC<{
         );
     }
 
-    if (!directoryComponent) {
+    if (!platformExtState?.selectedComponent) {
         return (
             <>
                 <BodyTinyInfo>

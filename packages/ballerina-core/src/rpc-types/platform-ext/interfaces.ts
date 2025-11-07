@@ -42,5 +42,6 @@ export interface ImportDevantConnectionResp {
 export interface PlatformExtState {
 	isLoggedIn: boolean;
 	components: ComponentKind[];
+    selectedComponent?: ComponentKind;
 	selectedContext?: ContextItemEnriched;
 }

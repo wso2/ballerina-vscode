@@ -737,7 +737,7 @@ export function Overview(props: ComponentDiagramProps) {
                         <Codicon name="play" sx={{ marginRight: 5 }} /> Run
                     </Button>
                     <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug //
                     </Button>
                 </HeaderControls>
             </HeaderRow>
