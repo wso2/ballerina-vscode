@@ -121,7 +121,7 @@ class RestClient {
             List<String> packageVersions =
                     centralClient.getPackageVersions(org, name, supportedPlatform, RepoUtils.getBallerinaVersion());
             if (packageVersions.isEmpty()) {
-                throw new RuntimeException("No versions found for the package");
+                throw new RuntimeException("No versions found for the package: " + org + "/" + name);
             }
 
             String latestVersion = packageVersions.getFirst();

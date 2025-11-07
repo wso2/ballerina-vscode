@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ReferenceType {
@@ -58,32 +57,16 @@ public class ReferenceType {
 
     public static RefType fromSemanticSymbol(Symbol symbol, List<Symbol> typeDefSymbols) {
         SymbolKind kind = symbol.kind();
-        TypeSymbol typeSymbol = null;
-        String name = "";
-        if (kind == SymbolKind.TYPE_DEFINITION) {
-            typeSymbol = ((TypeDefinitionSymbol) symbol).typeDescriptor();
-            name = symbol.getName().orElse("");
-        } else if (kind == SymbolKind.PARAMETER) {
-            typeSymbol = ((ParameterSymbol) symbol).typeDescriptor();
-            name = typeSymbol.getName().orElse("");
-        } else if (kind == SymbolKind.RECORD_FIELD) {
-            typeSymbol = ((RecordFieldSymbol) symbol).typeDescriptor();
-            name = typeSymbol.getName().orElse("");
-        } else if (kind == SymbolKind.VARIABLE) {
-            typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
-            Optional<String> nameOpt = typeSymbol.getName();
-            name = nameOpt.orElseGet(() -> symbol.getName().orElse(""));
-        } else if (kind == SymbolKind.TYPE) {
-            typeSymbol = (TypeSymbol) symbol;
-            Optional<String> optName = typeSymbol.getName();
-            name = optName.orElseGet(typeSymbol::signature);
-        } else if (kind == SymbolKind.CONSTANT) {
+        if (kind == SymbolKind.CONSTANT) {
             return new RefConstType(symbol.getName().orElse(""),
                     ((ConstantSymbol) symbol).broaderTypeDescriptor().signature());
         } else if (kind == SymbolKind.ENUM) {
             return getEnumType((EnumSymbol) symbol, typeDefSymbols);
         }
 
+        TypeInfo typeInfo = getTypeInfo(symbol);
+        TypeSymbol typeSymbol = typeInfo.typeSymbol();
+        String name = typeInfo.name();
         if (typeSymbol == null) {
             return null;
         }
@@ -107,6 +90,28 @@ public class ReferenceType {
         }
 
         return type;
+    }
+
+    private static TypeInfo getTypeInfo(Symbol symbol) {
+        String name = "";
+        TypeSymbol typeSymbol = null;
+        if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
+            typeSymbol = ((TypeDefinitionSymbol) symbol).typeDescriptor();
+            name = symbol.getName().orElse("");
+        } else if (symbol.kind() == SymbolKind.PARAMETER) {
+            typeSymbol = ((ParameterSymbol) symbol).typeDescriptor();
+            name = typeSymbol.getName().orElse("");
+        } else if (symbol.kind() == SymbolKind.RECORD_FIELD) {
+            typeSymbol = ((RecordFieldSymbol) symbol).typeDescriptor();
+            name = typeSymbol.getName().orElse("");
+        } else if (symbol.kind() == SymbolKind.VARIABLE) {
+            typeSymbol = ((VariableSymbol) symbol).typeDescriptor();
+            name = typeSymbol.getName().orElseGet(() -> symbol.getName().orElse(""));
+        } else if (symbol.kind() == SymbolKind.TYPE) {
+            typeSymbol = (TypeSymbol) symbol;
+            name = typeSymbol.getName().orElseGet(typeSymbol::signature);
+        }
+        return new TypeInfo(name, typeSymbol);
     }
 
 
@@ -290,7 +295,8 @@ public class ReferenceType {
             return unionType;
         } else if (kind == TypeDescKind.INTERSECTION) {
             IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) symbol;
-            return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(), name, moduleID, typeDefSymbols);
+            return fromSemanticSymbol(intersectionTypeSymbol.effectiveTypeDescriptor(),
+                    getIntersectionTypeName(intersectionTypeSymbol, name), moduleID, typeDefSymbols);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeReferenceTypeSymbol typeRefSymbol = (TypeReferenceTypeSymbol) symbol;
             TypeSymbol typeSymbol = typeRefSymbol.typeDescriptor();
@@ -353,6 +359,26 @@ public class ReferenceType {
         RefType refType = new RefType(primitiveTypeName);
         refType.typeName = primitiveTypeName;
         return refType;
+    }
+
+    private static String getIntersectionTypeName(IntersectionTypeSymbol intersectionTypeSymbol, String name) {
+        List<String> names = new ArrayList<>();
+        for (TypeSymbol typeSymbol : intersectionTypeSymbol.memberTypeDescriptors()) {
+            if (typeSymbol.typeKind() == TypeDescKind.READONLY) {
+                continue;
+            }
+            TypeInfo typeInfo = getTypeInfo(typeSymbol);
+            String typeName = typeInfo.name();
+            if (typeInfo.typeSymbol() == null || typeName.isEmpty()) {
+                continue;
+            }
+            names.add(typeName);
+        }
+
+        if (names.isEmpty()) {
+            return name;
+        }
+        return String.join("&", names);
     }
 
     private static String getPrimitiveTypeName(TypeDescKind kind) {
@@ -508,4 +534,7 @@ public class ReferenceType {
         visitedTypeMap.clear();
     }
 
+    private record TypeInfo(String name, TypeSymbol typeSymbol) {
+
+    }
 }

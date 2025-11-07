@@ -46,7 +46,7 @@
         "metadata": {
           "label": "loadSystemZone",
           "description": "Load the default time zone of the system.\n```ballerina\ntime:Zone|time:Error zone = time:loadSystemZone();\n```",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -54,7 +54,7 @@
           "module": "time",
           "packageName": "time",
           "symbol": "loadSystemZone",
-          "version": "2.7.0",
+          "version": "2.8.0",
           "lineRange": {
             "fileName": "method_call_time.bal",
             "startLine": {

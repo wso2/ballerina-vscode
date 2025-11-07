@@ -17,10 +17,10 @@
       "description": "Gets invoked during module initialization to initialize the listener.\n",
       "moduleName": "http",
       "orgName": "ballerina",
-      "version": "2.14.7",
+      "version": "2.15.0",
       "packageName": "http",
       "listenerProtocol": "http",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -90,7 +90,7 @@
           "typeMembers": [
             {
               "type": "ServerSocketConfig",
-              "packageInfo": "ballerina:http:2.14.7",
+              "packageInfo": "ballerina:http:2.15.0",
               "kind": "RECORD_TYPE",
               "selected": false
             }
@@ -174,7 +174,7 @@
           "typeMembers": [
             {
               "type": "ListenerHttp1Settings",
-              "packageInfo": "ballerina:http:2.14.7",
+              "packageInfo": "ballerina:http:2.15.0",
               "kind": "RECORD_TYPE",
               "selected": false
             }
@@ -200,7 +200,7 @@
           "typeMembers": [
             {
               "type": "ListenerSecureSocket",
-              "packageInfo": "ballerina:http:2.14.7",
+              "packageInfo": "ballerina:http:2.15.0",
               "kind": "RECORD_TYPE",
               "selected": false
             },
@@ -232,7 +232,7 @@
           "typeMembers": [
             {
               "type": "HttpVersion",
-              "packageInfo": "ballerina:http:2.14.7",
+              "packageInfo": "ballerina:http:2.15.0",
               "kind": "BASIC_TYPE",
               "selected": false
             }
@@ -284,7 +284,7 @@
           "typeMembers": [
             {
               "type": "RequestLimitConfigs",
-              "packageInfo": "ballerina:http:2.14.7",
+              "packageInfo": "ballerina:http:2.15.0",
               "kind": "RECORD_TYPE",
               "selected": false
             }

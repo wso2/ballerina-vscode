@@ -159,6 +159,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -187,9 +188,9 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
@@ -424,9 +425,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 throw new IllegalStateException("Location not found for the variable symbol: " +
                         variableSymbol);
             }
+            Document document = CommonUtils.getDocument(project, optLocation.get());
+            if (document == null) {
+                return;
+            }
             Optional<NonTerminalNode> varNodeOpt =
-                    CommonUtil.findNode(variableSymbol, CommonUtils.getDocument(project,
-                            optLocation.get()).syntaxTree());
+                    CommonUtil.findNode(variableSymbol, document.syntaxTree());
             if (varNodeOpt.isEmpty()) {
                 throw new IllegalStateException("Variable node not found for the variable symbol: " +
                         variableSymbol);
@@ -585,6 +589,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     value = templateExpr.content().stream()
                             .map(Node::toString)
                             .collect(Collectors.joining());
+                    value = AiUtils.restoreBackticksFromStringTemplate(value);
                 } else {
                     value = valueExpr.toString().trim();
                 }
@@ -2571,8 +2576,12 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Location location = optLocation.get();
-        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
-                CommonUtils.getDocument(project, location).syntaxTree());
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return null;
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
 
         if (optNode.isEmpty()) {
             return null;
@@ -2598,8 +2607,12 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Location location = optLocation.get();
-        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol,
-                CommonUtils.getDocument(project, location).syntaxTree());
+        Document document = CommonUtils.getDocument(project, location);
+        if (document == null) {
+            return "()";
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
 
         if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
             return "()";

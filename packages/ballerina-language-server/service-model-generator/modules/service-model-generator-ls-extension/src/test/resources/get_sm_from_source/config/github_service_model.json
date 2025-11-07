@@ -11,9 +11,9 @@
   },
   "response": {
     "id": "13",
-    "name": "GitHub Event Handler",
+    "name": "GitHub Event Integration",
     "type": "trigger.github",
-    "displayName": "GitHub Event Handler",
+    "displayName": "GitHub Event Integration",
     "moduleName": "trigger.github",
     "orgName": "ballerinax",
     "version": "0.10.0",
@@ -23,7 +23,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"

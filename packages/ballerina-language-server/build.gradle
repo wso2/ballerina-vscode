@@ -339,6 +339,7 @@ task pullBallerinaModules {
     dependsOn pullBallerinaModule('ai', ballerinaxAiAgent)
     dependsOn pullBallerinaModule('kafka', ballerinaxKafkaVersion)
     dependsOn pullBallerinaModule('rabbitmq', ballerinaxRabbitmqVersion)
+    dependsOn pullBallerinaModule('solace', ballerinaxSolaceVersion)
     dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
     dependsOn pullBallerinaModule('np', ballerinaxNp)
 }

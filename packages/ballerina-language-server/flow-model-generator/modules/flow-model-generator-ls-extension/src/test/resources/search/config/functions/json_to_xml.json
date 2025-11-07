@@ -75,7 +75,7 @@
               "metadata": {
                 "label": "fromJson",
                 "description": "Converts a JSON object to an XML representation.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.4.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.5.2.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -83,7 +83,7 @@
                 "module": "data.xmldata",
                 "packageName": "data.xmldata",
                 "symbol": "fromJson",
-                "version": "1.4.2"
+                "version": "1.5.2"
               },
               "enabled": true
             }

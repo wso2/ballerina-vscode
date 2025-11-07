@@ -35,6 +35,14 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathRestParam;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.designmodelgenerator.core.model.ConnectionKind;
 
 import java.util.Map;
@@ -306,5 +314,48 @@ public class CommonUtils {
     public static ConnectionKind getConnectionKind(TypeSymbol typeSymbol) {
         String typeName = getTypeName(typeSymbol);
         return CONNECTION_KIND_MAP.getOrDefault(typeName, ConnectionKind.CONNECTION);
+    }
+
+    /**
+     * Extracts a field value from a service annotation. Traverses the annotation's mapping constructor expression to
+     * find the specified field.
+     *
+     * @param serviceNode the service declaration node
+     * @param fieldName   the field name to extract (e.g., "queueName", "topicName")
+     * @return Optional containing the field value if found, empty otherwise
+     */
+    public static Optional<String> extractServiceAnnotationField(ServiceDeclarationNode serviceNode,
+                                                                 String fieldName) {
+        Optional<MetadataNode> metadata = serviceNode.metadata();
+        if (metadata.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Iterate through annotations to find the service config annotation
+        for (AnnotationNode annotation : metadata.get().annotations()) {
+            Optional<MappingConstructorExpressionNode> annotValue = annotation.annotValue();
+            if (annotValue.isEmpty()) {
+                continue;
+            }
+
+            MappingConstructorExpressionNode mappingNode = annotValue.get();
+
+            // Parse the mapping constructor to find the specified field
+            for (MappingFieldNode field : mappingNode.fields()) {
+                if (field instanceof SpecificFieldNode specificField) {
+                    String currentFieldName = specificField.fieldName().toString().trim();
+
+                    if (fieldName.equals(currentFieldName)) {
+                        Optional<ExpressionNode> valueExpr = specificField.valueExpr();
+                        if (valueExpr.isPresent() && valueExpr.get() instanceof BasicLiteralNode literalNode) {
+                            String value = literalNode.literalToken().text().trim();
+                            // Remove quotes if present
+                            return Optional.of(value.replace("\"", ""));
+                        }
+                    }
+                }
+            }
+        }
+        return Optional.empty();
     }
 }
