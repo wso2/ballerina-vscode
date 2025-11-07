@@ -45,7 +45,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAddConnection'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Current Integration": {
         title: "Current Integration",
