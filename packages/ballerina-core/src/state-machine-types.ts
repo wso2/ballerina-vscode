@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -96,7 +96,8 @@ export enum MACHINE_VIEW {
     BIDataMapperForm = "Add Data Mapper SKIP",
     AIAgentDesigner = "AI Agent Designer",
     AIChatAgentWizard = "AI Chat Agent Wizard",
-    ResolveMissingDependencies = "Resolve Missing Dependencies"
+    ResolveMissingDependencies = "Resolve Missing Dependencies",
+    ServiceFunctionForm = "Service Function Form"
 }
 
 export interface MachineEvent {
@@ -137,7 +138,17 @@ export interface VisualizerLocation {
     projectStructure?: ProjectStructureResponse;
     org?: string;
     package?: string;
+    moduleName?: string;
+    version?: string;
     dataMapperMetadata?: DataMapperMetadata;
+    artifactInfo?: ArtifactInfo;
+}
+
+export interface ArtifactInfo {
+    org?: string;
+    packageName?: string;
+    moduleName?: string;
+    version?: string;
 }
 
 export interface ArtifactData {
@@ -192,7 +203,8 @@ export type ChatNotify =
     | ToolResult
     | EvalsToolResult
     | UsageMetricsEvent
-    | TaskApprovalRequest;
+    | TaskApprovalRequest
+    | GeneratedSourcesEvent;
 
 export interface ChatStart {
     type: "start";
@@ -276,6 +288,11 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+}
+
+export interface GeneratedSourcesEvent {
+    type: "generated_sources";
+    fileArray: SourceFile[];
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

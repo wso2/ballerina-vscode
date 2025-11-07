@@ -84,13 +84,13 @@ const ButtonWrapper = styled.div`
 export interface ServiceEditViewProps {
     filePath: string;
     position: NodePosition;
+    onChange?: (data: ServiceModel, filePath: string, position: NodePosition) => void;
 }
 
 export function ServiceEditView(props: ServiceEditViewProps) {
-    const { filePath, position } = props;
+    const { filePath, position, onChange } = props;
     const { rpcClient } = useRpcContext();
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
-    const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
     const [saving, setSaving] = useState<boolean>(false);
     const [step, setStep] = useState<number>(1);
@@ -99,12 +99,8 @@ export function ServiceEditView(props: ServiceEditViewProps) {
         const lineRange: LineRange = { startLine: { line: position.startLine, offset: position.startColumn }, endLine: { line: position.endLine, offset: position.endColumn } };
         rpcClient.getServiceDesignerRpcClient().getServiceModelFromCode({ filePath, codedata: { lineRange } }).then(res => {
             setServiceModel(res.service);
-            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: res.service.moduleName }).then(res => {
-                console.log("Listener Model: ", res);
-                setListenerModel(res.listener);
-            });
         })
-    }, []);
+    }, [props.filePath, props.position]);
 
     const onSubmit = async (value: ServiceModel) => {
         setSaving(true);
@@ -114,6 +110,12 @@ export function ServiceEditView(props: ServiceEditViewProps) {
             rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: updatedArtifact.path, position: updatedArtifact.position } });
             setSaving(false);
             return;
+        }
+    }
+
+    const handleServiceChange = async (data: ServiceModel) => {
+        if (onChange) {
+            onChange(data, filePath, position);
         }
     }
 
@@ -142,33 +144,8 @@ export function ServiceEditView(props: ServiceEditViewProps) {
     }
 
     return (
-        <View>
-            <TopNavigationBar />
-            <TitleBar title="Service" subtitle="Edit Service" />
-            <ViewContent padding>
-                {!serviceModel &&
-                    <LoadingContainer>
-                        <ProgressRing />
-                        <Typography variant="h3" sx={{ marginTop: '16px' }}>Loading...</Typography>
-                    </LoadingContainer>
-                }
-                {serviceModel &&
-                    <Container>
-                        {step === 0 &&
-                            <>
-                                <ListenerConfigForm listenerModel={listenerModel} onSubmit={handleListenerSubmit} onBack={onBack} formSubmitText={saving ? "Creating..." : "Create"} isSaving={saving} />
-                            </>
-                        }
-                        {step === 1 &&
-                            <>
-                                <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} openListenerForm={openListenerForm} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} />
-                            </>
-                        }
-                    </Container>
-                }
-            </ViewContent>
-        </View >
-
-
+        <>
+            {serviceModel && <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} onChange={handleServiceChange} />}
+        </>
     );
 };

@@ -152,7 +152,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 setVisualizerLocation(value);
             });
         }
-    }, [rpcClient]);
+    }, [rpcClient, projectUri]);
 
     useEffect(() => {
         setIsModelLoaded(false);
@@ -199,7 +199,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }
         setTypeEditorState({
             ...typeEditorState,
-             isTypeCreatorOpen: stack.length !== 1,
+            isTypeCreatorOpen: stack.length !== 1,
         });
     }
 
@@ -418,8 +418,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         setTypeEditorState({
-          ...typeEditorState,
-          isTypeCreatorOpen: true,
+            ...typeEditorState,
+            isTypeCreatorOpen: true,
         });
     };
 
@@ -539,17 +539,17 @@ export function TypeDiagram(props: TypeDiagramProps) {
                             title="Create New Type"
                             openState={typeEditorState.isTypeCreatorOpen}
                             setOpenState={handleTypeEditorStateChange}>
-                            <div style={{ padding: '0px 20px' }}>
-                                <BreadcrumbContainer>
-                                    {stack.slice(1, i + 2).map((stackItem, index) => (
-                                        <React.Fragment key={index}>
-                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                            <BreadcrumbItem>
-                                                {stackItem?.type?.name || "NewType"}
-                                            </BreadcrumbItem>
-                                        </React.Fragment>
-                                    ))}
-                                </BreadcrumbContainer>
+                            <BreadcrumbContainer>
+                                {stack.slice(1, i + 2).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <div style={{ height: '560px', overflow: 'auto' }}>
                                 <FormTypeEditor
                                     key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
                                     type={peekTypeStack()?.type}
