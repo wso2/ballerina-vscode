@@ -51,6 +51,7 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.GroupByClauseNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
@@ -146,6 +147,7 @@ public class DataMapManager {
     public static final String LIMIT = "limit";
     public static final String LET = "let";
     public static final String ORDER_BY = "order-by";
+    public static final String GROUP_BY = "group-by";
     public static final String ITEM = "Item";
     public static final String INT = "int";
     public static final String FLOAT = "float";
@@ -1604,6 +1606,9 @@ public class DataMapManager {
                 }
                 return orderBy;
             }
+            case GROUP_BY: {
+                return "group by " + properties.expression();
+            }
             case "let": {
                 return "let " + properties.type() + " " + properties.name() +
                         " = " + properties.expression();
@@ -2045,6 +2050,15 @@ public class DataMapManager {
                     LimitClauseNode limitClause = (LimitClauseNode) intermediateClause;
                     intermediateClauses.add(new Clause("limit", new Properties(null, null,
                             limitClause.expression().toSourceCode().trim(), null)));
+                }
+                case GROUP_BY_CLAUSE -> {
+                    GroupByClauseNode groupByClause = (GroupByClauseNode) intermediateClause;
+                    SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
+                    if (!groupingKeys.isEmpty()) {
+                        Node groupingKey = groupingKeys.get(0);
+                        intermediateClauses.add(new Clause(GROUP_BY,
+                                new Properties(null, null, groupingKey.toSourceCode().trim(), null)));
+                    }
                 }
                 default -> {
                 }
