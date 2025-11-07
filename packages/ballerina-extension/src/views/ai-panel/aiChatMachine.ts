@@ -83,8 +83,23 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         sessionId: undefined,
         projectId: undefined,
         currentApproval: undefined,
-    },
+        autoApproveEnabled: false,
+    } as AIChatMachineContext,
     on: {
+        [AIChatMachineEventType.ENABLE_AUTO_APPROVE]: {
+            actions: assign({
+                autoApproveEnabled: (_ctx) => true,
+                chatHistory: (ctx) =>
+                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval enabled for tasks'),
+            }),
+        },
+        [AIChatMachineEventType.DISABLE_AUTO_APPROVE]: {
+            actions: assign({
+                autoApproveEnabled: (_ctx) => false,
+                chatHistory: (ctx) =>
+                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval disabled for tasks'),
+            }),
+        },
         [AIChatMachineEventType.RESET]: {
             target: 'Idle',
             actions: [
@@ -102,7 +117,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             ],
         },
         [AIChatMachineEventType.RESTORE_STATE]: {
-            target: 'PlanReview',
+            target: 'Idle',
             actions: assign({
                 initialPrompt: (_ctx, event) => event.payload.state.initialPrompt,
                 chatHistory: (_ctx, event) => event.payload.state.chatHistory,
@@ -292,9 +307,9 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             return {
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) => {
-                                    // Mark all REVIEW tasks up to and including lastApprovedIndex as DONE
+                                    // Mark all REVIEW tasks up to and including lastApprovedIndex as COMPLETED
                                     if (task.status === TaskStatus.REVIEW && index <= lastApprovedIndex) {
-                                        return { ...task, status: TaskStatus.DONE };
+                                        return { ...task, status: TaskStatus.COMPLETED };
                                     }
                                     return task;
                                 }),
@@ -322,7 +337,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
                                     index === ctx.currentTaskIndex
-                                        ? { ...task, status: TaskStatus.REJECTED }
+                                        ? { ...task, status: TaskStatus.COMPLETED }
                                         : task
                                 ),
                                 updatedAt: Date.now(),

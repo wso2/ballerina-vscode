@@ -194,15 +194,16 @@ export function sendIntermidateStateNotification(intermediaryState: TestGenerato
     sendAIPanelNotification(msg);
 }
 
-export function sendToolCallNotification(toolName: string): void {
+export function sendToolCallNotification(toolName: string, toolInput?: any): void {
     const msg: ToolCall = {
         type: "tool_call",
         toolName: toolName,
+        toolInput: toolInput,
     };
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput: any): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any): void {
     const msg: ToolResult = {
         type: "tool_result",
         toolName: toolName,
@@ -211,12 +212,12 @@ export function sendToolResultNotification(toolName: string, toolOutput: any): v
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskId?: string, message?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
         approvalType: approvalType,
         tasks: tasks,
-        taskId: taskId,
+        taskDescription: taskDescription,
         message: message,
     };
     sendAIPanelNotification(msg);
