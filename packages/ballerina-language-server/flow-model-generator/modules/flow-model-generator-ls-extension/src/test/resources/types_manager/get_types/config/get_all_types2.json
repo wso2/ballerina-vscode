@@ -96,6 +96,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -194,6 +195,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -288,7 +290,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -298,7 +301,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -308,7 +312,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -363,10 +368,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -519,6 +526,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -648,7 +656,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               },
               {
                 "kind": "FIELD",
@@ -658,7 +667,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               },
               {
                 "kind": "FIELD",
@@ -670,7 +680,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               }
             ],
             "includes": [],
@@ -682,6 +693,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -832,6 +844,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -926,7 +939,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -936,7 +950,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -946,10 +961,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]
