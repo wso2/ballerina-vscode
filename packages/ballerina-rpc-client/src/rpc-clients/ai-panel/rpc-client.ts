@@ -331,7 +331,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
     }
 
-    getGeneratedDocumentation(params: DocGenerationRequest): Promise<boolean> {
+    getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
         return this._messenger.sendRequest(getGeneratedDocumentation, HOST_EXTENSION, params);
     }
 

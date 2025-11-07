@@ -142,7 +142,7 @@ Rules:
 
                 if (!isNewPlan && !isPlanRemodification) {
                     const missingTasksError = validateAllTasksIncluded(input, existingPlan);
-                    if (missingTasksError) return missingTasksError;
+                    if (missingTasksError) { return missingTasksError; }
                 }
 
                 let approvalResult: { approved: boolean; comment?: string; approvedTaskDescription?: string } | undefined;
