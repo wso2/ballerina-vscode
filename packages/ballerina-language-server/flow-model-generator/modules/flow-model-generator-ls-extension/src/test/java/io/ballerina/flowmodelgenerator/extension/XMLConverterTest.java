@@ -106,7 +106,7 @@ public class XMLConverterTest extends AbstractLSTest {
         if (!generatedRecords.equals(expectedRecords)) {
             TestConfig updatedConfig = new TestConfig(testConfig.filePath(), testConfig.xmlString(),
                     testConfig.prefix(), testConfig.isClosed(), testConfig.isRecordTypeDesc(), sb.toString());
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.filePath(), configJsonPath));
         }
     }
