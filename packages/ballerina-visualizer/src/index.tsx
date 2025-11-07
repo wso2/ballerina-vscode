@@ -20,7 +20,8 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { Visualizer } from "./Visualizer";
-import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider, PlatformExtContextProvider } from "./Context";
+import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider } from "./Context";
+import { PlatformExtContextProvider } from "./utils/PlatformExtContext";
 import { clearDiagramZoomAndPosition } from "./utils/bi";
 
 const queryClient = new QueryClient({
