@@ -22,15 +22,21 @@ import { StateMachine } from "../../stateMachine";
 import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
+import { getCurrentProjectRoot } from "../debugger";
 
 let groups: string[] = [];
 
 export async function discoverTestFunctionsInProject(ballerinaExtInstance: BallerinaExtension,
     testController: TestController) {
     groups.push(testController.id);
-    const request: TestsDiscoveryRequest = {
-        projectPath: StateMachine.context().projectPath
-    };
+
+    const projectPath = await getCurrentProjectRoot();
+
+    if (!projectPath) {
+        return;
+    }
+
+    const request: TestsDiscoveryRequest = { projectPath };
     const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getProjectTestFunctions(request);
     if (response) {
         createTests(response, testController);
