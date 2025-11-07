@@ -40,7 +40,7 @@ import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import { log, debug as debugLog, isSupportedSLVersion, isWindows, checkIsBallerinaPackage } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
@@ -66,7 +66,6 @@ import { findHighestVersionJdk } from '../../utils/server/server';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
-const BALLERINA_TOML = `Ballerina.toml`;
 
 export enum DEBUG_REQUEST {
     LAUNCH = 'launch'
@@ -765,36 +764,72 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-export async function getCurrentProjectRoot(): Promise<string> {
-    // 1. Check if the project path is already set in the state machine context
-    let currentProjectRoot = StateMachine.context().projectPath;
-    if (currentProjectRoot) {
-        return currentProjectRoot;
-    }
-
-    // 2. Try to get any open Ballerina files in the editor and determine the project root from there
-    let file: string | undefined;
+/**
+ * Safely attempts to get the current Ballerina file without throwing errors.
+ * @returns The current Ballerina file path or undefined if not available
+ */
+function tryGetCurrentBallerinaFile(): string | undefined {
     try {
-        file = getCurrentBallerinaFile();
-    } catch (error) {
-        // ignore
+        return getCurrentBallerinaFile();
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Resolves the project root from the given Ballerina file.
+ * @param filePath The Ballerina file path
+ * @returns The project root path or undefined if unable to resolve
+ */
+async function resolveProjectRootFromFile(filePath: string): Promise<string | undefined> {
+    try {
+        const project = await getCurrentBallerinaProject(filePath);
+        
+        if (project.kind === PROJECT_TYPE.SINGLE_FILE) {
+            return filePath;
+        }
+        
+        return project.path;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Determines and returns the current project root directory.
+ * 
+ * Resolution order:
+ * 1. State machine context (when working within a webview)
+ * 2. Open Ballerina file's project root
+ * 3. Workspace root (if it's a valid Ballerina package)
+ * 
+ * @returns The current project root path
+ * @throws Error if unable to determine a valid Ballerina project root
+ */
+export async function getCurrentProjectRoot(): Promise<string> {
+    const currentFilePath = tryGetCurrentBallerinaFile();
+    const contextProjectRoot = StateMachine.context()?.projectPath;
+
+    // Use state machine context only when not in a regular text editor (e.g., within a webview)
+    if (contextProjectRoot && !currentFilePath) {
+        return contextProjectRoot;
     }
 
-    if (file) {
-        const currentProject = await getCurrentBallerinaProject(file);
-        if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE) {
-            return file;
-        } else if (currentProject.path) {
-            return currentProject.path;
+    // Resolve project root from the currently open Ballerina file
+    if (currentFilePath) {
+        const projectRoot = await resolveProjectRootFromFile(currentFilePath);
+        if (projectRoot) {
+            return projectRoot;
         }
     }
 
-    // 3. Fallback to workspace root
+    // Fallback to workspace root if it's a valid Ballerina package
     const workspaceRoot = getWorkspaceRoot();
-    if (!workspaceRoot ) {
+    if (!workspaceRoot) {
         throw new Error("Unable to determine the current workspace root.");
     }
-    if (isBallerinaProject(workspaceRoot)) {
+
+    if (await checkIsBallerinaPackage(Uri.file(workspaceRoot))) {
         return workspaceRoot;
     }
 
@@ -838,9 +873,4 @@ function findFreePort(): Promise<number> {
 function isFastRunEnabled(): boolean {
     const config = workspace.getConfiguration('ballerina');
     return config.get<boolean>('enableRunFast');
-}
-
-function isBallerinaProject(projectPath: string): boolean {
-    const ballerinaToml = path.join(projectPath, BALLERINA_TOML);
-    return existsSync(ballerinaToml);
 }
