@@ -17,8 +17,8 @@
  */
 
 import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
-import { RequestType } from "vscode-messenger-common";
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp } from "./interfaces";
+import { NotificationType, RequestType } from "vscode-messenger-common";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "./interfaces";
 
 const _preFix = "platform-ext";
 // BI ext handlers
@@ -37,3 +37,6 @@ export const getConnection: RequestType<GetConnectionItemReq,  ConnectionListIte
 export const deleteConnection: RequestType<DeleteConnectionReq,  void> = { method: `${_preFix}/deleteConnection` };
 export const deleteLocalConnectionsConfig: RequestType<DeleteLocalConnectionsConfigReq,  void> = { method: `${_preFix}/deleteLocalConnectionsConfig` };
 export const getDevantConsoleUrl: RequestType<void,  string> = { method: `${_preFix}/getDevantConsoleUrl` };
+
+// Notifications
+export const onPlatformExtStoreStateChange: NotificationType<PlatformExtState> = { method: `${_preFix}/onPlatformExtStoreStateChange` };

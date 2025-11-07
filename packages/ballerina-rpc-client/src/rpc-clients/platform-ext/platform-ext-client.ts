@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getSelectedContext, isLoggedIn, getDirectoryComponents, getDirectoryComponent, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteConnection, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getSelectedContext, isLoggedIn, getDirectoryComponents, getDirectoryComponent, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteConnection, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
     private _messenger: Messenger;
@@ -83,5 +83,9 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     getDevantConsoleUrl(): Promise<string> {
         return this._messenger.sendRequest(getDevantConsoleUrl, HOST_EXTENSION, undefined);
+    }
+
+    onPlatformExtStoreStateChange(callback: (state: PlatformExtState) => void) {
+        this._messenger.onNotification(onPlatformExtStoreStateChange, callback);
     }
 }

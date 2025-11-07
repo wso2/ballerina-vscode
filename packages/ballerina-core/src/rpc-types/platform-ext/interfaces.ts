@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ConnectionListItem, MarketplaceItem } from "@wso2/wso2-platform-core";
+import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceItem } from "@wso2/wso2-platform-core";
 
 export interface CreateDevantConnectionReq {
     params:{
@@ -37,4 +37,10 @@ export interface CreateDevantConnectionResp {
 
 export interface ImportDevantConnectionResp {
     connectionName: string;
+}
+
+export interface PlatformExtState {
+	isLoggedIn: boolean;
+	components: ComponentKind[];
+	selectedContext?: ContextItemEnriched;
 }
