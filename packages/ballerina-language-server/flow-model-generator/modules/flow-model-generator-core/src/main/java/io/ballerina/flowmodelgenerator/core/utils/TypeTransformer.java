@@ -741,6 +741,9 @@ public class TypeTransformer {
         //TODO: Solve how imports of annotations will be handled
     }
 
+    // TODO: 1. Analyze service declaration, classes, objects, function return types and parameters for annotations
+    // TODO: Handle different configuration views for types related to annotations -
+    //  Fix https://github.com/wso2-enterprise/integration-product-management/issues/471
     private AnnotationAttachment transform(AnnotationAttachmentSymbol annotAttachmentSymbol, AbstractBuilder builder) {
         AnnotationSymbol annotDefSymbol = annotAttachmentSymbol.typeDescriptor();
         ModuleID moduleId = annotDefSymbol.getModule().get().id();
