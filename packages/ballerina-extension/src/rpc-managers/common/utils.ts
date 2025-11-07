@@ -17,12 +17,9 @@
  */
 
 import * as os from 'os';
-import * as fs from 'fs';
-import path from "path";
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit, PackageTomlValues, WorkspaceTomlValues } from "@wso2/ballerina-core";
-import { parse } from "toml";
+import { TextEdit } from "@wso2/ballerina-core";
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
