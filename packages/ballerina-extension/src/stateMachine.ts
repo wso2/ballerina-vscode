@@ -120,6 +120,7 @@ const stateMachine = createMachine<MachineContext>(
                                 }),
                                 async (context, event) => {
                                     await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
+                                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
                                     notifyCurrentWebview();
                                 }
                             ]
@@ -880,7 +881,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
                 : path.join(workspaceURI.fsPath, targetPackage);
             const packageUri = Uri.file(packagePath);
 
-            const isBallerinaPackage = checkIsBallerinaPackage(packageUri);
+            const isBallerinaPackage = await checkIsBallerinaPackage(packageUri);
             const isBI = isBallerinaPackage && checkIsBI(packageUri);
             const scope = fetchScope(packageUri);
             const projectPath = isBallerinaPackage ? packagePath : "";
@@ -896,7 +897,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
             return { isBI: false, projectPath: '' };
         }
     } else {
-        const isBallerinaPackage = checkIsBallerinaPackage(workspaceURI);
+        const isBallerinaPackage = await checkIsBallerinaPackage(workspaceURI);
         const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
         const scope = fetchScope(workspaceURI);
         const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";

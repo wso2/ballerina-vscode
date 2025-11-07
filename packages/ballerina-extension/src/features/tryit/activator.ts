@@ -68,19 +68,18 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             throw new Error('Ballerina Language Server is not connected');
         }
 
-        let projectPath = StateMachine.context().projectPath;
-        if (!projectPath) {
-            const currentProjectRoot = await getCurrentProjectRoot();
-            if (!currentProjectRoot) {
-                throw new Error('Please open a workspace first');
-            }
-            // If currentProjectRoot is a file (single file project), use its directory
-            // Otherwise, use the current project root
-            try {
-                projectPath = getProjectWorkingDirectory(currentProjectRoot);
-            } catch (error) {
-                throw new Error(`Failed to determine working directory`);
-            }
+        const currentProjectRoot = await getCurrentProjectRoot();
+        if (!currentProjectRoot) {
+            throw new Error('Please open a workspace first');
+        }
+
+        // If currentProjectRoot is a file (single file project), use its directory
+        // Otherwise, use the current project root
+        let projectPath: string;
+        try {
+            projectPath = getProjectWorkingDirectory(currentProjectRoot);
+        } catch (error) {
+            throw new Error(`Failed to determine working directory`);
         }
 
         let services: ServiceInfo[] | null = await getAvailableServices(projectPath);
@@ -473,6 +472,8 @@ async function getOpenAPIDefinition(service: ServiceInfo): Promise<OAISpec> {
 
         if (openapiDefinitions === 'NOT_SUPPORTED_TYPE') {
             throw new Error(`OpenAPI spec generation failed for the service with base path: '${service.basePath}'`);
+        } else if (openapiDefinitions.error) {
+            throw new Error(openapiDefinitions.error);
         }
 
         const matchingDefinition = (openapiDefinitions as OpenAPISpec).content?.filter(content =>
