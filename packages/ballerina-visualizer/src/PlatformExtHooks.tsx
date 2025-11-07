@@ -24,6 +24,7 @@ export const PlatformExtHookKeys = {
     getProjectToml: ["projectToml"],
 }
 
+// todo: try moving this to context
 export const PlatformExtHooks = {
     isLoggedIn: ()=>{
         const { rpcClient } = useRpcContext();

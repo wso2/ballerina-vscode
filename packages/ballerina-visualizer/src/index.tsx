@@ -20,7 +20,7 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { Visualizer } from "./Visualizer";
-import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider } from "./Context";
+import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider, PlatformExtContextProvider } from "./Context";
 import { clearDiagramZoomAndPosition } from "./utils/bi";
 
 const queryClient = new QueryClient({
@@ -44,7 +44,9 @@ export function renderWebview(mode: string, target: HTMLElement) {
             <ModalStackProvider>
                 <RpcContextProvider>
                     <QueryClientProvider client={queryClient}>
-                        <Visualizer mode={mode} />
+                        <PlatformExtContextProvider>
+                            <Visualizer mode={mode} />
+                        </PlatformExtContextProvider>
                     </QueryClientProvider>
                 </RpcContextProvider>
             </ModalStackProvider>

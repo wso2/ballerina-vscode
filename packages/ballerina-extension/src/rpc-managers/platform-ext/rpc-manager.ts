@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { PlatformExtAPI, SyntaxTree, TomlValues } from "@wso2/ballerina-core";
+import { onPlatformExtStoreStateChange, PlatformExtAPI, SyntaxTree, TomlValues } from "@wso2/ballerina-core";
 import { extensions, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -58,24 +58,63 @@ import Handlebars from "handlebars";
 import { CaptureBindingPattern, ModulePart, ModuleVarDecl, STKindChecker } from "@wso2/syntax-tree";
 import * as yaml from "js-yaml";
 import { DeleteBiDevantConnectionReq, OpenAPIDefinition } from "./types";
+import { platformExtStore } from "./platform-store";
+import { Messenger } from "vscode-messenger";
+import { VisualizerWebview } from "../../views/visualizer/webview";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
-    private async getPlatformExt() {
-        const platformExt = extensions.getExtension("wso2.wso2-platform");
-        if (!platformExt) {
-            throw new Error("platform ext not installed");
-        }
-        if (!platformExt.isActive) {
-            await platformExt.activate();
-        }
-        const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
-        return platformExtAPI;
+    private platformExt: IWso2PlatformExtensionAPI;
+    constructor() {
+        const getPlatformExt = async () => {
+            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            if (!platformExt) {
+                throw new Error("platform ext not installed");
+            }
+            if (!platformExt.isActive) {
+                await platformExt.activate();
+            }
+            const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
+            return platformExtAPI;
+        };
+
+        (async () => {
+            this.platformExt = await getPlatformExt();
+            await platformExtStore.persist.rehydrate();
+
+            const isLoggedIn = this.platformExt.isLoggedIn();
+            const components = this.platformExt.getDirectoryComponents(StateMachine.context().projectUri);
+            const selectedContext = this.platformExt.getSelectedContext();
+
+            platformExtStore.getState().setState({ isLoggedIn, components, selectedContext });
+
+            this.platformExt.subscribeIsLoggedIn((isLoggedIn) => {
+                platformExtStore.getState().setState({ isLoggedIn });
+            });
+            this.platformExt.subscribeDirComponents(StateMachine.context().projectUri, (components) => {
+                platformExtStore.getState().setState({ components });
+            });
+            this.platformExt.subscribeContextState((selectedContext) => {
+                platformExtStore.getState().setState({ selectedContext });
+            });
+
+            // todo: move devant related initializers here
+        })();
     }
 
+    public initStateSubscription(messenger: Messenger) {
+        platformExtStore.subscribe((state) => {
+            messenger.sendNotification(
+                onPlatformExtStoreStateChange,
+                { type: "webview", webviewType: VisualizerWebview.viewType },
+                state.state
+            );
+        });
+    }
+
+    // todo: check and delete unused rpc functions
     async isLoggedIn(): Promise<boolean> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.isLoggedIn();
+            return this.platformExt?.isLoggedIn();
         } catch (err) {
             log(`Failed to invoke isLoggedIn: ${err}`);
         }
@@ -83,8 +122,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getMarketplaceItems(params: GetMarketplaceListReq): Promise<MarketplaceListResp> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getMarketplaceItems(params);
+            return this.platformExt?.getMarketplaceItems(params);
         } catch (err) {
             log(`Failed to invoke getMarketplaceItems: ${err}`);
         }
@@ -92,8 +130,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getMarketplaceItem(params: GetMarketplaceItemReq): Promise<MarketplaceItem> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getMarketplaceItem(params);
+            return this.platformExt?.getMarketplaceItem(params);
         } catch (err) {
             log(`Failed to invoke getMarketplaceItem: ${err}`);
         }
@@ -101,8 +138,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getSelectedContext(): Promise<ContextItemEnriched | undefined> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getSelectedContext() || null;
+            return this.platformExt?.getSelectedContext() || null;
         } catch (err) {
             log(`Failed to invoke getMarketplaceItems: ${err}`);
         }
@@ -110,8 +146,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getDirectoryComponents(fsPath: string): Promise<ComponentKind[]> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getDirectoryComponents(fsPath) || [];
+            return this.platformExt?.getDirectoryComponents(fsPath) || [];
         } catch (err) {
             log(`Failed to invoke getDirectoryComponents: ${err}`);
         }
@@ -119,8 +154,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getDirectoryComponent(fsPath: string): Promise<ComponentKind | null> {
         try {
-            const platformExt = await this.getPlatformExt();
-            const components = platformExt.getDirectoryComponents(fsPath);
+            const components = this.platformExt?.getDirectoryComponents(fsPath);
             return components?.length > 0 ? components[0] : null;
         } catch (err) {
             log(`Failed to invoke getDirectoryComponent: ${err}`);
@@ -129,8 +163,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getMarketplaceIdl(params: GetMarketplaceIdlReq): Promise<MarketplaceIdlResp> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getMarketplaceIdl(params);
+            return this.platformExt?.getMarketplaceIdl(params);
         } catch (err) {
             log(`Failed to invoke getMarketplaceIdl: ${err}`);
         }
@@ -138,8 +171,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getConnections(params: GetConnectionsReq): Promise<ConnectionListItem[]> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getConnections(params);
+            return this.platformExt?.getConnections(params);
         } catch (err) {
             log(`Failed to invoke getConnections: ${err}`);
         }
@@ -147,8 +179,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getConnection(params: GetConnectionItemReq): Promise<ConnectionListItem> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getConnection(params);
+            return this.platformExt?.getConnection(params);
         } catch (err) {
             log(`Failed to invoke getConnection: ${err}`);
         }
@@ -156,8 +187,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async deleteConnection(params: DeleteConnectionReq): Promise<void> {
         try {
-            const platformExt = await this.getPlatformExt();
-            await platformExt.deleteConnection(params);
+            await this.platformExt?.deleteConnection(params);
         } catch (err) {
             log(`Failed to delete getConnection: ${err}`);
         }
@@ -165,8 +195,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async deleteLocalConnectionsConfig(params: DeleteLocalConnectionsConfigReq): Promise<void> {
         try {
-            const platformExt = await this.getPlatformExt();
-            platformExt.deleteLocalConnectionsConfig(params);
+            this.platformExt?.deleteLocalConnectionsConfig(params);
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
         }
@@ -174,8 +203,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async getDevantConsoleUrl(): Promise<string> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.getDevantConsoleUrl();
+            return this.platformExt?.getDevantConsoleUrl();
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
         }
@@ -183,8 +211,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async stopProxyServer(params: StopProxyServerReq): Promise<void> {
         try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt.stopProxyServer(params);
+            return this.platformExt?.stopProxyServer(params);
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
         }
@@ -213,8 +240,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 const selected = await this.getSelectedContext();
                 if (selected?.org && selected?.project) {
                     const selectedComp = await this.getDirectoryComponent(StateMachine.context().projectUri);
-                    const platformExt = await this.getPlatformExt();
-                    const resp = await platformExt.startProxyServer({
+                    const resp = await this.platformExt?.startProxyServer({
                         orgId: selected?.org?.id?.toString(),
                         project: selected?.project?.id,
                         component: selectedComp?.metadata?.id || "",
@@ -399,12 +425,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
         try {
             const projectPath = StateMachine.context().projectUri;
-            const platformExt = await this.getPlatformExt();
 
             const component = await this.getDirectoryComponent(projectPath);
             const selected = await this.getSelectedContext();
 
-            const createdConnection = await platformExt.createComponentConnection({
+            const createdConnection = await this.platformExt?.createComponentConnection({
                 componentId: component.metadata?.id,
                 name: params.params.name,
                 orgId: selected?.org.id?.toString(),
@@ -444,18 +469,17 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }): Promise<{ connectionName: string }> {
         StateMachine.setEditMode();
         const projectPath = StateMachine.context().projectUri;
-        const platformExt = await this.getPlatformExt();
 
-        const selected = await this.getSelectedContext();
+        const selected = this.platformExt?.getSelectedContext();
 
-        await platformExt.createConnectionConfig({
+        await this.platformExt?.createConnectionConfig({
             componentDir: projectPath,
             marketplaceItem: params.marketplaceItem,
             name: params.name,
             visibility: params.visibility,
         });
 
-        const serviceIdl = await platformExt.getMarketplaceIdl({
+        const serviceIdl = await this.platformExt?.getMarketplaceIdl({
             orgId: selected?.org.id?.toString(),
             serviceId: params.marketplaceItem.serviceId,
         });
