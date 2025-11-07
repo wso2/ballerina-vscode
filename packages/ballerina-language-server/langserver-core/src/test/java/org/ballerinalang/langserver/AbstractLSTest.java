@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -138,8 +139,14 @@ public abstract class AbstractLSTest {
         BallerinaDistribution ballerinaDistribution = BallerinaDistribution.from(environment);
         PackageRepository packageRepository = ballerinaDistribution.packageRepository();
         List<String> skippedLangLibs = Arrays.asList("lang.annotations", "lang.__internal", "lang.query");
-        return lsPackageLoader.checkAndResolvePackagesFromRepository(packageRepository, Collections.emptyMap(),
-                skippedLangLibs, Collections.emptySet());
+        Map<String, Map<String, Map<String, List<LSPackageLoader.ListenerData>>>> listenersMap = new HashMap<>();
+
+        listenersMap.computeIfAbsent("ballerina", k -> new HashMap<>())
+                .computeIfAbsent("module1", k -> new HashMap<>())
+                .computeIfAbsent("0.0.0", k -> new ArrayList<>())
+                .add(new LSPackageLoader.ListenerData("Listener", "args1", 1));
+        return lsPackageLoader.checkAndResolvePackagesFromRepository(packageRepository, listenersMap, skippedLangLibs,
+                Collections.emptySet());
     }
 
     protected static List<Package> getPackages(Map<String, String> projects,

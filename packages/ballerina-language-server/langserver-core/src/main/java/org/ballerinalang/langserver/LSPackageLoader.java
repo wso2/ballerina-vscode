@@ -522,7 +522,7 @@ public class LSPackageLoader {
         }
     }
 
-    private record ListenerData(
+    public record ListenerData(
             String symbolName,
             String args,
             int index
