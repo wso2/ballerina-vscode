@@ -359,11 +359,9 @@ public class TypeTransformer {
 
     private static void insertGraphqlImport(Member.MemberBuilder memberBuilder) {
         // TODO: Annotations from other imported modules are not supported yet
-        memberBuilder.imports(
-                Map.of(
-                        TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
-                        TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
-                )
+        memberBuilder.addImport(
+                TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
         );
     }
 

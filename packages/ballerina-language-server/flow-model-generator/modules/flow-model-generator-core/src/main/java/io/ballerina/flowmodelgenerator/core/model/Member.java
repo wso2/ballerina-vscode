@@ -48,10 +48,10 @@ public record Member(
         boolean readonly,
         boolean isGraphqlId,
         String docs,
-        List<TypeData.AnnotationAttachment> annotationAttachments,
+        List<AnnotationAttachment> annotationAttachments,
         Map<String, String> imports
 ) {
-    public static class MemberBuilder {
+    public static class MemberBuilder extends AbstractBuilder {
         private Member.MemberKind kind;
         private List<String> refs;
         private Object type;
@@ -61,8 +61,6 @@ public record Member(
         private boolean readonly = false;
         private boolean isGraphqlId = false;
         private String docs;
-        private List<TypeData.AnnotationAttachment> annotationAttachments;
-        private Map<String, String> imports;
 
         public MemberBuilder() {
         }
@@ -109,16 +107,6 @@ public record Member(
 
         public MemberBuilder docs(String docs) {
             this.docs = docs;
-            return this;
-        }
-
-        public MemberBuilder annotationAttachments(List<TypeData.AnnotationAttachment> annotationAttachments) {
-            this.annotationAttachments = annotationAttachments;
-            return this;
-        }
-
-        public MemberBuilder imports(Map<String, String> imports) {
-            this.imports = imports;
             return this;
         }
 
