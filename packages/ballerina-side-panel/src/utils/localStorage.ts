@@ -53,7 +53,7 @@ export const getDefaultExpandedState = (categories: string[]): ExpandedCategorie
         "Model Providers",
         "Vector Stores",
         "Embedding Providers",
-        "Vector Knowledge Bases",
+        "Knowledge Bases",
         "Data Loaders",
         "Chunkers",
     ];

@@ -81,7 +81,7 @@ export function FunctionForm(props: ResourceFormProps) {
 				<EditorContentColumn>
 					<FunctionName name={functionModel.name} onChange={onNameChange} readonly={!functionModel.name.editable} />
 					<Divider />
-					<Parameters parameters={functionModel.parameters} onChange={handleParamChange} canAddParameters={functionModel.canAddParameters} />
+					<Parameters parameters={[]} onChange={handleParamChange} canAddParameters={true} />
 					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Returns</Typography>
 					<FunctionReturn returnType={functionModel.returnType} onChange={handleResponseChange} readonly={!functionModel.returnType.editable} />
 				</EditorContentColumn>

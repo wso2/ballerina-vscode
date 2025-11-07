@@ -61,6 +61,32 @@ export function isEnumMember(parent: InputNode): boolean {
 }
 
 export function isPrimitive(typeKind: TypeKind): boolean {
-    return typeKind === TypeKind.String || typeKind === TypeKind.Int || typeKind === TypeKind.Float ||
-        typeKind === TypeKind.Decimal || typeKind === TypeKind.Boolean || typeKind === TypeKind.Byte;
+    const genericTypeKind = getGenericTypeKind(typeKind);
+    return genericTypeKind === TypeKind.String ||
+        genericTypeKind === TypeKind.Int ||
+        genericTypeKind === TypeKind.Float ||
+        genericTypeKind === TypeKind.Decimal ||
+        genericTypeKind === TypeKind.Boolean ||
+        genericTypeKind === TypeKind.Byte;
 }
+
+export function getGenericTypeKind(typeKind: TypeKind): TypeKind {
+    switch (typeKind) {
+        case TypeKind.IntSigned8:
+            return TypeKind.Int;
+        case TypeKind.IntSigned16:
+            return TypeKind.Int;
+        case TypeKind.IntSigned32:
+            return TypeKind.Int;
+        case TypeKind.IntUnsigned8:
+            return TypeKind.Int;
+        case TypeKind.IntUnsigned16:
+            return TypeKind.Int;
+        case TypeKind.IntUnsigned32:
+            return TypeKind.Int;
+        case TypeKind.StringChar:
+            return TypeKind.String;
+        default:
+            return typeKind;
+    }
+};

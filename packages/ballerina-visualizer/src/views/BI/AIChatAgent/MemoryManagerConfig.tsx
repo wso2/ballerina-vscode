@@ -16,21 +16,22 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { CodeData, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
-import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { convertConfig } from "../../../utils/bi";
-import ConfigForm from "./ConfigForm";
-import { Dropdown } from "@wso2/ui-toolkit";
+import { Codicon, Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
+import { useEffect, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
+import { FormGenerator } from "../Forms/FormGenerator";
 import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
+import { usePanelOverlay } from "../FlowDiagram/hooks/usePanelOverlay";
+import { ConnectionSelectionList } from "../../../components/ConnectionSelector/ConnectionSelectionList";
+import { ConnectionCreator } from "../../../components/ConnectionSelector/ConnectionCreator";
+import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
 
 const Container = styled.div`
-    padding: 16px;
-    height: 100%;
+    padding: 24px 16px 0;
 `;
 
 const LoaderContainer = styled.div`
@@ -45,287 +46,405 @@ const Row = styled.div`
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
 `;
 
-interface MemoryManagerConfigProps {
-    agentCallNode: FlowNode;
+const WarningMessage = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    background-color: var(--vscode-inputValidation-warningBackground);
+    border: 1px solid var(--vscode-inputValidation-warningBorder);
+    border-radius: 4px;
+    color: var(--vscode-inputValidation-warningForeground);
+    font-size: 13px;
+    line-height: 1.4;
+`;
+
+interface MemoryConfigProps {
+    memoryNode: FlowNode;
+    agentNode: FlowNode;
     onSave?: () => void;
 }
 
-export function MemoryManagerConfig(props: MemoryManagerConfigProps): JSX.Element {
-    const { agentCallNode, onSave } = props;
+export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
+    const { agentNode, memoryNode: existingMemoryVariable, onSave } = props;
 
     const { rpcClient } = useRpcContext();
-    // use selected memory manager
-    const [memoryManagersCodeData, setMemoryManagersCodeData] = useState<CodeData[]>([]);
-    const [selectedMemoryManagerCodeData, setSelectedMemoryManagerCodeData] = useState<CodeData>();
-    // already assigned memory manager
-    const [selectedMemoryManager, setSelectedMemoryManager] = useState<FlowNode>();
-    const [selectedMemoryManagerFields, setSelectedMemoryManagerFields] = useState<FormField[]>([]);
+    const { openOverlay, closeTopOverlay } = usePanelOverlay();
 
-    const [loading, setLoading] = useState<boolean>(false);
-    const [savingForm, setSavingForm] = useState<boolean>(false);
+    const [availableMemory, setAvailableMemory] = useState<CodeData[]>([]);
+    const [memoryNodeTemplate, setMemoryNodeTemplate] = useState<FlowNode>();
+    const [memoryNode, setMemoryNode] = useState<FlowNode>();
+    const [selectedMemoryType, setSelectedMemoryType] = useState<string>("");
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
-    const moduleConnectionNodes = useRef<FlowNode[]>([]);
+    const targetLineRange = useRef<any>();
+    const currentOverlayId = useRef<string | null>(null);
 
     useEffect(() => {
         initPanel();
     }, []);
 
-    useEffect(() => {
-        if (memoryManagersCodeData?.length > 0 && selectedMemoryManager && !selectedMemoryManagerCodeData) {
-            fetchMemoryManagerNodeTemplate(selectedMemoryManager.codedata);
-        }
-    }, [memoryManagersCodeData, selectedMemoryManager]);
-
     const initPanel = async () => {
-        setLoading(true);
-        agentFilePath.current = await getAgentFilePath(rpcClient);
-        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
-        // fetch all memory managers
-        const memoryManagers = await fetchMemoryManagers();
-        // fetch selected agent memory manager
-        await fetchSelectedAgentMemoryManager(memoryManagers);
-        setLoading(false);
+        setIsLoading(true);
+
+        try {
+            // Fetch initial configuration data
+            agentFilePath.current = await getAgentFilePath(rpcClient);
+            aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+
+            // Load available memory
+            const memoryTypes = await fetchAvailableMemory();
+            if (memoryTypes.length > 0) {
+                await loadSelectedMemory(memoryTypes);
+            }
+        } catch (error) {
+            console.error("Error initializing memory config panel", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const fetchMemoryManagers = async () => {
-        console.log(">>> agent call node", agentCallNode);
-        const agentName = agentCallNode?.properties.connection.value;
-        if (!agentName) {
-            console.error("Agent name not found", agentCallNode);
-            return;
-        }
+    const fetchAvailableMemory = async (): Promise<CodeData[]> => {
         try {
-            const memoryManagerSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                 filePath: agentFilePath.current,
                 queryMap: { orgName: aiModuleOrg.current },
-                searchKind: "MEMORY_MANAGER"
+                searchKind: "MEMORY"
             });
 
-            if (!memoryManagerSearchResponse?.categories?.[0]?.items) {
-                console.error("No memory managers found in search response");
+            if (!searchResponse?.categories?.[0]?.items) {
+                console.error("No memory found in search response");
                 return [];
             }
 
-            const memoryManagers = memoryManagerSearchResponse.categories[0].items.map((item: any) => item.codedata);
-            console.log(">>> all memory managers", memoryManagers);
-            setMemoryManagersCodeData(memoryManagers);
-            return memoryManagers;
+            const memoryTypes = searchResponse.categories[0].items.map((item: any) => item.codedata);
+            setAvailableMemory(memoryTypes);
+            return memoryTypes;
         } catch (error) {
-            console.error("Error fetching memory managers", error);
+            console.error("Error fetching memory", error);
+            return [];
         }
-        return [];
     };
 
-    const fetchSelectedAgentMemoryManager = async (memoryManagers: CodeData[]) => {
-        // get module nodes
-        const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-        if (!moduleNodes.flowModel.connections.length) {
-            console.error("No module connections found");
-            return;
-        }
-
-        moduleConnectionNodes.current = moduleNodes.flowModel.connections;
-
-        // get agent name
-        const agentName = agentCallNode.properties.connection.value;
-        if (!agentName) {
-            console.error("Agent name not found in agent call node");
-            return;
-        }
-
-        // get agent node
-        const agentNode = moduleConnectionNodes.current.find((node) => node.properties.variable.value === agentName);
+    const loadSelectedMemory = async (memoryTypes: CodeData[]): Promise<void> => {
         if (!agentNode) {
-            console.error("Agent node not found", agentCallNode);
+            console.error("Agent node reference not found");
             return;
         }
 
-        agentNodeRef.current = agentNode;
+        // Get the memory type from agent metadata
+        let currentMemoryType = (agentNode.metadata?.data as NodeMetadata)?.memory?.type as string;
 
-        // get memory manager name
-        const memoryManagerName = (agentNode.properties?.memory?.value as string) || ""; // "new ai:MessageWindowChatMemory(33)"
-        if (!memoryManagerName) {
-            console.log("No memory manager associated with this agent");
-            return;
+        // Remove "ai:" prefix if present
+        if (currentMemoryType?.startsWith("ai:")) {
+            currentMemoryType = currentMemoryType.substring(3);
         }
 
-        // get memory manager from available ones
-        const memoryManagerCodeData = memoryManagers.find((memory) => {
-            // Extract the memory manager type from the expression like "new ai:MessageWindowChatMemory(33)"
-            const memoryType = memoryManagerName.includes(":")
-                ? memoryManagerName.split(":")[1]?.split("(")[0]?.trim()
-                : memoryManagerName.split("(")[0]?.replace("new ", "")?.trim();
-            return memory.object === memoryType;
-        });
-        if (!memoryManagerCodeData) {
-            console.error("Memory manager not found in available memory managers");
-            return;
+        // Find the corresponding memory code data
+        let memoryCodeData: CodeData;
+        if (currentMemoryType) {
+            memoryCodeData = memoryTypes.find(
+                (memory) => memory.object === currentMemoryType
+            );
+
+            if (!memoryCodeData) {
+                console.error("Current memory not found in available memory");
+                memoryCodeData = memoryTypes[0];
+            }
+        } else {
+            console.log("No memory associated with this agent, using first available");
+            memoryCodeData = memoryTypes[0];
         }
 
-        setSelectedMemoryManagerCodeData(memoryManagerCodeData);
+        await loadMemoryTemplate(memoryCodeData);
+    };
 
-        const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
-            rpcClient,
-            memoryManagerCodeData,
-            agentFilePath.current
+    const extractMemorySizeFromAgent = (): string | null => {
+        if (!agentNode) {
+            return null;
+        }
+        const memoryValue = agentNode.properties?.memory?.value?.toString();
+        if (memoryValue) {
+            // Match patterns like "new ai:MessageWindowChatMemory(10)" or "MessageWindowChatMemory(10)"
+            const sizeMatch = memoryValue.match(/\((\d+)\)/);
+            if (sizeMatch && sizeMatch[1]) {
+                return sizeMatch[1];
+            }
+        }
+        return null;
+    };
+
+    const loadMemoryTemplate = async (memoryCodeData: CodeData): Promise<void> => {
+        setIsLoading(true);
+        try {
+            // Fetch the node template for the selected memory
+            const nodeTemplate = await getNodeTemplate(
+                rpcClient,
+                memoryCodeData,
+                agentFilePath.current
+            );
+
+            if (!nodeTemplate) {
+                console.error("Failed to get node template for memory");
+                return;
+            }
+
+            // Extract size from agent's memory configuration if available
+            const memorySizeFromAgent = extractMemorySizeFromAgent();
+            if (memorySizeFromAgent !== null && nodeTemplate.properties?.['size']) {
+                nodeTemplate.properties['size'].value = memorySizeFromAgent;
+            }
+
+            if (existingMemoryVariable) {
+                // Existing memory variable found - use its line range for editing/replacing
+                const existingType = existingMemoryVariable.properties.type.value.toString();
+                const isSameType = existingType.includes(memoryCodeData.object);
+
+                targetLineRange.current = existingMemoryVariable.codedata?.lineRange;
+                setMemoryNode(isSameType ? existingMemoryVariable : undefined);
+
+                nodeTemplate.codedata.lineRange = targetLineRange.current;
+                nodeTemplate.codedata.isNew = false;
+                setMemoryNodeTemplate(nodeTemplate);
+            } else {
+                // No existing memory - insert new one at end of file
+                const endOfFilePosition = await rpcClient
+                    .getBIDiagramRpcClient()
+                    .getEndOfFile({ filePath: agentFilePath.current });
+
+                targetLineRange.current = {
+                    fileName: agentFilePath.current,
+                    startLine: endOfFilePosition,
+                    endLine: endOfFilePosition
+                };
+
+                setMemoryNode(undefined);
+                setMemoryNodeTemplate(nodeTemplate);
+            }
+
+            // Update the selected memory type and remove "ai:" prefix if present
+            let memoryType = memoryCodeData.object;
+            if (memoryType?.startsWith("ai:")) {
+                memoryType = memoryType.substring(3);
+            }
+            setSelectedMemoryType(memoryType);
+        } catch (error) {
+            console.error("Error loading memory template", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleMemoryChange = async (memoryType: string): Promise<void> => {
+        const memoryCodeData = availableMemory.find(
+            (memory) => memory.object === memoryType
         );
-        if (!selectedMemoryManagerNodeTemplate) {
-            console.error("Failed to get node template for memory manager");
+
+        if (!memoryCodeData) {
+            console.error(`Memory not found: ${memoryType}`);
             return;
         }
 
-        // set properties size value
-        const sizeValue = memoryManagerName.split("(")[1]?.split(")")[0]?.trim();
-        if (sizeValue) {
-            selectedMemoryManagerNodeTemplate.properties.size.value = sizeValue;
-        }
-
-        // set properties variable
-        selectedMemoryManagerNodeTemplate.properties.variable.hidden = true;
-
-        setSelectedMemoryManager(selectedMemoryManagerNodeTemplate);
-        const memoryManagerFields = convertConfig(selectedMemoryManagerNodeTemplate.properties);
-        setSelectedMemoryManagerFields(memoryManagerFields);
+        await loadMemoryTemplate(memoryCodeData);
     };
 
-    // fetch selected memory manager code data - node template
-    const fetchMemoryManagerNodeTemplate = async (memoryManagerCodeData: CodeData) => {
-        setLoading(true);
-        const selectedMemoryManagerNodeTemplate = await getNodeTemplate(
-            rpcClient,
-            memoryManagerCodeData,
-            agentFilePath.current
-        );
-        if (!selectedMemoryManagerNodeTemplate) {
-            console.error("Failed to get node template for memory manager");
+    const handleOnSave = async (updatedNode?: FlowNode): Promise<void> => {
+        if (!agentNode) {
+            console.error("Agent node not found", { agentNode, agentNodeRef });
             return;
         }
-        // set properties variable
-        selectedMemoryManagerNodeTemplate.properties.variable.hidden = true;
 
-        setSelectedMemoryManager(selectedMemoryManagerNodeTemplate);
-        const memoryManagerFields = convertConfig(selectedMemoryManagerNodeTemplate.properties);
-        setSelectedMemoryManagerFields(memoryManagerFields);
-        setLoading(false);
+        setIsSaving(true);
+
+        try {
+            // Save the memory configuration
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                filePath: agentFilePath.current,
+                flowNode: updatedNode,
+            });
+
+            // Update the agent node with the memory reference
+            const updatedAgentNode = cloneDeep(agentNode);
+            const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(updatedAgentNode?.codedata?.lineRange?.fileName);
+            updatedAgentNode.properties.memory.value = updatedNode?.properties.variable.value || "";
+
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                filePath: filePath,
+                flowNode: updatedAgentNode,
+            });
+
+            onSave?.();
+        } catch (error) {
+            console.error("Error saving memory configuration", error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleOnSave = async (data: FormField[], rawData: FormValues) => {
-        console.log(">>> save value", { data, rawData });
-        setSavingForm(true);
-        // update agent node memory manager
-        if (!agentNodeRef.current) {
-            console.error("Agent node not found", { agentCallNode, agentNodeRef });
+
+    const handleStoreCreated = (createdNode: FlowNode) => {
+        // Extract the store reference from the created node
+        const storeReference = createdNode.properties?.store?.value as string;
+
+        if (!storeReference) {
+            console.error("No store reference found in created node");
             return;
         }
-        const updatedAgentNode = cloneDeep(agentNodeRef.current);
-        // HACK: This is a hack to add the memory manager field to the agent node
-        // TODO: Remove this once the new apis are available
-        if (!updatedAgentNode.properties.memory) {
-            updatedAgentNode.properties.memory = {
-                metadata: {
-                    label: "Memory Manager",
-                    description: "",
-                },
-                valueType: "EXPRESSION",
-                valueTypeConstraint: "ai:MemoryManager|()",
-                value: "",
-                placeholder: "()",
-                optional: true,
-                editable: true,
-                advanced: true,
-                hidden: false,
-                codedata: {
-                    node: "INCLUDED_FIELD",
-                    symbol: "memory",
-                },
-                typeMembers: [
-                    {
-                        type: "MemoryManager",
-                        packageInfo: "ballerinax:ai:1.0.1",
-                        kind: "OBJECT_TYPE",
-                        selected: false,
-                    },
-                    {
-                        type: "()",
-                        packageInfo: "",
-                        kind: "BASIC_TYPE",
-                        selected: false,
-                    },
-                ],
-            };
+
+        // Update the memory template with the new store reference
+        if (memoryNodeTemplate) {
+            const updatedTemplate = cloneDeep(memoryNodeTemplate);
+            const storeProperty = (updatedTemplate.properties as any)['store'];
+            if (storeProperty) {
+                storeProperty.value = storeReference;
+            }
+            setMemoryNodeTemplate(updatedTemplate);
+
+            // If there's an existing memory node, update it too
+            if (memoryNode) {
+                const updatedNode = cloneDeep(memoryNode);
+                const nodeStoreProperty = (updatedNode.properties as any)['store'];
+                if (nodeStoreProperty) {
+                    nodeStoreProperty.value = storeReference;
+                }
+                setMemoryNode(updatedNode);
+            }
         }
 
-        const type = rawData.type || "ai:MessageWindowChatMemory";
-        const size = rawData.size || 10;
-        updatedAgentNode.properties.memory.value = `new ${type}(${size})`;
-        console.log(">>> updated agent node", updatedAgentNode);
-        const updatedAgentNodeResponse = await rpcClient.getBIDiagramRpcClient().getSourceCode({
-            filePath: agentFilePath.current,
-            flowNode: updatedAgentNode,
+        // Close the overlay
+        closeTopOverlay();
+    };
+
+    const handleSelectStore = async (nodeId: string, metadata?: any) => {
+        if (!currentOverlayId.current) {
+            return;
+        }
+
+        try {
+            const { flowNode } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                targetLineRange.current,
+                agentFilePath.current,
+                rpcClient
+            );
+
+            // Close the selection overlay and open the creation overlay
+            closeTopOverlay();
+
+            // Open the creation overlay
+            currentOverlayId.current = openOverlay({
+                title: "Create Memory Store",
+                content: (
+                    <ConnectionCreator
+                        connectionKind="MEMORY_STORE"
+                        selectedNode={memoryNode || memoryNodeTemplate}
+                        nodeFormTemplate={flowNode}
+                        onSave={handleStoreCreated}
+                    />
+                ),
+                onBack: handleBackToSelection,
+            });
+        } catch (error) {
+            console.error("Error selecting memory store:", error);
+        }
+    };
+
+    const handleBackToSelection = () => {
+        // Close the current overlay (Create Memory Store) before opening the previous one
+        closeTopOverlay();
+        // Then open the selection overlay
+        handleOpenStoreSelection();
+    };
+
+    const handleOpenStoreSelection = () => {
+        currentOverlayId.current = openOverlay({
+            title: "Select Memory Store",
+            content: (
+                <ConnectionSelectionList
+                    connectionKind="MEMORY_STORE"
+                    onSelect={handleSelectStore}
+                />
+            ),
+            onBack: closeTopOverlay,
         });
-        console.log(">>> updated agent node response", updatedAgentNodeResponse);
-        onSave?.();
-        setSavingForm(false);
     };
-
-    const memoryManagerDropdownPlaceholder = "Select a memory manager...";
 
     return (
-        <Container>
-            {memoryManagersCodeData?.length > 0 && (
-                <Row>
-                    <Dropdown
-                        isRequired
-                        errorMsg=""
-                        id="agent-memory-dropdown"
-                        items={[
-                            ...memoryManagersCodeData.map((memory) => ({
+        <>
+            {availableMemory.length > 0 && (
+                <Container>
+                    <Row>
+                        <Dropdown
+                            isRequired
+                            errorMsg=""
+                            id="agent-memory-dropdown"
+                            items={availableMemory.map((memory) => ({
                                 value: memory.object,
-                                content: memory.object,
-                            })),
-                        ]}
-                        label="Select Memory Manager"
-                        description={"Available Memory Managers"}
-                        onValueChange={(value) => {
-                            if (value === memoryManagerDropdownPlaceholder) {
-                                return; // Skip the init option
-                            }
-                            const selectedMemoryManagerCodeData = memoryManagersCodeData.find(
-                                (memory) => memory.object === value
-                            );
-                            setSelectedMemoryManagerCodeData(selectedMemoryManagerCodeData);
-                            fetchMemoryManagerNodeTemplate(selectedMemoryManagerCodeData);
-                        }}
-                        value={
-                            selectedMemoryManagerCodeData?.object ||
-                            ((agentCallNode?.metadata?.data as NodeMetadata)?.memory?.type as string) ||
-                            memoryManagerDropdownPlaceholder
-                        }
-                        containerSx={{ width: "100%" }}
-                    />
-                </Row>
+                                content: memory.object.replace(/([A-Z])/g, ' $1').trim(), // Convert camel case to words
+                            }))}
+                            label="Select Memory"
+                            description="Available Memory"
+                            onValueChange={handleMemoryChange}
+                            value={selectedMemoryType}
+                            containerSx={{ width: "100%" }}
+                        />
+                    </Row>
+                    {selectedMemoryType === "MessageWindowChatMemory" && availableMemory.length > 1 && (
+                        <WarningMessage>
+                            <Codicon name="warning" />
+                            <div>
+                                <strong>Note:</strong> Message Window Chat Memory is deprecated and may
+                                not be supported in future versions. Please use <strong>Short Term Memory</strong> instead.
+                            </div>
+                        </WarningMessage>
+                    )}
+                </Container>
             )}
-            {loading && (
+            {isLoading && (
                 <LoaderContainer>
                     <RelativeLoader />
                 </LoaderContainer>
             )}
-            {!loading && selectedMemoryManagerFields?.length > 0 && agentNodeRef.current?.codedata?.lineRange && (
-                <ConfigForm
+            {!isLoading && memoryNodeTemplate && targetLineRange.current && (
+                <FormGenerator
                     fileName={agentFilePath.current}
-                    formFields={selectedMemoryManagerFields}
-                    targetLineRange={agentNodeRef.current.codedata.lineRange}
+                    node={memoryNode || memoryNodeTemplate}
+                    nodeFormTemplate={memoryNodeTemplate}
+                    targetLineRange={targetLineRange.current}
                     onSubmit={handleOnSave}
-                    disableSaveButton={savingForm}
-                    isSaving={savingForm}
+                    disableSaveButton={isSaving}
+                    submitText={isSaving ? "Saving..." : "Save"}
+                    showProgressIndicator={isSaving}
+                    fieldOverrides={{
+                        store: {
+                            type: "ACTION_EXPRESSION",
+                            actionCallback: handleOpenStoreSelection,
+                            defaultValue: "In-Memory Short Term Memory Store",
+                            actionLabel: (
+                                <>
+                                    <Codicon name="add" />
+                                    Create New Memory Store
+                                </>
+                            ),
+                        },
+                        overflowConfiguration: {
+                            defaultValue: "Overflow Trim Configuration"
+                        },
+                        type: {
+                            hidden: true
+                        }
+                    }}
                 />
             )}
-        </Container>
+        </>
     );
 }

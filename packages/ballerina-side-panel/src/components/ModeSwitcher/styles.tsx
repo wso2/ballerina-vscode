@@ -69,15 +69,11 @@ export const Slider = styled.div<{ checked: boolean }>`
     height: calc(100% - 4px);
     width: ${props => props.checked ? 'calc(70% - 6px)' : 'calc(30% - 2px)'};
     left: ${props => props.checked ? 'calc(30% + 4px)' : '2px'};
-    top: 1px;
     border-radius: 1px;
     background: ${ThemeColors.SURFACE_DIM};
     transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
     z-index: 0;
     border: 1px solid ${ThemeColors.OUTLINE};
-    box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
   &:active:before {
