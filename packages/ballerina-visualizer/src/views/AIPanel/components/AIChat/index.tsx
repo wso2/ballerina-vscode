@@ -50,6 +50,7 @@ import {
     FileChanges,
     AIChatMachineEventType,
     AIChatMachineStateValue,
+    UIChatHistoryMessage,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -60,10 +61,10 @@ import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import RoleContainer from "../RoleContainter";
-import { Attachment, AttachmentStatus, Task, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 import { formatWithProperIndentation } from "../../../../utils/utils";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, TodoPanel } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
@@ -85,6 +86,7 @@ import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
+import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -97,6 +99,55 @@ interface ChatIndexes {
     integratedChatIndex: number;
     previouslyIntegratedChatIndex: number;
 }
+
+// Helper function to convert chat history messages to UI format
+const convertToUIMessages = (messages: UIChatHistoryMessage[]) => {
+    return messages.map((msg) => {
+        let role, type;
+        if (msg.role === "user") {
+            role = "User";
+            type = "user_message";
+        } else if (msg.role === "assistant") {
+            role = "Copilot";
+            type = "assistant_message";
+        }
+        return {
+            role: role,
+            type: type,
+            content: msg.content,
+        };
+    });
+};
+
+// Helper function to load chat history from localStorage
+const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
+    const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
+    const storedChatArray = localStorage.getItem(localStorageFile);
+    if (storedChatArray) {
+        const chatArrayFromStorage = JSON.parse(storedChatArray);
+        chatArray.length = 0;
+        chatArray.push(...chatArrayFromStorage);
+        // Add the messages from the chat array to the view
+        setMessages((prevMessages) => [
+            ...prevMessages,
+            ...chatArray.map((entry: ChatEntry) => {
+                let role, type;
+                if (entry.actor === "user") {
+                    role = "User";
+                    type = "user_message";
+                } else if (entry.actor === "assistant") {
+                    role = "Copilot";
+                    type = "assistant_message";
+                }
+                return {
+                    role: role,
+                    type: type,
+                    content: entry.message,
+                };
+            }),
+        ]);
+    }
+};
 
 enum CodeGenerationType {
     CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
@@ -157,8 +208,6 @@ const AIChat: React.FC = () => {
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
-    const [todoTasks, setTodoTasks] = useState<Task[] | null>(null);
-    const [tasksMessage, setTasksMessage] = useState<string | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -244,42 +293,26 @@ const AIChat: React.FC = () => {
                     previouslyIntegratedChatIndex = indexes.previouslyIntegratedChatIndex;
                 }
 
-                const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
-                const storedChatArray = localStorage.getItem(localStorageFile);
+                // TODO: Enable state machine-based chat history loading once fully tested
+                // Try to get chat history from state machine first
                 rpcClient
-                    .getAiPanelRpcClient()
-                    .getAIMachineSnapshot()
-                    .then((snapshot) => {
-                        if (storedChatArray) {
-                            const chatArrayFromStorage = JSON.parse(storedChatArray);
-                            chatArray = chatArrayFromStorage;
-                            // Add the messages from the chat array to the view
+                    .getAIChatUIHistory()
+                    .then((uiMessages: UIChatHistoryMessage[]) => {
+                        if (uiMessages && uiMessages.length > 0) {
+                            // Convert and set messages from state machine
                             setMessages((prevMessages) => [
                                 ...prevMessages,
-                                ...chatArray.map((entry: ChatEntry) => {
-                                    let role, type;
-                                    if (entry.actor === "user") {
-                                        role = "User";
-                                        type = "user_message";
-                                    } else if (entry.actor === "assistant") {
-                                        role = "Copilot";
-                                        type = "assistant_message";
-                                    }
-                                    return {
-                                        role: role,
-                                        type: type,
-                                        content: entry.message,
-                                    };
-                                }),
+                                ...convertToUIMessages(uiMessages)
                             ]);
-
-                            // Set initial messages only if chatArray's length is 0
                         } else {
-                            if (chatArray.length === 0) {
-                                setMessages((prevMessages) => [...prevMessages]);
-                            }
+                            // Fallback to localStorage if state machine has no messages
+                            loadFromLocalStorage(projectUuid, setMessages, chatArray);
                         }
-                        // }
+                    })
+                    .catch((error: any) => {
+                        // Fallback to localStorage if state machine call fails
+                        console.warn('[AIChat] Failed to get chat history from state machine, falling back to localStorage:', error);
+                        loadFromLocalStorage(projectUuid, setMessages, chatArray);
                     });
             });
     }, []);
@@ -329,6 +362,14 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "task_write") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
+                    }
+                    return newMessages;
+                });
             } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
                 const message = response.toolName === "file_read"
@@ -370,13 +411,6 @@ const AIChat: React.FC = () => {
             } else if (response.toolName == "TaskWrite") {
                 const taskOutput = response.toolOutput;
 
-                if (taskOutput.success && taskOutput.allTasks && taskOutput.allTasks.length > 0) {
-                    if (todoTasks && todoTasks.length > 0) {
-                        setTodoTasks(taskOutput.allTasks);
-                        setTasksMessage(taskOutput.message);
-                    }
-                }
-
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
@@ -385,11 +419,12 @@ const AIChat: React.FC = () => {
                                 taskOutput.message.includes("ERROR: Missing");
 
                             const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                            const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (isInternalError) {
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, "");
+                                ].content.replace(indicatorPattern, "").replace(todoPattern, "");
                             } else {
                                 let simplifiedMessage = "Task update failed";
 
@@ -406,7 +441,7 @@ const AIChat: React.FC = () => {
 
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`);
+                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
                             }
                         } else {
                             const todoData = {
@@ -415,15 +450,17 @@ const AIChat: React.FC = () => {
                             };
                             const todoJson = JSON.stringify(todoData);
 
-                            const taskPattern = /<toolcall>Planning\.\.\.<\/toolcall>|<todo>.*?<\/todo>/s;
                             const lastMessageContent = newMessages[newMessages.length - 1].content;
+                            const todoPattern = /<todo>.*?<\/todo>/s;
 
-                            if (taskPattern.test(lastMessageContent)) {
+                            if (todoPattern.test(lastMessageContent)) {
+                                // Replace existing todo section
                                 newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                                    taskPattern,
+                                    todoPattern,
                                     `<todo>${todoJson}</todo>`
                                 );
                             } else {
+                                // Add new todo section
                                 newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
                             }
                         }
@@ -458,23 +495,34 @@ const AIChat: React.FC = () => {
                 });
             }
         } else if (type === "task_approval_request") {
-            // Handle approval request from the backend
-            if (response.approvalType === "plan") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += ` <toolcall>Planning...</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            }
-
             setApprovalRequest({
                 approvalType: response.approvalType,
                 tasks: response.tasks,
                 taskDescription: response.taskDescription,
                 message: response.message,
             });
+            if (response.approvalType === "plan") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const todoData = {
+                            tasks: response.tasks,
+                            message: response.message
+                        };
+                        const todoJson = JSON.stringify(todoData);
+                        let lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                        const planningPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                        const todoPattern = /<todo>.*?<\/todo>/s;
+
+                        lastMessageContent = lastMessageContent.replace(planningPattern, '');
+                        lastMessageContent = lastMessageContent.replace(todoPattern, '');
+
+                        newMessages[newMessages.length - 1].content = lastMessageContent + `\n\n<todo>${todoJson}</todo>`;
+                    }
+                    return newMessages;
+                });
+            }
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
@@ -500,48 +548,80 @@ const AIChat: React.FC = () => {
                 command != undefined && command == Command.Code
             ); // Handle this in input layer?
             addChatEntry("assistant", messages[messages.length - 1].content);
-        } else if (type === "error") {
-            console.log("Received error signal");
-            const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;
+        } else if (type === "abort") {
+            console.log("Received abort signal");
+            const interruptedMessage = "\n\n*[Request interrupted by user]*";
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                let content = newMessages[newMessages.length - 1].content;
-
-                // Check if there's an unclosed code block and close it properly
-                const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
-                const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
-                const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
-
-                if (openCodeBlocks > closedCodeBlocks) {
-                    // Check what's missing at the end
-                    const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
-                    const endsWithBackticks = /```\s*$/.test(content.trim());
-                    const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
-
-                    if (endsWithPartialClose) {
-                        // Remove partial closing and add complete one
-                        content = content.replace(/```\s*<\/cod?e?$/, "");
-                        content += "\n```\n</code>";
-                    } else if (endsWithBackticks) {
-                        // Already has ```, just need </code>
-                        content += "\n</code>";
-                    } else if (endsWithPartialBackticks) {
-                        // Remove partial backticks and add complete closing
-                        content = content.replace(/`{1,2}$/, "");
-                        content += "\n```\n</code>";
-                    } else {
-                        // No closing elements, add both
-                        content += "\n```\n</code>";
-                    }
-                }
-
-                newMessages[newMessages.length - 1].content = content + errorTemplate;
-                console.log(newMessages);
+                newMessages[newMessages.length - 1].content += interruptedMessage;
                 return newMessages;
             });
             setIsCodeLoading(false);
             setIsLoading(false);
-            isErrorChunkReceivedRef.current = true;
+        } else if (type === "save_chat") {
+            console.log("Received save_chat signal");
+            const command = response.command;
+            const assistantMessageId = response.assistantMessageId;
+
+            // Save chat entries
+            addChatEntry(
+                "user",
+                messages[messages.length - 2].content,
+                command != undefined && command == Command.Code
+            );
+            addChatEntry("assistant", messages[messages.length - 1].content);
+
+            // Update assistant message in state machine with UI message
+            rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                payload: {
+                    id: assistantMessageId,
+                    uiResponse: messages[messages.length - 1].content
+                }
+            });
+        } else if (type === "error") {
+            console.log("Received error signal");
+            const errorContent = response.content;
+            const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    let content = newMessages[newMessages.length - 1].content;
+
+                    // Check if there's an unclosed code block and close it properly
+                    const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
+                    const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
+                    const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
+
+                    if (openCodeBlocks > closedCodeBlocks) {
+                        // Check what's missing at the end
+                        const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
+                        const endsWithBackticks = /```\s*$/.test(content.trim());
+                        const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
+
+                        if (endsWithPartialClose) {
+                            // Remove partial closing and add complete one
+                            content = content.replace(/```\s*<\/cod?e?$/, "");
+                            content += "\n```\n</code>";
+                        } else if (endsWithBackticks) {
+                            // Already has ```, just need </code>
+                            content += "\n</code>";
+                        } else if (endsWithPartialBackticks) {
+                            // Remove partial backticks and add complete closing
+                            content = content.replace(/`{1,2}$/, "");
+                            content += "\n```\n</code>";
+                        } else {
+                            // No closing elements, add both
+                            content += "\n```\n</code>";
+                        }
+                    }
+
+                    newMessages[newMessages.length - 1].content = content + errorTemplate;
+                    console.log(newMessages);
+                    return newMessages;
+                });
+                setIsCodeLoading(false);
+                setIsLoading(false);
+                isErrorChunkReceivedRef.current = true;
         }
     });
 
@@ -1858,8 +1938,6 @@ const AIChat: React.FC = () => {
         );
 
         setMessages((prevMessages) => []);
-        setTodoTasks(null);
-        setTasksMessage(undefined);
         setApprovalRequest(null);
 
         localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
@@ -2077,16 +2155,22 @@ const AIChat: React.FC = () => {
         });
     };
 
-    const handleApprovalApprove = (comment?: string) => {
+    const handleApprovalApprove = (enableAutoApprove: boolean) => {
         if (!approvalRequest) return;
+
+        if (enableAutoApprove && !isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(true);
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
+        } else if (!enableAutoApprove && isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(false);
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        }
 
         if (approvalRequest.approvalType === "plan") {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_PLAN,
-                payload: { comment }
+                payload: {}
             });
-            setTodoTasks(approvalRequest.tasks);
-            setTasksMessage(approvalRequest.message);
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
@@ -2095,7 +2179,6 @@ const AIChat: React.FC = () => {
             rpcClient.sendAIChatStateEvent({
                 type: AIChatMachineEventType.APPROVE_TASK,
                 payload: {
-                    comment,
                     lastApprovedTaskIndex: lastApprovedTaskIndex >= 0 ? lastApprovedTaskIndex : undefined
                 }
             });
@@ -2104,7 +2187,7 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
-    const handleApprovalReject = (comment?: string) => {
+    const handleApprovalReject = (comment: string) => {
         if (!approvalRequest) return;
 
         if (approvalRequest.approvalType === "plan") {
@@ -2138,10 +2221,10 @@ const AIChat: React.FC = () => {
                             <Button
                                 appearance="icon"
                                 onClick={handleToggleAutoApprove}
-                                tooltip={isAutoApproveEnabled ? "Disable auto-approval" : "Enable auto-approval"}
+                                tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
                             >
                                 <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: ON" : "Auto-Approve: OFF"}
+                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
                             </Button>
                             <Button
                                 appearance="icon"
@@ -2158,17 +2241,6 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
-                    {(approvalRequest?.tasks || todoTasks) && (
-                        <TodoPanel>
-                            <TodoSection
-                                tasks={approvalRequest?.tasks || todoTasks || []}
-                                message={approvalRequest?.message || tasksMessage}
-                                onApprove={approvalRequest ? handleApprovalApprove : undefined}
-                                onReject={approvalRequest ? handleApprovalReject : undefined}
-                                approvalType={approvalRequest?.approvalType}
-                            />
-                        </TodoPanel>
-                    )}
                     <main style={{ flex: 1, overflowY: "auto" }}>
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
@@ -2272,9 +2344,14 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
-                                            // Skip rendering todo in chat messages - tasks are shown only in top panel
-                                            // The <todo> tags remain in message content for agent context
-                                            return null;
+                                            const isLastMessage = index === otherMessages.length - 1;
+                                            return (
+                                                <TodoSection
+                                                    tasks={segment.tasks || []}
+                                                    message={segment.message}
+                                                    isLoading={isLoading && isLastMessage}
+                                                />
+                                            );
                                         } else if (segment.type === SegmentType.Attachment) {
                                             return (
                                                 <AttachmentsContainer>
@@ -2414,24 +2491,33 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
-                    <Footer
-                        aiChatInputRef={aiChatInputRef}
-                        tagOptions={{
-                            placeholderTags: placeholderTags,
-                            loadGeneralTags: loadGeneralTags,
-                            injectPlaceholderTags: injectPlaceholderTags,
-                        }}
-                        attachmentOptions={{
-                            multiple: true,
-                            acceptResolver: acceptResolver,
-                            handleAttachmentSelection: handleAttachmentSelection,
-                        }}
-                        inputPlaceholder="Describe your integration..."
-                        onSend={handleSend}
-                        onStop={handleStop}
-                        isLoading={isLoading}
-                        showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
-                    />
+                    {approvalRequest ? (
+                        <ApprovalFooter
+                            approvalType={approvalRequest.approvalType}
+                            onApprove={handleApprovalApprove}
+                            onReject={handleApprovalReject}
+                            isSubmitting={false}
+                        />
+                    ) : (
+                        <Footer
+                            aiChatInputRef={aiChatInputRef}
+                            tagOptions={{
+                                placeholderTags: placeholderTags,
+                                loadGeneralTags: loadGeneralTags,
+                                injectPlaceholderTags: injectPlaceholderTags,
+                            }}
+                            attachmentOptions={{
+                                multiple: true,
+                                acceptResolver: acceptResolver,
+                                handleAttachmentSelection: handleAttachmentSelection,
+                            }}
+                            inputPlaceholder="Describe your integration..."
+                            onSend={handleSend}
+                            onStop={handleStop}
+                            isLoading={isLoading}
+                            showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                        />
+                    )}
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}

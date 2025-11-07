@@ -20,9 +20,9 @@
 import { createMachine, assign, interpret } from 'xstate';
 import { extension } from '../../BalExtensionContext';
 import * as crypto from 'crypto';
-import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task, TaskStatus } from '@wso2/ballerina-core/lib/state-machine-types';
+import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task, TaskStatus, UIChatHistoryMessage } from '@wso2/ballerina-core/lib/state-machine-types';
 import { workspace } from 'vscode';
-import { GenerateCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
+import { GenerateAgentCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -52,20 +52,55 @@ export const generateProjectId = (): string => {
     return `project-${projectHash}`;
 };
 
-const addChatMessage = (
+const addUserMessage = (
     history: ChatMessage[],
-    role: 'user' | 'assistant' | 'system',
     content: string
 ): ChatMessage[] => {
     return [
         ...history,
         {
             id: generateId(),
-            role,
+            role: 'user',
             content,
             timestamp: Date.now(),
         },
     ];
+};
+
+const addAssistantMessage = (
+    history: ChatMessage[],
+    id: string,
+    uiResponse: string,
+    modelMessages: any[]
+): ChatMessage[] => {
+    return [
+        ...history,
+        {
+            id,
+            role: 'assistant',
+            uiResponse,
+            modelMessages,
+            timestamp: Date.now(),
+        },
+    ];
+};
+
+const updateAssistantMessage = (
+    history: ChatMessage[],
+    id: string,
+    uiResponse?: string,
+    modelMessages?: any[]
+): ChatMessage[] => {
+    return history.map(msg => {
+        if (msg.role === 'assistant' && msg.id === id) {
+            return {
+                ...msg,
+                uiResponse: uiResponse !== undefined ? uiResponse : msg.uiResponse,
+                modelMessages: modelMessages !== undefined ? modelMessages : msg.modelMessages,
+            };
+        }
+        return msg;
+    });
 };
 
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
@@ -74,7 +109,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
     initial: 'Idle',
     predictableActionArguments: true,
     context: {
-        initialPrompt: undefined,
         chatHistory: [],
         currentPlan: undefined,
         currentTaskIndex: -1,
@@ -86,18 +120,38 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         autoApproveEnabled: false,
     } as AIChatMachineContext,
     on: {
+        [AIChatMachineEventType.SUBMIT_PROMPT]: {
+            target: 'Initiating',
+            actions: assign({
+                chatHistory: (ctx, event) =>
+                    addUserMessage(ctx.chatHistory, event.payload.prompt),
+                currentPlan: (_ctx) => undefined,
+                currentTaskIndex: (_ctx) => -1,
+                errorMessage: (_ctx) => undefined,
+            }),
+        },
+        [AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE]: {
+            actions: assign({
+                chatHistory: (ctx, event) => {
+                    const { id, modelMessages, uiResponse } = event.payload;
+                    const existingMessage = ctx.chatHistory.find(
+                        msg => msg.role === 'assistant' && msg.id === id
+                    );
+
+                    return existingMessage
+                        ? updateAssistantMessage(ctx.chatHistory, id, uiResponse, modelMessages)
+                        : addAssistantMessage(ctx.chatHistory, id, uiResponse || '', modelMessages || []);
+                },
+            }),
+        },
         [AIChatMachineEventType.ENABLE_AUTO_APPROVE]: {
             actions: assign({
                 autoApproveEnabled: (_ctx) => true,
-                chatHistory: (ctx) =>
-                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval enabled for tasks'),
             }),
         },
         [AIChatMachineEventType.DISABLE_AUTO_APPROVE]: {
             actions: assign({
                 autoApproveEnabled: (_ctx) => false,
-                chatHistory: (ctx) =>
-                    addChatMessage(ctx.chatHistory, 'system', 'Auto-approval disabled for tasks'),
             }),
         },
         [AIChatMachineEventType.RESET]: {
@@ -105,7 +159,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             actions: [
                 'clearChatState',
                 assign({
-                    initialPrompt: (_ctx) => undefined,
                     chatHistory: (_ctx) => [],
                     currentPlan: (_ctx) => undefined,
                     currentTaskIndex: (_ctx) => -1,
@@ -119,7 +172,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         [AIChatMachineEventType.RESTORE_STATE]: {
             target: 'Idle',
             actions: assign({
-                initialPrompt: (_ctx, event) => event.payload.state.initialPrompt,
                 chatHistory: (_ctx, event) => event.payload.state.chatHistory,
                 currentPlan: (_ctx, event) => event.payload.state.currentPlan,
                 currentTaskIndex: (_ctx, event) => event.payload.state.currentTaskIndex,
@@ -141,17 +193,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 sessionId: (_ctx) => generateSessionId(),
                 projectId: (_ctx) => generateProjectId(),
             }),
-            on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
-            },
         },
         //TODO : Optional state we can remove if not needed. its just to show that generation is starting.
         Initiating: {
@@ -163,10 +204,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             on: {
                 [AIChatMachineEventType.PLANNING_STARTED]: {
                     target: 'GeneratingPlan',
-                    actions: assign({
-                        chatHistory: (ctx) =>
-                            addChatMessage(ctx.chatHistory, 'system', 'AI is generating your implementation plan...'),
-                    }),
                 },
             },
         },
@@ -177,12 +214,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     target: 'PlanReview',
                     actions: assign({
                         currentPlan: (_ctx, event) => event.payload.plan,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(
-                                ctx.chatHistory,
-                                'assistant',
-                                `Plan created with ${event.payload.plan.tasks.length} tasks. Please review and approve.`
-                            ),
                     }),
                 },
             },
@@ -194,12 +225,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     target: 'ApprovedPlan',
                     actions: assign({
                         currentTaskIndex: (_ctx) => -1,
-                        chatHistory: (ctx, event) => {
-                            const messages = addChatMessage(ctx.chatHistory, 'user', 'Plan approved');
-                            return event.payload?.comment
-                                ? addChatMessage(messages, 'user', `Comment: ${event.payload.comment}`)
-                                : messages;
-                        },
                     }),
                 },
                 [AIChatMachineEventType.REJECT_PLAN]: {
@@ -208,12 +233,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         currentApproval: (_ctx, event) => ({
                             comment: event.payload.comment
                         }),
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(
-                                ctx.chatHistory,
-                                'user',
-                                `Plan rejected. ${event.payload.comment ? `Feedback: ${event.payload.comment}` : 'Regenerating...'}`
-                            ),
                     }),
                 },
             },
@@ -225,16 +244,10 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     target: 'ExecutingTask',
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
-                        chatHistory: (ctx) =>
-                            addChatMessage(ctx.chatHistory, 'system', 'Starting task execution...'),
                     }),
                 },
                 [AIChatMachineEventType.PLANNING_STARTED]: {
                     target: 'GeneratingPlan',
-                    actions: assign({
-                        chatHistory: (ctx) =>
-                            addChatMessage(ctx.chatHistory, 'system', 'Regenerating plan...'),
-                    }),
                 },
             },
         },
@@ -272,12 +285,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 updatedAt: Date.now(),
                             };
                         },
-                        chatHistory: (ctx) =>
-                            addChatMessage(
-                                ctx.chatHistory,
-                                'assistant',
-                                `Task ${ctx.currentTaskIndex + 1} completed`
-                            ),
                     }),
                 },
             },
@@ -299,7 +306,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         currentPlan: (ctx, event) => {
                             if (!ctx.currentPlan) { return ctx.currentPlan; }
 
-                            // Determine which tasks to mark as DONE
                             const lastApprovedIndex = event.payload?.lastApprovedTaskIndex !== undefined
                                 ? event.payload.lastApprovedTaskIndex
                                 : ctx.currentTaskIndex;
@@ -307,7 +313,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             return {
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) => {
-                                    // Mark all REVIEW tasks up to and including lastApprovedIndex as COMPLETED
                                     if (task.status === TaskStatus.REVIEW && index <= lastApprovedIndex) {
                                         return { ...task, status: TaskStatus.COMPLETED };
                                     }
@@ -315,12 +320,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 }),
                                 updatedAt: Date.now(),
                             };
-                        },
-                        chatHistory: (ctx, event) => {
-                            const messages = addChatMessage(ctx.chatHistory, 'user', 'Task approved');
-                            return event.payload?.comment
-                                ? addChatMessage(messages, 'user', `Comment: ${event.payload.comment}`)
-                                : messages;
                         },
                     }),
                 },
@@ -343,12 +342,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 updatedAt: Date.now(),
                             };
                         },
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(
-                                ctx.chatHistory,
-                                'user',
-                                `Task rejected. ${event.payload.comment ? `Feedback: ${event.payload.comment}` : 'Redoing...'}`
-                            ),
                     }),
                 },
             },
@@ -358,29 +351,20 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             on: {
                 [AIChatMachineEventType.START_TASK_EXECUTION]: [
                     {
-                        // Check if there are more tasks
                         cond: (ctx) =>
                             ctx.currentPlan !== undefined &&
                             ctx.currentTaskIndex < ctx.currentPlan.tasks.length - 1,
                         target: 'ExecutingTask',
                         actions: assign({
                             currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
-                            chatHistory: (ctx) =>
-                                addChatMessage(ctx.chatHistory, 'system', 'Continuing to next task...'),
                         }),
                     },
                     {
-                        // No more tasks to execute - finish
                         target: 'Completed',
-                        actions: assign({
-                            chatHistory: (ctx) =>
-                                addChatMessage(ctx.chatHistory, 'system', 'All tasks completed successfully!'),
-                        }),
                     },
                 ],
                 [AIChatMachineEventType.FINISH_EXECUTION]: [
                     {
-                        // Check if there are pending tasks
                         cond: (ctx) => {
                             if (!ctx.currentPlan) { return false; }
                             const pendingTasks = ctx.currentPlan.tasks.filter(
@@ -389,22 +373,9 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             return pendingTasks.length > 0;
                         },
                         target: 'PartiallyCompleted',
-                        actions: assign({
-                            chatHistory: (ctx, _event) =>
-                                addChatMessage(
-                                    ctx.chatHistory,
-                                    'system',
-                                    'Execution finished with pending tasks remaining.'
-                                ),
-                        }),
                     },
                     {
-                        // All tasks completed (no pending tasks)
                         target: 'Completed',
-                        actions: assign({
-                            chatHistory: (ctx, _event) =>
-                                addChatMessage(ctx.chatHistory, 'system', 'All tasks completed successfully!'),
-                        }),
                     },
                 ],
             },
@@ -416,60 +387,26 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     target: 'ExecutingTask',
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
-                        chatHistory: (ctx) =>
-                            addChatMessage(ctx.chatHistory, 'system', 'Retrying task...'),
                     }),
                 },
                 [AIChatMachineEventType.PLAN_GENERATED]: {
                     target: 'PlanReview',
                     actions: assign({
                         currentPlan: (_ctx, event) => event.payload.plan,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(
-                                ctx.chatHistory,
-                                'assistant',
-                                `Plan regenerated with ${event.payload.plan.tasks.length} tasks based on feedback. Please review and approve.`
-                            ),
                     }),
                 },
             },
         },
         Completed: {
             entry: 'saveChatState',
-            on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        currentPlan: (_ctx) => undefined,
-                        currentTaskIndex: (_ctx) => -1,
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
-            },
         },
         PartiallyCompleted: {
             entry: 'saveChatState',
             on: {
-                [AIChatMachineEventType.SUBMIT_PROMPT]: {
-                    target: 'Initiating',
-                    actions: assign({
-                        initialPrompt: (_ctx, event) => event.payload.prompt,
-                        chatHistory: (ctx, event) =>
-                            addChatMessage(ctx.chatHistory, 'user', event.payload.prompt),
-                        currentPlan: (_ctx) => undefined,
-                        currentTaskIndex: (_ctx) => -1,
-                        errorMessage: (_ctx) => undefined,
-                    }),
-                },
                 [AIChatMachineEventType.START_TASK_EXECUTION]: {
                     target: 'ExecutingTask',
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
-                        chatHistory: (ctx, _event) =>
-                            addChatMessage(ctx.chatHistory, 'system', 'Resuming task execution...'),
                     }),
                 },
             },
@@ -500,34 +437,57 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
 });
 
 // Service implementations
+const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] => {
+    const messages: any[] = [];
 
-/**
- * Convert ChatMessage[] to ChatEntry[] format
- */
-const convertChatHistoryToChatEntries = (chatHistory: ChatMessage[]): any[] => {
-    return chatHistory.map(msg => ({
-        actor: msg.role === 'assistant' ? 'assistant' : 'user',
-        message: msg.content
-    }));
+    for (const msg of chatHistory) {
+        if (msg.role === 'assistant') {
+            messages.push(...msg.modelMessages);
+        } else {
+            messages.push({
+                role: 'user',
+                content: msg.content
+            });
+        }
+    }
+
+    return messages;
 };
 
-/**
- * Start generation service
- * Called when in Initiating state - starts AI generation in background
- * Doesn't wait for completion - events will drive state transitions
- */
-const startGenerationService = async (context: AIChatMachineContext): Promise<void> => {
-    console.log('[startGenerationService] Starting AI generation for:', context.initialPrompt);
+const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
+    const messages: UIChatHistoryMessage[] = [];
 
-    const requestBody: GenerateCodeRequest = {
-        usecase: context.initialPrompt || '',
-        chatHistory: convertChatHistoryToChatEntries(context.chatHistory),
+    for (const msg of chatHistory) {
+        if (msg.role === 'user') {
+            messages.push({
+                role: 'user',
+                content: msg.content
+            });
+        } else if (msg.role === 'assistant') {
+            messages.push({
+                role: 'assistant',
+                content: msg.uiResponse || ''
+            });
+        }
+    }
+
+    return messages;
+};
+
+const startGenerationService = async (context: AIChatMachineContext): Promise<void> => {
+    const lastMessage = context.chatHistory[context.chatHistory.length - 1];
+    const usecase = lastMessage?.role === 'user' ? lastMessage.content : '';
+    const previousHistory = context.chatHistory.slice(0, -1);
+    const assistantMessageId = generateId();
+
+    const requestBody: GenerateAgentCodeRequest = {
+        usecase: usecase,
+        chatHistory: convertChatHistoryToModelMessages(previousHistory),
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
+        assistantMessageId: assistantMessageId,
     };
 
-    // Start generation in background (don't await)
-    // The AI service will emit events as it progresses
     generateDesign(requestBody).catch(error => {
         console.error('[startGenerationService] Error:', error);
         chatStateService.send({
@@ -535,51 +495,8 @@ const startGenerationService = async (context: AIChatMachineContext): Promise<vo
             payload: { message: error.message || 'Failed to generate plan' }
         });
     });
-
-    console.log('[startGenerationService] Generation started');
-    // Service completes immediately - doesn't wait for AI
 };
 
-/**
- * Execute task service
- * Called when in ExecutingTask state
- * This is where the actual AI code generation happens for each task
- */
-const executeTaskService = async (context: AIChatMachineContext, event: any): Promise<{ result: string }> => {
-    if (!context.currentPlan || context.currentTaskIndex < 0) {
-        throw new Error('No task to execute');
-    }
-
-    const task = context.currentPlan.tasks[context.currentTaskIndex];
-    console.log(`[executeTaskService] Executing task ${context.currentTaskIndex + 1}/${context.currentPlan.tasks.length}:`, task.description);
-
-    try {
-        // Build the request for code generation
-        const requestBody: GenerateCodeRequest = {
-            usecase: `${context.initialPrompt}\n\nCurrent task: ${task.description}`,
-            chatHistory: convertChatHistoryToChatEntries(context.chatHistory),
-            operationType: "CODE_GENERATION",
-            fileAttachmentContents: [],
-        };
-
-        // Call the actual code generation
-        // TODO: This should call a proper code generation service
-        // For now, using generateDesign as placeholder
-        console.log(`[executeTaskService] Generating code for task: ${task.description}`);
-
-        // Simulate task execution
-        // In real implementation, this would call AI to generate code for this specific task
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        const result = `Task completed: ${task.description}`;
-        console.log(`[executeTaskService] Task ${context.currentTaskIndex + 1} completed successfully`);
-
-        return { result };
-    } catch (error) {
-        console.error(`[executeTaskService] Error executing task ${context.currentTaskIndex + 1}:`, error);
-        throw error;
-    }
-};
 
 // State persistence functions
 const CHAT_STATE_STORAGE_KEY_PREFIX = 'ballerina.ai.chat.state';
@@ -600,12 +517,11 @@ const getStorageKey = (projectId: string): string => {
 const saveChatState = (context: AIChatMachineContext) => {
     try {
         if (!context.projectId) {
-            console.warn('No project ID available, skipping state save');
+            console.warn("No project ID available, skipping state save");
             return;
         }
 
         const stateToSave = {
-            initialPrompt: context.initialPrompt,
             chatHistory: context.chatHistory,
             currentPlan: context.currentPlan,
             currentTaskIndex: context.currentTaskIndex,
@@ -618,13 +534,14 @@ const saveChatState = (context: AIChatMachineContext) => {
         extension.context?.globalState.update(storageKey, stateToSave);
 
         // Also save a list of all project IDs for management purposes
-        const allProjectIds = extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
+        const allProjectIds =
+            extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
         if (!allProjectIds.includes(context.projectId)) {
             allProjectIds.push(context.projectId);
             extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, allProjectIds);
         }
     } catch (error) {
-        console.error('Failed to save chat state:', error);
+        console.error("Failed to save chat state:", error);
     }
 };
 
@@ -755,8 +672,7 @@ export const getChatStateMetadata = async (): Promise<Array<{
 const chatStateService = interpret(
     chatMachine.withConfig({
         services: {
-            startGeneration: startGenerationService,
-            executeTask: executeTaskService,
+            startGeneration: startGenerationService
         },
         actions: {
             saveChatState: (context) => saveChatState(context),
@@ -833,5 +749,12 @@ export const AIChatStateMachine = {
         }
         // Send reset event to clear in-memory state
         chatStateService.send({ type: AIChatMachineEventType.RESET });
+    },
+    /**
+     * Gets chat history in UI message format for display
+     */
+    getUIChatHistory: () => {
+        const context = chatStateService.getSnapshot().context;
+        return convertChatHistoryToUIMessages(context.chatHistory);
     },
 };

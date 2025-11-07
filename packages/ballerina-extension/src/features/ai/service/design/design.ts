@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateCodeRequest, ProjectSource, SourceFiles, Task, AIChatMachineEventType} from "@wso2/ballerina-core";
-import { ModelMessage, stepCountIs, streamText } from "ai";
+import { Command, GenerateAgentCodeRequest, ProjectSource, SourceFiles, AIChatMachineEventType} from "@wso2/ballerina-core";
+import { convertToModelMessages, ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
-import { getErrorMessage, populateHistory, transformProjectSource } from "../utils";
+import { getErrorMessage, populateHistoryForAgent, transformProjectSource } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
@@ -28,12 +28,13 @@ import { GenerationType, getAllLibraries } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 
-export async function generateDesignCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    const assistantMessageId = params.assistantMessageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const updatedSourceFiles: SourceFiles[] = [...sourceFiles];
     const updatedFileNames: string[] = [];
-    const historyMessages = populateHistory(params.chatHistory);
+    const historyMessages = populateHistoryForAgent(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
     const allMessages: ModelMessage[] = [
@@ -82,24 +83,13 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Do NOT mention internal tool names to users
 
 **Execution Flow**:
-1. Create high-level design plan and break it into tasks using ${TASK_WRITE_TOOL_NAME}
-2. The tool will wait for PLAN APPROVAL from the user
-3. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+1. Think about and explain your high-level design plan to the user
+2. After explaining the plan, output: <toolcall>Planning...</toolcall>
+3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+4. The tool will wait for PLAN APPROVAL from the user
+5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - **CRITICAL - User Updates**: You MUST provide progress updates in this EXACT format:
-
-     BEFORE starting implementation, write:
-     <toolcall>Your update message here</toolcall>
-
-     Based on task type:
-     - For 'service_design' tasks: <toolcall>Setting up the service structure...</toolcall>
-     - For 'connections_init' tasks: <toolcall>Connecting to [database/API name]...</toolcall>
-     - For 'implementation' tasks: <toolcall>Building the [feature name] functionality...</toolcall>
-
-     DO NOT write plain text like "Now I'll create..." or "I'm working on..."
-     ALWAYS wrap your update in <toolcall></toolcall> tags
-
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - Implement the task completely (write the Ballerina code)
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
@@ -107,12 +97,12 @@ This plan will be visible to the user and the execution will be guided on the ta
    - Once approved (success: true), immediately start the next task
    - Repeat until ALL tasks are done
 
-4. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
 
 **User Communication**:
-- ALWAYS use <toolcall></toolcall> tags for progress updates
-- Keep language simple and non-technical
-- Example: <toolcall>Setting up the service structure...</toolcall>
+- Using the task_write tool will automatically show progress to the user via a task list
+- Keep language simple and non-technical when responding
+- No need to add manual progress indicators - the task list shows what you're working on
 
 ## Code Generation Guidelines
 
@@ -126,6 +116,15 @@ When generating Ballerina code:
    - Initialize necessary clients
    - Create service OR main function
    - Plan data flow and transformations
+
+3. **Service Design Phase** ('service_design' tasks):
+   - Create resource function signatures with comprehensive return types covering all possible scenarios
+   - For unimplemented function bodies, use http:NOT_IMPLEMENTED as the placeholder return value
+
+4. **Implementation Phase** ('implementation' tasks):
+   - Implement the complete logic for resource functions
+   - **CRITICAL**: After implementation, refine the function signature to ONLY include return types that are actually returned in the implementation
+   - Remove any unused return types from the signature to keep it clean and precise
 `,
             providerOptions: cacheOptions,
         },
@@ -156,7 +155,7 @@ ${params.usecase}
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
     };
 
-    const { fullStream } = streamText({
+    const { fullStream, response, steps } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 8192,
         temperature: 0,
@@ -166,6 +165,7 @@ ${params.usecase}
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
+
     AIChatStateMachine.sendEvent({
         type: AIChatMachineEventType.PLANNING_STARTED
     });
@@ -174,19 +174,24 @@ ${params.usecase}
 
     let selectedLibraries: string[] = [];
 
+    let accumulatedMessages: any[] = [];
+    let currentAssistantContent: any[] = [];
+
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
                 const textPart = part.text;
                 eventHandler({ type: "content_block", content: textPart });
+                accumulateTextContent(currentAssistantContent, textPart);
                 break;
             }
             case "tool-call": {
                 const toolName = part.toolName;
+                accumulateToolCall(currentAssistantContent, part);
+
                 if (toolName === "LibraryProviderTool") {
-                    selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
-                }
-                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+                    selectedLibraries = (part.input as any)?.libraryNames || [];
+                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
                     const input = part.input as any;
                     if (input && input.file_path) {
                         let fileName = input.file_path;
@@ -199,7 +204,7 @@ ${params.usecase}
             case "tool-result": {
                 const toolName = part.toolName;
                 const result = part.output;
-                console.log(`[Design] Tool result received from: ${toolName}`, result);
+                saveToolResult(part, accumulatedMessages, currentAssistantContent);
 
                 if (toolName === TASK_WRITE_TOOL_NAME && result) {
                     const taskResult = result as TaskWriteResult;
@@ -212,44 +217,87 @@ ${params.usecase}
                             allTasks: taskResult.tasks,
                         },
                     });
-                }
-                else if (toolName === "LibraryProviderTool") {
+                } else if (toolName === "LibraryProviderTool") {
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
                 }
                 else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
-                }
-                else {
+                } else {
                     eventHandler({ type: "tool_result", toolName });
                 }
                 break;
             }
-            case "text-start": {
-                eventHandler({ type: "content_block", content: " \n" });
-                break;
-            }
             case "error": {
                 const error = part.error;
-                console.error("Error during design generation:", error);
+                console.error("[Design] Error:", error);
                 eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "abort": {
+                console.log("[Design] Aborted by user.");
+                let messagesToSave: any[] = [];
+                try {
+                    const partialResponse = await response;
+                    messagesToSave = partialResponse.messages || [];
+                } catch (error) {
+                    if (currentAssistantContent.length > 0) {
+                        accumulatedMessages.push({
+                            role: "assistant",
+                            content: currentAssistantContent
+                        });
+                    }
+                    messagesToSave = accumulatedMessages;
+                }
+
+                if (messagesToSave.length > 0) {
+                    AIChatStateMachine.sendEvent({
+                        type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                        payload: {
+                            id: assistantMessageId,
+                            modelMessages: messagesToSave,
+                        },
+                    });
+                }
+
+                eventHandler({ type: "abort", command: Command.Design });
+                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
+                AIChatStateMachine.sendEvent({
+                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                });
+                break;
+            }
+            case "text-start": {
+                currentAssistantContent.push({ type: "text", text: "" });
+                eventHandler({ type: "content_block", content: " \n" });
                 break;
             }
             case "finish": {
                 const finishReason = part.finishReason;
+                const finalResponse = await response;
+                const assistantMessages = finalResponse.messages || [];
+
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
                 AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                    type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                    payload: {
+                        id: assistantMessageId,
+                        modelMessages: assistantMessages,
+                    },
                 });
 
                 eventHandler({ type: "stop", command: Command.Design });
+                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
+                AIChatStateMachine.sendEvent({
+                    type: AIChatMachineEventType.FINISH_EXECUTION,
+                });
                 break;
             }
+            }
         }
-    }
 }
 
-export async function generateDesign(params: GenerateCodeRequest): Promise<void> {
+export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
         await generateDesignCore(params, eventHandler);
@@ -257,4 +305,50 @@ export async function generateDesign(params: GenerateCodeRequest): Promise<void>
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
     }
+}
+
+function accumulateTextContent(currentAssistantContent: any[], textPart: string): void {
+    const lastContent = currentAssistantContent[currentAssistantContent.length - 1];
+    if (lastContent && lastContent.type === "text") {
+        lastContent.text += textPart;
+    }
+}
+
+function accumulateToolCall(currentAssistantContent: any[], part: any): void {
+    currentAssistantContent.push({
+        type: "tool-call",
+        toolCallId: part.toolCallId,
+        toolName: part.toolName,
+        input: part.input
+    });
+}
+
+function saveToolResult(
+    part: any,
+    accumulatedMessages: any[],
+    currentAssistantContent: any[]
+): void {
+    if (currentAssistantContent.length > 0) {
+        accumulatedMessages.push({
+            role: "assistant",
+            content: [...currentAssistantContent]
+        });
+        currentAssistantContent.length = 0;
+    }
+
+    // Need to specify output type for tool result
+    const outputType: 'json' = 'json';
+
+    accumulatedMessages.push({
+        role: "tool",
+        content: [{
+            type: "tool-result",
+            toolCallId: part.toolCallId,
+            toolName: part.toolName,
+            output: {
+                type: outputType,
+                value: part.output
+            }
+        }]
+    });
 }

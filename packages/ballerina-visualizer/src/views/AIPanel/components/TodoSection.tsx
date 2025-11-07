@@ -26,33 +26,33 @@ const spin = keyframes`
     to { transform: rotate(360deg); }
 `;
 
-const TodoContainer = styled.div<{ isNew?: boolean }>`
-    background-color: ${(props: { isNew?: boolean }) =>
-        props.isNew ? 'rgba(128, 128, 128, 0.3)' : 'transparent'};
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    margin: 0;
+const TodoContainer = styled.div`
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin: 6px 0;
     font-family: var(--vscode-editor-font-family);
     font-size: 12px;
     color: var(--vscode-editor-foreground);
-    min-height: 24px;
-    transition: background-color 0.3s ease-out;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 `;
 
 const TodoHeader = styled.div<{ clickable?: boolean }>`
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 12px;
     margin-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '6px'};
-    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '0' : '4px'};
+    padding-bottom: ${(props: { clickable?: boolean }) => props.clickable ? '6px' : '6px'};
     border-bottom: ${(props: { clickable?: boolean }) =>
-        props.clickable ? 'none' : '1px solid var(--vscode-panel-border)'};
+        props.clickable ? 'none' : '1px solid var(--vscode-widget-border)'};
     display: flex;
     align-items: center;
     gap: 4px;
     cursor: ${(props: { clickable?: boolean }) => props.clickable ? 'pointer' : 'default'};
     user-select: none;
-    padding: 2px;
+    padding: 2px 4px;
     border-radius: 3px;
+    transition: background-color 0.15s ease;
 
     &:hover {
         background-color: ${(props: { clickable?: boolean }) =>
@@ -79,21 +79,30 @@ const TodoList = styled.div`
     flex-direction: column;
     gap: 4px;
     overflow-y: auto;
-    max-height: 200px;
+    max-height: 250px;
+    padding: 0;
 `;
 
 const TodoItem = styled.div<{ status: string }>`
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 3px;
     background-color: ${(props: { status: string }) =>
         props.status === "completed"
             ? "var(--vscode-list-hoverBackground)"
+            : props.status === "in_progress"
+            ? "rgba(75, 110, 175, 0.08)"
             : "transparent"};
-    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.7 : 1)};
+    opacity: ${(props: { status: string }) => (props.status === "completed" ? 0.6 : 1)};
     transition: all 0.2s ease;
+    border-left: 2px solid ${(props: { status: string }) =>
+        props.status === "in_progress"
+            ? "var(--vscode-charts-blue)"
+            : props.status === "completed"
+            ? "var(--vscode-testing-iconPassed)"
+            : "transparent"};
 `;
 
 const TodoIcon = styled.span<{ status: string }>`
@@ -101,8 +110,8 @@ const TodoIcon = styled.span<{ status: string }>`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 
     &.pending {
         .codicon {
@@ -137,104 +146,20 @@ const TodoNumber = styled.span`
     margin-right: 2px;
 `;
 
-const ApprovalSection = styled.div`
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--vscode-panel-border);
-`;
-
-const ButtonGroup = styled.div`
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-`;
-
-const Button = styled.button<{ variant?: "primary" | "secondary" }>`
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--vscode-editor-font-family);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    ${(props: { variant?: "primary" | "secondary" }) =>
-        props.variant === "primary"
-            ? `
-        background-color: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-
-        &:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-    `
-            : `
-        background-color: var(--vscode-button-secondaryBackground);
-        color: var(--vscode-button-secondaryForeground);
-
-        &:hover {
-            background-color: var(--vscode-button-secondaryHoverBackground);
-        }
-    `}
-
-    &:active {
-        opacity: 0.8;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-`;
-
-const CommentTextarea = styled.textarea`
-    width: 100%;
-    min-height: 60px;
-    padding: 6px;
-    margin-bottom: 8px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 3px;
-    font-family: var(--vscode-editor-font-family);
-    font-size: 12px;
-    resize: vertical;
-    box-sizing: border-box;
-
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder);
-    }
-
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-`;
-
-const CommentLabel = styled.label`
-    display: block;
-    margin-bottom: 6px;
-    font-size: 11px;
-    color: var(--vscode-editor-foreground);
-    font-weight: 500;
-`;
 
 interface TodoSectionProps {
     tasks: Task[];
     message?: string;
-    onApprove?: (comment?: string) => void;
-    onReject?: (comment?: string) => void;
-    approvalType?: "plan" | "completion";
+    isLoading?: boolean;
 }
 
-const getStatusIcon = (status: string): { className: string; icon: string } => {
+const getStatusIcon = (status: string, isLoading: boolean): { className: string; icon: string } => {
     switch (status) {
         case "in_progress":
-            return { className: "in_progress", icon: "codicon-sync" };
+            return {
+                className: isLoading ? "in_progress" : "pending",
+                icon: isLoading ? "codicon-sync" : "codicon-circle-outline",
+            };
         case "review":
             return { className: "review", icon: "codicon-eye" };
         case "completed":
@@ -245,12 +170,8 @@ const getStatusIcon = (status: string): { className: string; icon: string } => {
     }
 };
 
-const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, onReject, approvalType }) => {
+const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = false }) => {
     const [isExpanded, setIsExpanded] = useState(true);
-    const [isNew, setIsNew] = useState(false);
-    const [showRejectComment, setShowRejectComment] = useState(false);
-    const [rejectComment, setRejectComment] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const inProgressRef = useRef<HTMLDivElement>(null);
     const todoListRef = useRef<HTMLDivElement>(null);
     const scrollTimeoutRef = useRef<number | null>(null);
@@ -258,14 +179,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
     const inProgressTask = tasks.find((t) => t.status === "in_progress");
     const allCompleted = completedCount === tasks.length;
     const hasInProgress = !!inProgressTask;
-    const needsApproval = !!approvalType;
-
-    useEffect(() => {
-        setIsNew(approvalType === "plan");
-        setIsSubmitting(false);
-        setShowRejectComment(false);
-        setRejectComment("");
-    }, [approvalType]);
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
@@ -311,47 +224,20 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
     }, [hasInProgress, inProgressTask?.description]);
 
     const getStatusText = () => {
-        if (allCompleted) return "completed";
-        if (needsApproval) return "awaiting approval";
-        if (hasInProgress) return "in progress";
-        return "ongoing";
-    };
-
-    const handleApprove = () => {
-        if (onApprove) {
-            setIsSubmitting(true);
-            onApprove(undefined);
-        }
-    };
-
-    const handleRejectClick = () => {
-        setShowRejectComment(true);
-    };
-
-    const handleRejectSubmit = () => {
-        const trimmedComment = rejectComment.trim();
-        if (!trimmedComment || !onReject) {
-            return;
-        }
-        setIsSubmitting(true);
-        onReject(trimmedComment);
-    };
-
-    const handleRejectCancel = () => {
-        setShowRejectComment(false);
-        setRejectComment("");
+        if (allCompleted) return "done";
+        if (hasInProgress) return "building";
+        return "ready";
     };
 
     return (
-        <TodoContainer isNew={isNew}>
+        <TodoContainer>
             <TodoHeader clickable onClick={toggleExpanded}>
                 <ChevronIcon expanded={isExpanded}>
                     <span className="codicon codicon-chevron-right"></span>
                 </ChevronIcon>
-                <span className="codicon codicon-tasklist"></span>
+                <span className="codicon codicon-list-ordered"></span>
                 <span>
-                    Implementation Tasks ({completedCount}/{tasks.length}{" "}
-                    {getStatusText()})
+                    Build Steps ({completedCount}/{tasks.length} {getStatusText()})
                 </span>
                 {!isExpanded && inProgressTask && (
                     <MinimalTaskInfo>
@@ -365,18 +251,22 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
                         <div
                             style={{
                                 marginTop: "6px",
-                                marginBottom: "6px",
+                                marginBottom: "8px",
+                                padding: "6px 8px",
                                 fontSize: "11px",
                                 color: "var(--vscode-descriptionForeground)",
                                 fontStyle: "italic",
+                                backgroundColor: "var(--vscode-textBlockQuote-background)",
+                                borderRadius: "3px",
+                                borderLeft: "2px solid var(--vscode-textBlockQuote-border)",
                             }}
                         >
                             {message}
                         </div>
                     )}
-                    <TodoList style={{ marginTop: "6px" }} ref={todoListRef}>
+                    <TodoList style={{ marginTop: "4px" }} ref={todoListRef}>
                         {tasks.map((task, index) => {
-                            const statusInfo = getStatusIcon(task.status);
+                            const statusInfo = getStatusIcon(task.status, isLoading);
                             const isInProgress = task.status === "in_progress";
                             const isReview = task.status === "review";
                             return (
@@ -405,61 +295,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, onApprove, on
                         })}
                     </TodoList>
                 </>
-            )}
-            {needsApproval && (
-                <ApprovalSection>
-                    {showRejectComment ? (
-                        <>
-                            <CommentLabel>
-                                Provide feedback for revision (required):
-                            </CommentLabel>
-                            <CommentTextarea
-                                value={rejectComment}
-                                onChange={(e) => setRejectComment(e.target.value)}
-                                placeholder="Enter what needs to be changed..."
-                                disabled={isSubmitting}
-                                autoFocus
-                            />
-                            <ButtonGroup>
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleRejectCancel}
-                                    disabled={isSubmitting}
-                                >
-                                    <span className="codicon codicon-arrow-left"></span>
-                                    Back
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={handleRejectSubmit}
-                                    disabled={isSubmitting || !rejectComment.trim()}
-                                >
-                                    <span className="codicon codicon-edit"></span>
-                                    Submit Revision
-                                </Button>
-                            </ButtonGroup>
-                        </>
-                    ) : (
-                        <ButtonGroup>
-                            <Button
-                                variant="secondary"
-                                onClick={handleRejectClick}
-                                disabled={isSubmitting}
-                            >
-                                <span className="codicon codicon-edit"></span>
-                                Revise
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={handleApprove}
-                                disabled={isSubmitting}
-                            >
-                                <span className="codicon codicon-check"></span>
-                                {approvalType === "completion" ? "Continue" : "Approve"}
-                            </Button>
-                        </ButtonGroup>
-                    )}
-                </ApprovalSection>
             )}
         </TodoContainer>
     );

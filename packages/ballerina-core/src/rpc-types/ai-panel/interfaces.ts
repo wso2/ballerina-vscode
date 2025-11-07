@@ -18,7 +18,7 @@
  */
 
 import { NodePosition } from "@wso2/syntax-tree";
-import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
+import { AIMachineContext, AIMachineStateValue, ChatMessage } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 
@@ -309,6 +309,14 @@ export interface GenerateCodeRequest {
     chatHistory: ChatEntry[];
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
+}
+
+export interface GenerateAgentCodeRequest {
+    usecase: string;
+    chatHistory: ChatMessage[];
+    operationType: OperationType;
+    fileAttachmentContents: FileAttatchment[];
+    assistantMessageId: string;
 }
 
 export interface SourceFiles {
