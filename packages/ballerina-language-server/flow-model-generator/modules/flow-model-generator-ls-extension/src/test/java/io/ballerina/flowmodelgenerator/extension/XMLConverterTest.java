@@ -89,7 +89,8 @@ public class XMLConverterTest extends AbstractLSTest {
             for (JsonElement record : records) {
                 TypeUpdateRequest updateRequest =
                         new TypeUpdateRequest(sourceFile, ((JsonObject) record).get("type"));
-                JsonElement response = getResponse(updateRequest, "typesManager/updateType").getAsJsonObject("textEdits");
+                JsonElement response = getResponse(updateRequest, "typesManager/updateType")
+                        .getAsJsonObject("textEdits");
                 Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(response, textEditListType);
                 for (Map.Entry<String, List<TextEdit>> entry : actualTextEdits.entrySet()) {
                     for (TextEdit textEdit : entry.getValue()) {
