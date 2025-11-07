@@ -17,6 +17,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
+import { usePlatformExtContext } from './utils/PlatformExtContext';
 
 export const PlatformExtHookKeys = {
     isLoggedIn: ["isLoggedIn"],
@@ -26,23 +27,6 @@ export const PlatformExtHookKeys = {
 
 // todo: try moving this to context
 export const PlatformExtHooks = {
-    isLoggedIn: ()=>{
-        const { rpcClient } = useRpcContext();
-        const { data: isLoggedIn } = useQuery({
-            queryKey: PlatformExtHookKeys.isLoggedIn,
-            queryFn: () => rpcClient.getPlatformRpcClient().isLoggedIn(),
-            refetchInterval: 2000,
-        });
-        return isLoggedIn
-    },
-    getProjectPath: ()=>{
-        const { rpcClient } = useRpcContext();
-        const { data: projectPath } = useQuery({
-                queryKey: PlatformExtHookKeys.getProjectPath,
-                queryFn: () => rpcClient.getVisualizerLocation(),
-            });
-        return projectPath?.projectUri;
-    },
     getProjectToml: ()=>{
         const { rpcClient } = useRpcContext();
         const { data: projectToml, refetch: refetchToml } = useQuery({
@@ -53,30 +37,29 @@ export const PlatformExtHooks = {
     },
     getAllConnections: ()=>{
         const { rpcClient } = useRpcContext();
-        const component = PlatformExtHooks.getDirectoryComp()
-        const selected = PlatformExtHooks.getSelectedContext()
+        const { platformExtState } = usePlatformExtContext();
 
         const { data: componentConnections = [], isLoading: isLoadingComponentConnections, refetch: refetchComponentConn } = useQuery({
             queryKey: [
                 "componentConnections",
-                { component: component?.metadata?.id, project: selected?.project?.id },
+                { component: platformExtState?.selectedComponent?.metadata?.id, project: platformExtState?.selectedContext?.project?.id },
             ],
             queryFn: () => rpcClient.getPlatformRpcClient().getConnections({
-                componentId: component?.metadata?.id,
-                orgId:selected?.org?.id?.toString(),
-                projectId: selected?.project?.id
+                componentId: platformExtState?.selectedComponent?.metadata?.id,
+                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                projectId: platformExtState?.selectedContext?.project?.id
             }),
-            enabled: !!component,
+            enabled: !!platformExtState?.selectedComponent,
         });
 
         const { data: projectConnections = [], isLoading: isLoadingProjectConnections, refetch: refetchProjectConn } = useQuery({
             queryKey: [
                 "projectConnections",
-                { project: selected?.project?.id },
+                { project: platformExtState?.selectedContext?.project?.id },
             ],
             queryFn: () => rpcClient.getPlatformRpcClient().getConnections({
-                orgId:selected?.org?.id?.toString(),
-                projectId: selected?.project?.id,
+                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                projectId: platformExtState?.selectedContext?.project?.id,
                 componentId: ""
             }),
         });
@@ -88,35 +71,6 @@ export const PlatformExtHooks = {
                 refetchProjectConn();
             }
         }
-    },
-    getSelectedContext: ()=>{
-        const { rpcClient } = useRpcContext();
-        const isLoggedIn = PlatformExtHooks.isLoggedIn()
-
-        const { data: selected } = useQuery({
-            queryKey: ["devant-context", isLoggedIn],
-            queryFn: () => rpcClient.getPlatformRpcClient().getSelectedContext(),
-            enabled: !!isLoggedIn,
-            refetchInterval: 2000,
-        });
-        return selected
-    },
-    getDirectoryComp: ()=>{
-        const { rpcClient } = useRpcContext();
-        const isLoggedIn = PlatformExtHooks.isLoggedIn()
-        const projectPath = PlatformExtHooks.getProjectPath();
-        const selected = PlatformExtHooks.getSelectedContext()
-
-        const { data: directoryComponent } = useQuery({
-            queryKey: [
-                "getDirectoryComponent",
-                { isLoggedIn, org: selected?.org?.uuid, project: selected?.project?.id, projectPath },
-            ],
-            queryFn: () => rpcClient.getPlatformRpcClient().getDirectoryComponent(projectPath),
-            enabled: isLoggedIn && !!projectPath,
-            refetchInterval: 2000,
-        });
-        return directoryComponent
     }
 }
 

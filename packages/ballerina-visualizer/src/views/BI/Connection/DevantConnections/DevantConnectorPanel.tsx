@@ -22,13 +22,14 @@ import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 import { PlatformExtHooks } from "../../../../PlatformExtHooks";
+import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
 
 export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: (connName: string) => void }> = ({
     selectedItem,
     onClose,
 }) => {
     const [showInfo, setShowInfo] = useState(false);
-    const selected = PlatformExtHooks.getSelectedContext();
+    const { platformExtState } = usePlatformExtContext();
 
     return (
         <>
@@ -42,7 +43,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                         showInfo && (
                             <DevantConnectorMarketplaceInfo
                                 onCloseClick={() => setShowInfo(false)}
-                                org={selected?.org}
+                                org={platformExtState?.selectedContext?.org}
                                 item={selectedItem}
                             />
                         )
@@ -51,7 +52,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                     <DevantConnectorCreateForm
                         item={selectedItem}
                         onCreate={(connName) => onClose(connName)}
-                        project={selected.project}
+                        project={platformExtState?.selectedContext.project}
                         onShowInfo={() => setShowInfo(true)}
                         isShowingInfo={showInfo}
                     />

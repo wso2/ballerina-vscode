@@ -21,7 +21,13 @@ import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ex
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import React, { useContext, FC, ReactNode, useEffect } from "react";
 
-const defaultPlatformExtContext: { state: PlatformExtState | null } = { state: {components: [], isLoggedIn: false }};
+const defaultPlatformExtContext: { 
+	platformExtState: PlatformExtState | null;
+	projectPath: string;
+} = { 
+	platformExtState: {components: [], isLoggedIn: false },
+	projectPath: ""
+};
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
 
@@ -33,6 +39,12 @@ export const PlatformExtContextProvider: FC<{children: ReactNode}> = ({ children
 	const queryClient = useQueryClient();
     const { rpcClient } = useRpcContext();
 
+	const { data: projectPath = "" } = useQuery({
+		queryKey: ["project-path"],
+		queryFn: () => rpcClient.getVisualizerLocation(),
+		select: (data)=>data?.projectUri
+	});
+			
 	const {
 		data: platformExtState,
 	} = useQuery({
@@ -55,7 +67,7 @@ export const PlatformExtContextProvider: FC<{children: ReactNode}> = ({ children
 	}, []);
 
 	return (
-		<PlatformExtContext.Provider value={{ state: platformExtState}}>
+		<PlatformExtContext.Provider value={{ platformExtState, projectPath }}>
 			{children}
 		</PlatformExtContext.Provider>
 	);

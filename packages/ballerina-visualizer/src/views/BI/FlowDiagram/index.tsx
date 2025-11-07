@@ -78,6 +78,7 @@ import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, G
 import { PlatformExtHooks } from "../../../PlatformExtHooks";
 import { useMutation } from "@tanstack/react-query";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { usePlatformExtContext } from "../../../utils/PlatformExtContext";
 
 const Container = styled.div`
     width: 100%;
@@ -163,12 +164,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
+    const { platformExtState } = usePlatformExtContext()
     const {connections: devantConnections = [], refetchConnections: refetchDevantConnections} = PlatformExtHooks.getAllConnections();
-    const selected = PlatformExtHooks.getSelectedContext()
     const { projectToml, refetchToml } = PlatformExtHooks.getProjectToml()
     const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(selected, projectToml, devantConnections, categories, importingConn)
-    },[projectToml, selected, devantConnections,categories, importingConn])
+         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml, devantConnections, categories, importingConn)
+    },[projectToml, platformExtState?.selectedContext, devantConnections,categories, importingConn])
 
     const { mutate: importConnection } = useMutation({
         mutationFn: (data: ConnectionListItem) =>
