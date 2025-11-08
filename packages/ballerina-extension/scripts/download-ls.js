@@ -100,7 +100,6 @@ function downloadFile(url, outputPath, maxRedirects = 5) {
                         return;
                     }
 
-                    console.log(`Following redirect to: ${res.headers.location}`);
                     makeRequest(res.headers.location, redirectCount + 1);
                     return;
                 }
