@@ -103,7 +103,7 @@ public final class XMLToRecordConverter {
     private final io.ballerina.projects.Document document;
     private final Path filePath;
     private final TypesManager typesManager;
-    private final Map<String, String> importStatements;
+    private boolean hasXmlDataUsed;
 
     public XMLToRecordConverter(Project project, io.ballerina.projects.Document document, Path filePath,
                                 TypesManager typesManager) {
@@ -111,12 +111,12 @@ public final class XMLToRecordConverter {
         this.document = document;
         this.filePath = filePath;
         this.typesManager = typesManager;
-        this.importStatements = new HashMap<>();
+        hasXmlDataUsed = false;
     }
 
     private static final String XMLNS_PREFIX = "xmlns";
     private static final String XMLDATA = "xmldata";
-    public static final String BALLERINA_DATA_XMLDATA_IMPORT = "ballerina/data.xmldata";
+    public static final String BALLERINA_XMLDATA_IMPORT_STATEMENT = "import ballerina/data.xmldata;" + System.lineSeparator();
     private static final String COLON = ":";
 
     public JsonElement convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
@@ -182,10 +182,6 @@ public final class XMLToRecordConverter {
         NodeList<ModuleMemberDeclarationNode> moduleMembers =
                 AbstractNodeFactory.createNodeList(new ArrayList<>(typeDefNodes));
 
-        List<String> importList = this.importStatements.values()
-                .stream().map(importModule -> "import " + importModule + ";")
-                .toList();
-
         Token eofToken = AbstractNodeFactory.createIdentifierToken("");
         ModulePartNode modulePartNode = NodeFactory.createModulePartNode(imports, moduleMembers, eofToken);
         ForceFormattingOptions forceFormattingOptions = ForceFormattingOptions.builder()
@@ -193,7 +189,7 @@ public final class XMLToRecordConverter {
         FormattingOptions formattingOptions = FormattingOptions.builder()
                 .setForceFormattingOptions(forceFormattingOptions).build();
         String typesSrc = Formatter.format(modulePartNode.syntaxTree(), formattingOptions).toSourceCode();
-        String importSrc = StringUtils.join(importList, System.lineSeparator());
+        String importSrc = hasXmlDataUsed ? BALLERINA_XMLDATA_IMPORT_STATEMENT : "";
 
         // TODO: Check on how we can use package compilation here
         io.ballerina.projects.Document newDoc =
@@ -698,7 +694,7 @@ public final class XMLToRecordConverter {
         MappingConstructorExpressionNode annotValue =
                 NodeFactory.createMappingConstructorExpressionNode(openBrace, mappingFields, closeBrace);
 
-        this.importStatements.putIfAbsent(XMLDATA, BALLERINA_DATA_XMLDATA_IMPORT);
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, annotValue);
     }
 
@@ -747,7 +743,7 @@ public final class XMLToRecordConverter {
         MappingConstructorExpressionNode annotValue =
                 NodeFactory.createMappingConstructorExpressionNode(openBrace, mappingFieldNodes, closeBrace);
 
-        this.importStatements.putIfAbsent(XMLDATA, BALLERINA_DATA_XMLDATA_IMPORT);
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, annotValue);
     }
 
@@ -764,11 +760,15 @@ public final class XMLToRecordConverter {
         IdentifierToken identifier = AbstractNodeFactory.createIdentifierToken("Attribute");
         Node annotReference = NodeFactory.createQualifiedNameReferenceNode(modulePrefix, colon, identifier);
 
-        this.importStatements.putIfAbsent(XMLDATA, BALLERINA_DATA_XMLDATA_IMPORT);
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, null);
     }
 
     private static String getRecordNameWithPrefix(String prefix, String name) {
         return StringUtils.capitalize(prefix) + getRecordName(name);
+    }
+
+    private void xmlDataUsed() {
+        this.hasXmlDataUsed = true;
     }
 }
