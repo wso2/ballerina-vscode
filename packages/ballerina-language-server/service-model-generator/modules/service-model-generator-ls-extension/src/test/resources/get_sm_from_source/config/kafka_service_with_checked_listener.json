@@ -263,7 +263,7 @@
             "kind": "DATA_BINDING",
             "type": {
               "valueType": "TYPE",
-              "value": "KafkaAnydataConsumer",
+              "value": "Order",
               "enabled": true,
               "editable": false,
               "optional": false,
