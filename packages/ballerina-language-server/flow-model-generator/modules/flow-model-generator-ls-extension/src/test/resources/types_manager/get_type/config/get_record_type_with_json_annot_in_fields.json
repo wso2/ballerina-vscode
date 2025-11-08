@@ -1,15 +1,15 @@
 {
-  "filePath": "test_pack1/types.bal",
+  "filePath": "test_pack4/types.bal",
   "position": {
-    "line": 2,
+    "line": 50,
     "offset": 5
   },
-  "description": "Get a record type data",
+  "description": "Get type information of a record type with XML annotations",
   "type": {
-    "name": "Address",
+    "name": "School",
     "editable": true,
     "metadata": {
-      "label": "Address",
+      "label": "School",
       "description": ""
     },
     "codedata": {
@@ -17,12 +17,12 @@
       "lineRange": {
         "fileName": "types.bal",
         "startLine": {
-          "line": 2,
+          "line": 50,
           "offset": 5
         },
         "endLine": {
-          "line": 2,
-          "offset": 12
+          "line": 50,
+          "offset": 11
         }
       }
     },
@@ -33,7 +33,7 @@
           "description": "Unique name to identify the type"
         },
         "valueType": "IDENTIFIER",
-        "value": "Address",
+        "value": "School",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -93,61 +93,66 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
-        "name": "houseNo",
+        "name": "Name",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"_name\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
-        "name": "line1",
+        "name": "state",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
-      },
-      {
-        "kind": "FIELD",
-        "refs": [],
-        "type": "string",
-        "name": "line2",
-        "optional": false,
-        "readonly": false,
-        "isGraphqlId": false,
-        "docs": "",
-        "annotationAttachments": []
-      },
-      {
-        "kind": "FIELD",
-        "refs": [],
-        "type": "string",
-        "name": "city",
-        "optional": false,
-        "readonly": false,
-        "isGraphqlId": false,
-        "docs": "",
-        "annotationAttachments": []
-      },
-      {
-        "kind": "FIELD",
-        "refs": [],
-        "type": "string",
-        "name": "country",
-        "optional": false,
-        "readonly": false,
-        "isGraphqlId": false,
-        "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"$state\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
       }
     ],
     "includes": [],
     "annotationAttachments": [],
-    "allowAdditionalFields": false
+    "allowAdditionalFields": true
   },
   "refs": []
 }

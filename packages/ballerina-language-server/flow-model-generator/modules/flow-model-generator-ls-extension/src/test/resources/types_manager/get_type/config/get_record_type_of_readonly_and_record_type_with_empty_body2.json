@@ -102,6 +102,7 @@
     },
     "members": [],
     "includes": [],
+    "annotationAttachments": [],
     "allowAdditionalFields": true
   },
   "refs": []

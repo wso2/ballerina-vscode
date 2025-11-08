@@ -4,5 +4,5 @@
   "prefix": "",
   "isClosed": false,
   "isRecordTypeDesc": true,
-  "records": "\ntype Author_01 record {\n\tstring name;\n\tstring country;\n};\n\ntype Book_01 record {\n\tstring title;\n\tAuthor_01 author;\n\tdecimal price;\n};\n\ntype Library record {\n\tBook_01 book;\n};\n"
+  "records": "\ntype Author_01 record {\n\tstring name;\n\tstring country;\n};\n\ntype Book_01 record {\n\tstring title;\n\tAuthor_01 author;\n\tdecimal price;\n};\n\n@xmldata:Name{\nvalue: \"library\"\n}\ntype Library record {\n\tBook_01 book;\n};\n"
 }
