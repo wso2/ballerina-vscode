@@ -300,21 +300,23 @@ public class DataMapManager {
                 }
             }
 
-            JoinClauseNode joinClause = getJoinClause(queryExpressionNode);
-            if (joinClause != null) {
-                ExpressionNode joinExpression = joinClause.expression();
-                inputs.add(joinExpression.toSourceCode().trim());
-                Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
-                String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
-                if (joinTypeSymbol.isPresent()) {
-                    TypeSymbol rawTypeSymbol = CommonUtils.getRawType(joinTypeSymbol.get());
-                    if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
-                        TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
-                        MappingPort mappingPort = getRefMappingPort(joinClauseVar, joinClauseVar,
-                                Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
-                                        typeDefSymbols)), new HashMap<>(), references);
-                        mappingPort.setFocusExpression(joinExpression.toString().trim());
-                        inputPorts.add(mappingPort);
+            List<JoinClauseNode> joinClauses = getJoinClause(queryExpressionNode);
+            if (!joinClauses.isEmpty()) {
+                for (JoinClauseNode joinClause : joinClauses) {
+                    ExpressionNode joinExpression = joinClause.expression();
+                    inputs.add(joinExpression.toSourceCode().trim());
+                    Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
+                    String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    if (joinTypeSymbol.isPresent()) {
+                        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(joinTypeSymbol.get());
+                        if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                            TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
+                            MappingPort mappingPort = getRefMappingPort(joinClauseVar, joinClauseVar,
+                                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
+                                            typeDefSymbols)), new HashMap<>(), references);
+                            mappingPort.setFocusExpression(joinExpression.toString().trim());
+                            inputPorts.add(mappingPort);
+                        }
                     }
                 }
             }
@@ -369,13 +371,14 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
     }
 
-    private JoinClauseNode getJoinClause(QueryExpressionNode query) {
+    private List<JoinClauseNode> getJoinClause(QueryExpressionNode query) {
+        List<JoinClauseNode> joinClauses = new ArrayList<>();
         for (IntermediateClauseNode intermediateClauseNode : query.queryPipeline().intermediateClauses()) {
             if (intermediateClauseNode.kind() == SyntaxKind.JOIN_CLAUSE) {
-                return (JoinClauseNode) intermediateClauseNode;
+                joinClauses.add((JoinClauseNode) intermediateClauseNode);
             }
         }
-        return null;
+        return joinClauses;
     }
 
     private String getVariableName(NonTerminalNode node) {
