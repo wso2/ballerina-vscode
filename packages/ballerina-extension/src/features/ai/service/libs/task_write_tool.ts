@@ -147,7 +147,7 @@ Rules:
 
                 if (!isNewPlan && !isPlanRemodification) {
                     const missingTasksError = validateAllTasksIncluded(input, existingPlan);
-                    if (missingTasksError) { return missingTasksError; }
+                    if (missingTasksError) { { return missingTasksError; } }
                 }
 
                 let approvalResult: { approved: boolean; comment?: string; approvedTaskDescription?: string } | undefined;
@@ -232,6 +232,7 @@ function validateAllTasksIncluded(input: TaskWriteInput, existingPlan: Plan | un
             tasks: existingPlan.tasks
         };
     }
+    //TOOD: Add diagnostics check
     return null;
 }
 
