@@ -95,14 +95,16 @@
         "properties": {
           "name": "m2Item",
           "type": "MyType2[]",
-          "expression": "arr1.m2"
+          "expression": "arr1.m2",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem"
+          "expression": "from var m2ItemItem in m2Item\n                select m2ItemItem",
+          "isOuter": false
         }
       }
     },

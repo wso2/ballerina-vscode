@@ -1,0 +1,51 @@
+{
+  "source": "variable3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable3.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 101
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": -1,
+  "clause": {
+    "type": "join",
+    "properties": {
+      "name": "i",
+      "type": "int",
+      "expression": "2",
+      "isOuter": false,
+      "lhsExpression": "item.id",
+      "rhsExpression": "i"
+    }
+  },
+  "targetField": "credentials.0",
+  "output": {
+    "variable3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 65
+          },
+          "end": {
+            "line": 19,
+            "character": 65
+          }
+        },
+        "newText": "\njoin int i in 2 on item.id equals i"
+      }
+    ]
+  }
+}

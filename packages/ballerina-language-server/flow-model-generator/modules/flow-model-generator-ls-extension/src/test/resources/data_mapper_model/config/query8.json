@@ -108,14 +108,16 @@
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "newSecondaryPhones"
+          "expression": "newSecondaryPhones",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}",
+          "isOuter": false
         }
       }
     },

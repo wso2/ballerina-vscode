@@ -54,6 +54,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
+import io.ballerina.compiler.syntax.tree.JoinClauseNode;
 import io.ballerina.compiler.syntax.tree.LetClauseNode;
 import io.ballerina.compiler.syntax.tree.LetExpressionNode;
 import io.ballerina.compiler.syntax.tree.LetVariableDeclarationNode;
@@ -70,6 +71,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OnClauseNode;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.OrderByClauseNode;
 import io.ballerina.compiler.syntax.tree.OrderKeyNode;
@@ -298,16 +300,37 @@ public class DataMapManager {
                 }
             }
 
+            List<JoinClauseNode> joinClauses = getJoinClause(queryExpressionNode);
+            if (!joinClauses.isEmpty()) {
+                for (JoinClauseNode joinClause : joinClauses) {
+                    ExpressionNode joinExpression = joinClause.expression();
+                    inputs.add(joinExpression.toSourceCode().trim());
+                    Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
+                    String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    if (joinTypeSymbol.isPresent()) {
+                        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(joinTypeSymbol.get());
+                        if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+                            TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
+                            MappingPort mappingPort = getRefMappingPort(joinClauseVar, joinClauseVar,
+                                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
+                                            typeDefSymbols)), new HashMap<>(), references);
+                            mappingPort.setFocusExpression(joinExpression.toString().trim());
+                            inputPorts.add(mappingPort);
+                        }
+                    }
+                }
+            }
+
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
-                    expression.toSourceCode().trim(), null));
+                    expression.toSourceCode().trim(), null, null, null, false));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
             Clause resultClause;
             if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
                 resultClause = new Clause("select", new DataMapManager.Properties(null, null,
-                        ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
+                        ((SelectClauseNode) clauseNode).expression().toSourceCode().trim(), null, null, null, false));
             } else {
                 resultClause = new Clause("collect", new DataMapManager.Properties(null, null,
-                        ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null));
+                        ((CollectClauseNode) clauseNode).expression().toSourceCode().trim(), null, null, null, false));
             }
             query = new Query(name, inputs, fromClause,
                     getQueryIntermediateClause(queryExpressionNode.queryPipeline()), resultClause);
@@ -346,6 +369,16 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
+    }
+
+    private List<JoinClauseNode> getJoinClause(QueryExpressionNode query) {
+        List<JoinClauseNode> joinClauses = new ArrayList<>();
+        for (IntermediateClauseNode intermediateClauseNode : query.queryPipeline().intermediateClauses()) {
+            if (intermediateClauseNode.kind() == SyntaxKind.JOIN_CLAUSE) {
+                joinClauses.add((JoinClauseNode) intermediateClauseNode);
+            }
+        }
+        return joinClauses;
     }
 
     private String getVariableName(NonTerminalNode node) {
@@ -1617,6 +1650,13 @@ public class DataMapManager {
             case "collect": {
                 return "collect " + properties.expression();
             }
+            case "join": {
+                String joinClause = properties.isOuter() ? "outer join " : "join ";
+                joinClause = joinClause + properties.type() + " " + properties.name() +
+                        " in " + properties.expression() + " on " + properties.lhsExpression() +
+                        " equals " + properties.rhsExpression();
+                return joinClause;
+            }
             default:
                 throw new IllegalStateException("Unknown clause type: " + type);
         }
@@ -2010,13 +2050,13 @@ public class DataMapManager {
                     intermediateClauses.add(new Clause(FROM,
                             new DataMapManager.Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
-                                    fromClauseNode.expression().toSourceCode().trim(), null)));
+                                    fromClauseNode.expression().toSourceCode().trim(), null, null, null, false)));
                 }
                 case WHERE_CLAUSE -> {
                     WhereClauseNode whereClauseNode = (WhereClauseNode) intermediateClause;
                     ExpressionNode expression = whereClauseNode.expression();
                     intermediateClauses.add(new Clause(WHERE,
-                            new Properties(null, null, expression.toSourceCode().trim(), null)));
+                            new Properties(null, null, expression.toSourceCode().trim(), null, null, null, false)));
                 }
                 case LET_CLAUSE -> {
                     LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
@@ -2026,7 +2066,7 @@ public class DataMapManager {
                     intermediateClauses.add(new Clause(LET,
                             new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
                                     typedBindingPattern.typeDescriptor().toSourceCode().trim(),
-                                    letVar.expression().toSourceCode().trim(), null)));
+                                    letVar.expression().toSourceCode().trim(), null, null, null, false)));
                 }
                 case ORDER_BY_CLAUSE -> {
                     OrderByClauseNode order = (OrderByClauseNode) intermediateClause;
@@ -2039,12 +2079,24 @@ public class DataMapManager {
                     }
                     intermediateClauses.add(new Clause(ORDER_BY,
                             new Properties(null, null,
-                                    orderKey.expression().toSourceCode().trim(), direction)));
+                                    orderKey.expression().toSourceCode().trim(), direction, null, null, false)));
                 }
                 case LIMIT_CLAUSE -> {
                     LimitClauseNode limitClause = (LimitClauseNode) intermediateClause;
                     intermediateClauses.add(new Clause("limit", new Properties(null, null,
-                            limitClause.expression().toSourceCode().trim(), null)));
+                            limitClause.expression().toSourceCode().trim(), null, null, null, false)));
+                }
+                case JOIN_CLAUSE -> {
+                    JoinClauseNode joinClauseNode = (JoinClauseNode) intermediateClause;
+                    TypedBindingPatternNode typedBindingPattern = joinClauseNode.typedBindingPattern();
+                    OnClauseNode onClauseNode = joinClauseNode.joinOnCondition();
+                    intermediateClauses.add(new Clause("join",
+                            new Properties(typedBindingPattern.bindingPattern().toSourceCode().trim(),
+                            typedBindingPattern.typeDescriptor().toSourceCode().trim(),
+                            joinClauseNode.expression().toSourceCode().trim(), null,
+                            onClauseNode.lhsExpression().toSourceCode().trim(),
+                            onClauseNode.rhsExpression().toSourceCode().trim(),
+                            joinClauseNode.outerKeyword().isPresent())));
                 }
                 default -> {
                 }
@@ -2441,7 +2493,8 @@ public class DataMapManager {
 
     }
 
-    private record Properties(String name, String type, String expression, String order) {
+    private record Properties(String name, String type, String expression, String order,
+                              String lhsExpression, String rhsExpression, boolean isOuter) {
 
     }
 
@@ -2728,7 +2781,20 @@ public class DataMapManager {
 
         @Override
         public void visit(QueryExpressionNode node) {
-            addInput(node.queryPipeline().fromClause().expression().toSourceCode().trim());
+            node.queryPipeline().fromClause().accept(this);
+            for (IntermediateClauseNode intermediateClauseNode : node.queryPipeline().intermediateClauses()) {
+                intermediateClauseNode.accept(this);
+            }
+        }
+
+        @Override
+        public void visit(JoinClauseNode node) {
+            addInput(node.expression().toSourceCode().trim());
+        }
+
+        @Override
+        public void visit(FromClauseNode node) {
+            addInput(node.expression().toSourceCode().trim());
         }
 
         @Override

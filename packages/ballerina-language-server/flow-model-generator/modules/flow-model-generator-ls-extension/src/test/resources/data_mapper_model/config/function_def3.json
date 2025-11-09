@@ -88,14 +88,16 @@
         "properties": {
           "name": "input",
           "type": "Input",
-          "expression": "inputs"
+          "expression": "inputs",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{\n    fullName: input?.user?.firstName\n}"
+          "expression": "{\n    fullName: input?.user?.firstName\n}",
+          "isOuter": false
         }
       }
     },
