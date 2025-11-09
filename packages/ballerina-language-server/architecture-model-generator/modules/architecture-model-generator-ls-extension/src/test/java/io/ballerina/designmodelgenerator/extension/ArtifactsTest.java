@@ -22,8 +22,6 @@ import com.google.gson.JsonObject;
 import io.ballerina.designmodelgenerator.extension.request.ArtifactsRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -85,15 +83,5 @@ public class ArtifactsTest extends AbstractLSTest {
     }
 
     public record TestConfig(String description, String source, JsonObject output) {
-    }
-
-    @AfterMethod
-    public void shutDownLanguageServer() {
-        super.shutDownLanguageServer();
-    }
-
-    @BeforeMethod
-    public void startLanguageServer() {
-        super.startLanguageServer();
     }
 }
