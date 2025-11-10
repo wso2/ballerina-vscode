@@ -31,6 +31,7 @@ import { fileURLToPath } from "url";
 import { startDebugging } from "../editor-support/activator";
 import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
+import { TracerMachine } from "../tracing";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -224,6 +225,7 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
 
 
 async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, filePath: string, isBi?: boolean) {
+    TracerMachine.startServer();
     if (ballerinaExtInstance.enabledRunFast() || isBi) {
         filePath = (await getCurrentBallerinaProject(filePath)).path;
         const projectHasErrors = await cleanAndValidateProject(ballerinaExtInstance.langClient, filePath);

@@ -101,6 +101,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 import { checkToken } from "../../../src/views/ai-panel/utils";
+import { getCurrentProjectRoot } from "../../utils/project-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -185,7 +186,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
+        const projectPath = await getCurrentProjectRoot();
         // Check if workspaceFolderPath is a Ballerina project
         // Assuming a Ballerina project must contain a 'Ballerina.toml' file
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
@@ -208,7 +209,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
-        const projectPath = StateMachine.context().projectPath;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -224,7 +225,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
-        const projectPath = StateMachine.context().projectPath;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -246,7 +247,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFileExists(req: GetFromFileRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -309,7 +310,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
 
                 const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
@@ -322,7 +323,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
                 const diagnostics = await getDiagnostics(projectPath, params);
                 resolve(diagnostics);
             } catch (error) {
@@ -334,7 +335,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceSourceForName(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
                 const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
                 resolve(serviceDeclaration.source);
             } catch (error) {
@@ -346,7 +347,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceSourceForMethodAndPath(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
                 const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
                 resolve(resourceAccessorDef.source);
             } catch (error) {
@@ -358,7 +359,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
                 const serviceDeclNames = await getServiceDeclarationNames(projectPath);
                 resolve({
                     mentions: serviceDeclNames
@@ -372,7 +373,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectPath = StateMachine.context().projectPath;
+                const projectPath = await getCurrentProjectRoot();
                 const resourceAccessorNames = await getResourceAccessorNames(projectPath);
                 resolve({
                     mentions: resourceAccessorNames
@@ -392,7 +393,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async applyDoOnFailBlocks(): Promise<void> {
-        const projectPath = StateMachine.context().projectPath;
+        const projectPath = await getCurrentProjectRoot();
 
         if (!projectPath) {
             return null;
@@ -654,7 +655,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            const projectPath = StateMachine.context().projectPath;
+            const projectPath = await getCurrentProjectRoot();
 
             const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {
@@ -740,7 +741,7 @@ interface BalModification {
 
 async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {
     //TODO: Move this to LS
-    const projectPath = StateMachine.context().projectPath;
+    const projectPath = await getCurrentProjectRoot();
     if (!projectPath) {
         return null;
     }
@@ -814,7 +815,7 @@ enum CodeGenerationType {
 }
 
 async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
-    const projectPath = StateMachine.context().projectPath;
+    const projectPath = await getCurrentProjectRoot();
 
     if (!projectPath) {
         return null;

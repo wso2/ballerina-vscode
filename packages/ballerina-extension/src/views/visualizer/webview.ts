@@ -146,13 +146,14 @@ export class VisualizerWebview {
     }
 
     private getWebviewContent(webView: Webview) {
+        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
                     <div class="welcome-content">
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
+                        <h1 class="welcome-title">${biExtension ? 'WSO2 Integrator: BI' : 'Ballerina Visualizer'}</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>

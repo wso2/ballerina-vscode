@@ -162,12 +162,46 @@ const FooterText = styled.div`
     width: calc(100% - 40px);
 `;
 
+const ShowLogsButton = styled.button`
+    background: none;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    font-size: 11px;
+    padding: 0;
+    margin: -4px 0 8px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+        text-decoration: underline;
+        color: var(--vscode-textLink-activeForeground);
+    }
+`;
+
 const ChatInterface: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isTracingEnabled, setIsTracingEnabled] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Check tracing status once on mount
+    useEffect(() => {
+        const checkTracingStatus = async () => {
+            try {
+                const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
+                setIsTracingEnabled(status.enabled);
+            } catch (error) {
+                console.error('Failed to get tracing status:', error);
+                setIsTracingEnabled(false);
+            }
+        };
+        checkTracingStatus();
+    }, [rpcClient]);
 
     // Auto scroll to the bottom when messages change
     useEffect(() => {
@@ -204,6 +238,31 @@ const ChatInterface: React.FC = () => {
         setIsLoading(false);
     };
 
+    const handleShowLogs = async (messageIndex: number) => {
+        try {
+            // Find the corresponding user message
+            // Look backwards from the current index to find the last user message
+            let userMessage = '';
+
+            for (let i = messageIndex - 1; i >= 0; i--) {
+                if (messages[i].isUser) {
+                    userMessage = messages[i].text;
+                    break;
+                }
+            }
+
+            if (!userMessage) {
+                console.error('Could not find user message for this response');
+                return;
+            }
+
+            // Call the RPC method to show the trace view
+            await rpcClient.getAgentChatRpcClient().showTraceView({ message: userMessage });
+        } catch (error) {
+            console.error('Failed to show trace view:', error);
+        }
+    };
+
     return (
         <ChatWrapper>
             <ChatContainer>
@@ -220,37 +279,45 @@ const ChatInterface: React.FC = () => {
                 <Messages>
                     {/* Render each message */}
                     {messages.map((msg, idx) => (
-                        <MessageContainer isUser={msg.isUser}>
-                            {!msg.isUser && (
-                                <ProfilePic>
-                                    <Icon
-                                        name="bi-ai-agent"
-                                        sx={{ width: 18, height: 18 }}
-                                        iconSx={{
-                                            fontSize: "18px",
-                                            color: "var(--vscode-foreground)",
-                                            cursor: "default",
-                                        }}
-                                    />
-                                </ProfilePic>
+                        <React.Fragment key={idx}>
+                            <MessageContainer isUser={msg.isUser}>
+                                {!msg.isUser && (
+                                    <ProfilePic>
+                                        <Icon
+                                            name="bi-ai-agent"
+                                            sx={{ width: 18, height: 18 }}
+                                            iconSx={{
+                                                fontSize: "18px",
+                                                color: "var(--vscode-foreground)",
+                                                cursor: "default",
+                                            }}
+                                        />
+                                    </ProfilePic>
+                                )}
+                                <MessageBubble isUser={msg.isUser} isError={msg.type === ChatMessageType.ERROR}>
+                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                </MessageBubble>
+                                {msg.isUser && (
+                                    <ProfilePic>
+                                        <Codicon
+                                            name="account"
+                                            sx={{ width: 18, height: 18 }}
+                                            iconSx={{
+                                                fontSize: "18px",
+                                                color: "var(--vscode-foreground)",
+                                                cursor: "default",
+                                            }}
+                                        />
+                                    </ProfilePic>
+                                )}
+                            </MessageContainer>
+                            {/* Show "Show logs" button after agent responses (not user messages) */}
+                            {!msg.isUser && isTracingEnabled && (
+                                <ShowLogsButton onClick={() => handleShowLogs(idx)}>
+                                    Show logs
+                                </ShowLogsButton>
                             )}
-                            <MessageBubble isUser={msg.isUser} isError={false}>
-                                <ReactMarkdown>{msg.text}</ReactMarkdown>
-                            </MessageBubble>
-                            {msg.isUser && (
-                                <ProfilePic>
-                                    <Codicon
-                                        name="account"
-                                        sx={{ width: 18, height: 18 }}
-                                        iconSx={{
-                                            fontSize: "18px",
-                                            color: "var(--vscode-foreground)",
-                                            cursor: "default",
-                                        }}
-                                    />
-                                </ProfilePic>
-                            )}
-                        </MessageContainer>
+                        </React.Fragment>
                     ))}
 
                     {/* If waiting on a response, show the loading bubble */}
