@@ -98,7 +98,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
         // Get project path URI
         const visualizerLocation = await rpcClient.getVisualizerLocation();
-        projectPathUriRef.current = visualizerLocation.projectUri;
+        projectPathUriRef.current = visualizerLocation.projectPath;
 
         const moduleNodes = await fetchModuleNodes();
         // Store module variables for later use
