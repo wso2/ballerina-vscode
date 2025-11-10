@@ -171,6 +171,55 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             modelNodeTemplate.properties.variable.value = modelVarName;
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
 
+            // hack: Generate agent at module level for Ballerina versions under 2201.13.0
+            const response = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
+            const ballerinaVersion = response.version;
+
+            // Execute for versions under 2201.13.0, or if version cannot be determined (safety fallback)
+            const executeForLegacyVersion = !ballerinaVersion || (() => {
+                const parts = ballerinaVersion.split('.');
+                if (parts.length < 2 || parts[0] !== '2201') {
+                    return true; // Can't parse properly or unexpected format, execute for safety
+                }
+                const minorVersion = parseInt(parts[1], 10);
+                if (isNaN(minorVersion)) {
+                    return true; // Can't parse minor version, execute for safety
+                }
+                return minorVersion < 13;
+            })();
+
+            if (executeForLegacyVersion) {
+                // Search for agent node in the current file
+                const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                    filePath: projectPath.current,
+                    queryMap: { orgName: aiModuleOrg.current },
+                    searchKind: "AGENT"
+                });
+
+                // Validate search response structure
+                if (!agentSearchResponse?.categories?.[0]?.items?.[0]) {
+                    throw new Error('No agent node found in search response');
+                }
+
+                const agentNode = agentSearchResponse.categories[0].items[0] as AvailableNode;
+                console.log(">>> agentNode", agentNode);
+
+                // Generate template from agent node
+                const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
+
+                // save the agent node
+                const systemPromptValue = `{role: string \`\`, instructions: string \`\`}`;
+                const agentVarName = `${agentName}Agent`;
+                agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
+                agentNodeTemplate.properties.model.value = modelVarName;
+                agentNodeTemplate.properties.tools.value = [];
+                agentNodeTemplate.properties.variable.value = agentVarName;
+
+                await rpcClient
+                    .getBIDiagramRpcClient()
+                    .getSourceCode({ filePath: projectPath.current, flowNode: agentNodeTemplate });
+            }
+
             setCurrentStep(3);
 
             const listenerVariableName = agentName + LISTENER;
