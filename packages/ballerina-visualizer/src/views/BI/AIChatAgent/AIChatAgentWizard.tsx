@@ -172,8 +172,13 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
 
             // hack: Generate agent at module level for Ballerina versions under 2201.13.0
-            const response = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
-            const ballerinaVersion = response.version;
+            let ballerinaVersion: string | undefined;
+            try {
+                const versionResponse = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
+                ballerinaVersion = versionResponse?.version;
+            } catch (error) {
+                console.warn("Unable to resolve Ballerina version; falling back to legacy agent generation.", error);
+            }
 
             // Execute for versions under 2201.13.0, or if version cannot be determined (safety fallback)
             const executeForLegacyVersion = !ballerinaVersion || (() => {
