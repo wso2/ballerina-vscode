@@ -1,10 +1,10 @@
 {
-  "source": "variable6.bal",
+  "source": "variable5.bal",
   "description": "Add group by clause with variable assignment",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "variable6.bal",
+      "fileName": "variable5.bal",
       "startLine": {
         "line": 19,
         "offset": 12
@@ -27,7 +27,7 @@
   },
   "targetField": "credentials.0",
   "output": {
-    "variable6.bal": [
+    "variable5.bal": [
       {
         "range": {
           "start": {

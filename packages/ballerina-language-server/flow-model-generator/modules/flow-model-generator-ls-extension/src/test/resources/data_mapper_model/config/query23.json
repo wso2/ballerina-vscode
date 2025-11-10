@@ -90,21 +90,24 @@
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "u.info.secondaryPhones"
+          "expression": "u.info.secondaryPhones",
+          "isOuter": false
         }
       },
       "intermediateClauses": [
         {
           "type": "group-by",
           "properties": {
-            "expression": "var code = secondaryPhonesItem.code"
+            "expression": "var code = secondaryPhonesItem.code",
+            "isOuter": false
           }
         }
       ],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{code: code, count: 1}"
+          "expression": "{code: code, count: 1}",
+          "isOuter": false
         }
       }
     },

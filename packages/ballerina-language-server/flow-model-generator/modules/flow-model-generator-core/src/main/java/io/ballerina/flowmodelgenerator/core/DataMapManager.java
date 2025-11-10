@@ -2109,7 +2109,7 @@ public class DataMapManager {
                     if (!groupingKeys.isEmpty()) {
                         Node groupingKey = groupingKeys.get(0);
                         intermediateClauses.add(new Clause(GROUP_BY,
-                                new Properties(null, null, groupingKey.toSourceCode().trim(), null)));
+                                new Properties(null, null, groupingKey.toSourceCode().trim(), null, null, null, false)));
                     }
                 }
                 default -> {
