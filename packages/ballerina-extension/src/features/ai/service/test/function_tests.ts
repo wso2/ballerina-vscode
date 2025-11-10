@@ -20,7 +20,7 @@ import { generateTest, getDiagnostics } from "../../testGenerator";
 import { URI } from "vscode-uri";
 import * as fs from "fs";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
-import { StateMachine } from "../../../../stateMachine";
+import { getCurrentProjectRoot } from "../../../../utils/project-utils";
 
 // Core function test generation that emits events
 export async function generateFunctionTestsCore(
@@ -39,7 +39,15 @@ export async function generateFunctionTestsCore(
         content: `\n\n<progress>Generating tests for the function ${functionIdentifier}. This may take a moment.</progress>`,
     });
 
-    const projectPath = StateMachine.context().projectPath;
+    let projectPath: string;
+    try {
+        projectPath = await getCurrentProjectRoot();
+    } catch (error) {
+        console.error("Error getting current project root:", error);
+        eventHandler({ type: "error", content: getErrorMessage(error) });
+        return;
+    }
+
     const response = await generateTest(projectPath, {
         targetType: TestGenerationTarget.Function,
         targetIdentifier: functionIdentifier,
