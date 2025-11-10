@@ -44,6 +44,9 @@ import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
 import { createEditExecute, createEditTool, createMultiEditExecute, createBatchEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+import { getTempProject } from "../../utils/temp-project-utils";
+import * as fs from 'fs';
+import * as path from 'path';
 
 const SEARCH_LIBRARY_TOOL_NAME = "LibraryProviderTool";
 
@@ -66,10 +69,9 @@ function appendFinalMessages(
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
+    const tempProjectPath = await getTempProject(project);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
-    let updatedFileNames: string[] = [];
     const prompt = getRewrittenPrompt(params, sourceFiles);
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
@@ -108,10 +110,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
     };
 
     const { fullStream, response, providerMetadata } = streamText({
@@ -123,6 +125,10 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
+
+    // Handle promise rejections when aborted
+    response.catch(() => {});
+    providerMetadata.catch(() => {});
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
@@ -222,7 +228,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
                 const { messages: finalMessages } = await response;
                 appendFinalMessages(allMessages, finalMessages, cacheOptions);
-                let codeSegment = getCodeBlocks(updatedSourceFiles, updatedFileNames);
+                let codeSegment = getCodeBlocksFromTempProject(tempProjectPath);
                 const postProcessedResp: PostProcessResponse = await postProcess({
                     assistant_response: codeSegment,
                 });
@@ -248,8 +254,9 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                             diagnostics: diagnostics,
                         },
                         libraryDescriptions,
-                        updatedSourceFiles,
-                        eventHandler
+                        [],
+                        eventHandler,
+                        tempProjectPath
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
@@ -285,6 +292,44 @@ ${sourceFile.content}
 </code>`;
             codeBlocks.push(formattedBlock);
         }
+    }
+
+    return codeBlocks.join("\n\n");
+}
+
+/**
+ * Reads all files from temp directory and generates code blocks
+ * @param tempProjectPath Path to the temporary project directory
+ * @returns Formatted code blocks string
+ */
+function getCodeBlocksFromTempProject(tempProjectPath: string): string {
+    const codeBlocks: string[] = [];
+
+    function collectFiles(dir: string, basePath: string = '') {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            const relativePath = path.join(basePath, entry.name);
+
+            if (entry.isDirectory()) {
+                // Recursively collect files from subdirectories
+                collectFiles(fullPath, relativePath);
+            } else if (entry.isFile() && entry.name.endsWith('.bal')) {
+                // Only collect .bal files for code blocks
+                const content = fs.readFileSync(fullPath, 'utf-8');
+                const formattedBlock = `<code filename="${relativePath}">
+\`\`\`ballerina
+${content}
+\`\`\`
+</code>`;
+                codeBlocks.push(formattedBlock);
+            }
+        }
+    }
+
+    if (fs.existsSync(tempProjectPath)) {
+        collectFiles(tempProjectPath);
     }
 
     return codeBlocks.join("\n\n");
@@ -452,7 +497,8 @@ export async function repairCode(
     params: RepairParams,
     libraryDescriptions: string,
     sourceFiles: SourceFiles[] = [],
-    eventHandler?: CopilotEventHandler
+    eventHandler?: CopilotEventHandler,
+    tempProjectPath?: string
 ): Promise<RepairResponse> {
     const allMessages: ModelMessage[] = [
         ...params.previousMessages,
@@ -469,16 +515,14 @@ export async function repairCode(
         },
     ];
 
-    let updatedSourceFiles: SourceFiles[] =
-        sourceFiles.length == 0 ? getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
-    let updatedFileNames: string[] = [];
-
-    const tools = {
+    const tools = tempProjectPath ? {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
+    } : {
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
     };
 
     const { text, providerMetadata } = await generateText({
@@ -490,7 +534,7 @@ export async function repairCode(
         stopWhen: stepCountIs(50),
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
-    const repairProviderMetadata = await providerMetadata;
+    const repairProviderMetadata = providerMetadata;
     // Emit repair usage metrics event if event handler is provided
     if (eventHandler && repairProviderMetadata?.anthropic?.usage) {
         const anthropicUsage = repairProviderMetadata.anthropic.usage as any;
@@ -505,7 +549,15 @@ export async function repairCode(
             },
         });
     }
-    const updatedCodeBlocks = getCodeBlocks(updatedSourceFiles, updatedFileNames);
+
+    // Get updated code blocks from temp project if available, otherwise use in-memory approach
+    const updatedCodeBlocks = tempProjectPath
+        ? getCodeBlocksFromTempProject(tempProjectPath)
+        : getCodeBlocks(
+            sourceFiles.length == 0 ? getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles,
+            []
+        );
+
     // replace original response with new code blocks
     let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, updatedCodeBlocks);
     const postProcessResp: PostProcessResponse = await postProcess({

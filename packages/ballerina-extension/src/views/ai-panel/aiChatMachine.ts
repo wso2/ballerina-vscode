@@ -24,6 +24,7 @@ import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEven
 import { workspace } from 'vscode';
 import { GenerateAgentCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
+import { cleanupTempProject, getTempProjectPath } from '../../features/ai/utils/temp-project-utils';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -398,7 +399,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Completed: {
-            entry: 'saveChatState',
+            entry: ['saveChatState', 'cleanupTempProject'],
         },
         PartiallyCompleted: {
             entry: 'saveChatState',
@@ -412,6 +413,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Error: {
+            entry: 'cleanupTempProject',
             on: {
                 [AIChatMachineEventType.RETRY]: [
                     {
@@ -677,6 +679,15 @@ const chatStateService = interpret(
         actions: {
             saveChatState: (context) => saveChatState(context),
             clearChatState: (context) => clearChatStateAction(context),
+            cleanupTempProject: () => {
+                try {
+                    const tempProjectPath = getTempProjectPath();
+                    console.log(`[AIChatMachine] Cleaning up temp project: ${tempProjectPath}`);
+                    cleanupTempProject(tempProjectPath);
+                } catch (error) {
+                    console.error('[AIChatMachine] Failed to cleanup temp project:', error);
+                }
+            },
         },
     })
 );

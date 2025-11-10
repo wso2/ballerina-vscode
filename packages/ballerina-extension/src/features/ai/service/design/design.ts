@@ -27,13 +27,12 @@ import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
+import { getTempProject } from "../../utils/temp-project-utils";
 
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const assistantMessageId = params.assistantMessageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
-    const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    const updatedSourceFiles: SourceFiles[] = [...sourceFiles];
-    const updatedFileNames: string[] = [];
+    const tempProjectPath = await getTempProject(project);
     const historyMessages = populateHistoryForAgent(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
@@ -147,12 +146,12 @@ ${params.usecase}
         : "- No libraries available";
 
     const tools = {
-        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, updatedSourceFiles, updatedFileNames),
+        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath),
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
     };
 
     const { fullStream, response, steps } = streamText({
