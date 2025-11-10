@@ -268,7 +268,7 @@ export function getOrgPackageName(projectPath: string): { orgName: string, packa
     }
 }
 
-export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues> {
+export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues | undefined> {
     const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
@@ -281,7 +281,7 @@ export async function getProjectTomlValues(projectPath: string): Promise<Package
     }
 }
 
-export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues> {
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
