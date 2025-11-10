@@ -110,14 +110,16 @@
         "properties": {
           "name": "arr3ItemItem",
           "type": "RecType",
-          "expression": "arr3Item"
+          "expression": "arr3Item",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{i: 0}"
+          "expression": "{i: 0}",
+          "isOuter": false
         }
       }
     },

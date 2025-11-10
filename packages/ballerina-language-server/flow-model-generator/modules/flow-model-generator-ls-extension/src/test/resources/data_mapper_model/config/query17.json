@@ -176,14 +176,16 @@
         "properties": {
           "name": "y",
           "type": "MyType",
-          "expression": "myType3"
+          "expression": "myType3",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "y"
+          "expression": "y",
+          "isOuter": false
         }
       }
     },
