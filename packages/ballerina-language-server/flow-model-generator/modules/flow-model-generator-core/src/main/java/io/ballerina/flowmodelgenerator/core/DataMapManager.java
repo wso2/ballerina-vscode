@@ -2118,10 +2118,12 @@ public class DataMapManager {
                             intermediateClauses.add(new Clause(GROUP_BY,
                                     new Properties(varDecl.simpleBindingPattern().toSourceCode().trim(),
                                             varDecl.typeDescriptor().toSourceCode().trim(),
-                                            varDecl.expression().toSourceCode().trim(), null, null, null, false)));
+                                            varDecl.expression().toSourceCode().trim(),
+                                            null, null, null, false)));
                         } else {
                             intermediateClauses.add(new Clause(GROUP_BY,
-                                    new Properties(null, null, groupingKey.toSourceCode().trim(), null, null, null, false)));
+                                    new Properties(null, null, groupingKey.toSourceCode().trim(),
+                                            null, null, null, false)));
                         }
                     }
                 }
