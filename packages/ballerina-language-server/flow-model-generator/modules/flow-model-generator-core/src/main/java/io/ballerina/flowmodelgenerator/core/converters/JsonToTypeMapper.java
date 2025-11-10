@@ -151,7 +151,7 @@ public class JsonToTypeMapper {
 
     private void generateForNestedStructures(JsonElement jsonElement, String elementKey,
                                              boolean isArraySuffixAdded, String moveBefore) {
-        String typeName = escapeIdentifier(StringUtils.capitalize(elementKey));
+        String typeName = escapeIdentifier(elementKey.trim());
         String updatedTypeName = getAndUpdateFieldNames(
                 typeName, isArraySuffixAdded, new ArrayList<>(existingFieldNamesSet), updatedFieldNames
         );
