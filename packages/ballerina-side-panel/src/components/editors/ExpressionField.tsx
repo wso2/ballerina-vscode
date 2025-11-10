@@ -159,6 +159,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}
             onOpenExpandedMode={onOpenExpandedMode}
+            onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
         />
     );
