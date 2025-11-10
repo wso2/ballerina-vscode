@@ -234,7 +234,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         setCurrentStep(WizardStep.GENERATE_CONNECTOR);
     };
 
-    const handleOnFormSubmit = async (node?: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedNodeRef.current) {
             setSavingFormStatus(SavingFormStatus.SAVING);
@@ -275,7 +275,9 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 .then((response) => {
                     console.log(">>> Updated source code", response);
                     if (!isConnector) {
-                         if (options?.postUpdateCallBack) {
+                        setSavingFormStatus(SavingFormStatus.SUCCESS);
+                        selectedNodeRef.current = undefined;
+                        if (options?.postUpdateCallBack) {
                             options.postUpdateCallBack();
                         }
                         return;
@@ -308,12 +310,12 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 prevFields.map((field) =>
                     field.key === "module"
                         ? {
-                              ...field,
-                              diagnostics: [
-                                  ...field.diagnostics,
-                                  { message: response.errorMessage, severity: "ERROR" },
-                              ],
-                          }
+                            ...field,
+                            diagnostics: [
+                                ...field.diagnostics,
+                                { message: response.errorMessage, severity: "ERROR" },
+                            ],
+                        }
                         : field
                 )
             );
