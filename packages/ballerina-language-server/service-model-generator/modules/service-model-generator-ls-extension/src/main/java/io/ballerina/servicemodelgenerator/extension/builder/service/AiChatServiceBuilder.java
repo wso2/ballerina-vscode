@@ -191,7 +191,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
             SemanticVersion current = SemanticVersion.from(coreVersion);
             SemanticVersion minimum = SemanticVersion.from(minVersion);
             return current.greaterThanOrEqualTo(minimum);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // If version check fails, default to generating agent at module level
             return false;
         }
