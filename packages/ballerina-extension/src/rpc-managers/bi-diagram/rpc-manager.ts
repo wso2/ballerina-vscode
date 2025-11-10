@@ -598,9 +598,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
         if (params.convertToWorkspace) {
-            await convertProjectToWorkspace(params);
+            try {
+                await convertProjectToWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error converting project to workspace");
+            }
         } else {
-            await addProjectToExistingWorkspace(params);
+            try {
+                await addProjectToExistingWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error adding project to existing workspace");
+            }
         }
     }
 
