@@ -41,7 +41,7 @@ const TaskWriteInputSchema = z.object({
 
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
-export function createTaskWriteTool(eventHandler?: CopilotEventHandler, updatedSourceFiles?: SourceFiles[], updatedFileNames?: string[]) {
+export function createTaskWriteTool(eventHandler?: CopilotEventHandler, tempProjectPath?: string) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
@@ -163,8 +163,7 @@ Rules:
                                 newlyCompletedTasks,
                                 currentContext,
                                 eventHandler,
-                                updatedSourceFiles,
-                                updatedFileNames
+                                tempProjectPath
                             );
                         }
                     } else if (taskCategories.inProgress.length > 0) {
@@ -300,14 +299,13 @@ async function handleTaskCompletion(
     newlyCompletedTasks: Task[],
     currentContext: any,
     eventHandler: CopilotEventHandler,
-    updatedSourceFiles?: SourceFiles[],
-    updatedFileNames?: string[]
+    tempProjectPath?: string
 ): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
 
-    if (updatedSourceFiles && updatedFileNames) {
-        await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
+    if (tempProjectPath) {
+        await integrateCodeToWorkspace(tempProjectPath);
     }
 
     AIChatStateMachine.sendEvent({
