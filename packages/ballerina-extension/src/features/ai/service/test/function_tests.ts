@@ -39,8 +39,8 @@ export async function generateFunctionTestsCore(
         content: `\n\n<progress>Generating tests for the function ${functionIdentifier}. This may take a moment.</progress>`,
     });
 
-    const projectRoot = StateMachine.context().projectUri;
-    const response = await generateTest(projectRoot, {
+    const projectPath = StateMachine.context().projectPath;
+    const response = await generateTest(projectPath, {
         targetType: TestGenerationTarget.Function,
         targetIdentifier: functionIdentifier,
         testPlan: params.testPlan,
@@ -63,7 +63,7 @@ export async function generateFunctionTestsCore(
         ? existingSource + "\n\n// >>>>>>>>>>>>>>TEST CASES NEED TO BE FIXED <<<<<<<<<<<<<<<\n\n" + response.testSource
         : response.testSource;
 
-    const diagnostics = await getDiagnostics(projectRoot, {
+    const diagnostics = await getDiagnostics(projectPath, {
         testSource: generatedFullSource,
     });
 
@@ -78,7 +78,7 @@ export async function generateFunctionTestsCore(
             content: `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`,
         });
 
-        const fixedCode = await generateTest(projectRoot, {
+        const fixedCode = await generateTest(projectPath, {
             targetType: TestGenerationTarget.Function,
             targetIdentifier: functionIdentifier,
             testPlan: params.testPlan,
