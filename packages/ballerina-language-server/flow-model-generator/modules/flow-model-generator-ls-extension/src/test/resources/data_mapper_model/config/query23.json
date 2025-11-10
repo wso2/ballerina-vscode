@@ -98,7 +98,9 @@
         {
           "type": "group-by",
           "properties": {
-            "expression": "var code = secondaryPhonesItem.code",
+            "name": "code",
+            "type": "var",
+            "expression": "secondaryPhonesItem.code",
             "isOuter": false
           }
         }

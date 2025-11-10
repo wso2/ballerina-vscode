@@ -52,6 +52,7 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.GroupByClauseNode;
+import io.ballerina.compiler.syntax.tree.GroupingKeyVarDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
@@ -1640,6 +1641,10 @@ public class DataMapManager {
                 return orderBy;
             }
             case GROUP_BY: {
+                if (properties.name() != null && properties.type() != null) {
+                    return "group by " + properties.type() + " " + properties.name() +
+                            " = " + properties.expression();
+                }
                 return "group by " + properties.expression();
             }
             case "let": {
@@ -2108,8 +2113,16 @@ public class DataMapManager {
                     SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
                     if (!groupingKeys.isEmpty()) {
                         Node groupingKey = groupingKeys.get(0);
-                        intermediateClauses.add(new Clause(GROUP_BY,
-                                new Properties(null, null, groupingKey.toSourceCode().trim(), null, null, null, false)));
+                        if (groupingKey.kind() == SyntaxKind.GROUPING_KEY_VAR_DECLARATION) {
+                            GroupingKeyVarDeclarationNode varDecl = (GroupingKeyVarDeclarationNode) groupingKey;
+                            intermediateClauses.add(new Clause(GROUP_BY,
+                                    new Properties(varDecl.simpleBindingPattern().toSourceCode().trim(),
+                                            varDecl.typeDescriptor().toSourceCode().trim(),
+                                            varDecl.expression().toSourceCode().trim(), null, null, null, false)));
+                        } else {
+                            intermediateClauses.add(new Clause(GROUP_BY,
+                                    new Properties(null, null, groupingKey.toSourceCode().trim(), null, null, null, false)));
+                        }
                     }
                 }
                 default -> {
