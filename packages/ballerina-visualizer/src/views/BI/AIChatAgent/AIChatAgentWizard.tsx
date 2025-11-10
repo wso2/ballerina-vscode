@@ -178,12 +178,20 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             // Execute for versions under 2201.13.0, or if version cannot be determined (safety fallback)
             const executeForLegacyVersion = !ballerinaVersion || (() => {
                 const parts = ballerinaVersion.split('.');
-                if (parts.length < 2 || parts[0] !== '2201') {
-                    return true; // Can't parse properly or unexpected format, execute for safety
+                if (parts.length < 2) {
+                    return true; // Can't parse properly, execute for safety
                 }
+                const majorVersion = parseInt(parts[0], 10);
                 const minorVersion = parseInt(parts[1], 10);
-                if (isNaN(minorVersion)) {
-                    return true; // Can't parse minor version, execute for safety
+                if (isNaN(majorVersion) || isNaN(minorVersion)) {
+                    return true; // Can't parse version numbers, execute for safety
+                }
+                // Only versions < 2201.13 are legacy
+                if (majorVersion < 2201) {
+                    return true;
+                }
+                if (majorVersion > 2201) {
+                    return false;
                 }
                 return minorVersion < 13;
             })();
