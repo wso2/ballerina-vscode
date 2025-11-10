@@ -106,14 +106,16 @@
         "properties": {
           "name": "user",
           "type": "UserInfo",
-          "expression": "userInfo"
+          "expression": "userInfo",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{username: user.username, password: user.password}"
+          "expression": "{username: user.username, password: user.password}",
+          "isOuter": false
         }
       }
     },
