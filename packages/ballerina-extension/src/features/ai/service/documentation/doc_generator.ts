@@ -26,16 +26,16 @@ import { StateMachine } from '../../../../stateMachine';
 export async function generateDocumentationForService(params: DocGenerationRequest): Promise<void> {
     try {
         // Get the project root
-        const projectRoot = StateMachine.context().projectUri;
+        const projectPath = StateMachine.context().projectPath;
 
         // Get the project source files
-        const projectSource = await getProjectSource(projectRoot);
+        const projectSource = await getProjectSource(projectPath);
         if (!projectSource) {
             throw new Error("The current project is not recognized as a valid Ballerina project. Please ensure you have opened a Ballerina project.");
         }
 
         // Find the service declaration and get OpenAPI spec
-        const { serviceDocFilePath } = await getServiceDeclaration(projectRoot, params.serviceName);
+        const { serviceDocFilePath } = await getServiceDeclaration(projectPath, params.serviceName);
         const openApiSpec = await getOpenAPISpecification(serviceDocFilePath);
 
         // Create the documentation generation request

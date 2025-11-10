@@ -16,19 +16,10 @@
  * under the License.
  */
 
-import { TextEditor, Uri, ViewColumn, WebviewPanel, commands, window, workspace } from "vscode";
-import { debounce } from "lodash";
-import { basename, dirname, join } from "path";
-import { existsSync } from "fs";
-import { PALETTE_COMMANDS } from "../../features/project/cmds/cmd-runner";
+import { TextEditor, Uri, window } from "vscode";
+import { basename, dirname } from "path";
 import { BallerinaExtension, ExtendedLangClient } from "../../core";
-import { getCommonWebViewOptions } from "../../utils";
-import { render } from "./renderer";
-
-const COMPATIBILITY_MESSAGE = "An incompatible Ballerina version was detected. Update Ballerina to 2201.6.0 or higher to use the feature.";
-
-let diagramWebview: WebviewPanel | undefined;
-let filePath: string | undefined;
+import { checkIsBallerinaPackage } from "../../utils";
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
     const langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
@@ -119,6 +110,10 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
 //     return parseFloat(ballerinaVersion) >= 2201.6;
 // }
 
-export function checkIsPersistModelFile(fileUri: Uri): boolean {
-    return basename(dirname(fileUri.fsPath)) === 'persist' && existsSync(join(dirname(dirname(fileUri.fsPath)), 'Ballerina.toml'));
+export async function checkIsPersistModelFile(fileUri: Uri): Promise<boolean> {
+    const directoryPath = dirname(fileUri.fsPath);
+    const parentDirectoryPath = dirname(directoryPath);
+    const directoryName = basename(directoryPath);
+    const isBallerinaPackage = await checkIsBallerinaPackage(Uri.parse(parentDirectoryPath));
+    return directoryName === 'persist' && isBallerinaPackage;
 }

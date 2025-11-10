@@ -90,8 +90,8 @@ export class CommonRpcManager implements CommonRPCAPI {
     async goToSource(params: GoToSourceRequest): Promise<void> {
         const context = StateMachine.context();
         let filePath = params?.filePath || context.documentUri!;
-        if (params?.fileName && context?.projectUri) {
-            filePath = path.join(context.projectUri, params.fileName);
+        if (params?.fileName && context?.projectPath) {
+            filePath = path.join(context.projectPath, params.fileName);
         }
         goToSource(params.position, filePath);
     }
@@ -259,7 +259,7 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
-        return getProjectTomlValues(StateMachine.context().projectUri);
+        return getProjectTomlValues(StateMachine.context().projectPath);
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {

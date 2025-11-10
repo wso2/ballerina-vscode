@@ -32,7 +32,7 @@ export function activateEditBiTest() {
         }
 
         const fileName = entry.id.split(":")[1];
-        const fileUri = path.resolve(StateMachine.context().projectUri, `tests`, fileName);
+        const fileUri = path.resolve(StateMachine.context().projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
             openView(EVENT_TYPE.OPEN_VIEW, { documentUri: fileUri, 
@@ -43,7 +43,7 @@ export function activateEditBiTest() {
     });
 
     commands.registerCommand(BI_COMMANDS.BI_ADD_TEST_FUNCTION, () => {
-        const fileUri = path.resolve(StateMachine.context().projectUri, `tests`, `tests.bal`);
+        const fileUri = path.resolve(StateMachine.context().projectPath, `tests`, `tests.bal`);
         ensureFileExists(fileUri);
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
             documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST' });
@@ -55,7 +55,7 @@ export function activateEditBiTest() {
         }
 
         const fileName = entry.id.split(":")[1];
-        const fileUri = path.resolve(StateMachine.context().projectUri, `tests`, fileName);
+        const fileUri = path.resolve(StateMachine.context().projectPath, `tests`, fileName);
         if (fileUri) {
             openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
                 documentUri: fileUri, identifier: entry.label, serviceType: 'UPDATE_TEST' });
