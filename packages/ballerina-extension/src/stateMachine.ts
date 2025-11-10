@@ -879,6 +879,13 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boole
             targetPackage = packages[0];
         }
 
+        if (!targetPackage && packages.length > 1) {
+            // If the user has not selected a package, select the first package
+            // This is a temporary solution until we provide the support for multi root workspaces
+            // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
+            targetPackage = packages[0];
+        }
+
         if (targetPackage) {
             const packagePath = path.isAbsolute(targetPackage)
                 ? targetPackage
