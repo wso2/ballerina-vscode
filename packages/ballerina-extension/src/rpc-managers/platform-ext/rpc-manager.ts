@@ -85,7 +85,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const components = this.platformExt.getDirectoryComponents(StateMachine.context().projectUri);
             const selectedContext = this.platformExt.getSelectedContext();
 
-            platformExtStore.getState().setState({ isLoggedIn, components, selectedContext });
+            platformExtStore.getState().setState({ isLoggedIn, components, selectedContext, selectedComponent: components[0] });
 
             this.platformExt.subscribeIsLoggedIn((isLoggedIn) => {
                 platformExtStore.getState().setState({ isLoggedIn });
