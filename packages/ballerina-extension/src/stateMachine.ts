@@ -105,7 +105,7 @@ const stateMachine = createMachine<MachineContext>(
         states: {
             switch_project: {
                 invoke: {
-                    src: checkForProjects,
+                    src: (context, event) => checkForProjects(true),
                     onDone: [
                         {
                             target: "viewActive.viewReady",
@@ -130,7 +130,7 @@ const stateMachine = createMachine<MachineContext>(
             },
             initialize: {
                 invoke: {
-                    src: checkForProjects,
+                    src: (context, event) => checkForProjects(false),
                     onDone: [
                         {
                             target: "renderInitialView",
@@ -797,7 +797,7 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects(): Promise<ProjectMetadata> {
+async function checkForProjects(isSwitching: boolean = false): Promise<ProjectMetadata> {
     const workspaceFolders = workspace.workspaceFolders;
 
     if (!workspaceFolders) {
@@ -808,7 +808,7 @@ async function checkForProjects(): Promise<ProjectMetadata> {
         return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri, isSwitching);
 }
 
 async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
@@ -848,7 +848,7 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
     return { isBI: false, projectPath: '' };
 }
 
-async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
+async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boolean = false): Promise<ProjectMetadata> {
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
@@ -862,16 +862,20 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
             return { isBI: false, projectPath: '' };
         }
 
+        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
+        const shouldShowBIQuickPick = isSwitching || (biExtension && checkIsBI(workspaceURI));
         const packages = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
         let targetPackage;
 
-        if (packages.length > 1) {
+        if (packages.length === 0) {
+            return { isBI: false, projectPath: '' };
+        } else if (shouldShowBIQuickPick && packages.length > 1) {
             targetPackage = await window.showQuickPick(packages, {
                 title: 'Select Package for WSO2 Integrator: BI',
                 placeHolder: 'Choose a package from your workspace to load in BI mode',
                 ignoreFocusOut: true
             });
-        } else if (packages.length === 1) {
+        } else if (!shouldShowBIQuickPick || packages.length === 1) {
             targetPackage = packages[0];
         }
 
