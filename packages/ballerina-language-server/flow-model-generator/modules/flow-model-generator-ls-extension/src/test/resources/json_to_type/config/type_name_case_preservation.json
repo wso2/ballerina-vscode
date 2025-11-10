@@ -1,0 +1,11 @@
+{
+  "description": "Type name case preservation for lowercase type names",
+  "filePath": "proj/types.bal",
+  "jsonString": "{\n  \"age\": 5\n}",
+  "typeName": " newType",
+  "prefix": "",
+  "isNullAsOptional": false,
+  "allowAdditionalFields": false,
+  "asInline": false,
+  "expectedTypes": "\ntype newType record {|\n\tint age;\n|};\n"
+}
