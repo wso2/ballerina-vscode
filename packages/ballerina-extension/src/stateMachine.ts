@@ -2,19 +2,17 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, HistoryEntry, MachineStateValue, STByRangeRequest, SyntaxTreeResponse, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ArtifactData, ProjectStructureArtifactResponse, CodeData, getVisualizerLocation, ProjectDiagnosticsResponse } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
-import * as fs from 'fs';
 import { extension } from './BalExtensionContext';
-import { BiDiagramRpcManager } from './rpc-managers/bi-diagram/rpc-manager';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerina, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
 interface MachineContext extends VisualizerLocation {
@@ -276,6 +274,8 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.viewLocation.position,
                                     identifier: (context, event) => event.viewLocation.identifier,
                                     serviceType: (context, event) => event.viewLocation.serviceType,
+                                    projectUri: (context, event) => event.viewLocation?.projectUri || context?.projectUri,
+                                    package: (context, event) => event.viewLocation?.package || context?.package,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                     metadata: (context, event) => event.viewLocation?.metadata,
@@ -417,7 +417,8 @@ const stateMachine = createMachine<MachineContext>(
                         buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
                     }
 
-                    const execution = new ShellExecution(buildCommand);
+                    // Use the current process environment which should have the updated PATH
+                    const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
 
                     if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
                         resolve(true);
@@ -462,12 +463,21 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
+                const projectTomlValues = await getProjectTomlValues(context.projectUri);
+                const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({ location: { view: MACHINE_VIEW.Overview, documentUri: context.documentUri } });
+                        history.push({
+                            location: {
+                                view: MACHINE_VIEW.Overview,
+                                documentUri: context.documentUri,
+                                package: packageName || context.package
+                            }
+                        });
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectUri);
+                    view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
@@ -477,6 +487,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
@@ -659,6 +670,7 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
     }
 
     let newLocation: VisualizerLocation = lastView?.location;
+    let newLocationFound = false;
     if (lastView && lastView.location?.artifactType && lastView.location?.identifier) {
         newLocation = { ...lastView.location };
         const currentIdentifier = lastView.location?.identifier;
@@ -691,6 +703,36 @@ export function updateView(refreshTreeView?: boolean, projectUri?: string) {
             ...lastView,
             location: newLocation
         });
+        newLocationFound = true;
+    }
+
+    // Check for service class model in the new location
+    if (!newLocationFound && lastView?.location?.type) {
+        let currentArtifact: ProjectStructureArtifactResponse;
+        StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
+            if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
+                currentArtifact = artifact;
+            }
+        });
+        const newPosition = currentArtifact?.position || lastView.location.position;
+        const updatedType: Type = {
+            ...lastView.location.type,
+            codedata: {
+                ...lastView.location.type.codedata,
+                lineRange: {
+                    ...lastView.location.type.codedata.lineRange,
+                    startLine: { line: newPosition.startLine, offset: newPosition.startColumn },
+                    endLine: { line: newPosition.endLine, offset: newPosition.endColumn }
+                }
+            }
+        };
+
+        newLocation = { ...lastView.location, position: newPosition, type: updatedType };
+        history.updateCurrentEntry({
+            ...lastView,
+            location: newLocation
+        });
+
     }
 
 
@@ -746,9 +788,17 @@ async function checkForProjects(): Promise<{ isBI: boolean, projectPath: string,
 }
 
 async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFolder[]) {
-    const balProjects = workspaceFolders.filter(folder => checkIsBallerina(folder.uri));
+    const balProjectChecks = await Promise.all(
+        workspaceFolders.map(async folder => ({
+            folder,
+            isBallerinaPackage: await checkIsBallerinaPackage(folder.uri)
+        }))
+    );
+    const balProjects = balProjectChecks
+        .filter(result => result.isBallerinaPackage)
+        .map(result => result.folder);
 
-    if (balProjects.length > 1) {
+    if (balProjects.length > 1 && workspace.workspaceFile?.scheme === "file") {
         const projectPaths = balProjects.map(folder => folder.uri.fsPath);
         let selectedProject = await window.showQuickPick(projectPaths, {
             placeHolder: 'Select a project to load the WSO2 Integrator'
@@ -776,7 +826,7 @@ async function handleMultipleWorkspaces(workspaceFolders: readonly WorkspaceFold
 }
 
 async function handleSingleWorkspace(workspaceURI: any) {
-    const isBallerina = checkIsBallerina(workspaceURI);
+    const isBallerina = await checkIsBallerinaPackage(workspaceURI);
     const isBI = isBallerina && checkIsBI(workspaceURI);
     const scope = fetchScope(workspaceURI);
     const projectPath = isBallerina ? workspaceURI.fsPath : "";

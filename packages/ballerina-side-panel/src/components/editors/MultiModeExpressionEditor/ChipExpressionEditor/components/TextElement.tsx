@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useLayoutEffect, useRef } from "react";
-import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel } from "../utils";
+import { getCaretOffsetWithin, getAbsoluteCaretPosition, setCaretPosition, handleKeyDownInTextElement, getAbsoluteCaretPositionFromModel, hasTextSelection, getSelectionOffsets, setSelectionRange } from "../utils";
 import { ExpressionModel } from "../types";
 import { InvisibleSpan } from "../styles";
 import { FOCUS_MARKER } from "../constants";
@@ -37,6 +37,15 @@ export const TextElement = (props: {
     const isProgrammaticFocusRef = useRef<boolean>(false);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+        // Only call handleKeyDownInTextElement when there's no text selection (caret is at a single position)
+        // If there's a selection, let the browser handle the default behavior
+        // because we only have to handle the case where the cursor is in the starting position of
+        // a text element and user is trying to delete or move left or right
+        // if user has selected a range then we do not have to care about chip deletions
+        // (Chips cannot be selected)
+        if (spanRef.current && hasTextSelection(spanRef.current)) {
+            return;
+        }
         handleKeyDownInTextElement(e, props.expressionModel, props.index, onExpressionChange, spanRef.current);
     };
 
@@ -53,11 +62,14 @@ export const TextElement = (props: {
 
     const updateFocusOffset = (host: HTMLSpanElement) => {
         if (!onExpressionChange) return;
-        const offset = getCaretOffsetWithin(host);
+        
+        // Get selection offsets (handles both caret position and selection range)
+        const { start, end } = getSelectionOffsets(host);
+        
         const updatedModel = props.expressionModel.map((el, i) =>
             i === props.index
-                ? { ...el, isFocused: true, focusOffset: offset }
-                : { ...el, isFocused: false, focusOffset: undefined }
+                ? { ...el, isFocused: true, focusOffsetStart: start, focusOffsetEnd: end }
+                : { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined }
         );
         const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
         onExpressionChange(updatedModel, newCursorPosition, FOCUS_MARKER);
@@ -85,7 +97,7 @@ export const TextElement = (props: {
 
         const cursorDelta = rawNewValue.length - oldValue.length;
 
-        const currentFocusOffset = props.element.focusOffset ?? oldValue.length;
+        const currentFocusOffset = props.element.focusOffsetStart ?? oldValue.length;
 
         let pendingOffset: number | null = null;
         if (host) {
@@ -118,7 +130,8 @@ export const TextElement = (props: {
             value: newValue,
             length: newValue.length,
             isFocused: true,
-            focusOffset: newFocusOffset
+            focusOffsetStart: newFocusOffset,
+            focusOffsetEnd: newFocusOffset
         };
         const enteredText = newValue.substring(
             currentFocusOffset,
@@ -142,25 +155,32 @@ export const TextElement = (props: {
         if (!onExpressionChange || !props.expressionModel) return;
         const updatedModel = props.expressionModel.map((element, index) => {
             if (index === props.index) {
-                return { ...element, isFocused: true, focusOffset: getCaretOffsetWithin(e.currentTarget) };
+                return { ...element, isFocused: true, focusOffsetStart: getCaretOffsetWithin(e.currentTarget), focusOffsetEnd: getCaretOffsetWithin(e.currentTarget) };
             } else {
-                return { ...element, isFocused: false, focusOffset: undefined };
+                return { ...element, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined };
             }
         })
         const newCursorPosition = getAbsoluteCaretPosition(updatedModel);
         onExpressionChange(updatedModel, newCursorPosition, FOCUS_MARKER);
     }
 
-    // If this element is marked as focused, focus it and set the caret to focusOffset
+    // If this element is marked as focused, focus it and set the caret/selection to focusOffset
     useEffect(() => {
         if (props.element.isFocused && spanRef.current) {
             const host = spanRef.current;
             isProgrammaticFocusRef.current = true;
             host.focus();
-            const offset = props.element.focusOffset ?? (host.textContent?.length || 0);
-            setCaretPosition(host, offset);
+            
+            const startOffset = props.element.focusOffsetStart ?? (host.textContent?.length || 0);
+            const endOffset = props.element.focusOffsetEnd ?? startOffset;
+            
+            if (startOffset !== endOffset) {
+                setSelectionRange(host, startOffset, endOffset);
+            } else {
+                setCaretPosition(host, startOffset);
+            }
         }
-    }, [props.element.isFocused, props.element.focusOffset]);
+    }, [props.element.isFocused, props.element.focusOffsetStart, props.element.focusOffsetEnd]);
 
     return (
         <InvisibleSpan

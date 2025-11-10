@@ -19,9 +19,9 @@ import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest, Command } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
-import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { StateMachine } from "../../../../stateMachine";
 
 export interface TestPlanResponse {
     testPlan: string;
@@ -168,7 +168,7 @@ export async function generateTestPlanCore(
                         type: "content_block",
                         content: `\n\n<progress>Generating tests for the ${target} service. This may take a moment.</progress>`,
                     });
-                    const projectRoot = await getBallerinaProjectRoot();
+                    const projectRoot = StateMachine.context().projectUri;
                     const testResp = await generateTest(projectRoot, {
                         targetType: TestGenerationTarget.Service,
                         targetIdentifier: target,

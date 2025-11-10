@@ -20,6 +20,7 @@ import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
 import { isSupportedSLVersion, isWindows } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
+import { TracerMachine } from "../../../features/tracing";
 
 
 export const PALETTE_COMMANDS = {
@@ -98,11 +99,13 @@ let terminal: Terminal;
 
 export function runCommand(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     ...args: string[]) {
+    TracerMachine.startServer();
     runCommandWithConf(file, executor, cmd, '', ...args);
 }
 
 export function runCommandWithConf(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     confPath: string, ...args: string[]) {
+    TracerMachine.startServer();
     if (terminal) {
         terminal.dispose();
     }

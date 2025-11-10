@@ -224,10 +224,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .then(async (model) => {
                     console.log(">>> bi source code from ls", model);
                     if (params?.isConnector) {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits }, null, this.getSourceDescription(params));
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits }, this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), this.getSourceDescription(params));
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     }
                 })
@@ -422,8 +422,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
+            const fileNameOrPath = params.filePath;
+            let filePath = fileNameOrPath;
+            if (path.basename(fileNameOrPath) === fileNameOrPath) {
+                filePath = path.join(StateMachine.context().projectUri, fileNameOrPath);
+            }
             StateMachine.langClient()
-                .getAvailableNodes(params)
+                .getAvailableNodes({
+                    position: params.position,
+                    filePath
+                })
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
                     const filteredModel = this.filterAdvancedAiNodes(model);
@@ -768,7 +776,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .deleteFlowNode(params)
                 .then(async (model) => {
                     console.log(">>> bi delete node from ls", model);
-                    const artifacts = await updateSourceCode({ textEdits: model.textEdits }, null, 'Flow Node Deletion - ' + params.flowNode.metadata.label);
+                    const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: 'Flow Node Deletion - ' + params.flowNode.metadata.label });
                     resolve({ artifacts });
                 })
                 .catch((error) => {
@@ -840,7 +848,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
 
             const response = await StateMachine.langClient().updateConfigVariables(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Update');
+            await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Update' });
             resolve(response);
         });
     }
@@ -871,7 +879,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 writeBallerinaFileDidOpen(params.configFilePath, "\n");
             }
             const response = await StateMachine.langClient().updateConfigVariablesV2(req) as UpdateConfigVariableResponseV2;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Update');
+            await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Update' });
             resolve(response);
         });
     }
@@ -884,7 +892,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 writeBallerinaFileDidOpen(params.configFilePath, "\n");
             }
             const response = await StateMachine.langClient().deleteConfigVariableV2(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits }, { artifactType: DIRECTORY_MAP.CONFIGURABLE }, 'Config Variable Deletion');
+            await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Deletion' });
             resolve(response);
         });
     }
@@ -1144,7 +1152,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
         }
 
-        const execution = new ShellExecution(buildCommand);
+        // Use the current process environment which should have the updated PATH
+        const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
 
         const task = new Task(
             taskDefinition,
@@ -1218,7 +1227,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         if (componentView?.location?.artifactType && componentView?.location?.identifier) {
                             description = `${this.capitalizeFirstLetter(componentView.location.artifactType)} Deletion - ${componentView.location.identifier}`;
                         }
-                        await updateSourceCode({ textEdits: model.textEdits }, null, description);
+                        await updateSourceCode({ textEdits: model.textEdits, description: description, skipPayloadCheck: true }); // Skip payload check because the component is deleted
                         resolve(model);
                     })
                     .catch((error) => {
@@ -1464,7 +1473,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .updateType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> update type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Type Update', params.type.name);
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits, description: 'Type Update', identifier: params.type.name });
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching types from ls", error);
@@ -1589,7 +1598,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .createGraphqlClassType({ filePath, type: params.type, description: "" })
                 .then(async (updateTypeResponse: UpdateTypeResponse) => {
                     console.log(">>> create graphql class type response", updateTypeResponse);
-                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits }, null, 'Graphql Class Type Creation');
+                    await updateSourceCode({ textEdits: updateTypeResponse.textEdits, description: 'Graphql Class Type Creation' });
                     resolve(updateTypeResponse);
                 }).catch((error) => {
                     console.log(">>> error fetching class type from ls", error);
@@ -1613,7 +1622,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateClassField(params);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Update');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Class Field Update' });
                 resolve(res);
             } catch (error) {
                 console.log(error);
@@ -1625,7 +1634,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().updateServiceClass(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Service Class Update');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, description: 'Service Class Update' });
                 resolve({ artifacts });
             } catch (error) {
                 console.log(error);
@@ -1637,7 +1646,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().addClassField(params);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'Class Field Creation');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Class Field Creation' });
                 resolve(res);
             } catch (error) {
                 console.log(error);
@@ -1659,7 +1668,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         try {
             const workspaceEdit = await StateMachine.langClient().rename(request);
             if (workspaceEdit && 'changes' in workspaceEdit && workspaceEdit.changes) {
-                await updateSourceCode({ textEdits: workspaceEdit.changes }, null, 'Rename for ' + params.newName);
+                await updateSourceCode({ textEdits: workspaceEdit.changes, description: 'Rename for ' + params.newName, isRenameOperation: true });
             }
         } catch (error) {
             console.error('Error in renameIdentifier:', error);
@@ -1804,7 +1813,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             ).then(async (updateTypesresponse: UpdateTypesResponse) => {
                 console.log(">>> update type response", updateTypesresponse);
                 if (updateTypesresponse.textEdits) {
-                    await updateSourceCode({ textEdits: updateTypesresponse.textEdits }, null, 'Type Update');
+                    await updateSourceCode({ textEdits: updateTypesresponse.textEdits, description: 'Type Update' });
                     resolve(updateTypesresponse);
                 } else {
                     console.log(">>> error updating types", updateTypesresponse?.errorMsg);
@@ -1945,7 +1954,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
                 .then(async (deleteTypeResponse: DeleteTypeResponse) => {
                     if (deleteTypeResponse.textEdits) {
-                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits }, null, 'Type Deletion');
+                        await updateSourceCode({ textEdits: deleteTypeResponse.textEdits, description: 'Type Deletion' });
                         resolve(deleteTypeResponse);
                     } else {
                         reject(deleteTypeResponse.errorMsg);
