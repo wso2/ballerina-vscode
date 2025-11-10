@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { SCOPE, PackageTomlValues, WorkspaceTomlValues } from '@wso2/ballerina-core';
+import { PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
@@ -204,6 +204,45 @@ export async function getBallerinaPackages(uri: Uri): Promise<string[]> {
     }
 }
 
+/**
+ * Filters package paths to only include valid Ballerina packages within the workspace.
+ *
+ * For each path, this function:
+ * - Resolves the path (handling relative paths like `.` and `..`)
+ * - Verifies the path exists on the filesystem
+ * - Ensures the path is within the workspace boundaries (prevents path traversal)
+ * - Validates it's a valid Ballerina package
+ *
+ * @param packagePaths Array of package paths (relative or absolute)
+ * @param workspacePath Absolute path to the workspace root
+ * @returns Filtered array of valid Ballerina package paths that exist within the workspace
+ */
+export async function filterPackagePaths(packagePaths: string[], workspacePath: string): Promise<string[]> {
+    const results = await Promise.all(
+        packagePaths.map(async pkgPath => {
+            if (path.isAbsolute(pkgPath)) {
+                const resolvedPath = path.resolve(pkgPath);
+                const resolvedWorkspacePath = path.resolve(workspacePath);
+                if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
+                    return await checkIsBallerinaPackage(Uri.file(resolvedPath));
+                }
+            }
+            const resolvedPath = path.resolve(workspacePath, pkgPath);
+            const resolvedWorkspacePath = path.resolve(workspacePath);
+            if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
+                return await checkIsBallerinaPackage(Uri.file(resolvedPath));
+            }
+            return false;
+        })
+    );
+    return packagePaths.filter((_, index) => results[index]);
+}
+
+function isPathInside(childPath: string, parentPath: string): boolean {
+    const relative = path.relative(parentPath, childPath);
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
 export function getOrgPackageName(projectPath: string): { orgName: string, packageName: string } {
     const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
 
@@ -226,6 +265,32 @@ export function getOrgPackageName(projectPath: string): { orgName: string, packa
     } catch (error) {
         console.error(`Error reading Ballerina.toml: ${error}`);
         return { orgName: '', packageName: '' };
+    }
+}
+
+export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues | undefined> {
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
+}
+
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
+            return;
+        }
     }
 }
 
@@ -255,30 +320,4 @@ export function setupBIFiles(projectDir: string): void {
             fs.writeFileSync(filePath, '');
         }
     });
-}
-
-export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues> {
-    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaTomlPath)) {
-        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        try {
-            return parse(tomlContent);
-        } catch (error) {
-            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
-            return;
-        }
-    }
-}
-
-export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues> {
-    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaTomlPath)) {
-        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        try {
-            return parse(tomlContent);
-        } catch (error) {
-            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
-            return;
-        }
-    }
 }

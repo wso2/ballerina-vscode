@@ -39,7 +39,7 @@ import {
 } from "./constants";
 import { isError, isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
-import { OLD_BACKEND_URL } from '../ai/utils';
+import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
 import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
@@ -49,11 +49,11 @@ import { fetchWithAuth } from '../ai/service/connection';
 
 let controller = new AbortController();
 
-export async function getLLMDiagnostics(projectUri: string, diagnosticCollection
+export async function getLLMDiagnostics(projectPath: string, diagnosticCollection
     : vscode.DiagnosticCollection): Promise<number | null> {
-    const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectUri);
+    const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectPath);
     const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[]
-        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
+        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectPath, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
     const backendurl = await getBackendURL();
@@ -69,7 +69,7 @@ export async function getLLMDiagnostics(projectUri: string, diagnosticCollection
         return responses;
     }
 
-    await createDiagnosticCollection(responses, projectUri, diagnosticCollection);
+    await createDiagnosticCollection(responses, projectPath, diagnosticCollection);
 }
 
 async function getLLMResponses(sources: BallerinaSource[], token: string, backendurl: string)
@@ -143,12 +143,15 @@ async function getLLMResponses(sources: BallerinaSource[], token: string, backen
     return extractedResponses;
 }
 
-async function createDiagnosticCollection(responses: any[], projectUri: string,
-    diagnosticCollection: vscode.DiagnosticCollection) {
+async function createDiagnosticCollection(
+    responses: any[],
+    projectPath: string,
+    diagnosticCollection: vscode.DiagnosticCollection
+) {
     let diagnosticsMap = new Map<string, vscode.Diagnostic[]>();
 
     for (const response of responses) {
-        diagnosticsMap = await createDiagnosticsResponse(response, projectUri, diagnosticsMap);
+        diagnosticsMap = await createDiagnosticsResponse(response, projectPath, diagnosticsMap);
     }
 
     // Set diagnostics in VS Code
@@ -261,10 +264,10 @@ async function createDiagnostic(result: ResultItem, uri: Uri): Promise<CustomDia
     return diagnostic;
 }
 
-export async function getLLMDiagnosticArrayAsString(projectUri: string): Promise<string | number> {
-    const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectUri);
+export async function getLLMDiagnosticArrayAsString(projectPath: string): Promise<string | number> {
+    const ballerinaProjectSource: BallerinaSource = await getBallerinaProjectSourceFiles(projectPath);
     const sourcesOfNonDefaultModulesWithReadme: BallerinaSource[]
-        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectUri, "modules"));
+        = getSourcesOfNonDefaultModulesWithReadme(path.join(projectPath, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
     const backendurl = await getBackendURL();
@@ -280,7 +283,7 @@ export async function getLLMDiagnosticArrayAsString(projectUri: string): Promise
         return responses;
     }
 
-    let diagnosticArray = (await createDiagnosticArray(responses, projectUri)).map(diagnostic => {
+    let diagnosticArray = (await createDiagnosticArray(responses, projectPath)).map(diagnostic => {
         return `${diagnostic.message}`;
     })
         .join("\n\n");
@@ -288,11 +291,11 @@ export async function getLLMDiagnosticArrayAsString(projectUri: string): Promise
     return diagnosticArray;
 }
 
-async function createDiagnosticArray(responses: any[], projectUri: string): Promise<Diagnostic[]> {
+async function createDiagnosticArray(responses: any[], projectPath: string): Promise<Diagnostic[]> {
     const diagnostics = [];
 
     for (const response of responses) {
-        await createDiagnosticList(response, projectUri, diagnostics);
+        await createDiagnosticList(response, projectPath, diagnostics);
     }
 
     function filterUniqueDiagnostics(diagnostics: vscode.Diagnostic[]): vscode.Diagnostic[] {
@@ -719,21 +722,4 @@ export async function addConfigFile(configPath: string, isNaturalFunctionsAvaila
             }
         }
     );
-}
-
-async function isBallerinaProjectAsync(rootPath: string): Promise<boolean> {
-    try {
-        if (!fs.existsSync(rootPath)) {
-            return false;
-        }
-
-        const files = fs.readdirSync(rootPath);
-        return files.some(file =>
-            file.toLowerCase() === 'ballerina.toml' ||
-            file.toLowerCase().endsWith('.bal')
-        );
-    } catch (error) {
-        console.error(`Error checking Ballerina project: ${error}`);
-        return false;
-    }
 }

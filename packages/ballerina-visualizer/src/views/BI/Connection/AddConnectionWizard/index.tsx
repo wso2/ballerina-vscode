@@ -237,7 +237,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         if (selectedNodeRef.current) {
             setSavingFormStatus(SavingFormStatus.SAVING);
             const visualizerLocation = await rpcClient.getVisualizerLocation();
-            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectUri;
+            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
 
             if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
                 connectionsFilePath += "/main.bal";
