@@ -152,6 +152,10 @@ public class ServiceInitModel {
         return properties.get("spec");
     }
 
+    public Value getGraphqlSchema() {
+        return properties.get("spec");
+    }
+
     public String getServiceContractTypeName() {
         Value serviceContractType = properties.get("serviceTypeName");
         if (Objects.isNull(serviceContractType)) {

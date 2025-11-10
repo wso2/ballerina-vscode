@@ -134,14 +134,16 @@
         "properties": {
           "name": "info",
           "type": "UserInfo",
-          "expression": "bank.userInfo"
+          "expression": "bank.userInfo",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{\n                           password: ,\n                           username: info.username\n                       }"
+          "expression": "{\n                           password: ,\n                           username: info.username\n                       }",
+          "isOuter": false
         }
       }
     },

@@ -98,14 +98,16 @@
         "properties": {
           "name": "l3ArrItem",
           "type": "record {|int l4_1; string l4_2; anydata...;|}",
-          "expression": "l2Item.l3Arr"
+          "expression": "l2Item.l3Arr",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{l4_1: 0, l4_2: \"aaa\"}"
+          "expression": "{l4_1: 0, l4_2: \"aaa\"}",
+          "isOuter": false
         }
       }
     },

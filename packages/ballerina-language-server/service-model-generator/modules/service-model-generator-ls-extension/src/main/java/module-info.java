@@ -22,6 +22,7 @@ module io.ballerina.LSExtensions.TriggerService {
     requires org.eclipse.lsp4j;
     requires io.ballerina.diagram.util;
     requires io.ballerina.openapi.core;
+    requires io.ballerina.graphql.generator;
     requires io.ballerina.language.server.core;
     requires io.ballerina.formatter.core;
     requires io.swagger.v3.oas.models;
@@ -34,4 +35,6 @@ module io.ballerina.LSExtensions.TriggerService {
     requires org.xerial.sqlitejdbc;
     requires io.ballerina.centralconnector;
     requires io.ballerina.toml;
+    requires com.graphqljava;
+    requires org.apache.commons.io;
 }

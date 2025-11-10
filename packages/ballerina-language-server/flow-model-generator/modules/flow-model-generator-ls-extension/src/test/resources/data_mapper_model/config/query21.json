@@ -1,0 +1,268 @@
+{
+  "source": "query11.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query11.bal",
+      "startLine": {
+        "line": 29,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 36,
+        "offset": 9
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 29,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "deptPersonList.0",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "d1",
+        "displayName": "d1",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "variable",
+        "ref": "-954444226"
+      },
+      {
+        "fields": [],
+        "name": "d2",
+        "displayName": "d2",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "variable",
+        "ref": "-954444226"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "deptList",
+          "displayName": "<deptListItem>",
+          "typeName": "Department",
+          "kind": "record",
+          "ref": "-954444226"
+        },
+        "name": "deptList",
+        "displayName": "deptList",
+        "typeName": "Department[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "-352594850"
+      },
+      {
+        "fields": [],
+        "name": "p1",
+        "displayName": "p1",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "variable",
+        "ref": "887620673"
+      },
+      {
+        "fields": [],
+        "name": "p2",
+        "displayName": "p2",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "variable",
+        "ref": "887620673"
+      },
+      {
+        "fields": [],
+        "name": "p3",
+        "displayName": "p3",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "variable",
+        "ref": "887620673"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "personList",
+          "displayName": "<personListItem>",
+          "typeName": "Person",
+          "kind": "record",
+          "ref": "887620673"
+        },
+        "name": "personList",
+        "displayName": "personList",
+        "typeName": "Person[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "-1587755484"
+      },
+      {
+        "fields": [],
+        "name": "person",
+        "displayName": "person",
+        "typeName": "Person",
+        "kind": "record",
+        "focusExpression": "personList",
+        "ref": "887620673"
+      },
+      {
+        "fields": [],
+        "name": "dept",
+        "displayName": "dept",
+        "typeName": "Department",
+        "kind": "record",
+        "focusExpression": "deptList",
+        "ref": "-954444226"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "deptPersonList",
+        "displayName": "<deptPersonListItem>",
+        "typeName": "DeptPerson",
+        "kind": "record",
+        "ref": "2036142310"
+      },
+      "name": "deptPersonList",
+      "displayName": "deptPersonList",
+      "typeName": "DeptPerson[]",
+      "kind": "array",
+      "ref": "-841976159"
+    },
+    "mappings": [
+      {
+        "output": "deptPersonList.fname",
+        "inputs": [
+          "person.fname"
+        ],
+        "expression": "person.fname",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "deptPersonList.dept",
+        "inputs": [
+          "dept.name"
+        ],
+        "expression": "dept?.name\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "deptPersonList",
+      "inputs": [
+        "personList",
+        "deptList"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "person",
+          "type": "Person",
+          "expression": "personList",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [
+        {
+          "type": "join",
+          "properties": {
+            "name": "dept",
+            "type": "var",
+            "expression": "deptList",
+            "lhsExpression": "person.id",
+            "rhsExpression": "dept?.id",
+            "isOuter": true
+          }
+        }
+      ],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{\n           fname : person.fname,\n           dept : dept?.name\n       }",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-954444226": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "fname",
+            "displayName": "fname",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "lname",
+            "displayName": "lname",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "2036142310": {
+        "fields": [
+          {
+            "name": "fname",
+            "displayName": "fname",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "dept",
+            "displayName": "dept",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "DeptPerson",
+        "kind": "record"
+      }
+    }
+  }
+}

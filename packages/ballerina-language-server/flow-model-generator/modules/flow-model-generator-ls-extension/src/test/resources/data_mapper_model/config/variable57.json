@@ -1,27 +1,27 @@
 {
-  "source": "proj/main.bal",
+  "source": "variable35.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "variable33.bal",
       "startLine": {
-        "line": 20,
+        "line": 23,
         "offset": 12
       },
       "endLine": {
-        "line": 20,
-        "offset": 78
+        "line": 23,
+        "offset": 33
       }
     },
-    "sourceCode": "Student student = {};"
+    "sourceCode": ""
   },
   "position": {
-    "line": 20,
+    "line": 23,
     "offset": 12
   },
   "propertyKey": "expression",
-  "targetField": "student2",
+  "targetField": "student",
   "model": {
     "inputs": [
       {
@@ -33,12 +33,12 @@
       },
       {
         "fields": [],
-        "name": "student",
-        "displayName": "student",
+        "name": "myStudent",
+        "displayName": "myStudent",
         "typeName": "Student",
         "kind": "record",
-        "category": "local-variable",
-        "ref": "-937990656"
+        "category": "module-variable",
+        "ref": "545732303"
       },
       {
         "fields": [],
@@ -47,62 +47,20 @@
         "typeName": "UserInfo",
         "kind": "record",
         "category": "local-variable",
-        "ref": "-1155761164"
-      },
-      {
-        "fields": [],
-        "name": "user1",
-        "displayName": "user1",
-        "typeName": "UserInfo",
-        "kind": "record",
-        "category": "module-variable",
-        "ref": "-1155761164"
-      },
-      {
-        "fields": [],
-        "name": "user2",
-        "displayName": "user2",
-        "typeName": "UserInfo",
-        "kind": "record",
-        "category": "configurable",
-        "ref": "-1155761164"
+        "ref": "1889977605"
       }
     ],
     "output": {
       "fields": [],
-      "name": "student2",
-      "displayName": "student2",
+      "name": "student",
+      "displayName": "student",
       "typeName": "Student",
       "kind": "record",
-      "ref": "-937990656"
+      "ref": "545732303"
     },
-    "mappings": [
-      {
-        "output": "student2.username",
-        "inputs": [
-          "user.username",
-          "user.password"
-        ],
-        "expression": "bar2(user.username, user.password)",
-        "diagnostics": [],
-        "elements": [],
-        "isQueryExpression": false,
-        "isFunctionCall": true,
-        "functionRange": {
-          "fileName": "data_mappings.bal",
-          "startLine": {
-            "line": 0,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 2,
-            "offset": 1
-          }
-        }
-      }
-    ],
+    "mappings": [],
     "refs": {
-      "-937990656": {
+      "545732303": {
         "fields": [
           {
             "name": "username",
@@ -117,12 +75,19 @@
             "typeName": "string",
             "kind": "string",
             "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
           }
         ],
         "typeName": "Student",
         "kind": "record"
       },
-      "-1155761164": {
+      "1889977605": {
         "fields": [
           {
             "name": "username",

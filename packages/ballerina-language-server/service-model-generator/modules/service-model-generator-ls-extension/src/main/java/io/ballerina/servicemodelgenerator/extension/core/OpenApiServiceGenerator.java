@@ -266,7 +266,7 @@ public class OpenApiServiceGenerator {
         return serviceImpl.toString();
     }
 
-    private TypeDefinitionSymbol getServiceTypeSymbol(List<Symbol> symbols, String name) {
+    public static TypeDefinitionSymbol getServiceTypeSymbol(List<Symbol> symbols, String name) {
         for (Symbol symbol : symbols) {
             if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
                 Optional<String> typeName = symbol.getName();
@@ -278,7 +278,7 @@ public class OpenApiServiceGenerator {
         return null;
     }
 
-    private String getParentModuleName(Symbol symbol) {
+    public static String getParentModuleName(Symbol symbol) {
         Optional<ModuleSymbol> module = symbol.getModule();
         return module.map(moduleSymbol -> moduleSymbol.id().toString()).orElse(null);
     }
@@ -298,7 +298,7 @@ public class OpenApiServiceGenerator {
         return f.formatted();
     }
 
-    private String sanitizePackageNames(String input) {
+    public static String sanitizePackageNames(String input) {
         Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+\\.\\d+\\.\\d+):");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll("$2");
