@@ -261,19 +261,21 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                 openState={typeEditorState.isTypeCreatorOpen}
                 setOpenState={onTypeEditorClosed}
             >
-                <FormTypeEditor
-                    key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
-                    type={newTypeModel()}
-                    newType={typeEditorState.editingTypeId ? false : true}
-                    onTypeChange={onTypeChange}
-                    onTypeCreate={() => { }}
-                    isPopupTypeForm={true}
-                    onSaveType={onSaveType}
-                    getNewTypeCreateForm={getNewTypeCreateForm}
-                    refetchTypes={true}
-                    isContextTypeForm={true}
-                    payloadContext={payloadContext}
-                />
+                <div style={{ height: '525px', overflow: 'auto' }}>
+                    <FormTypeEditor
+                        key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
+                        type={newTypeModel()}
+                        newType={typeEditorState.editingTypeId ? false : true}
+                        onTypeChange={onTypeChange}
+                        onTypeCreate={() => { }}
+                        isPopupTypeForm={true}
+                        onSaveType={onSaveType}
+                        getNewTypeCreateForm={getNewTypeCreateForm}
+                        refetchTypes={false}
+                        isContextTypeForm={true}
+                        payloadContext={payloadContext}
+                    />
+                </div>
             </DynamicModal>
             <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
 
@@ -282,7 +284,7 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                         <DynamicModal
                             key={i}
                             width={584}
-                            height={544}
+                            height={564}
                             anchorRef={undefined}
                             title="Create New Type"
                             openState={typeEditorState.isTypeCreatorOpen}

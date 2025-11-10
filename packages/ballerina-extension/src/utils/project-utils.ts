@@ -17,10 +17,28 @@
  */
 
 import { extension } from "../BalExtensionContext";
-import { Uri, window, workspace } from "vscode";
+import { Uri, window, workspace, RelativePattern, WorkspaceFolder } from "vscode";
 import * as path from 'path';
 import { isSupportedVersion, VERSION } from "./config";
 import { BallerinaProject } from "@wso2/ballerina-core";
+import { readFileSync } from 'fs';
+import { dirname, sep } from 'path';
+import { parseTomlToConfig } from '../features/config-generator/utils';
+
+const BALLERINA_TOML_REGEX = `**${sep}Ballerina.toml`;
+const BALLERINA_FILE_REGEX = `**${sep}*.bal`;
+
+export interface BALLERINA_TOML {
+    package: PACKAGE;
+    "build-options": any;
+}
+
+export interface PACKAGE {
+    org: string;
+    name: string;
+    version: string;
+    distribution: string;
+}
 
 function getCurrentBallerinaProject(file?: string): Promise<BallerinaProject> {
     return new Promise((resolve, reject) => {
@@ -78,4 +96,45 @@ function addToWorkspace(url: string) {
     workspace.updateWorkspaceFolders(workspace.workspaceFolders ? workspace.workspaceFolders.length : 0, null, { uri: Uri.parse(url) });
 }
 
-export { addToWorkspace, getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath };
+async function selectBallerinaProjectForDebugging(workspaceFolder?: WorkspaceFolder): Promise<string> {
+    const tomls = await workspace.findFiles(workspaceFolder ? new RelativePattern(workspaceFolder, BALLERINA_TOML_REGEX) : BALLERINA_TOML_REGEX);
+    const projects: { project: BallerinaProject; balFile: Uri; relativePath: string }[] = [];
+
+    for (const toml of tomls) {
+        const projectRoot = dirname(toml.fsPath);
+        const balFiles = await workspace.findFiles(new RelativePattern(projectRoot, BALLERINA_FILE_REGEX), undefined, 1);
+        if (balFiles.length > 0) {
+            const tomlContent: string = readFileSync(toml.fsPath, 'utf8');
+            const tomlObj: BALLERINA_TOML = parseTomlToConfig(tomlContent) as BALLERINA_TOML;
+            const relativePath = workspace.asRelativePath(projectRoot);
+            // Add only if package name is present in Ballerina.toml (this is to exclude workspace projects)
+            if (tomlObj.package && tomlObj.package.name) {
+                projects.push({ project: { packageName: tomlObj.package.name }, balFile: balFiles[0], relativePath });
+            }
+        }
+    }
+
+    if (projects.length === 1) {
+        return projects[0].balFile.fsPath;
+    } else if (projects.length > 1) {
+        const selectedProject = await window.showQuickPick(projects.map((project) => {
+            return {
+                label: project.project.packageName,
+                description: project.relativePath
+            };
+        }), { placeHolder: "Detected multiple Ballerina projects within the workspace. Select one to debug.", canPickMany: false });
+
+        if (selectedProject) {
+            const foundProject = projects.find((project) => project.project.packageName === selectedProject.label);
+            if (foundProject) {
+                return foundProject.balFile.fsPath;
+            }
+        }
+        throw new Error("Project selection cancelled");
+    } else {
+        extension.ballerinaExtInstance.showMessageInvalidProject();
+        throw new Error("No valid Ballerina projects found");
+    }
+}
+
+export { addToWorkspace, getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath, selectBallerinaProjectForDebugging };

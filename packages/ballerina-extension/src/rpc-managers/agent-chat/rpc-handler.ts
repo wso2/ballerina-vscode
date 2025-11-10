@@ -14,12 +14,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-
 import {
-    ChatReqMessage,
     abortChatRequest,
+    ChatReqMessage,
     getChatMessage,
+    getTracingStatus,
+    showTraceView,
+    TraceInput
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AgentChatRpcManager } from "./rpc-manager";
@@ -28,4 +32,6 @@ export function registerAgentChatRpcHandlers(messenger: Messenger) {
     const rpcManger = new AgentChatRpcManager();
     messenger.onRequest(getChatMessage, (args: ChatReqMessage) => rpcManger.getChatMessage(args));
     messenger.onNotification(abortChatRequest, () => rpcManger.abortChatRequest());
+    messenger.onRequest(getTracingStatus, () => rpcManger.getTracingStatus());
+    messenger.onNotification(showTraceView, (args: TraceInput) => rpcManger.showTraceView(args));
 }

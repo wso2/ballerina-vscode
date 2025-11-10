@@ -39,7 +39,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
                 const projectPath: string = context.projectUri;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.addICP(param);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'ICP Creation');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Creation' });
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
@@ -55,7 +55,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
                 const projectPath: string = context.projectUri;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.disableICP(param);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'ICP Disable');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Disable' });
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
