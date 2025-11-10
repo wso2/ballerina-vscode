@@ -136,7 +136,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
             const visualizerLocation = await rpcClient.getVisualizerLocation();
-            projectPath.current = visualizerLocation.projectUri;
+            projectPath.current = visualizerLocation.projectPath;
 
             // hack: fetching from Central to build module dependency map in LS may take time
             progressTimeoutRef.current = setTimeout(() => {
