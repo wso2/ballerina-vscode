@@ -831,7 +831,7 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
             if (selection === 'Learn More') {
                 // TODO: Add a guide on how to use Ballerina workspaces
                 // Open documentation or guide about Ballerina workspaces
-                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/organize-ballerina-code/'));
+                commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/workspaces'));
             }
         });
 
