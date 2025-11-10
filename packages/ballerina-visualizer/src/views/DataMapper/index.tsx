@@ -28,7 +28,7 @@ export interface DataMapperProps {
     filePath: string;
     codedata: CodeData;
     name: string;
-    projectUri?: string;
+    projectPath?: string;
     position?: LinePosition;
     reusable?: boolean;
     onClose?: () => void;

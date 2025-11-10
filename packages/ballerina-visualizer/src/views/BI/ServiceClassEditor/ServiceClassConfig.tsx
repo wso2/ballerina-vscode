@@ -61,7 +61,6 @@ const LoadingContainer = styled.div`
 interface ServiceClassConfigProps {
     fileName: string;
     position: NodePosition;
-    projectUri: string;
     type: Type;
 }
 

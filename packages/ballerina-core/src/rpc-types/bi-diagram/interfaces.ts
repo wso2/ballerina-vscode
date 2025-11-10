@@ -27,6 +27,18 @@ export interface ProjectRequest {
     packageName: string;
     projectPath: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
+    workspaceName?: string;
+    orgName?: string;
+    version?: string;
+}
+
+export interface AddProjectToWorkspaceRequest {
+    projectName: string;
+    packageName: string;
+    path: string;
+    convertToWorkspace?: boolean;
+    workspaceName?: string;
     orgName?: string;
     version?: string;
 }
