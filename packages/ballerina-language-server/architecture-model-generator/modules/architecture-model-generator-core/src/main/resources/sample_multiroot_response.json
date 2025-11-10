@@ -10,5 +10,5 @@
     "Ballerina.toml": "[build-options]\ncloud = \"docker\""
   },
   "report": "<html><head><title>Aggregated Migration Report</title></head><body><h1>Multi-Root Migration Report</h1><p>Successfully migrated 2 Mule projects to Ballerina</p><h2>Project 1</h2><p>Status: Success</p><h2>Project 2</h2><p>Status: Success</p></body></html>",
-  "jsonReport": "{\n    \"coverageOverview\": {\n        \"unitName\": \"code lines\",\n        \"coveragePercentage\": 100,\n        \"coverageLevel\": \"High\",\n        \"totalElements\": 9,\n        \"migratableElements\": 9,\n        \"nonMigratableElements\": 0\n    }\n}"
+  "jsonReport": "{\n    \"projects\": 2,\n    \"coverageOverview\": {\n        \"unitName\": \"code lines\",\n        \"coveragePercentage\": 100,\n        \"coverageLevel\": \"High\",\n        \"totalElements\": 9,\n        \"migratableElements\": 9,\n        \"nonMigratableElements\": 0\n    }\n}"
 }
