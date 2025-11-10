@@ -28,7 +28,6 @@ import * as os from 'os';
 import { writeBallerinaFileDidOpenTemp } from '../../utils/modification';
 import { closeAllBallerinaFiles } from './utils';
 import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
-import { findBallerinaPackageRoot } from '../../utils';
 
 const TEST_GEN_REQUEST_TIMEOUT = 100000;
 
@@ -220,10 +219,9 @@ export async function getResourceAccessorDef(projectRoot: string, resourceMethod
 }
 
 export async function getDiagnostics(
-    projectRoot: string,
+    ballerinaProjectRoot: string,
     generatedTestSource: TestGenerationResponse
 ): Promise<ProjectDiagnostics> {
-    const ballerinaProjectRoot = await findBallerinaPackageRoot(projectRoot);
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'temp-bal-test-gen-'));
     fs.cpSync(ballerinaProjectRoot, tempDir, { recursive: true });
     const tempTestFolderPath = path.join(tempDir, 'tests');
@@ -245,12 +243,7 @@ export async function getDiagnostics(
     };
 }
 
-async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaPackageRoot(dirPath);
-
-    if (!projectRoot) {
-        return null;
-    }
+async function getProjectSource(projectRoot: string): Promise<ProjectSource | null> {
 
     const projectSource: ProjectSource = {
         sourceFiles: [],
@@ -298,14 +291,9 @@ async function getProjectSource(dirPath: string): Promise<ProjectSource | null> 
     return projectSource;
 }
 
-async function getProjectSourceWithTests(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaPackageRoot(dirPath);
+async function getProjectSourceWithTests(projectRoot: string): Promise<ProjectSource | null> {
 
-    if (!projectRoot) {
-        return null;
-    }
-
-    const projectSourceWithTests: ProjectSource = await getProjectSource(dirPath);
+    const projectSourceWithTests: ProjectSource = await getProjectSource(projectRoot);
 
     // Read tests
     const testsDir = path.join(projectRoot, 'tests');
