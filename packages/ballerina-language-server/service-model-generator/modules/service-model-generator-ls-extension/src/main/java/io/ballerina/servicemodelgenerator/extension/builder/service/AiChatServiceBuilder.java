@@ -187,7 +187,14 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
     private boolean isBallerinaVersionAtLeast(String minVersion) {
         try {
             String ballerinaVersion = RepoUtils.getBallerinaPackVersion();
-            String coreVersion = ballerinaVersion.split("-")[0];
+            if (ballerinaVersion == null || ballerinaVersion.isEmpty()) {
+                return false;
+            }
+            String[] versionParts = ballerinaVersion.split("-");
+            if (versionParts.length == 0 || versionParts[0].isEmpty()) {
+                return false;
+            }
+            String coreVersion = versionParts[0];
             SemanticVersion current = SemanticVersion.from(coreVersion);
             SemanticVersion minimum = SemanticVersion.from(minVersion);
             return current.greaterThanOrEqualTo(minimum);
