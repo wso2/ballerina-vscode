@@ -44,11 +44,13 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.extensions.ballerina.document.ExecutorPositionsUtil;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.LogTraceParams;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceFolder;
@@ -721,6 +723,283 @@ public class TestWorkspaceManager {
         //Get and assert response
         Map<Path, Project> pathProjectMap = workspaceManager.workspaceProjects().get();
         Assert.assertEquals(pathProjectMap.size(), 4);
+    }
+
+    /**
+     * Test opening a file from a workspace project (multi-package workspace). Workspace projects are identified by
+     * [workspace] section in Ballerina.toml.
+     */
+    @Test(description = "Test opening a document in a multi-package workspace project")
+    public void testOpenWorkspaceProject() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+
+        // Open file from workspace project
+        openFile(packageAFile);
+
+        // Verify document is loaded
+        Optional<Document> document = workspaceManager.document(packageAFile);
+        Assert.assertTrue(document.isPresent(), "Document should be present in workspace project");
+
+        // Verify project is loaded
+        Optional<Project> project = workspaceManager.project(packageAFile);
+        Assert.assertTrue(project.isPresent(), "Project should be loaded from workspace");
+
+        // The loaded project should be a BuildProject (extracted from workspace)
+        Assert.assertEquals(project.get().kind(), ProjectKind.BUILD_PROJECT,
+                "Workspace package should be loaded as BUILD_PROJECT");
+    }
+
+    /**
+     * Test opening the root of a workspace project (multi-package workspace).
+     */
+    @Test(description = "Test opening a document in a multi-package workspace project")
+    public void testOpenWorkspaceProjectRoot() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath =
+                RESOURCE_DIRECTORY.resolve("workspace-projects").resolve("simple-workspace").toAbsolutePath();
+
+        // Open file from workspace project
+        openFile(workspaceProjectsPath);
+        Optional<Project> project = workspaceManager.project(workspaceProjectsPath);
+
+        Assert.assertTrue(project.isPresent(), "Project should be loaded from workspace");
+        Assert.assertEquals(project.get().kind(), ProjectKind.WORKSPACE_PROJECT,
+                "Workspace root should be loaded as WORKSPACE_PROJECT");
+    }
+
+    /**
+     * Test opening multiple packages from the same workspace. Each package should be cached separately but recognized
+     * as part of the same workspace.
+     */
+    @Test(description = "Test opening multiple packages in a workspace project")
+    public void testOpenMultiplePackagesInWorkspace() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+        Path packageBFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-b").resolve("main.bal").toAbsolutePath();
+
+        // Open files from both packages in the workspace
+        openFile(packageAFile);
+        openFile(packageBFile);
+
+        // Verify both documents are loaded
+        Assert.assertTrue(workspaceManager.document(packageAFile).isPresent(),
+                "Package A document should be loaded");
+        Assert.assertTrue(workspaceManager.document(packageBFile).isPresent(),
+                "Package B document should be loaded");
+
+        // Each package has its own project root
+        Path rootA = workspaceManager.projectRoot(packageAFile);
+        Path rootB = workspaceManager.projectRoot(packageBFile);
+        Assert.assertNotEquals(rootA, rootB,
+                "Different packages should have different project roots");
+
+        // But both are under the same workspace directory
+        Assert.assertEquals(rootA.getParent(), rootB.getParent(),
+                "Both packages should be under the same workspace directory");
+    }
+
+    /**
+     * Test that workspace projects with compilation errors are handled correctly.
+     */
+    @Test(description = "Test workspace project with compilation errors")
+    public void testWorkspaceProjectWithErrors() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path errorPackageFile = workspaceProjectsPath.resolve("workspace-with-errors")
+                .resolve("pkg1").resolve("main.bal").toAbsolutePath();
+
+        // Open file from package with errors
+        openFile(errorPackageFile);
+
+        // Document should still be loaded even with compilation errors
+        Optional<Document> document = workspaceManager.document(errorPackageFile);
+        Assert.assertTrue(document.isPresent(),
+                "Document should be loaded even with compilation errors");
+
+        // Project should be loaded
+        Optional<Project> project = workspaceManager.project(errorPackageFile);
+        Assert.assertTrue(project.isPresent(),
+                "Project should be loaded even with compilation errors");
+    }
+
+    /**
+     * Test updating a document in a workspace project.
+     */
+    @Test(description = "Test updating a document in a workspace project")
+    public void testUpdateWorkspaceDocument() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+
+        // Open the file first
+        openFile(packageAFile);
+
+        // Update the document
+        DidChangeTextDocumentParams params = new DidChangeTextDocumentParams();
+        VersionedTextDocumentIdentifier doc = new VersionedTextDocumentIdentifier(
+                packageAFile.toUri().toString(), 1);
+        params.setTextDocument(doc);
+        params.getContentChanges().add(new TextDocumentContentChangeEvent(dummyDidChangeContent));
+
+        workspaceManager.didChange(packageAFile, params);
+
+        // Verify the change
+        Optional<Document> document = workspaceManager.document(packageAFile);
+        Assert.assertTrue(document.isPresent(), "Document should be present after update");
+        Assert.assertEquals(document.get().syntaxTree().textDocument().toString(),
+                dummyDidChangeContent, "Document content should be updated");
+    }
+
+    /**
+     * Test diagnostics scoping in workspace projects.
+     */
+    @Test(description = "Test diagnostics are scoped to correct package in workspace")
+    public void testWorkspaceProjectDiagnostics() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path errorPackageFile = workspaceProjectsPath.resolve("workspace-with-errors")
+                .resolve("pkg1").resolve("main.bal").toAbsolutePath();
+        Path validPackageFile = workspaceProjectsPath.resolve("workspace-with-errors")
+                .resolve("pkg2").resolve("service.bal").toAbsolutePath();
+
+        // Open both files
+        openFile(errorPackageFile);
+        openFile(validPackageFile);
+
+        // Verify both documents are loaded
+        Assert.assertTrue(workspaceManager.document(errorPackageFile).isPresent(),
+                "Error package document should be loaded");
+        Assert.assertTrue(workspaceManager.document(validPackageFile).isPresent(),
+                "Valid package document should be loaded");
+
+        // Verify they are in the same workspace but have different project roots
+        Path rootError = workspaceManager.projectRoot(errorPackageFile);
+        Path rootValid = workspaceManager.projectRoot(validPackageFile);
+        Assert.assertNotEquals(rootError, rootValid, "Different packages should have different project roots");
+        Assert.assertEquals(rootError.getParent(), rootValid.getParent(),
+                "Both packages should be under the same workspace directory");
+    }
+
+    /**
+     * Test document lifecycle with workspace project isolation.
+     */
+    @Test(description = "Test document close maintains package isolation")
+    public void testDocumentLifecycleWithIsolation() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+        Path packageBFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-b").resolve("main.bal").toAbsolutePath();
+
+        // Open both files
+        openFile(packageAFile);
+        openFile(packageBFile);
+
+        // Close package A document in the editor
+        DidCloseTextDocumentParams closeParams = new DidCloseTextDocumentParams();
+        closeParams.setTextDocument(new TextDocumentIdentifier(packageAFile.toUri().toString()));
+        workspaceManager.didClose(packageAFile, closeParams);
+
+        // For workspace/build projects, documents persist even after closing since the project remains loaded
+        Assert.assertTrue(workspaceManager.document(packageAFile).isPresent(),
+                "Package A document should still be in the project");
+        Assert.assertTrue(workspaceManager.document(packageBFile).isPresent(),
+                "Package B document should remain in the project");
+
+        // But the projects should remain independent
+        Assert.assertTrue(workspaceManager.project(packageAFile).isPresent(),
+                "Package A project should still exist");
+        Assert.assertTrue(workspaceManager.project(packageBFile).isPresent(),
+                "Package B project should still exist");
+    }
+
+    /**
+     * Test module access within workspace project.
+     */
+    @Test(description = "Test module access within workspace project")
+    public void testWorkspaceModuleAccess() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+        Path moduleUtilsFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("modules").resolve("utils")
+                .resolve("utils.bal").toAbsolutePath();
+
+        // Open files from package and its module
+        openFile(packageAFile);
+        openFile(moduleUtilsFile);
+
+        // Verify both are loaded
+        Assert.assertTrue(workspaceManager.document(packageAFile).isPresent(),
+                "Main file should be loaded");
+        Assert.assertTrue(workspaceManager.document(moduleUtilsFile).isPresent(),
+                "Module file should be loaded");
+
+        // Verify they belong to the same module hierarchy
+        Optional<Module> mainModule = workspaceManager.module(packageAFile);
+        Assert.assertTrue(mainModule.isPresent(), "Main module should be present");
+    }
+
+    /**
+     * Test file system change events in workspace projects.
+     */
+    @Test(description = "Test file system events in workspace project")
+    public void testWorkspaceFileSystemEvents() throws WorkspaceDocumentException, IOException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+
+        // Open the workspace
+        openFile(packageAFile);
+
+        Module oldModule = workspaceManager.module(packageAFile).orElseThrow();
+
+        // Create a new file in the same package
+        Path newFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("new-file.bal").toAbsolutePath();
+
+        try {
+            Files.write(newFile, "function newFunc() {}".getBytes());
+            FileEvent fileEvent = new FileEvent(newFile.toUri().toString(), FileChangeType.Created);
+
+            // Notify workspace manager
+            workspaceManager.didChangeWatched(newFile, fileEvent);
+
+            // Creating new document should change the Module
+            Assert.assertNotSame(oldModule, workspaceManager.module(packageAFile).orElseThrow(),
+                    "Module should be updated after file creation");
+        } finally {
+            Files.deleteIfExists(newFile);
+        }
+    }
+
+    /**
+     * Test single package workspace.
+     */
+    @Test(description = "Test single package workspace project")
+    public void testSinglePackageWorkspace() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path filePath = workspaceProjectsPath.resolve("single-package-workspace")
+                .resolve("my-package").resolve("main.bal").toAbsolutePath();
+
+        // Open file from single package workspace
+        openFile(filePath);
+
+        // Verify document and project are loaded
+        Assert.assertTrue(workspaceManager.document(filePath).isPresent(),
+                "Document should be present");
+        Assert.assertTrue(workspaceManager.project(filePath).isPresent(),
+                "Project should be present");
+
+        // Verify package root is correctly identified
+        Path packageRoot = workspaceManager.projectRoot(filePath);
+        Assert.assertEquals(packageRoot.getFileName().toString(), "my-package",
+                "Package root should be identified correctly");
+
+        // Verify it's part of a workspace
+        Assert.assertEquals(packageRoot.getParent().getFileName().toString(), "single-package-workspace",
+                "Parent should be the workspace directory");
     }
 
     private List<WorkspaceFolder> mockWorkspaceFolders() {

@@ -1,0 +1,5 @@
+[package]
+name = "package_a"
+
+[build-options]
+observabilityIncluded = false
