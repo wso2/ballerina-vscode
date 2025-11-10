@@ -163,13 +163,13 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                         return (
                             <React.Fragment key={index}>
                                 {index > 0 && (
-                                    <Icon 
-                                        name="wide-chevron" 
+                                    <Icon
+                                        name="wide-chevron"
                                         iconSx={{
                                             color: "var(--vscode-foreground)",
                                             fontSize: hasMultiplePackages ? "20px" : "15px",
-                                            opacity: 0.5 
-                                        }} 
+                                            opacity: 0.5
+                                        }}
                                         sx={{ alignSelf: "center" }}
                                     />
                                 )}
@@ -182,10 +182,10 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     </BreadcrumbText>
                                     {hasMultiplePackages && crumb.location.package && (
                                         <PackageContainer>
-                                            <Codicon 
-                                                name="project" 
+                                            <Codicon
+                                                name="project"
                                                 sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
-                                                iconSx={{ fontSize: "10px", lineHeight: "1" }} 
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }}
                                             />
                                             <PackageName>{crumb.location.package}</PackageName>
                                         </PackageContainer>

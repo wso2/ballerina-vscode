@@ -53,10 +53,10 @@ export const IdentifierField = forwardRef<HTMLInputElement, IdentifierFieldProps
     };
 
     const validateIdentifierName = useCallback(debounce(async (value: string) => {
-        const projectUri = await rpcClient.getVisualizerLocation().then((res) => res.projectUri);
+        const projectPath = await rpcClient.getVisualizerLocation().then((res) => res.projectPath);
 
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
-            filePath: Utils.joinPath(URI.file(projectUri), 'types.bal').fsPath
+            filePath: Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath
         });
 
         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({

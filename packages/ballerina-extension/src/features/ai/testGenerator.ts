@@ -19,7 +19,7 @@
 import { DiagnosticEntry, Diagnostics, OpenAPISpec, ProjectDiagnostics, ProjectModule, ProjectSource, SyntaxTree, TestGenerationRequest, TestGenerationResponse, TestGenerationTarget } from '@wso2/ballerina-core';
 import { ErrorCode } from "@wso2/ballerina-core";
 import { DotToken, IdentifierToken, ModulePart, ResourceAccessorDefinition, ResourcePathRestParam, ResourcePathSegmentParam, ServiceDeclaration, SlashToken, STKindChecker } from "@wso2/syntax-tree";
-import { Uri, workspace } from "vscode";
+import { Uri } from "vscode";
 import { PARSING_ERROR, UNKNOWN_ERROR, ENDPOINT_REMOVED } from '../../views/ai-panel/errorCodes';
 import { langClient } from './activator';
 import * as fs from 'fs';
@@ -28,6 +28,7 @@ import * as os from 'os';
 import { writeBallerinaFileDidOpenTemp } from '../../utils/modification';
 import { closeAllBallerinaFiles } from './utils';
 import { generateTestFromLLM, TestGenerationRequest1 } from './service/test/test';
+import { findBallerinaPackageRoot } from '../../utils';
 
 const TEST_GEN_REQUEST_TIMEOUT = 100000;
 
@@ -222,7 +223,7 @@ export async function getDiagnostics(
     projectRoot: string,
     generatedTestSource: TestGenerationResponse
 ): Promise<ProjectDiagnostics> {
-    const ballerinaProjectRoot = await findBallerinaProjectRoot(projectRoot);
+    const ballerinaProjectRoot = await findBallerinaPackageRoot(projectRoot);
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'temp-bal-test-gen-'));
     fs.cpSync(ballerinaProjectRoot, tempDir, { recursive: true });
     const tempTestFolderPath = path.join(tempDir, 'tests');
@@ -245,7 +246,7 @@ export async function getDiagnostics(
 }
 
 async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaProjectRoot(dirPath);
+    const projectRoot = await findBallerinaPackageRoot(dirPath);
 
     if (!projectRoot) {
         return null;
@@ -298,7 +299,7 @@ async function getProjectSource(dirPath: string): Promise<ProjectSource | null> 
 }
 
 async function getProjectSourceWithTests(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaProjectRoot(dirPath);
+    const projectRoot = await findBallerinaPackageRoot(dirPath);
 
     if (!projectRoot) {
         return null;
@@ -443,36 +444,6 @@ async function filterTestGenResponse(resp: Response): Promise<TestGenerationResp
         //TODO: Handle more error codes
         return { code: 4, message: `An unknown error occured. ${resp.statusText}.` };
     }
-}
-
-// // ----------- HEALPER FUNCTIONS -----------
-async function findBallerinaProjectRoot(dirPath: string): Promise<string | null> {
-    if (dirPath === null) {
-        return null;
-    }
-
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders) {
-        return null;
-    }
-
-    // Check if the directory is within any of the workspace folders
-    const workspaceFolder = workspaceFolders.find(folder => dirPath.startsWith(folder.uri.fsPath));
-    if (!workspaceFolder) {
-        return null;
-    }
-
-    let currentDir = dirPath;
-
-    while (currentDir.startsWith(workspaceFolder.uri.fsPath)) {
-        const ballerinaTomlPath = path.join(currentDir, 'Ballerina.toml');
-        if (fs.existsSync(ballerinaTomlPath)) {
-            return currentDir;
-        }
-        currentDir = path.dirname(currentDir);
-    }
-
-    return null;
 }
 
 function isErrorCode(error: any): boolean {
