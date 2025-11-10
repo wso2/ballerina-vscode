@@ -1,0 +1,7 @@
+[package]
+name = "package_b"
+
+[[dependency]]
+org = "lstest"
+name = "package_a"
+version = "1.0.0"

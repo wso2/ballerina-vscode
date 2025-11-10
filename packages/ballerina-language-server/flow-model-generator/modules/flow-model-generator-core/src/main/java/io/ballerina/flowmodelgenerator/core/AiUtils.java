@@ -146,7 +146,12 @@ public class AiUtils {
         ));
 
         dependentModules.put("1.7.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.3.0")
+                new Module("ballerinax", "ai.azure", "1.4.0"),
+                new Module("ballerinax", "ai.openai", "1.3.0"),
+                new Module("ballerinax", "ai.ollama", "1.2.0"),
+                new Module("ballerinax", "ai.mistral", "1.2.0"),
+                new Module("ballerinax", "ai.deepseek", "1.1.0"),
+                new Module("ballerinax", "ai.anthropic", "1.2.0")
         ));
     }
 

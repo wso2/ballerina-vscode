@@ -1,0 +1,21 @@
+{
+  "position": {
+    "line": 7,
+    "character": 11
+  },
+  "source": {
+    "file": "workspace/pkgA/main.bal"
+  },
+  "expected": {
+    "result": {
+      "contents": {
+        "kind": "markdown",
+        "value": "Represents a person with basic information\n  \n  \n---  \n  \n### Fields  \n  \n`string` ***name*** : The person's name  \n`int` ***age*** : The person's age  \n`string` ***email*** : The person's email address  \n`anydata...`  \n  \n---  \n  \n[View API Docs](https://lib.ballerina.io/test/pkgB/0.1.0#Person)"
+      }
+    },
+    "id": {
+      "left": "324"
+    },
+    "jsonrpc": "2.0"
+  }
+}

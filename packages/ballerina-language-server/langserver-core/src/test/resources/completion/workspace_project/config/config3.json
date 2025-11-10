@@ -1,0 +1,47 @@
+{
+  "position": {
+    "line": 4,
+    "character": 34
+  },
+  "source": "workspace_project/source/completion-workspace/pkg-consumer/constant_test.bal",
+  "description": "Test cross-package constant completion",
+  "items": [
+    {
+      "label": "API_VERSION",
+      "kind": "Variable",
+      "detail": "\"v1.0\"",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": ""
+        }
+      },
+      "sortText": "AC",
+      "insertText": "API_VERSION",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Config",
+      "kind": "Struct",
+      "detail": "Record",
+      "sortText": "Q",
+      "insertText": "Config",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "getGreeting()",
+      "kind": "Function",
+      "detail": "string",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": "**Package:** _wso2/pkg_provider:1.0.0_  \n  \n  \n  \n  \n**Return** `string`   \n  \n"
+        }
+      },
+      "sortText": "AA",
+      "filterText": "getGreeting",
+      "insertText": "getGreeting()",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

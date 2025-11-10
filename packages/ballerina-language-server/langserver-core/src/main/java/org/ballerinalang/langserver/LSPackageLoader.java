@@ -30,7 +30,6 @@ import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.PackageVersion;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.environment.PackageRepository;
@@ -41,6 +40,7 @@ import io.ballerina.projects.internal.environment.BallerinaUserHome;
 import io.ballerina.projects.util.FileUtils;
 import org.ballerinalang.langserver.codeaction.CodeActionModuleId;
 import org.ballerinalang.langserver.common.utils.ModuleUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
@@ -429,7 +429,7 @@ public class LSPackageLoader {
 
         private void addServiceTemplateMetaData() {
             String orgName = ModuleUtil.escapeModuleName(this.packageOrg());
-            Project project = ProjectLoader.loadProject(this.sourceRoot());
+            Project project = BallerinaCompilerApi.getInstance().loadProject(this.sourceRoot());
             //May take some time as we are compiling projects.
             PackageCompilation packageCompilation = project.currentPackage().getCompilation();
             Module module = project.currentPackage().getDefaultModule();
