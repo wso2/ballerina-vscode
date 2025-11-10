@@ -290,7 +290,7 @@
               "metadata": {
                 "label": "HealthcareServiceAvailableTimeDaysOfWeek",
                 "description": "HealthcareServiceAvailableTimeDaysOfWeek enum",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_4.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -298,7 +298,7 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareServiceAvailableTimeDaysOfWeek",
-                "version": "3.0.1"
+                "version": "4.0.0"
               },
               "enabled": true
             },
@@ -306,7 +306,7 @@
               "metadata": {
                 "label": "HealthcareService",
                 "description": "FHIR HealthcareService resource record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_4.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -314,7 +314,7 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareService",
-                "version": "3.0.1"
+                "version": "4.0.0"
               },
               "enabled": true
             },
@@ -322,7 +322,7 @@
               "metadata": {
                 "label": "HealthcareServiceEligibility",
                 "description": "FHIR HealthcareServiceEligibility datatype record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_4.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -330,39 +330,7 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "HealthcareServiceEligibility",
-                "version": "3.0.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "HealthcareServiceNotAvailable",
-                "description": "FHIR HealthcareServiceNotAvailable datatype record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r4.international401",
-                "packageName": "health.fhir.r4.international401",
-                "symbol": "HealthcareServiceNotAvailable",
-                "version": "3.0.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "HealthcareServiceAvailableTime",
-                "description": "FHIR HealthcareServiceAvailableTime datatype record.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_3.0.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r4.international401",
-                "packageName": "health.fhir.r4.international401",
-                "symbol": "HealthcareServiceAvailableTime",
-                "version": "3.0.1"
+                "version": "4.0.0"
               },
               "enabled": true
             }
@@ -388,6 +356,47 @@
                 "packageName": "health.base",
                 "symbol": "HealthcareSecurityError",
                 "version": "1.1.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "health.fhir.r5.international500",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "HealthcareService",
+                "description": "FHIR HealthcareService resource record.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5.international500_1.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r5.international500",
+                "packageName": "health.fhir.r5.international500",
+                "symbol": "HealthcareService",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "HealthcareServiceEligibility",
+                "description": "FHIR HealthcareServiceEligibility datatype record.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5.international500_1.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "health.fhir.r5.international500",
+                "packageName": "health.fhir.r5.international500",
+                "symbol": "HealthcareServiceEligibility",
+                "version": "1.0.1"
               },
               "enabled": true
             }

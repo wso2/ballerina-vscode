@@ -19,20 +19,15 @@
 package io.ballerina.servicemodelgenerator.extension.core;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
-import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -55,15 +50,15 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceModifier;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.TextDocuments;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
-import org.ballerinalang.langserver.common.utils.DefaultValueGenerationUtil;
-import org.ballerinalang.langserver.common.utils.RecordUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -93,15 +88,9 @@ public class OpenApiServiceGenerator {
 
     public static final String MAIN_BAL = "main.bal";
     public static final String LS = System.lineSeparator();
-    public static final String OPEN_BRACE = "{";
     public static final String CLOSE_BRACE = "}";
-    public static final String SPACE = " ";
     public static final String COLON = ":";
-    public static final String COMMA = ",";
-    public static final String BALLERINA_HTTP = "ballerina/http";
     public static final String BALLERINA_LANG = "ballerina/lang";
-    public static final String DEFAULT_HTTP_RESPONSE = "DefaultStatusCodeResponse";
-    public static final String DEFAULT_HTTP_RESPONSE_VALUE = "status: new (0)";
     public static final String SERVICE_DECLARATION = "service %s on %s {";
     private static final String RANGED_RESPONSE_ERROR_CODE = "OAS_SERVICE_201";
     private final WorkspaceManager workspaceManager;
@@ -159,6 +148,8 @@ public class OpenApiServiceGenerator {
             throw new BallerinaOpenApiException(sb.toString());
         }
 
+        String updatedSyntaxTree = modifyContractMethodNamesWithErrorReturn(serviceTypeFile);
+
         Path mainFile = projectPath.resolve(MAIN_BAL);
         Map<String, List<TextEdit>> textEditsMap = new LinkedHashMap<>();
         Project project = this.workspaceManager.loadProject(mainFile);
@@ -172,8 +163,8 @@ public class OpenApiServiceGenerator {
                 String importText = Utils.getImportStmt("ballerina", "http");
                 textEdits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
-            String serviceImplContent = genServiceImplementation(serviceTypeFile, typeName, listeners, project,
-                    mainFile);
+            String serviceImplContent = genServiceImplementation(updatedSyntaxTree, serviceTypeFile.getFileName(),
+                    typeName, listeners, project, mainFile);
             StringBuilder builder = new StringBuilder(NEW_LINE);
             if (Objects.nonNull(listenerDeclaration)) {
                 builder.append(listenerDeclaration).append(NEW_LINE);
@@ -183,8 +174,14 @@ public class OpenApiServiceGenerator {
             textEditsMap.put(mainFile.toAbsolutePath().toString(), textEdits);
         }
         textEditsMap.put(projectPath.resolve(serviceTypeFile.getFileName()).toAbsolutePath().toString(),
-                List.of(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), serviceTypeFile.getContent())));
+                List.of(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), updatedSyntaxTree)));
         return textEditsMap;
+    }
+
+    private static String modifyContractMethodNamesWithErrorReturn(GenSrcFile serviceTypeFile) {
+        SyntaxTree syntaxTree = SyntaxTree.from(TextDocuments.from(serviceTypeFile.getContent()));
+        ModulePartNode rootNode = syntaxTree.rootNode();
+        return new ServiceModifier().transform(rootNode).toString();
     }
 
     public GenSrcFile generateServiceType(Path openAPI, String typeName, Filter filter, List<Diagnostic> diagnostics)
@@ -234,14 +231,14 @@ public class OpenApiServiceGenerator {
         return genSrcFile;
     }
 
-    private String genServiceImplementation(GenSrcFile serviceType, String typeName, String listeners,
-                                            Project project, Path mainFile) throws BallerinaOpenApiException {
+    private String genServiceImplementation(String serviceTypeContent, String fileName, String typeName,
+                                            String listeners, Project project, Path mainFile)
+            throws BallerinaOpenApiException {
         Package currentPackage = project.currentPackage();
         Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
         ModuleId moduleId = module.moduleId();
         DocumentId serviceObjDocId = DocumentId.create(mainFile.toString(), moduleId);
-        DocumentConfig documentConfig = DocumentConfig.from(
-                serviceObjDocId, serviceType.getContent(), serviceType.getFileName());
+        DocumentConfig documentConfig = DocumentConfig.from(serviceObjDocId, serviceTypeContent, fileName);
         module.modify().addDocument(documentConfig).apply();
 
         SemanticModel semanticModel = PackageUtil.getCompilation(project).getSemanticModel(moduleId);
@@ -286,8 +283,7 @@ public class OpenApiServiceGenerator {
         return module.map(moduleSymbol -> moduleSymbol.id().toString()).orElse(null);
     }
 
-    private String getResourceFunction(ResourceMethodSymbol resourceMethodSymbol, String parentModuleName)
-            throws BallerinaOpenApiException {
+    private String getResourceFunction(ResourceMethodSymbol resourceMethodSymbol, String parentModuleName) {
         String resourceSignature = resourceMethodSymbol.signature();
         if (Objects.nonNull(parentModuleName)) {
             resourceSignature = resourceSignature.replace(parentModuleName + COLON, "");
@@ -296,134 +292,10 @@ public class OpenApiServiceGenerator {
             resourceSignature = resourceSignature.replace(BALLERINA_LANG + ".", "");
             resourceSignature = resourceSignature.replaceAll("\\d+\\.\\d+\\.\\d+:", "");
         }
-        return genResourceFunctionBody(resourceMethodSymbol, resourceSignature);
-    }
-
-    private String genResourceFunctionBody(ResourceMethodSymbol resourceMethodSymbol, String resourceSignature)
-            throws BallerinaOpenApiException {
-        FunctionTypeSymbol functionTypeSymbol = resourceMethodSymbol.typeDescriptor();
-        Optional<TypeSymbol> optReturnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
-        String possibleErrorReturningType = "()";
-        if (optReturnTypeSymbol.isPresent()) {
-            TypeSymbol typeSymbol = optReturnTypeSymbol.get();
-            possibleErrorReturningType = getPossibleErrorHttpResponse(typeSymbol);
-            if (possibleErrorReturningType.isEmpty()) {
-                possibleErrorReturningType = getPossibleErrorReturningValue(typeSymbol);
-            }
-            if (possibleErrorReturningType.isEmpty()) {
-                possibleErrorReturningType = getDefaultValue(typeSymbol);
-            }
-            if (possibleErrorReturningType.isEmpty()) { // TODO: fix this
-                throw new BallerinaOpenApiException("Cannot find default return value for: "
-                        + resourceMethodSymbol.signature() + "and " + typeSymbol.signature());
-            }
-        }
-        return LS + "\t" + sanitizePackageNames(resourceSignature) + " {" + LS + "\t\tdo {" + LS + "\t\t} on fail " +
-                "error e {" + LS + "\t\t\t" + "return " + possibleErrorReturningType + ";" + LS + "\t\t}" +
-                LS + "\t}" + LS;
-    }
-
-    private String getPossibleErrorHttpResponse(TypeSymbol typeSymbol) {
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-            for (TypeSymbol symbol : typeSymbols) {
-                String possibleErrorReturningType = getPossibleErrorHttpResponse(symbol);
-                if (!possibleErrorReturningType.isEmpty()) {
-                    return possibleErrorReturningType;
-                }
-            }
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            return getPossibleErrorHttpResponse(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
-        } else if (kind == TypeDescKind.RECORD) {
-            String typeStr = typeSymbol.signature();
-            if (!typeStr.contains(BALLERINA_HTTP)) {
-                return "";
-            }
-            if (typeStr.contains("http:InternalServerError")) {
-                return "http:INTERNAL_SERVER_ERROR";
-            }
-            if (typeStr.contains("http:NotFound")) {
-                return "http:NOT_FOUND";
-            }
-            if (typeStr.contains("http:MethodNotAllowed")) {
-                return "http:METHOD_NOT_ALLOWED";
-            }
-            if (typeStr.contains("http:BadRequest")) {
-                return "http:BAD_REQUEST";
-            }
-            // TODO: Add more possible status codes
-        }
-        return "";
-    }
-
-    private String getPossibleErrorReturningValue(TypeSymbol typeSymbol) {
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-            for (TypeSymbol symbol : typeSymbols) {
-                String possibleErrorReturningType = getPossibleErrorReturningValue(symbol);
-                if (!possibleErrorReturningType.isEmpty()) {
-                    return possibleErrorReturningType;
-                }
-            }
-            return "";
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            return getPossibleErrorReturningValue(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
-        } else if (kind == TypeDescKind.RECORD) {
-            RecordTypeSymbol recordTypeSymbol = (RecordTypeSymbol) typeSymbol;
-            List<TypeSymbol> includedTypeSymbols = (recordTypeSymbol).typeInclusions();
-            for (TypeSymbol includedTypeSymbol : includedTypeSymbols) {
-                String signature = includedTypeSymbol.signature();
-                if (signature.contains(BALLERINA_HTTP) && signature.contains(DEFAULT_HTTP_RESPONSE)) {
-                    return getDefaultRecordValue(recordTypeSymbol);
-                }
-            }
-        }
-        return "";
-    }
-
-    private String getDefaultRecordValue(RecordTypeSymbol recordTypeSymbol) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(OPEN_BRACE);
-        Map<String, RecordFieldSymbol> fieldDescriptors = recordTypeSymbol.fieldDescriptors();
-        for (Map.Entry<String, RecordFieldSymbol> fieldDescriptor : fieldDescriptors.entrySet()) {
-            String key = fieldDescriptor.getKey();
-            if (key.contains("status") || key.contains("mediaType") || key.contains("headers")) {
-                continue;
-            }
-            sb.append(key).append(COLON).append(SPACE)
-                    .append(getDefaultValue(fieldDescriptor.getValue().typeDescriptor())).append(COMMA)
-                    .append(SPACE);
-        }
-        sb.append(DEFAULT_HTTP_RESPONSE_VALUE).append(CLOSE_BRACE);
-        return sb.toString();
-    }
-
-    private String getDefaultValue(TypeSymbol typeSymbol) {
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-            for (TypeSymbol symbol : typeSymbols) {
-                String possibleErrorReturningType = getDefaultValue(symbol);
-                if (!possibleErrorReturningType.isEmpty()) {
-                    return possibleErrorReturningType;
-                }
-            }
-            return "";
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            return getDefaultValue(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
-        } else if (kind == TypeDescKind.RECORD) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(OPEN_BRACE);
-            Map<String, RecordFieldSymbol> fieldDescriptors = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
-            sb.append(RecordUtil.getFillAllRecordFieldInsertText(fieldDescriptors));
-            sb.append(CLOSE_BRACE);
-            return sb.toString();
-        } else if (kind == TypeDescKind.ANYDATA) {
-            return "\"\"";
-        }
-        return DefaultValueGenerationUtil.getDefaultValueForType(typeSymbol).orElse("");
+        String f = "    " + sanitizePackageNames(resourceSignature) + "  {%n" +
+                "        return error(\"Unimplemented resource\");%n" +
+                "    }";
+        return f.formatted();
     }
 
     private String sanitizePackageNames(String input) {

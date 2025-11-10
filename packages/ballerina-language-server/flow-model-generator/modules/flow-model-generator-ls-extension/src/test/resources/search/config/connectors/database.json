@@ -10,7 +10,7 @@
       "metadata": {
         "label": "MongoDB Database",
         "description": "Represents a MongoDB database.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.1.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "mongodb",
         "object": "Database",
         "symbol": "init",
-        "version": "5.1.0",
+        "version": "5.2.2",
         "isGenerated": false
       },
       "enabled": true
@@ -134,27 +134,6 @@
     },
     {
       "metadata": {
-        "label": "Index",
-        "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "pinecone.index",
-        "packageName": "pinecone.index",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Vector",
         "description": "This is a generated connector for the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
@@ -167,6 +146,27 @@
         "org": "ballerinax",
         "module": "pinecone.vector",
         "packageName": "pinecone.vector",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Index",
+        "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "pinecone.index",
+        "packageName": "pinecone.index",
         "object": "Client",
         "symbol": "init",
         "version": "1.0.2",
@@ -191,6 +191,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.16.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Milvus",
+        "description": "Milvus is a high-performance, cloud-native vector database built for scalable vector ANN search.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "milvus",
+        "packageName": "milvus",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.1.0",
         "isGenerated": false
       },
       "enabled": true
@@ -401,27 +422,6 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.2.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Notion",
-        "description": "This is a generated connector for [Notion API v1](https://developers.notion.com/reference/intro) OpenAPI Specification. \nNotion API provides capability to access all-in-one workspace where you can write, plan, collaborate and get organized. it has components such as notes, databases, kanban boards, wikis, calendars, and reminders. You can connect these  components to take notes, add tasks, manage projects & more. Notion provides the building blocks and you can  create your own layouts and toolkit to get work done. This ballerina connector allows you to connect Notion through its [REST API](https://developers.notion.com/docs).",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_notion_1.5.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "notion",
-        "packageName": "notion",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.5.1",
         "isGenerated": false
       },
       "enabled": true

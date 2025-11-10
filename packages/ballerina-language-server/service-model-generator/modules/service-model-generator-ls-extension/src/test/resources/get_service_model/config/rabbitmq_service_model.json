@@ -7,9 +7,9 @@
   "response": {
     "service": {
       "id": "10",
-      "name": "RabbitMQ Event Handler",
+      "name": "RabbitMQ Event Integration",
       "type": "rabbitmq",
-      "displayName": "RabbitMQ Event Handler",
+      "displayName": "RabbitMQ Event Integration",
       "moduleName": "rabbitmq",
       "orgName": "ballerinax",
       "version": "3.2.0",
@@ -19,7 +19,7 @@
       "documentation": {
         "metadata": {
           "label": "Description",
-          "description": "The description of the object"
+          "description": "The description of the class"
         },
         "codedata": {
           "type": "DOCUMENTATION"

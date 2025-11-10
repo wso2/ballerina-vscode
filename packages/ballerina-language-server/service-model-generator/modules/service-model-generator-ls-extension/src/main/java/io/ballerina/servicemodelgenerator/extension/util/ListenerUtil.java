@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
@@ -33,6 +34,7 @@ import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
@@ -427,8 +429,16 @@ public class ListenerUtil {
             return null;
         }
 
-        return createListenerModelFromNewExpressionNode(listenerNode.lineRange(),
-                (NewExpressionNode) listenerNode.initializer(), semanticModel, classSymbol);
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
+        } else {
+            newExpressionNode = (NewExpressionNode) initializer;
+        }
+
+        return createListenerModelFromNewExpressionNode(listenerNode.lineRange(), newExpressionNode, semanticModel,
+                classSymbol);
     }
 
     private static void processListenerName(Listener listener, ListenerDeclarationNode listenerDeclarationNode) {
