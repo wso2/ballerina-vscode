@@ -223,18 +223,24 @@ export async function filterPackagePaths(packagePaths: string[], workspacePath: 
             if (path.isAbsolute(pkgPath)) {
                 const resolvedPath = path.resolve(pkgPath);
                 const resolvedWorkspacePath = path.resolve(workspacePath);
-                if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(resolvedWorkspacePath)) {
+                if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
                     return await checkIsBallerinaPackage(Uri.file(resolvedPath));
                 }
             }
             const resolvedPath = path.resolve(workspacePath, pkgPath);
-            if (fs.existsSync(resolvedPath) && resolvedPath.startsWith(workspacePath)) {
+            const resolvedWorkspacePath = path.resolve(workspacePath);
+            if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
                 return await checkIsBallerinaPackage(Uri.file(resolvedPath));
             }
             return false;
         })
     );
     return packagePaths.filter((_, index) => results[index]);
+}
+
+function isPathInside(childPath: string, parentPath: string): boolean {
+    const relative = path.relative(parentPath, childPath);
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 export function getOrgPackageName(projectPath: string): { orgName: string, packageName: string } {
