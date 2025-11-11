@@ -23,7 +23,7 @@ import { RecordConfigTypeSelector } from "../RecordConfigTypeSelector";
 import { RecordFromJson } from "../RecordFromJson";
 import { RecordFromXml } from "../RecordFromXml";
 import { Context } from "../Context";
-import { isSupportedSLVersion } from "../components/FormComponents/Utils";
+import { isSupportedSLVersion, createVersionNumber } from "../components/FormComponents/Utils";
 import { FormContainer } from "../style";
 
 enum ConfigState {
@@ -67,7 +67,7 @@ export function CreateRecord(props: CreateRecordProps) {
 
     const checkBallerinVersion = () => {
         if (ballerinaVersion) {
-            return isSupportedSLVersion(ballerinaVersion, 220172);
+            return isSupportedSLVersion(ballerinaVersion, createVersionNumber(2201, 7, 2));
         }
         return false;
     };
