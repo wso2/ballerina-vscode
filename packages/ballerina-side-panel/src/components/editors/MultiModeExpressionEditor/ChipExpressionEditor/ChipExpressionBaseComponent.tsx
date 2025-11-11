@@ -37,7 +37,7 @@ import {
     setCursorPositionToExpressionModel,
     updateTokens,
 } from "./utils";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { Button, Codicon, CompletionItem, FnSignatureDocumentation, HelperPaneHeight, ThemeColors } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
@@ -63,6 +63,7 @@ export type ChipExpressionBaseComponentProps = {
     }>;
     targetLineRange?: LineRange;
     onOpenExpandedMode?: () => void;
+    onRemove?: () => void;
     isInExpandedMode?: boolean;
 }
 
@@ -553,6 +554,11 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     />
                 </AutoExpandingEditableDiv>
             </div>
+            {props.onRemove && (
+                <Button appearance="icon" onClick={props.onRemove} tooltip="Remove Expression" sx={{ marginLeft: '4px' }}>
+                    <Codicon name="trash" sx={{ color: ThemeColors.ERROR, fontSize: '16px' }} />
+                </Button>
+            )}
         </ChipEditorContainer >
     )
 }

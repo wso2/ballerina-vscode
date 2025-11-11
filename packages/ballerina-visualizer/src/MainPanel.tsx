@@ -41,6 +41,7 @@ import { ServiceDesigner } from "./views/BI/ServiceDesigner";
 import {
     WelcomeView,
     ProjectForm,
+    AddProjectForm,
     ComponentListView,
     PopupMessage,
     FunctionForm,
@@ -282,7 +283,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.Overview:
                         setViewComponent(
                             <OverviewBI
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                             />
                         );
                         break;
@@ -322,7 +323,7 @@ const MainPanel = () => {
                                 <DiagramWrapper
                                     key={value?.identifier}
                                     syntaxTree={st.syntaxTree}
-                                    projectPath={value?.projectUri}
+                                    projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
                                     breakpointState={breakpointState}
@@ -334,7 +335,7 @@ const MainPanel = () => {
                             setViewComponent(
                                 <DiagramWrapper
                                     key={value?.identifier}
-                                    projectPath={value?.projectUri}
+                                    projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
                                     breakpointState={breakpointState}
@@ -350,17 +351,18 @@ const MainPanel = () => {
                             setViewComponent(
                                 <TypeDiagram
                                     selectedTypeId={value?.identifier}
-                                    projectUri={value?.projectUri}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         } else {
                             // To support rerendering when user click on view all btn from left side panel
                             setViewComponent(
-                                <TypeDiagram key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
+                                <TypeDiagram
+                                    key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
                                     selectedTypeId={value?.identifier}
-                                    projectUri={value?.projectUri}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         }
@@ -383,7 +385,7 @@ const MainPanel = () => {
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 name={value?.dataMapperMetadata?.name}
-                                projectUri={value.projectUri}
+                                projectPath={value.projectPath}
                                 position={position}
                                 reusable
                             />
@@ -401,7 +403,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDataMapperForm:
                         setViewComponent(
                             <FunctionForm
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
                                 isDataMapper={true}
@@ -411,7 +413,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BINPFunctionForm:
                         setViewComponent(
                             <FunctionForm
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
                                 isDataMapper={false}
@@ -421,8 +423,15 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
                         const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-                        const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
-                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position ?? value?.position} projectUri={value?.projectUri} />);
+                        const entryPoint = getProjectStructure
+                            .directoryMap[DIRECTORY_MAP.SERVICE]
+                            .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        setViewComponent(
+                            <GraphQLDiagram
+                                serviceIdentifier={value?.identifier}
+                                filePath={value?.documentUri}
+                                position={entryPoint?.position ?? value?.position}
+                            />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -444,7 +453,10 @@ const MainPanel = () => {
                         setShowHome(false);
                         setViewComponent(<ImportIntegration />);
                         break;
-
+                    case MACHINE_VIEW.BIAddProjectForm:
+                        setShowHome(false);
+                        setViewComponent(<AddProjectForm />);
+                        break;
                     case MACHINE_VIEW.BIComponentView:
                         setViewComponent(<ComponentListView scope={value.scope} />);
                         break;
@@ -465,7 +477,11 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.BIServiceConfigView:
-                        setViewComponent(<ServiceConfigureView filePath={value.documentUri} position={value?.position} listenerName={value?.identifier} />);
+                        setViewComponent(
+                            <ServiceConfigureView
+                                filePath={value.documentUri}
+                                position={value?.position}
+                                listenerName={value?.identifier} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
@@ -473,7 +489,7 @@ const MainPanel = () => {
                                 type={value?.type}
                                 fileName={value.documentUri}
                                 position={value?.position}
-                                projectUri={value?.projectUri} />
+                            />
                         );
                         break;
                     case MACHINE_VIEW.BIListenerConfigView:
@@ -482,14 +498,13 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                fileName={value.documentUri || value.projectPath}
                             />
                         );
                         break;
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionWizard
-                                projectUri={value.projectUri}
                                 connectionName={value?.identifier}
                             />
                         );
@@ -497,16 +512,28 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddCustomConnector:
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                fileName={value.documentUri || value.projectPath}
                                 openCustomConnectorView={true}
                             />
                         );
                         break;
                     case MACHINE_VIEW.BIMainFunctionForm:
-                        setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} isAutomation={true} />);
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isAutomation={true}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.BIFunctionForm:
-                        setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} />);
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                            />);
                         break;
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(<TestFunctionForm
@@ -539,7 +566,7 @@ const MainPanel = () => {
                             <ServiceFunctionForm
                                 position={value?.position}
                                 currentFilePath={value.documentUri}
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                             />
                         );
                         break;
