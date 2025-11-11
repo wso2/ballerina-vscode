@@ -26,7 +26,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
@@ -286,7 +286,29 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperFieldPositionResponse> fieldPosition(DataMapperFieldPositionRequest request) {
+    public CompletableFuture<DataMapperFieldPositionResponse> portPosition(DataMapperPositionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setProperty(dataMapManager.getPortPosition(semanticModel.get(), request.codedata(),
+                        request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperFieldPositionResponse> fieldPosition(DataMapperPositionRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
             try {
@@ -299,7 +321,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setProperty(dataMapManager.getFieldPosition(semanticModel.get(), request.codedata(),
-                        request.targetField(), request.fieldId()));
+                        request.targetField(), request.portId()));
             } catch (Throwable e) {
                 response.setError(e);
             }

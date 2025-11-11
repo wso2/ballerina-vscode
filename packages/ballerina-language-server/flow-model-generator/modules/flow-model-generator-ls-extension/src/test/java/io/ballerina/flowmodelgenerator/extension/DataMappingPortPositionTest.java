@@ -34,7 +34,7 @@ import java.nio.file.Path;
  *
  * @since 1.0.0
  */
-public class DataMappingFieldPositionTest extends AbstractLSTest {
+public class DataMappingPortPositionTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
@@ -43,11 +43,8 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
                 {Path.of("variable1.json")},
                 {Path.of("variable1_1.json")},
                 {Path.of("variable1_2.json")},
-                {Path.of("variable2.json")},
-                {Path.of("variable2_1.json")},
-                {Path.of("variable3.json")},
-                {Path.of("function_definition1.json")},
                 {Path.of("variable4.json")},
+                {Path.of("variable5.json")}
         };
     }
 
@@ -59,14 +56,12 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
 
         DataMapperPositionRequest request =
                 new DataMapperPositionRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(),
-                        testConfig.fieldId());
+                        testConfig.codedata(), "", testConfig.targetField(), "");
         JsonElement property = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("property");
 
         if (!property.equals(testConfig.property())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), testConfig.fieldId(),
-                    property);
+                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), property);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -74,7 +69,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
 
     @Override
     protected String getResourceDir() {
-        return "data_mapper_field_position";
+        return "data_mapper_port_position";
     }
 
     @Override
@@ -84,7 +79,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "fieldPosition";
+        return "portPosition";
     }
 
     @Override
@@ -100,11 +95,10 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
      * @param codedata    Details of the node
      * @param propertyKey The property key
      * @param targetField The target field to add the element
-     * @param fieldId     The field ID to identify the specific field to get the position
      * @param property    Type property of the type of field ID
      */
     private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
-                              String targetField, String fieldId, JsonElement property) {
+                              String targetField, JsonElement property) {
 
         public String description() {
             return description == null ? "" : description;

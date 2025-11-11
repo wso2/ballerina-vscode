@@ -64,6 +64,7 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingCustomFunctionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingTransformationFunctionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingSubMappingDeleteTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingPortPositionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientDeleteTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.JsonConverterTest"/>
