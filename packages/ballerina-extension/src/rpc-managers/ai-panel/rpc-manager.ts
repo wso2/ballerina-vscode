@@ -101,6 +101,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 import { checkToken } from "../../../src/views/ai-panel/utils";
+import { getCurrentProjectRoot } from "../../utils/project-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -185,7 +186,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectUri;
+        const projectPath = await getCurrentProjectRoot();
         // Check if workspaceFolderPath is a Ballerina project
         // Assuming a Ballerina project must contain a 'Ballerina.toml' file
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
@@ -207,9 +208,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return true;
     }
 
-
     async getFromFile(req: GetFromFileRequest): Promise<string> {
-        const projectPath = StateMachine.context().projectUri;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -225,7 +225,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
-        const projectPath = StateMachine.context().projectUri;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -247,7 +247,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFileExists(req: GetFromFileRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectUri;
+        const projectPath = await getCurrentProjectRoot();
         const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
@@ -310,9 +310,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
+                const projectPath = await getCurrentProjectRoot();
 
-                const generatedTests = await generateTest(projectRoot, params, AIPanelAbortController.getInstance());
+                const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -323,8 +323,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
-                const diagnostics = await getDiagnostics(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const diagnostics = await getDiagnostics(projectPath, params);
                 resolve(diagnostics);
             } catch (error) {
                 reject(error);
@@ -335,8 +335,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceSourceForName(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
-                const { serviceDeclaration, serviceDocFilePath } = await getServiceDeclaration(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
                 resolve(serviceDeclaration.source);
             } catch (error) {
                 reject(error);
@@ -347,8 +347,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceSourceForMethodAndPath(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
-                const { serviceDeclaration, resourceAccessorDef, serviceDocFilePath } = await getResourceAccessorDef(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
                 resolve(resourceAccessorDef.source);
             } catch (error) {
                 reject(error);
@@ -359,8 +359,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
-                const serviceDeclNames = await getServiceDeclarationNames(projectRoot);
+                const projectPath = await getCurrentProjectRoot();
+                const serviceDeclNames = await getServiceDeclarationNames(projectPath);
                 resolve({
                     mentions: serviceDeclNames
                 });
@@ -373,8 +373,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = StateMachine.context().projectUri;
-                const resourceAccessorNames = await getResourceAccessorNames(projectRoot);
+                const projectPath = await getCurrentProjectRoot();
+                const resourceAccessorNames = await getResourceAccessorNames(projectPath);
                 resolve({
                     mentions: resourceAccessorNames
                 });
@@ -393,9 +393,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async applyDoOnFailBlocks(): Promise<void> {
-        const projectRoot = StateMachine.context().projectUri;
+        const projectPath = await getCurrentProjectRoot();
 
-        if (!projectRoot) {
+        if (!projectPath) {
             return null;
         }
 
@@ -414,7 +414,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
         };
 
-        findBalFiles(projectRoot);
+        findBalFiles(projectPath);
 
         for (const balFile of balFiles) {
             const req: BIModuleNodesRequest = {
@@ -655,7 +655,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            const projectPath = StateMachine.context().projectUri; 
+            const projectPath = await getCurrentProjectRoot();
 
             const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {
@@ -741,14 +741,14 @@ interface BalModification {
 
 async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {
     //TODO: Move this to LS
-    const projectRoot = StateMachine.context().projectUri;
-    if (!projectRoot) {
+    const projectPath = await getCurrentProjectRoot();
+    if (!projectPath) {
         return null;
     }
 
     const randomNum = Math.floor(Math.random() * 90000) + 10000;
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `bal-proj-${randomNum}-`));
-    fs.cpSync(projectRoot, tempDir, { recursive: true });
+    fs.cpSync(projectPath, tempDir, { recursive: true });
     //Copy project
     const langClient = StateMachine.langClient();
     //Apply edits
@@ -815,14 +815,14 @@ enum CodeGenerationType {
 }
 
 async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
-    const projectRoot = StateMachine.context().projectUri;
+    const projectPath = await getCurrentProjectRoot();
 
-    if (!projectRoot) {
+    if (!projectPath) {
         return null;
     }
 
     // Read the Ballerina.toml file to get package name
-    const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
     let packageName;
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
@@ -842,20 +842,20 @@ async function getCurrentProjectSource(requestType: OperationType): Promise<Ball
     };
 
     // Read root-level .bal files
-    const rootFiles = fs.readdirSync(projectRoot);
+    const rootFiles = fs.readdirSync(projectPath);
     for (const file of rootFiles) {
         if (file.endsWith('.bal') || file.toLowerCase() === "readme.md") {
-            const filePath = path.join(projectRoot, file);
+            const filePath = path.join(projectPath, file);
             project.sources[file] = await fs.promises.readFile(filePath, 'utf-8');
         }
     }
 
     if (requestType != "CODE_GENERATION") {
-        const naturalProgrammingDirectory = projectRoot + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
+        const naturalProgrammingDirectory = projectPath + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
             for (const file of reqFiles) {
-                const filePath = path.join(projectRoot, `${NATURAL_PROGRAMMING_DIR_NAME}`, file);
+                const filePath = path.join(projectPath, `${NATURAL_PROGRAMMING_DIR_NAME}`, file);
                 if (file.toLowerCase() == REQUIREMENT_TEXT_DOCUMENT || file.toLowerCase() == REQUIREMENT_MD_DOCUMENT) {
                     project.sources[REQ_KEY] = await fs.promises.readFile(filePath, 'utf-8');
                     continue;
@@ -872,8 +872,8 @@ async function getCurrentProjectSource(requestType: OperationType): Promise<Ball
     }
 
     // Read modules
-    const modulesDir = path.join(projectRoot, 'modules');
-    const generatedDir = path.join(projectRoot, 'generated');
+    const modulesDir = path.join(projectPath, 'modules');
+    const generatedDir = path.join(projectPath, 'generated');
     await populateModules(modulesDir, project);
     await populateModules(generatedDir, project);
     return project;
