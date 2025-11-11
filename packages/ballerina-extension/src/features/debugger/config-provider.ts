@@ -40,7 +40,13 @@ import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion, isWindows, checkIsBallerinaPackage } from "../../utils";
+import {
+    log,
+    debug as debugLog,
+    isSupportedSLVersion,
+    isWindows,
+    createVersionNumber
+} from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
@@ -654,7 +660,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
             }
 
-            if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+            if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
                 runCommand = `${runCommand} --experimental`;
             }
 
