@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -37,6 +38,7 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
@@ -240,6 +242,49 @@ public class ReferenceType {
             arrayType.hashCode = arrayType.elementType.hashCode;
             arrayType.key = arrayType.elementType.key;
             return arrayType;
+        } else if (kind == TypeDescKind.MAP) {
+            MapTypeSymbol mapTypeSymbol = (MapTypeSymbol) symbol;
+            RefMapType mapType = new RefMapType(name);
+            mapType.hashCode = typeHash;
+            mapType.key = typeKey;
+            mapType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+            TypeSymbol valueTypeSymbol = mapTypeSymbol.typeParam();
+            String valueTypeName = valueTypeSymbol.getName().orElse("");
+            ModuleID valueModuleId = getModuleID(valueTypeSymbol, moduleID);
+            RefType valueType = fromSemanticSymbol(valueTypeSymbol, valueTypeName, valueModuleId,
+                    typeDefSymbols);
+            if (valueType.dependentTypeKeys == null || valueType.dependentTypeKeys.isEmpty()) {
+                if (valueType.hashCode != null && valueType.typeName.equals("record")) {
+                    RefType t = new RefType(valueType.name);
+                    t.hashCode = valueType.hashCode;
+                    t.key = valueType.key;
+                    t.typeName = valueType.typeName;
+                    t.moduleInfo = valueType.moduleInfo;
+                    mapType.valueType = t;
+                } else {
+                    mapType.valueType = valueType;
+                }
+            } else {
+                if (valueType instanceof RefRecordType) {
+                    RefType t = new RefType(valueType.name);
+                    t.hashCode = valueType.hashCode;
+                    t.key = valueType.key;
+                    t.typeName = valueType.typeName;
+                    t.moduleInfo = valueType.moduleInfo;
+                    mapType.valueType = t;
+                } else {
+                    mapType.valueType = valueType;
+                }
+                mapType.dependentTypeKeys.addAll(valueType.dependentTypeKeys);
+            }
+            if (valueType.key != null) {
+                if (valueType.name.isEmpty()) {
+                    mapType.dependentTypeKeys.add(valueType.hashCode);
+                } else {
+                    mapType.dependentTypeKeys.add(valueType.key);
+                }
+            }
+            return mapType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
             List<TypeSymbol> typeSymbols = filterNilOrError(unionTypeSymbol);
@@ -429,6 +474,15 @@ public class ReferenceType {
                     return memberModuleId;
                 }
                 return getModuleID(memberType, fallbackModuleId);
+            }
+            case MAP -> {
+                MapTypeSymbol mapType = (MapTypeSymbol) typeSymbol;
+                TypeSymbol valueType = mapType.typeParam();
+                ModuleID valueModuleId = getModuleID(valueType);
+                if (valueModuleId != null) {
+                    return valueModuleId;
+                }
+                return getModuleID(valueType, fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
