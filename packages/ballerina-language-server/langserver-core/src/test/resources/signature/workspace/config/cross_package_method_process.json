@@ -1,0 +1,55 @@
+{
+  "position": {
+    "line": 11,
+    "character": 33
+  },
+  "source": "workspace/test-workspace/pkgA/main.bal",
+  "expected": {
+    "result": {
+      "signatures": [
+        {
+          "label": "process(string value, boolean uppercase)",
+          "documentation": {
+            "right": {
+              "kind": "markdown",
+              "value": "**Description**  \nProcess a value with options"
+            }
+          },
+          "parameters": [
+            {
+              "label": {
+                "right": {
+                  "first": 15,
+                  "second": 20
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`value**: The value to process"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 30,
+                  "second": 39
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`boolean`uppercase**: Whether to convert to uppercase"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "activeSignature": 0,
+      "activeParameter": 0
+    },
+    "jsonrpc": "2.0"
+  }
+}

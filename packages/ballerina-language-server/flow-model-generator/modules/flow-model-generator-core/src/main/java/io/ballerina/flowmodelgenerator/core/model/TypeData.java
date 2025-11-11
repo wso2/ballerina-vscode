@@ -52,7 +52,7 @@ public record TypeData(
         boolean allowAdditionalFields
 ) {
 
-    public static class TypeDataBuilder {
+    public static class TypeDataBuilder extends AbstractBuilder {
 
         private String name;
         private boolean editable = false;
@@ -60,7 +60,6 @@ public record TypeData(
         private Member restMember;
         private List<Function> functions;
         private List<String> includes;
-        private List<AnnotationAttachment> annotationAttachments;
         protected Metadata.Builder<TypeDataBuilder> metadataBuilder;
         protected Codedata.Builder<TypeDataBuilder> codedataBuilder;
         protected FormBuilder<TypeDataBuilder> formBuilder;
@@ -127,11 +126,6 @@ public record TypeData(
             return this;
         }
 
-        public TypeDataBuilder annotationAttachments(List<AnnotationAttachment> annotationAttachments) {
-            this.annotationAttachments = annotationAttachments;
-            return this;
-        }
-
         public TypeDataBuilder allowAdditionalFields(boolean allowAdditionalFields) {
             this.allowAdditionalFields = allowAdditionalFields;
             return this;
@@ -169,19 +163,4 @@ public record TypeData(
         }
     }
 
-    public record AnnotationAttachment(String modulePrefix, String name, Map<String, Property> properties) {
-
-        @Override
-        public String toString() {
-            if (name == null || name.isEmpty()) {
-                return "";
-            }
-
-            if (modulePrefix == null || modulePrefix.isEmpty()) {
-                return "@" + name;
-            }
-
-            return "@" + modulePrefix + ":" + name;
-        }
-    }
 }

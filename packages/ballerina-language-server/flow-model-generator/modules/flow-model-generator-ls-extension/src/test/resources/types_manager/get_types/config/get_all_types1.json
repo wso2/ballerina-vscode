@@ -94,7 +94,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -104,7 +105,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -114,7 +116,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -124,7 +127,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -134,10 +138,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -244,7 +250,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -254,10 +261,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -365,6 +374,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -459,7 +469,8 @@
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -469,10 +480,12 @@
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -801,6 +814,7 @@
           }
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -918,6 +932,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -1038,6 +1053,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -1167,7 +1183,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               },
               {
                 "kind": "FIELD",
@@ -1177,7 +1194,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               },
               {
                 "kind": "FIELD",
@@ -1189,7 +1207,8 @@
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
-                "docs": ""
+                "docs": "",
+                "annotationAttachments": []
               }
             ],
             "includes": [],
@@ -1201,6 +1220,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -1322,6 +1342,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -1483,7 +1504,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -1558,7 +1580,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -1613,10 +1636,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": true
     },
     {
@@ -1770,6 +1795,7 @@
           }
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -1975,6 +2001,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -2224,7 +2251,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -2234,7 +2262,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -2244,7 +2273,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -2299,7 +2329,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -2311,12 +2342,14 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [
         "Person"
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -2415,6 +2448,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -2511,6 +2545,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -3075,6 +3110,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -3171,7 +3207,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3181,7 +3218,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3191,7 +3229,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3201,7 +3240,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3256,7 +3296,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3268,12 +3309,14 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [
         "Student"
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -3369,7 +3412,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "id of the person"
+          "docs": "id of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3380,7 +3424,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "name of the person"
+          "docs": "name of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3436,7 +3481,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "addresses of the person"
+          "docs": "addresses of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -3449,10 +3495,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "date of birth"
+          "docs": "date of birth",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]

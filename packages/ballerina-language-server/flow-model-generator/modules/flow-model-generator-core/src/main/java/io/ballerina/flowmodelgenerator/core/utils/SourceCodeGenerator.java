@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.utils;
 
 import com.google.gson.Gson;
+import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
 import io.ballerina.flowmodelgenerator.core.model.Function;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * Code snippet generator.
@@ -117,6 +119,12 @@ public class SourceCodeGenerator {
         if (typeData.metadata() != null && typeData.metadata().description() != null) {
             docs = generateDocs(typeData.metadata().description(), "");
         }
+        String annots = "";
+        if (typeData.annotationAttachments() != null && !typeData.annotationAttachments().isEmpty()) {
+            annots = typeData.annotationAttachments().stream()
+                    .map(annot -> annot.toString() + LS)
+                    .collect(Collectors.joining());
+        }
         String typeDescriptor = generateTypeDescriptor(typeData);
 
         // Check for readonly property to generate `readonly & <type-desc>` type
@@ -128,15 +136,15 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%stype %s %s;";
+        String template = "%s%stype %s %s;";
 
-        return template.formatted(docs, typeData.name(), typeDescriptor);
+        return template.formatted(docs, annots, typeData.name(), typeDescriptor);
     }
 
     private String generateAnnotatedTypeDescriptor(Object typeData,
-                                                   List<TypeData.AnnotationAttachment> annotAttachments) {
+                                                   List<AnnotationAttachment> annotAttachments) {
         StringBuilder annotationsBuilder = new StringBuilder();
-        for (TypeData.AnnotationAttachment annot : annotAttachments) {
+        for (AnnotationAttachment annot : annotAttachments) {
             annotationsBuilder.append(annot.toString()).append(" ");
         }
 
@@ -246,7 +254,7 @@ public class SourceCodeGenerator {
 
         // Annotation
         StringBuilder annotationsBuilder = new StringBuilder();
-        for (TypeData.AnnotationAttachment annot : getAnnotationAttachments(member)) {
+        for (AnnotationAttachment annot : getAnnotationAttachments(member)) {
             annotationsBuilder.append("\t").append(annot.toString()).append(LS);
         }
 
@@ -426,7 +434,7 @@ public class SourceCodeGenerator {
         addMemberImports(member);
 
         // Annotation and type descriptor
-        List<TypeData.AnnotationAttachment> copyOfAnnotAttachments = getAnnotationAttachments(member);
+        List<AnnotationAttachment> copyOfAnnotAttachments = getAnnotationAttachments(member);
         String annotatedTypeDesc = generateAnnotatedTypeDescriptor(member.type(), copyOfAnnotAttachments);
 
         // Param name
@@ -443,8 +451,8 @@ public class SourceCodeGenerator {
         return template.formatted(annotatedTypeDesc, paramName, defaultValue);
     }
 
-    private static List<TypeData.AnnotationAttachment> getAnnotationAttachments(Member member) {
-        List<TypeData.AnnotationAttachment> copyOfAnnotAttachments;
+    private static List<AnnotationAttachment> getAnnotationAttachments(Member member) {
+        List<AnnotationAttachment> copyOfAnnotAttachments;
         if (Objects.nonNull(member.annotationAttachments())) {
             copyOfAnnotAttachments = new ArrayList<>(member.annotationAttachments());
         } else {
@@ -452,7 +460,7 @@ public class SourceCodeGenerator {
         }
 
         if (member.isGraphqlId()) {
-            copyOfAnnotAttachments.add(new TypeData.AnnotationAttachment(
+            copyOfAnnotAttachments.add(new AnnotationAttachment(
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
                     null
@@ -493,9 +501,9 @@ public class SourceCodeGenerator {
             paramJoiner.add(genParam);
         }
 
-        List<TypeData.AnnotationAttachment> returnTypeAnnotAttachments = new ArrayList<>();
+        List<AnnotationAttachment> returnTypeAnnotAttachments = new ArrayList<>();
         if (function.isGraphqlId()) {
-            returnTypeAnnotAttachments.add(new TypeData.AnnotationAttachment(
+            returnTypeAnnotAttachments.add(new AnnotationAttachment(
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
                     null

@@ -97,7 +97,8 @@
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -107,10 +108,12 @@
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       }
     ],
     "includes": [],
+    "annotationAttachments": [],
     "allowAdditionalFields": false
   },
   "refs": []

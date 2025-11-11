@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core.utils;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AbsResourcePathAttachPoint;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
@@ -55,9 +56,12 @@ import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.model.AbstractBuilder;
+import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
 import io.ballerina.flowmodelgenerator.core.model.Function;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -65,6 +69,8 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -228,6 +234,8 @@ public class TypeTransformer {
                     .properties().description(doc, false, true, false);
         }
 
+        analyzeAnnotAttachments(typeDef.annotAttachments(), typeDataBuilder);
+
         if (CommonUtils.isWithinPackage(typeDef, moduleInfo)) {
             typeDataBuilder.editable();
         }
@@ -339,6 +347,8 @@ public class TypeTransformer {
                 }
             }
 
+            analyzeAnnotAttachments(fieldSymbol.annotAttachments(), memberBuilder);
+
             Member member = memberBuilder
                     .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
@@ -359,11 +369,9 @@ public class TypeTransformer {
 
     private static void insertGraphqlImport(Member.MemberBuilder memberBuilder) {
         // TODO: Annotations from other imported modules are not supported yet
-        memberBuilder.imports(
-                Map.of(
-                        TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
-                        TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
-                )
+        memberBuilder.addImport(
+                TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
+                TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX
         );
     }
 
@@ -721,6 +729,91 @@ public class TypeTransformer {
                 .type(transformedMemberType)
                 .refs(getTypeRefs(transformedMemberType, memberTypeDesc))
                 .build();
+    }
+
+
+    private void analyzeAnnotAttachments(List<AnnotationAttachmentSymbol> annotAttachments, AbstractBuilder builder) {
+        List<AnnotationAttachment> annotationAttachments = new ArrayList<>();
+        annotAttachments.stream()
+                .map(a -> transform(a, builder))
+                .forEach(annotationAttachments::add);
+        builder.annotationAttachments(annotationAttachments);
+        //TODO: Solve how imports of annotations will be handled
+    }
+
+    // TODO: 1. Analyze service declaration, classes, objects, function return types and parameters for annotations
+    // TODO: Handle different configuration views for types related to annotations -
+    //  Fix https://github.com/wso2-enterprise/integration-product-management/issues/471
+    private AnnotationAttachment transform(AnnotationAttachmentSymbol annotAttachmentSymbol, AbstractBuilder builder) {
+        AnnotationSymbol annotDefSymbol = annotAttachmentSymbol.typeDescriptor();
+        ModuleID moduleId = annotDefSymbol.getModule().get().id();
+
+        String modulePrefix = "";
+        if (!CommonUtils.isWithinPackage(annotDefSymbol, moduleInfo)) {
+            modulePrefix = moduleId.modulePrefix();
+            builder.addImport(modulePrefix, moduleId.orgName() + "/" + moduleId.packageName());
+        }
+        String name = annotDefSymbol.getName().get();
+
+        if (!annotAttachmentSymbol.isConstAnnotation() || annotAttachmentSymbol.attachmentValue().isEmpty()) {
+            return new AnnotationAttachment(
+                    modulePrefix,
+                    name,
+                    Map.of()
+            );
+        }
+
+        ConstantValue constantValue = annotAttachmentSymbol.attachmentValue().get();
+        HashMap<String, Property> properties = transformAnnotConstant(constantValue);
+
+        return new AnnotationAttachment(modulePrefix, name, properties);
+    }
+
+    private Property createLeafAnnotConstValue(TypeDescKind typeDescKind, Object value) {
+        Property.Builder<Object> propertyBuilder = new Property.Builder<>(null);
+        switch (typeDescKind) {
+            case STRING -> {
+                propertyBuilder
+                        .type(Property.ValueType.EXPRESSION)
+                        .value("\"" + value.toString() + "\"");
+            }
+            case BOOLEAN -> {
+                propertyBuilder
+                        .type(Property.ValueType.FLAG)
+                        .value(value.toString());
+            }
+            default -> {
+                propertyBuilder
+                        .type(Property.ValueType.EXPRESSION)
+                        .value(value.toString());
+            }
+        }
+        return propertyBuilder
+                .typeConstraint(typeDescKind.getName())
+                .build();
+    }
+
+    private HashMap<String, Property> transformAnnotConstant(ConstantValue constantValue) {
+        HashMap<String, Property> properties = new LinkedHashMap<>();
+        if (constantValue.value() instanceof HashMap<?, ?> mapValue) {
+            mapValue.forEach((key, value) -> {
+                String keyStr = key.toString();
+                ConstantValue entryConstValue = (ConstantValue) value;
+                TypeDescKind valueTypeKind = entryConstValue.valueType().typeKind();
+                if (valueTypeKind != TypeDescKind.RECORD && valueTypeKind != TypeDescKind.MAP) {
+                    Property property = createLeafAnnotConstValue(valueTypeKind, entryConstValue.value());
+                    properties.put(keyStr, property);
+                } else if (entryConstValue.value() instanceof LinkedHashMap<?, ?>) {
+                    Property property = new Property.Builder<>(null)
+                            .type(Property.ValueType.MAPPING_EXPRESSION_SET)
+                            .value(transformAnnotConstant(entryConstValue))
+                            .build();
+                    properties.put(keyStr, property);
+                }
+            });
+
+        }
+        return properties;
     }
 
     private String getAttachPoint(ServiceAttachPoint attachPoint) {
