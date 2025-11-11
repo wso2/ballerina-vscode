@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFile, SourceFiles } from "@wso2/ballerina-core";
+import { SourceFile } from "@wso2/ballerina-core";
 import { tool } from 'ai';
 import { z } from 'zod';
 

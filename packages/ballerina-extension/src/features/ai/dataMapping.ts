@@ -241,7 +241,7 @@ export async function repairCodeWithLLM(codeRepairRequest: repairCodeRequest): P
     }
   }
 
-  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "" };
+  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "", packagePath: "", isActive: true };
   return projectSourceResponse;
 }
 

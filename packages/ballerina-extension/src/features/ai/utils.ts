@@ -294,7 +294,9 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
         sourceFiles: [],
         projectTests: [],
         projectModules: [],
-        projectName: ""
+        projectName: "",
+        packagePath: projectRoot,
+        isActive: true
     };
 
     // Read root-level .bal files
