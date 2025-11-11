@@ -260,7 +260,7 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     const biDiagramRpcManager = new BiDiagramRpcManager();
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = context.projectUri;
+    const projectRoot = context.projectPath;
 
     const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -443,9 +443,9 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
 }
 
 async function collectAllImportsFromProject(): Promise<ProjectImports> {
-    const projectUri = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
-    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
+    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
 
     const importStatements: ImportStatements[] = [];
 
@@ -457,7 +457,7 @@ async function collectAllImportsFromProject(): Promise<ProjectImports> {
     }
 
     return {
-        projectPath: projectUri,
+        projectPath: projectPath,
         imports: importStatements,
     };
 }
@@ -640,7 +640,7 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = context.projectUri;
+    const projectRoot = context.projectPath;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context);

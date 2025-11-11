@@ -646,11 +646,11 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 >
                     {connectionView === SidePanelView.CONNECTION_CONFIG && (
                         <ConnectionConfig
+                            fileName={filePath}
                             connectionKind={selectedConnectionKind}
                             selectedNode={selectedNodeRef.current}
                             onSave={handleUpdateNodeWithConnection}
                             onNavigateToSelectionList={handleNavigateToSelectionList}
-                            // onCreateNew={handleCreateNewConnection}
                         />
                     )}
                     {connectionView === SidePanelView.CONNECTION_SELECT && (

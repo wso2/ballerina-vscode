@@ -210,7 +210,7 @@ async function createTempBallerinaFile(
 }
 
 export async function createTempBallerinaDir(): Promise<string> {
-  const projectRoot = StateMachine.context().projectUri;
+  const projectRoot = StateMachine.context().projectPath;
   const randomNum = Math.floor(Math.random() * 90000) + 10000;
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), `ballerina-data-mapping-${randomNum}-`)
