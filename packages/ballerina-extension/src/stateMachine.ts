@@ -2,10 +2,10 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type, dependencyPullProgress } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
-import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
@@ -24,6 +24,8 @@ import {
     getWorkspaceTomlValues
 } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { runCommandWithOutput } from './utils/runCommand';
+import { buildOutputChannel } from './utils/logger';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
@@ -427,11 +429,7 @@ const stateMachine = createMachine<MachineContext>(
                         return;
                     }
 
-                    const taskDefinition: TaskDefinition = {
-                        type: 'shell',
-                        task: 'run'
-                    };
-
+                    // Construct the build command
                     let buildCommand = 'bal build';
 
                     const config = workspace.getConfiguration('ballerina');
@@ -440,44 +438,36 @@ const stateMachine = createMachine<MachineContext>(
                         buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
                     }
 
-                    // Use the current process environment which should have the updated PATH
-                    const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
-
-                    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-                        resolve(true);
-                        return;
-                    }
-
-
-                    const task = new Task(
-                        taskDefinition,
-                        workspace.workspaceFolders![0],
-                        'Ballerina Build',
-                        'ballerina',
-                        execution
-                    );
-
                     try {
-                        const taskExecution = await tasks.executeTask(task);
+                        // Execute the build command with output streaming
+                        const result = await runCommandWithOutput(
+                            buildCommand,
+                            context.projectPath,
+                            buildOutputChannel,
+                            (message: string) => {
+                                // Send progress notification to the visualizer
+                                RPCLayer._messenger.sendNotification(
+                                    dependencyPullProgress,
+                                    { type: 'webview', webviewType: VisualizerWebview.viewType },
+                                    message
+                                );
+                            }
+                        );
 
-                        // Wait for task completion
-                        await new Promise<void>((taskResolve) => {
-                            // Listen for task completion
-                            const disposable = tasks.onDidEndTask((taskEndEvent) => {
-                                if (taskEndEvent.execution === taskExecution) {
-                                    console.log('Build task completed');
-
-                                    // Close the terminal pane on completion
-                                    commands.executeCommand('workbench.action.closePanel');
-
-                                    disposable.dispose();
-                                    taskResolve();
-                                }
-                            });
-                        });
+                        if (result.success) {
+                            console.log('Build task completed successfully');
+                            // Close the output panel on successful completion
+                            commands.executeCommand('workbench.action.closePanel');
+                        } else {
+                            const errorMsg = `Failed to build Ballerina package. Exit code: ${result.exitCode}`;
+                            console.error(errorMsg);
+                            window.showErrorMessage(errorMsg);
+                        }
 
                     } catch (error) {
-                        window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
+                        const errorMsg = `Failed to build Ballerina package: ${error}`;
+                        console.error(errorMsg, error);
+                        window.showErrorMessage(errorMsg);
                     }
                 }
 
