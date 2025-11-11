@@ -51,8 +51,7 @@ export function RecordEditorWrapper(props: RecordEditorProps) {
         if (isFetchingBallerinaVersion ||
             isFetchingFullST ||
             isFetchingBallerinaProjectComponents ||
-            isFetchingVersionCompatibility ||
-            !isVersionCompatible
+            isFetchingVersionCompatibility
         ) {
             return undefined;
         }
