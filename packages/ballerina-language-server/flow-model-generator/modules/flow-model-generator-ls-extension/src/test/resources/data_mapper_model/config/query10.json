@@ -88,14 +88,16 @@
         "properties": {
           "name": "x",
           "type": "MyType",
-          "expression": "myTypes1"
+          "expression": "myTypes1",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "x"
+          "expression": "x",
+          "isOuter": false
         }
       }
     },

@@ -1,0 +1,261 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a new record type",
+  "type": {
+    "name": "Person",
+    "editable": true,
+    "metadata": {
+      "label": "Person",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD"
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "Person",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "Name",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": []
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "uuid",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [
+          {
+            "modulePrefix": "xmldata",
+            "name": "Attribute",
+            "properties": {}
+          }
+        ],
+        "imports": {
+          "xmldata": "ballerina/data.xmldata"
+        }
+      }
+    ],
+    "includes": [],
+    "annotationAttachments": [
+      {
+        "modulePrefix": "",
+        "name": "Url",
+        "properties": {
+          "protocol": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"Protocol\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "host": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"localhost\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "path": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"http://example.com/url\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      },
+      {
+        "modulePrefix": "",
+        "name": "Module",
+        "properties": {
+          "__id": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "int",
+            "value": "12",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "_namespace": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"http://example.com/gen\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "_module": {
+            "valueType": "MAPPING_EXPRESSION_SET",
+            "value": {
+              "_uri": {
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "string",
+                "value": "\"http://example.com/gen\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "_moduleInfo": {
+                "valueType": "MAPPING_EXPRESSION_SET",
+                "value": {
+                  "_moduleName": {
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "string",
+                    "value": "\"types\"",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "__uuid": {
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "string",
+                    "value": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      },
+      {
+        "modulePrefix": "xmldata",
+        "name": "Namespace",
+        "properties": {
+          "uri": {
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"http://example.com/xmlpath\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      }
+    ],
+    "allowAdditionalFields": true
+  },
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/data.xmldata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\n@Url{\nprotocol: \"Protocol\",\nhost: \"localhost\",\npath: \"http://example.com/url\"\n}\n@Module{\n__id: 12,\n_namespace: \"http://example.com/gen\",\n_module: {\n_uri: \"http://example.com/gen\",\n_moduleInfo: {\n_moduleName: \"types\",\n__uuid: \"123e4567-e89b-12d3-a456-426614174000\"\n}\n}\n}\n@xmldata:Namespace{\nuri: \"http://example.com/xmlpath\"\n}\ntype Person record {\n\tstring Name;\n\t@xmldata:Attribute\n\tstring uuid;\n};"
+      }
+    ]
+  }
+}

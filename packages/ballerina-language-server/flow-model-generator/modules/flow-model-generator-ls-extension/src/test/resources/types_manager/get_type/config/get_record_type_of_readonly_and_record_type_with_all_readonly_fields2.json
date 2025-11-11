@@ -109,7 +109,8 @@
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -119,7 +120,8 @@
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -129,10 +131,12 @@
         "optional": true,
         "readonly": true,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       }
     ],
     "includes": [],
+    "annotationAttachments": [],
     "allowAdditionalFields": true
   },
   "refs": []

@@ -92,21 +92,24 @@
         "properties": {
           "name": "secondaryPhonesItem",
           "type": "SecondaryPhones",
-          "expression": "u.info.secondaryPhones"
+          "expression": "u.info.secondaryPhones",
+          "isOuter": false
         }
       },
       "intermediateClauses": [
         {
           "type": "where",
           "properties": {
-            "expression": "secondaryPhonesItem.code == \"123\""
+            "expression": "secondaryPhonesItem.code == \"123\"",
+            "isOuter": false
           }
         }
       ],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}"
+          "expression": "{code: secondaryPhonesItem.code, number: secondaryPhonesItem.number}",
+          "isOuter": false
         }
       }
     },

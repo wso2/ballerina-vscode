@@ -27,10 +27,10 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
@@ -39,7 +39,6 @@ import io.ballerina.modelgenerator.commons.ReadOnlyMetaData;
 import io.ballerina.servicemodelgenerator.extension.extractor.CustomExtractor;
 import io.ballerina.servicemodelgenerator.extension.extractor.ListenerParamExtractor;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
-import io.ballerina.tools.text.TextRange;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -96,14 +95,10 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
                                                       ModelFromSourceContext context) {
         List<String> entityValues = new ArrayList<>();
 
-        // Use ListenerParamExtractor's listener resolution logic
-        ListenerParamExtractor listenerExtractor = new ListenerParamExtractor();
-
         // Extract from each listener expression in the service
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
         for (ExpressionNode expression : expressions) {
-            List<String> extractedValues = extractEntityValueFromListenerExpression(expression, context,
-                    listenerExtractor);
+            List<String> extractedValues = extractEntityValueFromListenerExpression(expression, context);
             entityValues.addAll(extractedValues);
         }
 
@@ -113,20 +108,18 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     /**
      * Extracts entity values from a single listener expression using ListenerParamExtractor's logic.
      *
-     * @param expression        The listener expression to analyze
-     * @param context           The model from source context
-     * @param listenerExtractor The listener extractor instance for reusing resolution logic
+     * @param expression The listener expression to analyze
+     * @param context    The model from source context
      * @return List of entity values from this expression
      */
     private List<String> extractEntityValueFromListenerExpression(ExpressionNode expression,
-                                                                  ModelFromSourceContext context,
-                                                                  ListenerParamExtractor listenerExtractor) {
+                                                                  ModelFromSourceContext context) {
         List<String> entityValues = new ArrayList<>();
 
         if (expression instanceof ExplicitNewExpressionNode explicitNew) {
             entityValues.addAll(extractFromAsbListenerConstructor(explicitNew));
         } else if (expression instanceof NameReferenceNode nameRef) {
-            entityValues.addAll(extractFromAsbVariableReference(nameRef, context, listenerExtractor));
+            entityValues.addAll(extractFromAsbVariableReference(nameRef, context));
         }
 
         return entityValues;
@@ -157,11 +150,11 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
     /**
      * Extracts entity values from variable reference using ListenerParamExtractor's resolution logic.
      */
-    private List<String> extractFromAsbVariableReference(NameReferenceNode nameRef, ModelFromSourceContext context,
-                                                         ListenerParamExtractor listenerExtractor) {
+    private List<String> extractFromAsbVariableReference(NameReferenceNode nameRef, ModelFromSourceContext context) {
         Optional<Symbol> symbol = context.semanticModel().symbol(nameRef);
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
-            Optional<ListenerDeclarationNode> listenerNode = findListenerDeclaration(variableSymbol, context);
+            Optional<ListenerDeclarationNode> listenerNode =
+                    ListenerParamExtractor.findListenerDeclaration(variableSymbol, context);
             if (listenerNode.isPresent()) {
                 Node initializer = listenerNode.get().initializer();
                 if (initializer instanceof ExplicitNewExpressionNode explicitNew) {
@@ -174,59 +167,12 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
         return List.of();
     }
 
-    /**
-     * Finds the ListenerDeclarationNode for a given variable symbol.
-     * Reuses the same logic as ListenerParamExtractor.
-     */
-    private Optional<ListenerDeclarationNode> findListenerDeclaration(VariableSymbol variableSymbol,
-                                                                      ModelFromSourceContext context) {
-        var location = variableSymbol.getLocation();
-        if (location.isEmpty()) {
-            return Optional.empty();
-        }
-
-        try {
-            var workspaceManager = context.workspaceManager();
-            var filePath = location.get().lineRange().filePath();
-            if (filePath == null) {
-                return Optional.empty();
-            }
-
-            var documentOpt = workspaceManager.document(java.nio.file.Path.of(filePath));
-            if (documentOpt.isEmpty()) {
-                return Optional.empty();
-            }
-
-            var syntaxTree = documentOpt.get().syntaxTree();
-            var textDocument = syntaxTree.textDocument();
-            var lineRange = location.get().lineRange();
-
-            int start = textDocument.textPositionFrom(lineRange.startLine());
-            int end = textDocument.textPositionFrom(lineRange.endLine());
-
-            ModulePartNode modulePartNode = syntaxTree.rootNode();
-            var foundNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
-
-            Node current = foundNode;
-            while (current != null) {
-                if (current instanceof ListenerDeclarationNode listenerDeclarationNode) {
-                    return Optional.of(listenerDeclarationNode);
-                }
-                current = current.parent();
-            }
-        } catch (RuntimeException e) {
-            // Handle any runtime exceptions that may occur during workspace or file operations
-            return Optional.empty();
-        }
-
-        return Optional.empty();
-    }
 
     /**
      * Extracts from implicit listener constructor (similar to ListenerParamExtractor logic).
      */
     private List<String> extractFromAsbImplicitListenerConstructor(ImplicitNewExpressionNode constructorNode) {
-        var parenthesizedArgList = constructorNode.parenthesizedArgList();
+        Optional<ParenthesizedArgList> parenthesizedArgList = constructorNode.parenthesizedArgList();
         if (parenthesizedArgList.isEmpty()) {
             return List.of();
         }
@@ -257,7 +203,7 @@ public final class AsbServiceBuilder extends AbstractServiceBuilder implements C
             return List.of();
         }
 
-        for (var field : mappingNode.fields()) {
+        for (Node field : mappingNode.fields()) {
             if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
                 SpecificFieldNode specificField = (SpecificFieldNode) field;
                 String fieldName = specificField.fieldName().toString().trim();

@@ -580,8 +580,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (fieldSymbol.isPresent() && fieldSymbol.get() instanceof ClassFieldSymbol classFieldSymbol) {
                     TypeSymbol rawType = CommonUtils.getRawType(classFieldSymbol.typeDescriptor());
                     if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
-                        return CommonUtils.isAgentClass(objectTypeSymbol) ||
-                                CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
+                        return CommonUtils.isHiddenAiClass(objectTypeSymbol);
                     }
                 }
             }
@@ -591,8 +590,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
             TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
             if (rawType instanceof ObjectTypeSymbol objectTypeSymbol) {
-                return CommonUtils.isAgentClass(objectTypeSymbol) ||
-                        CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
+                return CommonUtils.isHiddenAiClass(objectTypeSymbol);
             }
         }
 

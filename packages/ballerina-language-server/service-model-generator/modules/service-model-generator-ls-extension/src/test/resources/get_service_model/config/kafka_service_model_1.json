@@ -7,9 +7,9 @@
   "response": {
     "service": {
       "id": "11",
-      "name": "Kafka Event Handler",
+      "name": "Kafka Event Integration",
       "type": "kafka",
-      "displayName": "Kafka Event Handler",
+      "displayName": "Kafka Event Integration",
       "moduleName": "kafka",
       "orgName": "ballerinax",
       "version": "4.5.0",
@@ -19,7 +19,7 @@
       "documentation": {
         "metadata": {
           "label": "Description",
-          "description": "The description of the object"
+          "description": "The description of the class"
         },
         "codedata": {
           "type": "DOCUMENTATION"
@@ -81,7 +81,7 @@
           "placeholder": "false",
           "valueType": "SINGLE_SELECT",
           "value": {
-            "Topics": []
+            "Topic(s)": []
           },
           "enabled": true,
           "editable": true,

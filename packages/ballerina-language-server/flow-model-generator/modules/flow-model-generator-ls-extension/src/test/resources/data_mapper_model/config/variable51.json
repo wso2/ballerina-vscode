@@ -98,14 +98,16 @@
         "properties": {
           "name": "m2ItemItem",
           "type": "MyType2",
-          "expression": "m2Item"
+          "expression": "m2Item",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "m2ItemItem"
+          "expression": "m2ItemItem",
+          "isOuter": false
         }
       }
     },

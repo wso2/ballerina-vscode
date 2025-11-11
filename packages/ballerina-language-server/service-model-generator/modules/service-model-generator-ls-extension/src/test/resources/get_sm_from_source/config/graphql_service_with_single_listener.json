@@ -23,7 +23,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the object"
+        "description": "The description of the class"
       },
       "codedata": {
         "type": "DOCUMENTATION"
@@ -529,6 +529,7 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -971,6 +972,7 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -1296,6 +1298,7 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "valueType": "EXPRESSION",
               "enabled": true,
               "editable": true,
               "optional": true,

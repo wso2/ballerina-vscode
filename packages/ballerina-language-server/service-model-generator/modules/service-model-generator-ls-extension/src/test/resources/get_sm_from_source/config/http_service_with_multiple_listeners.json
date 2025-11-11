@@ -174,11 +174,6 @@
         "value": {
           "Base Path": [
             "/api/test"
-          ],
-          "Host Address": [],
-          "Service Configuration": [],
-          "Port Number": [
-            "8080"
           ]
         },
         "enabled": true,

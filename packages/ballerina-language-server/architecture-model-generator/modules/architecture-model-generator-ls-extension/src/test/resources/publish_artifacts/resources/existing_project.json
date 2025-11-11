@@ -2,6 +2,30 @@
   "source": "new/config.bal",
   "description": "Test reload project with pre-existing artifacts",
   "output": {
+    "Connections": {
+      "updates": {
+        "httpEp": {
+          "id": "httpEp",
+          "location": {
+            "fileName": "connections.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 64
+            }
+          },
+          "type": "CONNECTION",
+          "name": "httpEp",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+          "module": "http",
+          "children": {}
+        }
+      }
+    },
     "Variables": {
       "updates": {
         "_telegramAgentAgent": {
@@ -40,24 +64,6 @@
           "scope": "Global",
           "children": {}
         },
-        "_telegramAgentModel": {
-          "id": "_telegramAgentModel",
-          "location": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 87
-            }
-          },
-          "type": "VARIABLE",
-          "name": "_telegramAgentModel",
-          "scope": "Global",
-          "children": {}
-        },
         "orders": {
           "id": "orders",
           "location": {
@@ -93,29 +99,23 @@
           "name": "orderCounter",
           "scope": "Global",
           "children": {}
-        }
-      }
-    },
-    "Connections": {
-      "updates": {
-        "httpEp": {
-          "id": "httpEp",
+        },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
           "location": {
-            "fileName": "connections.bal",
+            "fileName": "agents.bal",
             "startLine": {
               "line": 2,
               "offset": 0
             },
             "endLine": {
               "line": 2,
-              "offset": 64
+              "offset": 87
             }
           },
-          "type": "CONNECTION",
-          "name": "httpEp",
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
-          "module": "http",
           "children": {}
         }
       }
@@ -220,7 +220,7 @@
           "type": "LISTENER",
           "name": "httpListener",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
           "module": "http",
           "children": {}
         }
@@ -516,7 +516,7 @@
           "type": "SERVICE",
           "name": "HTTP Service - /restaurant",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
           "module": "http",
           "children": {
             "post#orders": {

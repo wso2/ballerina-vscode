@@ -480,6 +480,31 @@
         },
         {
           "metadata": {
+            "label": "paypal.invoices",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigurationAllOf2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_paypal.invoices_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "paypal.invoices",
+                "packageName": "paypal.invoices",
+                "symbol": "ConfigurationAllOf2",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "github",
             "description": "",
             "keywords": []
@@ -530,31 +555,6 @@
                 "packageName": "github",
                 "symbol": "Hook_config_body",
                 "version": "5.1.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "paypal.invoices",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigurationAllOf2",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_paypal.invoices_1.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "paypal.invoices",
-                "packageName": "paypal.invoices",
-                "symbol": "ConfigurationAllOf2",
-                "version": "1.0.0"
               },
               "enabled": true
             }

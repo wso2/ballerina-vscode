@@ -10,7 +10,7 @@
       "metadata": {
         "label": "HTTP",
         "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "http",
         "object": "Client",
         "symbol": "init",
-        "version": "2.14.2",
+        "version": "2.14.7",
         "isGenerated": false
       },
       "enabled": true
@@ -304,7 +304,7 @@
       "metadata": {
         "label": "Websubhub Hub",
         "description": "HTTP Based client for WebSub content publishing to subscribers",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websubhub_1.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websubhub_1.15.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -316,7 +316,7 @@
         "packageName": "websubhub",
         "object": "HubClient",
         "symbol": "init",
-        "version": "1.15.0",
+        "version": "1.15.1",
         "isGenerated": false
       },
       "enabled": true

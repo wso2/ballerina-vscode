@@ -70,14 +70,16 @@
         "properties": {
           "name": "kItem",
           "type": "string",
-          "expression": "v1.k"
+          "expression": "v1.k",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "collect",
         "properties": {
-          "expression": "'join(\",\", kItem)"
+          "expression": "'join(\",\", kItem)",
+          "isOuter": false
         }
       }
     },

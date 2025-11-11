@@ -1,0 +1,14 @@
+{
+  "description": "Only the interpolation start token",
+  "filePath": "",
+  "expression": "`${ `",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 1,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    }
+  ]
+}
