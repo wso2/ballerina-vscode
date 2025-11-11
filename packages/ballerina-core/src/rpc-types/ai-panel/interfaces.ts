@@ -168,7 +168,7 @@ export interface DataMappingRecord {
 }
 
 export interface GenerateTypesFromRecordRequest {
-    attachment?: Attachment[]
+    attachment: Attachment[]
 }
 
 export interface GenerateTypesFromRecordResponse {
