@@ -48,6 +48,7 @@ import java.nio.file.Path;
  * Test goto definition language server feature.
  */
 public class DefinitionTest {
+
     protected Path configRoot;
     protected Path sourceRoot;
     protected Gson gson = new Gson();
@@ -63,6 +64,17 @@ public class DefinitionTest {
 
     @Test(description = "Test goto definitions", dataProvider = "testDataProvider")
     public void test(String configPath, String configDir) throws IOException {
+        JsonObject configObject = FileUtils.fileContentAsObject(configRoot.resolve(configDir)
+                .resolve(configPath).toString());
+        JsonObject source = configObject.getAsJsonObject("source");
+        Path sourcePath = sourceRoot.resolve(source.get("file").getAsString());
+        Position position = gson.fromJson(configObject.get("position"), Position.class);
+        this.compareResults(sourcePath, position, configObject, sourceRoot);
+    }
+
+    @Test(description = "Test goto definitions for cross-package workspace",
+            dataProvider = "testCrossPackageDataProvider")
+    public void testCrossPackageDefinition(String configPath, String configDir) throws IOException {
         JsonObject configObject = FileUtils.fileContentAsObject(configRoot.resolve(configDir)
                 .resolve(configPath).toString());
         JsonObject source = configObject.getAsJsonObject("source");
@@ -158,6 +170,15 @@ public class DefinitionTest {
                 {"defProject19.json", "project"},
                 {"defProject19.json", "project"},
                 {"defProject20.json", "project"}
+        };
+    }
+
+    @DataProvider
+    protected Object[][] testCrossPackageDataProvider() {
+        log.info("Test textDocument/definition for Cross-Package Workspace Cases");
+        return new Object[][]{
+                {"defCrossPackage1.json", "workspace-cross-package"},
+                {"defCrossPackage2.json", "workspace-cross-package"}
         };
     }
 

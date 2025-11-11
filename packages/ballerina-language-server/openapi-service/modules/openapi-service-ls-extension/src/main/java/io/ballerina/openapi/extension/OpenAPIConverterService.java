@@ -140,7 +140,9 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
                 response.setError("Error while getting the project.");
                 return response;
             }
-            project = Optional.of(project.get().duplicate());
+            if (project.get().workspaceProject().isEmpty()) {
+                project = Optional.of(project.get().duplicate());
+            }
             DiagnosticResult diagnosticsFromCodeGenAndModify = project.get()
                     .currentPackage()
                     .runCodeGenAndModifyPlugins();

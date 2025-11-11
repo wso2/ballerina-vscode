@@ -101,6 +101,14 @@ public class DesignModelGenerator {
             Set<String> connections = new HashSet<>();
             List<Function> functions = new ArrayList<>();
             serviceModel.otherFunctions.values().forEach(otherFunction -> {
+                otherFunction.connections.forEach(connection -> {
+                    Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
+                    if (conn != null) {
+                        otherFunction.dependentFuncs.addAll(conn.getDependentFunctions());
+                        otherFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
+                    }
+                });
                 buildConnectionGraph(intermediateModel, otherFunction, serviceModel);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
                         otherFunction.allDependentConnections));
@@ -109,17 +117,15 @@ public class DesignModelGenerator {
 
             List<Function> remoteFunctions = new ArrayList<>();
             serviceModel.remoteFunctions.forEach(remoteFunction -> {
-                buildConnectionGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunction.connections.forEach(connection -> {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
-                        remoteFunction.dependentFuncs.clear();
                         remoteFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        remoteFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                        remoteFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
-                remoteFunction.analyzed = false;
-                remoteFunction.visited = false;
+                buildConnectionGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
                         remoteFunction.allDependentConnections));
                 connections.addAll(remoteFunction.allDependentConnections);
@@ -127,17 +133,14 @@ public class DesignModelGenerator {
 
             List<ResourceFunction> resourceFunctions = new ArrayList<>();
             serviceModel.resourceFunctions.forEach(resourceFunction -> {
-                buildConnectionGraph(intermediateModel, resourceFunction, serviceModel);
                 resourceFunction.connections.forEach(connection -> {
                     Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
                     if (conn != null) {
-                        resourceFunction.dependentFuncs.clear();
                         resourceFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        resourceFunction.allDependentConnections.addAll(conn.getDependentConnection());
+                        resourceFunction.allDependentConnections.addAll(
+                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
-                resourceFunction.analyzed = false;
-                resourceFunction.visited = false;
                 buildConnectionGraph(intermediateModel, resourceFunction, serviceModel);
                 resourceFunctions.add(new ResourceFunction(resourceFunction.name, resourceFunction.path,
                         resourceFunction.location, resourceFunction.allDependentConnections));
@@ -175,13 +178,12 @@ public class DesignModelGenerator {
             if (symbol instanceof VariableSymbol variableSymbol) {
                 TypeSymbol typeSymbol = CommonUtils.getRawType(variableSymbol.typeDescriptor());
                 if (typeSymbol instanceof ObjectTypeSymbol objectTypeSymbol) {
-                    boolean isAiClass = CommonUtils.isAgentClass(objectTypeSymbol) ||
-                            CommonUtils.isAiKnowledgeBase(objectTypeSymbol);
-                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isAiClass) {
+                    boolean isHiddenAiClass = CommonUtils.isHiddenAiClass(objectTypeSymbol);
+                    if (objectTypeSymbol.qualifiers().contains(Qualifier.CLIENT) || isHiddenAiClass) {
                         LineRange lineRange = variableSymbol.getLocation().get().lineRange();
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());
-                        boolean showConnection = !isAiClass; // Hide agent class connections
+                        boolean showConnection = !isHiddenAiClass; // Hide AI non-client classes
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
                                 CommonUtils.getConnectionKind(objectTypeSymbol));
@@ -235,7 +237,8 @@ public class DesignModelGenerator {
         for (String connectionUuid : functionModel.connections) {
             Connection connection = intermediateModel.uuidToConnectionMap.get(connectionUuid);
             if (connection != null) {
-                functionModel.allDependentConnections.addAll(connection.getDependentConnection());
+                functionModel.allDependentConnections.addAll(
+                        connection.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
             }
         }
         functionModel.allDependentConnections.addAll(connections);

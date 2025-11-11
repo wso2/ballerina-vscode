@@ -1,0 +1,43 @@
+{
+  "position": {
+    "line": 3,
+    "character": 26
+  },
+  "source": "check-test-workspace-multi/consumer/client.bal",
+  "description": "Add check for error from workspace dependency",
+  "expected": [
+    {
+      "title": "Add 'check' error",
+      "kind": "quickfix",
+      "edits": [
+        {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 16
+            },
+            "end": {
+              "line": 3,
+              "character": 16
+            }
+          },
+          "newText": "check "
+        },
+        {
+          "range": {
+            "start": {
+              "line": 2,
+              "character": 22
+            },
+            "end": {
+              "line": 2,
+              "character": 22
+            }
+          },
+          "newText": " returns error?"
+        }
+      ],
+      "resolvable": false
+    }
+  ]
+}

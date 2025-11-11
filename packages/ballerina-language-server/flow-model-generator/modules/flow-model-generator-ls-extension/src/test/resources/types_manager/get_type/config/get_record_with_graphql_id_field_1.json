@@ -98,6 +98,13 @@
         "readonly": false,
         "isGraphqlId": true,
         "docs": "",
+        "annotationAttachments": [
+          {
+            "modulePrefix": "graphql",
+            "name": "ID",
+            "properties": {}
+          }
+        ],
         "imports": {
           "graphql": "ballerina/graphql"
         }
@@ -110,10 +117,12 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       }
     ],
     "includes": [],
+    "annotationAttachments": [],
     "allowAdditionalFields": true
   },
   "refs": []

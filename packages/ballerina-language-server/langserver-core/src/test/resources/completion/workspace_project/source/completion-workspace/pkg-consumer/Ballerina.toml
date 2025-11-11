@@ -1,0 +1,9 @@
+[package]
+org = "wso2"
+name = "pkg_consumer"
+version = "1.0.0"
+
+[[dependency]]
+org = "wso2"
+name = "pkg_provider"
+version = "1.0.0"
