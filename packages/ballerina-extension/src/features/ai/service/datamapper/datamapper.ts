@@ -29,7 +29,7 @@ import { getDataMappingPrompt } from "./dataMappingPrompt";
 import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { getErrorMessage } from "../utils";
-import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
+import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
 import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../../../../src/utils/source-utils";
 import { StateMachine } from "../../../../stateMachine";
@@ -764,24 +764,20 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
 
     try {
         const biDiagramRpcManager = new BiDiagramRpcManager();
+        const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
 
-        // Generate types from context
-        const { typesCode, filePath, recordMap } = await generateTypesFromContext(
+        // Generate types from context with validation
+        const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
-            projectComponents
+            projectComponents,
+            langClient
         );
 
-        const extractedNewRecords = extractRecordTypes(typesCode);
-        for (const newRecord of extractedNewRecords) {
-            if (recordMap.has(newRecord.name)) {
-                throw new Error(`Record "${newRecord.name}" already exists in the workspace.`);
-            }
-        }
-
         // Build assistant response
-        const sourceAttachmentName = typeCreationRequest.attachments?.[0]?.name || "attachment";
-        assistantResponse = `Record types generated from the ${sourceAttachmentName} file shown below.\n`;
+        const sourceAttachmentNames = typeCreationRequest.attachments?.map(a => a.name).join(", ") || "attachment";
+        const fileText = typeCreationRequest.attachments?.length === 1 ? "file" : "files";
+        assistantResponse = `Record types generated from the ${sourceAttachmentNames} ${fileText} shown below.\n`;
         assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
 
         // Send assistant response through event handler
