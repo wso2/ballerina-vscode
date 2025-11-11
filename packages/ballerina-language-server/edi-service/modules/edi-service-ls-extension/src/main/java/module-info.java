@@ -3,6 +3,7 @@ module io.ballerina.edi.extension {
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
     requires io.ballerina.language.server.commons;
+    requires io.ballerina.language.server.core;
     requires org.eclipse.lsp4j;
     requires org.eclipse.lsp4j.jsonrpc;
     requires com.google.gson;

@@ -26,7 +26,9 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LinePosition;
+import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.BufferedReader;
@@ -57,12 +59,15 @@ public class EDITypeGenerator {
     private final String schemaContent;
     private final Path projectPath;
     private final WorkspaceManager workspaceManager;
+    private final LSClientLogger lsClientLogger;
     private final Gson gson;
 
-    public EDITypeGenerator(String schemaContent, Path projectPath, WorkspaceManager workspaceManager) {
+    public EDITypeGenerator(String schemaContent, Path projectPath, WorkspaceManager workspaceManager,
+                           LSClientLogger lsClientLogger) {
         this.schemaContent = schemaContent;
         this.projectPath = projectPath;
         this.workspaceManager = workspaceManager;
+        this.lsClientLogger = lsClientLogger;
         this.gson = new Gson();
     }
 
@@ -148,6 +153,7 @@ public class EDITypeGenerator {
      */
     private void pullEdiTool() throws EDIGenerationException {
         try {
+            notifyClient(MessageType.Info, "Pulling the EDI tool");
             List<String> command = Arrays.asList("bal", "tool", "pull", EDI_TOOL);
 
             ProcessBuilder pb = new ProcessBuilder(command);
@@ -156,12 +162,17 @@ public class EDITypeGenerator {
             int exitCode = process.waitFor();
 
             if (exitCode != 0) {
+                notifyClient(MessageType.Error, "Failed to pull the EDI tool. " +
+                        "Please install manually using: bal tool pull edi");
                 throw new EDIGenerationException("Failed to pull EDI tool. Exit code: " +
                         exitCode + ". Output: " + output);
             }
+
+            notifyClient(MessageType.Info, "Successfully pulled the EDI tool");
         } catch (EDIGenerationException e) {
             throw e;
         } catch (Throwable e) {
+            notifyClient(MessageType.Error, "Error pulling EDI tool: " + e.getMessage());
             throw new EDIGenerationException("Error pulling EDI tool: " + e.getMessage(), e);
         }
     }
@@ -659,6 +670,18 @@ public class EDITypeGenerator {
      * @param functions The function definitions
      */
     private record GeneratedContent(String imports, String types, String functions) {
+    }
+
+    /**
+     * Notifies the client with a message.
+     *
+     * @param messageType The type of message (Info, Warning, Error)
+     * @param message     The message to send to the client
+     */
+    private void notifyClient(MessageType messageType, String message) {
+        if (lsClientLogger != null) {
+            lsClientLogger.notifyClient(messageType, message);
+        }
     }
 
     /**
