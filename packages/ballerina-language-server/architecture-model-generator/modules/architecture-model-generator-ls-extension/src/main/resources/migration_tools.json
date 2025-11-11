@@ -13,6 +13,13 @@
         "valueType": "enum",
         "defaultValue": "Auto Detect",
         "options": ["Auto Detect","3", "4"]
+      },
+      {
+        "key": "multiRoot",
+        "label": "Migrate Multiple Projects",
+        "description": "Enable to process all MuleSoft projects in the folder.",
+        "valueType": "boolean",
+        "defaultValue": false
       }
     ]
   },

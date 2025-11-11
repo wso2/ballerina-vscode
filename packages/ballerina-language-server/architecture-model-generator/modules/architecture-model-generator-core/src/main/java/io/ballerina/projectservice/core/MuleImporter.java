@@ -70,24 +70,12 @@ public class MuleImporter {
         args.put(PARAM_STATE_CALLBACK, stateCallback);
         args.put(PARAM_LOG_CALLBACK, logCallback);
 
-        // TODO: Remove this once the migration tool is updated to support multiRoot
-        // For now, load sample response if multiRoot is enabled
-        ToolExecutionResult result;
-        if (isMultiRoot) {
-            result = loadSampleMultiRootResponse();
-            if (result == null) {
-                result = invokeToolMethod(MULE_TOOL_COMMAND, MULE_TOOL_CLASS_NAME, MULE_TOOL_METHOD_NAME, args);
-            }
-        } else {
-            result = invokeToolMethod(MULE_TOOL_COMMAND, MULE_TOOL_CLASS_NAME, MULE_TOOL_METHOD_NAME, args);
-        }
-
-        return result;
+        return invokeToolMethod(MULE_TOOL_COMMAND, MULE_TOOL_CLASS_NAME, MULE_TOOL_METHOD_NAME, args);
     }
 
     /**
-     * Processes multiRoot migration results by splitting text edits per project.
-     * Public method for use by the ProjectService to handle multiRoot notifications.
+     * Processes multiRoot migration results by splitting text edits per project. Public method for use by the
+     * ProjectService to handle multiRoot notifications.
      *
      * @param result The tool execution result containing all text edits
      * @return A list of ProjectMigrationResult objects, one per project
@@ -124,8 +112,8 @@ public class MuleImporter {
     }
 
     /**
-     * Extracts the project name from a file path in multiRoot format.
-     * For example: "project1/main.bal" -> "project1", "Ballerina.toml" -> null
+     * Extracts the project name from a file path in multiRoot format. For example: "project1/main.bal" -> "project1",
+     * "Ballerina.toml" -> null
      *
      * @param filePath The file path to parse
      * @return The project name if the path has a project prefix, null otherwise
@@ -147,16 +135,15 @@ public class MuleImporter {
     }
 
     /**
-     * Extracts only the root-level text edits from the tool result.
-     * This removes all project-prefixed files that have already been processed.
-     * Public method for use by the ProjectService after processing multiRoot results.
+     * Extracts only the root-level text edits from the tool result. This removes all project-prefixed files that have
+     * already been processed. Public method for use by the ProjectService after processing multiRoot results.
      *
-     * @param result The original tool execution result
+     * @param result         The original tool execution result
      * @param projectResults The per-project results already processed
      * @return A new ToolExecutionResult containing only root-level files
      */
     public static ToolExecutionResult extractRootLevelEdits(ToolExecutionResult result,
-                                                             List<ProjectMigrationResult> projectResults) {
+                                                            List<ProjectMigrationResult> projectResults) {
         Map<String, String> rootTextEdits = new HashMap<>();
 
         // Keep only root-level files (those without project prefix)
