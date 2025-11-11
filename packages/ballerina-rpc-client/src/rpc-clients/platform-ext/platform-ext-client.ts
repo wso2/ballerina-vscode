@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getSelectedContext, isLoggedIn, getDirectoryComponents, getDirectoryComponent, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteConnection, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq } from "@wso2/wso2-platform-core"
+import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
@@ -29,8 +29,8 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         this._messenger = messenger;
     }
 
-    isLoggedIn(): Promise<boolean> {
-        return this._messenger.sendRequest(isLoggedIn, HOST_EXTENSION, undefined);
+    getPlatformStore(): Promise<PlatformExtState> {
+        return this._messenger.sendRequest(getPlatformStore, HOST_EXTENSION, undefined);
     }
 
     getMarketplaceItems(params: GetMarketplaceListReq): Promise<MarketplaceListResp> {
@@ -39,18 +39,6 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     getMarketplaceItem(params: GetMarketplaceItemReq): Promise<MarketplaceItem> {
         return this._messenger.sendRequest(getMarketplaceItem, HOST_EXTENSION, params);
-    }
-
-    getSelectedContext(): Promise<ContextItemEnriched> {
-        return this._messenger.sendRequest(getSelectedContext, HOST_EXTENSION);
-    }
-
-    getDirectoryComponents(fsPath: string): Promise<ComponentKind[]> {
-        return this._messenger.sendRequest(getDirectoryComponents, HOST_EXTENSION, fsPath);
-    }
-
-    getDirectoryComponent(fsPath: string): Promise<ComponentKind | null> {
-        return this._messenger.sendRequest(getDirectoryComponent, HOST_EXTENSION, fsPath);
     }
 
     getMarketplaceIdl(params: GetMarketplaceIdlReq): Promise<MarketplaceIdlResp> {
@@ -73,10 +61,6 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(getConnection, HOST_EXTENSION, params);
     }
 
-    deleteConnection(params: DeleteConnectionReq): Promise<void> {
-        return this._messenger.sendRequest(deleteConnection, HOST_EXTENSION, params);
-    }
-
     deleteLocalConnectionsConfig(params: DeleteLocalConnectionsConfigReq): Promise<void> {
         return this._messenger.sendRequest(deleteLocalConnectionsConfig, HOST_EXTENSION, params);
     }
@@ -87,5 +71,9 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     onPlatformExtStoreStateChange(callback: (state: PlatformExtState) => void) {
         this._messenger.onNotification(onPlatformExtStoreStateChange, callback);
+    }
+
+    refreshConnectionList(): Promise<void> {
+        return this._messenger.sendRequest(refreshConnectionList, HOST_EXTENSION, undefined);
     }
 }

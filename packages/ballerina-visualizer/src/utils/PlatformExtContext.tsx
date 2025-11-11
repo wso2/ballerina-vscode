@@ -17,58 +17,65 @@
  */
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { TomlValues } from "@wso2/ballerina-core";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
 import React, { useContext, FC, ReactNode, useEffect } from "react";
 
-const defaultPlatformExtContext: { 
-	platformExtState: PlatformExtState | null;
-	projectPath: string;
-} = { 
-	platformExtState: {components: [], isLoggedIn: false },
-	projectPath: ""
+const defaultPlatformExtContext: {
+    platformExtState: PlatformExtState | null;
+    projectPath: string;
+    projectToml?: { values: TomlValues; refresh: () => void };
+    platformRpcClient?: PlatformExtRpcClient;
+} = {
+    platformExtState: { components: [], isLoggedIn: false },
+    projectPath: "",
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
 
 export const usePlatformExtContext = () => {
-	return useContext(PlatformExtContext) || defaultPlatformExtContext;
+    return useContext(PlatformExtContext) || defaultPlatformExtContext;
 };
 
-export const PlatformExtContextProvider: FC<{children: ReactNode}> = ({ children }) => {
-	const queryClient = useQueryClient();
+export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
+    const queryClient = useQueryClient();
     const { rpcClient } = useRpcContext();
+    const platformRpcClient = rpcClient.getPlatformRpcClient();
 
-	const { data: projectPath = "" } = useQuery({
-		queryKey: ["project-path"],
-		queryFn: () => rpcClient.getVisualizerLocation(),
-		select: (data)=>data?.projectUri
-	});
-			
-	const {
-		data: platformExtState,
-	} = useQuery({
-		queryKey: ["platform-ext-state"],
-		queryFn: async () => {
-            const projectPath = await rpcClient.getVisualizerLocation()
-            const isLoggedIn = await rpcClient.getPlatformRpcClient().isLoggedIn();
-            const components = await rpcClient.getPlatformRpcClient().getDirectoryComponents(projectPath.projectUri)
-            const selectedContext = await rpcClient.getPlatformRpcClient().getSelectedContext();
-            // todo: get state as it is instead of individual functions
-            return { isLoggedIn, components, selectedContext } as PlatformExtState
-        },
-		refetchOnWindowFocus: true,
-	});
+    const { data: projectPath = "" } = useQuery({
+        queryKey: ["project-path"],
+        queryFn: () => rpcClient.getVisualizerLocation(),
+        select: (data) => data?.projectUri,
+    });
 
-	useEffect(() => {
-		rpcClient.getPlatformRpcClient().onPlatformExtStoreStateChange((state) => {
-			queryClient.setQueryData(["platform-ext-state"], state);
-		});
-	}, []);
+    const { data: projectToml, refetch: refetchToml } = useQuery({
+        queryKey: ["project-toml"],
+        queryFn: () => rpcClient.getCommonRpcClient().getCurrentProjectTomlValues(),
+    });
 
-	return (
-		<PlatformExtContext.Provider value={{ platformExtState, projectPath }}>
-			{children}
-		</PlatformExtContext.Provider>
-	);
+    const { data: platformExtState } = useQuery({
+        queryKey: ["platform-ext-state"],
+        queryFn: () => platformRpcClient.getPlatformStore(),
+    });
+
+    useEffect(() => {
+        platformRpcClient?.onPlatformExtStoreStateChange((state) => {
+            queryClient.setQueryData(["platform-ext-state"], state);
+        });
+    }, []);
+
+    return (
+        <PlatformExtContext.Provider
+            value={{
+                platformExtState,
+                projectPath,
+                platformRpcClient,
+                projectToml: { values: projectToml, refresh: refetchToml },
+            }}
+        >
+            {children}
+        </PlatformExtContext.Provider>
+    );
 };

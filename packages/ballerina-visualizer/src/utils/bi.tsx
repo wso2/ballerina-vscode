@@ -140,7 +140,7 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 export function enrichCategoryWithDevant(
     selected: ContextItemEnriched,
     tomlValues: TomlValues,
-    connections: ConnectionListItem[],
+    connections: ConnectionListItem[] = [],
     panelCategories: PanelCategory[] = [],
     importingConn?: ConnectionListItem
 ): PanelCategory[] {

@@ -16,35 +16,17 @@
  * under the License.
  */
 
-import type { ComponentKind, ContextItemEnriched } from "@wso2/wso2-platform-core";
-import { extension } from "../../BalExtensionContext";
 import { createStore } from "zustand";
-import { createJSONStorage, persist, PersistOptions } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { getWorkspaceStateStore } from "./platform-utils";
 
 interface PlatformExtStore {
 	state: PlatformExtState;
 	setState: (params: Partial<PlatformExtState>) => void;
 }
 
-const initialState: PlatformExtState = { isLoggedIn: false, components: [] };
-
-const version = "v1";
-
-const getWorkspaceStateStore = (storeName: string): PersistOptions<any, any> => {
-	return {
-		name: `${storeName}-${version}`,
-		storage: createJSONStorage(() => ({
-			getItem: async (name) => {
-				const value = await extension.context.workspaceState.get(name);
-				return value ? (value as string) : "";
-			},
-			removeItem: (name) => extension.context.workspaceState.update(name, undefined),
-			setItem: (name, value) => extension.context.workspaceState.update(name, value),
-		})),
-		skipHydration: true,
-	};
-};
+const initialState: PlatformExtState = { isLoggedIn: false, components: [], connections: [] };
 
 export const platformExtStore = createStore(
 	persist<PlatformExtStore>(

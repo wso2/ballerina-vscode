@@ -28,6 +28,7 @@ import SwaggerUIReact from "swagger-ui-react";
 import "@wso2/ui-toolkit/src/styles/swagger/styles.css";
 import type SwaggerUIProps from "swagger-ui-react/swagger-ui-react";
 import { Banner } from "../../../../components/Banner";
+import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
 
 const StyledContainer = styled.div`
     display: flex;
@@ -127,7 +128,7 @@ const disableTryItOutPlugin = () => ({
 });
 
 export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseClick }) => {
-    const { rpcClient } = useRpcContext();
+    const { platformRpcClient } = usePlatformExtContext();
 
     const {
         data: serviceIdl,
@@ -136,7 +137,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseCl
     } = useQuery({
         queryKey: ["marketplace_idl", { orgId: org.id, serviceId: item?.serviceId, type: item?.serviceType }],
         queryFn: () =>
-            rpcClient.getPlatformRpcClient().getMarketplaceIdl({
+            platformRpcClient?.getMarketplaceIdl({
                 serviceId: item?.serviceId,
                 orgId: org.id.toString(),
             }),

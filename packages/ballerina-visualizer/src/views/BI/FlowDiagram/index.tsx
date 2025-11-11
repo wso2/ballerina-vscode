@@ -75,7 +75,6 @@ import {
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
-import { PlatformExtHooks } from "../../../PlatformExtHooks";
 import { useMutation } from "@tanstack/react-query";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../utils/PlatformExtContext";
@@ -164,20 +163,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState } = usePlatformExtContext()
-    const {connections: devantConnections = [], refetchConnections: refetchDevantConnections} = PlatformExtHooks.getAllConnections();
-    const { projectToml, refetchToml } = PlatformExtHooks.getProjectToml()
+    const { platformExtState, platformRpcClient, projectToml } = usePlatformExtContext()
     const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml, devantConnections, categories, importingConn)
-    },[projectToml, platformExtState?.selectedContext, devantConnections,categories, importingConn])
+         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml?.values, platformExtState?.connections, categories, importingConn)
+    },[projectToml?.values, platformExtState?.selectedContext, platformExtState?.connections, categories, importingConn])
 
     const { mutate: importConnection } = useMutation({
         mutationFn: (data: ConnectionListItem) =>
-            rpcClient.getPlatformRpcClient().importDevantComponentConnection({ connectionListItem: data }),
+            platformRpcClient?.importDevantComponentConnection({ connectionListItem: data }),
         onMutate: (data)=>setImportingConn(data),
         onSuccess: (data) => {
-            refetchToml();
-            refetchDevantConnections();
+            projectToml?.refresh();
+            platformRpcClient?.refreshConnectionList();
             fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
         },
         onSettled:() => setImportingConn(undefined)
@@ -211,8 +208,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowProgressIndicator(true);
                 if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
                     updateConnectionWithNewItem(parent.recentIdentifier);
-                    refetchToml();
-                    refetchDevantConnections();
+                    projectToml?.refresh();
+                    platformRpcClient?.refreshConnectionList();
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }

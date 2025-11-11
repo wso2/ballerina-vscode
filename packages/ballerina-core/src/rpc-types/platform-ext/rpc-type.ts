@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "./interfaces";
 
@@ -25,18 +25,15 @@ const _preFix = "platform-ext";
 export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/createDevantComponentConnection` };
 export const importDevantComponentConnection: RequestType<ImportDevantConnectionReq,  ImportDevantConnectionResp> = { method: `${_preFix}/importDevantComponentConnection` };
 // Platform ext proxies
-export const isLoggedIn: RequestType<void, boolean> = { method: `${_preFix}/isLoggedIn` };
 export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };
 export const getMarketplaceItem: RequestType<GetMarketplaceItemReq, MarketplaceItem> = { method: `${_preFix}/getMarketplaceItem` };
-export const getSelectedContext: RequestType<void, ContextItemEnriched | null> = { method: `${_preFix}/getSelectedContext` };
-export const getDirectoryComponents: RequestType<string,  ComponentKind[]> = { method: `${_preFix}/getDirectoryComponents` };
-export const getDirectoryComponent: RequestType<string,  ComponentKind | null> = { method: `${_preFix}/getDirectoryComponent` };
 export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
 export const getConnections: RequestType<GetConnectionsReq,  ConnectionListItem[]> = { method: `${_preFix}/getConnections` };
 export const getConnection: RequestType<GetConnectionItemReq,  ConnectionListItem> = { method: `${_preFix}/getConnection` };
-export const deleteConnection: RequestType<DeleteConnectionReq,  void> = { method: `${_preFix}/deleteConnection` };
 export const deleteLocalConnectionsConfig: RequestType<DeleteLocalConnectionsConfigReq,  void> = { method: `${_preFix}/deleteLocalConnectionsConfig` };
 export const getDevantConsoleUrl: RequestType<void,  string> = { method: `${_preFix}/getDevantConsoleUrl` };
+export const refreshConnectionList: RequestType<void,  void> = { method: `${_preFix}/refreshConnectionList` };
+export const getPlatformStore: RequestType<void,  PlatformExtState> = { method: `${_preFix}/getPlatformStore` };
 
 // Notifications
 export const onPlatformExtStoreStateChange: NotificationType<PlatformExtState> = { method: `${_preFix}/onPlatformExtStoreStateChange` };

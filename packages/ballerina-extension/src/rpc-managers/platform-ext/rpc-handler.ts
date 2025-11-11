@@ -16,28 +16,26 @@
  * under the License.
  */
 
-import { getMarketplaceItems, getSelectedContext, isLoggedIn, getDirectoryComponents, getDirectoryComponent, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteConnection, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange } from "@wso2/ballerina-core";
+import { getMarketplaceItems, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { PlatformExtRpcManager } from "./rpc-manager";
-import { DeleteConnectionReq, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, } from "@wso2/wso2-platform-core";
+import { DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, } from "@wso2/wso2-platform-core";
 import { CreateDevantConnectionReq, ImportDevantConnectionReq, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { platformExtStore } from "./platform-store";
 
 export function registerPlatformExtRpcHandlers(messenger: Messenger) {
     const rpcManger = new PlatformExtRpcManager();
     rpcManger.initStateSubscription(messenger);
     
-    messenger.onRequest(isLoggedIn, () => rpcManger.isLoggedIn());
+    messenger.onRequest(getPlatformStore, () => platformExtStore.getState().state);
     messenger.onRequest(getMarketplaceItems, (params: GetMarketplaceListReq) => rpcManger.getMarketplaceItems(params));
     messenger.onRequest(getMarketplaceItem, (params: GetMarketplaceItemReq) => rpcManger.getMarketplaceItem(params));
-    messenger.onRequest(getSelectedContext, () => rpcManger.getSelectedContext());
-    messenger.onRequest(getDirectoryComponents, (fsPath: string) => rpcManger.getDirectoryComponents(fsPath));
-    messenger.onRequest(getDirectoryComponent, (fsPath: string) => rpcManger.getDirectoryComponent(fsPath));
     messenger.onRequest(getMarketplaceIdl, (params: GetMarketplaceIdlReq) => rpcManger.getMarketplaceIdl(params));
     messenger.onRequest(createDevantComponentConnection, (params: CreateDevantConnectionReq) => rpcManger.createDevantComponentConnection(params));
     messenger.onRequest(importDevantComponentConnection, (params: ImportDevantConnectionReq) => rpcManger.importDevantComponentConnection(params));
     messenger.onRequest(getConnections, (params: GetConnectionsReq) => rpcManger.getConnections(params));
     messenger.onRequest(getConnection, (params: GetConnectionItemReq) => rpcManger.getConnection(params));
-    messenger.onRequest(deleteConnection, (params: DeleteConnectionReq) => rpcManger.deleteConnection(params));
     messenger.onRequest(deleteLocalConnectionsConfig, (params: DeleteLocalConnectionsConfigReq) => rpcManger.deleteLocalConnectionsConfig(params));
     messenger.onRequest(getDevantConsoleUrl, () => rpcManger.getDevantConsoleUrl());
+    messenger.onRequest(refreshConnectionList, () => rpcManger.refreshConnectionList());
 }
