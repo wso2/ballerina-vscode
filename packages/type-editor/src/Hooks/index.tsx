@@ -64,7 +64,7 @@ export const useVersionCompatibility = (
             const isCompatible = await langServerRpcClient.isSupportedSLVersion({major: 2201, minor: 7, patch: 2});
             return isCompatible;
         } catch (networkError: any) {
-            console.error("Error while checking version compatibility in record creator", networkError);
+            console.error("Error while checking version compatibility in type editor", networkError);
         }
     };
 
