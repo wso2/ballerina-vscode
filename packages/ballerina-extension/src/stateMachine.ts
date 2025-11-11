@@ -456,6 +456,30 @@ const stateMachine = createMachine<MachineContext>(
 
                         if (result.success) {
                             console.log('Build task completed successfully');
+                        
+                            // HACK: Retry resolving missing dependencies after build is successful. This is a temporary solution to ensure the project is reloaded with new dependencies.
+                            const projectUri = Uri.file(context.projectPath).toString();
+                            const dependenciesResponse = await StateMachine.langClient().resolveMissingDependencies({
+                                documentIdentifier: {
+                                    uri: projectUri
+                                }
+                            });
+
+                            const response = dependenciesResponse as SyntaxTree;
+                            if (response.parseSuccess) {
+                                console.log('Project reloaded successfully');
+                                // Wait for the state to transition to viewReady, then notify
+                                // This ensures Overview component is mounted before receiving the notification
+                                setTimeout(() => {
+                                    if (StateMachine.isReady()) {
+                                        console.log('Notifying Overview after dependencies resolved');
+                                        notifyCurrentWebview();
+                                    }
+                                }, 2000); // HACK: Fix this overview notification after dependencies resolved.
+                            } else {
+                                console.error('Failed to reload project');
+                            }
+                            
                             // Close the output panel on successful completion
                             commands.executeCommand('workbench.action.closePanel');
                         } else {
