@@ -125,6 +125,7 @@ import {
     createComponent,
     createGraphqlClassType,
     createProject,
+    addProjectToWorkspace,
     deleteByComponentInfo,
     deleteConfigVariableV2,
     deleteFlowNode,
@@ -197,6 +198,7 @@ import {
     getFormDiagnostics,
     getExpressionTokens,
     ExpressionTokensRequest,
+    AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -266,6 +268,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     createProject(params: ProjectRequest): void {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
+    }
+
+    addProjectToWorkspace(params: AddProjectToWorkspaceRequest): void {
+        return this._messenger.sendNotification(addProjectToWorkspace, HOST_EXTENSION, params);
     }
 
     getWorkspaces(): Promise<WorkspacesResponse> {
