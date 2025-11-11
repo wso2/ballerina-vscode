@@ -96,6 +96,16 @@ public class PullModuleExecutor implements LSCommandExecutor {
         return resolveModules(fileUri, languageClient, workspaceManager, languageServerContext, false);
 }
 
+    /**
+     * Resolves missing modules for the given file.
+     *
+     * @param fileUri               the file URI
+     * @param languageClient        the language client
+     * @param workspaceManager      the workspace manager
+     * @param languageServerContext the language server context
+     * @param sticky                whether to use sticky mode for dependency resolution
+     * @return a CompletableFuture that completes when module resolution is done
+     */
     public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
                                                          WorkspaceManager workspaceManager,
                                                          LanguageServerContext languageServerContext, boolean sticky) {
