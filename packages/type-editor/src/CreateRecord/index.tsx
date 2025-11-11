@@ -23,7 +23,6 @@ import { RecordConfigTypeSelector } from "../RecordConfigTypeSelector";
 import { RecordFromJson } from "../RecordFromJson";
 import { RecordFromXml } from "../RecordFromXml";
 import { Context } from "../Context";
-import { isSupportedSLVersion, createVersionNumber } from "../components/FormComponents/Utils";
 import { FormContainer } from "../style";
 
 enum ConfigState {
@@ -43,9 +42,7 @@ export interface CreateRecordProps {
 
 export function CreateRecord(props: CreateRecordProps) {
     const { isDataMapper, showHeader, onSave, onCancel, onUpdate } = props;
-    const {
-        props: { targetPosition, ballerinaVersion },
-    } = useContext(Context);
+    const { props: { isVersionCompatible } } = useContext(Context);
 
     const [editorState, setEditorState] = useState<ConfigState>(ConfigState.STATE_SELECTOR);
 
@@ -65,20 +62,13 @@ export function CreateRecord(props: CreateRecordProps) {
         onSave(value, pos);
     };
 
-    const checkBallerinVersion = () => {
-        if (ballerinaVersion) {
-            return isSupportedSLVersion(ballerinaVersion, createVersionNumber(2201, 7, 2));
-        }
-        return false;
-    };
-
     return (
         <FormContainer data-testid="record-form">
             <>
                 {editorState === ConfigState.STATE_SELECTOR && (
                     <RecordConfigTypeSelector
                         onImportFromJson={handleImportJSONClick}
-                        onImportFromXml={checkBallerinVersion() ? handleImportXMLClick : null}
+                        onImportFromXml={isVersionCompatible ? handleImportXMLClick : null}
                         onCancel={onCancel}
                         isDataMapper={isDataMapper}
                     />

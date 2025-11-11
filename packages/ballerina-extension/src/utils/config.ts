@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
+import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
@@ -116,7 +116,7 @@ export function createVersionNumber(
     major: number,
     minor: number,
     patch: number
-): { major: number; minor: number; patch: number } {
+): SemanticVersion {
     return { major, minor, patch };
 }
 
@@ -129,8 +129,8 @@ export function createVersionNumber(
  * @returns true if current >= minimum
  */
 function compareVersions(
-    current: { major: number; minor: number; patch: number },
-    minimum: { major: number; minor: number; patch: number }
+    current: SemanticVersion,
+    minimum: SemanticVersion
 ): boolean {
     // Compare major version first
     if (current.major !== minimum.major) {
@@ -160,7 +160,7 @@ function compareVersions(
  */
 export function isSupportedSLVersion(
     ballerinaExtInstance: BallerinaExtension,
-    minSupportedVersion: { major: number; minor: number; patch: number }
+    minSupportedVersion: SemanticVersion
 ) {
     const ballerinaVersion: string = ballerinaExtInstance.ballerinaVersion.toLocaleLowerCase();
     const isGA: boolean = !ballerinaVersion.includes(VERSION.ALPHA) && !ballerinaVersion.includes(VERSION.BETA) && !ballerinaVersion.includes(VERSION.PREVIEW);
