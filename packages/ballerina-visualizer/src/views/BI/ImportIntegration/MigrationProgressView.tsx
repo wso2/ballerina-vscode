@@ -24,7 +24,7 @@ import { MigrationLogs } from "./components/MigrationLogs";
 import { MigrationStatusContent } from "./components/MigrationStatusContent";
 import { ButtonWrapper, NextButtonWrapper, StepWrapper } from "./styles";
 import { MigrationProgressProps, MigrationReportJSON } from "./types";
-import { getMigrationDisplayState, getMigrationProgressHeaderData } from "./utils";
+import { getMigrationDisplayState, getMigrationProgressHeaderData, handleMultiProjectReportOpening } from "./utils";
 
 export function MigrationProgressView({
     migrationState,
@@ -32,6 +32,7 @@ export function MigrationProgressView({
     migrationCompleted,
     migrationSuccessful,
     migrationResponse,
+    projects,
     onNext,
     onBack,
 }: MigrationProgressProps) {
@@ -63,6 +64,7 @@ export function MigrationProgressView({
         console.log("View report clicked", { migrationResponse });
         try {
             if (migrationResponse?.report) {
+                handleMultiProjectReportOpening(migrationResponse, projects, rpcClient);
                 console.log("Report found, opening via RPC...");
                 rpcClient.getMigrateIntegrationRpcClient().openMigrationReport({
                     reportContent: migrationResponse.report,

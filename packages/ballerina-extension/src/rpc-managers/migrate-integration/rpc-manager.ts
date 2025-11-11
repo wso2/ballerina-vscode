@@ -25,7 +25,9 @@ import {
     MigrateIntegrationAPI,
     MigrateRequest,
     OpenMigrationReportRequest,
-    SaveMigrationReportRequest
+    OpenSubProjectReportRequest,
+    SaveMigrationReportRequest,
+    StoreSubProjectReportsRequest
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
@@ -33,6 +35,18 @@ import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
+    private static instance: MigrateIntegrationRpcManager;
+    private subProjectReports: Map<string, string> = new Map();
+
+    private constructor() {}
+
+    public static getInstance(): MigrateIntegrationRpcManager {
+        if (!MigrateIntegrationRpcManager.instance) {
+            MigrateIntegrationRpcManager.instance = new MigrateIntegrationRpcManager();
+        }
+        return MigrateIntegrationRpcManager.instance;
+    }
+
     async pullMigrationTool(args: { toolName: string; version: string }): Promise<void> {
         try {
             await pullMigrationTool(args.toolName, args.version);
@@ -68,6 +82,38 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async openMigrationReport(params: OpenMigrationReportRequest): Promise<void> {
         MigrationReportWebview.createOrShow(params.fileName, params.reportContent);
+    }
+
+    async openSubProjectReport(params: OpenSubProjectReportRequest): Promise<void> {
+        let reportContent = this.subProjectReports.get(params.projectName);
+
+        // If not found, try with _ballerina suffix
+        if (!reportContent) {
+            reportContent = this.subProjectReports.get(`${params.projectName}_ballerina`);
+        }
+
+        // If still not found, try to find a fuzzy match by checking all keys
+        if (!reportContent) {
+            const matchingKeys = Array.from(this.subProjectReports.keys()).filter(key =>
+                key.startsWith(params.projectName)
+            );
+            if (matchingKeys.length > 0) {
+                reportContent = this.subProjectReports.get(matchingKeys[0]);
+            }
+        }
+
+        if (!reportContent) {
+            const availableKeys = Array.from(this.subProjectReports.keys());
+            throw new Error(`Report for project '${params.projectName}' not found. Available projects: ${availableKeys.join(', ')}`);
+        }
+        MigrationReportWebview.createOrShow(params.projectName, reportContent);
+    }
+
+    async storeSubProjectReports(params: StoreSubProjectReportsRequest): Promise<void> {
+        this.subProjectReports.clear();
+        Object.entries(params.reports).forEach(([projectName, reportContent]) => {
+            this.subProjectReports.set(projectName, reportContent);
+        });
     }
 
     async saveMigrationReport(params: SaveMigrationReportRequest): Promise<void> {

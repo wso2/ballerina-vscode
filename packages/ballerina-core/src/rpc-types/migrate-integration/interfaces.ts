@@ -69,3 +69,11 @@ export interface MigrateRequest {
     };
     projects?: ProjectMigrationResult[];
 }
+
+export interface OpenSubProjectReportRequest {
+    projectName: string;
+}
+
+export interface StoreSubProjectReportsRequest {
+    reports: { [projectName: string]: string };
+}
