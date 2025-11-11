@@ -51,6 +51,37 @@ export const useBallerinaVersion = (
     return { ballerinaVersion, isFetching, isError, refetch };
 };
 
+export const useVersionCompatibility = (
+    langServerRpcClient: LangClientRpcClient
+): {
+    isVersionCompatible: boolean;
+    isFetching: boolean;
+    isError: boolean;
+    refetch: any;
+} => {
+    const checkVersionCompatibility = async () => {
+        try {
+            const isCompatible = await langServerRpcClient.isSupportedSLVersion({major: 2201, minor: 7, patch: 2});
+            return isCompatible;
+        } catch (networkError: any) {
+            console.error("Error while checking version compatibility in record creator", networkError);
+        }
+    };
+
+    const {
+        data: isVersionCompatible,
+        isFetching,
+        isError,
+        refetch,
+    } = useQuery({
+        queryKey: ["checkVersionCompatibility"],
+        queryFn: checkVersionCompatibility,
+        networkMode: 'always'
+    });
+
+    return { isVersionCompatible, isFetching, isError, refetch };
+};
+
 export const useFullST = (
     filePath: string,
     langServerRpcClient: LangClientRpcClient

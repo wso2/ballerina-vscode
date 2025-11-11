@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useMemo } from "react";
 import { Context } from "../Context";
-import { useBallerinaProjectComponent, useBallerinaVersion, useFullST } from "../Hooks";
+import { useBallerinaProjectComponent, useBallerinaVersion, useFullST, useVersionCompatibility } from "../Hooks";
 import { RecordEditorC } from "./RecordEditorC";
 import { RecordEditorProps } from ".";
 
@@ -42,12 +42,18 @@ export function RecordEditorWrapper(props: RecordEditorProps) {
         onUpdate,
     } = props;
     const { ballerinaVersion, isFetching: isFetchingBallerinaVersion } = useBallerinaVersion(langServerRpcClient);
+    const { isVersionCompatible, isFetching: isFetchingVersionCompatibility } = useVersionCompatibility(langServerRpcClient);
     const { fullST, isFetching: isFetchingFullST } = useFullST(currentFile.path, langServerRpcClient);
     const { ballerinaProjectComponents, isFetching: isFetchingBallerinaProjectComponents } =
         useBallerinaProjectComponent(currentFile.path, langServerRpcClient);
 
     const contextValue = useMemo(() => {
-        if (isFetchingBallerinaVersion || isFetchingFullST || isFetchingBallerinaProjectComponents) {
+        if (isFetchingBallerinaVersion ||
+            isFetchingFullST ||
+            isFetchingBallerinaProjectComponents ||
+            isFetchingVersionCompatibility ||
+            !isVersionCompatible
+        ) {
             return undefined;
         }
 
@@ -61,6 +67,7 @@ export function RecordEditorWrapper(props: RecordEditorProps) {
                 importStatements,
                 currentReferences,
                 ballerinaVersion,
+                isVersionCompatible,
                 fullST : fullSyntaxTree || fullST.syntaxTree,
                 ballerinaProjectComponents,
             },
@@ -70,7 +77,14 @@ export function RecordEditorWrapper(props: RecordEditorProps) {
                 onClose,
             },
         };
-    }, [isFetchingBallerinaVersion, isFetchingFullST, isFetchingBallerinaProjectComponents, fullSyntaxTree]);
+    }, [
+        isFetchingBallerinaVersion,
+        isFetchingVersionCompatibility,
+        isFetchingFullST,
+        isFetchingBallerinaProjectComponents,
+        fullSyntaxTree,
+        isVersionCompatible,
+    ]);
 
     return (
         <Context.Provider value={contextValue}>

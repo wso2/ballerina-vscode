@@ -22,7 +22,6 @@ import { LangClientRpcClient } from "@wso2/ballerina-rpc-client";
 import { DiagnosticData, DiagnosticsResponse } from "@wso2/ballerina-core";
 import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 import * as monaco from "monaco-editor";
-import { VERSION } from "../../../types";
 
 export const FILE_SCHEME = "file://";
 export const EXPR_SCHEME = "expr://";
@@ -107,93 +106,6 @@ async function sendDidChange(docUri: string, content: string, langServerRpcClien
             version: 1,
         },
     });
-}
-
-/**
- * Creates a version object for comparison.
- * 
- * @param major Major version number
- * @param minor Minor version number  
- * @param patch Patch version number
- * @returns A version object with major, minor, and patch components
- * 
- * @example
- * // Version 2201.1.30
- * createVersionNumber(2201, 1, 30)
- * // Version 2201.12.10
- * createVersionNumber(2201, 12, 10)
- */
-export function createVersionNumber(major: number, minor: number, patch: number): { major: number; minor: number; patch: number } {
-    return { major, minor, patch };
-}
-
-/**
- * Compares two versions using semantic versioning rules.
- * Returns true if current version >= minimum version.
- * 
- * @param current Current version components
- * @param minimum Minimum required version components
- * @returns true if current >= minimum
- */
-function compareVersions(
-    current: { major: number; minor: number; patch: number },
-    minimum: { major: number; minor: number; patch: number }
-): boolean {
-    // Compare major version first
-    if (current.major !== minimum.major) {
-        return current.major > minimum.major;
-    }
-    
-    // Major versions are equal, compare minor
-    if (current.minor !== minimum.minor) {
-        return current.minor > minimum.minor;
-    }
-    
-    // Major and minor are equal, compare patch
-    return current.patch >= minimum.patch;
-}
-
-/**
- * Compares the current Ballerina version against a minimum required version.
- * Only returns true for GA (non-preview/alpha/beta) versions that meet or exceed the minimum.
- * 
- * @param balVersion The current Ballerina version string
- * @param minSupportedVersion Minimum version (use createVersionNumber helper to generate)
- * @returns true if current version is GA and meets minimum requirement
- * 
- * @example
- * // Check if version is at least 2201.1.30
- * isSupportedSLVersion("2201.1.30", createVersionNumber(2201, 1, 30))
- */
-export function isSupportedSLVersion(
-    balVersion: string,
-    minSupportedVersion: { major: number; minor: number; patch: number }
-) {
-    const ballerinaVersion: string = balVersion.toLocaleLowerCase();
-    const isGA: boolean =
-        !ballerinaVersion.includes(VERSION.ALPHA) &&
-        !ballerinaVersion.includes(VERSION.BETA) &&
-        !ballerinaVersion.includes(VERSION.PREVIEW);
-
-    if (!isGA) {
-        return false;
-    }
-
-    // Parse current version
-    const regex = /(\d+)\.(\d+)\.(\d+)/;
-    const match = ballerinaVersion.match(regex);
-    if (!match) {
-        return false;
-    }
-
-    const currentVersion = {
-        major: Number(match[1]),
-        minor: Number(match[2]),
-        patch: Number(match[3])
-    };
-
-    // Compare versions component by component
-    return compareVersions(currentVersion, minSupportedVersion);
 }
 
 export function getTooltipIconComponent(title: string): React.ReactNode {
