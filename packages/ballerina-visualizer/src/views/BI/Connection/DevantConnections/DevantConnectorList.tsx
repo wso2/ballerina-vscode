@@ -30,7 +30,6 @@ import {
     ICmdParamsBase as PlatformExtICmdParamsBase,
 } from "@wso2/wso2-platform-core";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import { PlatformExtHooks } from "../../../../PlatformExtHooks";
 import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
@@ -47,7 +46,7 @@ export const DevantConnectorList: FC<{
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
-    const { platformExtState, projectPath } = usePlatformExtContext();
+    const { platformExtState, projectPath, platformRpcClient } = usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     
     useEffect(() => {
@@ -69,7 +68,7 @@ export const DevantConnectorList: FC<{
             },
         ],
         queryFn: () =>
-            rpcClient.getPlatformRpcClient().getMarketplaceItems({
+            platformRpcClient?.getMarketplaceItems({
                 orgId: platformExtState?.selectedContext?.org?.id.toString(),
                 request: {
                     limit: 60,

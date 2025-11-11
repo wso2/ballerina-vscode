@@ -44,4 +44,5 @@ export interface PlatformExtState {
 	components: ComponentKind[];
     selectedComponent?: ComponentKind;
 	selectedContext?: ContextItemEnriched;
+    connections?: ConnectionListItem[]
 }

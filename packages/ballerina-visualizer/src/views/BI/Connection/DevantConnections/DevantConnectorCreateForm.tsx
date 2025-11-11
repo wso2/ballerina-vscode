@@ -33,7 +33,7 @@ import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Button, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { PlatformExtHooks } from "../../../../PlatformExtHooks";
+import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
 
 interface Props {
     item: MarketplaceItem;
@@ -123,7 +123,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
     isShowingInfo,
     onCreate,
 }) => {
-    const { rpcClient } = useRpcContext();
+    const { platformRpcClient, platformExtState } = usePlatformExtContext();
 
     const visibilities = getPossibleVisibilities(item, project);
 
@@ -146,11 +146,9 @@ export const DevantConnectorCreateForm: FC<Props> = ({
         }
     }, [schemas]);
 
-    const {connections, isLoadingConnections} = PlatformExtHooks.getAllConnections()
-
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
-            rpcClient.getPlatformRpcClient().createDevantComponentConnection({
+            platformRpcClient?.createDevantComponentConnection({
                 marketplaceItem: item,
                 params: { name: data.name, schemaId: data.schemaId, visibility: data.visibility },
             }),
@@ -179,7 +177,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                             validate: (value) => {
                                 if (!value || value.trim().length === 0) {
                                     return "Required";
-                                } else if (connections?.some((item) => item.name === value)) {
+                                } else if (platformExtState?.connections?.some((item) => item.name === value)) {
                                     return "Name already exists";
                                 } else if (
                                     !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
@@ -237,7 +235,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({
                     />
                 </FormStyles.Row>
                 <FormStyles.Footer>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection || isLoadingConnections}>
+                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
                         {isCreatingConnection ? "Creating..." : "Create"}
                     </Button>
                 </FormStyles.Footer>
