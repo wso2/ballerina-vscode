@@ -20,7 +20,7 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
+import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectMigrationResult, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
@@ -199,7 +199,7 @@ packages = ["${projectRequest.packageName}"]
     writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
 
     // Create Ballerina Package
-    createBIProjectPure({...projectRequest, projectPath: workspaceRoot, createDirectory: true});
+    createBIProjectPure({ ...projectRequest, projectPath: workspaceRoot, createDirectory: true });
 
     console.log(`BI workspace created successfully at ${workspaceRoot}`);
     return workspaceRoot;
@@ -413,6 +413,10 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 
+    params.projects?.forEach(project => {
+        createProjectFiles(project, projectRoot);
+    });
+
     // Create a .vscode folder
     const vscodeDir = path.join(projectRoot, '.vscode');
     if (!fs.existsSync(vscodeDir)) {
@@ -433,6 +437,17 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
     debug(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+}
+
+async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {
+    for (const [fileName, fileContent] of Object.entries(project.textEdits)) {
+        const filePath = path.join(projectRoot, project.projectName, fileName);
+        const fileDir = path.dirname(filePath);
+        if (!fs.existsSync(fileDir)) {
+            fs.mkdirSync(fileDir, { recursive: true });
+        }
+        writeBallerinaFileDidOpen(filePath, fileContent || "\n");
+    }
 }
 
 export async function createBIAutomation(params: ComponentRequest): Promise<CreateComponentResponse> {
