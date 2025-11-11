@@ -1961,6 +1961,27 @@ public class DataMapManager {
         return gson.toJsonTree(dataMapManagerBuilder.build());
     }
 
+    public JsonElement getPortPosition(SemanticModel semanticModel, JsonElement cd, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
+        dataMapManagerBuilder = dataMapManagerBuilder
+                .type(Property.ValueType.EXPRESSION)
+                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, targetNode.typeSymbol(), false));
+//        LineRange lineRange = getFieldExprRange(targetNode.matchingNode().expr(), 1, fieldId.split(DOT));
+//        if (lineRange != null) {
+            dataMapManagerBuilder =
+                    dataMapManagerBuilder.codedata().lineRange(targetNode.matchingNode().expr().lineRange()).stepOut();
+//        }
+        return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
     public JsonElement subMapping(JsonElement cd, String view) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
