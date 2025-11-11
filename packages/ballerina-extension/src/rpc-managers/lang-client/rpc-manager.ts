@@ -22,6 +22,7 @@ import {
     BallerinaProjectComponents,
     BallerinaSTParams,
     BallerinaVersionResponse,
+    SemanticVersion,
     CodeActionRequest,
     CodeActionResponse,
     CompletionRequest,
@@ -63,6 +64,7 @@ import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { modifyFileContent } from "../../utils/modification";
+import { isSupportedSLVersion as isSupportedSLVersionUtil } from "../../utils/config";
 
 export class LangClientRpcManager implements LangClientAPI {
     
@@ -280,6 +282,13 @@ export class LangClientRpcManager implements LangClientAPI {
     async getBallerinaVersion(): Promise<BallerinaVersionResponse> {
         return new Promise(async (resolve) => {
             resolve({ version: extension.ballerinaExtInstance.ballerinaVersion });
+        });
+    }
+
+    async isSupportedSLVersion(params: SemanticVersion): Promise<boolean> {
+        return new Promise(async (resolve) => {
+            const isSupported = isSupportedSLVersionUtil(extension.ballerinaExtInstance, params);
+            resolve(isSupported);
         });
     }
 
