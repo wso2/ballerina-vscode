@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     MigrateRequest,
     MigrationTool,
+    ProjectMigrationResult,
     ProjectRequest,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -44,6 +45,7 @@ export function ImportIntegration() {
     const [toolPullProgress, setToolPullProgress] = useState<DownloadProgress | null>(null);
     const [migrationToolState, setMigrationToolState] = useState<string | null>(null);
     const [migrationToolLogs, setMigrationToolLogs] = useState<string[]>([]);
+    const [migratedProjects, setMigratedProjects] = useState<ProjectMigrationResult[]>([]);
     const [pullingTool, setPullingTool] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<MigrationTool | null>(null);
     const [migrationTools, setMigrationTools] = useState<MigrationTool[]>([]);
@@ -101,6 +103,7 @@ export function ImportIntegration() {
             const params: MigrateRequest = {
                 project: project,
                 textEdits: migrationResponse.textEdits,
+                projects: migratedProjects,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
         }
@@ -159,6 +162,10 @@ export function ImportIntegration() {
         rpcClient.onMigrationToolLogs((log) => {
             setMigrationToolLogs((prevLogs) => [...prevLogs, log]);
         });
+
+        rpcClient.onMigratedProject((project) => {
+            setMigratedProjects((prevProjects) => [...prevProjects, project]);
+        });
     }, [rpcClient]);
 
     useEffect(() => {
@@ -199,6 +206,7 @@ export function ImportIntegration() {
                     migrationCompleted={migrationCompleted}
                     migrationSuccessful={migrationSuccessful}
                     migrationResponse={migrationResponse}
+                    projects={migratedProjects}
                     onNext={() => setStep(2)}
                     onBack={handleStepBack}
                 />
