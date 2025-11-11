@@ -40,7 +40,7 @@ import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import { log, debug as debugLog, isSupportedSLVersion, isWindows, checkIsBallerinaPackage } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
@@ -49,9 +49,9 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { LoggingDebugSession, OutputEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { PALETTE_COMMANDS, PROJECT_TYPE } from '../project/cmds/cmd-runner';
+import { PALETTE_COMMANDS } from '../project/cmds/cmd-runner';
 import { Disposable } from 'monaco-languageclient';
-import { getCurrentBallerinaFile, getCurrentBallerinaProject, selectBallerinaProjectForDebugging } from '../../utils/project-utils';
+import { getCurrentProjectRoot, selectBallerinaProjectForDebugging } from '../../utils/project-utils';
 import { BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
 import { openView, StateMachine } from '../../stateMachine';
 import { waitForBallerinaService } from '../tryit/utils';
@@ -66,7 +66,6 @@ import { findHighestVersionJdk } from '../../utils/server/server';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
-const BALLERINA_TOML = `Ballerina.toml`;
 
 export enum DEBUG_REQUEST {
     LAUNCH = 'launch'
@@ -100,7 +99,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 async function handleMainFunctionParams(config: DebugConfiguration) {
     const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
-            uri: Uri.file(StateMachine.context().projectUri).toString()
+            uri: Uri.file(StateMachine.context().projectPath).toString()
         }
     }) as MainFunctionParamsResponse;
     if (res.hasMain) {
@@ -260,8 +259,8 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
 
     if (!config.script) {
         // If webview is present and in BI mode, use the project path from the state machine (focused project in BI)
-        if (StateMachine.context().isBI && isWebviewPresent && StateMachine.context().projectUri) {
-            config.script = StateMachine.context().projectUri;
+        if (StateMachine.context().isBI && isWebviewPresent && StateMachine.context().projectPath) {
+            config.script = StateMachine.context().projectPath;
         } else {
             config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
         }
@@ -470,7 +469,7 @@ async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProt
     const newContext = StateMachine.context();
 
     // Check if breakpoint is in a different package
-    if (!uri.fsPath.startsWith(newContext.projectUri)) {
+    if (!uri.fsPath.startsWith(newContext.projectPath)) {
         console.log("Debug hit in a different package");
         window.showInformationMessage("Cannot visualize debug hit since it belongs to a different integration");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);
@@ -662,7 +661,7 @@ class BIRunAdapter extends LoggingDebugSession {
             // Use the current process environment which should have the updated PATH
             const env = process.env;
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
-            
+
             // Determine the correct working directory for the task
             let cwd: string;
             try {
@@ -674,8 +673,8 @@ class BIRunAdapter extends LoggingDebugSession {
                 this.sendResponse(response);
                 throw error;
             }
-            
-            const execution = new ShellExecution(runCommand, { 
+
+            const execution = new ShellExecution(runCommand, {
                 env: env as { [key: string]: string },
                 cwd: cwd
             });
@@ -765,42 +764,6 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-export async function getCurrentProjectRoot(): Promise<string> {
-    // 1. Check if the project path is already set in the state machine context
-    let currentProjectRoot = StateMachine.context().projectUri;
-    if (currentProjectRoot) {
-        return currentProjectRoot;
-    }
-
-    // 2. Try to get any open Ballerina files in the editor and determine the project root from there
-    let file: string | undefined;
-    try {
-        file = getCurrentBallerinaFile();
-    } catch (error) {
-        // ignore
-    }
-
-    if (file) {
-        const currentProject = await getCurrentBallerinaProject(file);
-        if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE) {
-            return file;
-        } else if (currentProject.path) {
-            return currentProject.path;
-        }
-    }
-
-    // 3. Fallback to workspace root
-    const workspaceRoot = getWorkspaceRoot();
-    if (!workspaceRoot) {
-        throw new Error("Unable to determine the current workspace root.");
-    }
-    if (isBallerinaProject(workspaceRoot)) {
-        return workspaceRoot;
-    }
-
-    throw new Error(`No valid Ballerina project found`);
-}
-
 function getJavaCommand(): string {
     const ballerinaHome = isWindows() ? fs.realpathSync.native(extension.ballerinaExtInstance.getBallerinaHome()) : extension.ballerinaExtInstance.getBallerinaHome();
     // Get the base ballerina home by removing the distribution part
@@ -827,10 +790,6 @@ function getJavaCommand(): string {
     return cmd;
 }
 
-function getWorkspaceRoot(): string | undefined {
-    return workspace.workspaceFolders?.[0]?.uri.fsPath;
-}
-
 function findFreePort(): Promise<number> {
     return getPortPromise({ port: 5010, stopPort: 20000 });
 }
@@ -838,9 +797,4 @@ function findFreePort(): Promise<number> {
 function isFastRunEnabled(): boolean {
     const config = workspace.getConfiguration('ballerina');
     return config.get<boolean>('enableRunFast');
-}
-
-function isBallerinaProject(projectPath: string): boolean {
-    const ballerinaToml = path.join(projectPath, BALLERINA_TOML);
-    return existsSync(ballerinaToml);
 }
