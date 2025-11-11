@@ -111,7 +111,7 @@ export const commandTemplates = {
     [Command.TypeCreator]: [
         {
             id: TemplateId.TypesForAttached,
-            text: 'generate types using the attached file',
+            text: 'generate types using the attached files',
             placeholders: []
         }
     ],
