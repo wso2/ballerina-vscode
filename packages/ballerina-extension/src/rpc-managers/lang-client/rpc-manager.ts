@@ -286,10 +286,7 @@ export class LangClientRpcManager implements LangClientAPI {
     }
 
     async isSupportedSLVersion(params: SemanticVersion): Promise<boolean> {
-        return new Promise(async (resolve) => {
-            const isSupported = isSupportedSLVersionUtil(extension.ballerinaExtInstance, params);
-            resolve(isSupported);
-        });
+        return isSupportedSLVersionUtil(extension.ballerinaExtInstance, params);
     }
 
     async getPackageComponentModels(params: ComponentModelsParams): Promise<ComponentModels> {
