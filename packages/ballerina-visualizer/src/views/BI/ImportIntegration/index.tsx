@@ -56,6 +56,8 @@ export function ImportIntegration() {
 
     const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
 
+    const isMultiProject = migratedProjects.length! > 0;
+
     const pullIntegrationTool = (commandName: string, version: string) => {
         setPullingTool(true);
         rpcClient.getMigrateIntegrationRpcClient().pullMigrationTool({
@@ -211,7 +213,7 @@ export function ImportIntegration() {
                     onBack={handleStepBack}
                 />
             )}
-            {step === 2 && <ConfigureProjectForm onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
         </FormContainer>
     );
 }
