@@ -1,0 +1,46 @@
+{
+  "source": "variable5.bal",
+  "description": "Add group by clause",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable5.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 101
+      }
+    },
+    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": -1,
+  "clause": {
+    "type": "group-by",
+    "properties": {
+      "expression": "item.username"
+    }
+  },
+  "targetField": "credentials.0",
+  "output": {
+    "variable5.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 65
+          },
+          "end": {
+            "line": 19,
+            "character": 65
+          }
+        },
+        "newText": "\ngroup by item.username"
+      }
+    ]
+  }
+}
