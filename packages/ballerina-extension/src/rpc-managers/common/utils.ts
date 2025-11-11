@@ -16,9 +16,9 @@
  * under the License.
  */
 
+import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import * as os from 'os';
 import { TextEdit } from "@wso2/ballerina-core";
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";

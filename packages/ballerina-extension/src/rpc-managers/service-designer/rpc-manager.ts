@@ -101,8 +101,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenersResponse = await context.langClient.getListeners(params);
@@ -129,8 +129,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.addListenerSourceCode(params);
@@ -166,8 +166,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
@@ -186,8 +186,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ServiceModelResponse = await context.langClient.getServiceModel(params);
@@ -202,8 +202,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const identifiers = [];
@@ -241,8 +241,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const identifiers = [];
@@ -298,9 +298,9 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectPath = path.join(StateMachine.context().projectPath);
                 if (!params.filePath) {
-                    const targetFile = path.join(projectDir, `main.bal`);
+                    const targetFile = path.join(projectPath, `main.bal`);
                     this.ensureFileExists(targetFile);
                     params.filePath = targetFile;
                 }
@@ -396,7 +396,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
-            params.filePath = params.filePath || context.projectUri;
+            params.filePath = params.filePath || context.projectPath;
             try {
                 const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
@@ -422,7 +422,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectDir = path.join(StateMachine.context().projectPath);
                 const targetFile = path.join(projectDir, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
@@ -438,7 +438,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectDir = path.join(StateMachine.context().projectPath);
                 const targetFile = path.join(projectDir, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;

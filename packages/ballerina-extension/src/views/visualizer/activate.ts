@@ -21,8 +21,8 @@ import { PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
-import { findBallerinaProjectRoot } from '../../features/ai/utils';
 import { buildProjectArtifactsStructure } from '../../utils/project-artifacts';
+import { findBallerinaPackageRoot } from '../../utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -70,8 +70,8 @@ export function activateSubscriptions() {
                 }
             }
 
-            const projectPath = StateMachine.context()?.projectUri;
-            const projectRoot = await findBallerinaProjectRoot(documentPath);
+            const projectPath = StateMachine.context().projectPath;
+            const projectRoot = await findBallerinaPackageRoot(documentPath);
 
             if (!projectPath || projectPath !== projectRoot) {
                 // Initialize project structure if not already set by finding and loading the Ballerina project root
@@ -98,7 +98,7 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS, () => {
-            return buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
+            return buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
         })
     );
 
