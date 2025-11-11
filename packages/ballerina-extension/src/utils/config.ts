@@ -98,18 +98,92 @@ export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, sup
     return false;
 }
 
-export function isSupportedSLVersion(ballerinaExtInstance: BallerinaExtension, minSupportedVersion: number) {
+/**
+ * Creates a version object for comparison.
+ * 
+ * @param major Major version number
+ * @param minor Minor version number  
+ * @param patch Patch version number
+ * @returns A version object with major, minor, and patch components
+ * 
+ * @example
+ * // Version 2201.1.30
+ * createVersionNumber(2201, 1, 30)
+ * // Version 2201.12.10
+ * createVersionNumber(2201, 12, 10)
+ */
+export function createVersionNumber(
+    major: number,
+    minor: number,
+    patch: number
+): { major: number; minor: number; patch: number } {
+    return { major, minor, patch };
+}
+
+/**
+ * Compares two versions using semantic versioning rules.
+ * Returns true if current version >= minimum version.
+ * 
+ * @param current Current version components
+ * @param minimum Minimum required version components
+ * @returns true if current >= minimum
+ */
+function compareVersions(
+    current: { major: number; minor: number; patch: number },
+    minimum: { major: number; minor: number; patch: number }
+): boolean {
+    // Compare major version first
+    if (current.major !== minimum.major) {
+        return current.major > minimum.major;
+    }
+    
+    // Major versions are equal, compare minor
+    if (current.minor !== minimum.minor) {
+        return current.minor > minimum.minor;
+    }
+    
+    // Major and minor are equal, compare patch
+    return current.patch >= minimum.patch;
+}
+
+/**
+ * Compares the current Ballerina version against a minimum required version.
+ * Only returns true for GA (non-preview/alpha/beta) versions that meet or exceed the minimum.
+ * 
+ * @param ballerinaExtInstance The Ballerina extension instance
+ * @param minSupportedVersion Minimum version (use createVersionNumber helper to generate)
+ * @returns true if current version is GA and meets minimum requirement
+ * 
+ * @example
+ * // Check if version is at least 2201.1.30
+ * isSupportedSLVersion(ext, createVersionNumber(2201, 1, 30))
+ */
+export function isSupportedSLVersion(
+    ballerinaExtInstance: BallerinaExtension,
+    minSupportedVersion: { major: number; minor: number; patch: number }
+) {
     const ballerinaVersion: string = ballerinaExtInstance.ballerinaVersion.toLocaleLowerCase();
     const isGA: boolean = !ballerinaVersion.includes(VERSION.ALPHA) && !ballerinaVersion.includes(VERSION.BETA) && !ballerinaVersion.includes(VERSION.PREVIEW);
 
+    if (!isGA) {
+        return false;
+    }
+
+    // Parse current version
     const regex = /(\d+)\.(\d+)\.(\d+)/;
     const match = ballerinaVersion.match(regex);
-    const currentVersionNumber = match ? Number(match.slice(1).join("")) : 0;
-
-    if (minSupportedVersion <= currentVersionNumber && isGA) {
-        return true;
+    if (!match) {
+        return false;
     }
-    return false;
+
+    const currentVersion = {
+        major: Number(match[1]),
+        minor: Number(match[2]),
+        patch: Number(match[3])
+    };
+
+    // Compare versions component by component
+    return compareVersions(currentVersion, minSupportedVersion);
 }
 
 export function checkIsBI(uri: Uri): boolean {
