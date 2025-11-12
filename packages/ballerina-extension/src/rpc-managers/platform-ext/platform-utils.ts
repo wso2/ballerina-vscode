@@ -1,4 +1,4 @@
-import { SyntaxTree, TomlValues } from "@wso2/ballerina-core";
+import { SyntaxTree, PackageTomlValues } from "@wso2/ballerina-core";
 import { ModulePart, STKindChecker, CaptureBindingPattern } from "@wso2/syntax-tree";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -21,7 +21,7 @@ import { PersistOptions, createJSONStorage } from "zustand/middleware";
 import { platformExtStore } from "./platform-store";
 
 export const getConfigFileUri = () => {
-    const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
+    const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
     const configBalFileUri = Uri.file(configBalFile);
     if (!fs.existsSync(configBalFile)) {
         // create new config.bal if it doesn't exist
@@ -103,7 +103,7 @@ export const addConnection = async (
     }
 ): Promise<{ connName: string; connFileUri: Uri }> => {
     const packageName = StateMachine.context().package;
-    const connectionBalFile = path.join(StateMachine.context().projectUri, "connections.bal");
+    const connectionBalFile = path.join(StateMachine.context().projectPath, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
     if (!fs.existsSync(connectionBalFile)) {
         fs.writeFileSync(connectionBalFile, "");
@@ -253,7 +253,7 @@ export const initializeDevantConnection = async (params: {
     configurations: ConnectionConfigurations;
     platformExt: IWso2PlatformExtensionAPI;
 }): Promise<{ connectionName: string }> => {
-    const projectPath = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
     await params.platformExt?.createConnectionConfig({
         componentDir: projectPath,
@@ -297,7 +297,7 @@ export const initializeDevantConnection = async (params: {
     // Update bal.toml with created connection reference
     const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
 
-    const updatedToml: TomlValues = {
+    const updatedToml: PackageTomlValues = {
         ...tomlValues,
         tool: {
             ...tomlValues?.tool,

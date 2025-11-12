@@ -78,7 +78,7 @@ export async function askFilePath() {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: Uri.file(StateMachine.context().projectUri  ?? os.homedir()),
+        defaultUri: Uri.file(StateMachine.context().projectPath  ?? os.homedir()),
         filters: {
             'Files': ['yaml', 'json', 'yml', 'graphql']
         },

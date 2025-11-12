@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { onPlatformExtStoreStateChange, PlatformExtAPI, SyntaxTree, TomlValues } from "@wso2/ballerina-core";
+import { onPlatformExtStoreStateChange, PlatformExtAPI, SyntaxTree, PackageTomlValues, DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { extensions, Uri, window } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -82,11 +82,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const platformExt = await this.getPlatformExt();
 
         const isLoggedIn = platformExt.isLoggedIn();
-        const components = platformExt.getDirectoryComponents(StateMachine.context().projectUri);
+        const components = platformExt.getDirectoryComponents(StateMachine.context().projectPath);
         const selectedContext = platformExt.getSelectedContext();
         const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
-        const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectUri);
-        const hasProjectYaml = hasContextYaml(StateMachine.context().projectUri);
+        const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
+        const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
 
         platformExtStore
             .getState()
@@ -97,8 +97,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         platformExt.subscribeIsLoggedIn((isLoggedIn) => {
             platformExtStore.getState().setState({ isLoggedIn });
         });
-        platformExt.subscribeDirComponents(StateMachine.context().projectUri, (components) => {
-            const hasProjectYaml = hasContextYaml(StateMachine.context().projectUri);
+        platformExt.subscribeDirComponents(StateMachine.context().projectPath, (components) => {
+            const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
             const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
             platformExtStore.getState().setState({ components, selectedComponent: matchingComponent || components[0], hasPossibleComponent: components.length > 0 || hasProjectYaml  });
         });
@@ -107,11 +107,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         });
 
         const debouncedOnFilChange = debounce(async () => {
-            const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectUri);
+            const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
             platformExtStore.getState().setState({hasLocalChanges});
         }, 2000);
 
-        const fileWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(StateMachine.context().projectUri, "**/*"))
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(StateMachine.context().projectPath, "**/*"));
         fileWatcher.onDidCreate(debouncedOnFilChange);
         fileWatcher.onDidChange(debouncedOnFilChange);
         fileWatcher.onDidDelete(debouncedOnFilChange);
@@ -268,7 +268,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         // todo: need to take in params from config
         try {
             const platformExt = await this.getPlatformExt();
-            const configBalFile = path.join(StateMachine.context().projectUri, "config.bal");
+            const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
             const configBalFileUri = Uri.file(configBalFile);
             const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
                 documentIdentifier: { uri: configBalFileUri.toString() },
@@ -327,7 +327,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     (item) => `${balPackage}.${item.targetModule}` === moduleName
                 );
                 if (matchingTomlEntry && matchingTomlEntry?.devantConnection) {
-                    const updatedToml: TomlValues = {
+                    const updatedToml: PackageTomlValues = {
                         ...tomlValues,
                         tool: {
                             ...tomlValues?.tool,
@@ -337,7 +337,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         },
                     };
 
-                    const projectPath = StateMachine.context().projectUri;
+                    const projectPath = StateMachine.context().projectPath;
                     const balTomlPath = path.join(projectPath, "Ballerina.toml");
                     const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
                     fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
@@ -473,7 +473,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         try {
             const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
-            const projectPath = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
 
             const createdConnection = await platformExt?.createComponentConnection({
                 componentId: platformExtStore.getState().state?.selectedComponent?.metadata?.id,

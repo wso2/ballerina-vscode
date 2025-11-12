@@ -124,7 +124,7 @@ export const DevantConnectorList: FC<{
                                 {
                                     // integrationType: integrationType as any,
                                     buildPackLang: "ballerina",
-                                    // name: path.basename(StateMachine.context().projectUri),
+                                    // name: path.basename(StateMachine.context().projectPath),
                                     componentDir: projectPath,
                                     extName: "Devant",
                                 } as ICreateComponentCmdParams,
