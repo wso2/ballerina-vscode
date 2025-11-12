@@ -51,20 +51,31 @@ export const getCoverageColor = (level: CoverageLevel): string => {
     return "var(--vscode-charts-red)";
 };
 
-export const getMigrationProgressHeaderData = (state: MigrationDisplayState) => {
+export const getMigrationProgressHeaderData = (state: MigrationDisplayState, isMultiProject: boolean = false) => {
     let headerText;
     let headerDesc;
 
     if (state.isSuccess) {
-        headerText = "Migration Completed Successfully!";
-        headerDesc =
-            "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        if (isMultiProject) {
+            headerText = "Migration Completed Successfully!";
+            headerDesc =
+                "Your integration project with multiple packages has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        } else {
+            headerText = "Migration Completed Successfully!";
+            headerDesc =
+                "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        }
     } else if (state.isFailed) {
         headerText = "Migration Failed";
         headerDesc = "The migration process encountered errors and could not be completed.";
     } else if (state.isInProgress) {
-        headerText = "Migration in Progress...";
-        headerDesc = "Please wait while we set up your new integration project.";
+        if (isMultiProject) {
+            headerText = "Migration in Progress...";
+            headerDesc = "Please wait while we migrate your multi-project integration.";
+        } else {
+            headerText = "Migration in Progress...";
+            headerDesc = "Please wait while we set up your new integration project.";
+        }
     }
 
     return { headerText, headerDesc };
@@ -111,4 +122,4 @@ export const handleMultiProjectReportOpening = (
         }
     }
 }
-    
+

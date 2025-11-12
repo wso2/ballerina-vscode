@@ -209,6 +209,7 @@ export function ImportIntegration() {
                     migrationSuccessful={migrationSuccessful}
                     migrationResponse={migrationResponse}
                     projects={migratedProjects}
+                    isMultiProject={isMultiProject}
                     onNext={() => setStep(2)}
                     onBack={handleStepBack}
                 />
