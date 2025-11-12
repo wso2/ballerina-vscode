@@ -777,7 +777,7 @@ export function Overview(props: ComponentDiagramProps) {
                                 </Button>
                             )}
 
-                            {platformExtState.components?.length > 0 && (
+                            {platformExtState.components?.length > 1 && (
                                 <Dropdown
                                     id="selected component"
                                     value={platformExtState?.selectedComponent?.metadata?.id}

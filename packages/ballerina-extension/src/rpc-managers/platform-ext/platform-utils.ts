@@ -19,6 +19,7 @@ import * as toml from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
 import { PersistOptions, createJSONStorage } from "zustand/middleware";
 import { platformExtStore } from "./platform-store";
+import Handlebars from "handlebars";
 
 export const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
