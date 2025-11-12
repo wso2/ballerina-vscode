@@ -127,6 +127,7 @@ export function ImportIntegration() {
             setMigrationCompleted(false);
             setMigrationSuccessful(false);
             setMigrationResponse(null);
+            setMigratedProjects([]);
         }
 
         setStep(step - 1);

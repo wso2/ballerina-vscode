@@ -81,19 +81,40 @@ export function MigrationProgressView({
     };
 
     const handleSaveReport = async () => {
-        console.log("Save report clicked", { migrationResponse });
+        console.log("Save report clicked", { migrationResponse, isMultiProject, projects });
         try {
             if (!migrationResponse?.report) {
                 console.error("No report content available to save");
                 return;
             }
 
-            // VSCode extension environment - use RPC to show save dialog
-            console.log("Saving report via VSCode save dialog...");
-            rpcClient.getMigrateIntegrationRpcClient().saveMigrationReport({
-                reportContent: migrationResponse.report,
-                defaultFileName: "migration-report.html",
-            });
+            // Check if this is a multi-project migration
+            const hasMultipleProjects = isMultiProject && projects && projects.length > 0;
+
+            if (hasMultipleProjects) {
+                // For multi-project scenarios, extract reports from projects array
+                const projectReports: { [projectName: string]: string } = {};
+
+                projects.forEach((project) => {
+                    if (project.projectName && project.report) {
+                        projectReports[project.projectName] = project.report;
+                    }
+                });
+
+                console.log("Saving multi-project reports via VSCode folder dialog...", { projectReports });
+                rpcClient.getMigrateIntegrationRpcClient().saveMigrationReport({
+                    reportContent: migrationResponse.report,
+                    defaultFileName: "aggregate_migration_report.html",
+                    projectReports: projectReports,
+                });
+            } else {
+                // Single project - use simple save dialog
+                console.log("Saving single project report via VSCode save dialog...");
+                rpcClient.getMigrateIntegrationRpcClient().saveMigrationReport({
+                    reportContent: migrationResponse.report,
+                    defaultFileName: "migration-report.html",
+                });
+            }
         } catch (error) {
             console.error("Failed to save migration report:", error);
         }
