@@ -160,7 +160,6 @@ public class XSDTypeGenerator {
      * @return The generated types with resolved name collisions
      */
     private String handleTypeNameCollisions(String generatedTypes) {
-
         List<String> existingTypeNames = getExistingTypeNames();
         Map<String, String> typeRenames = new HashMap<>();
         Pattern typeDefPattern = Pattern.compile("^\\s*(?:public\\s+)?type\\s+(\\w+)\\s+", Pattern.MULTILINE);
