@@ -23,13 +23,12 @@ import {
     MACHINE_VIEW,
     BuildMode,
     BI_COMMANDS,
-    DevantMetadata,
     SHARED_COMMANDS,
     DIRECTORY_MAP,
     SCOPE
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay } from "@wso2/ui-toolkit";
+import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay, Dropdown } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { getProjectFromResponse, parseSSEEvent, replaceCodeBlocks, splitContent } from "../../AIPanel/components/AIChat";
@@ -41,6 +40,7 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
+import { usePlatformExtContext } from "../../../utils/PlatformExtContext";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -99,6 +99,7 @@ const HeaderControls = styled.div`
     display: flex;
     gap: 8px;
     margin-right: 16px;
+    align-items: center;
 `;
 
 const MainContent = styled.div`
@@ -388,7 +389,6 @@ interface DeploymentOptionsProps {
     handleJarBuild: () => void;
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
-    devantMetadata: DevantMetadata | undefined;
     hasDeployableIntegration: boolean;
 }
 
@@ -397,11 +397,11 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
-    devantMetadata,
     hasDeployableIntegration
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -422,20 +422,20 @@ function DeploymentOptions({
                 <Title variant="h3">Deployment Options</Title>
 
                 <DeploymentOption
-                    title={devantMetadata?.hasComponent ? "Deployed in Devant" : "Deploy to Devant"}
+                    title={platformExtState?.hasPossibleComponent ? "Deployed in Devant" : "Deploy to Devant"}
                     description={
-                        devantMetadata?.hasComponent
+                        platformExtState?.hasPossibleComponent
                             ? "This integration is already deployed in Devant."
                             : "Deploy your integration to the cloud using Devant by WSO2."
                     }
-                    buttonText={devantMetadata?.hasComponent ? "View in Devant" : "Deploy"}
+                    buttonText={platformExtState?.hasPossibleComponent ? "View in Devant" : "Deploy"}
                     isExpanded={expandedOptions.has("devant")}
                     onToggle={() => toggleOption("devant")}
-                    onDeploy={devantMetadata?.hasComponent ? () => goToDevant() : handleDeploy}
+                    onDeploy={platformExtState?.hasPossibleComponent ? () => goToDevant() : handleDeploy}
                     learnMoreLink={"https://wso2.com/devant/docs"}
                     hasDeployableIntegration={hasDeployableIntegration}
                     secondaryAction={
-                        devantMetadata?.hasComponent && devantMetadata?.hasLocalChanges
+                        platformExtState?.hasPossibleComponent && platformExtState?.hasLocalChanges
                             ? {
                                 description: "To redeploy in Devant, please commit and push your changes.",
                                 buttonText: "Open Source Control",
@@ -513,13 +513,9 @@ export function Overview(props: ComponentDiagramProps) {
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
+    const { platformRpcClient, platformExtState } = usePlatformExtContext();
 
     const [enabled, setEnableICP] = useState(false);
-    const { data: devantMetadata } = useQuery({
-        queryKey: ["devant-metadata", props.projectPath],
-        queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
-        refetchInterval: 5000
-    })
     const [showAlert, setShowAlert] = React.useState(false);
 
 
@@ -701,6 +697,7 @@ export function Overview(props: ComponentDiagramProps) {
                 {
                     extName: "Devant",
                     componentFsPath: projectPath,
+                    component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" }
                 } as IOpenInConsoleCmdParams]
         })
@@ -737,8 +734,40 @@ export function Overview(props: ComponentDiagramProps) {
                         <Codicon name="play" sx={{ marginRight: 5 }} /> Run
                     </Button>
                     <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug //
+                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
                     </Button>
+                    {platformExtState.isLoggedIn && (
+                        <>
+                            {platformExtState?.connections?.length > 0 && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={() =>
+                                        platformRpcClient.setConnectedToDevant(!platformExtState.connectedToDevant)
+                                    }
+                                    buttonSx={{ padding: "4px 8px" }}
+                                >
+                                    <Codicon
+                                        name={platformExtState.connectedToDevant ? "vm-active" : "vm outline"}
+                                        sx={{ marginRight: 5 }}
+                                    />{" "}
+                                    {platformExtState.connectedToDevant ? "Connected to Devant" : "Connect to Devant"}
+                                </Button>
+                            )}
+
+                            {platformExtState.components?.length > 0 && (
+                                <Dropdown
+                                    id="selected component"
+                                    value={platformExtState?.selectedComponent?.metadata?.id}
+                                    onValueChange={(id) => platformRpcClient.setSelectedComponent(id)}
+                                    items={platformExtState.components?.map((item) => ({
+                                        content: item.metadata?.displayName,
+                                        value: item.metadata?.id,
+                                    }))}
+                                    style={{ background: "transparent" }}
+                                />
+                            )}
+                        </>
+                    )}
                 </HeaderControls>
             </HeaderRow>
 
@@ -751,12 +780,10 @@ export function Overview(props: ComponentDiagramProps) {
                                     "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
                                 }
                                 title={"Login to WSO2 AI Platform"}
-
                                 btn1Title="Manage Accounts"
                                 btn1IconName="settings-gear"
                                 btn1OnClick={() => handleSettings()}
                                 btn1Id="settings"
-
                                 btn2Title="Close"
                                 btn2IconName="close"
                                 btn2OnClick={() => handleClose()}
@@ -765,14 +792,20 @@ export function Overview(props: ComponentDiagramProps) {
                         )}
                         <DiagramHeaderContainer withPadding={true}>
                             <Title variant="h2">Design</Title>
-                            {!isEmptyProject() && (<ActionContainer>
-                                <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
-                                </Button>
-                                <Button appearance="primary" onClick={handleAddConstruct}>
-                                    <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                </Button>
-                            </ActionContainer>)}
+                            {!isEmptyProject() && (
+                                <ActionContainer>
+                                    <Button
+                                        appearance="icon"
+                                        onClick={handleGenerate}
+                                        buttonSx={{ padding: "2px 8px" }}
+                                    >
+                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
+                                    </Button>
+                                    <Button appearance="primary" onClick={handleAddConstruct}>
+                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                    </Button>
+                                </ActionContainer>
+                            )}
                         </DiagramHeaderContainer>
                         <DiagramContent>
                             {isEmptyProject() ? (
@@ -805,8 +838,13 @@ export function Overview(props: ComponentDiagramProps) {
                             <Title variant="h2">README</Title>
                             <ReadmeButtonContainer>
                                 {readmeContent && isEmptyProject() && (
-                                    <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                    <Button
+                                        appearance="icon"
+                                        onClick={handleGenerateWithReadme}
+                                        buttonSx={{ padding: "4px 8px" }}
+                                    >
+                                        <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with
+                                        Readme
                                     </Button>
                                 )}
                                 <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
@@ -834,7 +872,6 @@ export function Overview(props: ComponentDiagramProps) {
                         handleJarBuild={handleJarBuild}
                         handleDeploy={handleDeploy}
                         goToDevant={goToDevant}
-                        devantMetadata={devantMetadata}
                         hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                     />
                     <Divider sx={{ margin: "16px 0" }} />

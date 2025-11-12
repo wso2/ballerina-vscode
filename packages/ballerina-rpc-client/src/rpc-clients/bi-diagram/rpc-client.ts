@@ -52,7 +52,6 @@ import {
     DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
-    DevantMetadata,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
@@ -142,7 +141,6 @@ import {
     getConfigVariables,
     getConfigVariablesV2,
     getDesignModel,
-    getDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -476,10 +474,6 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getFunctionNames(): Promise<RecordsInWorkspaceMentions> {
         return this._messenger.sendRequest(getFunctionNames, HOST_EXTENSION);
-    }
-
-    getDevantMetadata(): Promise<DevantMetadata | undefined> {
-        return this._messenger.sendRequest(getDevantMetadata, HOST_EXTENSION);
     }
 
     generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {

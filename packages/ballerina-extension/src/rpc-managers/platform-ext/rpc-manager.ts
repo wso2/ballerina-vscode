@@ -37,6 +37,7 @@ import {
     GetConnectionItemReq,
     StartProxyServerResp,
     StopProxyServerReq,
+    ConnectionDetailed,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -53,10 +54,15 @@ import { DeleteBiDevantConnectionReq } from "./types";
 import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { initializeDevantConnection } from "./platform-utils";
+import { getDomain, hasContextYaml, initializeDevantConnection } from "./platform-utils";
+import { debounce } from 'lodash';
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
+    static platformExtAPI: IWso2PlatformExtensionAPI;
     private async getPlatformExt() {
+        if(PlatformExtRpcManager.platformExtAPI){
+            return PlatformExtRpcManager.platformExtAPI;
+        }
         const platformExt = extensions.getExtension("wso2.wso2-platform");
         if (!platformExt) {
             throw new Error("platform ext not installed");
@@ -66,6 +72,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
         const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
         await platformExtAPI.waitUntilInitialized();
+        PlatformExtRpcManager.platformExtAPI = platformExtAPI;
         return platformExtAPI;
     }
 
@@ -77,10 +84,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const isLoggedIn = platformExt.isLoggedIn();
         const components = platformExt.getDirectoryComponents(StateMachine.context().projectUri);
         const selectedContext = platformExt.getSelectedContext();
+        const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
+        const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectUri);
+        const hasProjectYaml = hasContextYaml(StateMachine.context().projectUri);
 
         platformExtStore
             .getState()
-            .setState({ isLoggedIn, components, selectedContext, selectedComponent: components[0] });
+            .setState({ isLoggedIn, components, selectedContext, selectedComponent: matchingComponent || components[0], hasLocalChanges, hasPossibleComponent: components.length > 0 || hasProjectYaml });
 
         await this.refreshConnectionList();
 
@@ -88,12 +98,23 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             platformExtStore.getState().setState({ isLoggedIn });
         });
         platformExt.subscribeDirComponents(StateMachine.context().projectUri, (components) => {
-            // todo: directory component must be picked by the user
-            platformExtStore.getState().setState({ components, selectedComponent: components[0] });
+            const hasProjectYaml = hasContextYaml(StateMachine.context().projectUri);
+            const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
+            platformExtStore.getState().setState({ components, selectedComponent: matchingComponent || components[0], hasPossibleComponent: components.length > 0 || hasProjectYaml  });
         });
         platformExt.subscribeContextState((selectedContext) => {
             platformExtStore.getState().setState({ selectedContext });
         });
+
+        const debouncedOnFilChange = debounce(async () => {
+            const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectUri);
+            platformExtStore.getState().setState({hasLocalChanges});
+        }, 2000);
+
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(StateMachine.context().projectUri, "**/*"))
+        fileWatcher.onDidCreate(debouncedOnFilChange);
+        fileWatcher.onDidChange(debouncedOnFilChange);
+        fileWatcher.onDidDelete(debouncedOnFilChange);
 
         // todo: move devant related initializers here
 
@@ -164,7 +185,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async getConnection(params: GetConnectionItemReq): Promise<ConnectionListItem> {
+    async getConnection(params: GetConnectionItemReq): Promise<ConnectionDetailed> {
         try {
             const platformExt = await this.getPlatformExt();
             return platformExt?.getConnection(params);
@@ -200,13 +221,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async refreshConnectionList(): Promise<void> {
-        try {
-            const connections = await this.getAllConnections();
-            platformExtStore.getState().setState({ connections });
-        } catch (err) {
-            log(`Failed to refresh connection list: ${err}`);
+    setSelectedComponent(componentId: string): void {
+        const selectedComponent = platformExtStore.getState().state?.components?.find(item=>item.metadata?.id === componentId);
+        if(selectedComponent){
+            platformExtStore.getState().setState({selectedComponent});
         }
+    }
+
+    setConnectedToDevant(connectedToDevant: boolean): void {
+        platformExtStore.getState().setState({connectedToDevant});
     }
 
     async getAllConnections(): Promise<ConnectionListItem[]> {
@@ -431,7 +454,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 name: params.connectionListItem.name,
                 marketplaceItem: marketplaceItem,
                 visibility: visibility,
-                configurations: (connectionItem as any)?.configurations,
+                configurations: connectionItem?.configurations,
                 securityType: params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")
                     ? "oauth"
                     : "apikey",
@@ -481,6 +504,68 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");
             log(`Failed to invoke createDevantComponentConnection: ${err}`);
+        }
+    }
+
+    async refreshConnectionList(): Promise<void> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            const connections = await this.getAllConnections();
+            platformExtStore.getState().setState({ connections });
+
+            /*
+            const envs = await platformExt.getProjectEnvs({
+                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                projectId: platformExtStore.getState().state?.selectedContext?.project?.id
+            })
+
+            const lowestEnv = envs.find(item=>!item.critical)
+            if(!lowestEnv){
+                throw new Error("failed to find env when refreshing devant connection list")
+            }
+
+            const secureHosts = new Set<string>()
+            const envMap = new Map<string, string>()
+
+            for(const connItem of connections){
+                const connectionDetailedItem = await platformExt.getConnection({
+                    connectionGroupId: connItem.groupUuid,
+                    orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString()
+                });
+                const matchingConfig = connectionDetailedItem.configurations[lowestEnv.templateId];
+                if(matchingConfig){
+                    for(const entryName in matchingConfig.entries ){
+                        if(matchingConfig.entries[entryName].value){
+                            if(connItem.schemaName?.toLowerCase().includes("organization") && entryName==="ServiceURL" && matchingConfig.entries[entryName].value.startsWith("https://")){
+                                const domain = getDomain(matchingConfig.entries[entryName].value)
+                                secureHosts.add(domain)
+                                envMap.set(entryName, matchingConfig.entries[entryName].value.replace("https://", "http://"))
+                            }else{
+                                envMap.set(entryName, matchingConfig.entries[entryName].value)
+                            }
+                            if((envMap.get(entryName).startsWith("https://") || envMap.get(entryName).startsWith("http://")) && envMap.get(entryName).endsWith("/")){
+                                envMap.set(entryName,  envMap.get(entryName.slice(0, -1)))
+                            }
+                        }else if(matchingConfig.entries[entryName].isSensitive && !matchingConfig.entries[entryName].isFile){
+                            ///////////
+                            // todo: //
+                            ///////////
+                        }
+                    }
+                }
+            }
+            */
+
+            // todo: 
+            /*
+            1. store connection with secret info in bal ext
+            2. start proxy server. need to pass secure host list.
+            3. leave the server running
+            4. on extension exit, kill the server if its running
+            */
+        } catch (err) {
+            log(`Failed to refresh connection list: ${err}`);
         }
     }
 }

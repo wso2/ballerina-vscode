@@ -69,7 +69,13 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     return (
         <PlatformExtContext.Provider
             value={{
-                platformExtState,
+                platformExtState: {
+                    ...platformExtState,
+                    selectedContext: platformExtState?.isLoggedIn ? platformExtState.selectedContext : undefined,
+                    selectedComponent: platformExtState?.isLoggedIn ? platformExtState.selectedComponent : undefined,
+                    components: platformExtState?.isLoggedIn ? platformExtState.components : [],
+                    connections: platformExtState?.isLoggedIn ? platformExtState.connections : []
+                },
                 projectPath,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },

@@ -41,8 +41,12 @@ export interface ImportDevantConnectionResp {
 
 export interface PlatformExtState {
 	isLoggedIn: boolean;
+    hasPossibleComponent?: boolean;
+    hasLocalChanges?: boolean;
 	components: ComponentKind[];
     selectedComponent?: ComponentKind;
 	selectedContext?: ContextItemEnriched;
+    loadingConnections?: boolean;
+    connectedToDevant?: boolean;
     connections?: ConnectionListItem[]
 }

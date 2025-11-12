@@ -39,5 +39,3 @@ export const platformExtStore = createStore(
 		getWorkspaceStateStore("bi-platform-storage"),
 	),
 );
-
-

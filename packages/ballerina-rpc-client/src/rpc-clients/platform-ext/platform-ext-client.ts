@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq } from "@wso2/wso2-platform-core"
+import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
@@ -57,7 +57,7 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(getConnections, HOST_EXTENSION, params);
     }
 
-    getConnection(params: GetConnectionItemReq): Promise<ConnectionListItem> {
+    getConnection(params: GetConnectionItemReq): Promise<ConnectionDetailed> {
         return this._messenger.sendRequest(getConnection, HOST_EXTENSION, params);
     }
 
@@ -75,5 +75,13 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     refreshConnectionList(): Promise<void> {
         return this._messenger.sendRequest(refreshConnectionList, HOST_EXTENSION, undefined);
+    }
+
+    setConnectedToDevant(connected: boolean): Promise<void> {
+        return this._messenger.sendRequest(setConnectedToDevant, HOST_EXTENSION, connected);
+    }
+
+    setSelectedComponent(componentId: string): Promise<void> {
+        return this._messenger.sendRequest(setSelectedComponent, HOST_EXTENSION, componentId);
     }
 }

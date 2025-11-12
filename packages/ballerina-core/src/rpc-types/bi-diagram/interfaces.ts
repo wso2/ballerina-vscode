@@ -172,12 +172,6 @@ export enum BuildMode {
     DOCKER = "docker"
 }
 
-export interface DevantMetadata {
-    isLoggedIn?: boolean;
-    hasComponent?: boolean;
-    hasLocalChanges?: boolean;
-}
-
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
 }

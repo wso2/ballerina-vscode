@@ -469,3 +469,36 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         });\n`;
     },
 };
+
+export const hasContextYaml = (projectPath: string): boolean => {
+	const repoRoot = getRepoRoot(projectPath);
+	if (repoRoot) {
+		const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+		if (fs.existsSync(contextYamlPath)) {
+			return true;
+		}
+	}
+    return false;
+};
+
+export function getRepoRoot(projectRoot: string): string | undefined {
+    // traverse up the directory tree until .git directory is found
+    const gitDir = path.join(projectRoot, ".git");
+    if (fs.existsSync(gitDir)) {
+        return projectRoot;
+    }
+    // path is root return undefined
+    if (projectRoot === path.parse(projectRoot).root) {
+        return undefined;
+    }
+    return getRepoRoot(path.join(projectRoot, ".."));
+}
+
+export function getDomain(rawURL: string): string {
+    try {
+        const parsedURL = new URL(rawURL);
+        return parsedURL.hostname;
+    } catch (error) {
+        throw new Error("");
+    }
+}
