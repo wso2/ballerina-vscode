@@ -395,36 +395,28 @@ public class ReferenceType {
                 : null;
     }
 
+    /**
+     * Helper method to resolve ModuleID, trying direct lookup first, then recursive lookup with fallback.
+     */
+    private static ModuleID resolveModuleIDWithFallback(TypeSymbol typeSymbol, ModuleID fallbackModuleId) {
+        ModuleID moduleId = getModuleID(typeSymbol);
+        return moduleId != null ? moduleId : getModuleID(typeSymbol, fallbackModuleId);
+    }
+
     private static ModuleID getModuleID(TypeSymbol typeSymbol, ModuleID fallbackModuleId) {
         switch (typeSymbol.typeKind()) {
             case ARRAY -> {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol) typeSymbol;
-                TypeSymbol memberType = arrayType.memberTypeDescriptor();
-                ModuleID memberModuleId = getModuleID(memberType);
-                if (memberModuleId != null) {
-                    return memberModuleId;
-                }
-                return getModuleID(memberType, fallbackModuleId);
+                return resolveModuleIDWithFallback(arrayType.memberTypeDescriptor(), fallbackModuleId);
             }
             case MAP -> {
                 MapTypeSymbol mapType = (MapTypeSymbol) typeSymbol;
-                TypeSymbol valueType = mapType.typeParam();
-                ModuleID valueModuleId = getModuleID(valueType);
-                if (valueModuleId != null) {
-                    return valueModuleId;
-                }
-                return getModuleID(valueType, fallbackModuleId);
+                return resolveModuleIDWithFallback(mapType.typeParam(), fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
                 return unionType.memberTypeDescriptors().stream()
-                        .map(member -> {
-                            ModuleID moduleId = getModuleID(member);
-                            if (moduleId != null) {
-                                return moduleId;
-                            }
-                            return getModuleID(member, fallbackModuleId);
-                        })
+                        .map(member -> resolveModuleIDWithFallback(member, fallbackModuleId))
                         .filter(Objects::nonNull)
                         .findFirst()
                         .orElse(fallbackModuleId);
@@ -441,10 +433,7 @@ public class ReferenceType {
             }
             default -> {
                 ModuleID directModuleId = getModuleID(typeSymbol);
-                if (directModuleId != null) {
-                    return directModuleId;
-                }
-                return fallbackModuleId;
+                return directModuleId != null ? directModuleId : fallbackModuleId;
             }
         }
     }
