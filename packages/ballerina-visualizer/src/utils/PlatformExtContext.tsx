@@ -17,7 +17,7 @@
  */
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { TomlValues } from "@wso2/ballerina-core";
+import { PackageTomlValues } from "@wso2/ballerina-core";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
@@ -26,7 +26,7 @@ import React, { useContext, FC, ReactNode, useEffect } from "react";
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
     projectPath: string;
-    projectToml?: { values: TomlValues; refresh: () => void };
+    projectToml?: { values: PackageTomlValues; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
 } = {
     platformExtState: { components: [], isLoggedIn: false },
@@ -47,7 +47,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const { data: projectPath = "" } = useQuery({
         queryKey: ["project-path"],
         queryFn: () => rpcClient.getVisualizerLocation(),
-        select: (data) => data?.projectUri,
+        select: (data) => data?.projectPath,
     });
 
     const { data: projectToml, refetch: refetchToml } = useQuery({
