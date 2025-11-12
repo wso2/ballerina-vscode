@@ -87,3 +87,35 @@ export interface ChatResponse {
         total_tokens: number;
     };
 }
+
+// =============================================================================
+// CONTEXT API CONTENT TYPES
+// =============================================================================
+
+export type FileData = {
+    fileName: string;
+    content: string;
+};
+
+export type ContentPart = {
+    type: "file" | "image" | "text";
+    data?: string;
+    image?: string;
+    text?: string;
+    mediaType?: string;
+};
+
+export type FileTypeHandler = (file: FileData, includeFileName: boolean) => ContentPart;
+
+export type ProcessType = "mapping_instruction" | "records" | "requirements";
+
+export type DataMapperRequest = {
+    files: FileData[];
+    text?: string;
+    processType: ProcessType;
+    isRequirementAnalysis?: boolean; //TODO: Why is this
+};
+
+export type DataMapperResponse = {
+    fileContent: string;
+};

@@ -86,7 +86,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
         });
     }
 
-    const projectPath = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
     commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async (...args: any[]) => {
         const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);

@@ -17,111 +17,32 @@
 import { generateText, ModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { ContentPart, DataMapperRequest, DataMapperResponse, FileData, FileTypeHandler, ProcessType } from "./types";
 
-// Types
-export type FileData = {
-    fileName: string;
-    content: string;
-};
-
-export type ProcessType = "mapping_instruction" | "records" | "requirements";
-
-export type DataMapperRequest = {
-    file?: FileData;
-    text?: string;
-    processType: ProcessType;
-    isRequirementAnalysis?: boolean; //TODO: Why is this
-};
-
-export type DataMapperResponse = {
-    fileContent: string;
-};
-
-export type SupportedFileExtension = "pdf" | "jpg" | "jpeg" | "png" | "txt";
 
 // Maybe have better names and types?
 export async function processDataMapperInput(request: DataMapperRequest): Promise<DataMapperResponse> {
-    if (request.file) {
-        return await processFile(request.file, request.processType, request.isRequirementAnalysis);
+    if (request.files.length > 0) {
+        return await processFiles(request.files, request.processType, request.isRequirementAnalysis);
     } else if (request.text) {
-        const message = await processText(request.text, request.processType);
-        const fileContent = request.isRequirementAnalysis 
-            ? message 
-            : extractBallerinaCode(message, request.processType);
-        return { fileContent };
+        return await processFiles([{ fileName: 'text', content: btoa(request.text) }], request.processType, request.isRequirementAnalysis);
     } else {
-        throw new Error("No file or text provided. Please provide file data or text input.");
+        throw new Error("No files or text provided. Please provide file data or text input.");
     }
 }
 
-// Process file data
-async function processFile(file: FileData, processType: ProcessType, isRequirementAnalysis: boolean = false): Promise<DataMapperResponse> {
-    let message: string;
-    
-    const extension = getFileExtension(file.fileName);
-    
+// Process files (single or multiple)
+async function processFiles(files: FileData[], processType: ProcessType, isRequirementAnalysis: boolean = false): Promise<DataMapperResponse> {
     try {
-        //TODO: I think we should handle supported files from one place.
-        if (extension === "pdf") {
-            message = await processPdf(file.content, processType);
-        } else if (extension === "jpeg" || extension === "jpg" || extension === "png") {
-            message = await processImage(file.content, processType, extension);
-        } else if (extension === "txt" || extension === "csv" || !extension) {
-            const txtContent = atob(file.content);
-            message = await processText(txtContent, processType);
-        } else {
-            throw new Error(`Unsupported file type: ${extension}`);
-        }
+        const message = await processFilesWithClaude(files, processType);
 
-        const fileContent = isRequirementAnalysis 
+        const fileContent = isRequirementAnalysis
             ? getRequirementsContent(message)
             : extractBallerinaCode(message, processType);
             
         return { fileContent };
     } catch (error) {
-        throw new Error(`Error processing file: ${error instanceof Error ? error.message : String(error)}`);
-    }
-}
-
-// Process PDF content
-async function processPdf(base64Content: string, processType: ProcessType): Promise<string> {
-    try {
-        return await extractionUsingClaude({
-            pdfData: base64Content,
-            processType
-        });
-    } catch (error) {
-        throw new Error(`PDF processing error: ${error instanceof Error ? error.message : String(error)}`);
-    }
-}
-
-// Process image content
-async function processImage(base64Content: string, processType: ProcessType, extension: string): Promise<string> {
-    // Only process actual image extensions
-    if (extension !== "jpeg" && extension !== "jpg" && extension !== "png") {
-        throw new Error(`Unsupported image extension: ${extension}`);
-    }
-    
-    try {
-        return await imageExtractionUsingClaude({
-            imgData: base64Content,
-            processType,
-            extension
-        });
-    } catch (error) {
-        throw new Error(`Image processing error: ${error instanceof Error ? error.message : String(error)}`);
-    }
-}
-
-// Process text content
-async function processText(text: string, processType: ProcessType): Promise<string> {
-    try {
-        return await textExtractionUsingClaude({
-            textContent: text,
-            processType
-        });
-    } catch (error) {
-        throw new Error(`Error processing text: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`Error processing ${files.length === 1 ? 'file' : 'files'}: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
 
@@ -158,10 +79,71 @@ function getRequirementsContent(message: any): string {
     return String(message);
 }
 
+// Supported file types configuration
+const SUPPORTED_FILE_TYPES: Record<string, FileTypeHandler> = {
+    pdf: (file: FileData) => ({
+        type: "file",
+        data: file.content,
+        mediaType: "application/pdf"
+    }),
+    jpeg: (file: FileData) => ({
+        type: "image",
+        image: file.content,
+        mediaType: "image/jpeg"
+    }),
+    jpg: (file: FileData) => ({
+        type: "image",
+        image: file.content,
+        mediaType: "image/jpeg"
+    }),
+    png: (file: FileData) => ({
+        type: "image",
+        image: file.content,
+        mediaType: "image/png"
+    }),
+    txt: (file: FileData, includeFileName: boolean) => {
+        const txtContent = atob(file.content);
+        return {
+            type: "text",
+            text: includeFileName ? `File: ${file.fileName}\n\n${txtContent}` : txtContent
+        };
+    },
+    csv: (file: FileData, includeFileName: boolean) => {
+        const txtContent = atob(file.content);
+        return {
+            type: "text",
+            text: includeFileName ? `File: ${file.fileName}\n\n${txtContent}` : txtContent
+        };
+    }
+};
+
 // Get file extension from filename
 function getFileExtension(fileName: string): string {
     const extension = fileName.toLowerCase().split('.').pop();
     return extension || "";
+}
+
+// Convert file to content part for Claude API
+function convertFileToContentPart(file: FileData, includeFileName: boolean = false): ContentPart {
+    const extension = getFileExtension(file.fileName);
+
+    const handler = SUPPORTED_FILE_TYPES[extension];
+
+    if (handler) {
+        return handler(file, includeFileName);
+    }
+
+    // Fallback for files without extension
+    if (!extension) {
+        const txtContent = atob(file.content);
+        return {
+            type: "text",
+            text: includeFileName ? `File: ${file.fileName}\n\n${txtContent}` : txtContent
+        };
+    }
+
+    const supportedTypes = Object.keys(SUPPORTED_FILE_TYPES).join(', ');
+    throw new Error(`Unsupported file type: ${extension}. Supported types are: ${supportedTypes}`);
 }
 
 // Prompt generation functions
@@ -256,96 +238,48 @@ Generate only Ballerina code with in <mapping_fields> tags based on the provided
 }
 
 function getRecordsPrompt(): string {
-    return `You are an AI assistant specializing in the Ballerina programming language.
-Your task is to analyze given content and create Ballerina code for type records based on the content provided.
+    return `You are an AI assistant specializing in the Ballerina programming language. Your task is to analyze provided content and generate comprehensive Ballerina type record definitions based on all the information present in that content.
 
-IMPORTANT:
-    - Do not take any assumptions based on data types or records.
-    - Do not include any comments in the code
-    - Final output has only Ballerina code within <ballerina_code> tags.
-    - Extract as much as all possible records and fields
+Your goal is to extract every possible record type and field from this content and convert them into proper Ballerina type record definitions. You must capture all the information mentioned - leave nothing out.
 
-Please follow these steps to create the Ballerina code:
+## Code Generation Requirements
 
-    1. Analyze the content:
-        a) If it is an image, Input records appear on the left side of the image, and output records appear on the right side.
-        b) All subfields of nested fields or subfields should be structured hierarchically, expanding downwards recursively within their respective parent fields. This hierarchy should reflect nested relationships.
-        c) Must extract all records and their all fields and their data types in the content.
-        d) Using and refer to all links or hyperlinks that provide additional information about records and data types in the content.
-        e) Quote and number specific parts of the content that mention record types and data types.
-        f) List all record types mentioned in the content, numbering them (e.g., 1. RecordType1, 2. RecordType2, ...).
-        g) For each record type, list it's all fields and their exact data types as mentioned in the content, also numbering them (e.g., 1.1 field1: SI, 1.2 field2: int, ... ).
-        h) Identify any nested structures and explain how they relate to the main records.
-        i) Summarize and use relevant comments or conditions or additional information about the records or data types in the content.
+Generate Ballerina code that includes:
 
-    2. Define the record types:
-        Based on your analysis:
-            - Create a type record for each identified record with its sub-fields
-            - Consider all records and fields with optional and nullable feature
-            - Use only the exact data types you identified in step 1 for each field and record
-            - Apply these naming conventions: PascalCase for record names, camelCase for field names
-            - For nested fields, create recursive record types, stopping at simple data types
+- Type record definitions for ALL identified records with ALL their fields
+- Proper handling of optional (\`?\`) and nullable features - but ONLY when explicitly mentioned as optional or nullable in the content
+- Correct Ballerina naming conventions
+- No comments in the generated code
+- No assumptions beyond what's explicitly stated in the content
 
-After your analysis, provide the Ballerina code within <ballerina_code> tags. The code should include:
-    - Type record definitions for all identified records with its all fields
+## Enum Declaration Format
 
-Example output structure (generic, without specific content):
+When you encounter enumerated types, use this specific syntax:
 
-<ballerina_code>
-type RecordName1 record {
-    FieldDataType1 fieldName1;
-    FieldDataType2 fieldName2;
-    };
-
-type RecordName2 record {
-    FieldDataType3 fieldName3;
-    RecordName1 nestedField;
+\`\`\`ballerina
+enum EnumName {
+    VALUE1,
+    VALUE2,
+    VALUE3
 };
+\`\`\`
 
-type RecordName3 record {
-    FieldDataType4 fieldName4;
-    RecordName4 nestedField;
-};
-</ballerina_code>
+## Output Format
 
-Sample example for the required format:
+Present your final code within \`<ballerina_code>\` tags. Structure your code as follows:
+
+- Place all enum definitions first
+- Follow with type record definitions
+- Use proper Ballerina syntax throughout
+
+Example structure (generic structure only):
 
 type Person record {
     int? id?;
     string firstName;
     string? lastName;
     int? age;
-    string country?;
-    College? college?;
-};
-
-type College record {
-    Course[] courses;
-};
-
-type Course record {
-    string? id?;
-    decimal credits?;
-    Address? address;
-};
-
-type Student record {
-    string id;
-    string firstName;
-    float? age;
-    record {
-        int id;
-        float credits?;
-        Address address;
-    }[] courses;
-};
-
-type A record {
-    Person[] person;
-};
-
-type B record {
-    Student[] student?;
+    Address? address?;
 };
 
 type Address record {
@@ -354,7 +288,14 @@ type Address record {
     string? zipcode;
 };
 
-Generate only Ballerina code with in <ballerina_code> tags based on the provided content.`;
+enum Gender {
+    MALE,
+    FEMALE,
+    OTHER
+};
+
+Generate only Ballerina code with in <ballerina_code> tags based on the provided content.
+`;
 }
 
 function getRequirementsPrompt(): string {
@@ -403,93 +344,28 @@ function getPromptForProcessType(processType: ProcessType): string {
     }
 }
 
-// Claude API integration functions
-async function extractionUsingClaude({ pdfData, processType }: { pdfData: string; processType: ProcessType }): Promise<string> {
+// Process files with Claude (handles both single and multiple files)
+async function processFilesWithClaude(files: FileData[], processType: ProcessType): Promise<string> {
     const promptText = getPromptForProcessType(processType);
-    
-    const messages: ModelMessage[] = [
-        {
-            role: "user",
-            content: [
-                {
-                    type: "file",
-                    data: pdfData,
-                    mediaType: "application/pdf"
-                },
-                {
-                    type: "text",
-                    text: promptText
-                }
-            ]
-        }
-    ];
 
-    const { text } = await generateText({
-        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxOutputTokens: 8192,
-        temperature: 0,
-        messages: messages,
-        abortSignal: AIPanelAbortController.getInstance().signal
+    // Build content array with all files
+    const contentParts: Array<any> = [];
+    const includeFileName = files.length > 1;
+
+    for (const file of files) {
+        contentParts.push(convertFileToContentPart(file, includeFileName));
+    }
+
+    // Add the prompt at the end
+    contentParts.push({
+        type: "text",
+        text: promptText
     });
 
-    return text;
-}
-
-async function imageExtractionUsingClaude({ 
-    imgData, 
-    processType, 
-    extension 
-}: { 
-    imgData: string; 
-    processType: ProcessType; 
-    extension: string; 
-}): Promise<string> {
-    const promptText = getPromptForProcessType(processType);
-    
-    // Convert extension to proper media type
-    const mimeType = extension === "png" ? "image/png" : "image/jpeg";
-    
     const messages: ModelMessage[] = [
         {
             role: "user",
-            content: [
-                {
-                    type: "image",
-                    image: imgData,
-                    mediaType: mimeType
-                },
-                {
-                    type: "text",
-                    text: promptText
-                }
-            ]
-        }
-    ];
-
-    const { text } = await generateText({
-        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxOutputTokens: 8192,
-        temperature: 0,
-        messages: messages,
-        abortSignal: AIPanelAbortController.getInstance().signal
-    });
-
-    return text;
-}
-
-async function textExtractionUsingClaude({ 
-    textContent, 
-    processType 
-}: { 
-    textContent: string; 
-    processType: ProcessType; 
-}): Promise<string> {
-    const promptText = getPromptForProcessType(processType);
-    
-    const messages: ModelMessage[] = [
-        {
-            role: "user",
-            content: promptText + "\n\n" + textContent
+            content: contentParts
         }
     ];
 
@@ -505,21 +381,21 @@ async function textExtractionUsingClaude({
 }
 
 // Utility functions for specific use cases
-export async function generateMappingInstruction(input: { file?: FileData; text?: string }): Promise<DataMapperResponse> {
+export async function generateMappingInstruction(input: { files: FileData[]; text?: string }): Promise<DataMapperResponse> {
     return await processDataMapperInput({
         ...input,
         processType: "mapping_instruction"
     });
 }
 
-export async function generateRecord(input: { file?: FileData; text?: string }): Promise<DataMapperResponse> {
+export async function generateRecord(input: { files: FileData[]; text?: string }): Promise<DataMapperResponse> {
     return await processDataMapperInput({
         ...input,
         processType: "records"
     });
 }
 
-export async function extractRequirements(input: { file?: FileData; text?: string }): Promise<DataMapperResponse> {
+export async function extractRequirements(input: { files: FileData[]; text?: string }): Promise<DataMapperResponse> {
     return await processDataMapperInput({
         ...input,
         processType: "requirements",
