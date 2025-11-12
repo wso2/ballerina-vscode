@@ -199,7 +199,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const sourceMemberType = sourcePort.attributes.field.member?.kind;
         const targetType = targetPort.attributes.field.kind;
 
-        if (sourceMemberType == targetType && isPrimitive(sourceMemberType)) {
+        if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
             a2sMenuItems.push({
                 id: "a2s-aggregate",
                 label: getItemElement("a2s-aggregate", "Aggregate using Query"),
