@@ -195,7 +195,7 @@ export const createExpressionModelFromTokens = (
     if (!value) return [];
     if (!tokens || tokens.length === 0) {
         return [{
-           ...expressionModelInitValue, value: value, length: value.length, 
+            ...expressionModelInitValue, value: value, length: value.length,
         }];
     }
 
@@ -307,6 +307,8 @@ export const createExpressionModelFromTokens = (
     return expressionModel;
 };
 
+
+
 const getTokenTypeFromIndex = (index: number): string => {
     const tokenTypes: { [key: number]: string } = {
         0: 'variable',
@@ -351,9 +353,9 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
         const offset = getCaretOffsetWithin(el);
         return { start: offset, end: offset };
     }
-    
+
     const range = selection.getRangeAt(0);
-    
+
     if (!el.contains(range.startContainer) || !el.contains(range.endContainer)) {
         const offset = getCaretOffsetWithin(el);
         return { start: offset, end: offset };
@@ -365,13 +367,13 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
 
     let startOffset = 0;
     let endOffset = 0;
-    
+
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
     let current: Node | null = walker.nextNode();
-    
+
     while (current) {
         const textLength = (current.textContent || '').length;
-        
+
         // Calculate start offset
         if (current === range.startContainer) {
             startOffset += range.startOffset;
@@ -379,7 +381,7 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
             // startContainer comes after current node
             startOffset += textLength;
         }
-        
+
         // Calculate end offset
         if (current === range.endContainer) {
             endOffset += range.endOffset;
@@ -387,7 +389,7 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
         } else {
             endOffset += textLength;
         }
-        
+
         current = walker.nextNode();
     }
 
@@ -1032,7 +1034,7 @@ const moveToPreviousElement = (
                 if (idx === i) {
                     return { ...el, isFocused: true, focusOffsetStart: el.length, focusOffsetEnd: el.length };
                 } else if (idx === index) {
-                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined};
+                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined };
                 }
                 return el;
             });
@@ -1052,7 +1054,7 @@ const moveCaretBackward = (
 ) => {
     const newExpressionModel = expressionModel.map((el, idx) => {
         if (idx === index) {
-            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset - 1), focusOffsetEnd: Math.max(0, caretOffset - 1)};
+            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset - 1), focusOffsetEnd: Math.max(0, caretOffset - 1) };
         }
         return el;
     });
@@ -1072,18 +1074,7 @@ export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string 
     return fullTextUpToCursor.endsWith(lastMatch) ? lastMatch : '';
 };
 
-export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
-    if (!prefix) {
-        return completions.filter(completion =>
-            completion.kind === 'field'
-        );
-    }
 
-    return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
-        completion.label.toLowerCase().startsWith(prefix.toLowerCase())
-    );
-};
 
 export const setCursorPositionToExpressionModel = (expressionModel: ExpressionModel[], cursorPosition: number): ExpressionModel[] => {
     const newExpressionModel = [];
@@ -1213,3 +1204,59 @@ export const getModelWithModifiedParamsChip = (expressionModel: ExpressionModel[
 export const isBetween = (a: number, b: number, target: number): boolean => {
     return target >= Math.min(a, b) && target <= Math.max(a, b);
 }
+
+
+
+//new
+
+export type ParsedToken = {
+    id:number;
+    start: number;
+    end: number;
+}
+
+export const getParsedExpressionTokens = (tokens: number[], value: string) => {
+    const chunks = getTokenChunks(tokens);
+    let currentLine = 0;
+    let currentChar = 0;
+    const tokenObjects: ParsedToken[] = [];
+    
+    let tokenId = 0;
+    for (let chunk of chunks) {
+        const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
+        const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
+        const length = chunk[TOKEN_LENGTH_INDEX];
+
+        currentLine += deltaLine;
+        if (deltaLine === 0) {
+            currentChar += deltaStartChar;
+        } else {
+            currentChar = deltaStartChar;
+        }
+
+        const absoluteStart = getAbsoluteColumnOffset(value, currentLine, currentChar);
+        const absoluteEnd = absoluteStart + length;
+        
+        tokenObjects.push({ id: tokenId++, start: absoluteStart, end: absoluteEnd });
+    }
+    return tokenObjects;
+}
+
+export const getWordBeforeCursorPosition = (textBeforeCursor: string): string => {
+    const match = textBeforeCursor.match(/\b\w+$/);
+    const lastMatch = match ? match[match.length - 1] : "";
+    return textBeforeCursor.endsWith(lastMatch) ? lastMatch : '';
+};
+
+export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
+    if (!prefix) {
+        return completions.filter(completion =>
+            completion.kind === 'field'
+        );
+    }
+
+    return completions.filter(completion =>
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
+        completion.label.toLowerCase().startsWith(prefix.toLowerCase())
+    );
+};
