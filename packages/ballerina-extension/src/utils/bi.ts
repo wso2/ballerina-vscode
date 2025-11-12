@@ -379,7 +379,7 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
 
 async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
     const viewLocation: VisualizerLocation = {
-        view: MACHINE_VIEW.Overview,
+        view: MACHINE_VIEW.PackageOverview,
         workspacePath: workspacePath,
         projectPath: projectPath,
         package: params.packageName,

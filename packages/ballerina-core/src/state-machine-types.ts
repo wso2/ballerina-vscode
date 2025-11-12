@@ -63,7 +63,8 @@ export enum SCOPE {
 export type VoidCommands = "OPEN_LOW_CODE" | "OPEN_PROJECT" | "CREATE_PROJECT";
 
 export enum MACHINE_VIEW {
-    Overview = "Overview",
+    PackageOverview = "PackageOverview",
+    WorkspaceOverview = "WorkspaceOverview",
     BallerinaUpdateView = "Ballerina Update View",
     SequenceDiagram = "Sequence Diagram",
     ServiceDesigner = "Service Designer",

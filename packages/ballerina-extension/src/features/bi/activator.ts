@@ -84,7 +84,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
@@ -256,7 +256,7 @@ const handleConnectionDeletion = async (itemLabel: string, filePath: string) => 
                     console.log(">>> Updated source code after delete", response);
                     if (response.artifacts) {
                         if (hasNoComponentsOpenInDiagram() || isFlowNodeOpenInDiagram(connector)) {
-                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                         }
                     } else {
                         console.error(">>> Error updating source code", response);
@@ -279,7 +279,7 @@ async function deleteComponent(component: ComponentInfo, rpcClient: BiDiagramRpc
     await rpcClient.deleteByComponentInfo(req);
 
     if (hasNoComponentsOpenInDiagram() || isComponentOpenInDiagram(component)) {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
     }
 }
 

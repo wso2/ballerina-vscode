@@ -522,7 +522,7 @@ interface ComponentDiagramProps {
     projectPath: string;
 }
 
-export function Overview(props: ComponentDiagramProps) {
+export function PackageOverview(props: ComponentDiagramProps) {
     const { projectPath } = props;
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
