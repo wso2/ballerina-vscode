@@ -193,11 +193,11 @@ export interface TempDirectoryPath {
 }
 
 export interface ExtractMappingDetailsRequest {
-    parameters: MappingParameters;                
-    recordMap: Record<string, DataMappingRecord>;  
-    allImports: ImportInfo[];  
-    existingFunctions: ComponentInfo[];    
-    functionContents: Record<string, string>;        
+    parameters: MappingParameters;
+    recordMap: Record<string, DataMappingRecord>;
+    allImports: ImportInfo[];
+    existingFunctions: ComponentInfo[];
+    functionContents: Record<string, string>;
 }
 
 export interface ExistingFunctionMatchResult {
@@ -207,13 +207,13 @@ export interface ExistingFunctionMatchResult {
 }
 
 export interface ExtractMappingDetailsResponse {
-    inputs: DataMappingRecord[];    
-    output: DataMappingRecord; 
+    inputs: DataMappingRecord[];
+    output: DataMappingRecord;
     inputParams: string[];
-    outputParam: string;   
+    outputParam: string;
     imports: ImportInfo[];
     inputNames: string[];
-    existingFunctionMatch: ExistingFunctionMatchResult;       
+    existingFunctionMatch: ExistingFunctionMatchResult;
 }
 
 export interface RepairCodeParams {
@@ -385,10 +385,10 @@ export interface GenerateCodeRequest {
 
 export interface GenerateAgentCodeRequest {
     usecase: string;
-    chatHistory: ChatMessage[];
+    chatHistory: any[];
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
-    assistantMessageId: string;
+    messageId: string;
 }
 
 export interface SourceFiles {

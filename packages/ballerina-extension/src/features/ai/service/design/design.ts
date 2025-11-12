@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, SourceFiles, AIChatMachineEventType} from "@wso2/ballerina-core";
-import { convertToModelMessages, ModelMessage, stepCountIs, streamText } from "ai";
+import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType} from "@wso2/ballerina-core";
+import { ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
-import { getErrorMessage, populateHistoryForAgent, transformProjectSource } from "../utils";
+import { getErrorMessage, populateHistoryForAgent } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
@@ -31,15 +31,16 @@ import { getTempProject, FileModificationInfo } from "../../utils/temp-project-u
 import { formatCodebaseStructure } from "./utils";
 
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
-    const assistantMessageId = params.assistantMessageId;
+    const messageId = params.messageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
     const historyMessages = populateHistoryForAgent(params.chatHistory);
     const hasHistory = historyMessages.length > 0;
-    const { path: tempProjectPath, modifications } = await getTempProject(project, hasHistory);
+    const { path: tempProjectPath } = await getTempProject(project, hasHistory);
     const cacheOptions = await getProviderCacheControl();
 
     const modifiedFiles: string[] = [];
 
+    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
@@ -49,7 +50,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
         ...historyMessages,
         {
             role: "user",
-            content: getUserPrompt(params.usecase, modifications, hasHistory, tempProjectPath),
+            content: userMessageContent,
             providerOptions: cacheOptions,
         },
     ];
@@ -161,19 +162,17 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                     }
                     messagesToSave = accumulatedMessages;
                 }
-                // TODO: Need to send both user message and assistant message here
-                if (messagesToSave.length > 0) {
-                    AIChatStateMachine.sendEvent({
-                        type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
-                        payload: {
-                            id: assistantMessageId,
-                            modelMessages: messagesToSave,
-                        },
-                    });
-                }
 
+                // Add user message to inform about abort and file reversion
+                messagesToSave.push({
+                    role: "user",
+                    content: `<abort_notification>
+Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+</abort_notification>`,
+                });
+
+                updateAndSaveChat(messageId, userMessageContent, messagesToSave, eventHandler);
                 eventHandler({ type: "abort", command: Command.Design });
-                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
@@ -191,17 +190,8 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
-                // TODO: Need to send both user message and assistant message here
-                AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
-                    payload: {
-                        id: assistantMessageId,
-                        modelMessages: assistantMessages,
-                    },
-                });
-
+                updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });
-                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
@@ -209,6 +199,34 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
             }
             }
         }
+}
+
+/**
+ * Updates chat message with model messages and triggers save
+ */
+function updateAndSaveChat(
+    messageId: string,
+    userMessageContent: any,
+    assistantMessages: any[],
+    eventHandler: CopilotEventHandler
+): void {
+    const completeMessages = [
+        {
+            role: "user",
+            content: userMessageContent,
+        },
+        ...assistantMessages
+    ];
+
+    AIChatStateMachine.sendEvent({
+        type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
+        payload: {
+            id: messageId,
+            modelMessages: completeMessages,
+        },
+    });
+
+    eventHandler({ type: "save_chat", command: Command.Design, messageId });
 }
 
 export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
@@ -360,28 +378,21 @@ When generating Ballerina code:
 }
 
 /**
- * Generates user prompt content array with optional modifications or codebase structure
+ * Generates user prompt content array with codebase structure for new threads
  * @param usecase User's query/requirement
- * @param modifications File modifications detected (used when hasHistory is true)
  * @param hasHistory Whether chat history exists
  * @param tempProjectPath Path to temp project (used when hasHistory is false)
  */
-function getUserPrompt(usecase: string, modifications: FileModificationInfo[], hasHistory: boolean, tempProjectPath: string) {
+function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string) {
     const content = [];
 
-    if (hasHistory) {
-        if (modifications.length > 0) {
-            content.push({
-                type: 'text' as const,
-                text: formatModifications(modifications)
-            });
-        }
-    } else {
+    if (!hasHistory) {
         content.push({
             type: 'text' as const,
             text: formatCodebaseStructure(tempProjectPath)
         });
     }
+
     content.push({
         type: 'text' as const,
         text: `<User Query>
@@ -394,6 +405,8 @@ ${usecase}
 
 /**
  * Formats file modifications into XML structure for Claude
+ * TODO: This function is currently not used. Can be removed if workspace modification
+ * tracking is not needed in the future.
  */
 function formatModifications(modifications: FileModificationInfo[]): string {
     if (modifications.length === 0) {

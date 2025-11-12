@@ -581,7 +581,7 @@ const AIChat: React.FC = () => {
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const command = response.command;
-            const assistantMessageId = response.assistantMessageId;
+            const messageId = response.messageId;
 
             // Save chat entries
             addChatEntry(
@@ -591,11 +591,11 @@ const AIChat: React.FC = () => {
             );
             addChatEntry("assistant", messages[messages.length - 1].content);
 
-            // Update assistant message in state machine with UI message
+            // Update chat message in state machine with UI message
             rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
                 payload: {
-                    id: assistantMessageId,
+                    id: messageId,
                     uiResponse: messages[messages.length - 1].content
                 }
             });
