@@ -80,6 +80,7 @@ import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationV
 import Popup from "./components/Popup";
 import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
+import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 
 const globalStyles = css`
     *,
@@ -280,9 +281,16 @@ const MainPanel = () => {
                 setViewComponent(<LoadingRing />);
             } else {
                 switch (value?.view) {
-                    case MACHINE_VIEW.Overview:
+                    case MACHINE_VIEW.PackageOverview:
                         setViewComponent(
                             <PackageOverview
+                                projectPath={value.projectPath}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.WorkspaceOverview:
+                        setViewComponent(
+                            <WorkspaceOverview
                                 projectPath={value.projectPath}
                             />
                         );
