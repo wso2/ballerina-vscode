@@ -116,7 +116,6 @@ public class ReferenceType {
         return new TypeInfo(name, typeSymbol);
     }
 
-
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, ModuleID moduleID,
                                              List<Symbol> typeDefSymbols) {
         TypeDescKind kind = symbol.typeKind();
@@ -163,37 +162,8 @@ public class ReferenceType {
                     fieldModuleId = getModuleID(fieldTypeSymbol, moduleID);
                 }
                 RefType fieldType = fromSemanticSymbol(fieldTypeSymbol, fieldTypeName, fieldModuleId, typeDefSymbols);
-                if (fieldType.dependentTypeKeys == null || fieldType.dependentTypeKeys.isEmpty()) {
-                    if (fieldType.hashCode != null && fieldType.typeName.equals("record")) {
-                        RefType t = new RefType(fieldType.name);
-                        t.hashCode = fieldType.hashCode;
-                        t.key = fieldType.key;
-                        t.typeName = fieldType.typeName;
-                        t.moduleInfo = fieldType.moduleInfo;
-                        recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
-                    } else {
-                        recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
-                    }
-                } else {
-                    if (fieldType instanceof RefRecordType) {
-                        RefType t = new RefType(fieldType.name);
-                        t.hashCode = fieldType.hashCode;
-                        t.key = fieldType.key;
-                        t.typeName = fieldType.typeName;
-                        t.moduleInfo = fieldType.moduleInfo;
-                        recordType.fields.add(new Field(fieldName, t, fieldSymbol.isOptional(), ""));
-                    } else {
-                        recordType.fields.add(new Field(fieldName, fieldType, fieldSymbol.isOptional(), ""));
-                    }
-                    recordType.dependentTypeKeys.addAll(fieldType.dependentTypeKeys);
-                }
-                if (fieldType.key != null) {
-                    if (fieldType.name.isEmpty()) {
-                        recordType.dependentTypeKeys.add(fieldType.hashCode);
-                    } else {
-                        recordType.dependentTypeKeys.add(fieldType.key);
-                    }
-                }
+                RefType processedFieldType = processMemberType(fieldType, recordType);
+                recordType.fields.add(new Field(fieldName, processedFieldType, fieldSymbol.isOptional(), ""));
             });
 
             return recordType;
@@ -208,37 +178,7 @@ public class ReferenceType {
             ModuleID elementModuleId = getModuleID(elementTypeSymbol, moduleID);
             RefType elementType = fromSemanticSymbol(elementTypeSymbol, elementTypeName, elementModuleId,
                     typeDefSymbols);
-            if (elementType.dependentTypeKeys == null || elementType.dependentTypeKeys.isEmpty()) {
-                if (elementType.hashCode != null && elementType.typeName.equals("record")) {
-                    RefType t = new RefType(elementType.name);
-                    t.hashCode = elementType.hashCode;
-                    t.key = elementType.key;
-                    t.typeName = elementType.typeName;
-                    t.moduleInfo = elementType.moduleInfo;
-                    arrayType.elementType = t;
-                } else {
-                    arrayType.elementType = elementType;
-                }
-            } else {
-                if (elementType instanceof RefRecordType) {
-                    RefType t = new RefType(elementType.name);
-                    t.hashCode = elementType.hashCode;
-                    t.key = elementType.key;
-                    t.typeName = elementType.typeName;
-                    t.moduleInfo = elementType.moduleInfo;
-                    arrayType.elementType = t;
-                } else {
-                    arrayType.elementType = elementType;
-                }
-                arrayType.dependentTypeKeys.addAll(elementType.dependentTypeKeys);
-            }
-            if (elementType.key != null) {
-                if (elementType.name.isEmpty()) {
-                    arrayType.dependentTypeKeys.add(elementType.hashCode);
-                } else {
-                    arrayType.dependentTypeKeys.add(elementType.key);
-                }
-            }
+            arrayType.elementType = processMemberType(elementType, arrayType);
             arrayType.hashCode = arrayType.elementType.hashCode;
             arrayType.key = arrayType.elementType.key;
             return arrayType;
@@ -253,37 +193,7 @@ public class ReferenceType {
             ModuleID valueModuleId = getModuleID(valueTypeSymbol, moduleID);
             RefType valueType = fromSemanticSymbol(valueTypeSymbol, valueTypeName, valueModuleId,
                     typeDefSymbols);
-            if (valueType.dependentTypeKeys == null || valueType.dependentTypeKeys.isEmpty()) {
-                if (valueType.hashCode != null && valueType.typeName.equals("record")) {
-                    RefType t = new RefType(valueType.name);
-                    t.hashCode = valueType.hashCode;
-                    t.key = valueType.key;
-                    t.typeName = valueType.typeName;
-                    t.moduleInfo = valueType.moduleInfo;
-                    mapType.valueType = t;
-                } else {
-                    mapType.valueType = valueType;
-                }
-            } else {
-                if (valueType instanceof RefRecordType) {
-                    RefType t = new RefType(valueType.name);
-                    t.hashCode = valueType.hashCode;
-                    t.key = valueType.key;
-                    t.typeName = valueType.typeName;
-                    t.moduleInfo = valueType.moduleInfo;
-                    mapType.valueType = t;
-                } else {
-                    mapType.valueType = valueType;
-                }
-                mapType.dependentTypeKeys.addAll(valueType.dependentTypeKeys);
-            }
-            if (valueType.key != null) {
-                if (valueType.name.isEmpty()) {
-                    mapType.dependentTypeKeys.add(valueType.hashCode);
-                } else {
-                    mapType.dependentTypeKeys.add(valueType.key);
-                }
-            }
+            mapType.valueType = processMemberType(valueType, mapType);
             return mapType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
@@ -304,38 +214,8 @@ public class ReferenceType {
                 ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
                 RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
                         memberModuleId, typeDefSymbols);
-                if (memberType.dependentTypeKeys == null || memberType.dependentTypeKeys.isEmpty()) {
-                    if (memberType.hashCode != null && memberType.typeName.equals("record")) {
-                        RefType t = new RefType(memberType.name);
-                        t.hashCode = memberType.hashCode;
-                        t.key = memberType.key;
-                        t.typeName = memberType.typeName;
-                        t.moduleInfo = memberType.moduleInfo;
-                        unionType.memberTypes.add(t);
-                    } else {
-                        unionType.memberTypes.add(memberType);
-                    }
-                } else {
-                    if (memberType instanceof RefRecordType) {
-                        RefType t = new RefType(memberType.name);
-                        t.hashCode = memberType.hashCode;
-                        t.key = memberType.key;
-                        t.typeName = memberType.typeName;
-                        t.moduleInfo = memberType.moduleInfo;
-                        unionType.memberTypes.add(t);
-                    } else {
-                        unionType.memberTypes.add(memberType);
-                    }
-                    unionType.dependentTypeKeys.addAll(memberType.dependentTypeKeys);
-
-                }
-                if (memberType.key != null) {
-                    if (memberType.name.isEmpty()) {
-                        unionType.dependentTypeKeys.add(memberType.hashCode);
-                    } else {
-                        unionType.dependentTypeKeys.add(memberType.key);
-                    }
-                }
+                RefType processedMemberType = processMemberType(memberType, unionType);
+                unionType.memberTypes.add(processedMemberType);
             }
             return unionType;
         } else if (kind == TypeDescKind.INTERSECTION) {
@@ -384,6 +264,57 @@ public class ReferenceType {
 
         throw new UnsupportedOperationException(
                 "Unsupported type kind: " + kind + " for symbol: " + symbol.getName().orElse("unknown"));
+    }
+
+    /**
+     * Creates a shallow reference copy of a RefType (without dependent types).
+     */
+    private static RefType createShallowRef(RefType type) {
+        RefType ref = new RefType(type.name);
+        ref.hashCode = type.hashCode;
+        ref.key = type.key;
+        ref.typeName = type.typeName;
+        ref.moduleInfo = type.moduleInfo;
+        return ref;
+    }
+
+    /**
+     * Processes a member type and returns either the original type or a shallow reference.
+     * This handles the logic for record types and dependent types, and updates the parent's dependent keys.
+     */
+    private static RefType processMemberType(RefType memberType, RefType parentType) {
+        boolean hasDependentTypes = memberType.dependentTypeKeys != null && !memberType.dependentTypeKeys.isEmpty();
+        boolean shouldCreateRef = (hasDependentTypes && memberType instanceof RefRecordType) ||
+                (!hasDependentTypes && memberType.hashCode != null &&
+                        memberType.typeName.equals("record"));
+
+        if (shouldCreateRef) {
+            RefType ref = createShallowRef(memberType);
+            if (hasDependentTypes) {
+                parentType.dependentTypeKeys.addAll(memberType.dependentTypeKeys);
+            }
+            addDependentTypeKey(parentType, memberType);
+            return ref;
+        }
+
+        if (hasDependentTypes) {
+            parentType.dependentTypeKeys.addAll(memberType.dependentTypeKeys);
+        }
+        addDependentTypeKey(parentType, memberType);
+        return memberType;
+    }
+
+    /**
+     * Adds the member type's key to the parent type's dependent keys.
+     */
+    private static void addDependentTypeKey(RefType parentType, RefType memberType) {
+        if (memberType.key != null) {
+            if (memberType.name.isEmpty()) {
+                parentType.dependentTypeKeys.add(memberType.hashCode);
+            } else {
+                parentType.dependentTypeKeys.add(memberType.key);
+            }
+        }
     }
 
     private static List<TypeSymbol> filterNilOrError(UnionTypeSymbol unionTypeSymbol) {
