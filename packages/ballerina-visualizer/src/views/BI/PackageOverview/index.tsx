@@ -26,7 +26,8 @@ import {
     DevantMetadata,
     SHARED_COMMANDS,
     DIRECTORY_MAP,
-    SCOPE
+    SCOPE,
+    WorkspaceTypeResponse
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay } from "@wso2/ui-toolkit";
@@ -41,6 +42,7 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
+import { TopNavigationBar } from "../../../components/TopNavigationBar";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -85,14 +87,14 @@ const PageLayout = styled.div`
     grid-template-rows: auto auto;
 `;
 
-const HeaderRow = styled.div`
+const HeaderRow = styled.div<{ isBallerinaWorkspace?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 0 16px 16px;
     background: var(--vscode-editor-background);
     border-bottom: 1px solid var(--vscode-dropdown-border);
-    margin: 16px 16px 0 16px;
+    margin: ${(props: { isBallerinaWorkspace?: boolean }) => props.isBallerinaWorkspace ? '0 16px 0 16px' : '16px 16px 0 16px'};
 `;
 
 const HeaderControls = styled.div`
@@ -528,6 +530,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
+    const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
 
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
@@ -574,6 +577,13 @@ export function PackageOverview(props: ComponentDiagramProps) {
             .getReadmeContent()
             .then((res) => {
                 setReadmeContent(res.content);
+            });
+
+        rpcClient
+            .getCommonRpcClient()
+            .getWorkspaceType()
+            .then((res) => {
+                setWorkspaceType(res);
             });
     };
 
@@ -737,133 +747,136 @@ export function PackageOverview(props: ComponentDiagramProps) {
     }
 
     return (
-        <PageLayout>
-            <HeaderRow>
-                <TitleContainer>
-                    <ProjectTitle>{projectStructure.projectName || workspaceName}</ProjectTitle>
-                    <ProjectSubtitle>Integration</ProjectSubtitle>
-                </TitleContainer>
-                <HeaderControls>
-                    <UndoRedoGroup key={Date.now()} />
-                    <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
-                        <Icon
-                            name="bi-settings"
-                            sx={{
-                                marginRight: 5,
-                                fontSize: "16px",
-                                width: "16px",
-                            }}
-                        />
-                        Configure
-                    </Button>
-                    <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-                    </Button>
-                    <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
-                    </Button>
-                </HeaderControls>
-            </HeaderRow>
-
-            <MainContent>
-                <LeftContent>
-                    <DiagramPanel noPadding={true}>
-                        {showAlert && (
-                            <AlertBoxWithClose
-                                subTitle={
-                                    "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
-                                }
-                                title={"Login to WSO2 AI Platform"}
-
-                                btn1Title="Manage Accounts"
-                                btn1IconName="settings-gear"
-                                btn1OnClick={() => handleSettings()}
-                                btn1Id="settings"
-
-                                btn2Title="Close"
-                                btn2IconName="close"
-                                btn2OnClick={() => handleClose()}
-                                btn2Id="Close"
+        <>
+            <TopNavigationBar />
+            <PageLayout>
+                <HeaderRow isBallerinaWorkspace={workspaceType?.type === "BALLERINA_WORKSPACE"}>
+                    <TitleContainer>
+                        <ProjectTitle>{projectStructure.projectName || workspaceName}</ProjectTitle>
+                        <ProjectSubtitle>Integration</ProjectSubtitle>
+                    </TitleContainer>
+                    <HeaderControls>
+                        <UndoRedoGroup key={Date.now()} />
+                        <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
+                            <Icon
+                                name="bi-settings"
+                                sx={{
+                                    marginRight: 5,
+                                    fontSize: "16px",
+                                    width: "16px",
+                                }}
                             />
-                        )}
-                        <DiagramHeaderContainer withPadding={true}>
-                            <Title variant="h2">Design</Title>
-                            {!isEmptyProject() && (<ActionContainer>
-                                <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
-                                </Button>
-                                <Button appearance="primary" onClick={handleAddConstruct}>
-                                    <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                </Button>
-                            </ActionContainer>)}
-                        </DiagramHeaderContainer>
-                        <DiagramContent>
-                            {isEmptyProject() ? (
-                                <EmptyStateContainer>
-                                    <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                        Your project is empty
-                                    </Typography>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
-                                    >
-                                        Start by adding artifacts or use AI to generate your project structure
-                                    </Typography>
-                                    <ButtonContainer>
-                                        <Button appearance="primary" onClick={handleAddConstruct}>
-                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                        </Button>
-                                        <Button appearance="secondary" onClick={handleGenerate}>
-                                            <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                        </Button>
-                                    </ButtonContainer>
-                                </EmptyStateContainer>
-                            ) : (
-                                <ComponentDiagram projectStructure={projectStructure} />
+                            Configure
+                        </Button>
+                        <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                            <Codicon name="play" sx={{ marginRight: 5 }} /> Run
+                        </Button>
+                        <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
+                            <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+                        </Button>
+                    </HeaderControls>
+                </HeaderRow>
+
+                <MainContent>
+                    <LeftContent>
+                        <DiagramPanel noPadding={true}>
+                            {showAlert && (
+                                <AlertBoxWithClose
+                                    subTitle={
+                                        "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
+                                    }
+                                    title={"Login to WSO2 AI Platform"}
+
+                                    btn1Title="Manage Accounts"
+                                    btn1IconName="settings-gear"
+                                    btn1OnClick={() => handleSettings()}
+                                    btn1Id="settings"
+
+                                    btn2Title="Close"
+                                    btn2IconName="close"
+                                    btn2OnClick={() => handleClose()}
+                                    btn2Id="Close"
+                                />
                             )}
-                        </DiagramContent>
-                    </DiagramPanel>
-                    <FooterPanel>
-                        <ReadmeHeaderContainer>
-                            <Title variant="h2">README</Title>
-                            <ReadmeButtonContainer>
-                                {readmeContent && isEmptyProject() && (
-                                    <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                            <DiagramHeaderContainer withPadding={true}>
+                                <Title variant="h2">Design</Title>
+                                {!isEmptyProject() && (<ActionContainer>
+                                    <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
+                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
                                     </Button>
+                                    <Button appearance="primary" onClick={handleAddConstruct}>
+                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                    </Button>
+                                </ActionContainer>)}
+                            </DiagramHeaderContainer>
+                            <DiagramContent>
+                                {isEmptyProject() ? (
+                                    <EmptyStateContainer>
+                                        <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                            Your project is empty
+                                        </Typography>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
+                                        >
+                                            Start by adding artifacts or use AI to generate your project structure
+                                        </Typography>
+                                        <ButtonContainer>
+                                            <Button appearance="primary" onClick={handleAddConstruct}>
+                                                <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                            </Button>
+                                            <Button appearance="secondary" onClick={handleGenerate}>
+                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                            </Button>
+                                        </ButtonContainer>
+                                    </EmptyStateContainer>
+                                ) : (
+                                    <ComponentDiagram projectStructure={projectStructure} />
                                 )}
-                                <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
-                                    <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
-                                </Button>
-                            </ReadmeButtonContainer>
-                        </ReadmeHeaderContainer>
-                        <ReadmeContent>
-                            {readmeContent ? (
-                                <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                            ) : (
-                                <EmptyReadmeContainer>
-                                    <Description variant="body2">
-                                        Describe your integration and generate your artifacts with AI
-                                    </Description>
-                                    <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
-                                </EmptyReadmeContainer>
-                            )}
-                        </ReadmeContent>
-                    </FooterPanel>
-                </LeftContent>
-                <SidePanel>
-                    <DeploymentOptions
-                        handleDockerBuild={handleDockerBuild}
-                        handleJarBuild={handleJarBuild}
-                        handleDeploy={handleDeploy}
-                        goToDevant={goToDevant}
-                        devantMetadata={devantMetadata}
-                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
-                    />
-                    <Divider sx={{ margin: "16px 0" }} />
-                    <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
-                </SidePanel>
-            </MainContent>
-        </PageLayout>
+                            </DiagramContent>
+                        </DiagramPanel>
+                        <FooterPanel>
+                            <ReadmeHeaderContainer>
+                                <Title variant="h2">README</Title>
+                                <ReadmeButtonContainer>
+                                    {readmeContent && isEmptyProject() && (
+                                        <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
+                                            <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                        </Button>
+                                    )}
+                                    <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                                        <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
+                                    </Button>
+                                </ReadmeButtonContainer>
+                            </ReadmeHeaderContainer>
+                            <ReadmeContent>
+                                {readmeContent ? (
+                                    <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                ) : (
+                                    <EmptyReadmeContainer>
+                                        <Description variant="body2">
+                                            Describe your integration and generate your artifacts with AI
+                                        </Description>
+                                        <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                                    </EmptyReadmeContainer>
+                                )}
+                            </ReadmeContent>
+                        </FooterPanel>
+                    </LeftContent>
+                    <SidePanel>
+                        <DeploymentOptions
+                            handleDockerBuild={handleDockerBuild}
+                            handleJarBuild={handleJarBuild}
+                            handleDeploy={handleDeploy}
+                            goToDevant={goToDevant}
+                            devantMetadata={devantMetadata}
+                            hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                        />
+                        <Divider sx={{ margin: "16px 0" }} />
+                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                    </SidePanel>
+                </MainContent>
+            </PageLayout>
+        </>
     );
 }

@@ -67,8 +67,16 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     goHome(): void {
         history.clear();
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
         commands.executeCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS).then(() => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview }, true);
+            openView(
+                EVENT_TYPE.OPEN_VIEW,
+                { view: isWithinBallerinaWorkspace
+                    ? MACHINE_VIEW.WorkspaceOverview
+                    : MACHINE_VIEW.PackageOverview
+                },
+                true
+            );
         });
     }
 
