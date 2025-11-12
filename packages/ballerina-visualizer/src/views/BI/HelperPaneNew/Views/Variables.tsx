@@ -52,13 +52,13 @@ type VariablesPageProps = {
     onClose?: () => void;
 }
 
-type VariableItemProps = {
+export type VariableItemProps = {
     item: CompletionItem;
-    onItemSelect: (value: string) => void;
+    onItemSelect: (value: string, item: CompletionItem) => void;
     onMoreIconClick: (value: string) => void;
 }
 
-const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
+export const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
     const showArrow = shouldShowNavigationArrow(item);
 
     const mainContent = (
@@ -76,14 +76,14 @@ const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps
     );
 
     const endAction = showArrow ? (
-        <Codicon 
-            name="chevron-right" 
+        <Codicon
+            name="chevron-right"
         />
     ) : undefined;
 
     return (
         <HelperPaneListItem
-            onClick={() => onItemSelect(item.label)}
+            onClick={() => onItemSelect(item.label, item)}
             endAction={endAction}
             onClickEndAction={() => onMoreIconClick(item.label)}
         >
@@ -157,12 +157,12 @@ export const Variables = (props: VariablesPageProps) => {
 
     const dropdownItems = useMemo(() => {
         const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
-        
+
         return filteredCompletions.filter(
             (completion) =>
                 (completion.kind === "field" || completion.kind === "variable") &&
                 completion.label !== "self" &&
-                !excludedDescriptions.some(desc => 
+                !excludedDescriptions.some(desc =>
                     completion.labelDetails?.description?.includes(desc)
                 )
         );

@@ -21,6 +21,8 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
+import { Documents } from './Views/Documents';
+import { DocumentConfig } from './Views/DocumentConfig';
 import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
@@ -94,7 +96,7 @@ const HelperPaneNewEl = ({
     handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = valueTypeConstraint ? 5 : 4
+    const currentMenuItemCount = valueTypeConstraint ? 6 : 5
 
     const { addModal } = useModalStack()
 
@@ -299,7 +301,7 @@ const HelperPaneNewEl = ({
                                             Variables
                                         </Typography>
                                     </ExpandableList.Item>
-                                </SlidingPaneNavContainer>                                
+                                </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
                                     to="CONFIGURABLES"
@@ -321,6 +323,17 @@ const HelperPaneNewEl = ({
                                         {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
                                         <Typography variant="body3" sx={{ fontWeight: 600 }}>
                                             Functions
+                                        </Typography>
+                                    </ExpandableList.Item>
+                                </SlidingPaneNavContainer>
+                                <SlidingPaneNavContainer
+                                    ref={el => menuItemRefs.current[5] = el}
+                                    to="DOCUMENTS"
+                                >
+                                    <ExpandableList.Item>
+                                        {getHelperPaneIcon(HelperPaneIconType.DOCUMENT)}
+                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                            Documents
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
@@ -404,6 +417,29 @@ const HelperPaneNewEl = ({
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
                             onClose={onClose}
+                        />
+                    </SlidingPane>
+
+                    {/* Documents Page */}
+                    <SlidingPane name="DOCUMENTS" paneWidth={300}>
+                        <SlidingPaneHeader>
+                            Documents
+                        </SlidingPaneHeader>
+                        <Documents />
+                    </SlidingPane>
+
+                    {/* Single Document Configuration Page - handles all document types */}
+                    <SlidingPane name="DOCUMENT_CONFIG" paneWidth={300}>
+                        <SlidingPaneHeader>
+                            Documents
+                        </SlidingPaneHeader>
+                        <DocumentConfig
+                            onChange={handleChange}
+                            onClose={onClose}
+                            targetLineRange={targetLineRange}
+                            filteredCompletions={filteredCompletions || []}
+                            currentValue={currentValue}
+                            handleRetrieveCompletions={handleRetrieveCompletions}
                         />
                     </SlidingPane>
                 </SlidingWindow>
