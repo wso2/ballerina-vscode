@@ -28,11 +28,11 @@ import {
     MONITERED_EXTENSIONS,
     COMMAND_SHOW_TEXT
 } from './constants';
-import { isSupportedSLVersion } from "../../utils";
+import { isSupportedSLVersion, createVersionNumber } from "../../utils";
 import { CustomDiagnostic } from './custom-diagnostics';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
-const BALLERINA_UPDATE_13 = 2201130;
+const BALLERINA_UPDATE_13 = createVersionNumber(2201, 13, 0); // Version 2201.13.0
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
     const backgroundDriftCheckConfig = vscode.workspace.getConfiguration().get<boolean>(ENABLE_BACKGROUND_DRIFT_CHECK);
