@@ -48,11 +48,11 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const nameField: DMFormField = {
         key: "name",
-        label: "Name",
+        label: clauseType === IntermediateClauseType.JOIN ? "Item Alias" : "Name",
         type: "IDENTIFIER",
         optional: false,
         editable: true,
-        documentation: "Enter the name of the tool.",
+        documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter the name for variable",
         value: clauseProps?.name ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -64,7 +64,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         type: "TYPE",
         optional: false,
         editable: true,
-        documentation: "Enter the type of the clause.",
+        documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -72,11 +72,11 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const expressionField: DMFormField = {
         key: "expression",
-        label: "Expression",
+        label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" : "Expression",
         type: "EXPRESSION",
         optional: false,
         editable: true,
-        documentation: "Enter the expression of the clause.",
+        documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" : "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -88,23 +88,11 @@ export function ClauseEditor(props: ClauseEditorProps) {
         type: "ENUM",
         optional: false,
         editable: true,
-        documentation: "Enter the order.",
+        documentation: "Enter the order",
         value: clauseProps?.order ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
         items: ["ascending", "descending"]
-    }
-
-    const isOuterField: DMFormField = {
-        key: "isOuter",
-        label: "Left Outer Equijoin",
-        type: "FLAG",
-        optional: false,
-        editable: true,
-        documentation: "Specify whether the join is a left outer equijoin",
-        value: clauseProps?.isOuter ?? false,
-        valueTypeConstraint: "Global",
-        enabled: true,
     }
 
     const lhsExpressionField: DMFormField = {
@@ -113,7 +101,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         type: "EXPRESSION",
         optional: false,
         editable: true,
-        documentation: "Enter the LHS expression of join-on condition.",
+        documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -125,7 +113,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         type: "EXPRESSION",
         optional: false,
         editable: true,
-        documentation: "Enter the RHS expression of join-on condition.",
+        documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -133,10 +121,15 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const handleSubmit = (data: DMFormFieldValues) => {
         setClauseToAdd(undefined);
-        onSubmit({
+        const clause: IntermediateClause = {
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
-        });
+        };
+        if (clauseType === IntermediateClauseType.JOIN) {
+            clause.properties.type = "var";
+            clause.properties.isOuter = false;
+        }
+        onSubmit(clause);
     }
 
     const handleCancel = () => {
@@ -153,7 +146,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             case IntermediateClauseType.ORDER_BY:
                 return [expressionField, orderField];
             case IntermediateClauseType.JOIN:
-                return [nameField, typeField, expressionField, isOuterField, lhsExpressionField, rhsExpressionField];
+                return [expressionField, nameField, lhsExpressionField, rhsExpressionField];
             default:
                 return [expressionField];
         }
