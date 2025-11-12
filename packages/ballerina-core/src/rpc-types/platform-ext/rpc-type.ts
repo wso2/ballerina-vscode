@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ConnectionDetailed, ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "./interfaces";
 
@@ -29,11 +29,13 @@ export const getMarketplaceItems: RequestType<GetMarketplaceListReq, Marketplace
 export const getMarketplaceItem: RequestType<GetMarketplaceItemReq, MarketplaceItem> = { method: `${_preFix}/getMarketplaceItem` };
 export const getMarketplaceIdl: RequestType<GetMarketplaceIdlReq,  MarketplaceIdlResp> = { method: `${_preFix}/getMarketplaceIdl` };
 export const getConnections: RequestType<GetConnectionsReq,  ConnectionListItem[]> = { method: `${_preFix}/getConnections` };
-export const getConnection: RequestType<GetConnectionItemReq,  ConnectionListItem> = { method: `${_preFix}/getConnection` };
+export const getConnection: RequestType<GetConnectionItemReq,  ConnectionDetailed> = { method: `${_preFix}/getConnection` };
 export const deleteLocalConnectionsConfig: RequestType<DeleteLocalConnectionsConfigReq,  void> = { method: `${_preFix}/deleteLocalConnectionsConfig` };
 export const getDevantConsoleUrl: RequestType<void,  string> = { method: `${_preFix}/getDevantConsoleUrl` };
 export const refreshConnectionList: RequestType<void,  void> = { method: `${_preFix}/refreshConnectionList` };
 export const getPlatformStore: RequestType<void,  PlatformExtState> = { method: `${_preFix}/getPlatformStore` };
+export const setConnectedToDevant: RequestType<boolean,  void> = { method: `${_preFix}/setConnectedToDevant` };
+export const setSelectedComponent: RequestType<string,  void> = { method: `${_preFix}/setSelectedComponent` };
 
 // Notifications
 export const onPlatformExtStoreStateChange: NotificationType<PlatformExtState> = { method: `${_preFix}/onPlatformExtStoreStateChange` };

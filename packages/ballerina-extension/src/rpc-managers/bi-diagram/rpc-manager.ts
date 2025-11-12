@@ -64,7 +64,6 @@ import {
     DeleteTypeResponse,
     DeploymentRequest,
     DeploymentResponse,
-    DevantMetadata,
     Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
@@ -1713,41 +1712,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return { mentions: recordNames };
     }
 
-    // todo: move all platform ext related handlers to platform ext rpc handler
-    async getDevantMetadata(): Promise<DevantMetadata | undefined> {
-        let hasContextYaml = false;
-        let isLoggedIn = false;
-        let hasComponent = false;
-        let hasLocalChanges = false;
-        try {
-            const projectRoot = StateMachine.context().projectUri;
-            const repoRoot = getRepoRoot(projectRoot);
-            if (repoRoot) {
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
-                    hasContextYaml = true;
-                }
-            }
-
-            const platformExt = extensions.getExtension("wso2.wso2-platform");
-            if (!platformExt) {
-                return { hasComponent: hasContextYaml, isLoggedIn: false };
-            }
-            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
-            hasLocalChanges = await platformExtAPI.localRepoHasChanges(projectRoot);
-            isLoggedIn = platformExtAPI.isLoggedIn();
-            if (isLoggedIn) {
-                const components = platformExtAPI.getDirectoryComponents(projectRoot);
-                hasComponent = components.length > 0;
-                return { isLoggedIn, hasComponent, hasLocalChanges };
-            }
-            return { isLoggedIn, hasComponent: hasContextYaml, hasLocalChanges };
-        } catch (err) {
-            console.error("failed to call getDevantMetadata: ", err);
-            return { hasComponent: hasComponent || hasContextYaml, isLoggedIn, hasLocalChanges };
-        }
-    }
-
     async getRecordConfig(params: GetRecordConfigRequest): Promise<GetRecordConfigResponse> {
         return new Promise((resolve, reject) => {
             StateMachine.langClient().getRecordConfig(params).then((res) => {
@@ -1977,19 +1941,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 });
         });
     }
-}
-
-export function getRepoRoot(projectRoot: string): string | undefined {
-    // traverse up the directory tree until .git directory is found
-    const gitDir = path.join(projectRoot, ".git");
-    if (fs.existsSync(gitDir)) {
-        return projectRoot;
-    }
-    // path is root return undefined
-    if (projectRoot === path.parse(projectRoot).root) {
-        return undefined;
-    }
-    return getRepoRoot(path.join(projectRoot, ".."));
 }
 
 export async function getBallerinaFiles(dir: string): Promise<string[]> {

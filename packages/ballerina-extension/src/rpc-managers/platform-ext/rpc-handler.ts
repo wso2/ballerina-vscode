@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { getMarketplaceItems, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore } from "@wso2/ballerina-core";
+import { getMarketplaceItems, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { PlatformExtRpcManager } from "./rpc-manager";
 import { DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, } from "@wso2/wso2-platform-core";
@@ -38,4 +38,6 @@ export function registerPlatformExtRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteLocalConnectionsConfig, (params: DeleteLocalConnectionsConfigReq) => rpcManger.deleteLocalConnectionsConfig(params));
     messenger.onRequest(getDevantConsoleUrl, () => rpcManger.getDevantConsoleUrl());
     messenger.onRequest(refreshConnectionList, () => rpcManger.refreshConnectionList());
+    messenger.onRequest(setConnectedToDevant, (connected: boolean) => rpcManger.setConnectedToDevant(connected));
+    messenger.onRequest(setSelectedComponent, (componentId: string) => rpcManger.setSelectedComponent(componentId));
 }
