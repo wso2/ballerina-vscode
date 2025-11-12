@@ -63,7 +63,7 @@ import { getSymbolInfo } from "@wso2/ballerina-low-code-diagram";
 import DiagramWrapper from "./views/BI/DiagramWrapper";
 import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { TypeDiagram } from "./views/TypeDiagram";
-import { Overview as OverviewBI } from "./views/BI/Overview/index";
+import { PackageOverview } from "./views/BI/PackageOverview/index";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
 import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
@@ -282,7 +282,7 @@ const MainPanel = () => {
                 switch (value?.view) {
                     case MACHINE_VIEW.Overview:
                         setViewComponent(
-                            <OverviewBI
+                            <PackageOverview
                                 projectPath={value.projectPath}
                             />
                         );

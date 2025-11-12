@@ -55,7 +55,7 @@ const stateMachine = createMachine<MachineContext>(
             langClient: null,
             errorCode: null,
             isBISupported: false,
-            view: MACHINE_VIEW.Overview,
+            view: MACHINE_VIEW.PackageOverview,
             dependenciesResolved: false
         },
         on: {
@@ -120,7 +120,7 @@ const stateMachine = createMachine<MachineContext>(
                                 }),
                                 async (context, event) => {
                                     await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
-                                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
                                     notifyCurrentWebview();
                                 }
                             ]
@@ -492,7 +492,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!context.position || ("groupId" in context.position)) {
                         history.push({
                             location: {
-                                view: MACHINE_VIEW.Overview,
+                                view: MACHINE_VIEW.PackageOverview,
                                 documentUri: context.documentUri,
                                 package: packageName || context.package
                             }
@@ -528,9 +528,9 @@ const stateMachine = createMachine<MachineContext>(
                 const selectedEntry = getLastHistory();
                 if (!context.langClient) {
                     if (!selectedEntry) {
-                        return resolve({ view: MACHINE_VIEW.Overview, documentUri: context.documentUri });
+                        return resolve({ view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri });
                     }
-                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
+                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.PackageOverview });
                 }
 
                 if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
@@ -556,7 +556,7 @@ const stateMachine = createMachine<MachineContext>(
                 }) as SyntaxTree;
 
                 if (!selectedEntry?.location.view) {
-                    return resolve({ view: MACHINE_VIEW.Overview, documentUri: context.documentUri });
+                    return resolve({ view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri });
                 }
 
                 let selectedST;

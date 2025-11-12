@@ -186,7 +186,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     console.log("No artifact update notification received within 10 seconds");
                     unsubscribe();
                     StateMachine.setReadyMode();
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                     reject(new Error("Operation timed out. Please try again."));
                 }, 10000);
 

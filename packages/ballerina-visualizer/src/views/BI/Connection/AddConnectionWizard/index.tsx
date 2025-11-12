@@ -363,7 +363,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.Overview,
+                view: MACHINE_VIEW.PackageOverview,
             },
         });
     };

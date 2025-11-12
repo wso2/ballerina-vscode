@@ -262,7 +262,7 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
         }
     }
 
-    return { location: { view: MACHINE_VIEW.Overview, documentUri: documentUri } };
+    return { location: { view: MACHINE_VIEW.PackageOverview, documentUri: documentUri } };
 
 }
 
@@ -291,7 +291,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
             }
         }
         // If no view is found, return the overview view
-        return { location: { view: MACHINE_VIEW.Overview, documentUri: documentUri } };
+        return { location: { view: MACHINE_VIEW.PackageOverview, documentUri: documentUri } };
     }
 }
 
