@@ -16,9 +16,9 @@
  * under the License.
  */
 
+import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import * as os from 'os';
 import { TextEdit } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 
@@ -80,7 +80,7 @@ export async function askFilePath() {
         canSelectMany: false,
         defaultUri: Uri.file(StateMachine.context().projectUri  ?? os.homedir()),
         filters: {
-            'Files': ['yaml', 'json', 'yml']
+            'Files': ['yaml', 'json', 'yml', 'graphql']
         },
         title: "Select a file",
     });

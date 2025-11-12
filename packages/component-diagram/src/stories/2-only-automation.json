@@ -1,0 +1,24 @@
+{
+    "automation": {
+        "name": "automation",
+        "location": {
+            "filePath": "/project/path/test_sample/automation.bal",
+            "startLine": {
+                "line": 2,
+                "offset": 0
+            },
+            "endLine": {
+                "line": 8,
+                "offset": 1
+            }
+        },
+        "connections": [],
+        "type": "automation",
+        "uuid": "46687985-6a81-ae2d-c8db-f8fac6cc7fd2",
+        "enableFlowModel": true,
+        "sortText": "Z"
+    },
+    "connections": [],
+    "listeners": [],
+    "services": []
+}

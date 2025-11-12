@@ -31,18 +31,18 @@ export async function generateOpenAPISpecCore(
     const cacheOptions = await getProviderCacheControl();
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
-        maxTokens: 8192,
+        maxOutputTokens: 8192,
         temperature: 0,
         messages: [
             {
                 role: "system",
                 content: getSystemPrompt(),
-                providerOptions: cacheOptions,
+                providerOptions: cacheOptions
             },
             ...historyMessages,
             {
                 role: "user",
-                content: getUserPrompt(params.query),
+                content: getUserPrompt(params.query)
             },
         ],
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -53,7 +53,7 @@ export async function generateOpenAPISpecCore(
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = part.text;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
             }

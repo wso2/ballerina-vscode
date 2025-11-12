@@ -18,6 +18,7 @@
 
 export { WelcomeView } from "./WelcomeView";
 export { ProjectForm } from "./ProjectForm";
+export { AddProjectForm } from "./ProjectForm/AddProjectForm";
 export { Overview as BIOverview } from "./Overview";
 export { ComponentListView } from "./ComponentListView";
 export { ComponentDiagram } from "./ComponentDiagram";

@@ -17,3 +17,4 @@
  */
 
 export { Diagram } from './Diagram';
+export { PopupOverlay } from './PopupOverlay';

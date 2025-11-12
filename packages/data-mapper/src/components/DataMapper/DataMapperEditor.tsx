@@ -124,8 +124,11 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const {
         modelState,
         name,
+        reusable,
         applyModifications,
         onClose,
+        onRefresh,
+        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -280,6 +283,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
         useDMExpressionBarStore.getState().resetExpressionBarStore();
+        useDMQueryClausesPanelStore.getState().resetQueryClausesPanelStore();
     }
 
     const handleOnClose = () => {
@@ -304,9 +308,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const autoMapWithAI = async () => {
-        const datamapperModel = await rpcClient.getAiPanelRpcClient().generateDataMapperModel({});
-        rpcClient.getAiPanelRpcClient()
-            .openAIMappingChatWindow(datamapperModel);
+        await rpcClient.getAiPanelRpcClient().openChatWindowWithCommand();
     };
 
     const addNewSubMapping = async (
@@ -326,10 +328,13 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 {model && (
                     <DataMapperHeader
                         views={views}
+                        reusable={reusable}
                         switchView={switchView}
                         hasEditDisabled={!!errorKind}
                         onClose={handleOnClose}
                         onBack={handleOnBack}
+                        onRefresh={onRefresh}
+                        onReset={onReset}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                         undoRedoGroup={undoRedoGroup}

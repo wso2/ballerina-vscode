@@ -62,6 +62,7 @@ import {
     didOpen,
     getBallerinaProjectComponents,
     getBallerinaVersion,
+    isSupportedSLVersion,
     getCompletion,
     getDefinitionPosition,
     getDiagnostics,
@@ -83,7 +84,8 @@ import {
     getTypesFromFnDefinition,
     rename,
     stModify,
-    updateFileContent
+    updateFileContent,
+    SemanticVersion
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -113,6 +115,10 @@ export class LangClientRpcClient implements LangClientAPI {
 
     getBallerinaVersion(): Promise<BallerinaVersionResponse> {
         return this._messenger.sendRequest(getBallerinaVersion, HOST_EXTENSION);
+    }
+
+    isSupportedSLVersion(params: SemanticVersion): Promise<boolean> {
+        return this._messenger.sendRequest(isSupportedSLVersion, HOST_EXTENSION, params);
     }
 
     getCompletion(params: CompletionRequest): Promise<CompletionResponse> {

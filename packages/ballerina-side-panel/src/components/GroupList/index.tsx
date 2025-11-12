@@ -24,6 +24,8 @@ import { Category, Node } from "./../NodeList/types";
 import { stripHtmlTags } from "../Form/utils";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { DownloadIcon } from "../../resources/icons/nodes/DownloadIcon";
+import { formatMethodName } from "../../utils/formatMethodName";
+
 
 namespace S {
     export const Card = styled.div<{}>`
@@ -259,7 +261,8 @@ function getComponentTitle(node: Node) {
         return stripHtmlTags(node.description);
     }
 
-    return stripHtmlTags(node.label);
+    const label = stripHtmlTags(node.label);
+    return formatMethodName(label);
 }
 
 function getComponentDescription(node: Node) {

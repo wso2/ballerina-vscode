@@ -22,7 +22,7 @@ import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-20250514";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
@@ -92,6 +92,15 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             }
         }
 
+        // Handle usage limit exceeded
+        if (response.status === 429) {
+            console.log("Usage limit exceeded (429)");
+            const error = new Error("Usage limit exceeded. Please try again later.");
+            error.name = "UsageLimitError";
+            (error as any).statusCode = 429;
+            throw error;
+        }
+
         return response;
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
@@ -111,9 +120,10 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
+        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
         if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
-                baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
+                baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });
@@ -164,10 +174,17 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 };
 
 /**
+ * Type definition for provider-specific cache options
+ */
+export type ProviderCacheOptions = 
+    | { anthropic: { cacheControl: { type: string } } } 
+    | { bedrock: { cachePoint: { type: string } } };
+
+/**
  * Returns provider-aware cache control options for prompt caching
  * @returns Cache control options based on the current login method
  */
-export const getProviderCacheControl = async () => {
+export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> => {
     const loginMethod = await getLoginMethod();
     
     switch (loginMethod) {

@@ -37,8 +37,8 @@ export const Title: React.FC<any> = styled.div`
 
 interface TypeDiagramProps {
     selectedTypeId?: string;
-    projectUri?: string;
     addType?: boolean;
+    projectPath?: string;
 }
 
 interface TypeEditorState {
@@ -51,7 +51,7 @@ interface TypeEditorState {
 const MAX_TYPES_FOR_FULL_VIEW = 80;
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { selectedTypeId, projectUri, addType } = props;
+    const { selectedTypeId, addType, projectPath } = props;
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
@@ -152,7 +152,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 setVisualizerLocation(value);
             });
         }
-    }, [rpcClient]);
+    }, [rpcClient, projectPath]);
 
     useEffect(() => {
         setIsModelLoaded(false);
@@ -199,7 +199,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         }
         setTypeEditorState({
             ...typeEditorState,
-             isTypeCreatorOpen: stack.length !== 1,
+            isTypeCreatorOpen: stack.length !== 1,
         });
     }
 
@@ -288,6 +288,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     view: MACHINE_VIEW.BIServiceClassDesigner,
+                    type: type,
                     isGraphql: false,
                     position: {
                         startLine: type.codedata.lineRange?.startLine?.line,
@@ -298,6 +299,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     documentUri: type.codedata.lineRange?.fileName
                 },
             });
+            return;
         }
         setTypeEditorState((prevState) => ({
             ...prevState,
@@ -416,8 +418,8 @@ export function TypeDiagram(props: TypeDiagramProps) {
             return;
         }
         setTypeEditorState({
-          ...typeEditorState,
-          isTypeCreatorOpen: true,
+            ...typeEditorState,
+            isTypeCreatorOpen: true,
         });
     };
 
@@ -537,17 +539,17 @@ export function TypeDiagram(props: TypeDiagramProps) {
                             title="Create New Type"
                             openState={typeEditorState.isTypeCreatorOpen}
                             setOpenState={handleTypeEditorStateChange}>
-                            <div style={{ padding: '0px 20px' }}>
-                                <BreadcrumbContainer>
-                                    {stack.slice(1, i + 2).map((stackItem, index) => (
-                                        <React.Fragment key={index}>
-                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                            <BreadcrumbItem>
-                                                {stackItem?.type?.name || "NewType"}
-                                            </BreadcrumbItem>
-                                        </React.Fragment>
-                                    ))}
-                                </BreadcrumbContainer>
+                            <BreadcrumbContainer>
+                                {stack.slice(1, i + 2).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <div style={{ height: '560px', overflow: 'auto' }}>
                                 <FormTypeEditor
                                     key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
                                     type={peekTypeStack()?.type}

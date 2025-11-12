@@ -33,11 +33,26 @@ import { ColorThemeKind } from "@wso2/ballerina-core";
 hljs.registerLanguage("yaml", yaml);
 hljs.registerLanguage("ballerina", ballerina);
 
-// Escapes all HTML tags except the custom  tag
+// Escapes HTML tags except our custom <badge> and <error> tags
+// Uses context-aware detection to distinguish HTML tags from generic type parameters
 const escapeHtmlForCustomTags = (markdown: string): string => {
-    return markdown.replace(/<\/?(?!badge\b|error\b)(\w+)[^>]*>/g, (match) =>
-        match.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    );
+    return markdown.replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g, (match, tagName, offset, fullString) => {
+        // Preserve our custom tags - they need to be processed by rehypeRaw
+        if (tagName.toLowerCase() === 'badge' || tagName.toLowerCase() === 'error') {
+            return match;
+        }
+
+        // Check character before '<' - if it's a word character, it's likely a generic type
+        // Examples: "convert<ABCType>", "List<String>", "Map<int, string>"
+        const charBefore = offset > 0 ? fullString[offset - 1] : '';
+        if (/\w/.test(charBefore)) {
+            return match; // Don't escape - likely generic type parameter
+        }
+
+        // Escape standalone HTML tags (preceded by space, newline, or start of string)
+        // Examples: "<script>", "<div>", etc.
+        return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    });
 };
 
 

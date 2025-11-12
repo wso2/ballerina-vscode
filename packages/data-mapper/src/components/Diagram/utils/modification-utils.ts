@@ -21,9 +21,9 @@ import { InputOutputPortModel, ValueType } from "../Port";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
-import { getTargetField, getValueType } from "./common-utils";
+import { expandArrayFn, getValueType } from "./common-utils";
 import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
-import { getTypeName, isEnumMember } from "./type-utils";
+import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
 
 export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
@@ -45,8 +45,8 @@ export async function createNewMapping(link: DataMapperLinkModel, modifier?: (ex
 		: sourcePortModel.attributes.fieldFQN;
 	const outputId = outputPortModel.attributes.fieldFQN;
 	const lastView = targetNode.context.views[targetNode.context.views.length - 1];
-	const viewId = lastView?.targetField || null;
-	const name  = targetNode.context.views[0]?.targetField;
+	const viewId = lastView.targetField;
+	const name  = targetNode.context.views[0].targetField;
 
 	const { model, applyModifications } = targetNode.context;
 
@@ -69,8 +69,8 @@ export async function createNewMapping(link: DataMapperLinkModel, modifier?: (ex
 
 export async function addValue(fieldId: string, value: string, context: IDataMapperContext) {
 	const lastView = context.views[context.views.length - 1];
-	const viewId = lastView?.targetField || null;
-	const name = context.views[0]?.targetField;
+	const viewId = lastView.targetField;
+	const name = context.views[0].targetField;
 
 	return await context.applyModifications(fieldId, value, viewId, name);
 }
@@ -94,7 +94,7 @@ function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext
 	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
 	const outputId = outputPortModel.attributes.fieldFQN;
 	const lastView = context.views[context.views.length - 1];
-	const viewId = lastView?.targetField || null;
+	const viewId = lastView.targetField;
 
 	const mapping: Mapping = {
 		output: outputId,
@@ -106,21 +106,31 @@ function getMapWithFnData(link: DataMapperLinkModel, context: IDataMapperContext
 
 	const params: FnParams[] = [{
 		name: inputField.name,
-		type: getTypeName(inputField).replace("record", "any"),
+		type: inputField.typeName || "any",
 		isOptional: inputField.optional,
 		isNullable: false,
 		kind: inputField.kind
 	}];
 
 	const returnType: FnReturnType = {
-		type: getTypeName(outputField).replace("record", "any"),
+		type: outputField.typeName || "any",
 		kind: outputField.kind
-	}
+	};
+
+	const typeInfo = [...getImportTypeInfo(inputField), ...getImportTypeInfo(outputField)];
+
+	const filteredTypeInfo = Array.from(
+		new Map(typeInfo.map(item => {
+			const { orgName, moduleName, name, version } = item;
+			return [`${orgName}:${moduleName}:${name}:${version}`, item];
+		})).values()
+	);
 
 	const metadata: FnMetadata = {
 		returnType: returnType,
-		parameters: params
-	}
+		parameters: params,
+		...(filteredTypeInfo.length && { importTypeInfo: filteredTypeInfo })
+	};
 
 	return {
 		mapping,
@@ -152,15 +162,17 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	const input = sourcePortModel.attributes.optionalOmittedFieldFQN;
 	const output = outputPortModel.attributes.fieldFQN;
 	const lastView = context.views[context.views.length - 1];
-	const viewId = lastView?.targetField || null;
-	const name  = context.views[0]?.targetField;
+	const viewId = lastView.targetField;
+	const name  = context.views[0].targetField;
 
 	const mapping: Mapping = {
 		output: output,
 		expression: input
 	};
 
-	await context?.convertToQuery(mapping, clauseType, viewId, name);
+	await context.convertToQuery(mapping, clauseType, viewId, name);
+
+	expandArrayFn(context, input, output, viewId);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

@@ -24,40 +24,27 @@ import {
     AIPanelPrompt,
     AddFilesToProjectRequest,
     AddToProjectRequest,
-    AllDataMapperSourceRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
-    CodeSegment,
-    Command,
-    CreateTempFileRequest,
-    DMModel,
-    DataMapperModelResponse,
-    DatamapperModelContext,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
     DocGenerationRequest,
-    ExpandedDMModel,
-    ExtendedDataMapperMetadata,
     FetchDataRequest,
     FetchDataResponse,
     GenerateCodeRequest,
-    GenerateMappingsResponse,
     GenerateOpenAPIRequest,
-    GenerateTypesFromRecordRequest,
-    GenerateTypesFromRecordResponse,
     GetFromFileRequest,
     GetModuleDirParams,
     LLMDiagnostics,
-    LinePosition,
     LoginMethod,
-    MappingElement,
     MetadataWithAttachments,
-    NotifyAIMappingsRequest,
     OperationType,
     PostProcessRequest,
     PostProcessResponse,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
     ProjectDiagnostics,
     ProjectModule,
     ProjectSource,
@@ -67,31 +54,26 @@ import {
     RequirementSpecification,
     SourceFile,
     SubmitFeedbackRequest,
-    SyntaxTree,
-    TemplateId,
     TestGenerationMentions,
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
-    TextEdit
+    TestPlanGenerationRequest
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import path from "path";
 import { parse } from 'toml';
-import { Uri, commands, window, workspace } from 'vscode';
+import { workspace } from 'vscode';
 
-import { FunctionDefinition, ModulePart, STKindChecker, STNode } from "@wso2/syntax-tree";
 import { isNumber } from "lodash";
-import { URI } from "vscode-uri";
-import { NOT_SUPPORTED } from "../../../src/core/extended-language-client";
+import { ExtendedLangClient } from "src/core";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
+import { generateContextTypes, generateInlineMappingCode, generateMappingCode, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
 import { extension } from "../../BalExtensionContext";
-import { createTempDataMappingFile, generateTypeCreation } from "../../features/ai/dataMapping";
 import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
@@ -105,9 +87,9 @@ import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
-import { modifyFileContent, writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
+import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
-import { expandDMModel, refreshDataMapper, updateAndRefreshDataMapper } from "../data-mapper/utils";
+import { refreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -116,9 +98,10 @@ import {
     REQ_KEY, TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, handleStop, isErrorCode, processMappings, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../../src/features/ai/constants";
+import { checkToken } from "../../../src/views/ai-panel/utils";
+import { getCurrentProjectRoot } from "../../utils/project-utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -203,21 +186,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async addToProject(req: AddToProjectRequest): Promise<boolean> {
-
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+        const projectPath = await getCurrentProjectRoot();
         // Check if workspaceFolderPath is a Ballerina project
         // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        let balFilePath = path.join(workspaceFolderPath, req.filePath);
+        let balFilePath = path.join(projectPath, req.filePath);
 
         const directory = path.dirname(balFilePath);
         if (!fs.existsSync(directory)) {
@@ -232,37 +209,29 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
-        return new Promise(async (resolve) => {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                throw new Error("No workspaces found.");
-            }
-
-            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-            const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
-            if (!fs.existsSync(ballerinaProjectFile)) {
-                throw new Error("Not a Ballerina project.");
-            }
-
-            const balFilePath = path.join(workspaceFolderPath, req.filePath);
-            const content = fs.promises.readFile(balFilePath, 'utf-8');
-            resolve(content);
-        });
-    }
-
-    async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const projectPath = await getCurrentProjectRoot();
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        const balFilePath = path.join(workspaceFolderPath, req.filePath);
+        const balFilePath = path.join(projectPath, req.filePath);
+        try {
+            const content = await fs.promises.readFile(balFilePath, 'utf-8');
+            return content;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
+        const projectPath = await getCurrentProjectRoot();
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
+        if (!fs.existsSync(ballerinaProjectFile)) {
+            throw new Error("Not a Ballerina project.");
+        }
+
+        const balFilePath = path.join(projectPath, req.filePath);
         if (fs.existsSync(balFilePath)) {
             try {
                 fs.unlinkSync(balFilePath);
@@ -278,56 +247,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getFileExists(req: GetFromFileRequest): Promise<boolean> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-        const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
+        const projectPath = await getCurrentProjectRoot();
+        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
         if (!fs.existsSync(ballerinaProjectFile)) {
             throw new Error("Not a Ballerina project.");
         }
 
-        const balFilePath = path.join(workspaceFolderPath, req.filePath);
+        const balFilePath = path.join(projectPath, req.filePath);
         if (fs.existsSync(balFilePath)) {
             return true;
         }
         return false;
     }
-
-    async notifyAIMappings(params: NotifyAIMappingsRequest): Promise<boolean> {
-        const { newFnPosition, prevFnSource, filePath } = params;
-        const fileUri = Uri.file(filePath).toString();
-        const undoAction = 'Undo';
-        const msg = 'You have automatically generated mappings. Do you want to undo the changes?';
-        const result = await window.showInformationMessage(msg, undoAction, 'Close');
-
-        if (result === undoAction) {
-            const res = await StateMachine.langClient().stModify({
-                astModifications: [{
-                    type: "INSERT",
-                    config: { STATEMENT: prevFnSource },
-                    ...newFnPosition
-                }],
-                documentIdentifier: {
-                    uri: fileUri
-                }
-            });
-
-            const { source } = res as SyntaxTree;
-            await modifyFileContent({ filePath, content: source });
-            updateView();
-        }
-
-        return true;
-    }
-
-    async stopAIMappings(): Promise<GenerateMappingsResponse> {
-        handleStop();
-        return { userAborted: true };
-    }
-
 
     async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
         const environment = await setupProjectEnvironment(project);
@@ -379,9 +310,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
+                const projectPath = await getCurrentProjectRoot();
 
-                const generatedTests = await generateTest(projectRoot, params, AIPanelAbortController.getInstance());
+                const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
                 resolve(generatedTests);
             } catch (error) {
                 reject(error);
@@ -392,8 +323,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
-                const diagnostics = await getDiagnostics(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const diagnostics = await getDiagnostics(projectPath, params);
                 resolve(diagnostics);
             } catch (error) {
                 reject(error);
@@ -404,8 +335,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceSourceForName(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
-                const { serviceDeclaration, serviceDocFilePath } = await getServiceDeclaration(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
                 resolve(serviceDeclaration.source);
             } catch (error) {
                 reject(error);
@@ -416,8 +347,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceSourceForMethodAndPath(params: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
-                const { serviceDeclaration, resourceAccessorDef, serviceDocFilePath } = await getResourceAccessorDef(projectRoot, params);
+                const projectPath = await getCurrentProjectRoot();
+                const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
                 resolve(resourceAccessorDef.source);
             } catch (error) {
                 reject(error);
@@ -428,8 +359,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
-                const serviceDeclNames = await getServiceDeclarationNames(projectRoot);
+                const projectPath = await getCurrentProjectRoot();
+                const serviceDeclNames = await getServiceDeclarationNames(projectPath);
                 resolve({
                     mentions: serviceDeclNames
                 });
@@ -442,8 +373,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
-                const projectRoot = await getBallerinaProjectRoot();
-                const resourceAccessorNames = await getResourceAccessorNames(projectRoot);
+                const projectPath = await getCurrentProjectRoot();
+                const resourceAccessorNames = await getResourceAccessorNames(projectPath);
                 resolve({
                     mentions: resourceAccessorNames
                 });
@@ -457,18 +388,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AIPanelAbortController.getInstance().abort();
     }
 
-    async getTypesFromRecord(params: GenerateTypesFromRecordRequest): Promise<GenerateTypesFromRecordResponse> {
-        return await generateTypeCreation(params);
-    }
-
     async postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
         return await postProcess(req);
     }
 
     async applyDoOnFailBlocks(): Promise<void> {
-        const projectRoot = await getBallerinaProjectRoot();
+        const projectPath = await getCurrentProjectRoot();
 
-        if (!projectRoot) {
+        if (!projectPath) {
             return null;
         }
 
@@ -487,7 +414,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
         };
 
-        findBalFiles(projectRoot);
+        findBalFiles(projectPath);
 
         for (const balFile of balFiles) {
             const req: BIModuleNodesRequest = {
@@ -495,23 +422,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             };
 
             const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits }, null, 'Error Handler Creation');
-        }
-    }
-
-    async getActiveFile(): Promise<string> {
-        const activeTabGroup = window.tabGroups.all.find(group => {
-            return group.activeTab.isActive && group.activeTab?.input;
-        });
-
-        if (activeTabGroup && activeTabGroup.activeTab && activeTabGroup.activeTab.input) {
-            const activeTabInput = activeTabGroup.activeTab.input as { uri: { fsPath: string } };
-
-            if (activeTabInput.uri) {
-                const fileUri = activeTabInput.uri;
-                const fileName = fileUri.fsPath.split('/').pop();
-                return fileName || '';
-            }
+            await updateSourceCode({ textEdits: resp.textEdits, description: 'Error Handler Creation' });
         }
     }
 
@@ -660,8 +571,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async getModuleDirectory(params: GetModuleDirParams): Promise<string> {
         return new Promise((resolve) => {
-            const projectUri = params.filePath;
-            const projectFsPath = URI.parse(projectUri).fsPath;
+            const projectFsPath = params.filePath;
             const moduleName = params.moduleName;
             const generatedPath = path.join(projectFsPath, "generated", moduleName);
             if (fs.existsSync(generatedPath) && fs.statSync(generatedPath).isDirectory()) {
@@ -669,14 +579,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             } else {
                 resolve("modules");
             }
-        });
-    }
-
-    async getContentFromFile(content: GetFromFileRequest): Promise<string> {
-        return new Promise(async (resolve) => {
-            const projectFsPath = URI.parse(content.filePath).fsPath;
-            const fileContent = await fs.promises.readFile(projectFsPath, 'utf-8');
-            resolve(fileContent);
         });
     }
 
@@ -747,291 +649,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AIPanelAbortController.getInstance().abort();
     }
 
-    async createTempFileAndGenerateMetadata(params: CreateTempFileRequest): Promise<ExtendedDataMapperMetadata> {
-        const projectRoot = await getBallerinaProjectRoot();
-        const filePath = await createTempDataMappingFile(
-            projectRoot,
-            params.inputs,
-            params.output,
-            params.functionName,
-            params.inputNames,
-            params.imports
-        );
-
-        // Get the complete syntax tree
-        const fileUri = Uri.file(filePath).toString();
-        const st = (await StateMachine.langClient().getSyntaxTree({
-            documentIdentifier: {
-                uri: fileUri,
-            },
-        })) as SyntaxTree;
-
-        let funcDefinitionNode: FunctionDefinition = null;
-        const modulePart = st.syntaxTree as ModulePart;
-
-        // Find the function definition by name
-        modulePart.members.forEach((member) => {
-            if (STKindChecker.isFunctionDefinition(member)) {
-                const funcDef = member as FunctionDefinition;
-                if (funcDef.functionName?.value === params.functionName) {
-                    funcDefinitionNode = funcDef;
-                }
-            }
-        });
-
-        if (!funcDefinitionNode) {
-            throw new Error(`Function ${params.functionName} not found in the generated file`);
-        }
-
-        // Create dataMapperMetadata with the found positions
-        const dataMapperMetadata = {
-            name: params.functionName,
-            codeData: {
-                lineRange: {
-                    fileName: filePath,
-                    startLine: {
-                        line: funcDefinitionNode.position.startLine,
-                        offset: funcDefinitionNode.position.startColumn,
-                    },
-                    endLine: {
-                        line: funcDefinitionNode.position.endLine,
-                        offset: funcDefinitionNode.position.endColumn,
-                    },
-                },
-            },
-        };
-
-        const dataMapperModel = await this.generateDataMapperModel({
-            documentUri: filePath,
-            identifier: params.functionName,
-            dataMapperMetadata: dataMapperMetadata
-        });
-
-        return {
-            mappingsModel: dataMapperModel.mappingsModel as ExpandedDMModel,
-            name: params.functionName,
-            codeData: dataMapperMetadata.codeData
-        };
-    }
-
-    async generateDataMapperModel(params: DatamapperModelContext): Promise<DataMapperModelResponse> {
-        try {
-            let filePath: string;
-            let identifier: string;
-            let dataMapperMetadata: any;
-
-            if (params && params.documentUri && params.identifier) {
-                filePath = params.documentUri;
-                identifier = params.identifier;
-                dataMapperMetadata = params.dataMapperMetadata;
-            } else {
-                const context = StateMachine.context();
-                filePath = context.documentUri;
-                identifier = context.identifier || context.dataMapperMetadata.name;
-                dataMapperMetadata = context.dataMapperMetadata;
-            }
-
-            let position: LinePosition = {
-                line: dataMapperMetadata.codeData.lineRange.startLine.line,
-                offset: dataMapperMetadata.codeData.lineRange.startLine.offset
-            };
-
-            if (!dataMapperMetadata.codeData.hasOwnProperty('node') ||
-                dataMapperMetadata.codeData.node !== "VARIABLE") {
-                const fileUri = Uri.file(filePath).toString();
-                const fnSTByRange = await StateMachine.langClient().getSTByRange({
-                    lineRange: {
-                        start: {
-                            line: dataMapperMetadata.codeData.lineRange.startLine.line,
-                            character: dataMapperMetadata.codeData.lineRange.startLine.offset
-                        },
-                        end: {
-                            line: dataMapperMetadata.codeData.lineRange.endLine.line,
-                            character: dataMapperMetadata.codeData.lineRange.endLine.offset
-                        }
-                    },
-                    documentIdentifier: { uri: fileUri }
-                });
-
-                if (fnSTByRange === NOT_SUPPORTED) {
-                    throw new Error("Syntax tree retrieval not supported");
-                }
-
-                const fnSt = (fnSTByRange as SyntaxTree).syntaxTree as STNode;
-
-                if (STKindChecker.isFunctionDefinition(fnSt) &&
-                    STKindChecker.isExpressionFunctionBody(fnSt.functionBody)) {
-                    position = {
-                        line: fnSt.functionBody.expression.position.startLine,
-                        offset: fnSt.functionBody.expression.position.startColumn
-                    };
-                }
-            }
-
-            let dataMapperModel = await StateMachine
-                .langClient()
-                .getDataMapperMappings({
-                    filePath,
-                    codedata: dataMapperMetadata.codeData,
-                    targetField: identifier,
-                    position: position
-                }) as DataMapperModelResponse;
-
-            return {
-                mappingsModel: expandDMModel(
-                    dataMapperModel.mappingsModel as DMModel,
-                    identifier
-                )
-            };
-        } catch (error) {
-            console.error("Failed to generate data mapper model:", error);
-            throw error;
-        }
-    }
-
-    async addCodeSegmentToWorkspace(params: CodeSegment): Promise<boolean> {
-        try {
-            let filePath = params.filePath && params.filePath.trim() !== ''
-                ? params.filePath
-                : StateMachine.context().documentUri;
-            const datamapperMetadata = params.metadata
-                ? params.metadata
-                : StateMachine.context().dataMapperMetadata;
-
-            let allTextEdits: { [key: string]: TextEdit[] };
-
-            if (params.textEdit && params.textEdit.textEdits) {
-                allTextEdits = params.textEdit.textEdits;
-            } else {
-                const textEdit: TextEdit = {
-                    newText: params.segmentText,
-                    range: {
-                        start: {
-                            line: datamapperMetadata.codeData.lineRange.startLine.line,
-                            character: datamapperMetadata.codeData.lineRange.startLine.offset
-                        },
-                        end: {
-                            line: datamapperMetadata.codeData.lineRange.endLine.line,
-                            character: datamapperMetadata.codeData.lineRange.endLine.offset
-                        }
-                    }
-                };
-                allTextEdits = {
-                    [filePath]: [textEdit]
-                };
-            }
-            await updateSourceCode({ textEdits: allTextEdits }, null, 'AI Code Segment Creation');
-            return true;
-        } catch (error) {
-            console.error(">>> Failed to add code segment to the workspace", error);
-            throw error;
-        }
-    }
-
-    async openAIMappingChatWindow(params: DataMapperModelResponse): Promise<void> {
-        try {
-            const context = StateMachine.context();
-            const { identifier, dataMapperMetadata } = context;
-
-            commands.executeCommand(CLOSE_AI_PANEL_COMMAND);
-            commands.executeCommand(OPEN_AI_PANEL_COMMAND, {
-                type: 'command-template',
-                command: Command.DataMap,
-                templateId: identifier ? TemplateId.MappingsForFunction : TemplateId.InlineMappings,
-                ...(identifier && { params: { functionName: identifier } }),
-                metadata: {
-                    ...dataMapperMetadata,
-                    mappingsModel: params.mappingsModel as ExpandedDMModel
-                }
-            });
-        } catch (error) {
-            console.error("Failed to open AI chat window for mapping:", error);
-            throw error;
-        }
-    }
-
-    async generateMappings(params: MetadataWithAttachments): Promise<AllDataMapperSourceRequest> {
-        try {
-            const filePath = params.useTemporaryFile
-                ? params.metadata.codeData.lineRange.fileName
-                : StateMachine.context().documentUri;
-
-            const file = params.attachments && params.attachments.length > 0
-                ? params.attachments[0]
-                : undefined;
-
-            const mappingElement = await processMappings(params.metadata.mappingsModel as ExpandedDMModel, file);
-
-            const allMappingsRequest: AllDataMapperSourceRequest = {
-                filePath,
-                codedata: params.metadata.codeData,
-                varName: params.metadata.name,
-                position: {
-                    line: params.metadata.codeData.lineRange.startLine.line,
-                    offset: params.metadata.codeData.lineRange.startLine.offset
-                },
-                mappings: (mappingElement as MappingElement).mappings
-            };
-
-            return allMappingsRequest;
-        } catch (error) {
-            console.error("Failed to generate mappings:", error);
-            throw error;
-        }
-    }
-
-    async addInlineCodeSegmentToWorkspace(params: CodeSegment): Promise<void> {
-        try {
-            let filePath = StateMachine.context().documentUri;
-            const datamapperMetadata = StateMachine.context().dataMapperMetadata;
-            const textEdit: TextEdit = {
-                newText: params.segmentText,
-                range: {
-                    start: {
-                        line: datamapperMetadata.codeData.lineRange.startLine.line,
-                        character: datamapperMetadata.codeData.lineRange.startLine.offset
-                    },
-                    end: {
-                        line: datamapperMetadata.codeData.lineRange.endLine.line,
-                        character: datamapperMetadata.codeData.lineRange.endLine.offset
-                    }
-                }
-            };
-            const allTextEdits: { [key: string]: TextEdit[] } = {
-                [filePath]: [textEdit]
-            };
-
-            await updateAndRefreshDataMapper(
-                allTextEdits,
-                filePath,
-                datamapperMetadata.codeData,
-                datamapperMetadata.name,
-                datamapperMetadata.name
-            );
-        } catch (error) {
-            console.error(">>> Failed to add inline code segment to the workspace", error);
-            throw error;
-        }
-    }
-
     async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
         await generateDocumentationForService(params);
     }
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                throw new Error("No workspaces found.");
-            }
+            const projectPath = await getCurrentProjectRoot();
 
-            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-
-            const ballerinaProjectFile = path.join(workspaceFolderPath, "Ballerina.toml");
+            const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {
                 throw new Error("Not a Ballerina project.");
             }
-            await addToIntegration(workspaceFolderPath, params.fileChanges);
+            await addToIntegration(projectPath, params.fileChanges);
             updateView();
             return true;
         } catch (error) {
@@ -1039,13 +669,42 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return false; //silently fail for timeout issues.
         }
     }
+
+    async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
+        await generateMappingCode(params);
+    }
+
+    async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
+        await generateInlineMappingCode(params);
+    }
+
+    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
+        await generateContextTypes(params);
+    }
+
+    async openChatWindowWithCommand(): Promise<void> {
+        await openChatWindowWithCommand();
+    }
+
+    async isUserAuthenticated(): Promise<boolean> {
+        try {
+            const token = await checkToken();
+            return !!token;
+        } catch (error) {
+            return false;
+        }
+    }
 }
 
 function getModifiedAssistantResponse(originalAssistantResponse: string, tempDir: string, project: ProjectSource): string {
     const newSourceFiles = [];
     for (const sourceFile of project.sourceFiles) {
-        const newContent = path.join(tempDir, sourceFile.filePath);
-        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContent, 'utf-8') });
+        const newContentPath = path.join(tempDir, sourceFile.filePath);
+        if (!fs.existsSync(newContentPath) && !(sourceFile.filePath.endsWith('.bal'))) {
+            newSourceFiles.push({ filePath: sourceFile.filePath, content: sourceFile.content });
+            continue;
+        }
+        newSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContentPath, 'utf-8') });
     }
 
     // Build a map from filenames to their new content
@@ -1080,16 +739,16 @@ interface BalModification {
     moduleName: string;
 }
 
-async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: any, tempDir: string } | null> {
+async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {
     //TODO: Move this to LS
-    const projectRoot = await getBallerinaProjectRoot();
-    if (!projectRoot) {
+    const projectPath = await getCurrentProjectRoot();
+    if (!projectPath) {
         return null;
     }
 
     const randomNum = Math.floor(Math.random() * 90000) + 10000;
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `bal-proj-${randomNum}-`));
-    fs.cpSync(projectRoot, tempDir, { recursive: true });
+    fs.cpSync(projectPath, tempDir, { recursive: true });
     //Copy project
     const langClient = StateMachine.langClient();
     //Apply edits
@@ -1116,11 +775,6 @@ export function getProjectFromResponse(req: string): ProjectSource {
     }
 
     return { sourceFiles, projectName: "" };
-}
-
-function getContentInsideQuotes(input: string): string | null {
-    const match = input.match(/'([^']+)'/);
-    return match ? match[1] : null;
 }
 
 function getErrorDiagnostics(diagnostics: Diagnostics[]): DiagnosticEntry[] {
@@ -1161,14 +815,14 @@ enum CodeGenerationType {
 }
 
 async function getCurrentProjectSource(requestType: OperationType): Promise<BallerinaProject> {
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectPath = await getCurrentProjectRoot();
 
-    if (!projectRoot) {
+    if (!projectPath) {
         return null;
     }
 
     // Read the Ballerina.toml file to get package name
-    const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
     let packageName;
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
@@ -1188,20 +842,20 @@ async function getCurrentProjectSource(requestType: OperationType): Promise<Ball
     };
 
     // Read root-level .bal files
-    const rootFiles = fs.readdirSync(projectRoot);
+    const rootFiles = fs.readdirSync(projectPath);
     for (const file of rootFiles) {
         if (file.endsWith('.bal') || file.toLowerCase() === "readme.md") {
-            const filePath = path.join(projectRoot, file);
+            const filePath = path.join(projectPath, file);
             project.sources[file] = await fs.promises.readFile(filePath, 'utf-8');
         }
     }
 
     if (requestType != "CODE_GENERATION") {
-        const naturalProgrammingDirectory = projectRoot + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
+        const naturalProgrammingDirectory = projectPath + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
             for (const file of reqFiles) {
-                const filePath = path.join(projectRoot, `${NATURAL_PROGRAMMING_DIR_NAME}`, file);
+                const filePath = path.join(projectPath, `${NATURAL_PROGRAMMING_DIR_NAME}`, file);
                 if (file.toLowerCase() == REQUIREMENT_TEXT_DOCUMENT || file.toLowerCase() == REQUIREMENT_MD_DOCUMENT) {
                     project.sources[REQ_KEY] = await fs.promises.readFile(filePath, 'utf-8');
                     continue;
@@ -1218,8 +872,8 @@ async function getCurrentProjectSource(requestType: OperationType): Promise<Ball
     }
 
     // Read modules
-    const modulesDir = path.join(projectRoot, 'modules');
-    const generatedDir = path.join(projectRoot, 'generated');
+    const modulesDir = path.join(projectPath, 'modules');
+    const generatedDir = path.join(projectPath, 'generated');
     await populateModules(modulesDir, project);
     await populateModules(generatedDir, project);
     return project;
@@ -1249,24 +903,6 @@ async function populateModules(modulesDir: string, project: BallerinaProject) {
         }
     }
 }
-
-export async function getBallerinaProjectRoot(): Promise<string | null> {
-
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders) {
-        throw new Error("No workspaces found.");
-    }
-
-    const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-    // Check if workspaceFolderPath is a Ballerina project
-    // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-    const ballerinaProjectFile = path.join(workspaceFolderPath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaProjectFile)) {
-        return workspaceFolderPath;
-    }
-    return null;
-}
-
 
 export async function postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
     let assist_resp = req.assistant_response;

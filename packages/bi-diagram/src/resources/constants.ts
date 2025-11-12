@@ -75,8 +75,8 @@ export const BUTTON_NODE_WIDTH = 160;
 export const BUTTON_NODE_HEIGHT = 30;
 
 // comment node
-export const COMMENT_NODE_WIDTH = 200;
-export const COMMENT_NODE_GAP = 30;
+export const COMMENT_NODE_WIDTH = 280;
+export const COMMENT_NODE_GAP = 15;
 export const COMMENT_NODE_CIRCLE_WIDTH = 8;
 
 // custom nodes

@@ -50,7 +50,7 @@ const getNodeTitle = (model: EntryNodeModel) => {
         return model.node.displayName;
     }
     if ((model.node as CDService).absolutePath) {
-        return (model.node as CDService).absolutePath;
+        return (model.node as CDService).absolutePath.replace(/\\/g, "");
     }
     return "";
 };
@@ -115,6 +115,10 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-github" />;
         case "http":
             return <Icon name="bi-globe" />;
+        case "mcp":
+            return <Icon name="bi-mcp" />;
+        case "solace":
+            return <Icon name="bi-solace" sx={{ color: "#00C895" }}/>;
         default:
             return null;
     }
@@ -144,7 +148,7 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any }) {
                 )}
                 {func.path && (
                     <Title hovered={isHovered}>
-                        {`/${func.path}`}
+                        {`/${func.path.replace(/\\/g, "")}`}
                     </Title>
                 )}
                 {func.name && <Title hovered={isHovered}>{func.name}</Title>}

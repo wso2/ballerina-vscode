@@ -15,7 +15,7 @@
 // under the License.
 
 import { ChatNotify, Command } from "@wso2/ballerina-core";
-import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification } from "./utils";
+import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification, sendGeneratedSourcesNotification } from "./utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
@@ -23,29 +23,42 @@ export type CopilotEventHandler = (event: ChatNotify) => void;
 export function createWebviewEventHandler(command: Command): CopilotEventHandler {
     return (event: ChatNotify) => {
         switch (event.type) {
-            case 'start':
+            case "start":
                 sendMessageStartNotification();
                 break;
-            case 'content_block':
+            case "content_block":
                 sendContentAppendNotification(event.content);
                 break;
-            case 'content_replace':
+            case "content_replace":
                 sendContentReplaceNotification(event.content);
                 break;
-            case 'error':
+            case "error":
                 sendErrorNotification(event.content);
                 break;
-            case 'stop':
+            case "stop":
                 sendMessageStopNotification(command);
                 break;
-            case 'intermediary_state':
+            case "intermediary_state":
                 sendIntermidateStateNotification(event.state);
                 break;
-            case 'messages':
+            case "messages":
                 sendMessagesNotification(event.messages);
                 break;
-            case 'diagnostics':
+            case "tool_call":
+                sendToolCallNotification(event.toolName);
+                break;
+            case "tool_result":
+                sendToolResultNotification(event.toolName, event.toolOutput);
+                break;
+            case "evals_tool_result":
+            case "usage_metrics":
+                // Ignore evals-specific events in webview
+                break;
+            case "diagnostics":
                 sendDiagnosticMessageNotification(event.diagnostics);
+                break;
+            case "generated_sources":
+                sendGeneratedSourcesNotification(event.fileArray);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

@@ -148,6 +148,9 @@ export const clearAuthCredentials = async (): Promise<void> => {
 // BI Copilot Auth Utils
 // ==================================
 export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
+    if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
+        return LoginMethod.ANTHROPIC_KEY;
+    }
     const credentials = await getAuthCredentials();
     if (credentials) {
         return credentials.loginMethod;
@@ -158,6 +161,10 @@ export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
 export const getAccessToken = async (): Promise<string | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
+            if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
+                resolve(process.env.ANTHROPIC_API_KEY.trim());
+                return;
+            }
             const credentials = await getAuthCredentials();
 
             if (credentials) {

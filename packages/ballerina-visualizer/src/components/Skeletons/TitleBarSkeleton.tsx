@@ -111,9 +111,9 @@ const IconButton = styled.div`
     }
 
     & > div:first-child {
-        width: 24px;
-        height: 24px;
-        font-size: 24px;
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
     }
 `;
 
@@ -131,7 +131,7 @@ export const TitleBarSkeleton: React.FC<TitleBarSkeletonProps> = ({ }) => {
         <TitleBarSkeletonContainer>
             <LeftContainer>
                 <IconButton onClick={handleBackButtonClick}>
-                    <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
+                    <Icon name="bi-arrow-back" iconSx={{ fontSize: "20px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 <TitleSection>
                     <TitleSkeleton />

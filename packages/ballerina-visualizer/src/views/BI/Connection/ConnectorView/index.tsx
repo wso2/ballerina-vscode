@@ -155,15 +155,14 @@ export function ConnectorView(props: ConnectorViewProps) {
                 queryMap: {
                     limit: 60,
                     filterByCurrentOrg:
-                        filter ?? false,
+                        filter ?? selectedConnectorCategory === "CurrentOrg" ?? false,
                 },
                 searchKind: "CONNECTOR"
             })
             .then(async (model) => {
                 console.log(">>> bi connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);
@@ -197,9 +196,8 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .then(async (model) => {
                 console.log(">>> bi searched connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);

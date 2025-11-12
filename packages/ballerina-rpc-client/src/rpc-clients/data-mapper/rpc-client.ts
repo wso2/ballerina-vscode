@@ -22,6 +22,7 @@ import {
     AddClausesRequest,
     AddSubMappingRequest,
     AllDataMapperSourceRequest,
+    ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DMModelRequest,
     DataMapperAPI,
@@ -48,11 +49,11 @@ import {
     addClauses,
     addNewArrayElement,
     addSubMapping,
+    clearTypeCache,
     convertToQuery,
     deleteClause,
     deleteMapping,
     deleteSubMapping,
-    getAllDataMapperSource,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -135,10 +136,6 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(getSubMappingCodedata, HOST_EXTENSION, params);
     }
 
-    getAllDataMapperSource(params: AllDataMapperSourceRequest): Promise<DataMapperSourceResponse> {
-        return this._messenger.sendRequest(getAllDataMapperSource, HOST_EXTENSION, params);
-    }
-
     getProperty(params: PropertyRequest): Promise<PropertyResponse> {
         return this._messenger.sendRequest(getProperty, HOST_EXTENSION, params);
     }
@@ -149,5 +146,9 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
         return this._messenger.sendRequest(getProcessTypeReference, HOST_EXTENSION, params);
+    }
+
+    clearTypeCache(): Promise<ClearTypeCacheResponse> {
+        return this._messenger.sendRequest(clearTypeCache, HOST_EXTENSION);
     }
 }

@@ -207,6 +207,21 @@ const ReadmeButtonContainer = styled.div`
 const ReadmeContent = styled.div`
     margin-top: 16px;
     text-wrap: pretty;
+    overflow-wrap: break-word;
+
+    p, li, td, th, blockquote {
+        overflow-wrap: break-word;
+    }
+
+    pre {
+        overflow-x: auto;
+        overflow-wrap: break-word;
+    }
+    
+    code {
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+    }
 `;
 
 const TitleContainer = styled.div`
@@ -340,7 +355,7 @@ function DeploymentOption({
                 {isExpanded ? (
                     <Codicon
                         name={'triangle-down'}
-                        sx={{ color: 'var(--vscode-textLink-foreground)'}}
+                        sx={{ color: 'var(--vscode-textLink-foreground)' }}
                     />
                 ) : (
                     <Codicon
@@ -491,7 +506,7 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
         <div>
             <Title variant="h3">Integration Control Plane</Title>
             <p>
-                {"Moniter the deployment runtime using WSO2 Integration Control Plane."}
+                {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
             <CheckBox
@@ -728,7 +743,15 @@ export function Overview(props: ComponentDiagramProps) {
                 <HeaderControls>
                     <UndoRedoGroup key={Date.now()} />
                     <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="settings-gear" sx={{ marginRight: 5 }} /> Configure
+                        <Icon
+                            name="bi-settings"
+                            sx={{
+                                marginRight: 5,
+                                fontSize: "16px",
+                                width: "16px",
+                            }}
+                        />
+                        Configure
                     </Button>
                     <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="play" sx={{ marginRight: 5 }} /> Run

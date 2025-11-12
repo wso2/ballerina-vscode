@@ -44,7 +44,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                     startColumn: params.function.codedata.lineRange.startLine.offset
                 };
                 const res: TestSourceEditResponse = await context.langClient.updateTestFunction(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Test Function Update');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, description: 'Test Function Update' });
                 const result: SourceUpdateResponse = {
                     artifacts: artifacts
                 };
@@ -63,7 +63,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 const targetFile = params.filePath;
                 params.filePath = targetFile;
                 const res: TestSourceEditResponse = await context.langClient.addTestFunction(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits }, null, 'Test Function Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, description: 'Test Function Creation' });
                 const result: SourceUpdateResponse = {
                     artifacts: artifacts
                 };

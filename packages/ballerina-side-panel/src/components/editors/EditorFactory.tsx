@@ -44,6 +44,9 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
+import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
+import { ActionTypeEditor } from "./ActionTypeEditor";
+import { AutoCompleteEditor } from "./AutoCompleteEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -52,17 +55,16 @@ interface FormFieldEditorProps {
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     handleOnFieldFocus?: (key: string) => void;
+    onBlur?: () => void | Promise<void>;
     autoFocus?: boolean;
     handleOnTypeChange?: () => void;
     recordTypeFields?: RecordTypeField[];
     onIdentifierEditingStateChange?: (isEditing: boolean) => void;
     setSubComponentEnabled?: (isAdding: boolean) => void;
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
-
     scopeFieldAddon?: React.ReactNode;
-    newServerUrl?: string;
-    mcpTools?: { name: string; description?: string }[];
-    onToolsChange?: (selectedTools: string[]) => void;
+    isContextTypeEditorSupported?: boolean;
+    openFormTypeEditor?: (open: boolean, newType?: string) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -73,15 +75,18 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         openSubPanel,
         subPanelView,
         handleOnFieldFocus,
+        onBlur,
         autoFocus,
         handleOnTypeChange,
         recordTypeFields,
         onIdentifierEditingStateChange,
         setSubComponentEnabled,
         handleNewTypeSelected,
-        scopeFieldAddon,
-        newServerUrl
+        isContextTypeEditorSupported,
+        openFormTypeEditor,
+        scopeFieldAddon
     } = props;
+
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -113,27 +118,38 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
-    } else if (field.type.toUpperCase() === "ENUM" && props.mcpTools) {
-        // TODO: this is a temporary solution to handle the enum field with MCP tools.
-        return <CustomDropdownEditor field={field} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
+    } else if (field.type.toUpperCase() === "AUTOCOMPLETE") {
+        return <AutoCompleteEditor field={field} openSubPanel={openSubPanel} />;
+    } else if (field.type === "CUSTOM_DROPDOWN") {
+        return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
-    } else if (field.type === "SINGLE_SELECT" && field.editable && props.mcpTools) {
-        // TODO: this is a temporary solution to handle the single select field with MCP tools.
-        return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} newServerUrl={newServerUrl} mcpTools={props.mcpTools} onToolsChange={props.onToolsChange} />;
     } else if (field.type === "SINGLE_SELECT" && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
-    } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
-        // Type field is a type editor
+    } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
-            <TypeEditor
+            <ActionTypeEditor
                 field={field}
                 openRecordEditor={openRecordEditor}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
+                handleOnTypeChange={handleOnTypeChange}
+                handleNewTypeSelected={handleNewTypeSelected}
+            />
+        );
+    } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
+        return (
+            <TypeEditor
+                field={field}
+                openRecordEditor={openRecordEditor}
+                openFormTypeEditor={openFormTypeEditor}
+                isContextTypeEditorSupported={isContextTypeEditorSupported}
+                handleOnFieldFocus={handleOnFieldFocus}
+                autoFocus={autoFocus}
+                onBlur={onBlur}
                 handleOnTypeChange={handleOnTypeChange}
                 handleNewTypeSelected={handleNewTypeSelected}
 
@@ -147,6 +163,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 openSubPanel={openSubPanel}
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
+                onBlur={onBlur}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
@@ -175,7 +192,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type !== "IDENTIFIER" && !field.editable) {
         return <ReadonlyField field={field} />;
     } else if (field.type === "IDENTIFIER" && field.editable) {
-        return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
+        return <IdentifierField field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} onBlur={onBlur} />;
     } else if (field.type === "SERVICE_PATH" || field.type === "ACTION_PATH") {
         return <PathEditor field={field} handleOnFieldFocus={handleOnFieldFocus} autoFocus={autoFocus} />;
     } else if (!field.items && field.type === "ACTION_EXPRESSION") {
@@ -187,6 +204,13 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
+    } else if (field.type === "CONDITIONAL_FIELDS" && field.editable) {
+        // Conditional fields is a group of fields which are conditionally shown based on a checkbox field
+        return (
+            <CheckBoxConditionalEditor
+                field={field}
             />
         );
     } else {

@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.4.0",
+    "version": "5.6.1",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -24,6 +24,7 @@
         "Snippets"
     ],
     "activationEvents": [
+        "onStartupFinished",
         "onLanguage:ballerina",
         "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
@@ -212,14 +213,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
-                },
-                "ballerina.includeCurrentOrganizationInSearch": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Include components from the current organization in the search. This queries the Ballerina Central using the organization specified in the `Ballerina.toml`.",
-                    "tags": [
-                        "experimental"
-                    ]
                 },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
@@ -696,7 +689,7 @@
             },
             {
                 "command": "BI.project-explorer.add",
-                "title": "Add Construct",
+                "title": "Add Project",
                 "icon": "$(add)",
                 "group": "navigation",
                 "category": "BI"
@@ -726,9 +719,42 @@
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
                 "category": "BI"
+            },
+            {
+                "command": "ballerina.showTraceWindow",
+                "title": "Show Traces",
+                "icon": "$(list-tree)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.enableTracing",
+                "title": "Enable Tracing (Experimental)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.disableTracing",
+                "title": "Disable Tracing (Experimental)",
+                "category": "Ballerina",
+                "icon": "$(circle-slash)"
+            },
+            {
+                "command": "ballerina.clearTraces",
+                "title": "Clear Traces (Experimental)",
+                "category": "Ballerina",
+                "icon": "$(clear-all)",
+                "hidden": true
             }
         ],
         "views": {
+            "ballerina-traceView": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Tracing",
+                    "name": "Tracing",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                }
+            ],
             "notebook-variables": [
                 {
                     "type": "webview",
@@ -740,12 +766,28 @@
         },
         "viewsWelcome": [
             {
+                "view": "ballerina-traceView",
+                "contents": "Tracing is disabled. Enable tracing to view traces from your Ballerina program.\n[Enable Tracing](command:ballerina.enableTracing)",
+                "when": "!ballerina.tracingEnabled"
+            },
+            {
+                "view": "ballerina-traceView",
+                "contents": "No traces collected yet. Run your Ballerina program to see traces here.",
+                "when": "ballerina.tracingEnabled && ballerina.tracesEmpty"
+            },
+            {
                 "view": "testing",
                 "contents": "[Add Unit Test](command:BI.test.add.function)"
             }
         ],
         "viewsContainers": {
             "panel": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Traces",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                },
                 {
                     "id": "notebook-variables",
                     "title": "Ballerina Notebook",
@@ -781,6 +823,18 @@
                     "command": "BI.test.add.function",
                     "when": "view == workbench.view.testing",
                     "group": "navigation"
+                },
+                {
+                    "command": "ballerina.disableTracing",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled",
+                    "group": "navigation",
+                    "title": "Disable Tracing"
+                },
+                {
+                    "command": "ballerina.clearTraces",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
+                    "group": "navigation",
+                    "title": "Clear Traces"
                 }
             ],
             "editor/title": [
@@ -973,21 +1027,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f180"
+                    "fontCharacter": "\\f19a"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f5"
+                    "fontCharacter": "\\f210"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17b"
+                    "fontCharacter": "\\f195"
                 }
             },
             "distro-source-view": {
@@ -1001,7 +1055,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1d0"
+                    "fontCharacter": "\\f1eb"
                 }
             },
             "distro-cached-rounded": {
@@ -1125,6 +1179,8 @@
         "watch-ballerina": "webpack --mode none --watch",
         "test-compile": "tsc -p ./",
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
+        "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
+        "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.83.1 && npx extest get-chromedriver -c 1.83.1 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
@@ -1139,20 +1195,21 @@
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^2.2.12",
-        "@ai-sdk/anthropic": "^1.2.12",
+        "@ai-sdk/amazon-bedrock": "^3.0.25",
+        "@ai-sdk/anthropic": "^2.0.20",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^2.22.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
+        "@wso2/trace-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^4.3.16",
+        "ai": "^5.0.56",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
@@ -1180,9 +1237,10 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "zod": "^3.25.74",
         "@iarna/toml": "^2.2.5",
-        "zustand": "^5.0.5"
+        "zustand": "^5.0.5",
+        "zod": "^4.1.8",
+        "protobufjs": "^7.2.5"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",

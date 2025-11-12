@@ -17,10 +17,11 @@
  * under the License.
  */
 
-import { NodePosition } from "@wso2/syntax-tree";
+import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
-import { DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
+import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, Project } from "../..";
 
 // ==================================
 // General Interfaces
@@ -76,6 +77,11 @@ export interface ProjectDiagnostics {
     diagnostics: DiagnosticEntry[];
 }
 
+export interface MappingDiagnostics {
+    uri: string;
+    diagnostics: DiagnosticEntry[];
+}
+
 export interface DiagnosticEntry {
     line?: number;
     message: string;
@@ -105,30 +111,54 @@ export interface DeleteFromProjectRequest {
     filePath: string;
 }
 
+export interface ProjectImports {
+    projectPath: string;
+    imports: ImportStatements[];
+}
+
 // Data-mapper related interfaces
-export interface GenerateMappingsRequest {
-    position: NodePosition;
-    filePath: string;
-    file?: Attachment;
+export interface MetadataWithAttachments {
+    metadata: ExtendedDataMapperMetadata;
+    attachments?: Attachment[];
 }
 
-export interface GenerateMappingsResponse {
-    newFnPosition?: NodePosition;
-    error?: ErrorCode;
-    userAborted?: boolean;
+export interface InlineMappingsSourceResult {
+    sourceResponse: DataMapperSourceResponse;
+    allMappingsRequest: AllDataMapperSourceRequest;
+    tempFileMetadata: ExtendedDataMapperMetadata;
+    tempDir: string;
 }
 
-export interface NotifyAIMappingsRequest {
-    newFnPosition: NodePosition;
-    prevFnSource: string;
-    filePath: string;
+export interface ProcessContextTypeCreationRequest {
+    attachments: Attachment[];
 }
 
-export interface CodeSegment {
-    segmentText: string;
-    filePath: string;
+export interface ProcessMappingParametersRequest {
+    parameters: MappingParameters;
     metadata?: ExtendedDataMapperMetadata;
-    textEdit?: DataMapperSourceResponse;
+    attachments?: Attachment[];
+}
+
+export interface CreateTempFileRequest {
+    tempDir: string;
+    filePath: string;
+    metadata: ExtendedDataMapperMetadata;
+    inputs?: DataMappingRecord[];
+    output?: DataMappingRecord;
+    functionName?: string;
+    inputNames?: string[];
+    imports?: ImportInfo[];
+    hasMatchingFunction?: boolean;
+}
+
+export interface DatamapperModelContext {
+    documentUri?: string;
+    identifier?: string;
+    dataMapperMetadata?: DataMapperMetadata;
+}
+
+export interface DiagnosticList {
+    diagnosticsList: Diagnostics[];
 }
 
 export interface DataMappingRecord {
@@ -138,7 +168,7 @@ export interface DataMappingRecord {
 }
 
 export interface GenerateTypesFromRecordRequest {
-    attachment?: Attachment[]
+    attachment: Attachment[]
 }
 
 export interface GenerateTypesFromRecordResponse {
@@ -155,6 +185,48 @@ export interface ImportInfo {
     moduleName: string;
     alias?: string;
     recordName?: string;
+}
+
+export interface TempDirectoryPath {
+    filePaths: string[];
+    tempDir?: string;
+}
+
+export interface ExtractMappingDetailsRequest {
+    parameters: MappingParameters;                
+    recordMap: Record<string, DataMappingRecord>;  
+    allImports: ImportInfo[];  
+    existingFunctions: ComponentInfo[];    
+    functionContents: Record<string, string>;        
+}
+
+export interface ExistingFunctionMatchResult {
+    match: boolean;
+    matchingFunctionFile: string | null;
+    functionDefNode: FunctionDefinition | null;
+}
+
+export interface ExtractMappingDetailsResponse {
+    inputs: DataMappingRecord[];    
+    output: DataMappingRecord; 
+    inputParams: string[];
+    outputParam: string;   
+    imports: ImportInfo[];
+    inputNames: string[];
+    existingFunctionMatch: ExistingFunctionMatchResult;       
+}
+
+export interface RepairCodeParams {
+    tempFileMetadata: ExtendedDataMapperMetadata;
+    customFunctionsFilePath?: string;
+    imports?: ImportInfo[];
+    tempDir?: string;
+}
+
+export interface repairCodeRequest {
+    sourceFiles: SourceFile[];
+    diagnostics: DiagnosticList;
+    imports: ImportInfo[];
 }
 
 // Test-generator related interfaces

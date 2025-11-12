@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { generateObject, CoreMessage } from "ai";
-import { z } from "zod";
+import { generateObject, ModelMessage } from "ai";
+import { z } from 'zod';
 import {
     MinifiedLibrary,
     RelevantLibrariesAndFunctionsRequest,
@@ -64,7 +64,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
         return [];
     }
     const cacheOptions = await getProviderCacheControl();
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         {
             role: "system",
             content: getSystemPrompt(allLibraries),
@@ -80,7 +80,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
     const startTime = Date.now();
     const { object } = await generateObject({
         model: await getAnthropicClient(ANTHROPIC_HAIKU),
-        maxTokens: 4096,
+        maxOutputTokens: 4096,
         temperature: 0,
         messages: messages,
         schema: LibraryListSchema,

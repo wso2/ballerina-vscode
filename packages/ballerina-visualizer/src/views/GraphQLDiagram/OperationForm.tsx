@@ -26,7 +26,7 @@ interface OperationFormProps {
     model: FunctionModel;
     filePath: string;
     lineRange: LineRange;
-    isGraphqlView: boolean;
+    isGraphqlView?: boolean;
     isServiceClass?: boolean;
     onSave: (model: FunctionModel) => void;
     onClose: () => void;
@@ -69,12 +69,16 @@ export function OperationForm(props: OperationFormProps) {
             const defaultField = paramFields.find(field => field.key === 'defaultable');
             const documentationField = paramFields.find(field => field.key === 'documentation');
 
+            // Read isGraphqlId from ActionTypeEditor
+            const isGraphqlId = param.formValues['isGraphqlId'] === true;
+
             const parameterModel: ParameterModel = {
                 kind: 'REQUIRED',
                 enabled: typeField?.enabled ?? true,
                 editable: typeField?.editable ?? true,
                 advanced: typeField?.advanced ?? false,
                 optional: typeField?.optional ?? false,
+                isGraphqlId: isGraphqlId,
                 type: {
                     value: param.formValues['type'] as string,
                     valueType: typeField?.valueType,
@@ -141,7 +145,7 @@ export function OperationForm(props: OperationFormProps) {
             documentation: model.name.metadata?.description || '',
             value: model.name.value,
             valueType: model.name.valueType,
-            valueTypeConstraint: model.name.valueTypeConstraint || '',
+            valueTypeConstraint: model.name?.valueTypeConstraint,
             lineRange: model?.name?.codedata?.lineRange
         });
 
@@ -158,7 +162,7 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.documentation.metadata?.description || '',
                 value: model.documentation.value,
                 valueType: model.documentation.valueType,
-                valueTypeConstraint: model.documentation.valueTypeConstraint || ''
+                valueTypeConstraint: model.documentation?.valueTypeConstraint
             });
         }
 
@@ -183,7 +187,7 @@ export function OperationForm(props: OperationFormProps) {
             {
                 key: 'returnType',
                 label: model.returnType.metadata?.label || 'Return Type',
-                type: 'TYPE',
+                type: isGraphqlView ? 'ACTION_TYPE' : (model.returnType.valueType || 'TYPE'),
                 optional: model.returnType.optional,
                 enabled: model.returnType.enabled,
                 editable: model.returnType.editable,
@@ -191,7 +195,9 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
                 valueType: model.returnType.valueType,
-                valueTypeConstraint: model.returnType.valueTypeConstraint || ''
+                properties: model.returnType.properties,
+                valueTypeConstraint: model.returnType?.valueTypeConstraint,
+                isGraphqlId: isGraphqlView ? (model.returnType as any).isGraphqlId : undefined
             }
         );
 
@@ -240,6 +246,11 @@ export function OperationForm(props: OperationFormProps) {
             newFunctionModel.documentation.value = documentation;
         }
         newFunctionModel.returnType.imports = getImportsForProperty('returnType', formImports);
+
+        if (isGraphqlView && data['isGraphqlId'] !== undefined) {
+            (newFunctionModel.returnType as any).isGraphqlId = data['isGraphqlId'] === true;
+        }
+
         Object.entries(data).forEach(([key, value]) => {
             if (newFunctionModel?.properties?.[key]) {
                 newFunctionModel.properties[key].value = value as string;
@@ -281,7 +292,6 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
                 const parameter = parameterConfig[key];
                 if (parameter.metadata && parameter.metadata.label) {
                     const formField = convertParameterToFormField(key, parameter as ParameterModel);
-                    console.log("Form Field: ", formField);
                     formFields.push(formField);
                 }
             }
@@ -292,19 +302,21 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
 }
 
 export function convertParameterToFormField(key: string, param: ParameterModel): FormField {
+
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-        type: param.valueType || 'string',
+        type: param.valueType || 'TYPE',
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
         valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || '',
+        valueTypeConstraint: param?.valueTypeConstraint,
         enabled: param.enabled ?? true,
-        lineRange: param?.codedata?.lineRange
+        lineRange: param?.codedata?.lineRange,
+        isGraphqlId: key === "type" ? (param as any).isGraphqlId : undefined
     };
 }
 
@@ -348,6 +360,9 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
     newFormValues.variable = param.name.value;
     newFormValues.type = param.type.value;
     newFormValues.defaultable = (param.defaultValue as PropertyModel)?.value || '';
+    if (param.isGraphqlId !== undefined) {
+        newFormValues.isGraphqlId = param.isGraphqlId;
+    }
 
     return {
         id: index,

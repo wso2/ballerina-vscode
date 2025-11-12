@@ -16,15 +16,14 @@
  * under the License.
  */
 
-import { Type, ServiceClassModel, ModelFromCodeRequest, FieldType, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE } from "@wso2/ballerina-core";
-import { Button, Codicon, Typography, TextField, ProgressRing, Menu, MenuItem, Popover, Item, ThemeColors, LinkButton } from "@wso2/ui-toolkit";
+import { Type, ServiceClassModel, ModelFromCodeRequest, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, DIRECTORY_MAP } from "@wso2/ballerina-core";
+import { Button, Codicon, Typography, TextField, ProgressRing, ThemeColors, AutoResizeTextArea } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { LoadingContainer } from "../../styles";
 import { OperationForm } from "../../GraphQLDiagram/OperationForm";
 
-import { URI, Utils } from "vscode-uri";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { applyModifications } from "../../../utils/utils";
 import { Icon } from "@wso2/ui-toolkit";
@@ -142,16 +141,49 @@ const SwitchImplementRow = styled.div`
     padding: 10px 0;
 `;
 
+const DocContainer = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--font-family);
+`;
+
+const DocHeaderContainer = styled.div`
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+`;
+
+const DocHeader = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+const DocLabelContainer = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const DocLabel = styled.label`
+    color: var(--vscode-editor-foreground);
+    text-transform: capitalize;
+`;
+
+const DocDescription = styled.div`
+    color: var(--vscode-list-deemphasizedForeground);
+`;
+
 interface GraphqlObjectViewerProps {
     type: Type;
     onClose: () => void;
     onImplementation: (type: Type) => void;
-    projectUri: string;
     serviceIdentifier: string;
 }
 
 export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
-    const { onClose, type, projectUri, onImplementation, serviceIdentifier } = props;
+    const { onClose, type, onImplementation, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel>();
     const [editingFunction, setEditingFunction] = useState<FunctionModel>(undefined);
@@ -165,6 +197,9 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
     const saveButtonClicked = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [serviceClassFilePath, setServiceClassFilePath] = useState<string>("");
+
+    // Documentation field reference
+    const documentationField = serviceClassModel?.documentation;
 
     useEffect(() => {
         getServiceClassModel();
@@ -246,7 +281,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -263,7 +299,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 
@@ -431,6 +468,37 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
         validateTypeName(value);
     }
 
+    // Documentation auto-save on blur
+    const handleDocumentationBlur = async (value: string) => {
+        if (!documentationField || value === documentationField.value) {
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            const updatedModel = { ...serviceClassModel };
+            updatedModel.documentation = {
+                ...documentationField,
+                value: value
+            };
+
+            setServiceClassModel(updatedModel);
+
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
+            await rpcClient.getBIDiagramRpcClient().updateServiceClass({
+                filePath: currentFilePath,
+                serviceClass: updatedModel
+            });
+
+
+        } catch (error) {
+            console.error('Error updating documentation:', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <>
             {!serviceClassModel && (
@@ -507,6 +575,34 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
 
                             </>
                         )}
+
+                        {/* Documentation Field */}
+                        {documentationField && (
+                            <DocContainer>
+                                <DocHeaderContainer>
+                                    <DocHeader>
+                                        <DocLabelContainer>
+                                            <DocLabel>{documentationField.metadata?.label}</DocLabel>
+                                        </DocLabelContainer>
+                                        <DocDescription>{documentationField.metadata?.description}</DocDescription>
+                                    </DocHeader>
+                                </DocHeaderContainer>
+                                <AutoResizeTextArea
+                                    name={"documentation"}
+                                    aria-label={documentationField.metadata?.label}
+                                    required={!documentationField.optional}
+                                    placeholder={documentationField?.placeholder ?? ""}
+                                    readOnly={!documentationField.editable}
+                                    value={documentationField.value ?? ""}
+                                    sx={{ width: "100%" }}
+                                    errorMsg={documentationField.diagnostics?.map((diagnostic) => diagnostic.message).join("\n")}
+                                    autoFocus={false}
+                                    onBlur={(e) => handleDocumentationBlur(e.target.value)}
+                                    growRange={{ start: 4, offset: 12 }}
+                                />
+                            </DocContainer>
+                        )}
+
                         <ScrollableSection>
                             <Section>
                                 <SectionHeader>

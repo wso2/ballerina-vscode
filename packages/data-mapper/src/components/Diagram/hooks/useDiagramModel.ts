@@ -26,12 +26,14 @@ import { useDMSearchStore } from "../../../store/store";
 import { InputNode } from "../Node";
 import { getErrorKind } from "../utils/common-utils";
 import { OverlayLayerModel } from "../OverlayLayer/OverlayLayerModel";
+import { IOType } from "@wso2/ballerina-core";
+import { useEffect } from "react";
 
 export const useDiagramModel = (
     nodes: DataMapperNodeModel[],
     diagramModel: DiagramModel,
     onError:(kind: ErrorNodeKind) => void,
-    zoomLevel: number,
+    zoomLevel: number
 ): {
     updatedModel: DiagramModel<DiagramModelGenerics>;
     isFetching: boolean;
@@ -43,8 +45,8 @@ export const useDiagramModel = (
     const noOfNodes = nodes.length;
     const context = nodes.find(node => node.context)?.context;
     const { model } = context ?? {};
-    const mappings = model.mappings.map(mapping => mapping.expression).toString();
-    const subMappings = model?.subMappings?.map(mapping => mapping.id).toString();
+    const mappings = model?.mappings.map(mapping => mapping.output + ':' + mapping.expression).toString();
+    const subMappings = model?.subMappings?.map(mapping => (mapping as IOType).id).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();
@@ -86,7 +88,7 @@ export const useDiagramModel = (
         data: updatedModel,
         isFetching,
         isError,
-        refetch,
+        refetch
     } = useQuery({
         queryKey: [
             'diagramModel',
@@ -102,6 +104,12 @@ export const useDiagramModel = (
         queryFn: genModel,
         networkMode: 'always',
     });
+
+    useEffect(() => {
+        if (model?.triggerRefresh) {
+            refetch();
+        }
+    }, [model, refetch]);
 
     return { updatedModel, isFetching, isError, refetch };
 };
