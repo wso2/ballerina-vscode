@@ -17,7 +17,7 @@
  */
 
 import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, ProjectDiagnosticsRequest, ProjectDiagnosticsResponse, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
-import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest } from "./interfaces";
+import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest, SemanticVersion } from "./interfaces";
 
 export interface LangClientAPI {
     getSyntaxTree: () => Promise<SyntaxTree>;
@@ -25,6 +25,7 @@ export interface LangClientAPI {
     getSTByRange: (params: BallerinaSTParams) => Promise<SyntaxTree>;
     getBallerinaProjectComponents: (params: BallerinaPackagesParams) => Promise<BallerinaProjectComponents>;
     getBallerinaVersion: () => Promise<BallerinaVersionResponse>;
+    isSupportedSLVersion: (params: SemanticVersion) => Promise<boolean>;
     getCompletion: (params: CompletionRequest) => Promise<CompletionResponse>;
     getDiagnostics: (params: SyntaxTreeParams) => Promise<DiagnosticsResponse>;
     getProjectDiagnostics: (params: ProjectDiagnosticsRequest) => Promise<ProjectDiagnosticsResponse>;
