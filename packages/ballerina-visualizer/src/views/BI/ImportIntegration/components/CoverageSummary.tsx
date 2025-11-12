@@ -57,6 +57,12 @@ export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData, on
                     <CoverageLabel>Migration Coverage</CoverageLabel>
                 </div>
                 <CoverageStats>
+                    {coverageOverview.projects !== undefined && (
+                        <CoverageStat>
+                            <span>Total Projects:</span>
+                            <strong>{coverageOverview.projects}</strong>
+                        </CoverageStat>
+                    )}
                     <CoverageStat>
                         <span>Total {coverageOverview.unitName}(s):</span>
                         <strong>{coverageOverview.totalElements}</strong>

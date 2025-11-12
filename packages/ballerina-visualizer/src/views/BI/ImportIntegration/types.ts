@@ -31,6 +31,7 @@ export enum CoverageLevel {
 }
 
 export interface CoverageOverview {
+    projects?: number;
     unitName: string;
     coveragePercentage: number;
     coverageLevel: CoverageLevel;
@@ -67,6 +68,7 @@ export interface MigrationProgressProps {
     migrationSuccessful: boolean;
     migrationResponse: ImportIntegrationResponse | null;
     projects: ProjectMigrationResult[];
+    isMultiProject: boolean;
     onNext: () => void;
     onBack: () => void;
 }

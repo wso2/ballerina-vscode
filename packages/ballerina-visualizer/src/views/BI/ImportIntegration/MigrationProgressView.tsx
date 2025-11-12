@@ -33,6 +33,7 @@ export function MigrationProgressView({
     migrationSuccessful,
     migrationResponse,
     projects,
+    isMultiProject,
     onNext,
     onBack,
 }: MigrationProgressProps) {
@@ -43,7 +44,10 @@ export function MigrationProgressView({
     const parsedReportData = useMemo(() => {
         if (!migrationResponse?.jsonReport) return null;
         try {
-            return JSON.parse(migrationResponse.jsonReport) as MigrationReportJSON;
+            const reportData = typeof migrationResponse.jsonReport === "string"
+                ? JSON.parse(migrationResponse.jsonReport)
+                : migrationResponse.jsonReport;
+            return reportData as MigrationReportJSON;
         } catch (error) {
             console.error("Failed to parse migration report JSON:", error);
         }
@@ -96,7 +100,7 @@ export function MigrationProgressView({
     };
 
     const displayState = getMigrationDisplayState(migrationCompleted, migrationSuccessful, !!parsedReportData);
-    const { headerText, headerDesc } = getMigrationProgressHeaderData(displayState);
+    const { headerText, headerDesc } = getMigrationProgressHeaderData(displayState, isMultiProject);
 
     return (
         <>
