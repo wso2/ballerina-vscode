@@ -16,7 +16,9 @@
  * under the License.
  */
 
-import { FormField } from "../../../Form/types";
+import { FormField, HelperpaneOnChangeOptions } from "../../../Form/types";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 /**
  * Base props that all editor mode components must implement
@@ -41,14 +43,40 @@ export interface EditorModeWithPreviewProps extends EditorModeProps {
 }
 
 /**
+ * Extended props for expression mode with completions and helper pane support
+ */
+export interface EditorModeExpressionProps extends EditorModeProps {
+    /** Completion items for autocomplete */
+    completions?: CompletionItem[];
+    /** File name for context */
+    fileName?: string;
+    /** Target line range for context */
+    targetLineRange?: LineRange;
+    /** Function to extract arguments from function calls */
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    /** Helper pane renderer function */
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
+}
+
+/**
  * Mode type identifier
  */
-export type EditorMode = "text" | "prompt";
+export type EditorMode = "text" | "prompt" | "expression";
 
 /**
  * Map of mode identifiers to their display labels
  */
 export const MODE_LABELS: Record<EditorMode, string> = {
     text: "Text",
-    prompt: "Prompt"
+    prompt: "Prompt",
+    expression: "Expression"
 };

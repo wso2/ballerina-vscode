@@ -17,4 +17,4 @@
  */
 
 export { ExpandedEditor } from "./ExpandedEditor";
-export type { EditorMode, EditorModeProps, EditorModeWithPreviewProps } from "./modes/types";
+export type { EditorMode, EditorModeProps, EditorModeWithPreviewProps, EditorModeExpressionProps } from "./modes/types";

@@ -524,8 +524,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     };
 
-    // Only allow opening expanded mode for specific fields
-    const onOpenExpandedMode = (!props.isInExpandedMode && ["query", "instructions", "role"].includes(field.key))
+    // Only allow opening expanded mode for specific fields or expression mode
+    const onOpenExpandedMode = (!props.isInExpandedMode &&
+        (["query", "instructions", "role"].includes(field.key) || inputMode === InputMode.EXP))
         ? handleOpenExpandedMode
         : undefined;
 
@@ -693,6 +694,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     value={watch(key)}
                     onClose={() => setIsExpandedModalOpen(false)}
                     onSave={handleSaveExpandedMode}
+                    mode={inputMode === InputMode.EXP ? "expression" : undefined}
+                    completions={completions}
+                    fileName={effectiveFileName}
+                    targetLineRange={effectiveTargetLineRange}
+                    extractArgsFromFunction={handleExtractArgsFromFunction}
+                    getHelperPane={handleGetHelperPane}
                 />
             )}
         </FieldProvider>
