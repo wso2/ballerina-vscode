@@ -669,7 +669,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 anchorRef={anchorRef}
                                 onToggleHelperPane={toggleHelperPaneState}
                                 onOpenExpandedMode={onOpenExpandedMode}
-                                isInExpandedMode={props.isInExpandedMode}
+                                isInExpandedMode={isExpandedModalOpen}
                             />
                             {error ?
                                 <ErrorBanner errorMsg={error.message.toString()} /> :
@@ -720,7 +720,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             );
                                         }
                                     }}
-                                    onClose={() => setIsExpandedModalOpen(false)}
+                                    onClose={() => {
+                                        setIsExpandedModalOpen(false)
+                                    }}
                                     onSave={handleSaveExpandedMode}
                                     mode={inputMode === InputMode.EXP ? "expression" : undefined}
                                     completions={completions}
