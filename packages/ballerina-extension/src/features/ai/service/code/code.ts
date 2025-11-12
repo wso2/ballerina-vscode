@@ -69,7 +69,7 @@ function appendFinalMessages(
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
-    const tempProjectPath = await getTempProject(project);
+    const { path: tempProjectPath, modifications } = await getTempProject(project, params.chatHistory.length > 0);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
     const prompt = getRewrittenPrompt(params, sourceFiles);
