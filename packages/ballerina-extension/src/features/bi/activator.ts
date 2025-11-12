@@ -36,7 +36,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectPure } from "../../utils/bi";
+import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -110,6 +110,10 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
         return createBIProjectPure(params);
+    });
+
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
+        return createBIProjectFromMigration(params);
     });
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item: any) => {
