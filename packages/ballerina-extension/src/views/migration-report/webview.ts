@@ -64,7 +64,9 @@ export class MigrationReportWebview {
                     projectLinks.forEach(link => {
                         link.addEventListener('click', function(event) {
                             event.preventDefault();
-                            const projectName = this.textContent.trim();
+                            // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
+                            const projectId = this.id || this.textContent.trim();
+                            const projectName = projectId.split('_')[0];
 
                             // Send message to extension via VS Code webview API
                             vscode.postMessage({
@@ -129,7 +131,9 @@ export class MigrationReportWebview {
                     projectLinks.forEach(link => {
                         link.addEventListener('click', function(event) {
                             event.preventDefault();
-                            const projectName = this.textContent.trim();
+                            // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
+                            const projectId = this.id || this.textContent.trim();
+                            const projectName = projectId.split('_')[0];
 
                             // Send message to extension via VS Code webview API
                             vscode.postMessage({
