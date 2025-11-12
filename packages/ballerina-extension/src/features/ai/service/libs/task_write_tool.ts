@@ -41,7 +41,7 @@ const TaskWriteInputSchema = z.object({
 
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
-export function createTaskWriteTool(eventHandler?: CopilotEventHandler, updatedSourceFiles?: SourceFiles[], updatedFileNames?: string[]) {
+export function createTaskWriteTool(eventHandler?: CopilotEventHandler, tempProjectPath?: string, modifiedFiles?: string[]) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
@@ -134,6 +134,11 @@ Rules:
 
                 const taskCategories = categorizeTasks(allTasks);
 
+                // TODO: Fix issue where agent updates to existing plan trigger new approval
+                // Problem: When agent continues chat with plan updates, currentPlan state is empty
+                // causing it to be identified as new plan and triggering approval unnecessarily.
+                // Need to preserve plan state across chat continuations or use chat history to
+                // detect if this is a continuation of an existing conversation with a plan.
                 const isNewPlan = !existingPlan || existingPlan.tasks.length === 0;
                 const isPlanRemodification = existingPlan && (
                     allTasks.length !== existingPlan.tasks.length ||
@@ -163,8 +168,8 @@ Rules:
                                 newlyCompletedTasks,
                                 currentContext,
                                 eventHandler,
-                                updatedSourceFiles,
-                                updatedFileNames
+                                tempProjectPath,
+                                modifiedFiles
                             );
                         }
                     } else if (taskCategories.inProgress.length > 0) {
@@ -242,7 +247,7 @@ function detectNewlyCompletedTasks(completedTasks: Task[], existingPlan: Plan | 
     if (!existingPlan) {
         return completedTasks;
     }
-    
+
     return completedTasks.filter(task => {
         const existingTask = existingPlan.tasks.find(t => t.description === task.description);
         return existingTask && existingTask.status !== TaskStatus.COMPLETED;
@@ -300,14 +305,16 @@ async function handleTaskCompletion(
     newlyCompletedTasks: Task[],
     currentContext: any,
     eventHandler: CopilotEventHandler,
-    updatedSourceFiles?: SourceFiles[],
-    updatedFileNames?: string[]
+    tempProjectPath?: string,
+    modifiedFiles?: string[]
 ): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
 
-    if (updatedSourceFiles && updatedFileNames) {
-        await integrateCodeToWorkspace(updatedSourceFiles, updatedFileNames);
+    if (tempProjectPath && modifiedFiles) {
+        const modifiedFilesSet = new Set(modifiedFiles);
+        console.log(`[TaskWrite Tool] Integrating ${modifiedFilesSet.size} modified file(s)`);
+        await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
     }
 
     AIChatStateMachine.sendEvent({

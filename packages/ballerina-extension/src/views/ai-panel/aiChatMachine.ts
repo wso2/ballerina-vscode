@@ -24,6 +24,7 @@ import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEven
 import { workspace } from 'vscode';
 import { GenerateAgentCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
+import { cleanupTempProject, getTempProjectPath } from '../../features/ai/utils/temp-project-utils';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -56,47 +57,37 @@ const addUserMessage = (
     history: ChatMessage[],
     content: string
 ): ChatMessage[] => {
+    const lastMessage = history[history.length - 1];
+    const baseHistory = lastMessage && !lastMessage.uiResponse && lastMessage.modelMessages.length === 0
+        ? history.slice(0, -1)
+        : history;
+
     return [
-        ...history,
+        ...baseHistory,
         {
             id: generateId(),
-            role: 'user',
             content,
+            uiResponse: '',
+            modelMessages: [],
             timestamp: Date.now(),
         },
     ];
 };
 
-const addAssistantMessage = (
+const updateChatMessage = (
     history: ChatMessage[],
     id: string,
-    uiResponse: string,
-    modelMessages: any[]
-): ChatMessage[] => {
-    return [
-        ...history,
-        {
-            id,
-            role: 'assistant',
-            uiResponse,
-            modelMessages,
-            timestamp: Date.now(),
-        },
-    ];
-};
-
-const updateAssistantMessage = (
-    history: ChatMessage[],
-    id: string,
-    uiResponse?: string,
-    modelMessages?: any[]
+    updates: {
+        uiResponse?: string;
+        modelMessages?: any[];
+    }
 ): ChatMessage[] => {
     return history.map(msg => {
-        if (msg.role === 'assistant' && msg.id === id) {
+        if (msg.id === id) {
             return {
                 ...msg,
-                uiResponse: uiResponse !== undefined ? uiResponse : msg.uiResponse,
-                modelMessages: modelMessages !== undefined ? modelMessages : msg.modelMessages,
+                uiResponse: updates.uiResponse !== undefined ? updates.uiResponse : msg.uiResponse,
+                modelMessages: updates.modelMessages !== undefined ? updates.modelMessages : msg.modelMessages,
             };
         }
         return msg;
@@ -130,17 +121,11 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 errorMessage: (_ctx) => undefined,
             }),
         },
-        [AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE]: {
+        [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
             actions: assign({
                 chatHistory: (ctx, event) => {
                     const { id, modelMessages, uiResponse } = event.payload;
-                    const existingMessage = ctx.chatHistory.find(
-                        msg => msg.role === 'assistant' && msg.id === id
-                    );
-
-                    return existingMessage
-                        ? updateAssistantMessage(ctx.chatHistory, id, uiResponse, modelMessages)
-                        : addAssistantMessage(ctx.chatHistory, id, uiResponse || '', modelMessages || []);
+                    return updateChatMessage(ctx.chatHistory, id, { uiResponse, modelMessages });
                 },
             }),
         },
@@ -398,7 +383,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Completed: {
-            entry: 'saveChatState',
+            entry: ['saveChatState', 'cleanupTempProject'],
         },
         PartiallyCompleted: {
             entry: 'saveChatState',
@@ -412,6 +397,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Error: {
+            entry: 'cleanupTempProject',
             on: {
                 [AIChatMachineEventType.RETRY]: [
                     {
@@ -441,13 +427,8 @@ const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] =>
     const messages: any[] = [];
 
     for (const msg of chatHistory) {
-        if (msg.role === 'assistant') {
+        if (msg.modelMessages && msg.modelMessages.length > 0) {
             messages.push(...msg.modelMessages);
-        } else {
-            messages.push({
-                role: 'user',
-                content: msg.content
-            });
         }
     }
 
@@ -456,17 +437,20 @@ const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] =>
 
 const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
     const messages: UIChatHistoryMessage[] = [];
+    const lastMessage = chatHistory[chatHistory.length - 1];
+    const historyToConvert = lastMessage && !lastMessage.uiResponse ? chatHistory.slice(0, -1) : chatHistory;
 
-    for (const msg of chatHistory) {
-        if (msg.role === 'user') {
-            messages.push({
-                role: 'user',
-                content: msg.content
-            });
-        } else if (msg.role === 'assistant') {
+    for (const msg of historyToConvert) {
+
+        messages.push({
+            role: 'user',
+            content: msg.content
+        });
+
+        if (msg.uiResponse) {
             messages.push({
                 role: 'assistant',
-                content: msg.uiResponse || ''
+                content: msg.uiResponse
             });
         }
     }
@@ -476,16 +460,16 @@ const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHisto
 
 const startGenerationService = async (context: AIChatMachineContext): Promise<void> => {
     const lastMessage = context.chatHistory[context.chatHistory.length - 1];
-    const usecase = lastMessage?.role === 'user' ? lastMessage.content : '';
+    const usecase = lastMessage?.content;
     const previousHistory = context.chatHistory.slice(0, -1);
-    const assistantMessageId = generateId();
+    const messageId = lastMessage?.id;
 
     const requestBody: GenerateAgentCodeRequest = {
         usecase: usecase,
         chatHistory: convertChatHistoryToModelMessages(previousHistory),
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
-        assistantMessageId: assistantMessageId,
+        messageId: messageId,
     };
 
     generateDesign(requestBody).catch(error => {
@@ -677,6 +661,15 @@ const chatStateService = interpret(
         actions: {
             saveChatState: (context) => saveChatState(context),
             clearChatState: (context) => clearChatStateAction(context),
+            cleanupTempProject: () => {
+                try {
+                    const tempProjectPath = getTempProjectPath();
+                    console.log(`[AIChatMachine] Cleaning up temp project: ${tempProjectPath}`);
+                    cleanupTempProject(tempProjectPath);
+                } catch (error) {
+                    console.error('[AIChatMachine] Failed to cleanup temp project:', error);
+                }
+            },
         },
     })
 );

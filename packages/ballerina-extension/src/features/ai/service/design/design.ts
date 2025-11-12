@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, SourceFiles, AIChatMachineEventType} from "@wso2/ballerina-core";
-import { convertToModelMessages, ModelMessage, stepCountIs, streamText } from "ai";
+import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType} from "@wso2/ballerina-core";
+import { ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
-import { getErrorMessage, populateHistoryForAgent, transformProjectSource } from "../utils";
+import { getErrorMessage, populateHistoryForAgent } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
@@ -27,117 +27,31 @@ import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
+import { getTempProject, FileModificationInfo } from "../../utils/temp-project-utils";
+import { formatCodebaseStructure } from "./utils";
 
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
-    const assistantMessageId = params.assistantMessageId;
+    const messageId = params.messageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
-    const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    const updatedSourceFiles: SourceFiles[] = [...sourceFiles];
-    const updatedFileNames: string[] = [];
     const historyMessages = populateHistoryForAgent(params.chatHistory);
+    const hasHistory = historyMessages.length > 0;
+    const { path: tempProjectPath } = await getTempProject(project, hasHistory);
     const cacheOptions = await getProviderCacheControl();
 
+    const modifiedFiles: string[] = [];
+
+    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
-
-ONLY answer Ballerina-related queries.
-
-# Plan Mode Approach
-
-## Step 1: Create High-Level Design
-Create a very high-level and concise design plan for the given user requirement.
-
-## Step 2: Break Down Into Tasks and Execute
-
-**REQUIRED: Use Task Management**
-You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
-This plan will be visible to the user and the execution will be guided on the tasks you create.
-
-- Break down the implementation into specific, actionable tasks.
-- Each task should have a type. This type will be used to guide the user through the generation proccess.
-- Track each task as you work through them
-- Mark tasks as you start and complete them
-- This ensures you don't miss critical steps
-- Each task should be concise and high level as they are visible to a very high level user. During the implementation, you will break them down further as needed and implement them.
-
-**Task Types**:
-1. 'service_design'
-- Responsible for creating the http listener, service, and its resource function signatures.
-- The signature should only have path, query, payload, header paramters and the return types. This step should contain types relevant to the service contract as well.
-2. 'connections_init'
-- Responsible for initializing connections/clients
-- This step should only contain the Client initialization.
-3. 'implementation'
-- for all the other implementations. Have resource function implementations in its own task.
-
-**Task Breakdown Example**:
-1. Create the HTTP service contract
-2. Create the MYSQL Connection
-3. Implement the resource functions
-
-**Critical Rules**:
-- Task management is MANDATORY for all implementations
-- When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call
-- Do NOT mention internal tool names to users
-
-**Execution Flow**:
-1. Think about and explain your high-level design plan to the user
-2. After explaining the plan, output: <toolcall>Planning...</toolcall>
-3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
-4. The tool will wait for PLAN APPROVAL from the user
-5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
-
-   **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - Implement the task completely (write the Ballerina code)
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - The tool will wait for TASK COMPLETION APPROVAL from the user
-   - Once approved (success: true), immediately start the next task
-   - Repeat until ALL tasks are done
-
-6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
-
-**User Communication**:
-- Using the task_write tool will automatically show progress to the user via a task list
-- Keep language simple and non-technical when responding
-- No need to add manual progress indicators - the task list shows what you're working on
-
-## Code Generation Guidelines
-
-When generating Ballerina code:
-
-1. **Imports**: Import required libraries
-   - Do NOT import these (already available by default): lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map
-
-2. **Structure**:
-   - Define types in types.bal file
-   - Initialize necessary clients
-   - Create service OR main function
-   - Plan data flow and transformations
-
-3. **Service Design Phase** ('service_design' tasks):
-   - Create resource function signatures with comprehensive return types covering all possible scenarios
-   - For unimplemented function bodies, use http:NOT_IMPLEMENTED as the placeholder return value
-
-4. **Implementation Phase** ('implementation' tasks):
-   - Implement the complete logic for resource functions
-   - **CRITICAL**: After implementation, refine the function signature to ONLY include return types that are actually returned in the implementation
-   - Remove any unused return types from the signature to keep it clean and precise
-`,
+            content: getSystemPrompt(),
             providerOptions: cacheOptions,
         },
         ...historyMessages,
         {
             role: "user",
-            content: `Create a high-level design plan for the following requirement and break it down into implementation tasks.
-
-After the plan is approved, execute all tasks continuously following the execution flow defined in the system prompt.
-
-<User Query>
-${params.usecase}
-</User Query>`,
+            content: userMessageContent,
+            providerOptions: cacheOptions,
         },
     ];
 
@@ -147,12 +61,12 @@ ${params.usecase}
         : "- No libraries available";
 
     const tools = {
-        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, updatedSourceFiles, updatedFileNames),
+        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
     };
 
     const { fullStream, response, steps } = streamText({
@@ -243,24 +157,22 @@ ${params.usecase}
                     if (currentAssistantContent.length > 0) {
                         accumulatedMessages.push({
                             role: "assistant",
-                            content: currentAssistantContent
+                            content: currentAssistantContent,
                         });
                     }
                     messagesToSave = accumulatedMessages;
                 }
 
-                if (messagesToSave.length > 0) {
-                    AIChatStateMachine.sendEvent({
-                        type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
-                        payload: {
-                            id: assistantMessageId,
-                            modelMessages: messagesToSave,
-                        },
-                    });
-                }
+                // Add user message to inform about abort and file reversion
+                messagesToSave.push({
+                    role: "user",
+                    content: `<abort_notification>
+Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+</abort_notification>`,
+                });
 
+                updateAndSaveChat(messageId, userMessageContent, messagesToSave, eventHandler);
                 eventHandler({ type: "abort", command: Command.Design });
-                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
@@ -278,16 +190,8 @@ ${params.usecase}
 
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
-                AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
-                    payload: {
-                        id: assistantMessageId,
-                        modelMessages: assistantMessages,
-                    },
-                });
-
+                updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });
-                eventHandler({ type: "save_chat", command: Command.Design, assistantMessageId });
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
@@ -295,6 +199,34 @@ ${params.usecase}
             }
             }
         }
+}
+
+/**
+ * Updates chat message with model messages and triggers save
+ */
+function updateAndSaveChat(
+    messageId: string,
+    userMessageContent: any,
+    assistantMessages: any[],
+    eventHandler: CopilotEventHandler
+): void {
+    const completeMessages = [
+        {
+            role: "user",
+            content: userMessageContent,
+        },
+        ...assistantMessages
+    ];
+
+    AIChatStateMachine.sendEvent({
+        type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
+        payload: {
+            id: messageId,
+            modelMessages: completeMessages,
+        },
+    });
+
+    eventHandler({ type: "save_chat", command: Command.Design, messageId });
 }
 
 export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
@@ -352,3 +284,155 @@ function saveToolResult(
         }]
     });
 }
+
+/**
+ * Generates the system prompt for the design agent
+ */
+function getSystemPrompt(): string {
+    return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
+
+ONLY answer Ballerina-related queries.
+
+# Plan Mode Approach
+
+## Step 1: Create High-Level Design
+Create a very high-level and concise design plan for the given user requirement.
+
+## Step 2: Break Down Into Tasks and Execute
+
+**REQUIRED: Use Task Management**
+You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
+This plan will be visible to the user and the execution will be guided on the tasks you create.
+
+- Break down the implementation into specific, actionable tasks.
+- Each task should have a type. This type will be used to guide the user through the generation proccess.
+- Track each task as you work through them
+- Mark tasks as you start and complete them
+- This ensures you don't miss critical steps
+- Each task should be concise and high level as they are visible to a very high level user. During the implementation, you will break them down further as needed and implement them.
+
+**Task Types**:
+1. 'service_design'
+- Responsible for creating the http listener, service, and its resource function signatures.
+- The signature should only have path, query, payload, header paramters and the return types. This step should contain types relevant to the service contract as well.
+2. 'connections_init'
+- Responsible for initializing connections/clients
+- This step should only contain the Client initialization.
+3. 'implementation'
+- for all the other implementations. Have resource function implementations in its own task.
+
+**Task Breakdown Example**:
+1. Create the HTTP service contract
+2. Create the MYSQL Connection
+3. Implement the resource functions
+
+**Critical Rules**:
+- Task management is MANDATORY for all implementations
+- When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call
+- Do NOT mention internal tool names to users
+
+**Execution Flow**:
+1. Think about and explain your high-level design plan to the user
+2. After explaining the plan, output: <toolcall>Planning...</toolcall>
+3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+4. The tool will wait for PLAN APPROVAL from the user
+5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+
+   **For each task:**
+   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
+   - Implement the task completely (write the Ballerina code)
+   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
+   - The tool will wait for TASK COMPLETION APPROVAL from the user
+   - Once approved (success: true), immediately start the next task
+   - Repeat until ALL tasks are done
+
+6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+
+**User Communication**:
+- Using the task_write tool will automatically show progress to the user via a task list
+- Keep language simple and non-technical when responding
+- No need to add manual progress indicators - the task list shows what you're working on
+
+## Code Generation Guidelines
+
+When generating Ballerina code:
+
+1. **Imports**: Import required libraries
+   - Do NOT import these (already available by default): lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map
+
+2. **Structure**:
+   - Define types in types.bal file
+   - Initialize necessary clients
+   - Create service OR main function
+   - Plan data flow and transformations
+
+3. **Service Design Phase** ('service_design' tasks):
+   - Create resource function signatures with comprehensive return types covering all possible scenarios
+   - For unimplemented function bodies, use http:NOT_IMPLEMENTED as the placeholder return value
+
+4. **Implementation Phase** ('implementation' tasks):
+   - Implement the complete logic for resource functions
+   - **CRITICAL**: After implementation, refine the function signature to ONLY include return types that are actually returned in the implementation
+   - Remove any unused return types from the signature to keep it clean and precise
+`;
+}
+
+/**
+ * Generates user prompt content array with codebase structure for new threads
+ * @param usecase User's query/requirement
+ * @param hasHistory Whether chat history exists
+ * @param tempProjectPath Path to temp project (used when hasHistory is false)
+ */
+function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string) {
+    const content = [];
+
+    if (!hasHistory) {
+        content.push({
+            type: 'text' as const,
+            text: formatCodebaseStructure(tempProjectPath)
+        });
+    }
+
+    content.push({
+        type: 'text' as const,
+        text: `<User Query>
+${usecase}
+</User Query>`
+    });
+
+    return content;
+}
+
+/**
+ * Formats file modifications into XML structure for Claude
+ * TODO: This function is currently not used. Can be removed if workspace modification
+ * tracking is not needed in the future.
+ */
+function formatModifications(modifications: FileModificationInfo[]): string {
+    if (modifications.length === 0) {
+        return '';
+    }
+
+    const modifiedFiles = modifications.filter(m => m.type === 'modified').map(m => m.filePath);
+    const newFiles = modifications.filter(m => m.type === 'new').map(m => m.filePath);
+    const deletedFiles = modifications.filter(m => m.type === 'deleted').map(m => m.filePath);
+
+    let text = '<workspace_changes>\n';
+    text += 'The following changes were detected in the workspace since the last session. ';
+    text += 'You do not need to acknowledge or repeat these changes in your response. ';
+    text += 'This information is provided for your awareness only.\n\n';
+
+    if (modifiedFiles.length > 0) {
+        text += '<modified_files>\n' + modifiedFiles.join('\n') + '\n</modified_files>\n\n';
+    }
+    if (newFiles.length > 0) {
+        text += '<new_files>\n' + newFiles.join('\n') + '\n</new_files>\n\n';
+    }
+    if (deletedFiles.length > 0) {
+        text += '<deleted_files>\n' + deletedFiles.join('\n') + '\n</deleted_files>\n\n';
+    }
+
+    text += '</workspace_changes>';
+    return text;
+}
+
