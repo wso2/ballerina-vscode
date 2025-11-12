@@ -542,6 +542,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 onMouseEnter={() => setIsBoxHovered(true)}
                 onMouseLeave={() => setIsBoxHovered(false)}
                 onContextMenu={!readOnly ? handleOnContextMenu : undefined}
+                title="Configure Agent"
             >
                 {hasBreakpoint && (
                     <div
@@ -610,13 +611,14 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 <NodeStyles.MemoryCard 
                                     readOnly={readOnly} 
                                     onClick={onMemoryManagerClick} 
+                                    title="Configure Memory" 
                                     onContextMenu={!readOnly ? handleMemoryContextMenu : undefined}
                                 >
                                     <NodeStyles.Row readOnly={readOnly}>
                                         <div style={{ flex: 1 }}>
                                             <NodeStyles.MemoryTitle>Memory</NodeStyles.MemoryTitle>
                                             <NodeStyles.MemoryMeta>
-                                                {nodeMetadata?.memory?.type || "MessageWindowChatMemory"}
+                                                {(nodeMetadata?.memory?.type || "MessageWindowChatMemory").replace(/^ai:/, "")}
                                             </NodeStyles.MemoryMeta>
                                         </div>
                                         <NodeStyles.MenuButton
@@ -630,7 +632,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                     </NodeStyles.Row>
                                 </NodeStyles.MemoryCard>
                             ) : (
-                                <NodeStyles.MemoryButton readOnly={readOnly} onClick={onMemoryManagerClick}>
+                                <NodeStyles.MemoryButton readOnly={readOnly} onClick={onMemoryManagerClick} title="Add Memory">
                                     <Icon name="bi-plus" sx={{ fontSize: "16px", marginRight: "4px" }} />
                                     Add Memory
                                 </NodeStyles.MemoryButton>
@@ -704,7 +706,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 stroke: ${readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
                             }
                         `}
-                    />
+                    >
+                        <title>{"Configure Model Provider"}</title>
+                    </circle>
                     <foreignObject
                         x="68"
                         y="12"
@@ -945,7 +949,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             }
                         `}
                     >
-                        <title>Add new tool / MCP server</title>
+                        <title>Add New Tool / MCP Server</title>
                         <path
                             fill={ThemeColors.SURFACE_BRIGHT}
                             d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
@@ -975,7 +979,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 font-family: "GilmerRegular";
                             `}
                         >
-                            Add new tool / MCP server
+                            Add New Tool / MCP Server
                         </div>
                     </foreignObject>
                 </g>

@@ -18,6 +18,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { DMViewState, LinePosition } from '@wso2/ballerina-core';
+import { useRef } from 'react';
 
 export const useDataMapperModel = (
     filePath: string,
@@ -27,6 +28,8 @@ export const useDataMapperModel = (
     const { rpcClient } = useRpcContext();
     const viewId = viewState?.viewId;
     const codedata = viewState?.codedata;
+
+    const triggerRefresh = useRef<boolean>(false);
 
     const getDMModel = async () => {
         try {
@@ -39,9 +42,16 @@ export const useDataMapperModel = (
                     offset: codedata.lineRange.startLine.offset
                 }
             };
+            console.log('>>> [Data Mapper] Model Parameters:', modelParams);
+
             const res = await rpcClient
                 .getDataMapperRpcClient()
                 .getDataMapperModel(modelParams);
+
+            if (triggerRefresh.current) {
+                res.mappingsModel.triggerRefresh = true;
+                triggerRefresh.current = false;
+            }
 
             console.log('>>> [Data Mapper] Model:', res);
             return res.mappingsModel;
@@ -57,10 +67,15 @@ export const useDataMapperModel = (
         isError,
         refetch
     } = useQuery({
-        queryKey: ['getDMModel', { codedata, viewId }],
-        queryFn: () => getDMModel(),
+        queryKey: ['getDMModel', codedata, viewId],
+        queryFn: getDMModel,
         networkMode: 'always'
     });
 
-    return {model, isFetching, isError, refetch};
+    const refreshDMModel = async () => {
+        triggerRefresh.current = true;
+        await refetch();
+    };
+
+    return { model, isFetching, isError, refreshDMModel };
 };

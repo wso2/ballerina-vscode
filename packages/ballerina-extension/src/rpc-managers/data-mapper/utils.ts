@@ -33,7 +33,8 @@ import {
     IOTypeField,
     IORoot,
     ExpandModelOptions,
-    ExpandedDMModel
+    ExpandedDMModel,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
@@ -80,6 +81,12 @@ export async function fetchDataMapperCodeData(
     const response = await StateMachine
         .langClient()
         .getDataMapperCodedata({ filePath, codedata: modifiedCodeData, name: varName });
+    if (response.codedata && StateMachine.context().view === MACHINE_VIEW.DataMapper) {
+        // Following is a temporary hack to remove the node property from the code data
+        // TODO: Remove this once the LS API is updated (https://github.com/wso2/product-ballerina-integrator/issues/1732)
+        const { node, ...cleanCodeData } = response.codedata;
+        return cleanCodeData;
+    }
     return response.codedata;
 }
 
@@ -109,7 +116,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
     const filePaths = Object.keys(textEdits);
 
     if (filePaths.length == 1) {
-        return await updateSourceCode(updateSourceCodeRequest, null, 'Data Mapper Update');
+        return await updateSourceCode({ ...updateSourceCodeRequest, description: 'Data Mapper Update' });
     }
 
     // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
@@ -132,7 +139,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
 
     let updatedArtifacts: ProjectStructureArtifactResponse[];
     for (const request of requests) {
-        updatedArtifacts = await updateSourceCode(request, null, 'Data Mapper Update');
+        updatedArtifacts = await updateSourceCode({ ...request, description: 'Data Mapper Update' });
     }
 
     return updatedArtifacts;
@@ -210,7 +217,7 @@ export async function updateSubMappingSource(
     name: string
 ): Promise<CodeData> {
     try {
-        await updateSourceCode({ textEdits }, null, 'Sub Mapping Update');
+        await updateSourceCode({ textEdits: textEdits, description: 'Sub Mapping Update' });
         return await fetchSubMappingCodeData(filePath, codedata, name);
     } catch (error) {
         console.error(`Failed to update source for sub mapping "${name}" in ${filePath}:`, error);
@@ -291,6 +298,63 @@ function findVariableInFlowModel(flowModel: Flow, varName: string): CodeData | n
     return variableNode?.codedata || null;
 }
 
+export async function extractVariableDefinitionSource(
+    filePath: string,
+    codeData: CodeData,
+    varName: string
+): Promise<string | null> {
+    try {
+        const variableCodeData = await fetchDataMapperCodeData(filePath, codeData, varName);
+
+        if (!variableCodeData?.lineRange) {
+            return null;
+        }
+
+        const fs = require('fs');
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const lines = fileContent.split('\n');
+
+        const startLine = variableCodeData.lineRange.startLine.line;
+        const endLine = variableCodeData.lineRange.endLine.line;
+
+        const variableLines = lines.slice(startLine, endLine + 1);
+
+        const formattedCode = formatExtractedCode(variableLines);
+        return formattedCode;
+    } catch (error) {
+        console.error(`Failed to extract variable definition for "${varName}":`, error);
+        return null;
+    }
+}
+
+// Formats extracted code lines by:
+function formatExtractedCode(lines: string[]): string {
+    if (lines.length === 0) {
+        return '';
+    }
+
+    const nonEmptyLines = lines.filter(line => line.trim().length > 0);
+    if (nonEmptyLines.length === 0) {
+        return '';
+    }
+
+    const minIndent = Math.min(
+        ...nonEmptyLines.map(line => {
+            const match = line.match(/^(\s*)/);
+            return match ? match[1].length : 0;
+        })
+    );
+
+    const formattedLines = lines.map(line => {
+        if (line.trim().length === 0) {
+            return '';
+        }
+        return line.substring(minIndent);
+    });
+
+    return formattedLines.join('\n').trimEnd();
+}
+
 /**
  * Applies a temporary hack to update the source code with a random string.
  * TODO: Remove this once the lang server is updated to return the new source code
@@ -355,121 +419,6 @@ export async function refreshDataMapper(
 }
 
 /**
- * Builds individual source requests from the provided parameters by mapping over each mapping.
- */
-export function buildSourceRequests(params: AllDataMapperSourceRequest): DataMapperSourceRequest[] {
-    return params.mappings.map(mapping => ({
-        filePath: params.filePath,
-        codedata: params.codedata,
-        varName: params.varName,
-        targetField: params.targetField,
-        mapping: mapping
-    }));
-}
-
-/**
- * Handles operation cancellation and error logging for each request.
- */
-export async function processSourceRequests(requests: DataMapperSourceRequest[]): Promise<PromiseSettledResult<DataMapperSourceResponse>[]> {
-    return Promise.allSettled(
-        requests.map(async (request) => {
-            if (getHasStopped()) {
-                throw new Error("Operation was stopped");
-            }
-            try {
-                return await StateMachine.langClient().getDataMapperSource(request);
-            } catch (error) {
-                console.error("Error in getDataMapperSource:", error);
-                throw error;
-            }
-        })
-    );
-}
-
-/**
- * Consolidates text edits from multiple source responses into a single optimized collection.
- */
-export function consolidateTextEdits(
-    responses: PromiseSettledResult<DataMapperSourceResponse>[],
-    totalMappings: number
-): { [key: string]: TextEdit[] } {
-    const allTextEdits: { [key: string]: TextEdit[] } = {};
-
-    responses.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-            console.log(`>>> Completed mapping ${index + 1}/${totalMappings}`);
-            mergeTextEdits(allTextEdits, result.value.textEdits);
-        } else {
-            console.error(`>>> Failed mapping ${index + 1}:`, result.reason);
-        }
-    });
-
-    return optimizeTextEdits(allTextEdits);
-}
-
-/**
- * Merges new text edits into the existing collection, grouping by file path.
- */
-export function mergeTextEdits(
-    allTextEdits: { [key: string]: TextEdit[] },
-    newTextEdits?: { [key: string]: TextEdit[] }
-): void {
-    if (!newTextEdits) { return; }
-
-    Object.entries(newTextEdits).forEach(([key, edits]) => {
-        if (!allTextEdits[key]) {
-            allTextEdits[key] = [];
-        }
-        allTextEdits[key].push(...edits);
-    });
-}
-
-/**
- * Optimizes text edits by sorting and combining them into single edits per file.
- */
-export function optimizeTextEdits(allTextEdits: { [key: string]: TextEdit[] }): { [key: string]: TextEdit[] } {
-    const optimizedEdits: { [key: string]: TextEdit[] } = {};
-
-    Object.entries(allTextEdits).forEach(([key, edits]) => {
-        if (edits.length === 0) { return; }
-
-        const sortedEdits = sortTextEdits(edits);
-        const combinedEdit = combineTextEdits(sortedEdits);
-
-        optimizedEdits[key] = [combinedEdit];
-    });
-
-    return optimizedEdits;
-}
-
-/**
- * Sorts text edits by line number and character position to ensure proper ordering.
- */
-export function sortTextEdits(edits: TextEdit[]): TextEdit[] {
-    return edits.sort((a, b) => {
-        if (a.range.start.line !== b.range.start.line) {
-            return a.range.start.line - b.range.start.line;
-        }
-        return a.range.start.character - b.range.start.character;
-    });
-}
-
-/**
- * Combines multiple text edits into a single edit with comma-separated content.
- */
-export function combineTextEdits(edits: TextEdit[]): TextEdit {
-    const formattedTexts = edits.map((edit, index) => {
-        const text = edit.newText.trim();
-        return index < edits.length - 1 ? `${text},` : text;
-    });
-
-    return {
-        range: edits[0].range,
-        newText: formattedTexts.join('\n').trimStart()
-    };
-}
-
-/**
  * Determines whether a variable declaration range is completely contained within an artifact's position range.
  */
 function isWithinArtifact(
@@ -517,7 +466,8 @@ export function expandDMModel(
         mappings: model.mappings,
         query: model.query,
         source: "",
-        rootViewId
+        rootViewId,
+        triggerRefresh: model.triggerRefresh
     };
 }
 
@@ -590,7 +540,7 @@ function processTypeKind(
 /**
  * Processes an IORoot (input or output) into an IOType
  */
-function processIORoot(root: IORoot, model: DMModel): IOType {
+export function processIORoot(root: IORoot, model: DMModel): IOType {
     const ioType = createBaseIOType(root);
 
     const typeSpecificProps = processTypeKind(root, root.name, model, new Set<string>());
@@ -613,7 +563,8 @@ function createBaseIOType(root: IORoot): IOType {
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
-        ...(root.optional !== undefined && { optional: root.optional })
+        ...(root.optional !== undefined && { optional: root.optional }),
+        ...(root.typeInfo && { typeInfo: root.typeInfo })
     };
 
     if (isEnum && root.members) {
@@ -630,7 +581,7 @@ function createBaseIOType(root: IORoot): IOType {
 }
 
 /**
- * Processes array type fields and their members
+ * Processes array members
  */
 function processArray(
     parentId: string,
@@ -658,7 +609,8 @@ function processArray(
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused }),
-        ...(member.optional !== undefined && { optional: member.optional })
+        ...(member.optional !== undefined && { optional: member.optional }),
+        ...(member.typeInfo && { typeInfo: member.typeInfo })
     };
 
     const typeSpecificProps = processTypeKind(member, parentId, model, visitedRefs);
@@ -692,7 +644,8 @@ function processUnion(
             displayName: unionMember.displayName,
             typeName: unionMember.typeName,
             kind: unionMember.kind,
-            ...(unionMember.optional !== undefined && { optional: unionMember.optional })
+            ...(unionMember.optional !== undefined && { optional: unionMember.optional }),
+            ...(unionMember.typeInfo && { typeInfo: unionMember.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(unionMember, parentFieldId, model, visitedRefs);
@@ -762,7 +715,8 @@ function processTypeFields(
             displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
-            ...(field.optional !== undefined && { optional: field.optional })
+            ...(field.optional !== undefined && { optional: field.optional }),
+            ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
 
         const typeSpecificProps = processTypeKind(field, fieldId, model, new Set(visitedRefs));
@@ -790,3 +744,4 @@ function processEnum(
         ...(member.optional !== undefined && { optional: member.optional })
     }));
 }
+

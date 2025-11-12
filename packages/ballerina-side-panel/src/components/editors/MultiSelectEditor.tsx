@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import { Button, Codicon, Dropdown, OptionProps, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -95,23 +95,46 @@ export function MultiSelectEditor(props: MultiSelectEditorProps) {
 
     const NEW_OPTION = "Create New Tool";
 
-    const noOfSelectedValues = field.items.length === 0 ? 0 : (field.value === "" ? 1 : field.value.length);
-    const [dropdownCount, setDropdownCount] = useState(noOfSelectedValues);
-
-    // Watch all the individual dropdown values, including the default value
-    const values = [...Array(dropdownCount)].map((_, index) => {
-        const value = watch(`${field.key}-${index}`);
-        if (value === NEW_OPTION) {
-            return;
+    // Calculate initial number of dropdowns based on the field value
+    const calculateInitialCount = () => {
+        if (field.items.length === 0) {
+            return 0;
         }
-        const itemValue = value || getValueForDropdown(field, index);
-        if (value === undefined) {
-            setValue(`${field.key}-${index}`, itemValue);
+        if (!field.value || field.value === "" || (Array.isArray(field.value) && field.value.length === 0)) {
+            return 1;
         }
-        return itemValue;
-    }).filter(Boolean);
+        return Array.isArray(field.value) ? field.value.length : 1;
+    };
 
-    // Update the main field with the array of values
+    const [dropdownCount, setDropdownCount] = useState(calculateInitialCount());
+
+    useEffect(() => {
+        for (let index = 0; index < dropdownCount; index++) {
+            const currentValue = watch(`${field.key}-${index}`);
+            // Set default value if current value is undefined, null, or empty string
+            if (currentValue === undefined || currentValue === null || currentValue === "") {
+                const defaultValue = getValueForDropdown(field, index);
+                if (defaultValue !== undefined && defaultValue !== null && defaultValue !== "") {
+                    setValue(`${field.key}-${index}`, defaultValue);
+                }
+            }
+        }
+    }, [dropdownCount, field.key, field, watch, setValue]);
+
+    // Watch all the individual dropdown values
+    const watchedValues = useMemo(() =>
+        [...Array(dropdownCount)].map((_, index) =>
+            watch(`${field.key}-${index}`)
+        ),
+        [dropdownCount, field.key, watch]
+    );
+
+    // Calculate values array without side effects
+    const values = useMemo(() => {
+        return watchedValues
+            .filter(value => value && value !== NEW_OPTION);
+    }, [watchedValues, NEW_OPTION]);
+
     useEffect(() => {
         setValue(field.key, values);
     }, [values, field.key, setValue]);
@@ -153,35 +176,42 @@ export function MultiSelectEditor(props: MultiSelectEditorProps) {
                 <S.Label>{field.label}</S.Label>
             </S.LabelContainer>
             <S.Description>{field.documentation}</S.Description>
-            {[...Array(dropdownCount)].map((_, index) => (
-                <S.DropdownContainer key={`${field.key}-${index}`}>
-                    <Dropdown
-                        id={`${field.key}-${index}`}
-                        {...register(`${field.key}-${index}`, {
-                            required: !field.optional && index === 0,
-                            value: getValueForDropdown(field, index)
-                        })}
-                        items={getItemsList()}
-                        required={!field.optional && index === 0}
-                        disabled={!field.editable}
-                        sx={{ width: "100%" }}
-                        containerSx={{ width: "100%" }}
-                        addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}
-                        addNewBtnLabel={field.addNewButton ? (field.addNewButtonLabel || field.label) : undefined}
-                        aria-label={field.label}
-                    />
-                    {dropdownCount > 1 &&
-                        <S.DeleteButton
-                            appearance="icon"
-                            onClick={() => onDelete(index)}
+            {[...Array(dropdownCount)].map((_, index) => {
+                const currentValue = watch(`${field.key}-${index}`) || getValueForDropdown(field, index);
+                return (
+                    <S.DropdownContainer key={`${field.key}-${index}`}>
+                        <Dropdown
+                            id={`${field.key}-${index}`}
+                            {...register(`${field.key}-${index}`, {
+                                required: !field.optional && index === 0,
+                                value: getValueForDropdown(field, index)
+                            })}
+                            value={currentValue}
+                            items={getItemsList()}
+                            required={!field.optional && index === 0}
                             disabled={!field.editable}
-                            tooltip="Delete"
-                        >
-                            <Codicon name="trash" />
-                        </S.DeleteButton>
-                    }
-                </S.DropdownContainer>
-            ))}
+                            sx={{ width: "100%" }}
+                            containerSx={{ width: "100%" }}
+                            addNewBtnClick={field.addNewButton ? () => openSubPanel({ view: SubPanelView.ADD_NEW_FORM }) : undefined}
+                            addNewBtnLabel={field.addNewButton ? (field.addNewButtonLabel || field.label) : undefined}
+                            aria-label={field.label}
+                            onChange={(e) => {
+                                setValue(`${field.key}-${index}`, e.target.value);
+                            }}
+                        />
+                        {dropdownCount > 1 &&
+                            <S.DeleteButton
+                                appearance="icon"
+                                onClick={() => onDelete(index)}
+                                disabled={!field.editable}
+                                tooltip="Delete"
+                            >
+                                <Codicon name="trash" />
+                            </S.DeleteButton>
+                        }
+                    </S.DropdownContainer>
+                );
+            })}
             {(field.addNewButton && field.items.length > dropdownCount) &&
                 <S.AddNewButton
                     appearance='icon'

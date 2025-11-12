@@ -128,10 +128,11 @@ async function getContext(): Promise<VisualizerLocation> {
             documentUri: context.documentUri,
             view: context.view,
             identifier: context.identifier,
+            parentIdentifier: context.parentIdentifier,
             position: context.position,
             syntaxTree: context.syntaxTree,
             isBI: context.isBI,
-            projectUri: context.projectUri,
+            projectPath: context.projectPath,
             serviceType: context.serviceType,
             type: context.type,
             isGraphql: context.isGraphql,
@@ -141,14 +142,15 @@ async function getContext(): Promise<VisualizerLocation> {
             metadata: {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
-                recordFilePath: path.join(context.projectUri, "types.bal"),
+                recordFilePath: path.join(context.projectPath, "types.bal"),
                 enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                 target: context.metadata?.target
             },
             scope: context.scope,
             org: context.org,
             package: context.package,
-            dataMapperMetadata: context.dataMapperMetadata
+            dataMapperMetadata: context.dataMapperMetadata,
+            artifactInfo: context.artifactInfo
         });
     });
 }

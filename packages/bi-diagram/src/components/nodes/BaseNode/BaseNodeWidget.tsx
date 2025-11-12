@@ -35,7 +35,6 @@ import { ELineRange, FlowNode } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -176,32 +175,26 @@ export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, openView, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
-        useDiagramContext();
+    const {
+        onNodeSelect,
+        goToSource,
+        openView,
+        onDeleteNode,
+        removeBreakpoint,
+        addBreakpoint,
+        readOnly,
+        selectedNodeId,
+        project,
+    } = useDiagramContext();
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [org, setOrg] = useState<string | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
-    const { rpcClient } = useRpcContext();
-
-    useEffect(() => {
-        const fetchOrg = async () => {
-            try {
-                const vizualizerLocation = await rpcClient.getVisualizerLocation();
-                setOrg(vizualizerLocation.org);
-            } catch (error) {
-                console.error("Failed to get visualizer location:", error);
-            }
-        };
-
-        fetchOrg();
-    }, []);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -269,7 +262,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
@@ -284,7 +277,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = await project?.getProjectPath?.(fileName);
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
@@ -314,7 +307,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         });
     }
 
-    if (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === org) {
+    if (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === project?.org) {
         menuItems.splice(1, 0, {
             id: "viewFunction",
             label: "View",

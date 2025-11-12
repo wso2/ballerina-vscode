@@ -2,11 +2,11 @@ import React from "react";
 import { Story, Meta } from "@storybook/react/types-6-0";
 import { Diagram, DiagramProps } from "../components/Diagram";
 
-import model1 from "./1-start.json";
-import model2 from "./2-no-cons.json";
-import model3 from "./3-no-service.json";
-import model4 from "./4-sample.json";
-import model5 from "./5-sample.json";
+import model1 from "./1-empty.json";
+import model2 from "./2-only-automation.json";
+import model3 from "./3-simple-service.json";
+import model4 from "./4-multiple-services.json";
+import model5 from "./5-connection-complex.json";
 
 export default {
     title: "BI/Component Diagram",

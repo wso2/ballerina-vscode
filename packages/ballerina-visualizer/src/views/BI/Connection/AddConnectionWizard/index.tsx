@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
+    DataMapperDisplayMode,
     DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
@@ -44,6 +45,7 @@ import { DownloadIcon } from "../../../../components/DownloadIcon";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorPanel } from "../DevantConnections/DevantConnectorPanel";
+import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
     width: 100%;
@@ -241,12 +243,12 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         setCurrentStep(WizardStep.DEVANT_CONNECTOR)
     }
 
-    const handleOnFormSubmit = async (node: FlowNode) => {
+    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedNodeRef.current) {
             setSavingFormStatus(SavingFormStatus.SAVING);
             const visualizerLocation = await rpcClient.getVisualizerLocation();
-            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectUri;
+            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
 
             if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
                 connectionsFilePath += "/main.bal";
@@ -267,15 +269,28 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 };
             }
 
+            // Check if the node is a connector
+            // otherwise, this is a new variable creation or something else 
+            // triggered by the helper pane
+            const isConnector = node.codedata.node === "NEW_CONNECTION";
+
             rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({
                     filePath: connectionsFilePath,
                     flowNode: node,
-                    isConnector: true,
+                    isConnector: isConnector,
                 })
                 .then((response) => {
                     console.log(">>> Updated source code", response);
+                    if (!isConnector) {
+                        setSavingFormStatus(SavingFormStatus.SUCCESS);
+                        selectedNodeRef.current = undefined;
+                        if (options?.postUpdateCallBack) {
+                            options.postUpdateCallBack();
+                        }
+                        return;
+                    };
                     if (response.artifacts.length > 0) {
                         // clear memory
                         selectedNodeRef.current = undefined;
@@ -304,12 +319,12 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 prevFields.map((field) =>
                     field.key === "module"
                         ? {
-                              ...field,
-                              diagnostics: [
-                                  ...field.diagnostics,
-                                  { message: response.errorMessage, severity: "ERROR" },
-                              ],
-                          }
+                            ...field,
+                            diagnostics: [
+                                ...field.diagnostics,
+                                { message: response.errorMessage, severity: "ERROR" },
+                            ],
+                        }
                         : field
                 )
             );

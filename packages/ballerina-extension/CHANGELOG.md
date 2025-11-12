@@ -1,12 +1,71 @@
-# Change log
+# Changelog
 
-All notable changes to the "Ballerina" extension will be documented in this file.
+All notable changes to the **Ballerina** extension will be documented in this file.
 
-## **5.4.0** (2025-09-19)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [5.6.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.4.0...ballerina-integrator-1.5.0) - 2025-11-11
+
+### Added
+
+- **Editor** — Added support for [Ballerina workspaces](https://ballerina.io/learn/workspaces/). This allows you to seamlessly manage, navigate, and build multiple related Ballerina projects within a single VS Code window, greatly improving the development workflow for complex systems.
+
+## [5.5.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.2...ballerina-integrator-1.4.0) - 2025-11-05
+
+### Added
+
+- **Service & Data Handling** — Introduced MCP AI and Solace Event integrations, redesigned Service and Event Integration flows with AI-powered payload generation, and introduced an LLM-based Data Mapper.
+- **GraphQL Designer** — Added schema-based service generation, GraphQL-based type suggestions, `graphql:ID` annotation support, and documentation on GraphQL fields.
+- **Expression Editor** — Enhanced the expression editor with improved syntax highlighting. The expression helper now offers distinct modes for both text and expression inputs.
+
+### Changed
+
+- **AI & Copilot** — Improved AI code generation formatting, step handling, and system prompts for better response structure.
+- **Service Designer** — Revamped the view with more organized listener and service properties, enhanced with readable listener names, and refactored metadata display.
+- **Data Mapper** — Improved breadcrumb labels and refactored preview behavior for output-side arrays.
+- **UI & UX** — Enhanced the Helper Pane UI and navigation, and refactored the Resource form styles. Improved the Type Editor with type import capability and automatic generation of sample JSON for payload types.
+
+### Fixed
+
+- **Data Mapper** — Corrected issues with mappings generated for output header ports.
+- **Service Designer** — Resolved an infinite re-render issue and fixed bugs in the API designer and MCP tool editing.
+- **Expression Editor** — Fixed issues with constrained language in Windows PowerShell, delete key behavior, and text selection.
+- **UI & UX** — Addressed UI glitches, including a popup movement issue when dragging the terminal, and fixed `undo/redo` stack reset conditions.
+- **GraphQL** — Removed Union Types from GraphQL Input Types.
+- **AI & Copilot** — Fixed invalid markdown characters in the chat window, file creation issues, and state management in the chat window. Resolved a bug where the reusable model provider form was not displaying correctly.
+
+## [5.4.2](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.1...ballerina-integrator-1.3.2) - 2025-10-26
+
+### Changed
+
+- **Data Mapper** — Enabled reset and refresh options.
+
+### Fixed
+
+- **Editor** — Allowed artifact creation even when corresponding source files are missing.
+- **Data Mapper** — Added support for mappings with built-in Ballerina sub-types (e.g., `int:Signed32`), fixed creation using types from sub-modules, enabled expression-bar completions for reusable mappers, and corrected link rendering for optional field access.
+- **Type Browser** — Improved type filtering based on user queries.
+- **Service Class Designer** — Enabled connection generation for clients created from WSDL files.
+
+## [5.4.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.0...ballerina-integrator-1.3.1) - 2025-10-15
+
+### Changed
+
+- Enable undo/redo across extension views for a consistent editing experience.
+- **BI forms** — fix type-diagram field rendering, improve read-only handling, and stabilize context menus.
+- **Data Mapper** — improved productivity: auto-focus navigation, safer primitive mapping options, updated array-element APIs, and richer custom/transform requests.
+
+### Fixed
+
+- **Editor** — Fixed expression-bar focus, flow-diagram race conditions, service-navigation sync, context-menu triggers, and connector list navigation.
+- **Data Mapper** — Fixed stale contexts, filter/map link rendering, ESC key handling, long-field type visibility, and query-view navigation.
+- **Service Class Designer** — Fixed diagnostics, HTTP resource parameter editing, MCP client updates, and MI helper-pane sizing.
+
+## [5.4.0] - 2025-09-19
 
 ### Major updates
 
-- **Improved Data Mapper** —  Improved performance for large, deeply nested records, more intuitive design, and a new expression editor for easier transformations
+- **Improved Data Mapper** — Improved performance for large, deeply nested records, more intuitive design, and a new expression editor for easier transformations.
 - **Enhanced AI & Knowledge Base** — Added document generation, new knowledge-base management tools, smarter agent creation, and improved AI suggestions.
 - **GraphQL Upgrades** — Support advanced configurations at service and field level, including context and metadata handling.
 - **Connector & Project Experience** — Renamed Local Connectors to Custom Connectors, added new UI features, and improved project switching.
@@ -16,114 +75,95 @@ All notable changes to the "Ballerina" extension will be documented in this file
 
 ### Added
 
-- **Data Mapper** — Support for enums/unions, constants, nested arrays, optional fields and transformation function mappings.  
-- **AI & Knowledge Base** — Document generation, chunking tools (Chunker, Dataloader), smarter agent creation with reusable model providers.  
-- **Connector Experience** — Local Connectors renamed to Custom Connectors, new tab-based UI, better multi-project switching, migration tool UI.  
-- **BI Extension** — Redesigned welcome page, new commands, type editor improvements, and migration tools support.  
-- **Type Diagram** — Optimized view for diagrams with high node count, added node deletion, and support for making types read-only via TypeEditor.  
+- **Data Mapper** — Support for enums/unions, constants, nested arrays, optional fields and transformation function mappings.
+- **AI & Knowledge Base** — Document generation, chunking tools (Chunker, Dataloader), smarter agent creation with reusable model providers.
+- **Connector Experience** — Local Connectors renamed to Custom Connectors, new tab-based UI, better multi-project switching, migration tool UI.
+- **Type Diagram** — Optimized view for diagrams with high node count, added node deletion, and support for making types read-only via TypeEditor.
 - **AWS Bedrock authentication support for BI Copilot**
 
 ### Changed
 
-- **Mappings API** — Standardized field names (name, displayName), improved optionality handling.  
-- **AI & Authentication** — Now uses Devant login and integrates the Search API for template discovery.  
-- **Editor & Designer** — UI refinements, project names now sourced from ballerina.toml, and AI RAG nodes relocated to advanced settings.  
-- **UX Improvements** — Enhanced connector workflows, better record rendering, and more robust diagram/test coverage.  
-- **Collapsible Node-Palette** — Node palette groups are now collapsible and expandable for improved navigation.  
+- **Mappings API** — Standardized field names (name, displayName), improved optionality handling.
+- **AI & Authentication** — Now uses Devant login and integrates the Search API for template discovery.
+- **Editor & Designer** — UI refinements, project names now sourced from ballerina.toml, and AI RAG nodes relocated to advanced settings.
+- **UX Improvements** — Enhanced connector workflows, better record rendering, and more robust diagram/test coverage.
+- **Collapsible Node-Palette** — Node palette groups are now collapsible and expandable for improved navigation.
 
 ### Fixed
 
 - **Data Mapper** — Fixed issues with array handling, default values, reserved keyword responses, label consistency, and mapping deletion.
 - **Flow Diagram & Editor** — Resolved readonly record rendering and improved service configuration synchronization.
-- **AI & Copilot** — Addressed stability issues, resolved missing dependencies, fixed race conditions, and improved notification handling.
-- **Platform Support** — Enhanced compatibility for Windows and WSL environments.
-- **UI/UX Polish** — Improved connector alignment, loader visuals, spacing, and debug logging.
 
 
-## **5.3.1** (2025-08-13)
+## [5.3.1] - 2025-08-13
 
 ### Fixed
 
--   Resolved issues affecting Inline Data Mapper functionality and flow diagram rendering
+- Resolved issues affecting Inline Data Mapper functionality and flow diagram rendering.
 
 
-## **5.3.0** (2025-07-29)
+## [5.3.0] - 2025-07-29
 
 ### Major Updates
 
--   **Enhanced Inline Data Mapper:** Redesigned for improved user experience with AI-driven mapping suggestions and a sub-mapping form.
--   **AI Copilot & RAG Workflows:** Upgraded AI Copilot now uses ballerina/ai packages, with low-code support added for advanced RAG workflows.
+- **Enhanced Inline Data Mapper:** Redesigned for improved user experience with AI-driven mapping suggestions and a sub-mapping form.
+- **AI Copilot & RAG Workflows:** Upgraded AI Copilot now uses ballerina/ai packages, with low-code support added for advanced RAG workflows.
 
 ### Added
 
--   **AI Capabilities:**
-    -   Support for Anthropic's Claude Sonnet v4 for code generation.
-    -   Added Vector Knowledge Base node for RAG workflows.
-    -   Configuration options for default AI model providers in the Flow Diagram.
--   **Editor & IDE Features:**
-    -   New VSCode setting to manage the visibility of the Sequence Diagram.
-    -   Option to include the current organization in search results.
-
-### Changes
-
--   **Data Mapper:** Improved search, label positioning, and performance. Now refreshes automatically when code changes.
--   **AI & Copilot:** Streamlined flows for user-friendliness and enhanced agent capabilities with new packages.
--   **UI/UX:** Refined diagram rendering and title components for a more responsive interface.
-
-### Fixed
-
--   **Data Mapper:** Corrected rendering issues and various bugs in mapping generation and type resolution.
--   **AI & Copilot:** Resolved re-rendering bugs and authentication flow issues.
--   **Configuration:** Fixed issues with Config.toml management and fast-run command failures.
--   **IDE Stability:** Addressed UI freezing, improved state management, and enhanced project handling in multi-root workspaces.
-
-
-## **5.2.0** (2025-07-14)
-
-### Major Features
-
-- **Bundled Language Server**: Ballerina Language Server is now bundled with the extension, eliminating separate installation requirements and improving startup performance
-- **Configurable Editor v2**: Complete redesign of the configuration editor with enhanced UI/UX and improved functionality
-- **Type Editor Revamp**: A redesign of the type editor to improve feature discoverability and deliver a better user experience
-
-### Added
-
-- Enhanced AI file upload support with additional file types for improved analysis capabilities
-- Documentation display in Signature Help for a better developer experience during code completion
-- Enhanced service resource creation with comprehensive validation system for base paths, resource action calls, reserved keywords, and new UX for creating HTTP responses
+- **AI Capabilities:**
+  - Support for Anthropic's Claude Sonnet v4 for code generation.
+  - Added Vector Knowledge Base node for RAG workflows.
+  - Configuration options for default AI model providers in the Flow Diagram.
+- **Editor & IDE Features:**
+  - New VSCode setting to manage the visibility of the Sequence Diagram.
+  - Option to include the current organization in search results.
 
 ### Changed
 
-- **Integration Management**: Refactored artifacts management and navigation
-- **UI Components**: 
-  - Type Diagram and GraphQL designer with improved visual presentation
-- **Developer Experience**:
-  - Enhanced renaming editor functionality
-  - Enhanced Form and Input Editor with Markdown support
-  - Updated imported types display as view-only nodes for clarity
+- **Data Mapper:** Improved search, label positioning, and performance. Now refreshes automatically when code changes.
+- **AI & Copilot:** Streamlined flows for user-friendliness and enhanced agent capabilities with new packages.
+- **UI/UX:** Refined diagram rendering and title components for a more responsive interface.
 
 ### Fixed
 
-- **Extension Stability**:
-  - Resolved extension startup and activation issues for reliable performance
-- **Data Mapping & Visualization**:
-  - Fixed issues when working with complex data types from imported modules
-  - Improved visualization of array types and nested data structures
-  - Enhanced connection line display in design diagrams
-- **Testing & Debugging**:
-  - Fixed GraphQL testing functionality for seamless API testing
-  - Improved service testing support across different Ballerina versions
-  - Enhanced test explorer compatibility with legacy projects
-- **Configuration Management**:
-  - Resolved configuration file editing and creation issues
-  - Fixed form rendering problems that could cause UI freezing
-- **Cross-Platform Support**:
-  - Enhanced Windows compatibility for Java development kit integration
-  - Improved file path handling across different operating systems
-- **User Interface**:
-  - Fixed theme-related display issues in command interfaces
+- **Data Mapper:** Corrected rendering issues and various bugs in mapping generation and type resolution.
+- **AI & Copilot:** Resolved re-rendering bugs and authentication flow issues.
+- **Configuration:** Fixed issues with Config.toml management and fast-run command failures.
+- **IDE Stability:** Addressed UI freezing, improved state management, and enhanced project handling in multi-root workspaces.
 
-## **5.1.3** (2025-05-28)
+
+## [5.2.0] - 2025-07-14
+
+### Major Features
+
+- **Bundled Language Server** — Ballerina Language Server is now bundled with the extension, eliminating separate installation requirements and improving startup performance.
+- **Configurable Editor v2** — Complete redesign of the configuration editor with enhanced UI/UX and improved functionality.
+- **Type Editor Revamp** — A redesign of the type editor to improve feature discoverability and deliver a better user experience.
+
+### Added
+
+- Enhanced AI file upload support with additional file types for improved analysis capabilities.
+- Documentation display in Signature Help for a better developer experience during code completion.
+- Enhanced service resource creation with comprehensive validation system for base paths, resource action calls, reserved keywords, and new UX for creating HTTP responses.
+
+### Changed
+
+- **Integration Management**: Refactored artifacts management and navigation.
+- **UI Components**: Improved Type Diagram and GraphQL designer visual presentation.
+- **Developer Experience**: Enhanced renaming editor functionality; enhanced Form and Input Editor with Markdown support; updated imported types display as view-only nodes for clarity.
+
+### Fixed
+
+- **Extension Stability**: Resolved extension startup and activation issues for reliable performance.
+- **Data Mapping & Visualization**: Fixed issues when working with complex data types from imported modules; improved visualization of array types and nested data structures; enhanced connection line display in design diagrams.
+- **Testing & Debugging**: Fixed GraphQL testing functionality for seamless API testing; improved service testing support across different Ballerina versions; enhanced test explorer compatibility with legacy projects.
+- **Configuration Management**: Resolved configuration file editing and creation issues; fixed form rendering problems that could cause UI freezing.
+- **Cross-Platform Support**: Enhanced Windows compatibility for Java development kit integration; improved file path handling across different operating systems.
+- **User Interface**: Fixed theme-related display issues in command interfaces.
+
+
+## [5.1.3] - 2025-05-28
 
 ### Fixed
 
@@ -133,7 +173,7 @@ All notable changes to the "Ballerina" extension will be documented in this file
 - Addressed display issues in type diagrams and improved service configuration options.
 
 
-## **5.1.2** (2025-05-18)
+## [5.1.2] - 2025-05-18
 
 ### Added
 
@@ -154,13 +194,18 @@ All notable changes to the "Ballerina" extension will be documented in this file
 - Resolved issues opening incomplete mappings through code lens navigation in the Data Mapper.
 - Resolved issues with running tests via the test explorer.
 
-## **5.0.0** (2025-03-13)
+
+## [5.0.0] - 2025-03-13
+
 For more information, see the [release notes](https://wso2.com/ballerina/vscode/docs/release-notes/version-4.5.0/).
 
 ### Added
-- Introduced all-new visual support for ballerina projects
 
-## **4.5.0** (2023-08-21)
+- Introduced all-new visual support for ballerina projects.
+
+
+## [4.5.0] - 2023-08-21
+
 For more information, see the [release note](https://wso2.com/ballerina/vscode/docs/release-notes/version-4.5.0/).
 
 ### Added
@@ -174,7 +219,9 @@ For more information, see the [release note](https://wso2.com/ballerina/vscode/d
 - Increased the size of the parameter configuration pane for better usability.
 - Enhanced the behavior of the function parameter configuration in the statement editor, preventing it from jumping to the top after selecting a value.
 
-## **4.4.0** (2023-07-21)
+
+## [4.4.0] - 2023-07-21
+
 For more information, see the [release note](https://wso2.com/ballerina/vscode/docs/release-notes/version-4.4.0/).
 
 ### Added
@@ -190,59 +237,39 @@ For more information, see the [release note](https://wso2.com/ballerina/vscode/d
 
 - Swagger View - Fix incorrect service display on Swagger View.
 
-## **4.3.0** (2023-06-16)
+
+## [4.3.0] - 2023-06-16
+
 For more information, see the [release note](https://wso2.com/ballerina/vscode/docs/release-notes/version-4.3.0/).
 
 ### Added
 
-- Entity Relationship Diagram
-  - A diagram that visualises the entities and their relationships defined in the Ballerina persist model.
-- Config toml file creation
-  - When you run a ballerina program with configurables now it creates the config toml file with required configurable values.
+- Entity Relationship Diagram — a diagram that visualises the entities and their relationships defined in the Ballerina persist model.
+- Config toml file creation — when you run a ballerina program with configurables now it creates the config toml file with required configurable values.
 
 ### Improved
 
-- GraphQL Designer
-  - Enable an option to filter between queries, mutations and subscriptions.
-  - Improvements related to the GraphQL Designer UI.
+- GraphQL Designer — Enable an option to filter between queries, mutations and subscriptions; improvements related to the GraphQL Designer UI.
 
-## **4.0.0** (2023-04-21)
 
-For more information, see the [release note](https://wso2.com/ballerina/vscode/docs/release-notes/version-4.0.0/).
-
-### Added
-
-- New unified visual and code editing experience
-- HTTP API designer
-- GraphQL API designer
-- Architecture View
-- Type Diagram
-- Choreo Plugin integration
-
-### Improved
-
-- Data Mapper improvements
-- Language Server updates
-
-## **3.3.7**
+## [3.3.7]
 
 ### Fixed
 
 - [Lowcode diagram does not load in codespaces](https://github.com/wso2/ballerina-plugin-vscode/issues/401)
 
-## **3.3.6**
+
+## [3.3.6]
 
 ### Added
 
-- Data Mapper 
-    - [Add support for inputs, output types other than records](https://github.com/wso2/ballerina-plugin-vscode/issues/221)
+- Data Mapper — [Add support for inputs, output types other than records](https://github.com/wso2/ballerina-plugin-vscode/issues/221)
 
 ### Improved
 
 - [Add support for intermediate query clauses at function level](https://github.com/wso2/ballerina-plugin-vscode/issues/347)
 - [Add support for let expressions in Data Mapper](https://github.com/wso2/ballerina-plugin-vscode/issues/349)
 - [Ballerina data mapper FHIR record support](https://github.com/wso2/ballerina-plugin-vscode/issues/356)
-- [Data Mapper - Display mappings associated with module level variables](https://github.com/wso2/ballerina-plugin-vscode/issues/365)
 - [Data Mapper - Add an edit option for output type in config panel](https://github.com/wso2/ballerina-plugin-vscode/issues/381)
 - [Statement Editor - Add expression template for adding parenthesis for selected expressions](https://github.com/wso2/ballerina-plugin-vscode/issues/385)
 
@@ -252,78 +279,80 @@ For more information, see the [release note](https://wso2.com/ballerina/vscode/d
 - [Data Mapper - Links with transformed values from the input nodes are not displayed](https://github.com/wso2/ballerina-plugin-vscode/issues/369)
 - [Data Mapper - Links associated with local variables are not displayed within query expressions](https://github.com/wso2/ballerina-plugin-vscode/issues/391)
 
-### **3.3.5**
 
-### **Fixed**
+## [3.3.5]
+
+### Fixed
 
 - [Broken links in readme](https://github.com/wso2/ballerina-plugin-vscode/issues/335)
 
-### **3.3.4**
 
-### **Improved**
+## [3.3.4]
+
+### Improved
 
 - [Data Mapper - Display banner if DM function contains unsupported input/output types](https://github.com/wso2/ballerina-plugin-vscode/issues/217)
 - [Data Mapper - Improve the transformer name suggestion by providing an non-existing name](https://github.com/wso2/ballerina-plugin-vscode/issues/218)
-- [Data Mapper - Add support to have types from imported packages as inputs and output](https://github.com/wso2/ballerina-plugin-vscode/issues/219)
 - [Data Mapper - Add support for mapping with query expressions for primitive type arrays](https://github.com/wso2/ballerina-plugin-vscode/issues/232)
 - [Data Mapper - Automatically show the data mapper config panel if the input or output types are not supported](https://github.com/wso2/ballerina-plugin-vscode/issues/244)
 
-### **Fixed**
+### Fixed
 
 - [Data Mapper - Failed to create mapping for a port that is already mapped with multiple ports](https://github.com/wso2/ballerina-plugin-vscode/issues/230)
-- [Data Mapper - output type name is misaligned when the output node is collapsed](https://github.com/wso2/ballerina-plugin-vscode/issues/235)
 - [Data Mapper - incorrect source is generated when map root of the input record within query expression](https://github.com/wso2/ballerina-plugin-vscode/issues/237)
 - [Data Mapper - UI shows a valid transform function as invalid](https://github.com/wso2/ballerina-plugin-vscode/issues/239)
-- [Data Mapper - Links are not getting rendered for multi input mappings contains root level references](https://github.com/wso2/ballerina-plugin-vscode/issues/240)
 - [Data Mapper - Generates invalid source when there is an invalid expression body](https://github.com/wso2/ballerina-plugin-vscode/issues/242)
 - [Oops embarassing error when trying to edit a ModuleVarDecl without initialization](https://github.com/wso2/ballerina-plugin-vscode/issues/285)
 - [Data Mapper - Output type disappears when creating data mapping function](https://github.com/wso2/ballerina-plugin-vscode/issues/293)
 - [Data Mapper - Data Mapper puts auto-gen input param name as Type Name](https://github.com/wso2/ballerina-plugin-vscode/issues/329)
 
-## **3.3.3**
 
-### **Fixed**
+## [3.3.3]
+
+### Fixed
 
 - Diagrams not loading with VS Code v1.73 issue
 
-## **3.3.2**
 
-### **Improved**
+## [3.3.2]
+
+### Improved
 
 - The low-code diagram editor
 
-## **3.3.1**
 
-### **Fixed**
+## [3.3.1]
+
+### Fixed
 
 - Try it button not working for services with comments issue
 
-### **Improved**
+### Improved
 
-- Improved record editor 
-    - Provides a better editing experience with suggestions
 
-## **3.3.0**
+## [3.3.0]
 
 For more information, see the [release note](https://github.com/wso2/ballerina-plugin-vscode/blob/main/docs/release-notes/3.3.0-release-note.md).
 
 ### Added
 
-- Visual Data Mapper 
-    - Helps you write and visualize data transformations easily
-- GraphQL Tryit 
-    - Facilitates  trying out the GraphQL services with the integrated client
-- Project Design View (Experimental) 
-    - Allows you to visualize service interactions in your project
-
-## **3.2.0**
+- Visual Data Mapper — Helps you write and visualize data transformations easily.
+- GraphQL Tryit — Facilitates trying out the GraphQL services with the integrated client.
+- Project Design View (Experimental) — Allows you to visualize service interactions in your project.
 
 ### Improved
 
-- A new performance analyzer is introduced. 
-    - This will help users to identify the performance of the multiple execution paths of the code.
+- A new performance analyzer is introduced to help users identify performance of multiple execution paths.
 
-## **3.1.0**
+
+## [3.2.0]
+
+### Improved
+
+- A new performance analyzer is introduced.
+
+
+## [3.1.0]
 
 ### Added
 
@@ -331,15 +360,14 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 
 ### Improved
 
-- The low-code diagram editor - a new statement editor is introduced
-
-    - The statement-editor allows users to easily discover Ballerina libraries and use predefined expression templates along with the context based suggestions to build statements even without having a prior knowledge on Ballerina syntaxes.
+- The low-code diagram editor - a new statement editor is introduced providing a better editing experience with suggestions.
 
 ### Fixed
 
 - Swagger client send an invalid Content type header
 
-## **3.0.2**
+
+## [3.0.2]
 
 ### Improved
 
@@ -349,7 +377,8 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 
 - [Swagger View](https://github.com/wso2/ballerina-plugin-vscode/issues/197)
 
-## **3.0.1**
+
+## [3.0.1]
 
 ### Added
 
@@ -362,17 +391,12 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 
 ### Fixed
 
-- Ballerina syntax highlighting
-    - [#170](https://github.com/wso2/ballerina-plugin-vscode/issues/170) 
-    - [#184](https://github.com/wso2/ballerina-plugin-vscode/issues/184) 
-    - [#185](https://github.com/wso2/ballerina-plugin-vscode/issues/185) 
-    - [#188](https://github.com/wso2/ballerina-plugin-vscode/issues/188) 
-    - [#190](https://github.com/wso2/ballerina-plugin-vscode/issues/190) 
-    - [#191](https://github.com/wso2/ballerina-plugin-vscode/issues/191)
-- [Diagram editor reflection on paste, undo, redo, etc. operations](https://github.com/wso2/ballerina-plugin-vscode/issues/151)
-- [Choreo login error at startup](https://github.com/wso2/ballerina-plugin-vscode/issues/189)
+- Ballerina syntax highlighting issues: [#170](https://github.com/wso2/ballerina-plugin-vscode/issues/170), [#184](https://github.com/wso2/ballerina-plugin-vscode/issues/184), [#185](https://github.com/wso2/ballerina-plugin-vscode/issues/185), [#188](https://github.com/wso2/ballerina-plugin-vscode/issues/188), [#190](https://github.com/wso2/ballerina-plugin-vscode/issues/190), [#191](https://github.com/wso2/ballerina-plugin-vscode/issues/191)
+- Diagram editor reflection on paste, undo, redo, etc. operations.
+- Choreo login error at startup.
 
-## **3.0.0**
+
+## [3.0.0]
 
 ### Added
 
@@ -380,7 +404,7 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 - [WSO2 Choreo](https://wso2.com/choreo/) integration
 - Graphical editing capability
 - The `Diagram Explorer` view
-- [The Ballerina testing activity](https://github.com/wso2/ballerina-plugin-vscode/issues/119) 
+- [The Ballerina testing activity](https://github.com/wso2/ballerina-plugin-vscode/issues/119)
 - [The readonly editor for Ballerina library source](https://github.com/wso2/ballerina-plugin-vscode/issues/97)
 - [Ballerina semantic highlighting support](https://github.com/wso2/ballerina-plugin-vscode/issues/105)
 - [The Swagger try out view](https://github.com/wso2/ballerina-plugin-vscode/issues/130)
@@ -389,46 +413,42 @@ For more information, see the [release note](https://github.com/wso2/ballerina-p
 
 ### Improved
 
-- [Dynamic Language Server capability registration](https://github.com/wso2/ballerina-plugin-vscode/issues/91)
-- [The Language Server client version](https://github.com/wso2/ballerina-plugin-vscode/issues/109)
+- Dynamic Language Server capability registration
+- The Language Server client version
 - Diagram and source parallel editing capability
 
 ### Fixed
 
-- Ballerina syntax highlighting
-    - [#120](https://github.com/wso2/ballerina-plugin-vscode/issues/120) 
-    - [#121](https://github.com/wso2/ballerina-plugin-vscode/issues/121) 
-    - [#122](https://github.com/wso2/ballerina-plugin-vscode/issues/122) 
-    - [#123](https://github.com/wso2/ballerina-plugin-vscode/issues/123) 
-    - [#126](https://github.com/wso2/ballerina-plugin-vscode/issues/126) 
-    - [#128](https://github.com/wso2/ballerina-plugin-vscode/issues/128) 
-    - [#129](https://github.com/wso2/ballerina-plugin-vscode/issues/129)
+- Ballerina syntax highlighting: [#120](https://github.com/wso2/ballerina-plugin-vscode/issues/120), [#121](https://github.com/wso2/ballerina-plugin-vscode/issues/121), [#122](https://github.com/wso2/ballerina-plugin-vscode/issues/122), [#123](https://github.com/wso2/ballerina-plugin-vscode/issues/123), [#126](https://github.com/wso2/ballerina-plugin-vscode/issues/126), [#128](https://github.com/wso2/ballerina-plugin-vscode/issues/128), [#129](https://github.com/wso2/ballerina-plugin-vscode/issues/129)
 
-## **2.1.1**
+
+## [2.1.1]
 
 ### Improved
 
-- [Ballerina syntax highlighting via TextMate grammar](https://github.com/wso2/ballerina-plugin-vscode/issues/105)
+- Ballerina syntax highlighting via TextMate grammar
 
 ### Fixed
 
-- [Language Server's extended API compatibility with previous Ballerina runtimes#108](https://github.com/wso2/ballerina-plugin-vscode/issues/108)
-- [Language Server client deactivation](https://github.com/wso2/ballerina-plugin-vscode/issues/110)
+- Language Server's extended API compatibility with previous Ballerina runtimes (#108)
+- Language Server client deactivation (#110)
 
-## **2.1.0**
+
+## [2.1.0]
 
 ### Added
 
-- [A palette command that converts a JSON to a Ballerina record](https://github.com/wso2/ballerina-plugin-vscode/issues/94)
+- A palette command that converts a JSON to a Ballerina record (#94)
 
 ### Improved
 
-- [The *vscode-languageclient* and other dependency versions](https://github.com/wso2/ballerina-plugin-vscode/issues/43)
+- The *vscode-languageclient* and other dependency versions
 
 ### Fixed
 
-- [Positioning on the examples view](https://github.com/wso2/ballerina-plugin-vscode/issues/87)
+- Positioning on the examples view (#87)
 
-## **2.0.0**
+
+## [2.0.0]
 
 - Initial release

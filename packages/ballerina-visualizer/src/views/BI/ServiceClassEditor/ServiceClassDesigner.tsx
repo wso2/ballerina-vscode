@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Type, ServiceClassModel, ModelFromCodeRequest, FieldType, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { Type, ServiceClassModel, ModelFromCodeRequest, FieldType, FunctionModel, NodePosition, STModification, removeStatement, LineRange, EVENT_TYPE, MACHINE_VIEW, DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { Codicon, Typography, ProgressRing, Menu, MenuItem, Popover, Item, ThemeColors, LinkButton, View } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
@@ -95,10 +95,11 @@ interface ServiceClassDesignerProps {
     isGraphql?: boolean;
     fileName: string;
     position: NodePosition;
+    type: Type;
 }
 
 export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
-    const { isGraphql, fileName, position } = props;
+    const { isGraphql, fileName, position, type } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel>();
     const [editingFunction, setEditingFunction] = useState<FunctionModel>(undefined);
@@ -196,7 +197,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         const nodePosition: NodePosition = { startLine: lineRange.startLine.line, startColumn: lineRange.startLine.offset, endLine: lineRange.endLine.line, endColumn: lineRange.endLine.offset }
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
-            location: { position: nodePosition, documentUri: currentFilePath, identifier: func.name.value }
+            location: { position: nodePosition, documentUri: currentFilePath, type: type, identifier: func.name.value }
         });
     }
 
@@ -214,7 +215,8 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             endLine: { line: serviceClassModel.codedata.lineRange.endLine.line, offset: serviceClassModel.codedata.lineRange.endLine.offset }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 lsResponse = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -225,7 +227,8 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             endLine: { line: serviceClassModel.codedata.lineRange.endLine.line, offset: serviceClassModel.codedata.lineRange.endLine.offset }
                         }
                     },
-                    function: updatedFunction
+                    function: updatedFunction,
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 
@@ -432,6 +435,8 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                 type: EVENT_TYPE.OPEN_VIEW,
                 location: {
                     position: nodePosition,
+                    type: type,
+                    identifier: resource.name.value,
                     documentUri: currentFilePath
                 }
             });
@@ -442,6 +447,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIServiceClassConfigView,
+                type: type,
                 position: {
                     startLine: serviceClassModel.codedata.lineRange.startLine.line,
                     startColumn: serviceClassModel.codedata.lineRange.startLine.offset,
@@ -603,7 +609,6 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                             model={editingFunction}
                             filePath={serviceClassFilePath}
                             lineRange={serviceClassModel.codedata.lineRange}
-                            isGraphqlView={isGraphql}
                             isSaving={isSaving}
                             isServiceClass={true}
                             onClose={handleCloseFunctionForm}
@@ -622,11 +627,10 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                         <VariableForm
                             model={editingVariable}
                             filePath={serviceClassFilePath}
-                            lineRange={serviceClassModel.codedata.lineRange}
+                            lineRange={editingVariable.codedata.lineRange}
                             onClose={handleCloseVariableForm}
                             isSaving={isSaving}
                             onSave={handleVariableSave}
-                            isGraphqlEditor={isGraphql}
                         />
                     </PanelContainer>
                 )}

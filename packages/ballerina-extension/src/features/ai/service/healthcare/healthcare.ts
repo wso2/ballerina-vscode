@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, generateObject, streamText } from "ai";
+import { ModelMessage, generateObject, streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
 import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
@@ -59,7 +59,7 @@ export async function generateHealthcareCodeCore(
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
-    const allMessages: CoreMessage[] = [
+    const allMessages: ModelMessage[] = [
         {
             role: "system",
             content: getSystemPromptPrefix(relevantTrimmedFuncs, sourceFiles),
@@ -79,7 +79,7 @@ export async function generateHealthcareCodeCore(
 
     const { fullStream } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 4096 * 2,
+        maxOutputTokens: 4096 * 2,
         temperature: 0,
         messages: allMessages,
         abortSignal: AIPanelAbortController.getInstance().signal,
@@ -90,7 +90,7 @@ export async function generateHealthcareCodeCore(
     for await (const part of fullStream) {
         switch (part.type) {
             case "text-delta": {
-                const textPart = part.textDelta;
+                const textPart = part.text;
                 assistantResponse += textPart;
                 eventHandler({ type: "content_block", content: textPart });
                 break;
@@ -348,14 +348,14 @@ Think step-by-step to choose the required types in order to solve the given ques
 `;
     const getLibUserPrompt = "QUESTION\n```\n" + prompt + "\n```";
 
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
         { role: "system", content: getLibSystemPrompt },
         { role: "user", content: getLibUserPrompt },
     ];
     try {
         const { object } = await generateObject({
             model: await getAnthropicClient(ANTHROPIC_HAIKU),
-            maxTokens: 8192,
+            maxOutputTokens: 8192,
             temperature: 0,
             messages: messages,
             schema: getTypesResponseSchema,

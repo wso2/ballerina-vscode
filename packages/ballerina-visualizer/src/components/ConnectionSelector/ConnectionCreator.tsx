@@ -29,6 +29,8 @@ import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithC
 import { cloneDeep } from "lodash";
 import { LineRange } from "@wso2/ballerina-core";
 import { LoaderContainer } from "../RelativeLoader/styles";
+import { URI, Utils } from "vscode-uri";
+import { CONNECTIONS_FILE } from "../../constants";
 
 export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const { connectionKind, selectedNode, nodeFormTemplate, onSave } = props;
@@ -43,6 +45,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const projectPath = useRef<string>("");
+    const connectionsFilePath = useRef<string>("");
     const targetLineRangeRef = useRef<LineRange | undefined>(undefined);
 
     useEffect(() => {
@@ -51,16 +54,19 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
-        const currentPosition = await rpcClient.getVisualizerLocation().then((location) => location.position);
+        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
+        connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
+        const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+            filePath: connectionsFilePath.current
+        });
         targetLineRangeRef.current = {
             startLine: {
-                line: currentPosition.startLine,
-                offset: currentPosition.startColumn
+                line: endPosition.line,
+                offset: endPosition.offset
             },
             endLine: {
-                line: currentPosition.endLine,
-                offset: currentPosition.endColumn
+                line: endPosition.line,
+                offset: endPosition.offset
             }
         }
 
@@ -100,7 +106,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             {!loading && connectionFields?.length > 0 && (
                 <>
                     <FormGeneratorNew
-                        fileName={selectedNode?.codedata?.lineRange?.fileName || projectPath.current}
+                        fileName={connectionsFilePath.current || projectPath.current}
                         fields={connectionFields}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}

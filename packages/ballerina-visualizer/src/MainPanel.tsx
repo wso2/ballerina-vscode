@@ -41,6 +41,7 @@ import { ServiceDesigner } from "./views/BI/ServiceDesigner";
 import {
     WelcomeView,
     ProjectForm,
+    AddProjectForm,
     ComponentListView,
     PopupMessage,
     FunctionForm,
@@ -65,7 +66,6 @@ import { TypeDiagram } from "./views/TypeDiagram";
 import { Overview as OverviewBI } from "./views/BI/Overview/index";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
-import { ServiceWizard } from "./views/BI/ServiceDesigner/ServiceWizard";
 import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
 import { ListenerEditView } from "./views/BI/ServiceDesigner/ListenerEditView";
 import { ServiceClassDesigner } from "./views/BI/ServiceClassEditor/ServiceClassDesigner";
@@ -76,7 +76,10 @@ import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { DataMapper } from "./views/DataMapper";
 import { ImportIntegration } from "./views/BI/ImportIntegration";
+import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
+import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
+import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 
 const globalStyles = css`
     *,
@@ -280,7 +283,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.Overview:
                         setViewComponent(
                             <OverviewBI
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                             />
                         );
                         break;
@@ -320,7 +323,7 @@ const MainPanel = () => {
                                 <DiagramWrapper
                                     key={value?.identifier}
                                     syntaxTree={st.syntaxTree}
-                                    projectPath={value?.projectUri}
+                                    projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
                                     breakpointState={breakpointState}
@@ -332,7 +335,7 @@ const MainPanel = () => {
                             setViewComponent(
                                 <DiagramWrapper
                                     key={value?.identifier}
-                                    projectPath={value?.projectUri}
+                                    projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
                                     breakpointState={breakpointState}
@@ -348,17 +351,18 @@ const MainPanel = () => {
                             setViewComponent(
                                 <TypeDiagram
                                     selectedTypeId={value?.identifier}
-                                    projectUri={value?.projectUri}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         } else {
                             // To support rerendering when user click on view all btn from left side panel
                             setViewComponent(
-                                <TypeDiagram key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
+                                <TypeDiagram
+                                    key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
                                     selectedTypeId={value?.identifier}
-                                    projectUri={value?.projectUri}
                                     addType={value?.addType}
+                                    projectPath={value?.projectPath}
                                 />
                             );
                         }
@@ -381,7 +385,7 @@ const MainPanel = () => {
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 name={value?.dataMapperMetadata?.name}
-                                projectUri={value.projectUri}
+                                projectPath={value.projectPath}
                                 position={position}
                                 reusable
                             />
@@ -399,7 +403,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDataMapperForm:
                         setViewComponent(
                             <FunctionForm
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
                                 isDataMapper={true}
@@ -409,7 +413,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BINPFunctionForm:
                         setViewComponent(
                             <FunctionForm
-                                projectPath={value.projectUri}
+                                projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
                                 isDataMapper={false}
@@ -419,8 +423,15 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
                         const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-                        const entryPoint = getProjectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
-                        setViewComponent(<GraphQLDiagram serviceIdentifier={value?.identifier} filePath={value?.documentUri} position={entryPoint?.position ?? value?.position} projectUri={value?.projectUri} />);
+                        const entryPoint = getProjectStructure
+                            .directoryMap[DIRECTORY_MAP.SERVICE]
+                            .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        setViewComponent(
+                            <GraphQLDiagram
+                                serviceIdentifier={value?.identifier}
+                                filePath={value?.documentUri}
+                                position={entryPoint?.position ?? value?.position}
+                            />);
                         break;
                     case MACHINE_VIEW.BallerinaUpdateView:
                         setNavActive(false);
@@ -442,7 +453,10 @@ const MainPanel = () => {
                         setShowHome(false);
                         setViewComponent(<ImportIntegration />);
                         break;
-
+                    case MACHINE_VIEW.BIAddProjectForm:
+                        setShowHome(false);
+                        setViewComponent(<AddProjectForm />);
+                        break;
                     case MACHINE_VIEW.BIComponentView:
                         setViewComponent(<ComponentListView scope={value.scope} />);
                         break;
@@ -450,11 +464,12 @@ const MainPanel = () => {
                         setViewComponent(<AIChatAgentWizard />);
                         break;
                     case MACHINE_VIEW.BIServiceWizard:
-                        setViewComponent(<ServiceWizard type={value.serviceType} />);
+                        setViewComponent(<ServiceCreationView orgName={value?.artifactInfo.org} packageName={value?.artifactInfo.packageName} moduleName={value?.artifactInfo.moduleName} version={value?.artifactInfo.version} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
                             <ServiceClassDesigner
+                                type={value?.type}
                                 fileName={value?.documentUri}
                                 position={value?.position}
                                 isGraphql={value?.isGraphql}
@@ -462,14 +477,19 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.BIServiceConfigView:
-                        setViewComponent(<ServiceEditView filePath={value.documentUri} position={value?.position} />);
+                        setViewComponent(
+                            <ServiceConfigureView
+                                filePath={value.documentUri}
+                                position={value?.position}
+                                listenerName={value?.identifier} />);
                         break;
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
                             <ServiceClassConfig
+                                type={value?.type}
                                 fileName={value.documentUri}
                                 position={value?.position}
-                                projectUri={value?.projectUri} />
+                            />
                         );
                         break;
                     case MACHINE_VIEW.BIListenerConfigView:
@@ -478,14 +498,13 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                fileName={value.documentUri || value.projectPath}
                             />
                         );
                         break;
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionWizard
-                                projectUri={value.projectUri}
                                 connectionName={value?.identifier}
                             />
                         );
@@ -493,16 +512,28 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddCustomConnector:
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={value.documentUri || value.projectUri}
+                                fileName={value.documentUri || value.projectPath}
                                 openCustomConnectorView={true}
                             />
                         );
                         break;
                     case MACHINE_VIEW.BIMainFunctionForm:
-                        setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} isAutomation={true} />);
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isAutomation={true}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.BIFunctionForm:
-                        setViewComponent(<FunctionForm projectPath={value.projectUri} filePath={defaultFunctionsFile} functionName={value?.identifier} />);
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                            />);
                         break;
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(<TestFunctionForm
@@ -527,6 +558,15 @@ const MainPanel = () => {
                                 org={value?.org}
                                 package={value?.package}
                                 addNew={true}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.ServiceFunctionForm:
+                        setViewComponent(
+                            <ServiceFunctionForm
+                                position={value?.position}
+                                currentFilePath={value.documentUri}
+                                projectPath={value.projectPath}
                             />
                         );
                         break;
@@ -620,7 +660,10 @@ const MainPanel = () => {
                 )}
                 {
                     modalStack.map((modal) => (
-                        <Popup title={modal.title} onClose={() => handlePopupClose(modal.id)} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                        <Popup title={modal.title} onClose={() => {
+                            modal.onClose && modal.onClose();
+                            handlePopupClose(modal.id)
+                        }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
                     ))
                 }
             </VisualizerContainer>

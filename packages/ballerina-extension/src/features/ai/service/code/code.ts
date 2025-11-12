@@ -14,50 +14,77 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, generateText, streamText } from "ai";
-import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
-import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
-import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage, extractResourceDocumentContent } from "../utils";
-import { getMaximizedSelectedLibs, selectRequiredFunctions, toMaximizedLibrariesFromLibJson } from "./../libs/funcs";
-import { GetFunctionResponse } from "./../libs/funcs_inter_types";
+import { ModelMessage, generateText, streamText, stepCountIs, AssistantModelMessage } from "ai";
+import { getAnthropicClient, ANTHROPIC_SONNET_4, getProviderCacheControl, ProviderCacheOptions } from "../connection";
+import { GenerationType, getAllLibraries } from "../libs/libs";
+import { getLibraryProviderTool } from "../libs/libraryProviderTool";
+import {
+    getRewrittenPrompt,
+    populateHistory,
+    transformProjectSource,
+    getErrorMessage,
+    extractResourceDocumentContent,
+} from "../utils";
 import { LANGLIBS } from "./../libs/langlibs";
 import { Library } from "./../libs/libs_types";
 import {
-    ChatNotify,
     DiagnosticEntry,
     FileAttatchment,
     GenerateCodeRequest,
-    onChatNotify,
     OperationType,
     PostProcessResponse,
-    ProjectDiagnostics,
     ProjectSource,
     RepairParams,
     RepairResponse,
     SourceFiles,
-    Command
+    Command,
 } from "@wso2/ballerina-core";
-import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectFromResponse, getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
+import { createEditExecute, createEditTool, createMultiEditExecute, createBatchEditTool, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+
+const SEARCH_LIBRARY_TOOL_NAME = "LibraryProviderTool";
+
+function appendFinalMessages(
+    history: ModelMessage[],
+    finalMessages: ModelMessage[],
+    cacheOptions: ProviderCacheOptions
+): void {
+    for (let i = 0; i < finalMessages.length; i++) {
+        const message = finalMessages[i];
+        if (message.role === "assistant" || message.role === "tool") {
+            if (i === finalMessages.length - 1) {
+                message.providerOptions = cacheOptions;
+            }
+            history.push(message);
+        }
+    }
+}
 
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const project: ProjectSource = await getProjectSource(params.operationType);
     const packageName = project.projectName;
     const sourceFiles: SourceFiles[] = transformProjectSource(project);
+    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    let updatedFileNames: string[] = [];
     const prompt = getRewrittenPrompt(params, sourceFiles);
-    const relevantTrimmedFuncs: Library[] = (
-        await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.CODE_GENERATION)
-    ).libraries;
-
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
-    const allMessages: CoreMessage[] = [
+
+    // Fetch all libraries for tool description
+    const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
+    const libraryDescriptions =
+        allLibraries.length > 0
+            ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
+            : "- No libraries available";
+
+    const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(relevantTrimmedFuncs, sourceFiles, params.operationType),
+            content: getSystemPromptPrefix(sourceFiles, params.operationType),
         },
         {
             role: "system",
@@ -67,27 +94,93 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
         ...historyMessages,
         {
             role: "user",
-            content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
+            content: getUserPrompt(
+                prompt,
+                sourceFiles,
+                params.fileAttachmentContents,
+                packageName,
+                params.operationType
+            ),
             providerOptions: cacheOptions,
+            // Note: This cache control block can be removed if needed, as we use 3 out of 4 allowed cache blocks.
         },
     ];
 
-    const { fullStream } = streamText({
+    const tools = {
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+    };
+
+    const { fullStream, response, providerMetadata } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 4096*4,
+        maxOutputTokens: 4096 * 4,
         temperature: 0,
         messages: allMessages,
+        stopWhen: stepCountIs(50),
+        tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
     });
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
+    let finalResponse: string = "";
+    let selectedLibraries: string[] = [];
+    let codeGenStart = false;
+    const tempCodeSegment = '<code filename="temp.bal">\n```ballerina\n// Code Generation\n```\n</code>';
     for await (const part of fullStream) {
         switch (part.type) {
+            case "tool-call": {
+                const toolName = part.toolName;
+                console.log(`[Tool Call] Tool call started: ${toolName}`);
+                if (toolName == "LibraryProviderTool") {
+                    selectedLibraries = (part.input as any)?.libraryNames ? (part.input as any).libraryNames : [];
+                    assistantResponse += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
+                }
+                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+                    if(!codeGenStart) {
+                        codeGenStart = true;
+                        // TODO: temporary solution until this get refactored properly
+                        // send this pattern <code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"ai_map_inline"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>
+                        // to temprorily indicate the start of code generation in the webview
+                        assistantResponse += `\n${tempCodeSegment}`;
+                        eventHandler({ type: "content_block", content: `\n${tempCodeSegment}` });
+                    }
+                }
+                eventHandler({ type: "tool_call", toolName });
+                break;
+            }
+            case "tool-result": {
+                const toolName = part.toolName;
+                console.log(`[Tool Call] Tool call finished: ${toolName}`);
+                if (toolName == "LibraryProviderTool") {
+                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
+                    const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
+                    console.log(
+                        "[LibraryProviderTool] Library Relevant trimmed functions By LibraryProviderTool Result: ",
+                        part.output as Library[]
+                    );
+                    if (fetchedLibraries.length === 0) {
+                        assistantResponse = assistantResponse.replace(
+                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                            `<toolcall>No relevant libraries found.</toolcall>`
+                        );
+                    } else {
+                        assistantResponse = assistantResponse.replace(
+                            `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
+                            `<toolcall>Fetched libraries: [${fetchedLibraries.join(", ")}]</toolcall>`
+                        );
+                    }
+                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
+                }
+                eventHandler({ type: "evals_tool_result", toolName, output: part.output });
+                break;
+            }
             case "text-delta": {
-                const textPart = part.textDelta;
-                assistantResponse += textPart;
-                eventHandler({ type: "content_block", content: textPart });
+                assistantResponse += part.text;
+                eventHandler({ type: "content_block", content: part.text });
                 break;
             }
             case "error": {
@@ -96,43 +189,79 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                 eventHandler({ type: "error", content: getErrorMessage(error) });
                 break;
             }
+            case "text-start": {
+                if (assistantResponse !== "") {
+                    eventHandler({ type: "content_block", content: " \n" });
+                    assistantResponse += " \n";
+                }
+                break;
+            }
             case "finish": {
                 const finishReason = part.finishReason;
                 console.log("Finish reason: ", finishReason);
                 if (finishReason === "error") {
-                    // Already handled in error case. 
+                    // Already handled in error case.
                     break;
                 }
+
+                const finalProviderMetadata = await providerMetadata;
+                // Emit usage metrics event for test tracking
+                if (finalProviderMetadata?.anthropic?.usage) {
+                    const anthropicUsage = finalProviderMetadata.anthropic.usage as any;
+                    eventHandler({
+                        type: "usage_metrics",
+                        isRepair: false,
+                        usage: {
+                            inputTokens: anthropicUsage.input_tokens || 0,
+                            cacheCreationInputTokens: anthropicUsage.cache_creation_input_tokens || 0,
+                            cacheReadInputTokens: anthropicUsage.cache_read_input_tokens || 0,
+                            outputTokens: anthropicUsage.output_tokens || 0,
+                        },
+                    });
+                }
+
+                const { messages: finalMessages } = await response;
+                appendFinalMessages(allMessages, finalMessages, cacheOptions);
+                let codeSegment = getCodeBlocks(updatedSourceFiles, updatedFileNames);
                 const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: assistantResponse,
+                    assistant_response: codeSegment,
                 });
-                assistantResponse = postProcessedResp.assistant_response;
+
+                codeSegment = postProcessedResp.assistant_response;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
                 const MAX_REPAIR_ATTEMPTS = 3;
                 let repair_attempt = 0;
-                let diagnosticFixResp = assistantResponse; //TODO: Check if we need this variable
+                let diagnosticFixResp = codeSegment; //TODO: Check if we need this variable
                 while (
                     hasCodeBlocks(diagnosticFixResp) &&
                     diagnostics.length > 0 &&
                     repair_attempt < MAX_REPAIR_ATTEMPTS
                 ) {
                     console.log("Repair iteration: ", repair_attempt);
-                    console.log("Diagnotsics trynna fix: ", diagnostics);
+                    console.log("Diagnostics trying to fix: ", diagnostics);
 
                     const repairedResponse: RepairResponse = await repairCode(
                         {
                             previousMessages: allMessages,
                             assistantResponse: diagnosticFixResp,
                             diagnostics: diagnostics,
-                        }
+                        },
+                        libraryDescriptions,
+                        updatedSourceFiles,
+                        eventHandler
                     );
                     diagnosticFixResp = repairedResponse.repairResponse;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
                 }
+
+                // Update the final assistant response with the final code blocks
+                assistantResponse = assistantResponse.replace(tempCodeSegment, diagnosticFixResp);
+
                 console.log("Final Diagnostics ", diagnostics);
-                eventHandler({ type: "content_replace", content: diagnosticFixResp });
+                codeGenStart = false;
+                eventHandler({ type: "content_replace", content: assistantResponse });
                 eventHandler({ type: "diagnostics", diagnostics: diagnostics });
                 eventHandler({ type: "messages", messages: allMessages });
                 eventHandler({ type: "stop", command: Command.Code });
@@ -140,6 +269,25 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             }
         }
     }
+}
+
+function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]) {
+    const codeBlocks: string[] = [];
+
+    for (const fileName of updatedFileNames) {
+        const sourceFile = updatedSourceFiles.find((sf) => sf.filePath === fileName);
+
+        if (sourceFile) {
+            const formattedBlock = `<code filename="${sourceFile.filePath}">
+\`\`\`ballerina
+${sourceFile.content}
+\`\`\`
+</code>`;
+            codeBlocks.push(formattedBlock);
+        }
+    }
+
+    return codeBlocks.join("\n\n");
 }
 
 // Main public function that uses the default event handler
@@ -153,104 +301,81 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(apidocs: Library[], sourceFiles: SourceFiles[], op: OperationType): string {
-    
+function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType): string {
+    const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your should ONLY answer Ballerina related queries.`;
+
     if (op === "CODE_FOR_USER_REQUIREMENT") {
-        return getRequirementAnalysisCodeGenPrefix(apidocs, extractResourceDocumentContent(sourceFiles));
+        return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
     } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
-        return getRequirementAnalysisTestGenPrefix(apidocs, extractResourceDocumentContent(sourceFiles));
+        return getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(sourceFiles));
     }
-    return `You are an expert assistant who specializes in writing Ballerina code. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the given API documentation.
-
-You will be provided with following inputs:
-
-1. API_DOCS: A JSON string containing the API documentation for various Ballerina libraries and their functions, types, and clients.
-<api_docs>
-${JSON.stringify(apidocs)}
-</api_docs>
-`;
+    return basePrompt;
 }
 
 function getSystemPromptSuffix(langlibs: Library[]) {
-    return `2. Langlibs
-<langlibs>
-${JSON.stringify(langlibs)}
-</langlibs> 
+    return `If the query requires code, Follow these steps to generate the Ballerina code:
+## Langlibs
+<AVAILABLE LANGLIBS>
+${JSON.stringify(langlibs, null, 2)}
+</AVAILABLE LANGLIBS>
 
-If the query doesn't require code examples, answer the code by utilzing the api documentation. 
-If the query requires code, Follow these steps to generate the Ballerina code:
+## Steps to generate Ballerina Code
 
-1. Carefully analyze the provided API documentation:
-   - Identify the available libraries, clients, their functions and their relavant types.
-
-2. Thoroughly read and understand the given query:
+1. Thoroughly read and understand the given query:
    - Identify the main requirements and objectives of the integration.
-   - Determine which libraries, functions and their relavant records and types from the API documentation which are needed to achieve the query and forget about unused API docs.
-   - Note the libraries needed to achieve the query and plan the control flow of the applicaiton based input and output parameters of each function of the connector according to the API documentation.
+   - Determine the trigger (main or service), connector usage, control flow, and expected outcomes for the query.
 
-3. Plan your code structure:
-   - Decide which libraries need to be imported (Avoid importing lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map langlibs as they are already imported by default).
-   - Determine the necessary client initialization.
-   - Define Types needed for the query in the types.bal file.
-   - Outline the service OR main function for the query.
-   - Outline the required function usages as noted in Step 2.
-   - Based on the types of identified functions, plan the data flow. Transform data as necessary.
+2. Figure the necessary libraries and functions required:
+   - Determine which libraries are required to fulfill the query and use the ${SEARCH_LIBRARY_TOOL_NAME} tool to get the libraries.
+   - Plan the control flow of the application based on input and output parameters of each function of the connector according the received API documentation from the tool.
 
-4. Generate the Ballerina code:
-   - Start with the required import statements.
-   - Define required configurables for the query. Use only string, int, boolean types in configurable variables.
-   - Initialize any necessary clients with the correct configuration at the module level(before any function or service declarations). 
-   - Implement the main function OR service to address the query requirements.
-   - Use defined connectors based on the query by following the API documentation.
-   - Use only the functions, types, and clients specified in the API documentation.
-   - Use dot donation to access a normal function. Use -> to access a remote function or resource function.
-   - Ensure proper error handling and type checking.
-   - Do not invoke methods on json access expressions. Always Use seperate statements.
-   - Use langlibs ONLY IF REQUIRED.
+3. Write the Ballerina Code:
+    - First thoroughly read and understand the Ballerina code constraints.
+    - Then do the file modifications by strictly adhering to file modifications section mentioned in below.
 
-5. Review and refine your code:
-   - Check that all query requirements are met.
-   - Verify that you're only using elements from the provided API documentation.
-   - Ensure the code follows Ballerina best practices and conventions.
+## Ballerina Code Constraints
 
-Provide a brief explanation of how your code addresses the query and then output your generated ballerina code.
+### Library Usage and Importing libraries
+- Only use the libraries received from user query or the ${SEARCH_LIBRARY_TOOL_NAME} tool or langlibs.
+- Examine the library API documentation provided by the ${SEARCH_LIBRARY_TOOL_NAME} carefully. Strictly follow the type definitions, function signatures, and all the other details provided when writing the code.
+- Each .bal file must include its own import statements for any external library references.
+- Do not import default langlibs (lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map).
+- For packages with dots in names, use aliases: \`import org/package.one as one;\`
+- Treat generated connectors/clients inside the generated folder as submodules.
+- A submodule MUST BE imported before being used. The import statement should only contain the package name and submodule name. For package my_pkg, folder structure generated/fooApi, the import should be \`import my_pkg.fooApi;\`.
+- In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
+- For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
-Important reminders:
-- Only use the libraries, functions, types, services and clients specified in the provided API documentation.
-- Always strictly respect the types given in the API Docs.
-- Do not introduce any additional libraries or functions not mentioned in the API docs.
-- Only use specified fields in records according to the api docs. this applies to array types of that record as well.
-- Ensure your code is syntactically correct and follows Ballerina conventions.
+### Code Structure
+- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
+- Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
+- Implement the main function OR service to address the query requirements.
+
+### Coding Rules
+- Use records as canonical representations of data structures. Always define records for data structures instead of using maps or json and navigate using the record fields.
+- Do not invoke methods on json access expressions. Always use separate statements.
+- Use dot notation to access a normal function. Use -> to access a remote function or resource function.
 - Do not use dynamic listener registrations.
-- Do not write code in a way that requires updating/assigning values of function parameters. 
-- ALWAYS Use two words camel case identifiers (variable, function parameter, resource function parameter and field names).
-- If the library name contains a . Always use an alias in the import statement. (import org/package.one as one;)
-- Treat generated connectors/clients inside the generated folder as submodules. 
-- A submodule MUST BE imported before being used.  The import statement should only contain the package name and submodule name.  For package my_pkg, folder strucutre generated/fooApi the import should be \`import my_pkg.fooApi;\`
-- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.  
-- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it. 
-- When invoking resource function from a client, use the correct paths with accessor and paramters. (eg: exampleClient->/path1/["param"]/path2.get(key="value"))
-- When you are accessing a field of a record, always assign it into new variable and use that variable in the next statement.
+- Do not write code in a way that requires updating/assigning values of function parameters.
+- ALWAYS use two-word camel case all the identifiers (ex- variables, function parameter, resource function parameter, and field names).
+- If the return parameter typedesc default value is marked as <> in the given API docs, define a custom record in the code that represents the data structure based on the use case and assign to it.
+- Whenever you have a Json variable, NEVER access or manipulate Json variables. ALWAYS define a record and convert the Json to that record and use it.
+- When invoking resource functions from a client, use the correct paths with accessor and parameters (e.g., exampleClient->/path1/["param"]/path2.get(key="value")).
+- When accessing a field of a record, always assign it to a new variable and use that variable in the next statement.
 - Avoid long comments in the code. Use // for single line comments.
-- Always use named arguments when providing values to any parameter. (eg: .get(key="value"))
+- Always use named arguments when providing values to any parameter (e.g., .get(key="value")).
 - Mention types EXPLICITLY in variable declarations and foreach statements.
-- Do not modify the README.md file unless asked to be modified explicitly in the query.
-- Do not add/modify toml files(Config.toml/Ballerina.toml) unless asked.
-- In the library API documentation if the service type is specified as generic, adhere to the instructions specified there on writing the service.
-- For GraphQL service related queries, If the user haven't specified their own GraphQL Scehma, Write the proposed GraphQL schema for the user query right after explanation before generating the ballerina code. Use same names as the GraphQL Schema when defining record types.
+- To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-Begin your response with the explanation, once the entire explanation is finished only, include codeblock segments(if any) in the end of the response. 
-The explanation should explain the control flow decided in step 2, along with the selected libraries and their functions.
+### File modifications
+- You must apply changes to the existing source code using the provided ${[FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+- When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
+- Do not modify documentation such as .md files unless explicitly asked to be modified in the query.
+- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
+- Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
-Each file which needs modifications, should have a codeblock segment and it MUST have complete file content with the proposed change. 
-The codeblock segments should only have .bal contents and it should not generate or modify any other file types. Politely decline if the query requests for such cases.
-
-Example Codeblock segment:
-<code filename="main.bal">
-\`\`\`ballerina
-//code goes here 
-\`\`\`
-</code>
+Begin your response with the very consice explanation in the same language as the user query. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
+Once the explanation is finished, make the necessary File modifications. Avoid any usage guides or explanations after the file modifications.
 `;
 }
 
@@ -263,7 +388,7 @@ function getUserPrompt(
 ): string {
     let fileInstructions = "";
     if (fileUploadContents.length > 0) {
-        fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as addtional information for the query. 
+        fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as additional information for the query.
 
 ${fileUploadContents
     .map(
@@ -273,7 +398,7 @@ Content: ${file.content}`
     .join("\n")}`;
     }
 
-    return `QUERY: The query you need to answer using the provided api documentation. 
+    return `QUERY: The query you need to answer.
 <query>
 ${usecase}
 </query>
@@ -294,7 +419,14 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
     // add null as the command since this is a repair operation is not a command
     const eventHandler = createWebviewEventHandler(undefined);
     try {
-        return await repairCodeCore(params, eventHandler);
+        // Fetch all libraries for tool description
+        const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
+        const libraryDescriptions =
+            allLibraries.length > 0
+                ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
+                : "- No libraries available";
+
+        return await repairCodeCore(params, libraryDescriptions, eventHandler);
     } catch (error) {
         console.error("Error during code repair:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
@@ -302,9 +434,13 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
 }
 
 // Core repair function that emits events
-export async function repairCodeCore(params: RepairParams, eventHandler: CopilotEventHandler): Promise<RepairResponse> {
+export async function repairCodeCore(
+    params: RepairParams,
+    libraryDescriptions: string,
+    eventHandler: CopilotEventHandler
+): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params);
+    const resp = await repairCode(params, libraryDescriptions, [], eventHandler);
     eventHandler({ type: "content_replace", content: resp.repairResponse });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
@@ -312,8 +448,13 @@ export async function repairCodeCore(params: RepairParams, eventHandler: Copilot
     return resp;
 }
 
-export async function repairCode(params: RepairParams): Promise<RepairResponse> {
-    const allMessages: CoreMessage[] = [
+export async function repairCode(
+    params: RepairParams,
+    libraryDescriptions: string,
+    sourceFiles: SourceFiles[] = [],
+    eventHandler?: CopilotEventHandler
+): Promise<RepairResponse> {
+    const allMessages: ModelMessage[] = [
         ...params.previousMessages,
         {
             role: "assistant",
@@ -322,22 +463,51 @@ export async function repairCode(params: RepairParams): Promise<RepairResponse> 
         {
             role: "user",
             content:
-                "Generated code returns following errors. Double-check all functions, types, record field access against the API documentation again. Fix the compiler errors and return the new response. \n Errors: \n " +
+                "Generated code returns the following compiler errors that uses the library details from the `LibraryProviderTool` results in previous messages. First check the context and API documentation already provided in the conversation history before making new tool calls. Only use the `LibraryProviderTool` if additional library information is needed that wasn't covered in previous tool responses. Double-check all functions, types, and record field access for accuracy." +
+                "And also do not create any new files. Just carefully analyze the error descriptions and update the existing code to fix the errors. \n Errors: \n " +
                 params.diagnostics.map((d) => d.message).join("\n"),
         },
     ];
 
-    const { text, usage, providerMetadata } = await generateText({
+    let updatedSourceFiles: SourceFiles[] =
+        sourceFiles.length == 0 ? getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
+    let updatedFileNames: string[] = [];
+
+    const tools = {
+        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(updatedSourceFiles, updatedFileNames)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(updatedSourceFiles, updatedFileNames)),
+    };
+
+    const { text, providerMetadata } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxTokens: 4096 * 4,
+        maxOutputTokens: 4096 * 4,
         temperature: 0,
+        tools,
         messages: allMessages,
-        abortSignal: AIPanelAbortController.getInstance().signal
-
+        stopWhen: stepCountIs(50),
+        abortSignal: AIPanelAbortController.getInstance().signal,
     });
-
+    const repairProviderMetadata = await providerMetadata;
+    // Emit repair usage metrics event if event handler is provided
+    if (eventHandler && repairProviderMetadata?.anthropic?.usage) {
+        const anthropicUsage = repairProviderMetadata.anthropic.usage as any;
+        eventHandler({
+            type: "usage_metrics",
+            isRepair: true,
+            usage: {
+                inputTokens: anthropicUsage.input_tokens || 0,
+                cacheCreationInputTokens: anthropicUsage.cache_creation_input_tokens || 0,
+                cacheReadInputTokens: anthropicUsage.cache_read_input_tokens || 0,
+                outputTokens: anthropicUsage.output_tokens || 0,
+            },
+        });
+    }
+    const updatedCodeBlocks = getCodeBlocks(updatedSourceFiles, updatedFileNames);
     // replace original response with new code blocks
-    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, text);
+    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, updatedCodeBlocks);
     const postProcessResp: PostProcessResponse = await postProcess({
         assistant_response: diagnosticFixResp,
     });
@@ -355,8 +525,9 @@ export function stringifyExistingCode(existingCode: SourceFiles[], op: Operation
             continue;
         }
 
-        existingCodeStr = existingCodeStr + "filepath : " + filePath + "\n";
-        existingCodeStr = existingCodeStr + file.content + "\n";
+        existingCodeStr += `<file filename="${filePath}">\n`;
+        existingCodeStr += `<content>\n${file.content}\n</content>\n`;
+        existingCodeStr += `</file>\n`;
     }
     return existingCodeStr;
 }

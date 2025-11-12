@@ -33,13 +33,14 @@ import {
 import { Button, Item, Menu, MenuItem, Popover, Tooltip, ThemeColors } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
-import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
         disabled: boolean;
         hovered: boolean;
+        isSelected?: boolean;
+        readOnly?: boolean;
     };
     export const Node = styled.div`
         display: flex;
@@ -48,7 +49,6 @@ export namespace NodeStyles {
         align-items: center;
         width: ${COMMENT_NODE_WIDTH}px;
         height: ${NODE_HEIGHT}px;
-        cursor: pointer;
     `;
 
     export const Card = styled.div<NodeStyleProp>`
@@ -61,18 +61,34 @@ export namespace NodeStyles {
         padding: 0 ${NODE_PADDING}px;
         background-color: ${ThemeColors.SURFACE};
         color: ${ThemeColors.ON_SURFACE};
-        border: ${NODE_BORDER_WIDTH}px;
-        border-style: none;
+        border: ${NODE_BORDER_WIDTH}px solid;
+        border-color: ${(props: NodeStyleProp) =>
+            props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.SURFACE};
         border-radius: 10px;
         cursor: pointer;
     `;
 
-    export const Circle = styled.div`
+    export const Circle = styled.div<NodeStyleProp>`
         width: ${COMMENT_NODE_CIRCLE_WIDTH}px;
         height: ${COMMENT_NODE_CIRCLE_WIDTH}px;
         border-radius: 50%;
-        border: ${DRAFT_NODE_BORDER_WIDTH}px solid ${ThemeColors.PRIMARY};
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border: ${NODE_BORDER_WIDTH}px solid;
+        border-color: ${(props: NodeStyleProp) =>
+            props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.PRIMARY};
+        background-color: ${(props: NodeStyleProp) =>
+            props.isSelected && !props.disabled
+                ? ThemeColors.SECONDARY
+                : props.hovered && !props.disabled && !props.readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.PRIMARY};
         display: flex;
         justify-content: center;
         align-items: flex-end;
@@ -104,13 +120,6 @@ export namespace NodeStyles {
 
     export const StyledText = styled.div`
         font-size: 14px;
-    `;
-
-    export const Icon = styled.div`
-        padding: 4px;
-        svg {
-            fill: ${ThemeColors.ON_SURFACE};
-        }
     `;
 
     export const Title = styled(StyledText)`
@@ -157,7 +166,9 @@ export interface NodeWidgetProps extends Omit<CommentNodeWidgetProps, "children"
 
 export function CommentNodeWidget(props: CommentNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, readOnly } = useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, readOnly, selectedNodeId } = useDiagramContext();
+
+    const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -208,25 +219,33 @@ export function CommentNodeWidget(props: CommentNodeWidgetProps) {
 
     return (
         <NodeStyles.Node onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            <NodeStyles.Circle>
+            <NodeStyles.Circle
+                hovered={isHovered}
+                disabled={model.node.suggested}
+                isSelected={isSelected}
+                readOnly={readOnly}
+            >
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
             </NodeStyles.Circle>
-            <NodeStyles.Card hovered={isHovered} disabled={model.node.suggested}>
+            <NodeStyles.Card
+                hovered={isHovered}
+                disabled={model.node.suggested}
+                isSelected={isSelected}
+                readOnly={readOnly}
+            >
                 <NodeStyles.Row>
-                    <NodeStyles.Icon onClick={handleOnClick}>
-                        <NodeIcon type={model.node.codedata.node} />
-                    </NodeStyles.Icon>
                     <NodeStyles.Header onClick={handleOnClick}>
-                        <Tooltip content={model.node.metadata.description}>
+                        <Tooltip
+                            content={model.node.metadata.description}
+                            sx={{ maxWidth: COMMENT_NODE_WIDTH, textWrap: "wrap" }}
+                        >
                             <NodeStyles.Description>{model.node.metadata.description || "..."}</NodeStyles.Description>
                         </Tooltip>
                     </NodeStyles.Header>
-                    {!readOnly && (
-                        <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                            <MoreVertIcon />
-                        </NodeStyles.StyledButton>
-                    )}
+                    <NodeStyles.StyledButton disabled={readOnly} appearance="icon" onClick={handleOnMenuClick}>
+                        <MoreVertIcon />
+                    </NodeStyles.StyledButton>
                     <Popover
                         open={isMenuOpen}
                         anchorEl={anchorEl}

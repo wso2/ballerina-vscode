@@ -20,16 +20,31 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse } from "@wso2/ballerina-core";
+import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
+import { parse } from "toml";
+import { buildProjectArtifactsStructure } from "./project-artifacts";
+import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
+
+/**
+ * Interface for the processed project information
+ */
+interface ProcessedProjectInfo {
+    sanitizedPackageName: string;
+    projectRoot: string;
+    finalOrgName: string;
+    finalVersion: string;
+    packageName: string;
+    integrationName: string;
+}
 
 const settingsJsonContent = `
 {
@@ -86,54 +101,6 @@ generated/
 Config.toml
 `;
 
-export function openBIProject() {
-    window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Open Integration' })
-        .then(uri => {
-            if (uri && uri[0]) {
-                commands.executeCommand('vscode.openFolder', uri[0]);
-            }
-        });
-}
-
-export function createBIProject(name: string, isService: boolean) {
-    window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, openLabel: 'Select Project Location' })
-        .then(uri => {
-            if (uri && uri[0]) {
-                const projectLocation = uri[0].fsPath;
-
-                const command = isService ? `bal new -t service ${name}` : `bal new ${name}`;
-                const options = { cwd: projectLocation };
-
-                exec(command, options, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`Error creating BI project: ${error.message}`);
-                        return;
-                    }
-
-                    console.log(`BI project created successfully at ${projectLocation}`);
-                    console.log(`stdout: ${stdout}`);
-                    console.error(`stderr: ${stderr}`);
-
-                    // Update Ballerina.toml file in the created project folder
-                    const tomlFilePath = `${projectLocation}/${name}/Ballerina.toml`;
-                    hackToUpdateBallerinaToml(tomlFilePath);
-
-                    if (isService) {
-                        const filePath = `${projectLocation}/${name}/service.bal`;
-                        hackToUpdateService(filePath);
-                    } else {
-                        const filePath = `${projectLocation}/${name}/main.bal`;
-                        hackToUpdateMain(filePath);
-                    }
-
-                    const newProjectUri = Uri.joinPath(uri[0], name);
-                    commands.executeCommand('vscode.openFolder', newProjectUri);
-
-                });
-            }
-        });
-}
-
 export function getUsername(): string {
     // Get current username from the system across different OS platforms
     let username: string;
@@ -147,23 +114,64 @@ export function getUsername(): string {
     return username;
 }
 
-function setupProjectInfo(projectRequest: ProjectRequest) {
+/**
+ * Generic function to resolve directory paths and create directories if needed
+ * Can be used for both project and workspace directory creation
+ * @param basePath - Base directory path
+ * @param directoryName - Name of the directory to create (optional)
+ * @param shouldCreateDirectory - Whether to create a new directory
+ * @returns The resolved directory path
+ */
+function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCreateDirectory: boolean = true): string {
+    const resolvedPath = directoryName
+        ? path.join(basePath, directoryName)
+        : basePath;
+
+    if (shouldCreateDirectory && !fs.existsSync(resolvedPath)) {
+        fs.mkdirSync(resolvedPath, { recursive: true });
+    }
+
+    return resolvedPath;
+}
+
+/**
+ * Resolves the project root path and creates the directory if needed
+ * @param projectPath - Base project path
+ * @param sanitizedPackageName - Sanitized package name for directory creation
+ * @param createDirectory - Whether to create a new directory
+ * @returns The resolved project root path
+ */
+function resolveProjectPath(projectPath: string, sanitizedPackageName: string, createDirectory: boolean): string {
+    return resolveDirectoryPath(
+        projectPath,
+        createDirectory ? sanitizedPackageName : undefined,
+        createDirectory
+    );
+}
+
+/**
+ * Resolves the workspace root path and creates the directory
+ * @param basePath - Base path where workspace should be created
+ * @param workspaceName - Name of the workspace directory
+ * @returns The resolved workspace root path
+ */
+function resolveWorkspacePath(basePath: string, workspaceName: string): string {
+    return resolveDirectoryPath(basePath, workspaceName, true);
+}
+
+/**
+ * Orchestrates the setup of project information
+ * @param projectRequest - The project request containing all necessary information
+ * @returns Processed project information ready for use
+ */
+function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo {
     const sanitizedPackageName = sanitizeName(projectRequest.packageName);
-    
-    const projectRoot = projectRequest.createDirectory 
-        ? path.join(projectRequest.projectPath, sanitizedPackageName)
-        : projectRequest.projectPath;
-    
-    // Create project root directory if needed
-    if (projectRequest.createDirectory && !fs.existsSync(projectRoot)) {
-        fs.mkdirSync(projectRoot, { recursive: true });
-    }
-
-    let finalOrgName = projectRequest.orgName;
-    if (!finalOrgName) {
-        finalOrgName = getUsername();
-    }
-
+    const projectRoot = resolveProjectPath(
+        projectRequest.projectPath,
+        sanitizedPackageName,
+        projectRequest.createDirectory
+    );
+    const finalOrgName = projectRequest.orgName || getUsername();
     const finalVersion = projectRequest.version || "0.1.0";
 
     return {
@@ -176,7 +184,28 @@ function setupProjectInfo(projectRequest: ProjectRequest) {
     };
 }
 
-export function createBIProjectPure(projectRequest: ProjectRequest) {
+export function createBIWorkspace(projectRequest: ProjectRequest): string {
+    const ballerinaTomlContent = `
+[workspace]
+packages = ["${projectRequest.packageName}"]
+
+`;
+
+    // Use the workspace-specific directory resolver
+    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+
+    // Create Ballerina.toml file
+    const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
+    writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
+
+    // Create Ballerina Package
+    createBIProjectPure({...projectRequest, projectPath: workspaceRoot, createDirectory: true});
+
+    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    return workspaceRoot;
+}
+
+export function createBIProjectPure(projectRequest: ProjectRequest): string {
     const projectInfo = setupProjectInfo(projectRequest);
     const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
 
@@ -193,8 +222,6 @@ title = "${integrationName}"
 sticky = true
 
 `;
-
-
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
@@ -216,7 +243,11 @@ sticky = true
     const mainBal = path.join(projectRoot, 'main.bal');
     writeBallerinaFileDidOpen(mainBal, EMPTY);
 
-    // Create main.bal file
+    // Create automation.bal file
+    const automationBal = path.join(projectRoot, 'automation.bal');
+    writeBallerinaFileDidOpen(automationBal, EMPTY);
+
+    // Create agents.bal file
     const agentsBal = path.join(projectRoot, 'agents.bal');
     writeBallerinaFileDidOpen(agentsBal, EMPTY);
 
@@ -247,6 +278,119 @@ sticky = true
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     console.log(`BI project created successfully at ${projectRoot}`);
+    return projectRoot;
+}
+
+export async function convertProjectToWorkspace(params: AddProjectToWorkspaceRequest) {
+    const currentProjectPath = StateMachine.context().projectPath;
+    const tomlValues = await getProjectTomlValues(currentProjectPath);
+    const currentPackageName = tomlValues?.package?.name;
+    if (!currentPackageName) {
+        throw new Error('No package name found in Ballerina.toml');
+    }
+
+    const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
+
+    if (!fs.existsSync(newDirectory)) {
+        fs.mkdirSync(newDirectory, { recursive: true });
+    }
+
+    const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
+    fs.renameSync(currentProjectPath, updatedProjectPath);
+
+    createWorkspaceToml(newDirectory, currentPackageName);
+    updateWorkspaceToml(newDirectory, params.packageName);
+
+    createProjectInWorkspace(params, newDirectory);
+
+    openInVSCode(newDirectory);
+}
+
+export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
+    const workspacePath = StateMachine.context().workspacePath;
+
+    updateWorkspaceToml(workspacePath, params.packageName);
+
+    const projectPath = createProjectInWorkspace(params, workspacePath);
+
+    await openNewlyCreatedProject(params, workspacePath, projectPath);
+}
+
+function createWorkspaceToml(workspacePath: string, packageName: string) {
+    const ballerinaTomlContent = `
+[workspace]
+packages = ["${packageName}"]
+`;
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
+}
+
+function updateWorkspaceToml(workspacePath: string, packageName: string) {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return;
+    }
+
+    try {
+        const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
+        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
+        const existingPackages: string[] = tomlData.workspace?.packages || [];
+
+        if (existingPackages.includes(packageName)) {
+            return; // Package already exists
+        }
+
+        const updatedContent = addPackageToToml(ballerinaTomlContent, packageName);
+        fs.writeFileSync(ballerinaTomlPath, updatedContent);
+    } catch (error) {
+        console.error('Failed to update workspace Ballerina.toml:', error);
+    }
+}
+
+function addPackageToToml(tomlContent: string, packageName: string): string {
+    const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
+    const match = tomlContent.match(packagesRegex);
+
+    if (match) {
+        const currentArrayContent = match[1].trim();
+        const newArrayContent = currentArrayContent === ''
+            ? `"${packageName}"`
+            : `${currentArrayContent}, "${packageName}"`;
+
+        return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
+    } else {
+        return tomlContent + `\npackages = ["${packageName}"]\n`;
+    }
+}
+
+function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspacePath: string): string {
+    const projectRequest: ProjectRequest = {
+        projectName: params.projectName,
+        packageName: params.packageName,
+        projectPath: workspacePath,
+        createDirectory: true,
+        orgName: params.orgName,
+        version: params.version
+    };
+
+    return createBIProjectPure(projectRequest);
+}
+
+async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
+    const viewLocation: VisualizerLocation = {
+        view: MACHINE_VIEW.Overview,
+        workspacePath: workspacePath,
+        projectPath: projectPath,
+        package: params.packageName,
+        org: params.orgName
+    };
+
+    await buildProjectArtifactsStructure(projectPath, StateMachine.langClient(), true);
+    openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
+}
+
+export function openInVSCode(projectRoot: string) {
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
 }
 
@@ -265,7 +409,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
             content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
         }
-        
+
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 
@@ -295,7 +439,7 @@ export async function createBIAutomation(params: ComponentRequest): Promise<Crea
     return new Promise(async (resolve) => {
         const functionFile = await handleAutomationCreation(params);
         const components = await StateMachine.langClient().getBallerinaProjectComponents({
-            documentIdentifiers: [{ uri: URI.file(StateMachine.context().projectUri).toString() }]
+            documentIdentifiers: [{ uri: URI.file(StateMachine.context().projectPath).toString() }]
         }) as BallerinaProjectComponents;
         const position: NodePosition = {};
         for (const pkg of components.packages) {
@@ -317,9 +461,9 @@ export async function createBIAutomation(params: ComponentRequest): Promise<Crea
 export async function createBIFunction(params: ComponentRequest): Promise<CreateComponentResponse> {
     return new Promise(async (resolve) => {
         const isExpressionBodied = params.functionType.isExpressionBodied;
-        const projectDir = path.join(StateMachine.context().projectUri);
+        const projectPath = StateMachine.context().projectPath;
         // Hack to create trasformation function (Use LS API to create the function when available)
-        const targetFile = path.join(projectDir, isExpressionBodied ? DATA_MAPPING_FILE : FUNCTIONS_FILE);
+        const targetFile = path.join(projectPath, isExpressionBodied ? DATA_MAPPING_FILE : FUNCTIONS_FILE);
         if (!fs.existsSync(targetFile)) {
             writeBallerinaFileDidOpen(targetFile, '');
         }
@@ -363,9 +507,9 @@ ${funcSignature}
     }
 }
 `;
-    const projectDir = path.join(StateMachine.context().projectUri);
+    const projectPath = StateMachine.context().projectPath;
     // Create foo.bal file within services directory
-    const taskFile = path.join(projectDir, `automation.bal`);
+    const taskFile = path.join(projectPath, `automation.bal`);
     writeBallerinaFileDidOpen(taskFile, balContent);
     console.log('Task Created.', `automation.bal`);
     return taskFile;
@@ -419,78 +563,4 @@ export async function handleFunctionCreation(targetFile: string, params: Compone
 // Test_Integration test_integration   Test Integration testIntegration -> testintegration
 export function sanitizeName(name: string): string {
     return name.replace(/[^a-z0-9]_./gi, '_').toLowerCase(); // Replace invalid characters with underscores
-}
-
-// ------------------- HACKS TO MANIPULATE PROJECT FILES ---------------->
-function hackToUpdateBallerinaToml(filePath: string) {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(`Error reading Ballerina.toml file: ${err.message}`);
-            return;
-        }
-
-        // Append "bi=true" to the Ballerina.toml content
-        const updatedContent = `${data.trim()}\nbi = true\n`;
-
-        // Write the updated content back to the Ballerina.toml file
-        fs.writeFile(filePath, updatedContent, 'utf8', (err) => {
-            if (err) {
-                console.error(`Error updating Ballerina.toml file: ${err.message}`);
-            } else {
-                console.log('Ballerina.toml file updated successfully');
-            }
-        });
-    });
-}
-
-function hackToUpdateService(filePath: string) {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(`Error reading Ballerina.toml file: ${err.message}`);
-            return;
-        }
-
-        // Append "bi=true" to the Ballerina.toml content
-        const newContent = `import ballerina/http;
-
-        service /hello on new http:Listener(9090) {
-            resource function get greeting(string name) returns string|error {
-                
-            }
-        }
-        `;
-
-        // Write the updated content back to the Ballerina.toml file
-        fs.writeFile(filePath, newContent, 'utf8', (err) => {
-            if (err) {
-                console.error(`Error updating Ballerina.toml file: ${err.message}`);
-            } else {
-                console.log('Ballerina.toml file updated successfully');
-            }
-        });
-    });
-}
-
-function hackToUpdateMain(filePath: string) {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(`Error reading Ballerina.toml file: ${err.message}`);
-            return;
-        }
-
-        // Append "bi=true" to the Ballerina.toml content
-        const newContent = `public function main() {
-
-        }
-        `;
-
-        // Write the updated content back to the Ballerina.toml file
-        fs.writeFile(filePath, newContent, 'utf8', (err) => {
-            if (err) {
-                console.error(`Error updating Ballerina.toml file: ${err.message}`);
-            } else {
-                console.log('Ballerina.toml file updated successfully');
-            }
-        });
-    });
 }

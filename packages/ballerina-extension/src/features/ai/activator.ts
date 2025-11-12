@@ -20,7 +20,7 @@ import { commands, window } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
 import { generateCodeCore } from './service/code/code';
-import { GenerateCodeRequest } from '@wso2/ballerina-core';
+import { GenerateCodeRequest, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from './service/event';
 import { addConfigFile, getConfigFilePath } from './utils';
 import { StateMachine } from "../../stateMachine";
@@ -28,21 +28,65 @@ import { CONFIGURE_DEFAULT_MODEL_COMMAND, DEFAULT_PROVIDER_ADDED, LOGIN_REQUIRED
 import { REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
+import { generateMappingCodeCore } from './service/datamapper/datamapper';
 
 export let langClient: ExtendedLangClient;
 
 export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension) {
+
     langClient = <ExtendedLangClient>ballerinaExternalInstance.langClient;
     activateCopilotLoginCommand();
     resetBIAuth();
-    // Register a command in test environment to test the AI features
+
+    // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
         commands.registerCommand('ballerina.test.ai.generateCodeCore', async (params: GenerateCodeRequest, testEventHandler: CopilotEventHandler) => {
             await generateCodeCore(params, testEventHandler);
         });
+
+        commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {
+            await generateMappingCodeCore(params, testEventHandler);
+        });
+
+        // Library integration test commands
+        const {
+            getAllLibraries,
+            getSelectedLibraries,
+            getRelevantLibrariesAndFunctions,
+            GenerationType
+        } = require('./service/libs/libs');
+        const {
+            selectRequiredFunctions,
+            getMaximizedSelectedLibs,
+            toMaximizedLibrariesFromLibJson
+        } = require('./service/libs/funcs');
+
+        commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
+            return await getAllLibraries(generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getSelectedLibraries', async (prompt: string, generationType: typeof GenerationType) => {
+            return await getSelectedLibraries(prompt, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getRelevantLibrariesAndFunctions', async (params: any, generationType: typeof GenerationType) => {
+            return await getRelevantLibrariesAndFunctions(params, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.selectRequiredFunctions', async (prompt: string, selectedLibNames: string[], generationType: typeof GenerationType) => {
+            return await selectRequiredFunctions(prompt, selectedLibNames, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.getMaximizedSelectedLibs', async (libNames: string[], generationType: typeof GenerationType) => {
+            return await getMaximizedSelectedLibs(libNames, generationType);
+        });
+
+        commands.registerCommand('ballerina.test.ai.toMaximizedLibrariesFromLibJson', async (functionResponses: any[], originalLibraries: any[]) => {
+            return await toMaximizedLibrariesFromLibJson(functionResponses, originalLibraries);
+        });
     }
 
-    const projectPath = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
     commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async (...args: any[]) => {
         const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);

@@ -16,19 +16,19 @@
  * under the License.
  */
 import * as vscode from "vscode";
+import * as path from 'path';
 import { URI, Utils } from "vscode-uri";
 import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
-import * as fs from 'fs';
-import * as path from 'path';
 import { ExtendedLangClient } from "../core/extended-language-client";
-import { ServiceDesignerRpcManager } from "../rpc-managers/service-designer/rpc-manager";
-import { AiAgentRpcManager } from "../rpc-managers/ai-agent/rpc-manager";
-import { injectAgentCode } from "./source-utils";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
 import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 
-export async function buildProjectArtifactsStructure(projectDir: string, langClient: ExtendedLangClient, isUpdate: boolean = false): Promise<ProjectStructureResponse> {
+export async function buildProjectArtifactsStructure(
+    projectPath: string,
+    langClient: ExtendedLangClient,
+    isUpdate: boolean = false
+): Promise<ProjectStructureResponse> {
     const result: ProjectStructureResponse = {
         projectName: "",
         directoryMap: {
@@ -45,21 +45,29 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
             [DIRECTORY_MAP.LOCAL_CONNECTORS]: [],
         }
     };
-    const designArtifacts = await langClient.getProjectArtifacts({ projectPath: projectDir });
+    const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
     console.log("designArtifacts", designArtifacts);
     if (designArtifacts?.artifacts) {
         traverseComponents(designArtifacts.artifacts, result);
-        await populateLocalConnectors(projectDir, result);
+        await populateLocalConnectors(projectPath, result);
     }
     // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
-    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectDir);
-    let projectName = workspace?.name;
+    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectPath);
+
+    let projectName = "";
+    if (workspace) {
+        projectName = workspace.name;
+    } else {
+        // Project defined within a Ballerina workspace
+        projectName = path.basename(projectPath);
+    }
     // Get the project name from the ballerina.toml file
     const commonRpcManager = new CommonRpcManager();
     const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-    if (tomlValues && tomlValues.package.title) {
-        projectName = tomlValues.package.title;
+    if (tomlValues) {
+        projectName = tomlValues.package?.title || tomlValues.package?.name;
     }
+
     result.projectName = projectName;
 
     if (isUpdate) {
@@ -71,8 +79,10 @@ export async function buildProjectArtifactsStructure(projectDir: string, langCli
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    const projectUri = URI.file(StateMachine.context().projectUri);
-    const isWithinProject = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(projectUri.fsPath.toLowerCase());
+    const projectUri = URI.file(StateMachine.context().projectPath);
+    const isWithinProject = URI
+        .parse(publishedArtifacts.uri).fsPath.toLowerCase()
+        .includes(projectUri.fsPath.toLowerCase());
     if (currentProjectStructure && isWithinProject) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
@@ -122,7 +132,7 @@ async function getComponents(artifacts: Record<string, BaseArtifact>, artifactTy
 }
 
 async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: string) {
-    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), artifact.location.fileName).fsPath;
+    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectPath), artifact.location.fileName).fsPath;
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -197,54 +207,6 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
             break;
     }
     return entryValue;
-}
-
-// This is a hack to inject the AI agent code into the chat service function
-// This has to be replaced once we have a proper design for AI Agent Chat Service
-async function injectAIAgent(serviceArtifact: BaseArtifact) {
-    // Fetch the organization name for importing the AI package
-    const aiModuleOrg = await new AiAgentRpcManager().getAiModuleOrg({ projectPath: StateMachine.context().projectUri });
-
-    //get AgentName
-    const agentName = serviceArtifact.name.split('-')[1].trim().replace(/\//g, '');
-
-    // Retrieve the service model
-    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectUri), serviceArtifact.location.fileName).fsPath;
-    const updatedService = await new ServiceDesignerRpcManager().getServiceModelFromCode({
-        filePath: targetFile,
-        codedata: {
-            lineRange: {
-                startLine: { line: serviceArtifact.location.startLine.line, offset: serviceArtifact.location.startLine.offset },
-                endLine: { line: serviceArtifact.location.endLine.line, offset: serviceArtifact.location.endLine.offset }
-            }
-        }
-    });
-    if (!updatedService?.service?.functions?.[0]?.codedata?.lineRange?.endLine) {
-        console.error('Unable to determine injection position: Invalid service structure');
-        return;
-    }
-    const injectionPosition = updatedService.service.functions[0].codedata.lineRange.endLine;
-    const serviceFile = path.join(StateMachine.context().projectUri, `main.bal`);
-    ensureFileExists(serviceFile);
-    await injectAgentCode(agentName, serviceFile, injectionPosition, aiModuleOrg.orgName);
-    const functionPosition: NodePosition = {
-        startLine: updatedService.service.functions[0].codedata.lineRange.startLine.line,
-        startColumn: updatedService.service.functions[0].codedata.lineRange.startLine.offset,
-        endLine: updatedService.service.functions[0].codedata.lineRange.endLine.line + 2,
-        endColumn: updatedService.service.functions[0].codedata.lineRange.endLine.offset
-    };
-    return {
-        position: functionPosition
-    };
-}
-
-function ensureFileExists(targetFile: string) {
-    // Check if the file exists
-    if (!fs.existsSync(targetFile)) {
-        // Create the file if it does not exist
-        fs.writeFileSync(targetFile, "");
-        console.log(`>>> Created file at ${targetFile}`);
-    }
 }
 
 /**
@@ -334,20 +296,6 @@ async function processAddition(artifact: BaseArtifact, artifactCategoryKey: stri
                 projectStructure.directoryMap[mapping.mapKey] = [];
             }
             entryValue.isNew = true; // This is a flag to identify the new artifact
-
-            // Hack to handle AI services --------------------------------->
-            // Inject the AI agent code into the service when new service is created
-            if (artifact.module === "ai" && artifact.type === DIRECTORY_MAP.SERVICE) {
-                const aiResourceLocation = Object.values(artifact.children).find(child => child.type === DIRECTORY_MAP.RESOURCE)?.location;
-                const startLine = aiResourceLocation.startLine.line;
-                const endLine = aiResourceLocation.endLine.line;
-                const isEmptyResource = endLine - startLine === 1;
-                if (isEmptyResource) {
-                    const injectedResult = await injectAIAgent(artifact);
-                    entryValue.position = injectedResult.position;
-                }
-            }
-            // <-------------------------------------------------------------
             projectStructure.directoryMap[mapping.mapKey]?.push(entryValue);
             return entryValue;
         } catch (error) {
@@ -443,7 +391,7 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
 
 async function populateLocalConnectors(projectDir: string, response: ProjectStructureResponse) {
     const filePath = `${projectDir}/Ballerina.toml`;
-    const localConnectors = (await StateMachine.langClient().getOpenApiGeneratedModules({ projectPath: projectDir })).modules;
+    const localConnectors = (await StateMachine.langClient().getOpenApiGeneratedModules({ projectPath: projectDir })).modules || [];
     const mappedEntries: ProjectStructureArtifactResponse[] = localConnectors.map(moduleName => ({
         id: moduleName,
         name: moduleName,
@@ -493,6 +441,10 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-ftp";
         case "file":
             return "bi-file";
+        case "mcp":
+            return "bi-mcp";
+        case "solace":
+            return "bi-solace";
         default:
             return "bi-globe";
     }
