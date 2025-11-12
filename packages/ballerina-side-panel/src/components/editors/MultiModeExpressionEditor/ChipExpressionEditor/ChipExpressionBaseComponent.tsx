@@ -42,6 +42,7 @@ import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { HelperpaneOnChangeOptions } from "../../../Form/types";
+import { ChipExpressionBaseComponent2 } from "./components/ChipExpressionBaseComponent2";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -97,13 +98,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
         setIsLoading(true);
         try {
-            const response = await expressionEditorRpcManager?.getExpressionTokens(
-                value,
-                props.fileName,
-                props.targetLineRange.startLine
-            );
-            setIsLoading(false);
-            return response || [];
+            // const response = await expressionEditorRpcManager?.getExpressionTokens(
+            //     value,
+            //     props.fileName,
+            //     props.targetLineRange.startLine
+            // );
+            // setIsLoading(false);
+            return new Promise<number[]>((resolve) => {
+                resolve([]);
+            });
         } catch (error) {
             setIsLoading(false);
             return [];
@@ -517,7 +520,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
             {!props.isInExpandedMode && <FXButton />}
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                {isLoading && <SkeletonLoader />}
                 <AutoExpandingEditableDiv
                     value={props.value}
                     fieldContainerRef={fieldContainerRef}
@@ -543,14 +545,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     isInExpandedMode={props.isInExpandedMode}
                     onOpenExpandedMode={props.onOpenExpandedMode}
                 >
-                    <TokenizedExpression
+                    {/* <TokenizedExpression
                         expressionModel={expressionModel || []}
                         onExpressionChange={handleExpressionChange}
                         onChipClick={handleChipClick}
                         onTextFocus={handleTextFocus}
                         onChipFocus={handleChipFocus}
                         onChipBlur={handleChipBlur}
-                    />
+                    /> */}
+                    <ChipExpressionBaseComponent2 {...props} />
                 </AutoExpandingEditableDiv>
             </div>
         </ChipEditorContainer >
