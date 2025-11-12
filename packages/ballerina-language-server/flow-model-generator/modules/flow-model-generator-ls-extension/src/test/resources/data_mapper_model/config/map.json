@@ -6,18 +6,18 @@
     "lineRange": {
       "fileName": "map1.bal",
       "startLine": {
-        "line": 25,
+        "line": 37,
         "offset": 4
       },
       "endLine": {
-        "line": 28,
-        "offset": 5
+        "line": 40,
+        "offset": 6
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 25,
+    "line": 37,
     "offset": 4
   },
   "propertyKey": "expression",
@@ -38,6 +38,29 @@
         "kind": "map",
         "category": "local-variable",
         "ref": "-498580246"
+      },
+      {
+        "value": {
+          "value": {
+            "fields": [],
+            "name": "nested",
+            "displayName": "<nestedItemItem>",
+            "typeName": "Person",
+            "kind": "record",
+            "ref": "887620673"
+          },
+          "name": "nested",
+          "displayName": "<nestedItem>",
+          "typeName": "map<Person>",
+          "kind": "map",
+          "ref": "-498580246"
+        },
+        "name": "nested",
+        "displayName": "nested",
+        "typeName": "map<map<Person>>",
+        "kind": "map",
+        "category": "local-variable",
+        "ref": "-1143377510"
       },
       {
         "value": {
@@ -75,9 +98,9 @@
       {
         "output": "result.data",
         "inputs": [
-          "complex"
+          "nested"
         ],
-        "expression": "complex\n",
+        "expression": "nested\n",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
@@ -96,19 +119,26 @@
           },
           {
             "value": {
-              "fields": [],
+              "value": {
+                "fields": [],
+                "name": "data",
+                "displayName": "<dataItemItem>",
+                "typeName": "Person",
+                "kind": "record",
+                "ref": "887620673"
+              },
               "name": "data",
               "displayName": "<dataItem>",
-              "typeName": "Person",
-              "kind": "record",
-              "ref": "887620673"
+              "typeName": "map<Person>",
+              "kind": "map",
+              "ref": "-498580246"
             },
             "name": "data",
             "displayName": "data",
-            "typeName": "map<Person>",
+            "typeName": "map<map<Person>>",
             "kind": "map",
             "optional": false,
-            "ref": "-498580246"
+            "ref": "-1143377510"
           }
         ],
         "typeName": "RecordWithMap",
@@ -137,4 +167,3 @@
     }
   }
 }
-
