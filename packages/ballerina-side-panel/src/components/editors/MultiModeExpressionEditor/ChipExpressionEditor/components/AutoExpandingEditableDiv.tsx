@@ -72,9 +72,10 @@ export type AutoExpandingEditableDivProps = {
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string,  options?: HelperpaneOnChangeOptions) => void;
+    handleHelperPaneValueChange?: (value: string, options?: HelperpaneOnChangeOptions) => void;
     isInExpandedMode?: boolean;
     onOpenExpandedMode?: () => void;
+    helperButtonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -128,7 +129,10 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     const renderHelperPane = () => {
         if (!props.getHelperPane || !props.isHelperPaneOpen || !fieldContainerRef?.current) return null;
 
-        const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
+        const positionRef = props.isInExpandedMode && props.helperButtonRef ? props.helperButtonRef : fieldContainerRef;
+        if (!positionRef?.current) return null;
+
+        const menuPosition = getCompletionsMenuPosition(positionRef as React.RefObject<HTMLElement>);
         const menuWidth = COMPLETIONS_WIDTH;
         const viewportWidth = document.documentElement.clientWidth;
         const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10));
@@ -303,11 +307,15 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                     </FloatingToggleButton>
                 </div>
             )}
-            <FloatingButtonContainer id="floating-button-container">
-                <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
-                    {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
-                </FloatingToggleButton>
-            </FloatingButtonContainer>
+            {
+                !props.isInExpandedMode && (
+                    <FloatingButtonContainer id="floating-button-container">
+                        <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
+                            {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                        </FloatingToggleButton>
+                    </FloatingButtonContainer>
+                )
+            }
         </ChipEditorFieldContainer>
     )
 }

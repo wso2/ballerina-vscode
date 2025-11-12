@@ -34,6 +34,7 @@ interface ExpandedPromptEditorProps {
     value: string;
     onClose: () => void;
     onSave: (value: string) => void;
+    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
     // Optional mode override (if not provided, will be auto-detected)
     mode?: EditorMode;
     // Expression mode specific props
@@ -117,6 +118,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     field,
     value,
     onClose,
+    onChange,
     onSave,
     mode: propMode,
     completions,
@@ -125,7 +127,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     extractArgsFromFunction,
     getHelperPane
 }) => {
-    const [editedValue, setEditedValue] = useState(value);
     const promptFields = ["query", "instructions", "role"];
 
     // Determine mode - use prop if provided, otherwise auto-detect
@@ -138,17 +139,12 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
-        setEditedValue(value);
-    }, [value, isOpen]);
-
-    useEffect(() => {
         if (mode === "text") {
             setShowPreview(false);
         }
     }, [mode]);
 
     const handleMinimize = () => {
-        onSave(editedValue);
         onClose();
     };
 
@@ -171,8 +167,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     // Prepare props for the mode component
     const modeProps = {
-        value: editedValue,
-        onChange: setEditedValue,
+        value: value,
+        onChange: onChange,
         field,
         // Props for modes with preview support
         ...(mode === "prompt" && {
