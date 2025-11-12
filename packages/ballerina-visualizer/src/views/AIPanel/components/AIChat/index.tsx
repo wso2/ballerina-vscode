@@ -516,6 +516,24 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.approvalType === "completion") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const todoData = {
+                            tasks: response.tasks,
+                            message: response.message
+                        };
+                        const todoJson = JSON.stringify(todoData);
+                        let lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                        const todoPattern = /<todo>.*?<\/todo>/s;
+                        lastMessageContent = lastMessageContent.replace(todoPattern, `<todo>${todoJson}</todo>`);
+
+                        newMessages[newMessages.length - 1].content = lastMessageContent;
+                    }
+                    return newMessages;
+                });
             }
         } else if (type === "intermediary_state") {
             const state = response.state;

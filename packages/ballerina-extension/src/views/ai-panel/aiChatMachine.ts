@@ -57,8 +57,11 @@ const addUserMessage = (
     history: ChatMessage[],
     content: string
 ): ChatMessage[] => {
+    const lastMessage = history[history.length - 1];
+    const baseHistory = lastMessage?.role === 'user' ? history.slice(0, -1) : history;
+
     return [
-        ...history,
+        ...baseHistory,
         {
             id: generateId(),
             role: 'user',
@@ -458,8 +461,10 @@ const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] =>
 
 const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
     const messages: UIChatHistoryMessage[] = [];
+    const lastMessage = chatHistory[chatHistory.length - 1];
+    const historyToConvert = lastMessage?.role === 'user' ? chatHistory.slice(0, -1) : chatHistory;
 
-    for (const msg of chatHistory) {
+    for (const msg of historyToConvert) {
         if (msg.role === 'user') {
             messages.push({
                 role: 'user',

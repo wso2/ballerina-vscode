@@ -177,7 +177,7 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 // Write Tool Execute Function
 // ============================================================================
 
-export function createWriteExecute(tempProjectPath: string) {
+export function createWriteExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     content: string;
@@ -230,6 +230,10 @@ export function createWriteExecute(tempProjectPath: string) {
     // Write the file to temp directory
     fs.writeFileSync(fullPath, content, 'utf-8');
 
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
+
     const lineCount = content.split('\n').length;
 
     console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines to temp project.`);
@@ -244,7 +248,7 @@ export function createWriteExecute(tempProjectPath: string) {
 // Edit Tool Execute Function
 // ============================================================================
 
-export function createEditExecute(tempProjectPath: string) {
+export function createEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     old_string: string;
@@ -324,6 +328,10 @@ export function createEditExecute(tempProjectPath: string) {
     // Write back to temp directory
     fs.writeFileSync(fullPath, newContent, 'utf-8');
 
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
+
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
     return {
@@ -337,7 +345,7 @@ export function createEditExecute(tempProjectPath: string) {
 // Multi Edit Tool Execute Function
 // ============================================================================
 
-export function createMultiEditExecute(tempProjectPath: string) {
+export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     edits: Array<{
@@ -431,6 +439,10 @@ export function createMultiEditExecute(tempProjectPath: string) {
     // All validations passed, content already has all edits applied
     // Write back to temp directory
     fs.writeFileSync(fullPath, content, 'utf-8');
+
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     return {
