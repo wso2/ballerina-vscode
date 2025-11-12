@@ -29,6 +29,9 @@ import {
     SaveMigrationReportRequest,
     StoreSubProjectReportsRequest
 } from "@wso2/ballerina-core";
+import os from "os";
+import path from "path";
+import vscode from "vscode";
 import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
@@ -38,7 +41,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     private static instance: MigrateIntegrationRpcManager;
     private subProjectReports: Map<string, string> = new Map();
 
-    private constructor() {}
+    private constructor() { }
 
     public static getInstance(): MigrateIntegrationRpcManager {
         if (!MigrateIntegrationRpcManager.instance) {
@@ -117,21 +120,82 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     }
 
     async saveMigrationReport(params: SaveMigrationReportRequest): Promise<void> {
-        const vscode = await import('vscode');
 
-        // Show save dialog
-        const saveUri = await vscode.window.showSaveDialog({
-            defaultUri: vscode.Uri.file(params.defaultFileName),
-            filters: {
-                'HTML files': ['html'],
-                'All files': ['*']
+        // Check if this is a multi-project save (has projectReports)
+        const hasMultipleProjects = params.projectReports && Object.keys(params.projectReports).length > 0;
+
+        if (hasMultipleProjects) {
+            // For multi-project scenarios, show folder dialog
+            // Default to workspace root, or home directory as fallback (works on all OSes)
+            let defaultUri: any;
+            if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+                defaultUri = vscode.workspace.workspaceFolders[0].uri;
+            } else {
+                // Fall back to user's home directory (cross-platform)
+                defaultUri = vscode.Uri.file(os.homedir());
             }
-        });
 
-        if (saveUri) {
-            // Write the report content to the selected file
-            await vscode.workspace.fs.writeFile(saveUri, Buffer.from(params.reportContent, 'utf8'));
-            vscode.window.showInformationMessage(`Migration report saved to ${saveUri.fsPath}`);
+            const folderUri = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+                defaultUri: defaultUri,
+                title: 'Select folder to save migration reports'
+            });
+
+            if (!folderUri || folderUri.length === 0) {
+                return;
+            }
+
+            const baseDir = folderUri[0];
+
+            try {
+                // Write the aggregate report at the root
+                const aggregateReportPath = path.join(baseDir.fsPath, params.defaultFileName);
+                await vscode.workspace.fs.writeFile(
+                    vscode.Uri.file(aggregateReportPath),
+                    Buffer.from(params.reportContent, 'utf8')
+                );
+                console.log(`Aggregate migration report saved to ${aggregateReportPath}`);
+
+                // Write per-project reports in subdirectories
+                for (const [projectName, reportContent] of Object.entries(params.projectReports)) {
+                    const projectDir = path.join(baseDir.fsPath, projectName);
+                    const projectReportPath = path.join(projectDir, 'migration_report.html');
+
+                    // Create project subdirectory if it doesn't exist
+                    await vscode.workspace.fs.createDirectory(vscode.Uri.file(projectDir));
+
+                    // Write project report
+                    await vscode.workspace.fs.writeFile(
+                        vscode.Uri.file(projectReportPath),
+                        Buffer.from(reportContent, 'utf8')
+                    );
+                    console.log(`Project migration report saved to ${projectReportPath}`);
+                }
+
+                vscode.window.showInformationMessage(
+                    `Migration reports saved successfully to ${baseDir.fsPath}`
+                );
+            } catch (error) {
+                console.error('Failed to save multi-project migration reports:', error);
+                vscode.window.showErrorMessage(`Failed to save migration reports: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        } else {
+            // Single project - use simple save dialog
+            const saveUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(params.defaultFileName),
+                filters: {
+                    'HTML files': ['html'],
+                    'All files': ['*']
+                }
+            });
+
+            if (saveUri) {
+                // Write the report content to the selected file
+                await vscode.workspace.fs.writeFile(saveUri, Buffer.from(params.reportContent, 'utf8'));
+                vscode.window.showInformationMessage(`Migration report saved to ${saveUri.fsPath}`);
+            }
         }
     }
 

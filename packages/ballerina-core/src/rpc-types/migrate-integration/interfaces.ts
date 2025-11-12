@@ -60,6 +60,9 @@ export interface OpenMigrationReportRequest {
 export interface SaveMigrationReportRequest {
     reportContent: string;
     defaultFileName: string;
+    projectReports?: {
+        [projectName: string]: string;
+    };
 }
 
 export interface MigrateRequest {
