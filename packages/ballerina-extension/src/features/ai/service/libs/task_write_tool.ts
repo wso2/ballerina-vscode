@@ -134,6 +134,11 @@ Rules:
 
                 const taskCategories = categorizeTasks(allTasks);
 
+                // TODO: Fix issue where agent updates to existing plan trigger new approval
+                // Problem: When agent continues chat with plan updates, currentPlan state is empty
+                // causing it to be identified as new plan and triggering approval unnecessarily.
+                // Need to preserve plan state across chat continuations or use chat history to
+                // detect if this is a continuation of an existing conversation with a plan.
                 const isNewPlan = !existingPlan || existingPlan.tasks.length === 0;
                 const isPlanRemodification = existingPlan && (
                     allTasks.length !== existingPlan.tasks.length ||
@@ -242,7 +247,7 @@ function detectNewlyCompletedTasks(completedTasks: Task[], existingPlan: Plan | 
     if (!existingPlan) {
         return completedTasks;
     }
-    
+
     return completedTasks.filter(task => {
         const existingTask = existingPlan.tasks.find(t => t.description === task.description);
         return existingTask && existingTask.status !== TaskStatus.COMPLETED;

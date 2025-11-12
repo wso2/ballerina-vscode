@@ -42,7 +42,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendAbortNotification(event.command);
                 break;
             case "save_chat":
-                sendSaveChatNotification(event.command, event.assistantMessageId);
+                sendSaveChatNotification(event.command, event.messageId);
                 break;
             case "intermediary_state":
                 sendIntermidateStateNotification(event.state);

@@ -58,49 +58,36 @@ const addUserMessage = (
     content: string
 ): ChatMessage[] => {
     const lastMessage = history[history.length - 1];
-    const baseHistory = lastMessage?.role === 'user' ? history.slice(0, -1) : history;
+    const baseHistory = lastMessage && !lastMessage.uiResponse && lastMessage.modelMessages.length === 0
+        ? history.slice(0, -1)
+        : history;
 
     return [
         ...baseHistory,
         {
             id: generateId(),
-            role: 'user',
             content,
+            uiResponse: '',
+            modelMessages: [],
             timestamp: Date.now(),
         },
     ];
 };
 
-const addAssistantMessage = (
+const updateChatMessage = (
     history: ChatMessage[],
     id: string,
-    uiResponse: string,
-    modelMessages: any[]
-): ChatMessage[] => {
-    return [
-        ...history,
-        {
-            id,
-            role: 'assistant',
-            uiResponse,
-            modelMessages,
-            timestamp: Date.now(),
-        },
-    ];
-};
-
-const updateAssistantMessage = (
-    history: ChatMessage[],
-    id: string,
-    uiResponse?: string,
-    modelMessages?: any[]
+    updates: {
+        uiResponse?: string;
+        modelMessages?: any[];
+    }
 ): ChatMessage[] => {
     return history.map(msg => {
-        if (msg.role === 'assistant' && msg.id === id) {
+        if (msg.id === id) {
             return {
                 ...msg,
-                uiResponse: uiResponse !== undefined ? uiResponse : msg.uiResponse,
-                modelMessages: modelMessages !== undefined ? modelMessages : msg.modelMessages,
+                uiResponse: updates.uiResponse !== undefined ? updates.uiResponse : msg.uiResponse,
+                modelMessages: updates.modelMessages !== undefined ? updates.modelMessages : msg.modelMessages,
             };
         }
         return msg;
@@ -134,17 +121,11 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 errorMessage: (_ctx) => undefined,
             }),
         },
-        [AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE]: {
+        [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
             actions: assign({
                 chatHistory: (ctx, event) => {
                     const { id, modelMessages, uiResponse } = event.payload;
-                    const existingMessage = ctx.chatHistory.find(
-                        msg => msg.role === 'assistant' && msg.id === id
-                    );
-
-                    return existingMessage
-                        ? updateAssistantMessage(ctx.chatHistory, id, uiResponse, modelMessages)
-                        : addAssistantMessage(ctx.chatHistory, id, uiResponse || '', modelMessages || []);
+                    return updateChatMessage(ctx.chatHistory, id, { uiResponse, modelMessages });
                 },
             }),
         },
@@ -446,13 +427,8 @@ const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] =>
     const messages: any[] = [];
 
     for (const msg of chatHistory) {
-        if (msg.role === 'assistant') {
+        if (msg.modelMessages && msg.modelMessages.length > 0) {
             messages.push(...msg.modelMessages);
-        } else {
-            messages.push({
-                role: 'user',
-                content: msg.content
-            });
         }
     }
 
@@ -462,18 +438,19 @@ const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] =>
 const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
     const messages: UIChatHistoryMessage[] = [];
     const lastMessage = chatHistory[chatHistory.length - 1];
-    const historyToConvert = lastMessage?.role === 'user' ? chatHistory.slice(0, -1) : chatHistory;
+    const historyToConvert = lastMessage && !lastMessage.uiResponse ? chatHistory.slice(0, -1) : chatHistory;
 
     for (const msg of historyToConvert) {
-        if (msg.role === 'user') {
-            messages.push({
-                role: 'user',
-                content: msg.content
-            });
-        } else if (msg.role === 'assistant') {
+
+        messages.push({
+            role: 'user',
+            content: msg.content
+        });
+
+        if (msg.uiResponse) {
             messages.push({
                 role: 'assistant',
-                content: msg.uiResponse || ''
+                content: msg.uiResponse
             });
         }
     }
@@ -483,16 +460,16 @@ const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHisto
 
 const startGenerationService = async (context: AIChatMachineContext): Promise<void> => {
     const lastMessage = context.chatHistory[context.chatHistory.length - 1];
-    const usecase = lastMessage?.role === 'user' ? lastMessage.content : '';
+    const usecase = lastMessage?.content;
     const previousHistory = context.chatHistory.slice(0, -1);
-    const assistantMessageId = generateId();
+    const messageId = lastMessage?.id;
 
     const requestBody: GenerateAgentCodeRequest = {
         usecase: usecase,
         chatHistory: convertChatHistoryToModelMessages(previousHistory),
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
-        assistantMessageId: assistantMessageId,
+        messageId: messageId,
     };
 
     generateDesign(requestBody).catch(error => {
