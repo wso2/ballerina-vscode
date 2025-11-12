@@ -40,9 +40,10 @@ interface CoverageSummaryProps {
     reportData: MigrationReportJSON;
     onViewReport: () => void;
     onSaveReport: () => void;
+    isMultiProject?: boolean;
 }
 
-export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData, onViewReport, onSaveReport }) => {
+export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData, onViewReport, onSaveReport, isMultiProject = false }) => {
     const { coverageOverview } = reportData;
     const coverageLevel = getCoverageLevel(coverageOverview.coverageLevel);
     const coverageColor = getCoverageColor(coverageOverview.coverageLevel);
@@ -84,11 +85,11 @@ export const CoverageSummary: React.FC<CoverageSummaryProps> = ({ reportData, on
             <ReportButtonsContainer>
                 <ViewReportButton onClick={onViewReport} appearance="secondary">
                     <Codicon name="file-text" />
-                    &nbsp;View Full Report
+                    &nbsp;{isMultiProject ? "View Aggregate Report" : "View Full Report"}
                 </ViewReportButton>
                 <SaveReportButton onClick={onSaveReport} appearance="secondary">
                     <Codicon name="save" />
-                    &nbsp;Save Report
+                    &nbsp;{isMultiProject ? "Save Reports" : "Save Report"}
                 </SaveReportButton>
             </ReportButtonsContainer>
         </CoverageContainer>

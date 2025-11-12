@@ -137,6 +137,7 @@ export function MigrationProgressView({
                     parsedReportData={parsedReportData}
                     onViewReport={handleViewReport}
                     onSaveReport={handleSaveReport}
+                    isMultiProject={isMultiProject}
                 />
                 {displayState.showButtonsInStep && (
                     <NextButtonWrapper>
