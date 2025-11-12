@@ -42,8 +42,8 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     getHelperPane
 }) => {
     // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
-    const handleChange = (updatedValue: string, _updatedCursorPosition: number) => {
-        onChange(updatedValue);
+    const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
+        onChange(updatedValue, updatedCursorPosition);
     };
 
     return (

@@ -27,7 +27,7 @@ export interface EditorModeProps {
     /** Current value of the editor */
     value: string;
     /** Callback when value changes */
-    onChange: (value: string) => void;
+    onChange: (value: string, updatedCursorPosition: number) => void;
     /** Field metadata (for accessing field properties if needed) */
     field: FormField;
 }
