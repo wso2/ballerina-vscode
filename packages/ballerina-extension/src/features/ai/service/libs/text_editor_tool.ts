@@ -17,6 +17,8 @@
 import { SourceFile, SourceFiles } from "@wso2/ballerina-core";
 import { tool } from 'ai';
 import { z } from 'zod';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // ============================================================================
 // Types & Interfaces
@@ -175,7 +177,7 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 // Write Tool Execute Function
 // ============================================================================
 
-export function createWriteExecute(files: SourceFile[], updatedFileNames: string[]) {
+export function createWriteExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     content: string;
@@ -204,29 +206,37 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
       };
     }
 
+    const fullPath = path.join(tempProjectPath, file_path);
+
     // Check if file exists with non-empty content
-    const existingContent = getFileContent(files, file_path);
-    if (existingContent !== null && existingContent.trim().length > 0) {
-      console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
-      return {
-        success: false,
-        message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
-        error: `Error: ${ErrorMessages.FILE_ALREADY_EXISTS}`
-      };
+    if (fs.existsSync(fullPath)) {
+      const existingContent = fs.readFileSync(fullPath, 'utf-8');
+      if (existingContent.trim().length > 0) {
+        console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
+        return {
+          success: false,
+          message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
+          error: `Error: ${ErrorMessages.FILE_ALREADY_EXISTS}`
+        };
+      }
     }
 
-    // Create or overwrite the file
-    updateOrCreateFile(files, file_path, content);
+    // Create parent directories if they don't exist
+    const dirPath = path.dirname(fullPath);
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+
+    // Write the file to temp directory
+    fs.writeFileSync(fullPath, content, 'utf-8');
+
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
 
     const lineCount = content.split('\n').length;
 
-    insertIntoUpdateFileNames(updatedFileNames, file_path);
-
-    if (existingContent != undefined && existingContent != null && existingContent.trim().length === 0) {
-      console.warn(`[FileWriteTool] Warning: Created new file for empty file: ${file_path}`);
-    }
-
-    console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines.`);
+    console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines to temp project.`);
     return {
       success: true,
       message: `Successfully created file '${file_path}' with ${lineCount} line(s).`
@@ -238,7 +248,7 @@ export function createWriteExecute(files: SourceFile[], updatedFileNames: string
 // Edit Tool Execute Function
 // ============================================================================
 
-export function createEditExecute(files: SourceFile[], updatedFileNames: string[]) {
+export function createEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     old_string: string;
@@ -269,9 +279,10 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
       };
     }
 
-    // Get file content
-    const content = getFileContent(files, file_path);
-    if (content === null) {
+    const fullPath = path.join(tempProjectPath, file_path);
+
+    // Check if file exists
+    if (!fs.existsSync(fullPath)) {
       console.error(`[FileEditTool] File not found: ${file_path}`);
       return {
         success: false,
@@ -279,6 +290,9 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
     }
+
+    // Read file content
+    const content = fs.readFileSync(fullPath, 'utf-8');
 
     // Count occurrences
     const occurrenceCount = countOccurrences(content, old_string);
@@ -311,10 +325,14 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
       newContent = content.replace(old_string, new_string);
     }
 
-    updateOrCreateFile(files, file_path, newContent);
+    // Write back to temp directory
+    fs.writeFileSync(fullPath, newContent, 'utf-8');
+
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
 
     const replacedCount = replace_all ? occurrenceCount : 1;
-    insertIntoUpdateFileNames(updatedFileNames, file_path);
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
     return {
       success: true,
@@ -327,7 +345,7 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
 // Multi Edit Tool Execute Function
 // ============================================================================
 
-export function createMultiEditExecute(files: SourceFile[], updatedFileNames: string[]) {
+export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     edits: Array<{
@@ -360,9 +378,10 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
       };
     }
 
-    // Get file content
-    let content = getFileContent(files, file_path);
-    if (content === null) {
+    const fullPath = path.join(tempProjectPath, file_path);
+
+    // Check if file exists
+    if (!fs.existsSync(fullPath)) {
       console.error(`[FileMultiEditTool] File not found: ${file_path}`);
       return {
         success: false,
@@ -371,8 +390,8 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
       };
     }
 
-    // Store original content for rollback
-    const originalContent = content;
+    // Read file content
+    let content = fs.readFileSync(fullPath, 'utf-8');
 
     // Validate all edits before applying any
     const validationErrors: string[] = [];
@@ -418,8 +437,13 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
     }
 
     // All validations passed, content already has all edits applied
-    updateOrCreateFile(files, file_path, content);
-    insertIntoUpdateFileNames(updatedFileNames, file_path);
+    // Write back to temp directory
+    fs.writeFileSync(fullPath, content, 'utf-8');
+
+    if (modifiedFiles) {
+      insertIntoUpdateFileNames(modifiedFiles, file_path);
+    }
+
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     return {
       success: true,
@@ -432,7 +456,7 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
 // Read Tool Execute Function
 // ============================================================================
 
-export function createReadExecute(files: SourceFile[], updatedFileNames: string[]) {
+export function createReadExecute(tempProjectPath: string) {
   return async (args: {
     file_path: string;
     offset?: number;
@@ -451,9 +475,10 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
       };
     }
 
-    // Get file content
-    const content = getFileContent(files, file_path);
-    if (content === null) {
+    const fullPath = path.join(tempProjectPath, file_path);
+
+    // Check if file exists
+    if (!fs.existsSync(fullPath)) {
       console.error(`[FileReadTool] File not found: ${file_path}`);
       return {
         success: false,
@@ -461,6 +486,9 @@ export function createReadExecute(files: SourceFile[], updatedFileNames: string[
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
     }
+
+    // Read file content
+    const content = fs.readFileSync(fullPath, 'utf-8');
 
     // Handle empty file
     if (content.trim().length === 0) {

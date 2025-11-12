@@ -245,7 +245,7 @@ export interface ChatAbort {
 export interface SaveChat {
     type: "save_chat";
     command: Command | undefined;
-    assistantMessageId: string;
+    messageId: string;
 }
 
 export interface ChatError {
@@ -380,7 +380,7 @@ export type AIChatMachineStateValue =
 
 export enum AIChatMachineEventType {
     SUBMIT_PROMPT = 'SUBMIT_PROMPT',
-    UPDATE_ASSISTANT_MESSAGE = 'UPDATE_ASSISTANT_MESSAGE',
+    UPDATE_CHAT_MESSAGE = 'UPDATE_CHAT_MESSAGE',
     RESET = 'RESET',
     PLANNING_STARTED = 'PLANNING_STARTED',
     PLAN_GENERATED = 'PLAN_GENERATED',
@@ -398,23 +398,13 @@ export enum AIChatMachineEventType {
     RETRY = 'RETRY',
 }
 
-interface BaseChatMessage {
+export interface ChatMessage {
     id: string;
-    timestamp: number;
-}
-
-export interface UserMessage extends BaseChatMessage {
-    role: 'user';
     content: string;
-}
-
-export interface AssistantMessage extends BaseChatMessage {
-    role: 'assistant';
     uiResponse: string;
     modelMessages: any[];
+    timestamp: number;
 }
-
-export type ChatMessage = UserMessage | AssistantMessage;
 
 /**
  * Task status enum
@@ -473,7 +463,7 @@ export interface AIChatMachineContext {
 
 export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string } }
-    | { type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
+    | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
     | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }

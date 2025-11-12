@@ -251,11 +251,11 @@ export function sendAbortNotification(command: Command): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendSaveChatNotification(command: Command, assistantMessageId: string): void {
+export function sendSaveChatNotification(command: Command, messageId: string): void {
     const msg: ChatNotify = {
         type: "save_chat",
         command,
-        assistantMessageId
+        messageId
     };
     sendAIPanelNotification(msg);
 }

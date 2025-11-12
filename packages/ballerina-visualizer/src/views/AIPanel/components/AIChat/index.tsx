@@ -516,6 +516,24 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.approvalType === "completion") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const todoData = {
+                            tasks: response.tasks,
+                            message: response.message
+                        };
+                        const todoJson = JSON.stringify(todoData);
+                        let lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                        const todoPattern = /<todo>.*?<\/todo>/s;
+                        lastMessageContent = lastMessageContent.replace(todoPattern, `<todo>${todoJson}</todo>`);
+
+                        newMessages[newMessages.length - 1].content = lastMessageContent;
+                    }
+                    return newMessages;
+                });
             }
         } else if (type === "intermediary_state") {
             const state = response.state;
@@ -563,7 +581,7 @@ const AIChat: React.FC = () => {
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const command = response.command;
-            const assistantMessageId = response.assistantMessageId;
+            const messageId = response.messageId;
 
             // Save chat entries
             addChatEntry(
@@ -573,11 +591,11 @@ const AIChat: React.FC = () => {
             );
             addChatEntry("assistant", messages[messages.length - 1].content);
 
-            // Update assistant message in state machine with UI message
+            // Update chat message in state machine with UI message
             rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.UPDATE_ASSISTANT_MESSAGE,
+                type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
                 payload: {
-                    id: assistantMessageId,
+                    id: messageId,
                     uiResponse: messages[messages.length - 1].content
                 }
             });
@@ -787,7 +805,7 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processCodeGeneration([parsedInput.text, attachments, CodeGenerationType.CODE_GENERATION], inputText);
+            await processDesignGeneration(parsedInput.text, inputText);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
