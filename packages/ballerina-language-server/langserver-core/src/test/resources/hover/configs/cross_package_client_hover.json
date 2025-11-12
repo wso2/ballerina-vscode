@@ -1,0 +1,21 @@
+{
+  "position": {
+    "line": 10,
+    "character": 14
+  },
+  "source": {
+    "file": "workspace/pkgA/main.bal"
+  },
+  "expected": {
+    "result": {
+      "contents": {
+        "kind": "markdown",
+        "value": "A client with actions  \n  \n---  \n  \n### Methods  \n  \n+ `remote function fetch(int id, boolean includeMetadata) returns string|error`  \nFetch data from the API  \n  \n+ `remote function send(string payload, map<string> headers, int timeout) returns boolean|error`  \nSend data to the API  \n  \n  \n---  \n  \n[View API Docs](https://lib.ballerina.io/test/pkgB/0.1.0#ApiClient)"
+      }
+    },
+    "id": {
+      "left": "324"
+    },
+    "jsonrpc": "2.0"
+  }
+}

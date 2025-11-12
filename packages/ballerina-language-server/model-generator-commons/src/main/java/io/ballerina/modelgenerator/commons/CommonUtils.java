@@ -56,6 +56,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
@@ -95,7 +96,7 @@ public class CommonUtils {
     private static final String CENTRAL_ICON_URL = "https://bcentral-packageicons.azureedge.net/images/%s_%s_%s.png";
     private static final Pattern FULLY_QUALIFIED_MODULE_ID_PATTERN =
             Pattern.compile("(\\w+)/([\\w.]+):([^:]+):(\\w+)[|]?");
-    private static final String VECTOR_KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+    private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
     private static final String EMBEDDING_PROVIDER_TYPE_NAME = "EmbeddingProvider";
     private static final String MODEL_PROVIDER_TYPE_NAME = "ModelProvider";
     private static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
@@ -433,13 +434,17 @@ public class CommonUtils {
      *
      * @param project  the project to retrieve the document from
      * @param location the location of the document
-     * @return the document at the specified location
+     * @return the document at the specified location, or null if the file does not belong to the current project
      */
     public static Document getDocument(Project project, Location location) {
-        DocumentId documentId = project.documentId(
-                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                        project.sourceRoot().resolve(location.lineRange().fileName()));
-        return project.currentPackage().getDefaultModule().document(documentId);
+        try {
+            DocumentId documentId = project.documentId(
+                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                            project.sourceRoot().resolve(location.lineRange().fileName()));
+            return project.currentPackage().getDefaultModule().document(documentId);
+        } catch (ProjectException ex) {
+            return null;
+        }
     }
 
     /***
@@ -989,10 +994,9 @@ public class CommonUtils {
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 
-    public static boolean isAiVectorKnowledgeBase(Symbol symbol) {
-        Optional<ModuleSymbol> module = symbol.getModule();
-        return module.isPresent() && isAiModule(module.get().id().orgName(), module.get().id().packageName())
-                && symbol.getName().isPresent() && symbol.getName().get().equals(VECTOR_KNOWLEDGE_BASE_TYPE_NAME);
+    public static boolean isAiKnowledgeBase(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, KNOWLEDGE_BASE_TYPE_NAME);
     }
 
     public static boolean isAiVectorStore(Symbol symbol) {

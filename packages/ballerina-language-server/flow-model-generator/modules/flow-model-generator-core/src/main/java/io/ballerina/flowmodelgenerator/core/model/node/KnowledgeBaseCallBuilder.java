@@ -38,16 +38,17 @@ import static io.ballerina.flowmodelgenerator.core.model.Property.TYPE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
 
 /**
- * Represents a vector knowledge base call node.
+ * Represents a knowledge base call node.
  *
  * @since 1.1.0
  */
-public class VectorKnowledgeBaseCallBuilder extends FunctionCall {
+public class KnowledgeBaseCallBuilder extends FunctionCall {
+
     private static final String RETRIEVE_METHOD_NAME = "retrieve";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
-        return NodeKind.VECTOR_KNOWLEDGE_BASE_CALL;
+        return NodeKind.KNOWLEDGE_BASE_CALL;
     }
 
     @Override
@@ -59,7 +60,7 @@ public class VectorKnowledgeBaseCallBuilder extends FunctionCall {
         }
         Optional<Property> connection = flowNode.getProperty(CONNECTION_KEY);
         if (connection.isEmpty()) {
-            throw new IllegalStateException("connection must be defined for a vector knowledge base");
+            throw new IllegalStateException("connection must be defined for a knowledge base");
         }
         String methodName = flowNode.metadata().label();
         SourceBuilder builder = sourceBuilder.token().name(connection.get().toSourceCode())

@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_BASE_PATH;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_SERVICE_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_STRING_LITERAL;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -32,6 +36,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueSt
  * @since 1.0.0
  */
 public class Service {
+
     private final String id;
     private final String name;
     private final String type;
@@ -66,6 +71,13 @@ public class Service {
         this.codedata = codedata;
     }
 
+    public static Service getEmptyServiceModel() {
+        return new Service.ServiceModelBuilder()
+                .setFunctions(new ArrayList<>())
+                .setProperties(new HashMap<>())
+                .build();
+    }
+
     public List<Function> getFunctions() {
         return functions;
     }
@@ -86,28 +98,24 @@ public class Service {
         this.codedata = codedata;
     }
 
-    public void setDocumentation(Value documentation) {
-        this.documentation = documentation;
-    }
-
     public Value getListener() {
-        return properties.get("listener");
+        return properties.get(PROP_KEY_LISTENER);
     }
 
     public Value getProperty(String key) {
         return properties.get(key);
     }
 
-    public void setServiceType(Value serviceType) {
-        properties.put("serviceType", serviceType);
+    public Value getServiceType() {
+        return properties.get(PROP_KEY_SERVICE_TYPE);
     }
 
-    public Value getServiceType() {
-        return properties.get("serviceType");
+    public void setServiceType(Value serviceType) {
+        properties.put(PROP_KEY_SERVICE_TYPE, serviceType);
     }
 
     public String getServiceTypeName() {
-        Value serviceType = properties.get("serviceType");
+        Value serviceType = properties.get(PROP_KEY_SERVICE_TYPE);
         if (Objects.isNull(serviceType)) {
             return null;
         }
@@ -115,19 +123,19 @@ public class Service {
     }
 
     public Value getBasePath() {
-        return properties.get("basePath");
-    }
-
-    public Value getStringLiteralProperty() {
-        return properties.get("stringLiteral");
+        return properties.get(PROP_KEY_BASE_PATH);
     }
 
     public void setBasePath(Value basePath) {
-        properties.put("basePath", basePath);
+        properties.put(PROP_KEY_BASE_PATH, basePath);
+    }
+
+    public Value getStringLiteralProperty() {
+        return properties.get(PROP_KEY_STRING_LITERAL);
     }
 
     public void setStringLiteral(Value basePath) {
-        properties.put("stringLiteral", basePath);
+        properties.put(PROP_KEY_STRING_LITERAL, basePath);
     }
 
     public Value getOpenAPISpec() {
@@ -194,6 +202,10 @@ public class Service {
         return documentation;
     }
 
+    public void setDocumentation(Value documentation) {
+        this.documentation = documentation;
+    }
+
     public String getVersion() {
         return version;
     }
@@ -213,14 +225,8 @@ public class Service {
         }
     }
 
-    public static Service getEmptyServiceModel() {
-        return new Service.ServiceModelBuilder()
-                .setFunctions(new ArrayList<>())
-                .setProperties(new HashMap<>())
-                .build();
-    }
-
     public static class ServiceModelBuilder {
+
         private String id;
         private String name;
         private String type;

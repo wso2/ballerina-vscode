@@ -1,20 +1,13 @@
 {
   "description": "Field access expression",
   "filePath": "main.bal",
-  "expression": "parent.field",
+  "expression": "parent.child",
   "expectedTokens": [
     {
       "line": 0,
       "col": 0,
-      "length": 6,
+      "length": 12,
       "type": 0,
-      "modifiers": 0
-    },
-    {
-      "line": 0,
-      "col": 7,
-      "length": 5,
-      "type": 1,
       "modifiers": 0
     }
   ]

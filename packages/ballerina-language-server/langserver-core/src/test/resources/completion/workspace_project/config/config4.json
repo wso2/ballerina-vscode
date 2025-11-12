@@ -1,0 +1,32 @@
+{
+  "position": {
+    "line": 3,
+    "character": 42
+  },
+  "source": "workspace_project/source/completion-workspace/pkg-consumer/type_test.bal",
+  "description": "Test cross-package type completion",
+  "items": [
+    {
+      "label": "Config",
+      "kind": "Struct",
+      "detail": "Record",
+      "sortText": "BM",
+      "insertText": "Config",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "API_VERSION",
+      "kind": "Variable",
+      "detail": "\"v1.0\"",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": ""
+        }
+      },
+      "sortText": "D",
+      "insertText": "API_VERSION",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

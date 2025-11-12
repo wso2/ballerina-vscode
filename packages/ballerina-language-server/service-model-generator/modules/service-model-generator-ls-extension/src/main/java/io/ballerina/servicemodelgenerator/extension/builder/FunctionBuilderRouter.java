@@ -18,6 +18,7 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -31,6 +32,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctio
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.RabbitMQFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.SolaceFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceMetadata;
@@ -52,6 +54,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
 
 /**
@@ -66,6 +69,7 @@ public class FunctionBuilderRouter {
         put(RABBITMQ, RabbitMQFunctionBuilder::new);
         put(MCP, McpFunctionBuilder::new);
         put(KAFKA, KafkaFunctionBuilder::new);
+        put(SOLACE, SolaceFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
@@ -105,19 +109,20 @@ public class FunctionBuilderRouter {
         ModelFromSourceContext context;
         if (functionNode.parent() instanceof ServiceDeclarationNode serviceDeclarationNode) {
             ServiceMetadata metadata = deriveServiceType(serviceDeclarationNode, semanticModel);
+            ModuleID moduleID = metadata.moduleId();
             context = new ModelFromSourceContext(functionNode, null, semanticModel, null, "",
-                    metadata.serviceTypeIdentifier(), metadata.orgName(), metadata.packageName(),
-                    metadata.moduleName());
-            NodeBuilder<Function> functionBuilder = getFunctionBuilder(metadata.moduleName());
+                    metadata.serviceTypeIdentifier(), moduleID.orgName(), moduleID.packageName(),
+                    moduleID.moduleName(), moduleID.version());
+            NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleID.moduleName());
             Function function = functionBuilder.getModelFromSource(context);
             Codedata codedata = function.getCodedata();
-            codedata.setOrgName(metadata.orgName());
-            codedata.setPackageName(metadata.packageName());
-            codedata.setModuleName(metadata.moduleName());
+            codedata.setOrgName(moduleID.orgName());
+            codedata.setPackageName(moduleID.packageName());
+            codedata.setModuleName(moduleID.moduleName());
             return function;
         }
         context = new ModelFromSourceContext(functionNode, null, semanticModel, null, "",
-                moduleName, null, null, moduleName);
+                moduleName, null, null, moduleName, null);
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(context.moduleName());
         return functionBuilder.getModelFromSource(context);
     }

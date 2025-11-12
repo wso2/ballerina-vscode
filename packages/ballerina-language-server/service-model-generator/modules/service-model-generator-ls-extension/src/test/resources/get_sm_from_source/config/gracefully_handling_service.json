@@ -1,0 +1,307 @@
+{
+  "filePath": "grpc_service/main.bal",
+  "description": "Test the generation of service model for a Grpc service",
+  "start": {
+    "line": 2,
+    "offset": 0
+  },
+  "end": {
+    "line": 18,
+    "offset": 0
+  },
+  "response": {
+    "id": "grpc",
+    "name": "GRPC Service",
+    "type": "grpc",
+    "displayName": "GRPC Service",
+    "moduleName": "grpc",
+    "orgName": "ballerina",
+    "packageName": "grpc",
+    "listenerProtocol": "grpc",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the class"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listener",
+          "description": "The Listener to be bound with the service"
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "valueType": "SINGLE_SELECT_LISTENER",
+        "valueTypeConstraint": "grpc:Listener",
+        "value": "new grpc:Listener(9090)",
+        "values": [],
+        "properties": {
+          "new grpc:Listener(9090)": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 24
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 47
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "stringLiteral": {
+        "metadata": {
+          "label": "Service Identifier",
+          "description": "Identifier for the service"
+        },
+        "codedata": {
+          "type": "STRING_LITERAL"
+        },
+        "valueType": "SERVICE_PATH",
+        "valueTypeConstraint": "string",
+        "value": "\"HelloWorld\"",
+        "values": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "annotDescriptor": {
+        "metadata": {
+          "label": "Descriptor",
+          "description": "Descriptor"
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "Descriptor",
+          "moduleName": "grpc"
+        },
+        "value": "{\n    value: \"GRPC_SERVER_STREAMING_DESC\"\n}",
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 2,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 18,
+          "offset": 1
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "grpc",
+      "moduleName": "grpc"
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "",
+          "description": ""
+        },
+        "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "valueType": "IDENTIFIER",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "lotsOfReplies",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "name",
+              "description": "name"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "valueType": "TYPE",
+              "value": "string",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "value": "name",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "valueType": "EXPRESSION",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "valueType": "TYPE",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "valueType": "EXPRESSION",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "valueType": "STRING",
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "valueType": "TYPE",
+          "value": "stream<string, error?>",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": false,
+        "canAddParameters": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 7,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 17,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {}
+      }
+    ]
+  }
+}

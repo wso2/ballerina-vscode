@@ -55,6 +55,9 @@ public class DataMappingAddClausesTest extends AbstractLSTest {
                 {Path.of("variable3.json")},
                 {Path.of("function_definition1.json")},
                 {Path.of("variable4.json")},
+                {Path.of("variable5.json")},
+                {Path.of("variable6.json")},
+                {Path.of("variable7.json")},
         };
     }
 

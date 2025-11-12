@@ -97,7 +97,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Name of the employee"
+        "docs": "Name of the employee",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -107,7 +108,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Age of the employee"
+        "docs": "Age of the employee",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -182,7 +184,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Union of of type-refs and a built-in type"
+        "docs": "Union of of type-refs and a built-in type",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -227,7 +230,8 @@
               "optional": false,
               "readonly": false,
               "isGraphqlId": false,
-              "docs": ""
+              "docs": "",
+              "annotationAttachments": []
             },
             {
               "kind": "FIELD",
@@ -272,7 +276,8 @@
                     "optional": false,
                     "readonly": false,
                     "isGraphqlId": false,
-                    "docs": ""
+                    "docs": "",
+                    "annotationAttachments": []
                   }
                 ],
                 "includes": [],
@@ -282,7 +287,8 @@
               "optional": false,
               "readonly": false,
               "isGraphqlId": false,
-              "docs": ""
+              "docs": "",
+              "annotationAttachments": []
             }
           ],
           "includes": [],
@@ -292,10 +298,12 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Anonymous nested record type"
+        "docs": "Anonymous nested record type",
+        "annotationAttachments": []
       }
     ],
     "includes": [],
+    "annotationAttachments": [],
     "allowAdditionalFields": true
   },
   "refs": [
@@ -443,7 +451,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "Union of built-in types"
+          "docs": "Union of built-in types",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -453,7 +462,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -463,7 +473,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -473,7 +484,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "restMember": {
@@ -487,6 +499,7 @@
       "includes": [
         "City"
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -581,7 +594,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -591,10 +605,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]

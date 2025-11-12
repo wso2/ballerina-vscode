@@ -58,6 +58,7 @@ public class Constants {
     public static final String TCP = "tcp";
     public static final String AI = "ai";
     public static final String MCP = "mcp";
+    public static final String SOLACE = "solace";
 
     public static final String KAFKA = "kafka";
     public static final String RABBITMQ = "rabbitmq";
@@ -97,11 +98,13 @@ public class Constants {
 
     public static final String HTTP_SERVICE_TYPE = "http:Service";
 
+    // different input boxes in the UI
     public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
     public static final String VALUE_TYPE_FORM = "FORM";
     public static final String VALUE_TYPE_CHOICE = "CHOICE";
     public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
     public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
+    public static final String VALUE_TYPE_FLAG = "FLAG";
     public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
     public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
     public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
@@ -109,6 +112,8 @@ public class Constants {
     public static final String VALUE_TYPE_STRING = "STRING";
     public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
     public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
+
+    public static final String DB_KIND_OPTIONAL = "OPTIONAL";
 
     public static final String CD_TYPE_ANNOTATION_ATTACHMENT = "ANNOTATION_ATTACHMENT";
     public static final String CD_TYPE_INCLUDE_RECORD_PARAM = "INCLUDE_RECORD_PARAM";
@@ -129,7 +134,13 @@ public class Constants {
 
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
-    public static final String VARIABLE_NAME_KEY = "variableNameKey";
+    public static final String PROP_KEY_VARIABLE_NAME = "variableNameKey";
+    public static final String PROP_KEY_LISTENER = "listener";
+    public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
+    public static final String PROP_KEY_BASE_PATH = "basePath";
+    public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
+    public static final String PROP_READONLY_METADATA_KEY = "readOnlyMetadata";
+    public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";
@@ -199,7 +210,7 @@ public class Constants {
     public static final MetaData RESOURCE_FUNCTION_DOCUMENTATION_METADATA = new MetaData("Description",
             "The description of the resource");
     public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
-            "description of the object");
+            "description of the class");
 
     // organization names
     public static final String BALLERINA = "ballerina";

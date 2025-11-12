@@ -43,6 +43,7 @@ dependencies {
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
     implementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
     implementation "org.ballerinalang:diagram-util:${ballerinaLangVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
@@ -53,6 +54,7 @@ dependencies {
         transitive = false
     }
     implementation "io.ballerina.openapi:core:${openAPICoreVersion}"
+    implementation "io.ballerina.graphql-tool:code-generator:${graphqlToolVersion}"
     implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}") {
         exclude group: "io.swagger", module: "swagger-compat-spec-parser"
         exclude group: "org.slf4j", module: "slf4j-ext"
@@ -60,6 +62,7 @@ dependencies {
     }
     implementation "io.swagger.core.v3:swagger-models"
     implementation "org.xerial:sqlite-jdbc:${sqliteJdbcVersion}"
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
 }
 
 def balDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")

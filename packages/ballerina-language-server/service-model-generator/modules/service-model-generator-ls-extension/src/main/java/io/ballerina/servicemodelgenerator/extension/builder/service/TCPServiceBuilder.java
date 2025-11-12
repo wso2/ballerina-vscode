@@ -40,6 +40,19 @@ public final class TCPServiceBuilder extends AbstractServiceBuilder {
 
     private static final String TCP_SERVICE_CLASS_NAME = "TcpEchoService";
 
+    public static String tcpServiceClassTemplate(String serviceClassName) {
+        String f = "    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {%n" +
+                "        do {%n" +
+                "            %s connectionService = new %s();%n" +
+                "            return connectionService;%n" +
+                "        } on fail error err {%n" +
+                "            // handle error%n" +
+                "            return error(\"unhandled error\", err);%n" +
+                "        }%n" +
+                "    }";
+        return f.formatted(serviceClassName, serviceClassName);
+    }
+
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
@@ -104,19 +117,6 @@ public final class TCPServiceBuilder extends AbstractServiceBuilder {
         edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), serviceClass));
 
         return Map.of(context.filePath(), edits);
-    }
-
-    public static String tcpServiceClassTemplate(String serviceClassName) {
-        String f = "    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService|tcp:Error? {%n" +
-                "        do {%n" +
-                "            %s connectionService = new %s();%n" +
-                "            return connectionService;%n" +
-                "        } on fail error err {%n" +
-                "            // handle error%n" +
-                "            return error(\"unhandled error\", err);%n" +
-                "        }%n" +
-                "    }";
-        return f.formatted(serviceClassName, serviceClassName);
     }
 
     @Override

@@ -140,7 +140,7 @@ public class FunctionData {
         MEMORY_STORE,
         EMBEDDING_PROVIDER,
         VECTOR_STORE,
-        VECTOR_KNOWLEDGE_BASE,
+        KNOWLEDGE_BASE,
         DATA_LOADER,
         CHUNKER,
         MCP_TOOL_KIT,
@@ -157,7 +157,7 @@ public class FunctionData {
                 FunctionData.Kind.VECTOR_STORE,
                 FunctionData.Kind.DATA_LOADER,
                 FunctionData.Kind.CHUNKER,
-                FunctionData.Kind.VECTOR_KNOWLEDGE_BASE,
+                FunctionData.Kind.KNOWLEDGE_BASE,
                 FunctionData.Kind.MCP_TOOL_KIT
         );
 

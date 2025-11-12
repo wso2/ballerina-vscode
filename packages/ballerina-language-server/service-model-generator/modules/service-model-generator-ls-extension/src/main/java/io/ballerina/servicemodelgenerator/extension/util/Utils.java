@@ -264,8 +264,8 @@ public final class Utils {
      *
      * @param serviceNode the service declaration node containing listener expressions
      * @return an {@link Optional} containing the {@link LineRange} that spans from the start
-     *         of the first listener expression to the end of the last listener expression,
-     *         or {@link Optional#empty()} if no listener expressions are found
+     * of the first listener expression to the end of the last listener expression,
+     * or {@link Optional#empty()} if no listener expressions are found
      */
     public static Optional<LineRange> getListenerExpressionsLineRange(ServiceDeclarationNode serviceNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceNode.expressions();
@@ -534,16 +534,13 @@ public final class Utils {
         }
 
         metadata.get().annotations().forEach(annotationNode -> {
-            if (annotationNode.annotValue().isEmpty()) {
-                return;
-            }
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(":");
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (service.getProperties().containsKey(propertyName)) {
                 Value property = service.getProperties().get(propertyName);
-                property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setValue(getAnnotationValue(annotationNode));
             } else {
                 Codedata codedata = new Codedata.Builder()
                         .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
@@ -552,6 +549,7 @@ public final class Utils {
                         .build();
 
                 Value value = new Value.ValueBuilder()
+                        .metadata(annotName, annotName)
                         .setCodedata(codedata)
                         .value(getAnnotationValue(annotationNode))
                         .build();
@@ -568,16 +566,13 @@ public final class Utils {
         }
 
         metadata.get().annotations().forEach(annotationNode -> {
-            if (annotationNode.annotValue().isEmpty()) {
-                return;
-            }
             String annotName = annotationNode.annotReference().toString().trim();
             String[] split = annotName.split(COLON);
             annotName = split[split.length - 1];
             String propertyName = ANNOT_PREFIX + annotName;
             if (function.getProperties().containsKey(propertyName)) {
                 Value property = function.getProperties().get(propertyName);
-                property.setValue(annotationNode.annotValue().get().toSourceCode().trim());
+                property.setValue(getAnnotationValue(annotationNode));
             } else {
                 if (!function.getProperties().containsKey(propertyName)) {
                     Codedata codedata = new Codedata.Builder()
@@ -587,6 +582,7 @@ public final class Utils {
                             .build();
 
                     Value value = new Value.ValueBuilder()
+                            .metadata(annotName, annotName)
                             .setCodedata(codedata)
                             .value(getAnnotationValue(annotationNode))
                             .build();
@@ -656,6 +652,10 @@ public final class Utils {
     }
 
     private static String getAnnotationValue(AnnotationNode annotationNode) {
+        if (annotationNode.annotValue().isEmpty()) {
+            return null;
+        }
+
         if (annotationNode.annotValue().isEmpty()) {
             return "";
         }
@@ -1029,21 +1029,6 @@ public final class Utils {
         return String.format("{%s}", String.join(", ", params));
     }
 
-    public enum FunctionAddContext {
-        HTTP_SERVICE_ADD,
-        TCP_SERVICE_ADD,
-        GRAPHQL_SERVICE_ADD,
-        TRIGGER_ADD,
-        FUNCTION_ADD,
-        RESOURCE_ADD
-    }
-
-    public enum FunctionSignatureContext {
-        FUNCTION_ADD,
-        HTTP_RESOURCE_ADD,
-        FUNCTION_UPDATE
-    }
-
     public static String generateFunctionDefSource(Function function, List<String> statusCodeResponses,
                                                    FunctionAddContext addContext,
                                                    FunctionSignatureContext signatureContext,
@@ -1135,7 +1120,6 @@ public final class Utils {
         builder.append(SPACE);
         return builder.toString();
     }
-
 
     static String generateFunctionParamListSource(List<Parameter> parameters, Map<String, String> imports) {
         // sort params list where required params come first
@@ -1310,9 +1294,6 @@ public final class Utils {
         return new ArrayList<>();
     }
 
-    public record SelectionRecord(String label, String value) {
-    }
-
     /**
      * Resolves a Ballerina module by organization, package, and module name.
      * If the module is not found locally, attempts to pull it from the central repository,
@@ -1364,5 +1345,23 @@ public final class Utils {
                     String.format("%s/%s:%s", moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
             lsClientLogger.notifyClient(messageType, String.format(message, signature));
         }
+    }
+
+    public enum FunctionAddContext {
+        HTTP_SERVICE_ADD,
+        TCP_SERVICE_ADD,
+        GRAPHQL_SERVICE_ADD,
+        TRIGGER_ADD,
+        FUNCTION_ADD,
+        RESOURCE_ADD
+    }
+
+    public enum FunctionSignatureContext {
+        FUNCTION_ADD,
+        HTTP_RESOURCE_ADD,
+        FUNCTION_UPDATE
+    }
+
+    public record SelectionRecord(String label, String value) {
     }
 }

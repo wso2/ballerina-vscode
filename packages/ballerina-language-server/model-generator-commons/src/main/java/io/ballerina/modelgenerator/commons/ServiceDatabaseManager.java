@@ -466,7 +466,8 @@ public class ServiceDatabaseManager {
         sql.append("f.return_error, ");
         sql.append("f.return_type_editable, ");
         sql.append("f.import_statements, ");
-        sql.append("f.enable ");
+        sql.append("f.enable, ");
+        sql.append("f.optional ");
         sql.append("FROM ServiceTypeFunction f ");
         sql.append("JOIN ServiceType st ON f.service_type_id = st.service_type_id ");
         sql.append("JOIN Package p ON st.package_id = p.package_id ");
@@ -498,6 +499,7 @@ public class ServiceDatabaseManager {
                         rs.getInt("return_type_editable"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
+                        rs.getInt("optional"),
                         params
                 );
                 conn.close();
@@ -523,7 +525,8 @@ public class ServiceDatabaseManager {
                 "f.return_error, " +
                 "f.return_type_editable, " +
                 "f.import_statements, " +
-                "f.enable " +
+                "f.enable, " +
+                "f.optional " +
                 "FROM ServiceTypeFunction f " +
                 "JOIN ServiceType st ON f.service_type_id = st.service_type_id " +
                 "WHERE st.package_id = ? AND st.name = ?";
@@ -549,6 +552,7 @@ public class ServiceDatabaseManager {
                         rs.getInt("return_type_editable"),
                         rs.getString("import_statements"),
                         rs.getInt("enable"),
+                        rs.getInt("optional"),
                         params
                 ));
             }
@@ -640,6 +644,35 @@ public class ServiceDatabaseManager {
             return List.of();
         }
 
+    }
+
+    public List<ReadOnlyMetaData> getReadOnlyMetaData(String orgName, String packageName, String serviceType) {
+        String sql = "SELECT " +
+                "metadata_key, " +
+                "display_name, " +
+                "kind " +
+                "FROM ServiceReadOnlyMetaData srmd " +
+                "JOIN Package p ON srmd.package_id = p.package_id " +
+                "WHERE p.name = ? AND p.org = ? ";
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, packageName);
+            stmt.setString(2, orgName);
+
+            ResultSet rs = stmt.executeQuery();
+            List<ReadOnlyMetaData> metaDataList = new ArrayList<>();
+            while (rs.next()) {
+                metaDataList.add(new ReadOnlyMetaData(
+                        rs.getString("metadata_key"),
+                        rs.getString("display_name"),
+                        rs.getString("kind")
+                ));
+            }
+            return metaDataList;
+        } catch (SQLException e) {
+            Logger.getGlobal().severe("Error executing query: " + e.getMessage());
+            return List.of();
+        }
     }
 
     // Helper builder class

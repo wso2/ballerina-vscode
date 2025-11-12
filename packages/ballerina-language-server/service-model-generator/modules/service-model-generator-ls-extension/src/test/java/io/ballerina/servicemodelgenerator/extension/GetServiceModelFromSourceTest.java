@@ -91,6 +91,16 @@ public class GetServiceModelFromSourceTest extends AbstractLSTest {
         return "getServiceFromSource";
     }
 
+    @AfterMethod
+    public void shutDownLanguageServer() {
+        super.shutDownLanguageServer();
+    }
+
+    @BeforeMethod
+    public void startLanguageServer() {
+        super.startLanguageServer();
+    }
+
     /**
      * Represents the test configuration for the source generator test.
      *
@@ -106,15 +116,5 @@ public class GetServiceModelFromSourceTest extends AbstractLSTest {
         public String description() {
             return description == null ? "" : description;
         }
-    }
-
-    @AfterMethod
-    public void shutDownLanguageServer() {
-        super.shutDownLanguageServer();
-    }
-
-    @BeforeMethod
-    public void startLanguageServer() {
-        super.startLanguageServer();
     }
 }

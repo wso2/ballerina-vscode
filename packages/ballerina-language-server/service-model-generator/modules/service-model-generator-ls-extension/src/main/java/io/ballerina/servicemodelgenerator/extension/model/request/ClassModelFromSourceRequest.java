@@ -25,8 +25,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
  *
  * @param filePath The file path of the source.
  * @param codedata The codedata.
- * @param context The context.
- *
+ * @param context  The context.
  * @since 1.0.0
  */
 public record ClassModelFromSourceRequest(String filePath, Codedata codedata, String context) {

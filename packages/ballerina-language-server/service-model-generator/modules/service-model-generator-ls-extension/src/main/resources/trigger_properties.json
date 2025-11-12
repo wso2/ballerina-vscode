@@ -99,6 +99,15 @@
     "keywords": [
       "mcp"
     ]
+  },
+  "11": {
+    "name": "solace",
+    "orgName": "ballerinax",
+    "packageName": "solace",
+    "keywords": [
+      "solace",
+      "messaging",
+      "event"
+    ]
   }
 }
- 

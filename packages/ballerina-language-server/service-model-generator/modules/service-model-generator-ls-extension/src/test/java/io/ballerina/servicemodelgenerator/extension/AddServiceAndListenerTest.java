@@ -87,11 +87,40 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
         assertResults(actualTextEdits, testConfig, configJsonPath);
     }
 
+    @Test(dataProvider = "config-schema-provider")
+    public void testAddingUsingGraphqlSchema(String path) throws IOException {
+        Path configJsonPath = configDir.resolve(path);
+        BufferedReader bufferedReader = Files.newBufferedReader(configJsonPath);
+        TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
+        bufferedReader.close();
+
+        ServiceInitModel service = testConfig.serviceInitModel();
+        Value designApproach = service.getDesignApproach();
+        Value graphqlSchemaChoice = designApproach.getChoices().get(1);
+        Value schemaProperty = graphqlSchemaChoice.getProperty("spec");
+        Path schemaPath = sourceDir.resolve("sample3/schema.graphql").toAbsolutePath();
+        schemaProperty.setValue(schemaPath.toString());
+        ServiceInitSourceRequest request = new ServiceInitSourceRequest(
+                sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString(), testConfig.serviceInitModel());
+        JsonObject jsonMap = getResponse(request).getAsJsonObject("textEdits");
+        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
+
+        assertResults(actualTextEdits, testConfig, configJsonPath);
+    }
+
     @DataProvider(name = "config-path-provider")
     public Object[][] configPathProvider() {
+        return new Object[][]{
+                {"http_service_model_from_openapi_spec_1.json"},
+                {"http_service_model_from_openapi_spec_2.json"}
+        };
+    }
+
+    @DataProvider(name = "config-schema-provider")
+    public Object[][] configSchemaProvider() {
         return new Object[][] {
-                {  "http_service_model_from_openapi_spec_1.json" },
-                {  "http_service_model_from_openapi_spec_2.json" }
+                {  "graphql_service_model_from_schema_1.json" },
+                {  "graphql_service_model_from_schema_2.json" }
         };
     }
 
@@ -99,7 +128,9 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
     protected String[] skipList() {
         return new String[]{
                 "http_service_model_from_openapi_spec_1.json",
-                "http_service_model_from_openapi_spec_2.json"
+                "http_service_model_from_openapi_spec_2.json",
+                "graphql_service_model_from_schema_1.json",
+                "graphql_service_model_from_schema_2.json"
         };
     }
 
@@ -160,10 +191,10 @@ public class AddServiceAndListenerTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the source generator test.
      *
-     * @param filePath    The path to the source file.
-     * @param description The description of the test.
+     * @param filePath         The path to the source file.
+     * @param description      The description of the test.
      * @param serviceInitModel The service to be added.
-     * @param output      The expected output.
+     * @param output           The expected output.
      */
     private record TestConfig(String filePath, String description, ServiceInitModel serviceInitModel,
                               Map<String, List<TextEdit>> output) {

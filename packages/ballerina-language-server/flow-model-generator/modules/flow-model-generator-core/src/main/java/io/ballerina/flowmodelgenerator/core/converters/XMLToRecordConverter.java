@@ -103,6 +103,7 @@ public final class XMLToRecordConverter {
     private final io.ballerina.projects.Document document;
     private final Path filePath;
     private final TypesManager typesManager;
+    private boolean hasXmlDataUsed;
 
     public XMLToRecordConverter(Project project, io.ballerina.projects.Document document, Path filePath,
                                 TypesManager typesManager) {
@@ -110,10 +111,12 @@ public final class XMLToRecordConverter {
         this.document = document;
         this.filePath = filePath;
         this.typesManager = typesManager;
+        hasXmlDataUsed = false;
     }
 
     private static final String XMLNS_PREFIX = "xmlns";
     private static final String XMLDATA = "xmldata";
+    public static final String BALLERINA_XMLDATA_IMPORT_STATEMENT = "import ballerina/data.xmldata;" + System.lineSeparator();
     private static final String COLON = ":";
 
     public JsonElement convert(String xmlValue, boolean isRecordTypeDesc, boolean isClosed,
@@ -186,11 +189,12 @@ public final class XMLToRecordConverter {
         FormattingOptions formattingOptions = FormattingOptions.builder()
                 .setForceFormattingOptions(forceFormattingOptions).build();
         String typesSrc = Formatter.format(modulePartNode.syntaxTree(), formattingOptions).toSourceCode();
+        String importSrc = hasXmlDataUsed ? BALLERINA_XMLDATA_IMPORT_STATEMENT : "";
 
         // TODO: Check on how we can use package compilation here
         io.ballerina.projects.Document newDoc =
                 project.duplicate().currentPackage().module(document.module().moduleId())
-                        .document(document.documentId()).modify().withContent(typesSrc).apply();
+                        .document(document.documentId()).modify().withContent(importSrc + typesSrc).apply();
         List<Symbol> moduleSymbols = newDoc.module().getCompilation().getSemanticModel().moduleSymbols();
 
         List<TypesManager.TypeDataWithRefs> typeDataList = new ArrayList<>();
@@ -213,7 +217,7 @@ public final class XMLToRecordConverter {
                 workspaceManager);
     }
 
-    private static void generateRecords(Element xmlElement, boolean isClosed,
+    private void generateRecords(Element xmlElement, boolean isClosed,
                                         Map<String, NonTerminalNode> recordToTypeDescNodes,
                                         Map<String, AnnotationNode> recordToAnnotationsNodes,
                                         Map<String, Element> recordToElementNodes,
@@ -257,7 +261,7 @@ public final class XMLToRecordConverter {
         recordToTypeDescNodes.put(xmlNodeName, recordTypeDescriptorNode);
     }
 
-    private static List<Node> getRecordFieldsForXMLElement(Element xmlElement, boolean isClosed,
+    private List<Node> getRecordFieldsForXMLElement(Element xmlElement, boolean isClosed,
                                                            Map<String, NonTerminalNode> recordToTypeDescNodes,
                                                            Map<String, AnnotationNode> recordToAnnotationNodes,
                                                            Map<String, Element> recordToElementNodes,
@@ -494,7 +498,7 @@ public final class XMLToRecordConverter {
         return updatedRecordFields;
     }
 
-    private static RecordFieldNode getRecordField(Element xmlElementNode, boolean isOptionalField,
+    private RecordFieldNode getRecordField(Element xmlElementNode, boolean isOptionalField,
                                                   boolean withNameSpace, boolean sameFieldExists,
                                                   boolean withoutAttributes, String prefix,
                                                   List<String> existingFieldNames,
@@ -539,7 +543,7 @@ public final class XMLToRecordConverter {
                 metadataNode, null, fieldTypeName, fieldName, optionalFieldToken, semicolonToken);
     }
 
-    private static Node getRecordField(org.w3c.dom.Node xmlAttributeNode, boolean withNamespace,
+    private Node getRecordField(org.w3c.dom.Node xmlAttributeNode, boolean withNamespace,
                                        boolean withoutAttributeAnnot) {
         Token typeName = AbstractNodeFactory.createToken(SyntaxKind.STRING_KEYWORD);
         TypeDescriptorNode fieldTypeName = NodeFactory.createBuiltinSimpleNameReferenceNode(typeName.kind(), typeName);
@@ -668,7 +672,7 @@ public final class XMLToRecordConverter {
      * @param value String value to be passed as xmldata:Name annotation's value
      * @return {@link AnnotationNode} xmldata:Name AnnotationNode
      */
-    private static AnnotationNode getXMLNameNode(String value) {
+    private AnnotationNode getXMLNameNode(String value) {
         Token atToken = AbstractNodeFactory.createToken(SyntaxKind.AT_TOKEN);
 
         IdentifierToken modulePrefix = AbstractNodeFactory.createIdentifierToken(XMLDATA);
@@ -690,6 +694,7 @@ public final class XMLToRecordConverter {
         MappingConstructorExpressionNode annotValue =
                 NodeFactory.createMappingConstructorExpressionNode(openBrace, mappingFields, closeBrace);
 
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, annotValue);
     }
 
@@ -698,7 +703,7 @@ public final class XMLToRecordConverter {
      *
      * @return {@link AnnotationNode} xmldata:Namespace AnnotationNode
      */
-    private static AnnotationNode getXMLNamespaceNode(String prefix, String uri) {
+    private AnnotationNode getXMLNamespaceNode(String prefix, String uri) {
         Token atToken = AbstractNodeFactory.createToken(SyntaxKind.AT_TOKEN);
 
         IdentifierToken modulePrefix = AbstractNodeFactory.createIdentifierToken(XMLDATA);
@@ -738,6 +743,7 @@ public final class XMLToRecordConverter {
         MappingConstructorExpressionNode annotValue =
                 NodeFactory.createMappingConstructorExpressionNode(openBrace, mappingFieldNodes, closeBrace);
 
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, annotValue);
     }
 
@@ -746,7 +752,7 @@ public final class XMLToRecordConverter {
      *
      * @return {@link AnnotationNode} xmldata:Attribute AnnotationNode
      */
-    private static AnnotationNode getXMLAttributeNode() {
+    private AnnotationNode getXMLAttributeNode() {
         Token atToken = AbstractNodeFactory.createToken(SyntaxKind.AT_TOKEN);
 
         IdentifierToken modulePrefix = AbstractNodeFactory.createIdentifierToken(XMLDATA);
@@ -754,10 +760,15 @@ public final class XMLToRecordConverter {
         IdentifierToken identifier = AbstractNodeFactory.createIdentifierToken("Attribute");
         Node annotReference = NodeFactory.createQualifiedNameReferenceNode(modulePrefix, colon, identifier);
 
+        xmlDataUsed();
         return NodeFactory.createAnnotationNode(atToken, annotReference, null);
     }
 
     private static String getRecordNameWithPrefix(String prefix, String name) {
         return StringUtils.capitalize(prefix) + getRecordName(name);
+    }
+
+    private void xmlDataUsed() {
+        this.hasXmlDataUsed = true;
     }
 }

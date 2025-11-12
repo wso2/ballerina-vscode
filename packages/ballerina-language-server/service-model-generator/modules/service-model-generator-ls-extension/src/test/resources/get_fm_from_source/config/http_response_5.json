@@ -301,50 +301,51 @@
       "responses": [
         {
           "statusCode": {
+            "imports": {},
             "valueType": "SINGLE_SELECT",
             "value": "201",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "string",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
+            "imports": {},
             "valueType": "EXPRESSION",
             "value": "application/text",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
+            "imports": {},
             "valueType": "IDENTIFIER",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "type": {
-            "valueType": "TYPE",
             "imports": {},
+            "valueType": "TYPE",
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
+            "imports": {},
             "valueType": "HEADER_SET",
             "value": [
               {
@@ -353,14 +354,13 @@
                 "name": "x\\-path"
               }
             ],
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       ],
@@ -462,7 +462,7 @@
       "advanced": false
     },
     "enabled": true,
-    "optional": false,
+    "optional": true,
     "editable": true,
     "canAddParameters": true,
     "codedata": {

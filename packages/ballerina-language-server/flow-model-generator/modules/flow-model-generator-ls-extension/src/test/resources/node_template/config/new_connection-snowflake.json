@@ -171,9 +171,6 @@
             "selected": false
           }
         ],
-        "imports": {
-          "sql": "ballerina/sql"
-        },
         "defaultValue": "()"
       },
       "type": {

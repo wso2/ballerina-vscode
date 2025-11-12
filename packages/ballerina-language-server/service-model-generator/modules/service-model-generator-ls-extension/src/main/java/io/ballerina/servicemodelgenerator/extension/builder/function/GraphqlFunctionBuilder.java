@@ -59,6 +59,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_CONTEXT_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_FIELD;
@@ -69,12 +71,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_M
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_QUERY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_SUBSCRIPTION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
@@ -90,58 +90,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateValu
  */
 public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
     private static final String GRAPHQL_FUNCTION_MODEL_LOCATION = "functions/graphql_%s.json";
-
-    @Override
-    public Optional<Function> getModelTemplate(GetModelContext context) {
-        return getGraphqlFunctionModel(context.functionType());
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        updateAdvanceParameters(context.function());
-        return buildModel(context);
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        updateAdvanceParameters(context.function());
-        return buildUpdateModel(context);
-    }
-
-    @Override
-    public Function getModelFromSource(ModelFromSourceContext context) {
-        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
-        List<Annotation> annotationAttachments = databaseManager.
-                getAnnotationAttachments(BALLERINA, GRAPHQL, OBJECT_METHOD);
-        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
-        Function actualFuncModel = getGraphqlFunctionModelFromNode((FunctionDefinitionNode) context.node(),
-                annotations, context.semanticModel());
-        actualFuncModel.setEditable(true);
-
-        if (actualFuncModel.getKind().equals(KIND_QUERY) || actualFuncModel.getKind().equals(KIND_SUBSCRIPTION)) {
-            Optional<Function> commonFuncModel = getGraphqlFunctionModel(actualFuncModel.getKind());
-            if (commonFuncModel.isPresent()) {
-                Function commonFunction = commonFuncModel.get();
-                updateFunctionInfo(commonFunction, actualFuncModel);
-                return commonFunction;
-            }
-        } else if (actualFuncModel.getKind().equals(KIND_MUTATION)) {
-            Optional<Function> resourceFunctionOp = getGraphqlFunctionModel(KIND_MUTATION);
-            if (resourceFunctionOp.isPresent()) {
-                Function resourceFunction = resourceFunctionOp.get();
-                updateFunctionInfo(resourceFunction, actualFuncModel);
-                return resourceFunction;
-            }
-        } else {
-            actualFuncModel.getAccessor().setEnabled(false);
-        }
-        return actualFuncModel;
-    }
-
-    @Override
-    public String kind() {
-        return GRAPHQL;
-    }
 
     private static Optional<Function> getGraphqlFunctionModel(String functionType) {
         InputStream resourceStream = Utils.class.getClassLoader()
@@ -257,7 +205,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 if (Objects.nonNull(functionModel.getProperty(propertyName))) {
                     functionModel.getParameters().stream().filter(
                             parameter -> parameter.getName().getValue().equals(paramName)).findFirst().ifPresent(
-                                    parameter -> parameter.setEnabled(true));
+                            parameter -> parameter.setEnabled(true));
                     functionModel.getProperty(propertyName).setValue(true);
                 }
             } else {
@@ -305,11 +253,63 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                 boolean isEnabled = value instanceof Boolean ? (Boolean) value : false;
                 parameter.setEnabled(isEnabled);
             } else if (parameter.getName().getValue().equals(GRAPHQL_FIELD) &&
-                        Objects.nonNull(function.getProperty(GRAPHQL_FIELD_KEY))) {
+                    Objects.nonNull(function.getProperty(GRAPHQL_FIELD_KEY))) {
                 Object value = function.getProperty(GRAPHQL_FIELD_KEY).getValueAsObject();
                 boolean isEnabled = value instanceof Boolean ? (Boolean) value : false;
                 parameter.setEnabled(isEnabled);
             }
         });
+    }
+
+    @Override
+    public Optional<Function> getModelTemplate(GetModelContext context) {
+        return getGraphqlFunctionModel(context.functionType());
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+        updateAdvanceParameters(context.function());
+        return buildModel(context);
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        updateAdvanceParameters(context.function());
+        return buildUpdateModel(context);
+    }
+
+    @Override
+    public Function getModelFromSource(ModelFromSourceContext context) {
+        ServiceDatabaseManager databaseManager = ServiceDatabaseManager.getInstance();
+        List<Annotation> annotationAttachments = databaseManager.
+                getAnnotationAttachments(BALLERINA, GRAPHQL, OBJECT_METHOD);
+        Map<String, Value> annotations = Function.createAnnotationsMap(annotationAttachments);
+        Function actualFuncModel = getGraphqlFunctionModelFromNode((FunctionDefinitionNode) context.node(),
+                annotations, context.semanticModel());
+        actualFuncModel.setEditable(true);
+
+        if (actualFuncModel.getKind().equals(KIND_QUERY) || actualFuncModel.getKind().equals(KIND_SUBSCRIPTION)) {
+            Optional<Function> commonFuncModel = getGraphqlFunctionModel(actualFuncModel.getKind());
+            if (commonFuncModel.isPresent()) {
+                Function commonFunction = commonFuncModel.get();
+                updateFunctionInfo(commonFunction, actualFuncModel);
+                return commonFunction;
+            }
+        } else if (actualFuncModel.getKind().equals(KIND_MUTATION)) {
+            Optional<Function> resourceFunctionOp = getGraphqlFunctionModel(KIND_MUTATION);
+            if (resourceFunctionOp.isPresent()) {
+                Function resourceFunction = resourceFunctionOp.get();
+                updateFunctionInfo(resourceFunction, actualFuncModel);
+                return resourceFunction;
+            }
+        } else {
+            actualFuncModel.getAccessor().setEnabled(false);
+        }
+        return actualFuncModel;
+    }
+
+    @Override
+    public String kind() {
+        return GRAPHQL;
     }
 }

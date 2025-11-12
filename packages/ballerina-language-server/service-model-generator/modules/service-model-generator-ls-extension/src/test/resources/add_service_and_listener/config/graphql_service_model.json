@@ -94,7 +94,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener graphql:Listener graphqlListener = new (8080);\nservice /graphql on graphqlListener {\n\n}\n"
+        "newText": "\nlistener graphql:Listener graphqlListener = new (8080);\nservice /graphql on graphqlListener {\n}\n"
       }
     ]
   }

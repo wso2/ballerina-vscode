@@ -457,7 +457,7 @@
       "advanced": false
     },
     "enabled": true,
-    "optional": false,
+    "optional": true,
     "editable": true,
     "canAddParameters": true,
     "codedata": {
@@ -478,6 +478,10 @@
     },
     "properties": {
       "annotdisplay": {
+        "metadata": {
+          "label": "display",
+          "description": "display"
+        },
         "codedata": {
           "type": "ANNOTATION_ATTACHMENT",
           "originalName": "display",

@@ -121,7 +121,7 @@ public class AddResourceTest extends AbstractLSTest {
     protected String getServiceName() {
         return "serviceDesign";
     }
-    
+
     @Override
     protected String getApiName() {
         return "addResource";

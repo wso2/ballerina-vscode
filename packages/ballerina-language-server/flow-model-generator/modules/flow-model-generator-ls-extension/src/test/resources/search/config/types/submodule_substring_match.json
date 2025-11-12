@@ -1,0 +1,616 @@
+{
+  "description": "Test substring matching with position-based ranking",
+  "kind": "TYPE",
+  "source": "proj2/automation.bal",
+  "queryMap": {
+    "q": "Config",
+    "limit": "30"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "mod1.Weather",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ApiKeysConfig",
+                "description": "Provides API key configurations needed when communicating with a remote HTTP endpoint."
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ApiKeysConfig",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint."
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "ConnectionConfig",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "stripe",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Terminal_configuration_configuration_resource_offline_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal_configuration_configuration_resource_offline_config",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "configurations_configuration_bodyExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "configurations_configuration_bodyExpandItemsString",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "configurations_configuration_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "configurations_configuration_body",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal_configuration_configuration_resource_currency_specific_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal_configuration_configuration_resource_currency_specific_config",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "configurations_configuration_body_1",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "configurations_configuration_body_1",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "configurations_configuration_body_1ExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "configurations_configuration_body_1ExpandItemsString",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal_configuration_configuration_resource_device_type_specific_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal_configuration_configuration_resource_device_type_specific_config",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal_configuration_configuration_resource_tipping",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal_configuration_configuration_resource_tipping",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "payment_method_configurations_configuration_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "payment_method_configurations_configuration_body",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "payment_method_configurations_configuration_bodyExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "payment_method_configurations_configuration_bodyExpandItemsString",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal_configuration_configuration_resource_reboot_window",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal_configuration_configuration_resource_reboot_window",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal\\.configuration",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal\\.configuration",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "tipping_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "tipping_config",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Payment_method_config_biz_payment_method_configuration_details",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Payment_method_config_biz_payment_method_configuration_details",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "process_config",
+                "description": "Configuration overrides",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "process_config",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "configuration_item_params",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "configuration_item_params",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Billing_portal\\.configuration",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Billing_portal\\.configuration",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "phase_configuration_params",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "phase_configuration_params",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "terminal_configurations_bodyExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "terminal_configurations_bodyExpandItemsString",
+                "version": "2.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "yodlee",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigsPublicKeyResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_yodlee_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "yodlee",
+                "packageName": "yodlee",
+                "symbol": "ConfigsPublicKeyResponse",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConfigsPublicKey",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_yodlee_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "yodlee",
+                "packageName": "yodlee",
+                "symbol": "ConfigsPublicKey",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConfigsNotificationEvent",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_yodlee_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "yodlee",
+                "packageName": "yodlee",
+                "symbol": "ConfigsNotificationEvent",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "ConfigsNotificationResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_yodlee_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "yodlee",
+                "packageName": "yodlee",
+                "symbol": "ConfigsNotificationResponse",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "beezup.merchant",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigureAutomaticTransitionRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "beezup.merchant",
+                "packageName": "beezup.merchant",
+                "symbol": "ConfigureAutomaticTransitionRequest",
+                "version": "1.6.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "paypal.invoices",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigurationAllOf2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_paypal.invoices_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "paypal.invoices",
+                "packageName": "paypal.invoices",
+                "symbol": "ConfigurationAllOf2",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Orghook_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Orghook_config",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Hook_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Hook_config",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Hook_config_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "Hook_config_body",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "atspoke",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigList",
+                "description": "Configuration Item List",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_atspoke_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "atspoke",
+                "packageName": "atspoke",
+                "symbol": "ConfigList",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "magento.cart",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigurableProductDataConfigurableItemOptionValueInterface",
+                "description": "Interface ConfigurableItemOptionValueInterface",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_magento.cart_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "magento.cart",
+                "packageName": "magento.cart",
+                "symbol": "ConfigurableProductDataConfigurableItemOptionValueInterface",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

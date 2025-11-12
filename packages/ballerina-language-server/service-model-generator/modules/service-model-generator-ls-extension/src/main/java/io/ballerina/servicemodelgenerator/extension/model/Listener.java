@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VARIABLE_NAME_KEY;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
 /**
@@ -84,7 +84,7 @@ public class Listener {
      * @return the complete listener definition as a string
      */
     public String getListenerDefinition() {
-        if (properties.containsKey(VARIABLE_NAME_KEY)) {
+        if (properties.containsKey(PROP_KEY_VARIABLE_NAME)) {
             return getListenerDeclaration();
         }
         return getInlineListenerExpression();
@@ -106,7 +106,7 @@ public class Listener {
                 .append(" = new ");
 
         appendListenerConstructorCall(declaration);
-        declaration.append(");");
+        declaration.append(";");
 
         return declaration.toString();
     }
@@ -160,11 +160,15 @@ public class Listener {
     }
 
     public Value getVariableNameProperty() {
-        return properties.get(VARIABLE_NAME_KEY);
+        return properties.get(PROP_KEY_VARIABLE_NAME);
     }
 
     public Map<String, Value> getProperties() {
         return properties;
+    }
+
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
     }
 
     public String getListenerProtocol() {
@@ -209,10 +213,6 @@ public class Listener {
 
     public void setCodedata(Codedata codedata) {
         this.codedata = codedata;
-    }
-
-    public void setProperties(Map<String, Value> properties) {
-        this.properties = properties;
     }
 
     public static class ListenerBuilder {
