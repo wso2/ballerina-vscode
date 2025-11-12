@@ -162,6 +162,12 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }, [props.value]);
 
     useEffect(() => {
+        if (props.value === undefined || props.value === null) return;
+        fetchnewTokensRef.current = true;
+        fetchInitialTokens(props.value);
+    }, [props.isInExpandedMode]);
+
+    useEffect(() => {
         if (!scheduledCompletionFilterRef.current) return;
         const newFilteredCompletions = filterCompletionsByPrefixAndType(props.completions, '');
         setFilteredCompletions(newFilteredCompletions);
@@ -377,7 +383,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             ) {
                 const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
                     selectedElement.value.substring(selectedElement.focusOffsetEnd);
-                
+
                 currentModel = currentModel.map(el => {
                     if (el === selectedElement) {
                         return {
@@ -391,7 +397,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                     }
                     return el;
                 });
-                
+
                 let sumBeforeSelected = 0;
                 for (let i = 0; i < currentModel.length; i++) {
                     if (currentModel[i].isFocused) {
