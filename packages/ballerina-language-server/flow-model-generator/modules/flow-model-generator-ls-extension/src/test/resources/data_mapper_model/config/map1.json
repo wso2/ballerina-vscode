@@ -1,0 +1,117 @@
+{
+  "source": "map1.bal",
+  "description": "Simple map mapping",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "map1.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 5
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 20,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "value": {
+          "name": "simple",
+          "displayName": "<simpleItem>",
+          "typeName": "string",
+          "kind": "string"
+        },
+        "name": "simple",
+        "displayName": "simple",
+        "typeName": "map<string>",
+        "kind": "map",
+        "category": "local-variable",
+        "ref": "-583192560"
+      }
+    ],
+    "output": {
+      "value": {
+        "fields": [],
+        "name": "complex",
+        "displayName": "<complexItem>",
+        "typeName": "Person",
+        "kind": "record",
+        "ref": "887620673"
+      },
+      "name": "complex",
+      "displayName": "complex",
+      "typeName": "map<Person>",
+      "kind": "map",
+      "ref": "-498580246"
+    },
+    "mappings": [
+      {
+        "output": "complex.\"person1\".name",
+        "inputs": [],
+        "expression": "\"Alice\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "complex.\"person1\".age",
+        "inputs": [],
+        "expression": "30 ",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "complex.\"person2\".name",
+        "inputs": [],
+        "expression": "\"Bob\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "complex.\"person2\".age",
+        "inputs": [],
+        "expression": "25 ",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}
