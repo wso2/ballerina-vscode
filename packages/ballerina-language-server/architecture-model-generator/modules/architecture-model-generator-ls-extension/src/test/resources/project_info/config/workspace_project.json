@@ -10,7 +10,7 @@
       {
         "projectKind": "BUILD_PROJECT",
         "name": "common",
-        "title": "common",
+        "title": "Common",
         "uri": "workspace_proj/common"
       },
       {

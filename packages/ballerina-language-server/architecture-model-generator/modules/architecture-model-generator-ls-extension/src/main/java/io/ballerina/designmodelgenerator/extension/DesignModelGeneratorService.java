@@ -44,9 +44,11 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("designModelService")
@@ -128,13 +130,13 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         // Handle workspace projects
         if (includeChildren && BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
             // For workspace projects, use source root folder name as name
-            String fileName = project.sourceRoot().getFileName().toString();
-            response.setName(fileName);
+            String workspaceName = project.sourceRoot().getFileName().toString();
+            response.setName(workspaceName);
 
             // Get the title from the workspace toml if present
             String title = BallerinaCompilerApi.getInstance().getWorkspaceToml(project)
                     .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "workspace"))
-                    .orElse(fileName);
+                    .orElse(formatNameToTitle(workspaceName));
             response.setTitle(title);
 
             // Traverse child projects
@@ -155,7 +157,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             String title = currentPackage.ballerinaToml()
                     .map(BallerinaToml::tomlDocument)
                     .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "package"))
-                    .orElse(packageName);
+                    .orElse(formatNameToTitle(packageName));
             response.setTitle(title);
         }
     }
@@ -165,26 +167,25 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
      * Falls back to the package name if no title is specified.
      *
      * @param tomlDocument The TomlDocument to extract title from
-     * @return Optional containing title
+     * @param tableName    The table name to look for the title field (e.g., "package" or "workspace")
+     * @return Optional containing title if found
      */
     private Optional<String> extractTitleFromToml(TomlDocument tomlDocument, String tableName) {
         try {
-            // Try to read title from Ballerina.toml [package] table
+            // Try to read title from Ballerina.toml table
             var toml = tomlDocument.toml();
             if (toml.getTable(tableName).isPresent()) {
-                var packageTable = toml.getTable(tableName).get();
-                if (packageTable.get("title").isPresent()) {
-                    var titleValue = packageTable.get("title").get();
+                var table = toml.getTable(tableName).get();
+                if (table.get("title").isPresent()) {
+                    var titleValue = table.get("title").get();
                     if (titleValue instanceof TomlStringValueNode stringNode) {
                         return Optional.of(stringNode.getValue());
                     }
                 }
             }
         } catch (Exception e) {
-            // If anything goes wrong reading the TOML, fall back to package name
+            // Ignore and fallback
         }
-
-        // Fallback to package name
         return Optional.empty();
     }
 
@@ -208,5 +209,59 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             }
         }
         return children;
+    }
+
+    /**
+     * Formats a package/project name to title case for display purposes. Converts snake_case and camelCase to Title
+     * Case.
+     *
+     * @param name The name to format
+     * @return The formatted title case string
+     */
+    private String formatNameToTitle(String name) {
+        if (name == null || name.isEmpty()) {
+            return name;
+        }
+
+        // Step 1: Split by underscores (snake_case)
+        String[] segments = name.split("_");
+
+        // Step 2: Process each segment for camelCase
+        List<String> words = new ArrayList<>();
+        for (String segment : segments) {
+            words.addAll(splitCamelCase(segment));
+        }
+
+        // Step 3: Capitalize and join
+        return words.stream()
+                .map(this::capitalize)
+                .collect(Collectors.joining(" "));
+    }
+
+    /**
+     * Splits a camelCase string into individual words.
+     *
+     * @param text The camelCase text to split
+     * @return List of words
+     */
+    private List<String> splitCamelCase(String text) {
+        if (text == null || text.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Use regex to split on camelCase boundaries (lowercase to uppercase transitions)
+        return Arrays.asList(text.split("(?<=[a-z])(?=[A-Z])"));
+    }
+
+    /**
+     * Capitalizes the first letter of a word and lowercases the rest.
+     *
+     * @param word The word to capitalize
+     * @return The capitalized word
+     */
+    private String capitalize(String word) {
+        if (word == null || word.isEmpty()) {
+            return word;
+        }
+        return word.substring(0, 1).toUpperCase(java.util.Locale.ROOT) + word.substring(1);
     }
 }
