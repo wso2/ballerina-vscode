@@ -14,14 +14,19 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ * 
+ * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-
 import {
+    abortChatRequest,
     AgentChatAPI,
     ChatReqMessage,
     ChatRespMessage,
-    abortChatRequest,
-    getChatMessage
+    getChatMessage,
+    getTracingStatus,
+    showTraceView,
+    TraceInput,
+    TraceStatus
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -39,5 +44,13 @@ export class AgentChatRpcClient implements AgentChatAPI {
 
     abortChatRequest(): void {
         return this._messenger.sendNotification(abortChatRequest, HOST_EXTENSION);
+    }
+
+    getTracingStatus(): Promise<TraceStatus> {
+        return this._messenger.sendRequest(getTracingStatus, HOST_EXTENSION);
+    }
+
+    showTraceView(params: TraceInput): Promise<void> {
+        return this._messenger.sendRequest(showTraceView, HOST_EXTENSION, params);
     }
 }

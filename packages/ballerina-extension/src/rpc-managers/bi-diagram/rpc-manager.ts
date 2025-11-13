@@ -424,8 +424,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
+            const fileNameOrPath = params.filePath;
+            let filePath = fileNameOrPath;
+            if (path.basename(fileNameOrPath) === fileNameOrPath) {
+                filePath = path.join(StateMachine.context().projectUri, fileNameOrPath);
+            }
             StateMachine.langClient()
-                .getAvailableNodes(params)
+                .getAvailableNodes({
+                    position: params.position,
+                    filePath
+                })
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
                     const filteredModel = this.filterAdvancedAiNodes(model);
