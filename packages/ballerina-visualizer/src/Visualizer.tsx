@@ -172,9 +172,14 @@ const PullingDependenciesView = () => {
     const [currentModule, setCurrentModule] = React.useState<string>('Compiling project...');
 
     React.useEffect(() => {
-        rpcClient?.onDependencyPullProgress((message: string) => {
+        const unsubscribe = rpcClient?.onDependencyPullProgress((message: string) => {
             setCurrentModule(message);
         });
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
     }, [rpcClient]);
 
     return (
