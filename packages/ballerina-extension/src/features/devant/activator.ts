@@ -41,7 +41,7 @@ export function activateDevantFeatures(_ballerinaExtInstance: BallerinaExtension
 }
 
 const handleComponentPushToDevant = async () => {
-    const projectRoot = StateMachine.context().projectUri;
+    const projectRoot = StateMachine.context().projectPath;
     if (!projectRoot) {
         return;
     }
@@ -120,7 +120,7 @@ const handleComponentPushToDevant = async () => {
         const deployementParams: ICreateComponentCmdParams = {
             integrationType: integrationType as any,
             buildPackLang: "ballerina",
-            componentDir: StateMachine.context().projectUri,
+            componentDir: StateMachine.context().projectPath,
             extName: "Devant",
         };
         commands.executeCommand(PlatformCommandIds.CreateNewComponent, deployementParams);
