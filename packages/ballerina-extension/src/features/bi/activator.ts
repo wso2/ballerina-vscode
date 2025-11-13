@@ -207,7 +207,10 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const componentCategory = StateMachine.context().projectStructure.directoryMap[componentType];
+    const projectPath = StateMachine.context().projectPath;
+    const projectStructure = await rpcClient.getProjectStructure();
+    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
         console.error(`Component type ${componentType} not found in project structure`);

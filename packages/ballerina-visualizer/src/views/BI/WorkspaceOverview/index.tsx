@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -266,20 +266,9 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
         });
     }, []);
 
-    function isEmptyProject(): boolean {
-        // Filter out connections that start with underscore
-        const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
-            conn => !conn.name.startsWith('_')
-        ) || [];
-
-        return (
-            (!projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] || projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
-            (validConnections.length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.LISTENER] || projectStructure.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
-            (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
-        );
-    }
+    const isEmptyWorkspace = useMemo(() => {
+        return projectStructure.projects.length === 0;
+    }, [projectStructure]);
 
     if (!projectStructure) {
         return (
@@ -363,10 +352,10 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                 )}
 
                 <Section>
-                    <ContentPanel isEmpty={isEmptyProject()}>
+                    <ContentPanel isEmpty={isEmptyWorkspace}>
                         <SectionHeader>
                             <SectionTitle>Integrations</SectionTitle>
-                            {!isEmptyProject() && (
+                            {!isEmptyWorkspace && (
                                 <SectionActions>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
@@ -374,7 +363,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                                 </SectionActions>
                             )}
                         </SectionHeader>
-                        {isEmptyProject() ? (
+                        {isEmptyWorkspace ? (
                             <EmptyStateContainer>
                                 <Typography variant="h3" sx={{ marginBottom: "16px" }}>
                                     Your workspace is empty
@@ -405,7 +394,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                         <SectionHeader>
                             <SectionTitle>README</SectionTitle>
                             <SectionActions>
-                                {readmeContent && isEmptyProject() && (
+                                {readmeContent && isEmptyWorkspace && (
                                     <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                     </Button>

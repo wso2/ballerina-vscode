@@ -316,7 +316,7 @@ export async function getProjectTomlValues(projectPath: string): Promise<Package
     }
 }
 
-async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
