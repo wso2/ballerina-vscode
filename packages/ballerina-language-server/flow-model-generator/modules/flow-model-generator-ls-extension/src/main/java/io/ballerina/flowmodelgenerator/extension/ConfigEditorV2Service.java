@@ -1110,7 +1110,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      *
      * @param typeSymbol  The type symbol to extract members from.
      * @param typeMembers The list to add extracted type members to.
-     * @param union       The union type symbol for subtype checking (can be null).
+     * @param union       The union type symbol for subtype checking.
      */
     private void addTypeMembersFromSymbol(TypeSymbol typeSymbol, List<ParameterMemberTypeData> typeMembers,
                                           UnionTypeSymbol union) {
@@ -1134,7 +1134,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
 
         // Check if it's a basic type by verifying if it's a subtype of union
-        if (union != null && typeSymbol.subtypeOf(union)) {
+        if (typeSymbol.subtypeOf(union)) {
             kind = "BASIC_TYPE";
         } else if (rawType instanceof TupleTypeSymbol) {
             kind = "TUPLE_TYPE";
