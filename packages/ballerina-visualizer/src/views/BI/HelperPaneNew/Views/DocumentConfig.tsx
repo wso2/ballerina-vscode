@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox } from "@wso2/ui-toolkit";
+import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox, Typography, ThemeColors, Button, TextField } from "@wso2/ui-toolkit";
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core";
 import { useEffect, useMemo, useState } from "react";
 import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel";
@@ -27,6 +27,8 @@ import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneN
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation";
 import { DocumentInputType } from "./Documents";
 import { VariableItem } from "./Variables";
+import FooterButtons from "../Components/FooterButtons";
+import { POPUP_IDS, useModalStack } from "../../../../Context";
 
 type DocumentConfigProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
@@ -35,6 +37,7 @@ type DocumentConfigProps = {
     filteredCompletions: CompletionItem[];
     currentValue: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+    isInModal?: boolean;
 };
 
 enum AIDocumentType {
@@ -43,7 +46,25 @@ enum AIDocumentType {
     AudioDocument = 'ai:AudioDocument'
 }
 
-export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions }: DocumentConfigProps) => {
+// Helper function to get the AI document type based on input type
+const getAIDocumentType = (documentType: DocumentInputType): AIDocumentType => {
+    switch (documentType) {
+        case DocumentInputType.Image:
+            return AIDocumentType.ImageDocument;
+        case DocumentInputType.Audio:
+            return AIDocumentType.AudioDocument;
+        default:
+            return AIDocumentType.FileDocument;
+    }
+};
+
+// Helper function to wrap content in document structure
+const wrapInDocumentType = (documentType: DocumentInputType, content: string): string => {
+    const docType = getAIDocumentType(documentType);
+    return `\${<${docType}>{content: ${content}}}`;
+};
+
+export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal }: DocumentConfigProps) => {
     const { getParams } = useSlidingPane();
     const params = getParams();
     const documentType = (params?.documentType as DocumentInputType) || DocumentInputType.File;
@@ -51,6 +72,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
     const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb } = useHelperPaneNavigation(`${documentType.charAt(0).toUpperCase() + documentType.slice(1)} Document`);
+    const { addModal, closeModal } = useModalStack();
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -145,21 +167,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const needsWrapping = typeInfo.includes("string") || typeInfo.includes("byte[]");
 
         if (needsWrapping) {
-            // Determine the document type wrapper based on documentType
-            let docType = AIDocumentType.FileDocument;
-            switch (documentType) {
-                case DocumentInputType.Image:
-                    docType = AIDocumentType.ImageDocument;
-                    break;
-                case DocumentInputType.Audio:
-                    docType = AIDocumentType.AudioDocument;
-                    break;
-                default:
-                    docType = AIDocumentType.FileDocument;
-            }
-
             // Wrap the variable in the document structure
-            const wrappedValue = `\${<${docType}>{content: ${value}}}`;
+            const wrappedValue = wrapInDocumentType(documentType, value);
             onChange(wrappedValue, false);
         } else {
             // For other types (records, URL, ai:FileDocument, etc.), insert directly
@@ -189,6 +198,56 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                     ))
                 }
             </>
+        );
+    };
+
+    const URLInputModal = () => {
+        const [url, setUrl] = useState<string>("");
+
+        const handleCreate = () => {
+            if (!url.trim()) {
+                return;
+            }
+            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`);
+            closeModal(POPUP_IDS.DOCUMENT_URL);
+            onChange(wrappedValue, false, false);
+        };
+
+        return (
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <TextField
+                    label="URL"
+                    description={`Provide a URL to load the ${documentType} document from`}
+                    value={url}
+                    onTextChange={setUrl}
+                    placeholder="Enter URL"
+                    autoFocus={true}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleCreate();
+                        }
+                    }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <Button
+                        appearance="primary"
+                        onClick={handleCreate}
+                        disabled={!url.trim()}
+                    >
+                        Create
+                    </Button>
+                </div>
+            </div>
+        );
+    };
+
+    const handleAddFromURL = () => {
+        addModal(
+            <URLInputModal />,
+            POPUP_IDS.DOCUMENT_URL,
+            "Add from URL",
+            220,
+            355
         );
     };
 
@@ -226,6 +285,11 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             </ScrollableContainer>
 
             <Divider sx={{ margin: "0px" }} />
+            {!isInModal && (
+                <div style={{ margin: '4px 0' }}>
+                    <FooterButtons onClick={handleAddFromURL} title="Add from URL" />
+                </div>
+            )}
         </div>
     );
 };
