@@ -45,6 +45,7 @@ enum AIDocumentType {
     ImageDocument = 'ai:ImageDocument',
     AudioDocument = 'ai:AudioDocument'
 }
+const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
 // Helper function to get the AI document type based on input type
 const getAIDocumentType = (documentType: DocumentInputType): AIDocumentType => {
@@ -116,35 +117,25 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     const dropdownItems = useMemo(() => {
         const allowedTypes = getAllowedTypes(documentType);
         const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
+        const otherAIDocTypes = AI_DOCUMENT_TYPES.filter(type => !allowedTypes.includes(type));
 
-        return filteredCompletions.filter(
-            (completion) => {
-                // Must be a field or variable
-                if (completion.kind !== "field" && completion.kind !== "variable") {
-                    return false;
-                }
+        return filteredCompletions.filter((completion) => {
+            const { kind, label, description = "", labelDetails } = completion;
+            const labelDesc = labelDetails?.description || "";
 
-                // Exclude self
-                if (completion.label === "self") {
-                    return false;
-                }
+            // Must be a field or variable, but not "self"
+            if ((kind !== "field" && kind !== "variable") || label === "self") return false;
 
-                // Exclude certain description types
-                if (excludedDescriptions.some(desc =>
-                    completion.labelDetails?.description?.includes(desc)
-                )) {
-                    return false;
-                }
+            // Exclude certain description types
+            if (excludedDescriptions.some(desc => labelDesc.includes(desc))) return false;
 
-                // Check if the type matches any allowed type
-                const description = completion.description || "";
-                const labelDescription = completion.labelDetails?.description || "";
+            // Exclude other AI document types
+            if (otherAIDocTypes.some(type => description.includes(type) || labelDesc.includes(type))) return false;
 
-                return allowedTypes.some(type =>
-                    description.includes(type) || labelDescription.includes(type)
-                );
-            }
-        );
+            // Include if matches allowed types or is a record
+            return allowedTypes.some(type => description.includes(type) || labelDesc.includes(type))
+                || labelDesc.includes("Record");
+        });
     }, [filteredCompletions, documentType]);
 
     const filteredDropDownItems = useMemo(() => {
@@ -164,7 +155,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const typeInfo = description || labelDescription;
 
         // Check if the type is string or byte[] - these need to be wrapped
-        const needsWrapping = typeInfo.includes("string") || typeInfo.includes("byte[]");
+        const needsWrapping = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
 
         if (needsWrapping) {
             // Wrap the variable in the document structure
@@ -194,6 +185,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                             item={item}
                             onItemSelect={handleItemSelect}
                             onMoreIconClick={handleVariablesMoreIconClick}
+                            hideArrow={(AI_DOCUMENT_TYPES as string[]).includes(item.description)}
                         />
                     ))
                 }

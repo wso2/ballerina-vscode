@@ -56,11 +56,11 @@ export type VariableItemProps = {
     item: CompletionItem;
     onItemSelect: (value: string, item: CompletionItem) => void;
     onMoreIconClick: (value: string) => void;
+    hideArrow?: boolean;
 }
 
-export const VariableItem = ({ item, onItemSelect, onMoreIconClick }: VariableItemProps) => {
-    const showArrow = shouldShowNavigationArrow(item);
-
+export const VariableItem = ({ item, onItemSelect, onMoreIconClick, hideArrow }: VariableItemProps) => {
+    const showArrow = shouldShowNavigationArrow(item) && !hideArrow;
     const mainContent = (
         <>
             {getHelperPaneIcon(HelperPaneIconType.VARIABLE)}
