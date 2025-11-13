@@ -32,10 +32,6 @@ import java.util.TreeMap;
  */
 public class MultiRootMigrationUtil {
 
-    private MultiRootMigrationUtil() {
-        // Utility class, no instantiation
-    }
-
     /**
      * Processes multiRoot migration results by splitting text edits per project.
      *
@@ -57,8 +53,8 @@ public class MultiRootMigrationUtil {
             if (projectName != null) {
                 // File belongs to a project
                 String relativeFilePath = filePath.substring(projectName.length() + 1); // Remove "projectName/"
-                ProjectMigrationResult projectResult = projectResults.computeIfAbsent(projectName,
-                        ProjectMigrationResult::new);
+                ProjectMigrationResult projectResult =
+                        projectResults.computeIfAbsent(projectName, ProjectMigrationResult::new);
 
                 // Handle migration report files separately
                 if (relativeFilePath.equals("migration_report.html")) {

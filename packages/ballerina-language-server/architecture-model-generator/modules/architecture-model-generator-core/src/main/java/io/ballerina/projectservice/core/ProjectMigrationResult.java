@@ -20,12 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Internal data structure to hold per-project migration results during multiRoot processing.
- * This is used internally to organize tool output by project before sending notifications.
+ * Internal data structure to hold per-project migration results during multiRoot processing. This is used internally to
+ * organize tool output by project before sending notifications.
  */
 public class ProjectMigrationResult {
-    private String projectName;
-    private Map<String, String> textEdits;
+
+    private final String projectName;
+    private final Map<String, String> textEdits;
     private String report;
 
     public ProjectMigrationResult(String projectName) {
@@ -54,12 +55,4 @@ public class ProjectMigrationResult {
         this.report = report;
     }
 
-    @Override
-    public String toString() {
-        return "ProjectMigrationResult{" +
-                "projectName='" + projectName + '\'' +
-                ", textEdits=" + textEdits.keySet() +
-                ", hasReport=" + (report != null) +
-                '}';
-    }
 }
