@@ -17,11 +17,9 @@ import {
     checkIsBallerinaWorkspace,
     checkIsBI,
     fetchScope,
-    filterPackagePaths,
     getOrgPackageName,
     UndoRedoManager,
-    getProjectTomlValues,
-    getWorkspaceTomlValues
+    getProjectTomlValues
 } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 
@@ -105,7 +103,7 @@ const stateMachine = createMachine<MachineContext>(
         states: {
             switch_project: {
                 invoke: {
-                    src: (context, event) => checkForProjects(true),
+                    src: (context, event) => checkForProjects,
                     onDone: [
                         {
                             target: "viewActive.viewReady",
@@ -130,7 +128,7 @@ const stateMachine = createMachine<MachineContext>(
             },
             initialize: {
                 invoke: {
-                    src: (context, event) => checkForProjects(false),
+                    src: (context, event) => checkForProjects,
                     onDone: [
                         {
                             target: "renderInitialView",
@@ -490,13 +488,21 @@ const stateMachine = createMachine<MachineContext>(
                 const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({
-                            location: {
-                                view: MACHINE_VIEW.PackageOverview,
-                                documentUri: context.documentUri,
-                                package: packageName || context.package
-                            }
-                        });
+                        if (context.workspacePath) {
+                            history.push({
+                                location: {
+                                    view: MACHINE_VIEW.WorkspaceOverview
+                                }
+                            });
+                        } else {
+                            history.push({
+                                location: {
+                                    view: MACHINE_VIEW.PackageOverview,
+                                    documentUri: context.documentUri,
+                                    package: packageName || context.package
+                                }
+                            });
+                        }                        
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
@@ -528,7 +534,11 @@ const stateMachine = createMachine<MachineContext>(
                 const selectedEntry = getLastHistory();
                 if (!context.langClient) {
                     if (!selectedEntry) {
-                        return resolve({ view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri });
+                        return resolve(
+                            context.workspacePath
+                                ? { view: MACHINE_VIEW.WorkspaceOverview }
+                                : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
+                        );
                     }
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.PackageOverview });
                 }
@@ -556,7 +566,11 @@ const stateMachine = createMachine<MachineContext>(
                 }) as SyntaxTree;
 
                 if (!selectedEntry?.location.view) {
-                    return resolve({ view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri });
+                    return resolve(
+                        context.workspacePath
+                        ? { view: MACHINE_VIEW.WorkspaceOverview }
+                        : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
+                    );
                 }
 
                 let selectedST;
@@ -797,7 +811,7 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects(isSwitching: boolean = false): Promise<ProjectMetadata> {
+async function checkForProjects(): Promise<ProjectMetadata> {
     const workspaceFolders = workspace.workspaceFolders;
 
     if (!workspaceFolders) {
@@ -808,7 +822,7 @@ async function checkForProjects(isSwitching: boolean = false): Promise<ProjectMe
         return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri, isSwitching);
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
 async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
@@ -829,8 +843,6 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
             'Learn More'
         ).then(selection => {
             if (selection === 'Learn More') {
-                // TODO: Add a guide on how to use Ballerina workspaces
-                // Open documentation or guide about Ballerina workspaces
                 commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/workspaces'));
             }
         });
@@ -848,65 +860,14 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
     return { isBI: false, projectPath: '' };
 }
 
-async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boolean = false): Promise<ProjectMetadata> {
+async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
-        // A workaround for supporting multiple packages in a workspace
-        // TODO: Once the artifacts API is updated to support multiple packages and the new API for detecting the
-        // most appropriate package to load the WSO2 Integrator is implemented, this workaround can be removed
-        // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
-        const workspaceTomlValues = await getWorkspaceTomlValues(workspaceURI.fsPath);
+        const isBI = checkIsBI(workspaceURI);
+        setBIContext(isBI);
 
-        if (!workspaceTomlValues) {
-            return { isBI: false, projectPath: '' };
-        }
-
-        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
-        const shouldShowBIQuickPick = isSwitching || (biExtension && checkIsBI(workspaceURI));
-        const packages = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
-        let targetPackage;
-
-        if (packages.length === 0) {
-            return { isBI: false, projectPath: '' };
-        } else if (shouldShowBIQuickPick && packages.length > 1) {
-            targetPackage = await window.showQuickPick(packages, {
-                title: 'Select Package for WSO2 Integrator: BI',
-                placeHolder: 'Choose a package from your workspace to load in BI mode',
-                ignoreFocusOut: true
-            });
-        } else if (!shouldShowBIQuickPick || packages.length === 1) {
-            targetPackage = packages[0];
-        }
-
-        if (!targetPackage && packages.length > 1) {
-            // If the user has not selected a package, select the first package
-            // This is a temporary solution until we provide the support for multi root workspaces
-            // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
-            targetPackage = packages[0];
-        }
-
-        if (targetPackage) {
-            const packagePath = path.isAbsolute(targetPackage)
-                ? targetPackage
-                : path.join(workspaceURI.fsPath, targetPackage);
-            const packageUri = Uri.file(packagePath);
-
-            const isBallerinaPackage = await checkIsBallerinaPackage(packageUri);
-            const isBI = isBallerinaPackage && checkIsBI(packageUri);
-            const scope = fetchScope(packageUri);
-            const projectPath = isBallerinaPackage ? packagePath : "";
-            const { orgName, packageName } = getOrgPackageName(projectPath);
-
-            setBIContext(isBI);
-            if (!isBI) {
-                console.error("No BI enabled workspace found");
-            }
-
-            return { isBI, projectPath, workspacePath: workspaceURI.fsPath, scope, orgName, packageName };
-        } else {
-            return { isBI: false, projectPath: '' };
-        }
+        return { isBI, projectPath: "", workspacePath: workspaceURI.fsPath };
     } else {
         const isBallerinaPackage = await checkIsBallerinaPackage(workspaceURI);
         const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
@@ -922,6 +883,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boole
         return { isBI, projectPath, scope, orgName, packageName };
     }
 }
+
 function setBIContext(isBI: boolean) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
 }
