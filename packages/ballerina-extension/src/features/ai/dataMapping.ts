@@ -210,7 +210,7 @@ async function createTempBallerinaFile(
 }
 
 export async function createTempBallerinaDir(): Promise<string> {
-  const projectRoot = StateMachine.context().projectUri;
+  const projectRoot = StateMachine.context().projectPath;
   const randomNum = Math.floor(Math.random() * 90000) + 10000;
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), `ballerina-data-mapping-${randomNum}-`)
@@ -477,11 +477,10 @@ export async function generateMappings(
 ): Promise<AllDataMapperSourceRequest> {
   const targetFilePath = metadataWithAttachments.metadata.codeData.lineRange.fileName || context.documentUri;
 
-  const optionalMappingInstructionFile = metadataWithAttachments.attachments && metadataWithAttachments.attachments.length > 0
-    ? metadataWithAttachments.attachments[0]
-    : undefined;
-
-  const generatedMappings = await generateMappingExpressionsFromModel(metadataWithAttachments.metadata.mappingsModel as DMModel, optionalMappingInstructionFile);
+  const generatedMappings = await generateMappingExpressionsFromModel(
+    metadataWithAttachments.metadata.mappingsModel as DMModel,
+    metadataWithAttachments.attachments || []
+  );
 
   const customFunctionMappings = generatedMappings.filter(mapping => mapping.isFunctionCall);
   let customFunctionsFilePath: string | undefined;
@@ -1123,20 +1122,47 @@ export async function generateInlineMappingsSource(
 // processContextTypeCreation - Functions for processing context type creation
 // ================================================================================================
 
-// Extract record types from Ballerina code
-export function extractRecordTypes(typesCode: string): { name: string; code: string }[] {
-  const recordPattern = /\b(?:public|private)?\s*type\s+(\w+)\s+record\s+(?:{[|]?|[|]?{)[\s\S]*?;?\s*[}|]?;/g;
-  const matches = [...typesCode.matchAll(recordPattern)];
-  return matches.map((match) => ({
-    name: match[1],
-    code: match[0].trim(),
-  }));
+// Extract record and enum types from syntax tree
+export async function extractRecordTypesFromSyntaxTree(
+  langClient: ExtendedLangClient,
+  filePath: string
+): Promise<{ records: string[]; enums: string[] }> {
+  const st = (await langClient.getSyntaxTree({
+    documentIdentifier: {
+      uri: Uri.file(filePath).toString(),
+    },
+  })) as SyntaxTree;
+
+  if (!st.syntaxTree) {
+    throw new Error("Failed to retrieve syntax tree for file: " + filePath);
+  }
+
+  const modulePart = st.syntaxTree as ModulePart;
+  const records: string[] = [];
+  const enums: string[] = [];
+
+  for (const member of modulePart.members) {
+    if (STKindChecker.isTypeDefinition(member)) {
+      const typeName = member.typeName?.value;
+      if (typeName) {
+        records.push(typeName);
+      }
+    } else if (STKindChecker.isEnumDeclaration(member)) {
+      const enumName = member.identifier?.value;
+      if (enumName) {
+        enums.push(enumName);
+      }
+    }
+  }
+
+  return { records, enums };
 }
 
 // Generate Ballerina record types from context attachments and validate against existing records
 export async function generateTypesFromContext(
   sourceAttachments: Attachment[],
-  projectComponents: ProjectComponentsResponse
+  projectComponents: ProjectComponentsResponse,
+  langClient: ExtendedLangClient
 ): Promise<TypesGenerationResult> {
   if (!sourceAttachments || sourceAttachments.length === 0) {
     throw new Error("Source attachments are required for type generation");
@@ -1163,16 +1189,43 @@ export async function generateTypesFromContext(
         const typeFilePath = baseFilePath + typeComponent.filePath;
         existingRecordTypesMap.set(typeComponent.name, { type: typeComponent.name, isArray: false, filePath: typeFilePath });
       });
+      moduleSummary.enums.forEach((enumComponent: ComponentInfo) => {
+        const enumFilePath = baseFilePath + enumComponent.filePath;
+        existingRecordTypesMap.set(enumComponent.name, { type: enumComponent.name, isArray: false, filePath: enumFilePath });
+      });
     });
   });
 
-  // Generate type definitions from attachments
+  // Generate type definitions from all attachments together
   const typeGenerationRequest: GenerateTypesFromRecordRequest = {
     attachment: sourceAttachments
   };
 
   const typeGenerationResponse = await generateTypeCreation(typeGenerationRequest);
   const generatedTypesCode = typeGenerationResponse.typesCode;
+
+  // Create temp directory and file to validate generated types
+  const tempDirectory = await createTempBallerinaDir();
+  const tempTypesFilePath = path.join(tempDirectory, outputFileName);
+
+  writeBallerinaFileDidOpenTemp(tempTypesFilePath, generatedTypesCode);
+
+  // Extract record and enum names from syntax tree
+  const { records: generatedRecords, enums: generatedEnums } = await extractRecordTypesFromSyntaxTree(langClient, tempTypesFilePath);
+
+  // Check for duplicate record names
+  for (const recordName of generatedRecords) {
+    if (existingRecordTypesMap.has(recordName)) {
+      throw new Error(`Record "${recordName}" already exists in the workspace`);
+    }
+  }
+
+  // Check for duplicate enum names
+  for (const enumName of generatedEnums) {
+    if (existingRecordTypesMap.has(enumName)) {
+      throw new Error(`Enum "${enumName}" already exists in the workspace`);
+    }
+  }
 
   return {
     typesCode: generatedTypesCode,
@@ -1181,13 +1234,16 @@ export async function generateTypesFromContext(
   };
 }
 
-// Generate Ballerina record type definitions from an attachment file
+// Generate Ballerina record type definitions from attachment files
 export async function generateTypeCreation(
   typeGenerationRequest: GenerateTypesFromRecordRequest
 ): Promise<GenerateTypesFromRecordResponse> {
-  const sourceFile = typeGenerationRequest.attachment?.[0];
+  if (typeGenerationRequest.attachment.length === 0) {
+    throw new Error('No attachments provided for type generation');
+  }
 
-  const generatedTypeDefinitions = await extractRecordTypeDefinitionsFromFile(sourceFile);
+  // Process all attachments together to understand correlations
+  const generatedTypeDefinitions = await extractRecordTypeDefinitionsFromFile(typeGenerationRequest.attachment);
   if (typeof generatedTypeDefinitions !== 'string') {
     throw new Error(`Failed to generate types: ${JSON.stringify(generatedTypeDefinitions)}`);
   }

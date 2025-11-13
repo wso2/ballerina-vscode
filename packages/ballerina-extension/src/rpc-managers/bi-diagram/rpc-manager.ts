@@ -144,6 +144,8 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     ExpressionTokensRequest,
+    ExpressionTokensResponse,
+    AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -166,14 +168,15 @@ import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
-import { StateMachine, updateView } from "../../stateMachine";
+import { openView, StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, createBIAutomation, createBIFunction, createBIProjectPure } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
+
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -422,8 +425,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         console.log(">>> requesting bi available nodes from ls", params);
         return new Promise((resolve) => {
+            const fileNameOrPath = params.filePath;
+            let filePath = fileNameOrPath;
+            if (path.basename(fileNameOrPath) === fileNameOrPath) {
+                filePath = path.join(StateMachine.context().projectPath, fileNameOrPath);
+            }
             StateMachine.langClient()
-                .getAvailableNodes(params)
+                .getAvailableNodes({
+                    position: params.position,
+                    filePath
+                })
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
                     const filteredModel = this.filterAdvancedAiNodes(model);
@@ -577,7 +588,29 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createProject(params: ProjectRequest): Promise<void> {
-        createBIProjectPure(params);
+        if (params.createAsWorkspace) {
+            const workspaceRoot = createBIWorkspace(params);
+            openInVSCode(workspaceRoot);
+        } else {
+            const projectRoot = createBIProjectPure(params);
+            openInVSCode(projectRoot);
+        }
+    }
+
+    async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
+        if (params.convertToWorkspace) {
+            try {
+                await convertProjectToWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error converting project to workspace");
+            }
+        } else {
+            try {
+                await addProjectToExistingWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error adding project to existing workspace");
+            }
+        }
     }
 
     async getWorkspaces(): Promise<WorkspacesResponse> {
@@ -619,7 +652,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getProjectComponents(): Promise<ProjectComponentsResponse> {
         return new Promise(async (resolve) => {
             const components = await StateMachine.langClient().getBallerinaProjectComponents({
-                documentIdentifiers: [{ uri: Uri.file(StateMachine.context().projectUri).toString() }],
+                documentIdentifiers: [{ uri: Uri.file(StateMachine.context().projectPath).toString() }],
             });
             resolve({ components });
         });
@@ -765,7 +798,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deleteFlowNode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi delete node from ls", params);
         // Clean project diagnostics before deleting flow node
-        await cleanAndValidateProject(StateMachine.langClient(), StateMachine.context().projectUri);
+        await cleanAndValidateProject(StateMachine.langClient(), StateMachine.context().projectPath);
 
         return new Promise((resolve) => {
             StateMachine.langClient()
@@ -787,8 +820,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         // console.log(">>> Savineadme.md", params);
         return new Promise((resolve) => {
-            const projectUri = StateMachine.context().projectUri;
-            const readmePath = path.join(projectUri, README_FILE);
+            const projectPath = StateMachine.context().projectPath;
+            const readmePath = path.join(projectPath, README_FILE);
             if (params.read) {
                 if (!fs.existsSync(readmePath)) {
                     resolve({ content: "" });
@@ -827,7 +860,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getConfigVariables(): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
-            const projectPath = path.join(StateMachine.context().projectUri);
+            const projectPath = StateMachine.context().projectPath;
             const variables = await StateMachine.langClient().getConfigVariables({ projectPath: projectPath }) as ConfigVariableResponse;
             resolve(variables);
         });
@@ -851,7 +884,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
-            const projectPath = path.join(StateMachine.context().projectUri);
+            const projectPath = StateMachine.context().projectPath;
             const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
 
             // if params includeLibraries is not set, then use settings 
@@ -916,8 +949,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
 
-            const configFilePath = path.join(StateMachine.context().projectUri, "Config.toml");
-            const ignoreFile = path.join(StateMachine.context().projectUri, ".gitignore");
+            const configFilePath = path.join(StateMachine.context().projectPath, "Config.toml");
+            const ignoreFile = path.join(StateMachine.context().projectPath, ".gitignore");
             const docLink = "https://ballerina.io/learn/provide-values-to-configurable-variables/#provide-via-toml-syntax";
             const uri = Uri.file(configFilePath);
 
@@ -1037,8 +1070,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const deployementParams: ICreateComponentCmdParams = {
             integrationType: integrationType as any,
             buildPackLang: "ballerina", // Example language
-            name: path.basename(StateMachine.context().projectUri),
-            componentDir: StateMachine.context().projectUri,
+            name: path.basename(StateMachine.context().projectPath),
+            componentDir: StateMachine.context().projectPath,
             extName: "Devant"
         };
         commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
@@ -1062,15 +1095,15 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         console.log(">>> requesting bi module nodes from ls");
         return new Promise((resolve) => {
             const context = StateMachine.context();
-            if (!context.projectUri) {
-                console.log(">>> projectUri not found in the context");
+            if (!context.projectPath) {
+                console.log(">>> projectPath not found in the context");
                 return new Promise((resolve) => {
                     resolve(undefined);
                 });
             }
 
             const params: BIModuleNodesRequest = {
-                filePath: context.projectUri,
+                filePath: context.projectPath,
             };
 
             StateMachine.langClient()
@@ -1198,7 +1231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
-        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectUri);
+        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectPath);
 
         const position: NodePosition = {
             startLine: params.component?.startLine,
@@ -1208,10 +1241,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         };
         // Check if the filepath is only the filename or the full path if not concatenate the project uri
         let filePath = params.component?.filePath;
-        if (!filePath.includes(StateMachine.context().projectUri)) {
-            filePath = path.join(StateMachine.context().projectUri, filePath);
+        if (!filePath.includes(StateMachine.context().projectPath)) {
+            filePath = path.join(StateMachine.context().projectPath, filePath);
         }
-        const componentView = await getView(filePath, position, StateMachine.context().projectUri);
+        const componentView = await getView(filePath, position, StateMachine.context().projectPath);
         // Helper function to perform the actual delete operation
         const performDelete = async (): Promise<any> => {
             return new Promise((resolve, reject) => {
@@ -1425,10 +1458,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getDesignModel(): Promise<BIDesignModelResponse> {
         console.log(">>> requesting design model from ls");
         return new Promise((resolve) => {
-            const projectUri = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
 
             StateMachine.langClient()
-                .getDesignModel({ projectPath: projectUri })
+                .getDesignModel({ projectPath })
                 .then((model) => {
                     console.log(">>> design model from ls", model);
                     resolve(model);
@@ -1445,8 +1478,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
 
     async getTypes(params: GetTypesRequest): Promise<GetTypesResponse> {
-        const projectUri = StateMachine.context().projectUri;
-        const ballerinaFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
+        const projectPath = StateMachine.context().projectPath;
+        const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
 
         return new Promise((resolve, reject) => {
             StateMachine.langClient()
@@ -1461,8 +1494,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = path.join(projectUri, params.filePath);
+        const projectPath = StateMachine.context().projectPath;
+        const filePath = path.join(projectPath, params.filePath);
         return new Promise((resolve, reject) => {
             console.log(">>> updating type request", params.type);
             StateMachine.langClient()
@@ -1587,8 +1620,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async createGraphqlClassType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = path.join(projectUri, params.filePath);
+        const projectPath = StateMachine.context().projectPath;
+        const filePath = path.join(projectPath, params.filePath);
         return new Promise((resolve, reject) => {
             StateMachine.langClient()
                 .createGraphqlClassType({ filePath, type: params.type, description: "" })
@@ -1651,8 +1684,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async renameIdentifier(params: RenameIdentifierRequest): Promise<void> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = path.join(projectUri, params.fileName);
+        const projectPath = StateMachine.context().projectPath;
+        const filePath = path.join(projectPath, params.fileName);
         const fileUri = Uri.file(filePath).toString();
         const request: RenameRequest = {
             textDocument: {
@@ -1726,8 +1759,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         let hasComponent = false;
         let hasLocalChanges = false;
         try {
-            const projectRoot = StateMachine.context().projectUri;
-            const repoRoot = getRepoRoot(projectRoot);
+            const projectPath = StateMachine.context().projectPath;
+            const repoRoot = getRepoRoot(projectPath);
             if (repoRoot) {
                 const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
                 if (fs.existsSync(contextYamlPath)) {
@@ -1740,10 +1773,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { hasComponent: hasContextYaml, isLoggedIn: false };
             }
             const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
-            hasLocalChanges = await platformExtAPI.localRepoHasChanges(projectRoot);
+            hasLocalChanges = await platformExtAPI.localRepoHasChanges(projectPath);
             isLoggedIn = platformExtAPI.isLoggedIn();
             if (isLoggedIn) {
-                const components = platformExtAPI.getDirectoryComponents(projectRoot);
+                const components = platformExtAPI.getDirectoryComponents(projectPath);
                 hasComponent = components.length > 0;
                 return { isLoggedIn, hasComponent, hasLocalChanges };
             }
@@ -1801,8 +1834,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async updateTypes(params: UpdateTypesRequest): Promise<UpdateTypesResponse> {
         return new Promise((resolve, reject) => {
-            const projectUri = StateMachine.context().projectUri;
-            const completeFilePath = path.join(projectUri, params.filePath);
+            const projectPath = StateMachine.context().projectPath;
+            const completeFilePath = path.join(projectPath, params.filePath);
 
             StateMachine.langClient().updateTypes(
                 { filePath: completeFilePath, types: params.types }
@@ -1845,7 +1878,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {
         return new Promise((resolve, reject) => {
-            const projectPath = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const request: OpenAPIClientGenerationRequest = {
                 openApiContractPath: params.openApiContractPath,
                 projectPath: projectPath,
@@ -1879,7 +1912,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getOpenApiGeneratedModules(params: OpenAPIGeneratedModulesRequest): Promise<OpenAPIGeneratedModulesResponse> {
         return new Promise((resolve, reject) => {
-            const projectPath = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const request: OpenAPIGeneratedModulesRequest = {
                 projectPath: projectPath
             };
@@ -1894,7 +1927,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteOpenApiGeneratedModules(params: OpenAPIClientDeleteRequest): Promise<OpenAPIClientDeleteResponse> {
         return new Promise((resolve, reject) => {
-            const projectPath = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const request: OpenAPIClientDeleteRequest = {
                 projectPath: projectPath,
                 module: params.module
@@ -1929,8 +1962,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getTypeFromJson(params: JsonToTypeRequest): Promise<JsonToTypeResponse> {
         return new Promise((resolve, reject) => {
-            const projectUri = StateMachine.context().projectUri;
-            const filePath = path.join(projectUri, 'types.bal');
+            const projectPath = StateMachine.context().projectPath;
+            const filePath = path.join(projectPath, 'types.bal');
             StateMachine.langClient().getTypeFromJson({ ...params, filePath })
                 .then((response) => {
                     console.log(">>> type from json response", response);
@@ -1945,8 +1978,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteType(params: DeleteTypeRequest): Promise<DeleteTypeResponse> {
         return new Promise((resolve, reject) => {
-            const projectUri = StateMachine.context().projectUri;
-            const filePath = path.join(projectUri, params.filePath);
+            const projectPath = StateMachine.context().projectPath;
+            const filePath = path.join(projectPath, params.filePath);
             StateMachine.langClient().deleteType({ filePath: filePath, lineRange: params.lineRange })
                 .then(async (deleteTypeResponse: DeleteTypeResponse) => {
                     if (deleteTypeResponse.textEdits) {
@@ -1962,8 +1995,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = path.join(projectUri, params.filePath);
+        const projectPath = StateMachine.context().projectPath;
+        const filePath = path.join(projectPath, params.filePath);
 
         const request: VerifyTypeDeleteRequest = {
             filePath: filePath,

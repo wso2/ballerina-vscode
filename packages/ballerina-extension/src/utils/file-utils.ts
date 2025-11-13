@@ -38,6 +38,7 @@ import {
 } from "../features/telemetry";
 import { NodePosition } from "@wso2/syntax-tree";
 import { existsSync } from "fs";
+import { checkIsBallerinaPackage } from "./config";
 interface ProgressMessage {
     message: string;
     increment?: number;
@@ -47,7 +48,6 @@ const ALLOWED_ORG_LIST = ['ballerina-platform', 'ballerina-guides', 'ballerinax'
 const GIT_DOMAIN = "github.com";
 const GIST_OWNER = "ballerina-github-bot";
 const NEXT_STARTING_UP_FILE = "next-starting-up-file";
-const BALLERINA_TOML = "Ballerina.toml";
 const REPO_LOCATIONS = "repository-locations";
 
 const buildStatusItem = window.createStatusBarItem(StatusBarAlignment.Left, 100);
@@ -384,8 +384,8 @@ function getGitHubRawFileUrl(githubFileUrl) {
 }
 
 async function resolveModules(langClient: ExtendedLangClient, pathValue) {
-    const isBallerinProject = findBallerinaTomlFile(pathValue);
-    if (isBallerinProject) {
+    const ballerinProjectPath = await findBallerinaPackageRoot(pathValue);
+    if (ballerinProjectPath) {
         // Create a status bar item for the build notification
         buildStatusItem.text = "$(sync~spin) Pulling modules...";
         buildStatusItem.tooltip = "Pulling the missing ballerina modules.";
@@ -427,19 +427,28 @@ async function resolveModules(langClient: ExtendedLangClient, pathValue) {
     }
 }
 
-function findBallerinaTomlFile(filePath) {
+export async function findBallerinaPackageRoot(filePath: string) {
+    if (!filePath) {
+        return null;
+    }
+    
     let currentFolderPath = path.dirname(filePath);
 
     while (currentFolderPath !== path.sep) {
-        const tomlFilePath = path.join(currentFolderPath, BALLERINA_TOML);
-        if (fs.existsSync(tomlFilePath)) {
+        const isBallerinaPackage = await checkIsBallerinaPackage(Uri.parse(currentFolderPath));
+        if (isBallerinaPackage) {
             return currentFolderPath;
         }
 
-        currentFolderPath = path.dirname(currentFolderPath);
+        const parentPath = path.dirname(currentFolderPath);
+        // Prevent infinite loop
+        if (parentPath === currentFolderPath) {
+            break;
+        }
+        currentFolderPath = parentPath;
     }
 
-    return null; // Ballerina.toml not found in any parent folder
+    return null;
 }
 
 export async function handleResolveMissingDependencies(ballerinaExtInstance: BallerinaExtension) {
