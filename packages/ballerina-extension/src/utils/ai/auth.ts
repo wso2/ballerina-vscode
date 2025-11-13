@@ -18,11 +18,12 @@
 
 import * as vscode from 'vscode';
 import { extension } from "../../BalExtensionContext";
-import { AUTH_CLIENT_ID, AUTH_ORG } from '../../features/ai/utils';
+import { AUTH_CLIENT_ID, AUTH_ORG, getDevantExchangeUrl } from '../../features/ai/utils';
 import axios from 'axios';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { AuthCredentials, LoginMethod } from '@wso2/ballerina-core';
+import { AuthCredentials, DevantEnvSecrets, LoginMethod } from '@wso2/ballerina-core';
 import { checkDevantEnvironment } from '../../views/ai-panel/utils';
+import { getDevantStsToken } from '../../features/devant/activator';
 
 export const REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Refresh token is not available.";
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
@@ -301,4 +302,67 @@ export const getRefreshedAccessToken = async (): Promise<string> => {
             reject(error);
         }
     });
+};
+
+// ==================================
+// Devant STS Token Exchange Utils
+// ==================================
+
+/**
+ * Exchanges a Choreo STS token for a Devant Bearer token
+ * @param choreoStsToken The Choreo STS token to exchange
+ * @returns DevantEnvSecrets containing the access token and calculated expiry time
+ */
+export const exchangeStsToken = async (choreoStsToken: string): Promise<DevantEnvSecrets> => {
+    try {
+        const response = await axios.post(getDevantExchangeUrl(), {
+            choreo_sts_token: choreoStsToken
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const { access_token, expires_in } = response.data;
+        const devantEnv: DevantEnvSecrets =  {
+            accessToken: access_token,
+            expiresAt: Date.now() + (expires_in * 1000) // Convert seconds to milliseconds
+        };
+
+        await storeAuthCredentials({
+            loginMethod: LoginMethod.DEVANT_ENV,
+            secrets: devantEnv
+        });
+        return devantEnv;
+    } catch (error: any) {
+        console.error('Error exchanging STS token:', error);
+        throw new Error(`Failed to exchange STS token: ${error.message}`);
+    }
+};
+
+/**
+ * Refreshes the Devant token by fetching a new STS token and exchanging it
+ * This is called when a 401 error occurs during DEVANT_ENV authentication
+ * @returns The new access token
+ */
+export const refreshDevantToken = async (): Promise<string> => {
+    try {
+        // Get fresh STS token from platform extension
+        const newStsToken = await getDevantStsToken();
+
+        if (!newStsToken) {
+            throw new Error('Failed to retrieve STS token from platform extension');
+        }
+
+        // Exchange for new Bearer token
+        const newSecrets = await exchangeStsToken(newStsToken);
+
+        // Update stored credentials (this is in-memory only for DEVANT_ENV)
+        // Note: checkDevantEnvironment already handles the storage, so we just return the token
+
+        return newSecrets.accessToken;
+    } catch (error: any) {
+        console.error('Error refreshing Devant token:', error);
+        throw error;
+    }
 };

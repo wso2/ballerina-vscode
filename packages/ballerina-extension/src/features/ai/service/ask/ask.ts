@@ -103,7 +103,7 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
                 query: query
             }),
             signal: AIPanelAbortController.getInstance().signal,
-        }, true);
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
