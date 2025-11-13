@@ -24,7 +24,6 @@ import com.google.gson.JsonObject;
 import io.ballerina.designmodelgenerator.extension.request.ProjectInfoRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -53,24 +52,17 @@ public class ProjectInfoTest extends AbstractLSTest {
         response.remove("errorMsg");
         response.remove("stacktrace");
 
-        // Normalize URIs in both actual and expected for comparison
+        // Normalize URIs in actual response for comparison
         JsonElement normalizedResponse = normalizeUris(response, sourceDir);
-        JsonElement normalizedExpected = normalizeUris(testConfig.output(), sourceDir);
+        JsonElement expected = testConfig.output();
 
-        if (!normalizedResponse.equals(normalizedExpected)) {
-            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.source(), response);
-            updateConfig(configJsonPath, updatedConfig); // Uncomment to regenerate expected output
-            compareJsonElements(normalizedResponse, normalizedExpected);
+        if (!normalizedResponse.equals(expected)) {
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.description(), testConfig.source(), normalizedResponse.getAsJsonObject());
+//            updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(normalizedResponse, expected);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
-    }
-
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[]{
-                Path.of("workspace_project.json")
-        };
     }
 
     @Override
