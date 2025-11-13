@@ -74,12 +74,24 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         });
     };
 
+    const isMultiProjectFormValid = () => {
+        // Path is always required
+        if (!multiProjectData.path.trim()) {
+            return false;
+        }
+        // Folder name is only required if creating a new directory
+        if (multiProjectData.createDirectory && !multiProjectData.rootFolderName.trim()) {
+            return false;
+        }
+        return true;
+    };
+
     return (
         <>
             {isMultiProject ? (
                 <>
                     <Typography variant="h2">Configure Multi-Project Import</Typography>
-                    <BodyText>Provide the integration name and location for the migrated packages.</BodyText>
+                    <BodyText>Select the location where you want to save the migrated packages.</BodyText>
 
                     <MultiProjectFormFields
                         formData={multiProjectData}
@@ -91,7 +103,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                             primaryButton={{
                                 text: "Create and Open Project",
                                 onClick: handleCreateMultiProject,
-                                disabled: !multiProjectData.rootFolderName.trim() || !multiProjectData.path.trim()
+                                disabled: !isMultiProjectFormValid()
                             }}
                             secondaryButton={{
                                 text: "Back",
