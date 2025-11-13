@@ -53,7 +53,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "int",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -144,7 +152,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "int",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -235,7 +251,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "decimal",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -326,7 +350,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "int",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -417,7 +449,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "decimal",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -508,7 +548,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "decimal",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -599,7 +647,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "decimal",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -690,7 +746,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "decimal",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -781,7 +845,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "int",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -872,7 +944,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "ListenerConfiguration",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -963,7 +1043,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -1054,7 +1142,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "TraceLogAdvancedConfiguration",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -1145,7 +1241,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "AccessLogConfiguration",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {

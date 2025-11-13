@@ -50,7 +50,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -141,7 +141,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -232,7 +232,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -323,7 +323,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -414,7 +414,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -505,7 +505,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {

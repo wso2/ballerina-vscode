@@ -50,7 +50,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -141,7 +149,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "float",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -232,7 +248,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -325,7 +349,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -420,7 +452,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "LogFormat",
+                  "packageInfo": "ballerina:log:2.14.0",
+                  "packageName": "log",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -511,7 +551,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Level",
+                  "packageInfo": "ballerina:log:2.14.0",
+                  "packageName": "log",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -602,7 +650,7 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -693,7 +741,7 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -784,7 +832,7 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -875,7 +923,15 @@
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
