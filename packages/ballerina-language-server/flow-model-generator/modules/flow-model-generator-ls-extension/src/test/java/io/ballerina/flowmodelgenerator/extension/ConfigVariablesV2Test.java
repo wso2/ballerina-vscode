@@ -60,11 +60,11 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
         JsonElement expectedResponseJson = gson.toJsonTree(testConfig.configVariables());
         if (!actualResponseJson.equals(expectedResponseJson)
                 || !Objects.equals(actualResponse.errorMsg(), testConfig.errorMsg())) {
-            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
-                    testConfig.project(),
-                    actualResponse.configVariables(),
-                    actualResponse.errorMsg(),
-                    actualResponse.stacktrace()));
+//            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
+//                    testConfig.project(),
+//                    actualResponse.configVariables(),
+//                    actualResponse.errorMsg(),
+//                    actualResponse.stacktrace()));
             compareJsonElements(actualResponseJson, expectedResponseJson);
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }

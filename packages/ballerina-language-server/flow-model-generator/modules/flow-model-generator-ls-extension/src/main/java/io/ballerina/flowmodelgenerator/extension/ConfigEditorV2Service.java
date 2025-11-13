@@ -23,6 +23,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.TypeBuilder;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
@@ -766,7 +768,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         typedBindingPattern.typeDescriptor(), semanticModel))
                     .editable(isRootProject)
                     .stepOut()
-                    .addProperty(Property.TYPE_KEY)
+                    .addProperty(Property.TYPE_KEY, typedBindingPattern.typeDescriptor().lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
                 .configValue(configValueExpr)
                 .documentation(markdownDocs.orElse(null), isRootProject)
@@ -1092,8 +1094,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         }
 
         // Create a union type of basic types for subtype checking
-        io.ballerina.compiler.api.Types types = semanticModel.types();
-        io.ballerina.compiler.api.TypeBuilder builder = semanticModel.types().builder();
+        Types types = semanticModel.types();
+        TypeBuilder builder = semanticModel.types().builder();
         UnionTypeSymbol union = builder.UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL, types.STRING,
                 types.INT, types.FLOAT, types.DECIMAL, types.BYTE, types.REGEX, types.XML).build();
 
