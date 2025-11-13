@@ -20,7 +20,7 @@ import { exec } from "child_process";
 import { window, commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation } from "@wso2/ballerina-core";
+import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
@@ -283,7 +283,11 @@ sticky = true
 
 export async function convertProjectToWorkspace(params: AddProjectToWorkspaceRequest) {
     const currentProjectPath = StateMachine.context().projectPath;
-    const { package: { name: currentPackageName } } = await getProjectTomlValues(currentProjectPath);
+    const tomlValues = await getProjectTomlValues(currentProjectPath);
+    const currentPackageName = tomlValues?.package?.name;
+    if (!currentPackageName) {
+        throw new Error('No package name found in Ballerina.toml');
+    }
 
     const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
 
@@ -330,8 +334,8 @@ function updateWorkspaceToml(workspacePath: string, packageName: string) {
 
     try {
         const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
-        const tomlData = parse(ballerinaTomlContent);
-        const existingPackages: string[] = tomlData.packages || [];
+        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
+        const existingPackages: string[] = tomlData.workspace?.packages || [];
 
         if (existingPackages.includes(packageName)) {
             return; // Package already exists

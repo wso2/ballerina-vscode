@@ -21,7 +21,7 @@ import { debug, log } from '../logger';
 import { ServerOptions, ExecutableOptions } from 'vscode-languageclient/node';
 import { isWindows } from '..';
 import { BallerinaExtension } from '../../core';
-import { isSupportedSLVersion } from '../config';
+import { isSupportedSLVersion, createVersionNumber } from '../config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { orderBy } from 'lodash';
@@ -150,7 +150,7 @@ export function findHighestVersionJdk(directory: string): string | null {
 export function getServerOptions(extension: BallerinaExtension): ServerOptions {
     debug('Getting server options.');
     // Check if user wants to use Ballerina CLI language server or if version requires it
-    const BI_SUPPORTED_MINIMUM_VERSION = 2201123; // 2201.12.3
+    const BI_SUPPORTED_MINIMUM_VERSION = createVersionNumber(2201, 12, 3); // Version 2201.12.3
     if (extension?.useDistributionLanguageServer() || !isSupportedSLVersion(extension, BI_SUPPORTED_MINIMUM_VERSION)) {
         return getServerOptionsUsingCLI(extension);
     } else {

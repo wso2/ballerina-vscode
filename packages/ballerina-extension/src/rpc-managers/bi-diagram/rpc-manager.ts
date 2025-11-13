@@ -427,7 +427,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const fileNameOrPath = params.filePath;
             let filePath = fileNameOrPath;
             if (path.basename(fileNameOrPath) === fileNameOrPath) {
-                filePath = path.join(StateMachine.context().projectUri, fileNameOrPath);
+                filePath = path.join(StateMachine.context().projectPath, fileNameOrPath);
             }
             StateMachine.langClient()
                 .getAvailableNodes({
@@ -598,9 +598,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
         if (params.convertToWorkspace) {
-            await convertProjectToWorkspace(params);
+            try {
+                await convertProjectToWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error converting project to workspace");
+            }
         } else {
-            await addProjectToExistingWorkspace(params);
+            try {
+                await addProjectToExistingWorkspace(params);
+            } catch (error) {
+                window.showErrorMessage("Error adding project to existing workspace");
+            }
         }
     }
 

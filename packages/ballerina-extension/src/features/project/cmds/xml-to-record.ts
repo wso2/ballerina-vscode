@@ -22,7 +22,7 @@ import {
 import { commands, window, env } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { PALETTE_COMMANDS, MESSAGES } from "./cmd-runner";
-import { isSupportedSLVersion } from "../../../utils";
+import { isSupportedSLVersion, createVersionNumber } from "../../../utils";
 import { DIAGNOSTIC_SEVERITY, XMLToRecord } from "@wso2/ballerina-core";
 
 const MSG_NOT_SUPPORT = "Paste XML as a Ballerina record feature is not supported";
@@ -34,8 +34,8 @@ export function activatePasteXMLAsRecord() {
     }
 
     commands.registerCommand(PALETTE_COMMANDS.PASTE_XML_AS_RECORD, () => {
-        // This command is only available since Swan Lake Update 7 patch 2
-        if (!isSupportedSLVersion(extension.ballerinaExtInstance, 220172)) {
+        // This command is only available since Swan Lake Update 7 patch 2 (2201.7.2)
+        if (!isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 7, 2))) {
             window.showErrorMessage(`${MSG_NOT_SUPPORT} in ${extension.ballerinaExtInstance.ballerinaVersion}`);
             return;
         }

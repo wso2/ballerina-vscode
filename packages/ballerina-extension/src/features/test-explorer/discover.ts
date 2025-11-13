@@ -22,7 +22,7 @@ import { StateMachine } from "../../stateMachine";
 import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
-import { getCurrentProjectRoot } from "../debugger";
+import { getCurrentProjectRoot } from "../../utils/project-utils";
 
 let groups: string[] = [];
 
