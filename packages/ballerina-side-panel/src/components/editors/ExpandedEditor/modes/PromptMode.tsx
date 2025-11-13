@@ -77,7 +77,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             if (!content.trim()) {
                 e.preventDefault();
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue);
+                onChange(newValue, cursorPosition);
                 // Set cursor position after both newlines
                 queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
@@ -88,7 +88,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             // Continue the list
             e.preventDefault();
             const newValue = textBeforeCursor + '\n' + indent + marker + ' ' + textAfterCursor;
-            onChange(newValue);
+            onChange(newValue, cursorPosition);
             // Set cursor position after the list marker
             queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + marker.length + 2;
@@ -106,7 +106,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             if (!content.trim()) {
                 e.preventDefault();
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue);
+                onChange(newValue, cursorPosition);
                 // Set cursor position after both newlines
                 queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
@@ -118,7 +118,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             e.preventDefault();
             const nextNumber = parseInt(number, 10) + 1;
             const newValue = textBeforeCursor + '\n' + indent + nextNumber + '. ' + textAfterCursor;
-            onChange(newValue);
+            onChange(newValue, cursorPosition);
             // Set cursor position after the list marker
             queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + nextNumber.toString().length + 3;
@@ -136,7 +136,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             if (!content.trim()) {
                 e.preventDefault();
                 const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue);
+                onChange(newValue, cursorPosition);
                 // Set cursor position after both newlines
                 queueMicrotask(() => {
                     textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
@@ -147,7 +147,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
             // Continue the task list with unchecked box
             e.preventDefault();
             const newValue = textBeforeCursor + '\n' + indent + marker + ' [ ] ' + textAfterCursor;
-            onChange(newValue);
+            onChange(newValue, cursorPosition);
             // Set cursor position after the task marker
             queueMicrotask(() => {
                 const newCursorPos = cursorPosition + indent.length + marker.length + 6;
@@ -174,7 +174,7 @@ export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
                 <TextArea
                     id={TEXTAREA_ID}
                     value={value}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(e) => onChange(e.target.value, e.target.selectionStart)}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
                     autoFocus
