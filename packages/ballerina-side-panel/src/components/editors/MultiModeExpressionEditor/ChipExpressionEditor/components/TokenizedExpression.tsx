@@ -20,25 +20,22 @@ import React from "react";
 import { ReactNode } from "react";
 import { ChipComponent } from "./ChipComponent";
 import { TextElement } from "./TextElement";
-import { ExpressionModel } from "../types";
+import { ExpressionModel, TokenType } from "../types";
+import { TOKEN_TYPE_INDEX_MAP } from "../utils";
 
 export const getTokenTypeFromIndex = (index: number): string => {
-    const tokenTypes: { [key: number]: string } = {
-        0: 'variable',
-        1: 'property',
-        2: 'parameter'
-    };
-    return tokenTypes[index] || 'property';
+    return TOKEN_TYPE_INDEX_MAP[index] || TokenType.FUNCTION;
 };
 
 export const getTokenChip = (
     value: string,
-    type: string,
+    type: TokenType,
     absoluteOffset?: number,
-    onChipClick?: (element: HTMLElement, value: string, type: string, id?: string) => void,
+    onChipClick?: (element: HTMLElement, value: string, type: TokenType, id?: string) => void,
     onChipBlur?: () => void,
-    onChipFocus?: (element: HTMLElement, value: string, type: string, absoluteOffset?: number) => void,
-    chipId?: string
+    onChipFocus?: (element: HTMLElement, value: string, type: TokenType, absoluteOffset?: number) => void,
+    chipId?: string,
+    documentType?: string
 ): ReactNode => {
     const handleClick = (element: HTMLElement) => {
         if (onChipClick) {
@@ -58,7 +55,15 @@ export const getTokenChip = (
         }
     };
 
-    return <ChipComponent type={type as 'variable' | 'property' | 'parameter'} dataElementId={chipId} text={value} onClick={handleClick} onBlur={handleBlur} onFocus={handleFocus} />;
+    return <ChipComponent
+        type={type}
+        dataElementId={chipId}
+        text={value}
+        onClick={handleClick}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
+        documentType={documentType as any}
+    />;
 
 }
 
@@ -89,18 +94,26 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
         ) : (
             <>
                 {expressionModel.map((element, index) => {
-                    if (element.isToken) {
+                    const isRenderableToken = element.isToken && ![
+                        TokenType.START_EVENT,
+                        TokenType.END_EVENT,
+                        TokenType.TYPE_CAST,
+                        TokenType.VALUE
+                    ].includes(element.type);
+
+                    if (isRenderableToken) {
                         // Use stable key to prevent React from remounting and losing focus
                         return (
                             <React.Fragment key={element.id}>
                                 {getTokenChip(
-                                    element.value,
+                                    element.documentMetadata?.content || element.value,
                                     element.type,
                                     undefined,
                                     props.onChipClick,
                                     props.onChipBlur,
                                     props.onChipFocus,
-                                    element.id
+                                    element.id,
+                                    element.documentMetadata?.documentType
                                 )}
                             </React.Fragment>
                         );
