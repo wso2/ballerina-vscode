@@ -59,10 +59,10 @@ export type Token = {
 
 export type DocumentType = 'ImageDocument' | 'FileDocument' | 'AudioDocument';
 
-export type DocumentMetadata = {
-  documentType: DocumentType;
+export type TokenMetadata = {
   content: string;
   fullValue: string;
+  documentType?: DocumentType; // Present only for document tokens
 };
 
 export type ExpressionModel = {
@@ -76,7 +76,7 @@ export type ExpressionModel = {
   isFocused?: boolean
   focusOffsetStart?: number,
   focusOffsetEnd?: number
-  documentMetadata?: DocumentMetadata; // Present when type is 'document'
+  metadata?: TokenMetadata; // Present when type is 'document' or 'variable' with interpolation
 }
 
 export type CursorPosition = {

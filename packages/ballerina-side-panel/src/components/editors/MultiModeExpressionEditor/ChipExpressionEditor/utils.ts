@@ -17,7 +17,7 @@
  */
 
 import { CompletionItem } from "@wso2/ui-toolkit";
-import { INPUT_MODE_MAP, InputMode, ExpressionModel, DocumentType, DocumentMetadata, TokenType } from "./types";
+import { INPUT_MODE_MAP, InputMode, ExpressionModel, DocumentType, TokenMetadata, TokenType } from "./types";
 import { BACKSPACE_MARKER, DELETE_MARKER, ARROW_RIGHT_MARKER, ARROW_LEFT_MARKER } from "./constants";
 // import { TokenType } from "./CodeUtils";
 
@@ -248,11 +248,65 @@ const createDocumentToken = (
         startLine: startToken.startLine,
         length: fullValue.length,
         type: TokenType.DOCUMENT,
-        documentMetadata: {
-            documentType,
+        metadata: {
             content,
+            fullValue,
+            documentType
+        }
+    };
+};
+
+const extractVariableName = (tokens: ExpressionModel[]): string => {
+    // The variable token is at index 1 (between START_EVENT and END_EVENT)
+    const variableToken = tokens[1];
+    return variableToken?.value || '';
+};
+
+const createVariableToken = (
+    tokens: ExpressionModel[]
+): ExpressionModel => {
+    const startToken = tokens[0];
+    const fullValue = tokens.map(t => t.value).join('');
+    const variableName = extractVariableName(tokens);
+
+    return {
+        id: startToken.id,
+        value: fullValue,
+        isToken: true,
+        startColumn: startToken.startColumn,
+        startLine: startToken.startLine,
+        length: fullValue.length,
+        type: TokenType.VARIABLE,
+        metadata: {
+            content: variableName,
             fullValue
         }
+    };
+};
+
+const tryMergeVariableToken = (
+    expressionModel: ExpressionModel[],
+    startIndex: number
+): { mergedToken: ExpressionModel; nextIndex: number } | null => {
+    const variableToken = expressionModel[startIndex + 1];
+    const endToken = expressionModel[startIndex + 2];
+
+    // Validate sequence is exactly: START_EVENT + VARIABLE + END_EVENT
+    if (!isTokenOfType(variableToken, TokenType.VARIABLE)) {
+        return null;
+    }
+
+    if (!isTokenOfType(endToken, TokenType.END_EVENT)) {
+        return null;
+    }
+
+    // Extract the token sequence (exactly 3 tokens)
+    const tokenSequence = expressionModel.slice(startIndex, startIndex + 3);
+
+    // Create and return the merged variable token
+    return {
+        mergedToken: createVariableToken(tokenSequence),
+        nextIndex: startIndex + 3
     };
 };
 
@@ -298,13 +352,21 @@ const mergeDocumentTokens = (expressionModel: ExpressionModel[]): ExpressionMode
     while (i < expressionModel.length) {
         const current = expressionModel[i];
 
-        // Try to merge document tokens starting from START_EVENT
+        // Try to merge tokens starting from START_EVENT
         if (current.isToken && current.type === TokenType.START_EVENT) {
-            const mergeResult = tryMergeDocumentToken(expressionModel, i);
+            // Try variable token merge first (simpler pattern)
+            const variableMergeResult = tryMergeVariableToken(expressionModel, i);
+            if (variableMergeResult) {
+                result.push(variableMergeResult.mergedToken);
+                i = variableMergeResult.nextIndex;
+                continue;
+            }
 
-            if (mergeResult) {
-                result.push(mergeResult.mergedToken);
-                i = mergeResult.nextIndex;
+            // Try document token merge
+            const documentMergeResult = tryMergeDocumentToken(expressionModel, i);
+            if (documentMergeResult) {
+                result.push(documentMergeResult.mergedToken);
+                i = documentMergeResult.nextIndex;
                 continue;
             }
         }
