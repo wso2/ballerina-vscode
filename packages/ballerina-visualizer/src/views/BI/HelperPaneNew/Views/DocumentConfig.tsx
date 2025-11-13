@@ -154,15 +154,21 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const labelDescription = item.labelDetails?.description || "";
         const typeInfo = description || labelDescription;
 
-        // Check if the type is string or byte[] - these need to be wrapped
-        const needsWrapping = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
+        // Check if the variable is already an AI document type
+        const isAIDocumentType = AI_DOCUMENT_TYPES.some(type => typeInfo.includes(type));
 
-        if (needsWrapping) {
-            // Wrap the variable in the document structure
+        // Check if the type is string or byte[] - these need to be wrapped with type casting
+        const needsTypeCasting = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
+
+        if (isAIDocumentType) {
+            // For AI document types, just wrap in string interpolation
+            onChange(`\${${value}}`, false);
+        } else if (needsTypeCasting) {
+            // Wrap the variable in the document structure with type casting
             const wrappedValue = wrapInDocumentType(documentType, value);
             onChange(wrappedValue, false);
         } else {
-            // For other types (records, URL, ai:FileDocument, etc.), insert directly
+            // For other types (records, etc.), insert directly
             onChange(value, false);
         }
     };
