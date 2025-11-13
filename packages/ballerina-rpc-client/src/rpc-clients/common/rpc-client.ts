@@ -50,7 +50,11 @@ import {
     selectFileOrFolderPath,
     showErrorMessage,
     WorkspaceTypeResponse,
-    getWorkspaceType
+    getWorkspaceType,
+    SetWebviewCacheRequestParam,
+    SetWebviewCache,
+    RestoreWebviewCache,
+    ClearWebviewCache
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -120,5 +124,17 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     getWorkspaceType(): Promise<WorkspaceTypeResponse> {
         return this._messenger.sendRequest(getWorkspaceType, HOST_EXTENSION);
+    }
+
+    setWebviewCache(params: SetWebviewCacheRequestParam): Promise<void> {
+        return this._messenger.sendRequest(SetWebviewCache, HOST_EXTENSION, params);
+    }
+
+    restoreWebviewCache(params: IDBValidKey): Promise<unknown> {
+        return this._messenger.sendRequest(RestoreWebviewCache, HOST_EXTENSION, params);
+    }
+
+    clearWebviewCache(params: IDBValidKey): Promise<void> {
+        return this._messenger.sendRequest(ClearWebviewCache, HOST_EXTENSION, params);
     }
 }

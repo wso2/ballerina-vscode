@@ -121,3 +121,8 @@ export interface PackageTomlValues {
 export interface WorkspaceTypeResponse {
     type: "SINGLE_PROJECT" | "MULTIPLE_PROJECTS" | "BALLERINA_WORKSPACE" | "VSCODE_WORKSPACE" | "UNKNOWN"
 }
+
+export interface SetWebviewCacheRequestParam {
+	cacheKey: IDBValidKey;
+	data: unknown;
+}

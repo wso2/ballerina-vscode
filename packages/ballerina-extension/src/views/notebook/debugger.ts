@@ -29,7 +29,7 @@ import { BallerinaExtension, LANGUAGE } from "../../core";
 import { DEBUG_REQUEST } from "../../features/debugger";
 import { BAL_NOTEBOOK, NOTEBOOK_CELL_SCHEME } from "./constants";
 import { getSmallerMax } from "./utils";
-import { PlatformExtRpcManager } from "src/rpc-managers/platform-ext/rpc-manager";
+import { PlatformExtRpcManager } from "../../rpc-managers/platform-ext/rpc-manager";
 
 let tmpDirectory: string;
 let tmpFile: string;

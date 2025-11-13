@@ -34,7 +34,7 @@ import { BALLERINA_COMMANDS } from "../project";
 import { discoverTests, gatherTestItems } from "./discover";
 import { testController, projectRoot } from "./activator";
 import { extension } from "../../BalExtensionContext";
-import { PlatformExtRpcManager } from "src/rpc-managers/platform-ext/rpc-manager";
+import { PlatformExtRpcManager } from "../../rpc-managers/platform-ext/rpc-manager";
 
 enum EXEC_ARG {
     TESTS = '--tests',
