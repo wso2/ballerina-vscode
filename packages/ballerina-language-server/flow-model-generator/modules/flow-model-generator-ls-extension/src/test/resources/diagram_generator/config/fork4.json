@@ -45,7 +45,7 @@
         "id": "96374",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Update the value of an existing variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",

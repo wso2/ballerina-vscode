@@ -82,7 +82,7 @@
         "id": "41817",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Update the value of an existing variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -159,7 +159,7 @@
         "id": "42822",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Update the value of an existing variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -236,7 +236,7 @@
         "id": "43964",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Update the value of an existing variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -521,7 +521,7 @@
         "id": "54783",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Update the value of an existing variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
