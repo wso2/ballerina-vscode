@@ -1652,7 +1652,7 @@ public class CodeAnalyzer extends NodeVisitor {
             implicit = true;
             startNode(NodeKind.VARIABLE, variableDeclarationNode)
                     .metadata()
-                    .description(AssignBuilder.DESCRIPTION)
+                    .description(VariableBuilder.DESCRIPTION)
                     .stepOut()
                     .properties().expressionOrAction(null, VariableBuilder.EXPRESSION_DOC, true);
         } else {
@@ -1664,7 +1664,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 implicit = true;
                 startNode(NodeKind.VARIABLE, variableDeclarationNode)
                         .metadata()
-                        .description(AssignBuilder.DESCRIPTION)
+                        .description(VariableBuilder.DESCRIPTION)
                         .stepOut()
                         .properties().expressionOrAction(initializerNode, VariableBuilder.EXPRESSION_DOC, true);
             }

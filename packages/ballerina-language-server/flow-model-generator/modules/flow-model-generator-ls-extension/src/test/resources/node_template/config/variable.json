@@ -12,7 +12,7 @@
     "id": "31",
     "metadata": {
       "label": "Declare Variable",
-      "description": "New variable with type"
+      "description": "Create a new variable"
     },
     "codedata": {
       "node": "VARIABLE",

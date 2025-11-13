@@ -2308,7 +2308,7 @@
         "id": "35743",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -2385,7 +2385,7 @@
         "id": "37731",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -2462,7 +2462,7 @@
         "id": "36741",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -2539,7 +2539,7 @@
         "id": "38723",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",

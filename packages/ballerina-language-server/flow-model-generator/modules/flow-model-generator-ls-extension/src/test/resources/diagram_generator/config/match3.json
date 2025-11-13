@@ -131,8 +131,8 @@
               {
                 "id": "78904",
                 "metadata": {
-                  "label": "Assign",
-                  "description": "Assign a value to a variable"
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
                 },
                 "codedata": {
                   "node": "ASSIGN",
@@ -154,7 +154,7 @@
                   "expression": {
                     "metadata": {
                       "label": "Expression",
-                      "description": "Assign value"
+                      "description": "Update value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"cheap\"",
@@ -326,8 +326,8 @@
                       {
                         "id": "84130",
                         "metadata": {
-                          "label": "Assign",
-                          "description": "Assign a value to a variable"
+                          "label": "Update Variable",
+                          "description": "Update the value of an existing variable"
                         },
                         "codedata": {
                           "node": "ASSIGN",
@@ -349,7 +349,7 @@
                           "expression": {
                             "metadata": {
                               "label": "Expression",
-                              "description": "Assign value"
+                              "description": "Update value"
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"fresh; moderate\"",
@@ -426,8 +426,8 @@
                       {
                         "id": "87108",
                         "metadata": {
-                          "label": "Assign",
-                          "description": "Assign a value to a variable"
+                          "label": "Update Variable",
+                          "description": "Update the value of an existing variable"
                         },
                         "codedata": {
                           "node": "ASSIGN",
@@ -449,7 +449,7 @@
                           "expression": {
                             "metadata": {
                               "label": "Expression",
-                              "description": "Assign value"
+                              "description": "Update value"
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"expired; moderate\"",
@@ -608,8 +608,8 @@
               {
                 "id": "93788",
                 "metadata": {
-                  "label": "Assign",
-                  "description": "Assign a value to a variable"
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
                 },
                 "codedata": {
                   "node": "ASSIGN",
@@ -631,7 +631,7 @@
                   "expression": {
                     "metadata": {
                       "label": "Expression",
-                      "description": "Assign value"
+                      "description": "Update value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"expensive\"",
