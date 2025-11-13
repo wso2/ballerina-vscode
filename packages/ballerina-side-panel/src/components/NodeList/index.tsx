@@ -54,6 +54,7 @@ namespace S {
     export const PanelBody = styled(SidePanelBody)`
         height: calc(100vh - 100px);
         padding-top: 0;
+        overflow-y: auto;
     `;
 
     export const StyledSearchInput = styled(SearchBox)`

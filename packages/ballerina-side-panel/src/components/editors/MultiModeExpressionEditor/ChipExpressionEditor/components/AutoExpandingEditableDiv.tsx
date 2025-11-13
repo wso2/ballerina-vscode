@@ -132,6 +132,21 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 top={menuPosition.top}
                 left={adjustedLeft}
                 data-menu={CHIP_MENU_VALUE}
+                onMouseDown={(e) => {
+                    //HACK: Replace this with a proper solution to handle helperpane clicks.
+                    //TODO: Need comprehensive focus management solution
+                    const target = e.target as HTMLElement;
+                    if (
+                        target instanceof HTMLInputElement ||
+                        target instanceof HTMLTextAreaElement ||
+                        target.tagName.toLowerCase() === 'vscode-text-field' ||
+                        target.tagName.toLowerCase() === 'input' ||
+                        target.closest('vscode-text-field')
+                    ) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
             >
                 {props.getHelperPane(
                     props.value,

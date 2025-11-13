@@ -14,14 +14,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
- * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus } from "./interfaces";
-import { RequestType, NotificationType } from "vscode-messenger-common";
 
-const _preFix = "agent-chat";
-export const getChatMessage: RequestType<ChatReqMessage, ChatRespMessage> = { method: `${_preFix}/getChatMessage` };
-export const abortChatRequest: NotificationType<void> = { method: `${_preFix}/abortChatRequest` };
-export const getTracingStatus: RequestType<void, TraceStatus> = { method: `${_preFix}/getTracingStatus` };
-export const showTraceView: NotificationType<TraceInput> = { method: `${_preFix}/showTraceView` };
+export { activateTracing, TRACE_WINDOW_COMMAND, ENABLE_TRACING_COMMAND, TRACE_VIEW_ID } from './activate';
+export { TracerMachine } from './tracer-machine';
+export { TraceServer } from './trace-server';
