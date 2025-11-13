@@ -113,6 +113,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
@@ -992,6 +993,7 @@ public class DataMapManager {
             case "enum" -> handleEnumType(id, name, typeName, type, visitedTypes, references);
             case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
             case "tuple" -> handleTupleType(id, name, typeName, type, visitedTypes, references);
+            case "map" -> handleMapType(id, name, type, visitedTypes, references);
             default -> {
                 if (type.hashCode != null && !type.hashCode.isEmpty()) {
                     throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
@@ -1037,6 +1039,27 @@ public class DataMapManager {
 
         processDependentTypes(id, arrayType.dependentTypes, visitedTypes, references);
         return arrayPort;
+    }
+
+    private MappingPort handleMapType(String id, String name, RefType type,
+                                       Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefMapType mapType)) {
+            return new MappingMapPort(id, name, "map", "map", type.key);
+        }
+
+        String valueName = getItemName(name);
+        MappingPort valuePort = getRefMappingPort(id, valueName, mapType.valueType, visitedTypes, references);
+        if (valuePort.displayName == null) {
+            valuePort.displayName = valueName;
+        }
+
+        String mapTypeName = buildMapTypeName(valuePort, type);
+        MappingMapPort mapPort = new MappingMapPort(id, name, mapTypeName, "map", type.hashCode);
+        mapPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+        mapPort.setValue(valuePort);
+        processDependentTypes(id, mapType.dependentTypes, visitedTypes, references);
+
+        return mapPort;
     }
 
     private MappingPort handleEnumType(String id, String name, String typeName, RefType type,
@@ -1140,6 +1163,24 @@ public class DataMapManager {
             arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
         }
         return arrayTypeName;
+    }
+
+    private String buildMapTypeName(MappingPort valuePort, RefType type) {
+        if (valuePort == null) {
+            return "map<any>";
+        }
+
+        String valueTypeName = valuePort.typeName;
+        boolean isUnionValue = valuePort.kind.endsWith("union");
+        if (isUnionValue) {
+            valueTypeName = "(" + valueTypeName + ")";
+        }
+
+        String mapTypeName = "map<" + valueTypeName + ">";
+        if (isExternalType(type) && !isUnionValue && valuePort.typeInfo == null) {
+            mapTypeName = type.moduleInfo.modulePrefix + ":" + mapTypeName;
+        }
+        return mapTypeName;
     }
 
     private void processRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
@@ -1764,6 +1805,15 @@ public class DataMapManager {
         String[] typeParts = codedata.symbol().split("\\[", 2);
         String type = typeParts[0];
         boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
+        boolean isMapType = type.startsWith("map<") && type.endsWith(">");
+
+        if (isMapType) {
+            if (isArray) {
+                return gson.toJsonTree(new DataMapCapability(true, "[]"));
+            }
+            return gson.toJsonTree(new DataMapCapability(true, "{}"));
+        }
+
         DataMapCapability dataMapCapability = getDataMapperCapabilityForPrimitiveTypes(type, isArray);
         if (dataMapCapability != null) {
             return gson.toJsonTree(dataMapCapability);
@@ -1797,6 +1847,11 @@ public class DataMapManager {
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
         if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+            if (isArray) {
+                return new DataMapCapability(true, "[]");
+            }
+            return new DataMapCapability(true, "{}");
+        } else if (kind == TypeDescKind.MAP) {
             if (isArray) {
                 return new DataMapCapability(true, "[]");
             }
@@ -2697,6 +2752,26 @@ public class DataMapManager {
 
         MappingPort getMember() {
             return this.member;
+        }
+    }
+
+    private static class MappingMapPort extends MappingPort {
+        MappingPort value;
+
+        MappingMapPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingMapPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+
+        void setValue(MappingPort value) {
+            this.value = value;
+        }
+
+        MappingPort getValue() {
+            return this.value;
         }
     }
 
