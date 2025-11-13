@@ -30,6 +30,7 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -110,21 +111,14 @@ public final class ProjectVisitor {
      */
     private Optional<String> extractTitleFromToml(TomlDocument tomlDocument, String tableName) {
         try {
-            // Try to read title from Ballerina.toml table
-            var toml = tomlDocument.toml();
-            if (toml.getTable(tableName).isPresent()) {
-                var table = toml.getTable(tableName).get();
-                if (table.get("title").isPresent()) {
-                    var titleValue = table.get("title").get();
-                    if (titleValue instanceof TomlStringValueNode stringNode) {
-                        return Optional.of(stringNode.getValue());
-                    }
-                }
-            }
+            return tomlDocument.toml()
+                    .getTable(tableName)
+                    .flatMap(table -> table.get("title"))
+                    .filter(titleValue -> titleValue instanceof TomlStringValueNode)
+                    .map(titleValue -> ((TomlStringValueNode) titleValue).getValue());
         } catch (Exception e) {
-            // Ignore and fallback
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     /**
@@ -200,6 +194,6 @@ public final class ProjectVisitor {
         if (word == null || word.isEmpty()) {
             return word;
         }
-        return word.substring(0, 1).toUpperCase(java.util.Locale.ROOT) + word.substring(1);
+        return word.substring(0, 1).toUpperCase(Locale.ROOT) + word.substring(1);
     }
 }
