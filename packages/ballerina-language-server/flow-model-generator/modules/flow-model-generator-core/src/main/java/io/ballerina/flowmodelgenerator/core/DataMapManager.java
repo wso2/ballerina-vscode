@@ -1917,9 +1917,6 @@ public class DataMapManager {
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
         if (kind == TypeDescKind.TUPLE) {
-            if (isArray) {
-                return new DataMapCapability(true, "[]");
-            }
             return new DataMapCapability(true, "[]");
         } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
             if (isArray) {
@@ -1963,7 +1960,7 @@ public class DataMapManager {
             TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
             return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
-        return kind == TypeDescKind.RECORD || kind == TypeDescKind.TUPLE;
+        return kind == TypeDescKind.RECORD;
     }
 
     public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField,
