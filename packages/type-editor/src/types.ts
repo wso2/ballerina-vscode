@@ -88,6 +88,7 @@ export interface RecordCreatorContext {
     props: IStatementEditorComponentProps & {
         recordCreatorRpcClient: RecordCreatorRpcClient;
         ballerinaVersion: string;
+        isVersionCompatible: boolean;
         fullST: STNode;
         ballerinaProjectComponents: BallerinaProjectComponents;
     };
