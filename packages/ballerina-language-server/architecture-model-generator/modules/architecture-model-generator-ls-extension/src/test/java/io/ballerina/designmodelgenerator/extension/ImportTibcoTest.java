@@ -86,6 +86,7 @@ public class ImportTibcoTest extends AbstractLSTest {
      *
      * @param description Description of the test case
      * @param projectPath Path to the Ballerina project
+     * @param parameters  Additional parameters for the import process
      * @param output      Expected output as a JSON object
      */
     private record TestConfig(String description, String projectPath, Map<String, String> parameters,

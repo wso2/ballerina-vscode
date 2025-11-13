@@ -105,7 +105,6 @@ public class ImportMultiRootMigrationTest extends AbstractLSTest {
         if (!actualToolResponse.equals(expectedToolResponse) || !notificationsMatch) {
             compareJsonElements(gson.toJsonTree(actualToolResponse),
                     gson.toJsonTree(expectedToolResponse));
-            // UNCOMMENT THE LINES BELOW TO AUTO-UPDATE test configuration when tool output changes:
             TestConfig updatedConfig = new TestConfig(testConfig.description(),
                     testConfig.projectPath(), testConfig.parameters(), response, capturedNotifications);
             // updateConfig(configJsonPath, updatedConfig);

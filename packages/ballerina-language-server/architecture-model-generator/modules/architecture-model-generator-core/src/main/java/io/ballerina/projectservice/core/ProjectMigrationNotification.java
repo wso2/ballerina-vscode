@@ -19,12 +19,12 @@ package io.ballerina.projectservice.core;
 import java.util.Map;
 
 /**
- * Represents a project migration completion notification to be sent to the client.
- * Used for multiRoot migrations where each project's migration result is sent separately.
+ * Represents a project migration completion notification to be sent to the client. Used for multiRoot migrations where
+ * each project's migration result is sent separately.
+ *
+ * @param projectName Name of the migrated project.
+ * @param textEdits   Map of file paths to their corresponding text edits as strings.
+ * @param report      HTML report of the migration operation.
+ * @since 1.5.0
  */
-public record ProjectMigrationNotification(
-        String projectName,
-        Map<String, String> textEdits,
-        String report
-) {
-}
+public record ProjectMigrationNotification(String projectName, Map<String, String> textEdits, String report) { }
