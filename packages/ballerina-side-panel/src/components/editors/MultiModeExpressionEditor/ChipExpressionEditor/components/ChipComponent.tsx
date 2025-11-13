@@ -17,21 +17,36 @@
  */
 
 import React, { useRef } from "react";
-import { Chip } from "../styles";
+import { Chip, DocumentChip, DocumentChipIcon, DocumentChipText } from "../styles";
 import { CHIP_TRUE_VALUE } from '../constants';
-import { ThemeColors } from "@wso2/ui-toolkit";
+import { ThemeColors, Icon } from "@wso2/ui-toolkit";
+import { TokenType, DocumentType } from "../types";
 
 export type ChipProps = {
-    type: 'variable' | 'property' | 'parameter';
+    type: TokenType;
     text: string;
     onClick?: (element: HTMLElement) => void;
     onBlur?: () => void;
     onFocus?: (element: HTMLElement) => void;
-    dataElementId?: string; // Add dataElementId prop
+    dataElementId?: string;
+    documentType?: DocumentType;
 }
 
+const getDocumentIcon = (documentType: DocumentType): React.ReactNode => {
+    switch (documentType) {
+        case 'ImageDocument':
+            return <Icon name="bi-image" sx={{ width: 16, height: 16, fontSize: 16 }} />;
+        case 'FileDocument':
+            return <Icon name="bi-doc" sx={{ width: 16, height: 16, fontSize: 16 }} />;
+        case 'AudioDocument':
+            return <Icon name="bi-audio" sx={{ width: 16, height: 16, fontSize: 16 }} />;
+        default:
+            return <Icon name="bi-attach-file" sx={{ width: 16, height: 16, fontSize: 16 }} />;
+    }
+};
+
 export const ChipComponent = (props: ChipProps) => {
-    const { type, text, onClick, onBlur, onFocus, dataElementId } = props; // Destructure dataElementId
+    const { type, text, onClick, onBlur, onFocus, dataElementId, documentType } = props;
     const chipRef = useRef<HTMLDivElement>(null);
 
     const handleClick = (e: React.MouseEvent) => {
@@ -51,10 +66,32 @@ export const ChipComponent = (props: ChipProps) => {
         }
     };
 
-    if (type === 'variable') {
+    if (type === TokenType.VARIABLE) {
         return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onFocus={handleFocus} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
-    } else if (type === 'property') {
+    } else if (type === TokenType.PROPERTY) {
         return <Chip ref={chipRef} contentEditable={false} tabIndex={0} onClick={handleClick} onMouseDown={handleMouseDown} onFocus={handleFocus} onBlur={onBlur} data-chip={CHIP_TRUE_VALUE} data-element-id={dataElementId}>{text}</Chip>;
+    } else if (type === TokenType.DOCUMENT && documentType) {
+        const icon = getDocumentIcon(documentType);
+        return (
+            <DocumentChip
+                ref={chipRef}
+                contentEditable={false}
+                tabIndex={0}
+                onClick={handleClick}
+                onMouseDown={handleMouseDown}
+                onFocus={handleFocus}
+                onBlur={onBlur}
+                data-chip={CHIP_TRUE_VALUE}
+                data-element-id={dataElementId}
+            >
+                <DocumentChipIcon>
+                    {icon}
+                </DocumentChipIcon>
+                <DocumentChipText>
+                    {text}
+                </DocumentChipText>
+            </DocumentChip>
+        );
     } else {
         return (
             <Chip

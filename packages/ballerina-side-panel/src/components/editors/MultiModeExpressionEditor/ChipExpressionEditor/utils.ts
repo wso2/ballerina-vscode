@@ -17,13 +17,25 @@
  */
 
 import { CompletionItem } from "@wso2/ui-toolkit";
-import { INPUT_MODE_MAP, InputMode, ExpressionModel } from "./types";
+import { INPUT_MODE_MAP, InputMode, ExpressionModel, DocumentType, DocumentMetadata, TokenType } from "./types";
 import { BACKSPACE_MARKER, DELETE_MARKER, ARROW_RIGHT_MARKER, ARROW_LEFT_MARKER } from "./constants";
-import { TokenType } from "./CodeUtils";
+// import { TokenType } from "./CodeUtils";
 
 const TOKEN_LINE_OFFSET_INDEX = 0;
 const TOKEN_START_CHAR_OFFSET_INDEX = 1;
 const TOKEN_LENGTH_INDEX = 2;
+const TOKEN_TYPE_INDEX = 3;
+const TOKEN_MODIFIERS_INDEX = 4;
+
+export const TOKEN_TYPE_INDEX_MAP: { [key: number]: TokenType } = {
+    0: TokenType.VARIABLE,
+    1: TokenType.FUNCTION,
+    2: TokenType.PARAMETER,
+    3: TokenType.TYPE_CAST,
+    4: TokenType.VALUE,
+    5: TokenType.START_EVENT,
+    6: TokenType.END_EVENT
+};
 
 export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): InputMode => {
     if (!valueTypeConstraint) return;
@@ -184,10 +196,126 @@ export const expressionModelInitValue: ExpressionModel = {
     startColumn: 0,
     startLine: 0,
     length: 0,
-    type: 'literal',
+    type: TokenType.LITERAL,
     isFocused: false,
     focusOffsetStart: undefined
 }
+
+const extractDocumentType = (typeCast: string): DocumentType | null => {
+    const match = typeCast.match(/<ai:(ImageDocument|FileDocument|AudioDocument)>/);
+    if (match) {
+        return match[1] as DocumentType;
+    }
+    return null;
+};
+
+const extractDocumentContent = (fullValue: string): string => {
+    // Extract the content between the braces, looking for the value after "content:"
+    const contentMatch = fullValue.match(/content:\s*(.+?)\s*}/);
+    if (contentMatch) {
+        return contentMatch[1].trim();
+    }
+    return fullValue;
+};
+
+const isTokenOfType = (token: ExpressionModel | undefined, type: TokenType): boolean => {
+    return token?.isToken === true && token.type === type;
+};
+
+const findEndEventIndex = (tokens: ExpressionModel[], startIndex: number): number => {
+    return tokens.findIndex((token, index) =>
+        index > startIndex && isTokenOfType(token, TokenType.END_EVENT)
+    );
+};
+
+const hasValueToken = (tokens: ExpressionModel[]): boolean => {
+    return tokens.some(token => isTokenOfType(token, TokenType.VALUE));
+};
+
+const createDocumentToken = (
+    tokens: ExpressionModel[],
+    documentType: DocumentType
+): ExpressionModel => {
+    const startToken = tokens[0];
+    const fullValue = tokens.map(t => t.value).join('');
+    const content = extractDocumentContent(fullValue);
+
+    return {
+        id: startToken.id,
+        value: fullValue,
+        isToken: true,
+        startColumn: startToken.startColumn,
+        startLine: startToken.startLine,
+        length: fullValue.length,
+        type: TokenType.DOCUMENT,
+        documentMetadata: {
+            documentType,
+            content,
+            fullValue
+        }
+    };
+};
+
+const tryMergeDocumentToken = (
+    expressionModel: ExpressionModel[],
+    startIndex: number
+): { mergedToken: ExpressionModel; nextIndex: number } | null => {
+    const typeCastToken = expressionModel[startIndex + 1];
+
+    // Validate required tokens exist
+    if (!isTokenOfType(typeCastToken, TokenType.TYPE_CAST)) {
+        return null;
+    }
+
+    const documentType = extractDocumentType(typeCastToken.value);
+    if (!documentType) {
+        return null;
+    }
+
+    // Find the end of the document token sequence
+    const endIndex = findEndEventIndex(expressionModel, startIndex);
+    if (endIndex === -1) {
+        return null;
+    }
+
+    // Extract and validate the token sequence
+    const tokenSequence = expressionModel.slice(startIndex, endIndex + 1);
+    if (!hasValueToken(tokenSequence)) {
+        return null;
+    }
+
+    // Create and return the merged document token
+    return {
+        mergedToken: createDocumentToken(tokenSequence, documentType),
+        nextIndex: endIndex + 1
+    };
+};
+
+const mergeDocumentTokens = (expressionModel: ExpressionModel[]): ExpressionModel[] => {
+    const result: ExpressionModel[] = [];
+    let i = 0;
+
+    while (i < expressionModel.length) {
+        const current = expressionModel[i];
+
+        // Try to merge document tokens starting from START_EVENT
+        if (current.isToken && current.type === TokenType.START_EVENT) {
+            const mergeResult = tryMergeDocumentToken(expressionModel, i);
+
+            if (mergeResult) {
+                result.push(mergeResult.mergedToken);
+                i = mergeResult.nextIndex;
+                continue;
+            }
+        }
+
+        // No merge possible, add current token as-is
+        result.push(current);
+        i++;
+    }
+
+    return result;
+};
 
 export const createExpressionModelFromTokens = (
     value: string,
@@ -213,8 +341,8 @@ export const createExpressionModelFromTokens = (
         const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
         const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
         const tokenLength = chunk[TOKEN_LENGTH_INDEX];
-        const tokenTypeIndex = chunk[3];
-        const tokenModifiers = chunk[4];
+        const tokenTypeIndex = chunk[TOKEN_TYPE_INDEX];
+        const tokenModifiers = chunk[TOKEN_MODIFIERS_INDEX];
 
         currentLine += deltaLine;
         if (deltaLine === 0) {
@@ -237,7 +365,7 @@ export const createExpressionModelFromTokens = (
                 startColumn: literalStartColumn,
                 startLine: literalStartLine,
                 length: literalValue.length,
-                type: 'literal'
+                type: TokenType.LITERAL
             });
         }
 
@@ -251,7 +379,7 @@ export const createExpressionModelFromTokens = (
             startColumn: currentChar,
             startLine: currentLine,
             length: tokenLength,
-            type: tokenType as 'variable' | 'function' | 'literal'
+            type: tokenType
         });
 
         previousTokenEndOffset = tokenAbsoluteOffset + tokenLength;
@@ -269,7 +397,7 @@ export const createExpressionModelFromTokens = (
             startColumn: literalStartColumn,
             startLine: literalStartLine,
             length: literalValue.length,
-            type: 'literal'
+            type: TokenType.LITERAL
         });
     }
 
@@ -281,7 +409,7 @@ export const createExpressionModelFromTokens = (
             startColumn: 0,
             startLine: 0,
             length: 0,
-            type: 'literal'
+            type: TokenType.LITERAL
         });
     }
 
@@ -296,7 +424,7 @@ export const createExpressionModelFromTokens = (
             startColumn: endColumn,
             startLine: endLine,
             length: 0,
-            type: 'literal'
+            type: TokenType.LITERAL
         });
     }
 
@@ -305,18 +433,12 @@ export const createExpressionModelFromTokens = (
         el.id = String(index + 1);
     });
 
-    return expressionModel;
+    // Merge document type tokens with their record construction
+    return mergeDocumentTokens(expressionModel);
 };
 
-
-
 const getTokenTypeFromIndex = (index: number): TokenType => {
-    const tokenTypes: { [key: number]: TokenType } = {
-        0: 'variable',
-        1: 'property',
-        2: 'parameter',
-    };
-    return tokenTypes[index] || 'variable';
+    return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
 export const getCaretOffsetWithin = (el: HTMLElement): number => {
