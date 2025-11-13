@@ -156,6 +156,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             completions={completions}
             onChange={onChange}
             value={value}
+            sanitizedExpression={sanitizedExpression}
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}

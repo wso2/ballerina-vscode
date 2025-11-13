@@ -52,6 +52,8 @@ export interface EditorModeExpressionProps extends EditorModeProps {
     fileName?: string;
     /** Target line range for context */
     targetLineRange?: LineRange;
+    /** Optional function to sanitize expression for display (e.g., remove backticks) */
+    sanitizedExpression?: (value: string) => string;
     /** Function to extract arguments from function calls */
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;

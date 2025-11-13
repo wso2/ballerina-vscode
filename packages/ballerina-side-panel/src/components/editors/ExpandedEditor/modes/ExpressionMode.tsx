@@ -38,6 +38,7 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     completions = [],
     fileName,
     targetLineRange,
+    sanitizedExpression,
     extractArgsFromFunction,
     getHelperPane
 }) => {
@@ -52,6 +53,7 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
                 value={value}
                 onChange={handleChange}
                 completions={completions}
+                sanitizedExpression={sanitizedExpression}
                 fileName={fileName}
                 targetLineRange={targetLineRange}
                 extractArgsFromFunction={extractArgsFromFunction}

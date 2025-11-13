@@ -26,10 +26,11 @@ export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEdi
     return (
         <ExpressionEditor
             fileName={fileName}
-            {...targetLineRange}
-            {...props}
+            targetLineRange={targetLineRange}
+            helperPaneZIndex={props.helperPaneZIndex}
             {...form}
             {...expressionEditor}
+            {...props}
             rawExpression={getRawExp}
             sanitizedExpression={getSanitizedExp}
         />

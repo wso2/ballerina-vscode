@@ -54,6 +54,7 @@ export type ChipExpressionBaseComponentProps = {
     completions: CompletionItem[];
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
     value: string;
+    sanitizedExpression?: (value: string) => string;
     fileName?: string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
@@ -91,9 +92,57 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
+    // Helper function to sanitize expression model by stripping backticks
+    const sanitizeExpressionModel = useCallback((model: ExpressionModel[]): ExpressionModel[] => {
+        if (!props.sanitizedExpression || model.length === 0) {
+            return model;
+        }
+
+        // Find indices of first and last literal elements
+        const firstLiteralIndex = model.findIndex(el => !el.isToken);
+        const lastLiteralIndex = model.length - 1 - [...model].reverse().findIndex(el => !el.isToken);
+
+        return model
+            .map((element, index) => {
+                // Only process literal (non-token) elements
+                if (element.isToken) {
+                    return element;
+                }
+
+                let sanitizedValue = element.value;
+
+                // Strip leading backtick from first literal element
+                if (index === firstLiteralIndex && sanitizedValue.startsWith('`')) {
+                    sanitizedValue = sanitizedValue.slice(1);
+                }
+
+                // Strip trailing backtick from last literal element
+                if (index === lastLiteralIndex && sanitizedValue.endsWith('`')) {
+                    sanitizedValue = sanitizedValue.slice(0, -1);
+                }
+
+                // Return updated element with sanitized value
+                return {
+                    ...element,
+                    value: sanitizedValue,
+                    length: sanitizedValue.length
+                };
+            })
+            .filter((element) => {
+                // Filter out empty literal elements
+                if (!element.isToken && element.value === '') {
+                    return false;
+                }
+                return true;
+            });
+    }, [props.sanitizedExpression]);
+
     const memoizedExpressionModel = useMemo(
-        () => createExpressionModelFromTokens(props.value, tokens),
-        [props.value, tokens]
+        () => {
+            const model = createExpressionModelFromTokens(props.value, tokens);
+            return sanitizeExpressionModel(model);
+        },
+        [props.value, tokens, sanitizeExpressionModel]
     );
 
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
@@ -145,7 +194,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         if (value === props.value && updatedTokens === tokens) {
             exprModel = memoizedExpressionModel;
         } else {
-            exprModel = createExpressionModelFromTokens(value, updatedTokens);
+            const rawModel = createExpressionModelFromTokens(value, updatedTokens);
+            exprModel = sanitizeExpressionModel(rawModel);
         }
 
         if (pendingCursorPositionUpdateRef.current !== null) {
@@ -338,7 +388,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         }
         if (options?.replaceFullText) {
             const updatedTokens = await fetchUpdatedFilteredTokens(updatedValue);
-            let exprModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
+            const rawModel = createExpressionModelFromTokens(updatedValue, updatedTokens);
+            let exprModel = sanitizeExpressionModel(rawModel);
             handleExpressionChange(exprModel, updatedValue.length, HELPER_MARKER);
             return;
         }
@@ -364,7 +415,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 const textValue = getTextValueFromExpressionModel(updatedModel || []);
                 const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
 
-                let exprModel = createExpressionModelFromTokens(textValue, updatedTokens);
+                const rawModel = createExpressionModelFromTokens(textValue, updatedTokens);
+                let exprModel = sanitizeExpressionModel(rawModel);
 
                 // Map absolute position into new model and set focus flags
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
@@ -419,7 +471,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 const textValue = getTextValueFromExpressionModel(updatedModel || []);
                 const updatedTokens = await fetchUpdatedFilteredTokens(textValue);
 
-                let exprModel = createExpressionModelFromTokens(textValue, updatedTokens);
+                const rawModel = createExpressionModelFromTokens(textValue, updatedTokens);
+                let exprModel = sanitizeExpressionModel(rawModel);
 
                 // Map absolute position into new model and set focus flags
                 const mapped = mapAbsoluteToModel(exprModel, absoluteCaretPosition + value.length);
