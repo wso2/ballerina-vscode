@@ -45,8 +45,8 @@ const Description = styled(Typography)`
 
 const ButtonContainer = styled.div`
     display: flex;
-    gap: 12px;
-    align-items: center;
+    align-items: flex-end;
+    gap: 8px;
 `;
 
 const EmptyStateContainer = styled.div`
@@ -365,7 +365,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                 <Section>
                     <ContentPanel isEmpty={isEmptyProject()}>
                         <SectionHeader>
-                            <SectionTitle>Packages</SectionTitle>
+                            <SectionTitle>Integrations</SectionTitle>
                             {!isEmptyProject() && (
                                 <SectionActions>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
@@ -376,15 +376,14 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                         </SectionHeader>
                         {isEmptyProject() ? (
                             <EmptyStateContainer>
-                                <Codicon name="inbox" sx={{ fontSize: 48, opacity: 0.4, marginBottom: "16px" }} />
-                                <Typography variant="h3" sx={{ marginBottom: "8px" }}>
-                                    No packages yet
+                                <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                    Your workspace is empty
                                 </Typography>
                                 <Typography
                                     variant="body1"
-                                    sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)", maxWidth: "500px" }}
+                                    sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                 >
-                                    Start building your integration by adding packages or let AI generate your workspace structure
+                                    Start by adding integrations or use AI to generate your workspace structure
                                 </Typography>
                                 <ButtonContainer>
                                     <Button appearance="secondary" onClick={handleAddIntegration}>
@@ -423,7 +422,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                         ) : (
                             <EmptyReadmeContainer>
                                 <Description variant="body2">
-                                    Describe your integration and generate your packages with AI
+                                    Describe your integration and generate your integrations with AI
                                 </Description>
                                 <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
                             </EmptyReadmeContainer>
