@@ -44,7 +44,7 @@
         "id": "53726",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -121,7 +121,7 @@
         "id": "54721",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -198,7 +198,7 @@
         "id": "55723",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",

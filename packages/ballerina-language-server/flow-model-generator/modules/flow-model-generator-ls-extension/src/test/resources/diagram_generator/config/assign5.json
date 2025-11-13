@@ -48,7 +48,7 @@
         "id": "53767",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -124,8 +124,8 @@
       {
         "id": "54754",
         "metadata": {
-          "label": "Assign",
-          "description": "Assign a value to a variable"
+          "label": "Update Variable",
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "ASSIGN",
@@ -147,7 +147,7 @@
           "expression": {
             "metadata": {
               "label": "Expression",
-              "description": "Assign value"
+              "description": "Update value"
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "[check calculate(amount), check calculate(amount + 1)]",
@@ -175,7 +175,7 @@
         "id": "55709",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -251,8 +251,8 @@
       {
         "id": "56692",
         "metadata": {
-          "label": "Assign",
-          "description": "Assign a value to a variable"
+          "label": "Update Variable",
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "ASSIGN",
@@ -274,7 +274,7 @@
           "expression": {
             "metadata": {
               "label": "Expression",
-              "description": "Assign value"
+              "description": "Update value"
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "[11, 22]",

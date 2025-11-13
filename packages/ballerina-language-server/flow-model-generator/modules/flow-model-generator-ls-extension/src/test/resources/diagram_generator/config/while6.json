@@ -48,7 +48,7 @@
         "id": "104428",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -125,7 +125,7 @@
         "id": "105418",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -468,8 +468,8 @@
                       {
                         "id": "109700",
                         "metadata": {
-                          "label": "Assign",
-                          "description": "Assign a value to a variable"
+                          "label": "Update Variable",
+                          "description": "Update the value of an existing variable"
                         },
                         "codedata": {
                           "node": "ASSIGN",
@@ -491,7 +491,7 @@
                           "expression": {
                             "metadata": {
                               "label": "Expression",
-                              "description": "Assign value"
+                              "description": "Update value"
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Response received from food service: \" + response.toString()",
@@ -540,8 +540,8 @@
                       {
                         "id": "111690",
                         "metadata": {
-                          "label": "Assign",
-                          "description": "Assign a value to a variable"
+                          "label": "Update Variable",
+                          "description": "Update the value of an existing variable"
                         },
                         "codedata": {
                           "node": "ASSIGN",
@@ -563,7 +563,7 @@
                           "expression": {
                             "metadata": {
                               "label": "Expression",
-                              "description": "Assign value"
+                              "description": "Update value"
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Error occurred while invoking food service: \" + response.message()",

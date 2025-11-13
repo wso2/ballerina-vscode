@@ -44,7 +44,7 @@
         "id": "69600",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -121,7 +121,7 @@
         "id": "70628",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -198,7 +198,7 @@
         "id": "74560",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -275,7 +275,7 @@
         "id": "75555",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -352,7 +352,7 @@
         "id": "76553",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -429,7 +429,7 @@
         "id": "78591",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -506,7 +506,7 @@
         "id": "82494",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Update the value of an existing variable"
         },
         "codedata": {
           "node": "VARIABLE",

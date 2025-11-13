@@ -6,8 +6,8 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "Assign",
-      "description": "Assign a value to a variable"
+      "label": "Update Variable",
+      "description": "Update the value of an existing variable"
     },
     "codedata": {
       "node": "ASSIGN",
@@ -29,7 +29,7 @@
       "expression": {
         "metadata": {
           "label": "Expression",
-          "description": "Assign value"
+          "description": "Update value"
         },
         "valueType": "ACTION_OR_EXPRESSION",
         "value": "",
