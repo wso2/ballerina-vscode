@@ -360,8 +360,8 @@ export interface AnthropicKeySecrets {
 }
 
 export interface DevantEnvSecrets {
-    apiKey: string;
-    stsToken: string;
+    accessToken: string;
+    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
