@@ -86,7 +86,7 @@ export const getTokenChunks = (tokens: number[]) => {
 };
 
 export const calculateCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>,
+    fieldContainerRef: React.RefObject<HTMLElement>,
     setMenuPosition: React.Dispatch<React.SetStateAction<{ top: number; left: number }>>
 ) => {
     if (fieldContainerRef.current) {
@@ -117,7 +117,7 @@ export const calculateCompletionsMenuPosition = (
 };
 
 export const getCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>
+    fieldContainerRef: React.RefObject<HTMLElement>
 ) => {
     const activeElement = document.activeElement as HTMLElement;
     if (activeElement && activeElement.hasAttribute('data-element-id')) {
@@ -355,8 +355,8 @@ export const getSelectionOffsets = (el: HTMLElement): { start: number; end: numb
     const range = selection.getRangeAt(0);
     
     if (!el.contains(range.startContainer) || !el.contains(range.endContainer)) {
-        const elId = el.id ? `id: ${el.id}` : `tag: ${el.tagName}`;
-        throw new Error(`Selection is not within the specified element (${elId})`);
+        const offset = getCaretOffsetWithin(el);
+        return { start: offset, end: offset };
     }
     if (range.collapsed) {
         const offset = getCaretOffsetWithin(el);

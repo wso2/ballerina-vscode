@@ -37,7 +37,7 @@ import {
     setCursorPositionToExpressionModel,
     updateTokens,
 } from "./utils";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { Button, Codicon, CompletionItem, FnSignatureDocumentation, HelperPaneHeight, ThemeColors } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
@@ -63,6 +63,7 @@ export type ChipExpressionBaseComponentProps = {
     }>;
     targetLineRange?: LineRange;
     onOpenExpandedMode?: () => void;
+    onRemove?: () => void;
     isInExpandedMode?: boolean;
 }
 
@@ -85,6 +86,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const fetchnewTokensRef = useRef<boolean>(true);
     const focusedTextElementRef = useRef<HTMLSpanElement | null>(null);
     const scheduledCompletionFilterRef = useRef<boolean>(false);
+    const helperButtonRef = useRef<HTMLButtonElement>(null);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -155,9 +157,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     };
 
     useEffect(() => {
-        if (!props.value) return;
+        if (props.value === undefined || props.value === null) return;
         fetchInitialTokens(props.value);
     }, [props.value]);
+
+    useEffect(() => {
+        if (props.value === undefined || props.value === null) return;
+        fetchnewTokensRef.current = true;
+        fetchInitialTokens(props.value);
+    }, [props.isInExpandedMode]);
 
     useEffect(() => {
         if (!scheduledCompletionFilterRef.current) return;
@@ -367,16 +375,39 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
             if (!selectedElement) {
                 selectedElement = currentModel[currentModel.length - 1];
             };
-            if (selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd) {
-                // If there's a selection, replace the selected text
+            let absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
+            if (
+                selectedElement.focusOffsetStart !== undefined &&
+                selectedElement.focusOffsetEnd !== undefined &&
+                selectedElement.focusOffsetStart !== selectedElement.focusOffsetEnd
+            ) {
                 const newValue = selectedElement.value.substring(0, selectedElement.focusOffsetStart) +
-                    value +
                     selectedElement.value.substring(selectedElement.focusOffsetEnd);
-                value = newValue;
-                shouldReplaceEntireValue = true;
 
+                currentModel = currentModel.map(el => {
+                    if (el === selectedElement) {
+                        return {
+                            ...el,
+                            value: newValue,
+                            length: newValue.length,
+                            focusOffsetStart: selectedElement.focusOffsetStart,
+                            focusOffsetEnd: selectedElement.focusOffsetStart,
+                            isFocused: true
+                        };
+                    }
+                    return el;
+                });
+
+                let sumBeforeSelected = 0;
+                for (let i = 0; i < currentModel.length; i++) {
+                    if (currentModel[i].isFocused) {
+                        break;
+                    }
+                    sumBeforeSelected += currentModel[i].length;
+                }
+                absoluteCaretPosition = sumBeforeSelected + selectedElement.focusOffsetStart;
+                shouldReplaceEntireValue = false;
             }
-            const absoluteCaretPosition = getAbsoluteCaretPositionFromModel(currentModel);
             const updatedExpressionModelInfo = updateExpressionModelWithHelperValue(currentModel, absoluteCaretPosition, value, shouldReplaceEntireValue);
             if (updatedExpressionModelInfo) {
                 const { updatedModel, newCursorPosition } = updatedExpressionModelInfo;
@@ -491,45 +522,81 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     }
 
     return (
-        <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
-            {!props.isInExpandedMode && <FXButton />}
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                {isLoading && <SkeletonLoader />}
-                <AutoExpandingEditableDiv
-                    value={props.value}
-                    fieldContainerRef={fieldContainerRef}
-                    onFocusChange={(focused) => {
-                        setIsAnyElementFocused(focused);
-                        if (!focused && expressionModel) {
-                            const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
-                            handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
-                        }
+        <>
+            {props.isInExpandedMode && (
+                <button
+                    ref={helperButtonRef}
+                    onClick={toggleHelperPane}
+                    tabIndex={-1}
+                    style={{
+                        padding: '6px 12px',
+                        borderRadius: '3px',
+                        border: '1px solid var(--vscode-button-border)',
+                        backgroundColor: isHelperPaneOpen ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground)',
+                        color: isHelperPaneOpen ? 'var(--vscode-button-foreground)' : 'var(--vscode-button-secondaryForeground)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        width: '55px',
+                        height: '25px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontFamily: 'var(--vscode-font-family)',
+                        outline: 'none',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        transition: 'all 0.1s ease'
                     }}
-                    onKeyDown={handleKeyDown}
-                    isCompletionsOpen={isCompletionsOpen}
-                    completions={filteredCompletions}
-                    selectedCompletionItem={selectedCompletionItem}
-                    onCompletionSelect={handleCompletionSelect}
-                    onCompletionHover={setSelectedCompletionItem}
-                    onCloseCompletions={() => setIsCompletionsOpen(false)}
-                    getHelperPane={props.getHelperPane}
-                    isHelperPaneOpen={isHelperPaneOpen}
-                    handleHelperPaneValueChange={handleHelperPaneValueChange}
-                    onHelperPaneClose={() => setIsHelperPaneOpen(false)}
-                    onToggleHelperPane={toggleHelperPane}
-                    isInExpandedMode={props.isInExpandedMode}
-                    onOpenExpandedMode={props.onOpenExpandedMode}
                 >
-                    <TokenizedExpression
-                        expressionModel={expressionModel || []}
-                        onExpressionChange={handleExpressionChange}
-                        onChipClick={handleChipClick}
-                        onTextFocus={handleTextFocus}
-                        onChipFocus={handleChipFocus}
-                        onChipBlur={handleChipBlur}
-                    />
-                </AutoExpandingEditableDiv>
-            </div>
-        </ChipEditorContainer >
+                    <Codicon name="question" />
+                    <Codicon name={isHelperPaneOpen ? "chevron-right" : "chevron-down"} />
+                </button>
+            )}
+            <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+                {!props.isInExpandedMode && <FXButton />}
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <AutoExpandingEditableDiv
+                        value={props.value}
+                        fieldContainerRef={fieldContainerRef}
+                        onFocusChange={(focused) => {
+                            setIsAnyElementFocused(focused);
+                            if (!focused && expressionModel) {
+                                const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));
+                                handleExpressionChange(cleared, getAbsoluteCaretPosition(cleared), FOCUS_MARKER);
+                            }
+                        }}
+                        onKeyDown={handleKeyDown}
+                        isCompletionsOpen={isCompletionsOpen}
+                        completions={filteredCompletions}
+                        selectedCompletionItem={selectedCompletionItem}
+                        onCompletionSelect={handleCompletionSelect}
+                        onCompletionHover={setSelectedCompletionItem}
+                        onCloseCompletions={() => setIsCompletionsOpen(false)}
+                        getHelperPane={props.getHelperPane}
+                        isHelperPaneOpen={isHelperPaneOpen}
+                        handleHelperPaneValueChange={handleHelperPaneValueChange}
+                        onHelperPaneClose={() => setIsHelperPaneOpen(false)}
+                        onToggleHelperPane={toggleHelperPane}
+                        isInExpandedMode={props.isInExpandedMode}
+                        onOpenExpandedMode={props.onOpenExpandedMode}
+                        helperButtonRef={helperButtonRef}
+                    >
+                        <TokenizedExpression
+                            expressionModel={expressionModel || []}
+                            onExpressionChange={handleExpressionChange}
+                            onChipClick={handleChipClick}
+                            onTextFocus={handleTextFocus}
+                            onChipFocus={handleChipFocus}
+                            onChipBlur={handleChipBlur}
+                        />
+                    </AutoExpandingEditableDiv>
+                </div>
+                {props.onRemove && (
+                    <Button appearance="icon" onClick={props.onRemove} tooltip="Remove Expression" sx={{ marginLeft: '4px' }}>
+                        <Codicon name="trash" sx={{ color: ThemeColors.ERROR, fontSize: '16px' }} />
+                    </Button>
+                )}
+            </ChipEditorContainer >
+        </>
     )
 }

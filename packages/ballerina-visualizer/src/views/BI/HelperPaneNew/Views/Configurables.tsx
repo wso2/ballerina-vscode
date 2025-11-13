@@ -107,8 +107,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }, [])
 
     const getProjectInfo = async () => {
-        const projectPath = await rpcClient.getVisualizerLocation();
-        setProjectPathUri(URI.file(projectPath.projectUri).fsPath);
+        const visualizerContext = await rpcClient.getVisualizerLocation();
+        setProjectPathUri(URI.file(visualizerContext.projectPath).fsPath);
     }
 
     const getConfigVariables = async () => {
@@ -169,7 +169,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleItemClicked = (name: string) => {
-        onChange(name, true)
+        onChange(name, false)
         onClose && onClose();
     }
 

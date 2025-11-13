@@ -64,9 +64,9 @@ export class VisualizerWebview {
             }
 
             // Check the file is changed in the project.
-            const projectUri = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const documentUri = document.document.uri.toString();
-            const isDocumentUnderProject = documentUri.includes(projectUri);
+            const isDocumentUnderProject = documentUri.includes(projectPath);
             // Reset visualizer the undo-redo stack if user did changes in the editor
             if (isOpened && isDocumentUnderProject && !this._panel?.active) {
                 undoRedoManager.reset();
@@ -149,13 +149,14 @@ export class VisualizerWebview {
         // Check if devant.editor extension is active
         const isDevantEditor = vscode.commands.executeCommand('getContext', 'devant.editor') !== undefined;
         
+        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
                     <div class="welcome-content">
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">WSO2 Integrator: BI</h1>
+                        <h1 class="welcome-title">${biExtension ? 'WSO2 Integrator: BI' : 'Ballerina Visualizer'}</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>

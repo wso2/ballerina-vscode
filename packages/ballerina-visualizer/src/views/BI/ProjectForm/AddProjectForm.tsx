@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Button,
     Icon,
@@ -24,9 +24,8 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
-import { isFormValid } from "./utils";
+import { AddProjectFormFields, AddProjectFormData } from "./AddProjectFormFields";
+import { isFormValidAddProject } from "./utils";
 
 const FormContainer = styled.div`
     display: flex;
@@ -59,68 +58,89 @@ const IconButton = styled.div`
     }
 `;
 
-export function ProjectForm() {
+export function AddProjectForm() {
     const { rpcClient } = useRpcContext();
-    const [formData, setFormData] = useState<ProjectFormData>({
+    const [formData, setFormData] = useState<AddProjectFormData>({
         integrationName: "",
         packageName: "",
-        path: "",
-        createDirectory: true,
-        createAsWorkspace: false,
         workspaceName: "",
         orgName: "",
         version: "",
     });
+    const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
+    const [path, setPath] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const handleFormDataChange = (data: Partial<ProjectFormData>) => {
+    const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
     };
 
-    const handleCreateProject = () => {
-        rpcClient.getBIDiagramRpcClient().createProject({
+    useEffect(() => {
+        Promise.all([
+            rpcClient.getCommonRpcClient().getWorkspaceRoot(),
+            rpcClient.getCommonRpcClient().getWorkspaceType()
+        ]).then(([path, workspaceType]) => {
+            setPath(path.path);
+            setIsInWorkspace(workspaceType.type === "BALLERINA_WORKSPACE");
+        });
+    }, []);
+
+    const handleAddProject = () => {
+        setIsLoading(true);
+        rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
             projectName: formData.integrationName,
             packageName: formData.packageName,
-            projectPath: formData.path,
-            createDirectory: formData.createDirectory,
-            createAsWorkspace: formData.createAsWorkspace,
+            convertToWorkspace: !isInWorkspace,
+            path: path,
             workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
         });
     };
 
-    const gotToWelcome = () => {
-        rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.OPEN_VIEW,
-            location: {
-                view: MACHINE_VIEW.BIWelcome,
-            },
-        });
+    const goBack = () => {
+        rpcClient.getVisualizerRpcClient().goBack();
     };
 
     return (
         <FormContainer>
             <TitleContainer>
-                <IconButton onClick={gotToWelcome}>
+                <IconButton onClick={goBack}>
                     <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
                 </IconButton>
-                <Typography variant="h2">Create Your Integration</Typography>
+                <Typography variant="h2">
+                    {!isInWorkspace 
+                        ? "Convert to Workspace & Add Integration"
+                        : "Add New Integration"}
+                </Typography>
             </TitleContainer>
 
-            <ProjectFormFields
+            <AddProjectFormFields
                 formData={formData}
                 onFormDataChange={handleFormDataChange}
+                isInWorkspace={isInWorkspace}
             />
 
             <ButtonWrapper>
                 <Button
-                    disabled={!isFormValid(formData)}
-                    onClick={handleCreateProject}
+                    disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
+                    onClick={handleAddProject}
                     appearance="primary"
                 >
-                    {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                    {isLoading ? (
+                        <Typography variant="progress">
+                            {!isInWorkspace 
+                                ? "Converting & Adding..."
+                                : "Adding..."}
+                        </Typography>
+                    ) : (
+                        !isInWorkspace 
+                            ? "Convert & Add Integration"
+                            : "Add Integration"
+                    )}
                 </Button>
             </ButtonWrapper>
         </FormContainer>
     );
 }
+

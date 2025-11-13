@@ -4,11 +4,11 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [5.6.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.4.0...ballerina-integrator-1.5.0) - 2025-11-11
 
 ### Added
 
-- **Editor** — Added visual editing for mono-repositories with multiple Ballerina projects, along with support for "Natural expressions" in Ballerina 2201.13.0.
+- **Editor** — Added support for [Ballerina workspaces](https://ballerina.io/learn/workspaces/). This allows you to seamlessly manage, navigate, and build multiple related Ballerina projects within a single VS Code window, greatly improving the development workflow for complex systems.
 
 ## [5.5.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.2...ballerina-integrator-1.4.0) - 2025-11-05
 
