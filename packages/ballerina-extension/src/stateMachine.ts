@@ -488,7 +488,7 @@ const stateMachine = createMachine<MachineContext>(
                 const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        if (context.workspacePath) {
+                        if (!context.projectPath && context.workspacePath) {
                             history.push({
                                 location: {
                                     view: MACHINE_VIEW.WorkspaceOverview
