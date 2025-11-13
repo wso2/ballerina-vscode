@@ -40,7 +40,7 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
-import { usePlatformExtContext } from "../../../utils/PlatformExtContext";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 
 const SpinnerContainer = styled.div`
     display: flex;
