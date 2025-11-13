@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { LineRange } from '@wso2/ballerina-core';
+import { LineRange, NodeKind } from '@wso2/ballerina-core';
 import React, { createContext, FC, useContext } from 'react';
 import {
     Control,
@@ -52,6 +52,9 @@ export interface FormContext {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
 
+    },
+    nodeInfo: {
+        kind: NodeKind
     }
 }
 

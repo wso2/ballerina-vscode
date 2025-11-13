@@ -86,6 +86,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         openFormTypeEditor,
         scopeFieldAddon
     } = props;
+
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {

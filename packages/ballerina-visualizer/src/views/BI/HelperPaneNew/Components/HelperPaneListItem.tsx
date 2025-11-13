@@ -94,6 +94,10 @@ export const HelperPaneListItem: React.FC<HelperPaneListItemProps> = ({
             <MainContent
                 onMouseEnter={() => setIsMainHovered(true)}
                 onMouseLeave={() => setIsMainHovered(false)}
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                    onClick?.();
+                }}
                 onClick={onClick}
                 isHovered={isMainHovered}
             >
@@ -105,6 +109,10 @@ export const HelperPaneListItem: React.FC<HelperPaneListItemProps> = ({
                 <EndActionContainer
                     onMouseEnter={() => setIsEndActionHovered(true)}
                     onMouseLeave={() => setIsEndActionHovered(false)}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleOnClickEndAction(e);
+                    }}
                     onClick={handleOnClickEndAction}
                     isHovered={isEndActionHovered}
                 >

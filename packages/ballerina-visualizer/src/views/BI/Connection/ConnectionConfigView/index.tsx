@@ -19,11 +19,12 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
+import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
 import FormGenerator from "../../Forms/FormGenerator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
+import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
     max-width: 600px;
@@ -50,7 +51,7 @@ interface ConnectionConfigViewProps {
     submitText?: string;
     isSaving?: boolean;
     selectedNode: FlowNode;
-    onSubmit: (node?: FlowNode) => void;
+    onSubmit: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     updatedExpressionField?: ExpressionFormField;
     resetUpdatedExpressionField?: () => void;
@@ -114,6 +115,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     disableSaveButton={isPullingConnector}
                     navigateToPanel={navigateToPanel}
+                    handleOnFormSubmit={onSubmit}
                 />
             )}
         </Container>

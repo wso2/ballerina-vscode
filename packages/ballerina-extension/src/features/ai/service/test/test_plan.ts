@@ -19,9 +19,9 @@ import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage } from "../utils";
 import { TestGenerationTarget, TestPlanGenerationRequest, Command } from "@wso2/ballerina-core";
 import { generateTest, getDiagnostics } from "../../testGenerator";
-import { getBallerinaProjectRoot } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { getCurrentProjectRoot } from "../../../../utils/project-utils";
 
 export interface TestPlanResponse {
     testPlan: string;
@@ -168,8 +168,15 @@ export async function generateTestPlanCore(
                         type: "content_block",
                         content: `\n\n<progress>Generating tests for the ${target} service. This may take a moment.</progress>`,
                     });
-                    const projectRoot = await getBallerinaProjectRoot();
-                    const testResp = await generateTest(projectRoot, {
+                    let projectPath: string;
+                    try {
+                        projectPath = await getCurrentProjectRoot();
+                    } catch (error) {
+                        console.error("Error getting current project root:", error);
+                        eventHandler({ type: "error", content: getErrorMessage(error) });
+                        return;
+                    }
+                    const testResp = await generateTest(projectPath, {
                         targetType: TestGenerationTarget.Service,
                         targetIdentifier: target,
                         testPlan: assistantResponse,
@@ -178,7 +185,7 @@ export async function generateTestPlanCore(
                         type: "content_block",
                         content: `\n<progress>Analyzing generated tests for potential issues.</progress>`,
                     });
-                    const diagnostics = await getDiagnostics(projectRoot, testResp);
+                    const diagnostics = await getDiagnostics(projectPath, testResp);
                     let testCode = testResp.testSource;
                     const testConfig = testResp.testConfig;
                     if (diagnostics.diagnostics.length > 0) {
@@ -186,7 +193,7 @@ export async function generateTestPlanCore(
                             type: "content_block",
                             content: `\n<progress>Refining tests based on feedback to ensure accuracy and reliability.</progress>`,
                         });
-                        const fixedCode = await generateTest(projectRoot, {
+                        const fixedCode = await generateTest(projectPath, {
                             targetType: TestGenerationTarget.Service,
                             targetIdentifier: target,
                             testPlan: assistantResponse,
