@@ -41,6 +41,7 @@ interface ExpandedPromptEditorProps {
     completions?: CompletionItem[];
     fileName?: string;
     targetLineRange?: LineRange;
+    sanitizedExpression?: (value: string) => string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -153,6 +154,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     completions,
     fileName,
     targetLineRange,
+    sanitizedExpression,
     extractArgsFromFunction,
     getHelperPane
 }) => {
@@ -209,6 +211,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             completions,
             fileName,
             targetLineRange,
+            sanitizedExpression,
             extractArgsFromFunction,
             getHelperPane
         })

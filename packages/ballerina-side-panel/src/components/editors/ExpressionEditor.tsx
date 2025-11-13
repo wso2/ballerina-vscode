@@ -753,6 +753,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     completions={completions}
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}
+                                    sanitizedExpression={sanitizedExpression}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
                                     getHelperPane={handleGetHelperPane}
                                 />
