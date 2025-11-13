@@ -358,15 +358,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     }
 
     const getProjectListeners = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);
                 }
-                const services = res.directoryMap[DIRECTORY_MAP.SERVICE];
+                const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
                 if (services.length > 0) {
                     const selectedService = services.find((service) => service.name === serviceIdentifier);
                     if (selectedService.moduleName === "mcp") {
@@ -378,14 +378,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                     } else {
                         setResources(selectedService.resources);
                     }
-
-                    // // Remove the init option from setDropdownOptions(options); if init function is here
-                    // if (selectedService.resources.find((func) => func.name === "init")) {
-                    //     const filtered = [...dropdownOptions].filter((option) => option.value !== ADD_INIT_FUNCTION);
-                    //     setDropdownOptions(filtered);
-                    // }
                 }
             });
+        });
     };
 
     const handleOpenListener = (value: string) => {
@@ -547,8 +542,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             endColumn: model.codedata.lineRange.endLine.offset,
         };
         await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({ filePath, component });
+
+        const context = await rpcClient.getVisualizerLocation();
+        const projectPath = context.projectPath;
         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-        const serviceArtifact = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
+        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+
+        const serviceArtifact = project.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
         if (serviceArtifact) {
             await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
             fetchService(serviceArtifact.position);

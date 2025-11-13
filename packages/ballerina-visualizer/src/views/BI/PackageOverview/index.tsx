@@ -605,8 +605,10 @@ export function PackageOverview(props: ComponentDiagramProps) {
             return [];
         }
 
-        const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
-        const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
+        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+
+        const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
+        const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
 
         let scopes: SCOPE[] = [];
         if (services) {
@@ -622,18 +624,29 @@ export function PackageOverview(props: ComponentDiagramProps) {
         return scopes;
     }, [projectStructure]);
 
+    const projectName = useMemo(() => {
+        if (!projectStructure) {
+            return "";
+        }
+
+        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+        return project?.projectName || "";
+    }, [projectStructure, projectPath]);
+
     function isEmptyProject(): boolean {
+        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+
         // Filter out connections that start with underscore
-        const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
+        const validConnections = project.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
         ) || [];
 
         return (
-            (!projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] || projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
+            (!project.directoryMap[DIRECTORY_MAP.AUTOMATION] || project.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
             (validConnections.length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.LISTENER] || projectStructure.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
-            (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
+            (!project.directoryMap[DIRECTORY_MAP.LISTENER] || project.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
+            (!project.directoryMap[DIRECTORY_MAP.SERVICE] || project.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
+            (!project.directoryMap.agents || project.directoryMap.agents.length === 0)
         );
     }
 
@@ -752,7 +765,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
             <PageLayout>
                 <HeaderRow isBallerinaWorkspace={workspaceType?.type === "BALLERINA_WORKSPACE"}>
                     <TitleContainer>
-                        <ProjectTitle>{projectStructure.projectName || workspaceName}</ProjectTitle>
+                        <ProjectTitle>{projectName || workspaceName}</ProjectTitle>
                         <ProjectSubtitle>Integration</ProjectSubtitle>
                     </TitleContainer>
                     <HeaderControls>

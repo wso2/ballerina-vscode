@@ -430,8 +430,9 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
-                        const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-                        const entryPoint = getProjectStructure
+                        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
+                        const entryPoint = project
                             .directoryMap[DIRECTORY_MAP.SERVICE]
                             .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                         setViewComponent(

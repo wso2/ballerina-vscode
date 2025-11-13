@@ -28,9 +28,9 @@ import { getConstructBodyString } from "./history/util";
 import { extension } from "../BalExtensionContext";
 import path from "path";
 
-export async function getView(documentUri: string, position: NodePosition, projectPath?: string): Promise<HistoryEntry> {
+export async function getView(documentUri: string, position: NodePosition, projectPath: string): Promise<HistoryEntry> {
     const haveTreeData = !!StateMachine.context().projectStructure;
-    const isServiceClassFunction = await checkForServiceClassFunctions(documentUri, position);
+    const isServiceClassFunction = await checkForServiceClassFunctions(documentUri, position, projectPath);
     if (isServiceClassFunction || path.relative(projectPath || '', documentUri).startsWith("tests")) {
         return {
             location: {
@@ -49,10 +49,11 @@ export async function getView(documentUri: string, position: NodePosition, proje
     }
 }
 
-async function checkForServiceClassFunctions(documentUri: string, position: NodePosition) {
+async function checkForServiceClassFunctions(documentUri: string, position: NodePosition, projectPath: string) {
     const currentProjectArtifacts = StateMachine.context().projectStructure;
     if (currentProjectArtifacts) {
-        for (const dir of currentProjectArtifacts.directoryMap[DIRECTORY_MAP.TYPE]) {
+        const project = currentProjectArtifacts.projects.find(project => project.projectPath === projectPath);
+        for (const dir of project.directoryMap[DIRECTORY_MAP.TYPE]) {
             if (dir.path === documentUri && isPositionWithinBlock(position, dir.position)) {
                 const req = getSTByRangeReq(documentUri, position);
                 const node = await StateMachine.langClient().getSTByRange(req) as SyntaxTreeResponse;
@@ -266,11 +267,12 @@ async function getViewBySTRange(documentUri: string, position: NodePosition, pro
 
 }
 
-function getViewByArtifacts(documentUri: string, position: NodePosition, projectPath?: string) {
+function getViewByArtifacts(documentUri: string, position: NodePosition, projectPath: string) {
     const currentProjectArtifacts = StateMachine.context().projectStructure;
     if (currentProjectArtifacts) {
         // Iterate through each category in the directory map
-        for (const [key, directory] of Object.entries(currentProjectArtifacts.directoryMap)) {
+        const project = currentProjectArtifacts.projects.find(project => project.projectPath === projectPath);
+        for (const [key, directory] of Object.entries(project.directoryMap)) {
             // Check each artifact in the category
             for (const dir of directory) {
                 //  Go through the resources array if it exists

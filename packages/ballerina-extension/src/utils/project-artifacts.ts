@@ -18,19 +18,50 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
 import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 
+export interface PackageInfo {
+    readonly packagePath: string;
+    readonly packageName?: string;
+}
+
+export async function buildProjectsStructure(
+    packages: PackageInfo[],
+    langClient: ExtendedLangClient,
+    isUpdate: boolean = false,
+    workspaceName?: string,
+): Promise<ProjectStructureResponse> {
+
+    const projects: ProjectStructure[] = [];
+    for (const packageInfo of packages) {
+        const project = await buildProjectArtifactsStructure(packageInfo.packagePath, packageInfo.packageName, langClient);
+        projects.push(project);
+    }
+
+    const response: ProjectStructureResponse = {
+        workspaceName: workspaceName || undefined,
+        projects: projects
+    };
+
+    if (isUpdate) {
+        StateMachine.updateProjectStructure({ ...response });
+    }
+
+    return response;
+}
+
 export async function buildProjectArtifactsStructure(
     projectPath: string,
-    langClient: ExtendedLangClient,
-    isUpdate: boolean = false
-): Promise<ProjectStructureResponse> {
-    const result: ProjectStructureResponse = {
-        projectName: "",
+    packageName: string,
+    langClient: ExtendedLangClient
+): Promise<ProjectStructure> {
+    const result: ProjectStructure = {
+        projectName: packageName,
+        projectPath: projectPath,
         directoryMap: {
             [DIRECTORY_MAP.AUTOMATION]: [],
             [DIRECTORY_MAP.SERVICE]: [],
@@ -70,9 +101,6 @@ export async function buildProjectArtifactsStructure(
 
     result.projectName = projectName;
 
-    if (isUpdate) {
-        StateMachine.updateProjectStructure({ ...result });
-    }
     return result;
 }
 
@@ -102,7 +130,7 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     }
 }
 
-async function traverseComponents(artifacts: Artifacts, response: ProjectStructureResponse) {
+async function traverseComponents(artifacts: Artifacts, response: ProjectStructure) {
     response.directoryMap[DIRECTORY_MAP.AUTOMATION].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], DIRECTORY_MAP.AUTOMATION, "task"));
     response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], DIRECTORY_MAP.SERVICE, "http-service"));
     response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], DIRECTORY_MAP.LISTENER, "http-service"));
@@ -114,7 +142,13 @@ async function traverseComponents(artifacts: Artifacts, response: ProjectStructu
     response.directoryMap[DIRECTORY_MAP.NP_FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.NaturalFunctions], DIRECTORY_MAP.NP_FUNCTION, "function"));
 }
 
-async function getComponents(artifacts: Record<string, BaseArtifact>, artifactType: DIRECTORY_MAP, icon: string, moduleName?: string): Promise<ProjectStructureArtifactResponse[]> {
+async function getComponents(
+    artifacts: Record<string, BaseArtifact>,
+    artifactType: DIRECTORY_MAP,
+    icon: string,
+    moduleName?: string
+): Promise<ProjectStructureArtifactResponse[]> {
+
     const entries: ProjectStructureArtifactResponse[] = [];
     if (!artifacts) {
         return entries;
@@ -272,8 +306,10 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
 function processDeletion(artifact: BaseArtifact, artifactCategoryKey: string, projectStructure: ProjectStructureResponse): void {
     const mapping = getDirectoryMapKeyAndIcon(artifact, artifactCategoryKey);
     if (mapping) {
-        projectStructure.directoryMap[mapping.mapKey] =
-            projectStructure.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
+        const projectPath = StateMachine.context().projectPath;
+        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+        project.directoryMap[mapping.mapKey] =
+            project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
     } else {
         console.error(`Could not determine directory map key for deletion of artifact ${artifact.id} in category ${artifactCategoryKey}`);
     }
@@ -291,12 +327,15 @@ async function processAddition(artifact: BaseArtifact, artifactCategoryKey: stri
     if (mapping) {
         try {
             const entryValue = await getEntryValue(artifact, mapping.icon);
+
+            const projectPath = StateMachine.context().projectPath;
+            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
             // Ensure the array exists before pushing
-            if (!projectStructure.directoryMap[mapping.mapKey]) {
-                projectStructure.directoryMap[mapping.mapKey] = [];
+            if (!project.directoryMap[mapping.mapKey]) {
+                project.directoryMap[mapping.mapKey] = [];
             }
             entryValue.isNew = true; // This is a flag to identify the new artifact
-            projectStructure.directoryMap[mapping.mapKey]?.push(entryValue);
+            project.directoryMap[mapping.mapKey]?.push(entryValue);
             return entryValue;
         } catch (error) {
             console.error(`Error processing addition for artifact ${artifact.id} in category ${artifactCategoryKey}:`, error);
@@ -320,17 +359,19 @@ async function processUpdate(artifact: BaseArtifact, artifactCategoryKey: string
     if (mapping) {
         try {
             const entryValue = await getEntryValue(artifact, mapping.icon);
+            const projectPath = StateMachine.context().projectPath;
+            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
             // Ensure the array exists
-            if (!projectStructure.directoryMap[mapping.mapKey]) {
-                projectStructure.directoryMap[mapping.mapKey] = [];
+            if (!project.directoryMap[mapping.mapKey]) {
+                project.directoryMap[mapping.mapKey] = [];
             }
-            const index = projectStructure.directoryMap[mapping.mapKey]?.findIndex(value => value.id === artifact.id);
+            const index = project.directoryMap[mapping.mapKey]?.findIndex(value => value.id === artifact.id);
             if (index !== undefined && index !== -1) {
-                projectStructure.directoryMap[mapping.mapKey][index] = entryValue;
+                project.directoryMap[mapping.mapKey][index] = entryValue;
             } else {
                 // Artifact not found for update, add it instead (matches original logic)
                 console.warn(`Artifact ${artifact.id} not found for update in ${mapping.mapKey}, adding it instead.`);
-                projectStructure.directoryMap[mapping.mapKey]?.push(entryValue);
+                project.directoryMap[mapping.mapKey]?.push(entryValue);
             }
             return entryValue;
         } catch (error) {
@@ -374,9 +415,12 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     // Wait for all additions and updates to complete
     const results = await Promise.all(promises);
 
-    for (const key of Object.keys(currentProjectStructure.directoryMap)) {
-        if (currentProjectStructure.directoryMap[key]) {
-            currentProjectStructure.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+    const projectPath = StateMachine.context().projectPath;
+    const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
+
+    for (const key of Object.keys(project.directoryMap)) {
+        if (project.directoryMap[key]) {
+            project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
         }
     }
 
@@ -389,7 +433,7 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     return entryLocations;
 }
 
-async function populateLocalConnectors(projectDir: string, response: ProjectStructureResponse) {
+async function populateLocalConnectors(projectDir: string, response: ProjectStructure) {
     const filePath = `${projectDir}/Ballerina.toml`;
     const localConnectors = (await StateMachine.langClient().getOpenApiGeneratedModules({ projectPath: projectDir })).modules || [];
     const mappedEntries: ProjectStructureArtifactResponse[] = localConnectors.map(moduleName => ({
