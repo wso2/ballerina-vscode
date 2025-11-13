@@ -109,17 +109,18 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                     <ExpandButton />
                                 </FloatingToggleButton>
                             </div>
+                            <ExpandedEditor
+                                isOpen={isExpandedModalOpen}
+                                field={field}
+                                value={watch(field.key)}
+                                onClose={() => setIsExpandedModalOpen(false)}
+                                onSave={handleSaveExpandedMode} 
+                                onChange={onChange}
+                            />
                         </TextAreaContainer>
                     )}
                 />
             </S.Container>
-            <ExpandedEditor
-                isOpen={isExpandedModalOpen}
-                field={field}
-                value={watch(field.key)}
-                onClose={() => setIsExpandedModalOpen(false)}
-                onSave={handleSaveExpandedMode}
-            />
         </>
     );
 }

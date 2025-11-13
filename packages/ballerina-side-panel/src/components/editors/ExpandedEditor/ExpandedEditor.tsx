@@ -19,12 +19,14 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Divider, Typography } from "@wso2/ui-toolkit";
-import { FormField } from "../../Form/types";
+import { ThemeColors, Divider, Typography, CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { FormField, HelperpaneOnChangeOptions } from "../../Form/types";
 import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
+import { ExpressionMode } from "./modes/ExpressionMode";
 import { CompressButton } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -32,6 +34,24 @@ interface ExpandedPromptEditorProps {
     value: string;
     onClose: () => void;
     onSave: (value: string) => void;
+    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    // Optional mode override (if not provided, will be auto-detected)
+    mode?: EditorMode;
+    // Expression mode specific props
+    completions?: CompletionItem[];
+    fileName?: string;
+    targetLineRange?: LineRange;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
 }
 
 const ModalContainer = styled.div`
@@ -89,7 +109,8 @@ const ModalContent = styled.div`
  */
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     text: TextMode,
-    prompt: PromptMode
+    prompt: PromptMode,
+    expression: ExpressionMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -97,18 +118,25 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     field,
     value,
     onClose,
+    onChange,
     onSave,
+    mode: propMode,
+    completions,
+    fileName,
+    targetLineRange,
+    extractArgsFromFunction,
+    getHelperPane
 }) => {
-    const [editedValue, setEditedValue] = useState(value);
     const promptFields = ["query", "instructions", "role"];
-    const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
+
+    // Determine mode - use prop if provided, otherwise auto-detect
+    const defaultMode: EditorMode = propMode ?? (
+        promptFields.includes(field.key) ? "prompt" : "text"
+    );
+
     const [mode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
-
-    useEffect(() => {
-        setEditedValue(value);
-    }, [value, isOpen]);
 
     useEffect(() => {
         if (mode === "text") {
@@ -117,7 +145,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     }, [mode]);
 
     const handleMinimize = () => {
-        onSave(editedValue);
         onClose();
     };
 
@@ -140,13 +167,21 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     // Prepare props for the mode component
     const modeProps = {
-        value: editedValue,
-        onChange: setEditedValue,
+        value: value,
+        onChange: onChange,
         field,
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
             onTogglePreview: () => setShowPreview(!showPreview)
+        }),
+        // Props for expression mode
+        ...(mode === "expression" && {
+            completions,
+            fileName,
+            targetLineRange,
+            extractArgsFromFunction,
+            getHelperPane
         })
     };
 
