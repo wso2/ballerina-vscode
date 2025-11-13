@@ -1888,7 +1888,7 @@ public class DataMapManager {
             TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
             return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
-        return kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP;
+        return kind == TypeDescKind.RECORD;
     }
 
     public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField,
