@@ -179,12 +179,11 @@ interface GraphqlObjectViewerProps {
     type: Type;
     onClose: () => void;
     onImplementation: (type: Type) => void;
-    projectUri: string;
     serviceIdentifier: string;
 }
 
 export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
-    const { onClose, type, projectUri, onImplementation, serviceIdentifier } = props;
+    const { onClose, type, onImplementation, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel>();
     const [editingFunction, setEditingFunction] = useState<FunctionModel>(undefined);
@@ -283,7 +282,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                         }
                     },
                     function: updatedFunction,
-                    artifactType: DIRECTORY_MAP.SERVICE
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             } else {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().updateResourceSourceCode({
@@ -301,7 +300,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                         }
                     },
                     function: updatedFunction,
-                    artifactType: DIRECTORY_MAP.SERVICE
+                    artifactType: DIRECTORY_MAP.TYPE
                 });
             }
 

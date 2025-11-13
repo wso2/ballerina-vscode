@@ -86,7 +86,7 @@ export const getTokenChunks = (tokens: number[]) => {
 };
 
 export const calculateCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>,
+    fieldContainerRef: React.RefObject<HTMLElement>,
     setMenuPosition: React.Dispatch<React.SetStateAction<{ top: number; left: number }>>
 ) => {
     if (fieldContainerRef.current) {
@@ -117,7 +117,7 @@ export const calculateCompletionsMenuPosition = (
 };
 
 export const getCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>
+    fieldContainerRef: React.RefObject<HTMLElement>
 ) => {
     const activeElement = document.activeElement as HTMLElement;
     if (activeElement && activeElement.hasAttribute('data-element-id')) {
@@ -185,7 +185,7 @@ export const expressionModelInitValue: ExpressionModel = {
     length: 0,
     type: 'literal',
     isFocused: false,
-    focusOffset: undefined
+    focusOffsetStart: undefined
 }
 
 export const createExpressionModelFromTokens = (
@@ -274,7 +274,7 @@ export const createExpressionModelFromTokens = (
 
     if (expressionModel.length > 0 && expressionModel[0].isToken) {
         expressionModel.unshift({
-            id: String(idCounter++),
+            id: '0',
             value: '',
             isToken: false,
             startColumn: 0,
@@ -289,7 +289,7 @@ export const createExpressionModelFromTokens = (
         const endColumnBase = getAbsoluteColumnOffset(value, endLine, 0);
         const endColumn = (typeof endColumnBase === 'number') ? (value.length - endColumnBase) : 0;
         expressionModel.push({
-            id: String(idCounter++),
+            id: '0',
             value: '',
             isToken: false,
             startColumn: endColumn,
@@ -298,6 +298,11 @@ export const createExpressionModelFromTokens = (
             type: 'literal'
         });
     }
+
+    // Renumber all ids to match their final positions (1-indexed)
+    expressionModel.forEach((el, index) => {
+        el.id = String(index + 1);
+    });
 
     return expressionModel;
 };
@@ -332,6 +337,63 @@ export const getCaretOffsetWithin = (el: HTMLElement): number => {
     return offset;
 };
 
+export const hasTextSelection = (el: HTMLElement): boolean => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+    if (!el.contains(range.startContainer)) return false;
+    return !range.collapsed;
+};
+
+export const getSelectionOffsets = (el: HTMLElement): { start: number; end: number } => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+        const offset = getCaretOffsetWithin(el);
+        return { start: offset, end: offset };
+    }
+    
+    const range = selection.getRangeAt(0);
+    
+    if (!el.contains(range.startContainer) || !el.contains(range.endContainer)) {
+        const offset = getCaretOffsetWithin(el);
+        return { start: offset, end: offset };
+    }
+    if (range.collapsed) {
+        const offset = getCaretOffsetWithin(el);
+        return { start: offset, end: offset };
+    }
+
+    let startOffset = 0;
+    let endOffset = 0;
+    
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    let current: Node | null = walker.nextNode();
+    
+    while (current) {
+        const textLength = (current.textContent || '').length;
+        
+        // Calculate start offset
+        if (current === range.startContainer) {
+            startOffset += range.startOffset;
+        } else if (current.compareDocumentPosition(range.startContainer) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            // startContainer comes after current node
+            startOffset += textLength;
+        }
+        
+        // Calculate end offset
+        if (current === range.endContainer) {
+            endOffset += range.endOffset;
+            break;
+        } else {
+            endOffset += textLength;
+        }
+        
+        current = walker.nextNode();
+    }
+
+    return { start: startOffset, end: endOffset };
+};
+
 export const getAbsoluteCaretPosition = (model: ExpressionModel[] | undefined): number => {
     if (!model || model.length === 0) return 0;
     const active = document.activeElement as HTMLElement | null;
@@ -358,7 +420,7 @@ export const getAbsoluteCaretPositionFromModel = (expressionModel: ExpressionMod
 
     for (const element of expressionModel) {
         if (element.isFocused) {
-            absolutePosition += element.focusOffset ?? 0;
+            absolutePosition += element.focusOffsetStart ?? 0;
             break;
         }
         absolutePosition += element.length;
@@ -499,7 +561,8 @@ export const updateExpressionModelWithHelperValue = (
             length: 0,
             type: 'literal',
             isFocused: false,
-            focusOffset: 0
+            focusOffsetStart: 0,
+            focusOffsetEnd: 0
         }]
     }
     else {
@@ -594,7 +657,7 @@ export const setFocusInExpressionModel = (
         const boundedOffset = Math.max(0, Math.min(exprModel[editableIndex].length, mapped.offset));
         return exprModel.map((m, i) => (
             i === editableIndex
-                ? { ...m, isFocused: true, focusOffset: boundedOffset }
+                ? { ...m, isFocused: true, focusOffsetStart: boundedOffset, focusOffsetEnd: boundedOffset }
                 : { ...m, isFocused: false }
         ));
     }
@@ -645,6 +708,58 @@ export const setCaretPosition = (el: HTMLElement, position: number) => {
     }
 };
 
+export const setSelectionRange = (el: HTMLElement, start: number, end: number) => {
+    if (!el.firstChild) {
+        el.appendChild(document.createTextNode(""));
+    }
+
+    // Helper function to find text node and position
+    const findPosition = (position: number) => {
+        let remaining = Math.max(0, position);
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+        let textNode: Text | null = null;
+        let posInNode = 0;
+        let node = walker.nextNode() as Text | null;
+
+        while (node) {
+            const len = node.textContent ? node.textContent.length : 0;
+            if (remaining <= len) {
+                textNode = node;
+                posInNode = remaining;
+                break;
+            }
+            remaining -= len;
+            node = walker.nextNode() as Text | null;
+        }
+
+        if (!textNode) {
+            const last = el.lastChild;
+            if (last && last.nodeType === Node.TEXT_NODE) {
+                textNode = last as Text;
+                posInNode = (textNode.textContent || "").length;
+            } else {
+                textNode = el.firstChild as Text;
+                posInNode = 0;
+            }
+        }
+
+        return { textNode, posInNode };
+    };
+
+    const startPos = findPosition(start);
+    const endPos = findPosition(end);
+
+    const range = document.createRange();
+    range.setStart(startPos.textNode, Math.max(0, Math.min(startPos.posInNode, (startPos.textNode.textContent || "").length)));
+    range.setEnd(endPos.textNode, Math.max(0, Math.min(endPos.posInNode, (endPos.textNode.textContent || "").length)));
+
+    const sel = window.getSelection();
+    if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+};
+
 export const handleKeyDownInTextElement = (
     e: React.KeyboardEvent<HTMLSpanElement>,
     expressionModel: ExpressionModel[],
@@ -683,9 +798,6 @@ const handleBackspace = (
     if (caretOffset === 0) {
         handleBackspaceAtStart(e, expressionModel, index, onExpressionChange);
     }
-    // else {
-    //     handleBackspaceInMiddle(e, expressionModel, index, caretOffset);
-    // }
 };
 
 const handleBackspaceAtStart = (
@@ -741,7 +853,7 @@ const mergeWithPreviousElement = (
     const newExpressionModel = expressionModel
         .map((el, idx) => {
             if (idx === previousIndex) {
-                return { ...el, isFocused: true, focusOffset: el.length };
+                return { ...el, isFocused: true, focusOffsetStart: el.length };
             }
             return el;
         })
@@ -754,24 +866,6 @@ const mergeWithPreviousElement = (
     onExpressionChange?.(newExpressionModel, newCursorPosition, BACKSPACE_MARKER);
 };
 
-// const handleBackspaceInMiddle = (
-//     e: React.KeyboardEvent<HTMLSpanElement>,
-//     expressionModel: ExpressionModel[],
-//     index: number,
-//     caretOffset: number
-// ) => {
-//     const hasPreviousParameterToken = 
-//         caretOffset === 1 &&
-//         index - 1 >= 0 &&
-//         expressionModel[index - 1].isToken &&
-//         expressionModel[index - 1].type === 'parameter';
-
-//     if (hasPreviousParameterToken) {
-//         e.preventDefault();
-//         e.stopPropagation();
-//     }
-// };
-
 const handleDelete = (
     e: React.KeyboardEvent<HTMLSpanElement>,
     expressionModel: ExpressionModel[],
@@ -782,50 +876,69 @@ const handleDelete = (
 ) => {
     if (caretOffset !== textLength) return;
 
+    e.preventDefault();
+    e.stopPropagation();
+
     const currentElement = expressionModel[index];
     if (!currentElement || index === expressionModel.length - 1) return;
 
+    let newExpressionModel = [...expressionModel];
+    const tokensToRemove: number[] = [];
+
+    // Scan forward to find first non-token or collect all tokens
     for (let i = index + 1; i < expressionModel.length; i++) {
-        if (!expressionModel[i].isToken) {
-            mergeWithNextElement(expressionModel, index, i, currentElement, onExpressionChange);
+        if (expressionModel[i].isToken) {
+            tokensToRemove.push(i);
+        } else {
+            deleteFirstCharFromNextElement(
+                expressionModel,
+                index,
+                i,
+                tokensToRemove,
+                onExpressionChange
+            );
             return;
         }
     }
+
+    // If we only found tokens, remove them
+    if (tokensToRemove.length > 0) {
+        newExpressionModel = newExpressionModel.filter(
+            (_, idx) => !tokensToRemove.includes(idx)
+        );
+        const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+        onExpressionChange?.(newExpressionModel, newCursorPosition, DELETE_MARKER);
+    }
 };
 
-const mergeWithNextElement = (
+const deleteFirstCharFromNextElement = (
     expressionModel: ExpressionModel[],
     currentIndex: number,
     nextIndex: number,
-    currentElement: ExpressionModel,
+    tokensToRemove: number[],
     onExpressionChange?: (updatedExpressionModel: ExpressionModel[], cursorPosition?: number, lastTypedText?: string) => void
 ) => {
+    const currentElement = expressionModel[currentIndex];
     const nextElement = expressionModel[nextIndex];
-    const updatedValue = currentElement.value + nextElement.value.slice(1);
+    const updatedNextValue = nextElement.value.slice(1);
+    const shouldRemoveNext = updatedNextValue.length === 0;
 
-    const updatedModel = expressionModel.map((el, idx) => {
-        if (idx === currentIndex) {
-            return {
-                ...currentElement,
-                value: updatedValue,
-                length: updatedValue.length,
-                isFocused: true,
-                focusOffset: currentElement.value.length
-            };
-        } else if (idx === nextIndex) {
-            return {
-                ...nextElement,
-                value: nextElement.value.slice(1),
-                length: nextElement.value.length - 1,
-                isFocused: false,
-                focusOffset: undefined
-            };
-        }
-        return el;
-    });
+    const newExpressionModel = expressionModel
+        .map((el, idx) => {
+            if (idx === currentIndex) {
+                return { ...el, isFocused: true, focusOffsetStart: el.length, focusOffsetEnd: el.length };
+            } else if (idx === nextIndex && !shouldRemoveNext) {
+                return { ...el, value: updatedNextValue, length: updatedNextValue.length, isFocused: false, focusOffsetStart: 0, focusOffsetEnd: 0 };
+            }
+            return el;
+        })
+        .filter((_, idx) => {
+            if (idx === nextIndex) return !shouldRemoveNext;
+            return !tokensToRemove.includes(idx);
+        });
 
-    const newCursorPosition = getAbsoluteCaretPositionFromModel(updatedModel);
-    onExpressionChange?.(updatedModel, newCursorPosition, DELETE_MARKER);
+    const newCursorPosition = getAbsoluteCaretPositionFromModel(newExpressionModel);
+    onExpressionChange?.(newExpressionModel, newCursorPosition, DELETE_MARKER);
 };
 
 const handleArrowRight = (
@@ -857,9 +970,9 @@ const moveToNextElement = (
         if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
                 if (idx === i) {
-                    return { ...el, isFocused: true, focusOffset: 0 };
+                    return { ...el, isFocused: true, focusOffsetStart: 0, focusOffsetEnd: 0 };
                 } else if (idx === index) {
-                    return { ...el, isFocused: false, focusOffset: undefined };
+                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined };
                 }
                 return el;
             });
@@ -879,7 +992,7 @@ const moveCaretForward = (
 ) => {
     const newExpressionModel = expressionModel.map((el, idx) => {
         if (idx === index) {
-            return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset + 1) };
+            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset + 1), focusOffsetEnd: Math.max(0, caretOffset + 1) };
         }
         return el;
     });
@@ -917,9 +1030,9 @@ const moveToPreviousElement = (
         if (!expressionModel[i].isToken) {
             const newExpressionModel = expressionModel.map((el, idx) => {
                 if (idx === i) {
-                    return { ...el, isFocused: true, focusOffset: el.length };
+                    return { ...el, isFocused: true, focusOffsetStart: el.length, focusOffsetEnd: el.length };
                 } else if (idx === index) {
-                    return { ...el, isFocused: false, focusOffset: undefined };
+                    return { ...el, isFocused: false, focusOffsetStart: undefined, focusOffsetEnd: undefined};
                 }
                 return el;
             });
@@ -939,7 +1052,7 @@ const moveCaretBackward = (
 ) => {
     const newExpressionModel = expressionModel.map((el, idx) => {
         if (idx === index) {
-            return { ...el, isFocused: true, focusOffset: Math.max(0, caretOffset - 1) };
+            return { ...el, isFocused: true, focusOffsetStart: Math.max(0, caretOffset - 1), focusOffsetEnd: Math.max(0, caretOffset - 1)};
         }
         return el;
     });
@@ -961,11 +1074,13 @@ export const getWordBeforeCursor = (expressionModel: ExpressionModel[]): string 
 
 export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
-        return completions;
+        return completions.filter(completion =>
+            completion.kind === 'field'
+        );
     }
 
     return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable') &&
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
 };
@@ -986,7 +1101,8 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
                     newExpressionModel.push({
                         id: element.id + "1",
                         isFocused: true,
-                        focusOffset: 0,
+                        focusOffsetStart: 0,
+                        focusOffsetEnd: 0,
                         value: ' ',
                         isToken: element.isToken,
                         startColumn: element.startColumn,
@@ -1001,12 +1117,14 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
                     newExpressionModel.push({
                         ...element,
                         isFocused: false,
-                        focusOffset: undefined
+                        focusOffsetStart: undefined,
+                        focusOffsetEnd: undefined
                     });
                     newExpressionModel.push({
                         ...nextElement,
                         isFocused: true,
-                        focusOffset: 0
+                        focusOffsetStart: 0,
+                        focusOffsetEnd: 0
                     });
                     i += 2;
                 }
@@ -1015,7 +1133,8 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
                 newExpressionModel.push({
                     ...element,
                     isFocused: true,
-                    focusOffset: cursorPosition
+                    focusOffsetStart: cursorPosition,
+                    focusOffsetEnd: cursorPosition
                 });
                 i += 1;
             }
@@ -1024,7 +1143,8 @@ export const setCursorPositionToExpressionModel = (expressionModel: ExpressionMo
             newExpressionModel.push({
                 ...element,
                 isFocused: false,
-                focusOffset: undefined
+                focusOffsetStart: undefined,
+                focusOffsetEnd: undefined
             });
             i += 1;
             if (!foundTarget) {
@@ -1088,4 +1208,8 @@ export const getModelWithModifiedParamsChip = (expressionModel: ExpressionModel[
         return el;
     }
     )
+}
+
+export const isBetween = (a: number, b: number, target: number): boolean => {
+    return target >= Math.min(a, b) && target <= Math.max(a, b);
 }

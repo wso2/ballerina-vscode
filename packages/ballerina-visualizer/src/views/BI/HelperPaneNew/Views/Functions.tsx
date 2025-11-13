@@ -62,17 +62,16 @@ export const FunctionsPage = ({
     const { rpcClient } = useRpcContext();
     const firstRender = useRef<boolean>(true);
     const [searchValue, setSearchValue] = useState<string>('');
-    const [isLibraryBrowserOpen, setIsLibraryBrowserOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
-    const [projectUri, setProjectUri] = useState<string>('');
+    const [projectPath, setProjectPath] = useState<string>('');
 
     const { addModal, closeModal } = useModalStack();
 
     //TODO: get the correct filepath
-    let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
+    let defaultFunctionsFile = Utils.joinPath(URI.file(projectPath), 'functions.bal').fsPath;
 
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
@@ -159,19 +158,13 @@ export const FunctionsPage = ({
 
     const setDefaultFunctionsPath = () => {
         rpcClient.getVisualizerLocation().then((location) => {
-            setProjectUri(location?.projectUri || '')
+            setProjectPath(location?.projectPath || '')
         })
     }
 
     const handleFunctionSearch = (searchText: string) => {
         setSearchValue(searchText);
-
-        // Search functions
-        if (isLibraryBrowserOpen) {
-            fetchFunctionInfo(searchText, 'true');
-        } else {
-            fetchFunctionInfo(searchText);
-        }
+        fetchFunctionInfo(searchText);
     };
 
     const handleFunctionSave = (value: string) => {
@@ -189,7 +182,7 @@ export const FunctionsPage = ({
     const handleNewFunctionClick = () => {
         addModal(
             <FunctionFormStatic
-                projectPath={projectUri}
+                projectPath={projectPath}
                 filePath={defaultFunctionsFile}
                 handleSubmit={handleFunctionSave}
                 functionName={undefined}
@@ -197,6 +190,20 @@ export const FunctionsPage = ({
                 defaultType={selectedType?.label}
             />, POPUP_IDS.FUNCTION, "New Function", 500, 400);
         onClose();
+    }
+
+    const handleOpenLibraryBrowser = () => {
+        addModal(
+            <LibraryBrowser
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                onClose={() => closeModal(POPUP_IDS.LIBRARY_BROWSER)}
+                onChange={(insertText) => {
+                    onChange(insertText);
+                    onClose();
+                }}
+                onFunctionItemSelect={onFunctionItemSelect}
+            />, POPUP_IDS.LIBRARY_BROWSER, "Function Browser", 600, 550);
     }
 
     return (
@@ -295,20 +302,13 @@ export const FunctionsPage = ({
             <Divider sx={{ margin: '0px' }} />
             <div style={{ margin: '4px 0' }}>
                 <FooterButtons onClick={handleNewFunctionClick} title="New Function" />
-                <FooterButtons sx={{ display: 'flex', justifyContent: 'space-between' }} title="Open Function Browser" onClick={() => setIsLibraryBrowserOpen(true)} />
+                <FooterButtons
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                    title="Open Function Browser"
+                    onClick={handleOpenLibraryBrowser}
+                    startIcon="bi-arrow-outward"
+                />            
             </div>
-            {isLibraryBrowserOpen && (
-                <LibraryBrowser
-                    anchorRef={anchorRef}
-                    isLoading={isLoading}
-                    libraryBrowserInfo={libraryBrowserInfo as HelperPaneFunctionInfo}
-                    setFilterText={handleFunctionSearch}
-                    onBack={() => setIsLibraryBrowserOpen(false)}
-                    onClose={onClose}
-                    onChange={onChange}
-                    onFunctionItemSelect={onFunctionItemSelect}
-                />
-            )}
         </div>
     )
 }

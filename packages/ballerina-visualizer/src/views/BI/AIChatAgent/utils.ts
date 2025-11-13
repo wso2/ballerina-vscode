@@ -39,10 +39,10 @@ export const getNodeTemplate = async (
 
 export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: NodeKind) => {
     if (nodeKind && (nodeKind === "NP_FUNCTION" || nodeKind === "NP_FUNCTION_DEFINITION")) return BALLERINA;
-    const filePath = await rpcClient.getVisualizerLocation();
+    const visualizerContext = await rpcClient.getVisualizerLocation();
     const aiModuleOrgResponse = await rpcClient
         .getAIAgentRpcClient()
-        .getAiModuleOrg({ projectPath: filePath.projectUri });
+        .getAiModuleOrg({ projectPath: visualizerContext.projectPath });
     console.log(">>> agent org", aiModuleOrgResponse.orgName);
     return aiModuleOrgResponse.orgName;
 }
@@ -54,17 +54,17 @@ export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
 };
 
 export const getNPFilePath = async (rpcClient: BallerinaRpcClient) => {
-    const filePath = await rpcClient.getVisualizerLocation();
+    const visualizerContext = await rpcClient.getVisualizerLocation();
     // Create the NP file path
-    const agentFilePath = Utils.joinPath(URI.file(filePath.projectUri), "functions.bal").fsPath;
+    const agentFilePath = Utils.joinPath(URI.file(visualizerContext.projectPath), "functions.bal").fsPath;
     return agentFilePath;
 };
 
 export const getMainFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Get the main file path and update the node
-    const filePath = await rpcClient.getVisualizerLocation();
+    const visualizerContext = await rpcClient.getVisualizerLocation();
     // Create the main file path
-    const mainFilePath = Utils.joinPath(URI.file(filePath.projectUri), "main.bal").fsPath;
+    const mainFilePath = Utils.joinPath(URI.file(visualizerContext.projectPath), "main.bal").fsPath;
     return mainFilePath;
 };
 

@@ -35,21 +35,33 @@ import {
     RunExternalCommandResponse,
     ShowErrorMessageRequest,
     SyntaxTree,
-    TomlValues,
+    PackageTomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
+    WorkspaceTypeResponse,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
-import { getProjectTomlValues, goToSource } from "../../utils";
-import { askFileOrFolderPath, askFilePath, askProjectPath, BALLERINA_INTEGRATOR_ISSUES_URL, getUpdatedSource } from "./utils";
-import { parse } from 'toml';
-import * as fs from 'fs';
+import {
+    checkIsBallerinaPackage,
+    checkIsBallerinaWorkspace,
+    getBallerinaPackages,
+    getProjectTomlValues,
+    goToSource,
+    hasMultipleBallerinaPackages
+} from "../../utils";
+import {
+    askFileOrFolderPath,
+    askFilePath,
+    askProjectPath,
+    BALLERINA_INTEGRATOR_ISSUES_URL,
+    getUpdatedSource
+} from "./utils";
 import path from "path";
 
 export class CommonRpcManager implements CommonRPCAPI {
@@ -78,8 +90,8 @@ export class CommonRpcManager implements CommonRPCAPI {
     async goToSource(params: GoToSourceRequest): Promise<void> {
         const context = StateMachine.context();
         let filePath = params?.filePath || context.documentUri!;
-        if (params?.fileName && context?.projectUri) {
-            filePath = path.join(context.projectUri, params.fileName);
+        if (params?.fileName && context?.projectPath) {
+            filePath = path.join(context.projectPath, params.fileName);
         }
         goToSource(params.position, filePath);
     }
@@ -246,7 +258,50 @@ export class CommonRpcManager implements CommonRPCAPI {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
-    async getCurrentProjectTomlValues(): Promise<TomlValues> {
-        return getProjectTomlValues(StateMachine.context().projectUri);
+    async getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
+        return getProjectTomlValues(StateMachine.context().projectPath);
+    }
+
+    async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
+        const workspaceFolders = workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error("No workspaces found.");
+        }
+
+        if (workspaceFolders.length > 1) {
+            let balPackagesCount = 0;
+            for (const folder of workspaceFolders) {
+                const packages = await getBallerinaPackages(folder.uri);
+                balPackagesCount += packages.length;
+            }
+
+            const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
+            if (balPackagesCount > 1) {
+                return isWorkspaceFile
+                    ? { type: "VSCODE_WORKSPACE" }
+                    : { type: "MULTIPLE_PROJECTS" };
+            }
+        } else if (workspaceFolders.length === 1) {
+            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+            const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
+            if (isBallerinaWorkspace) {
+                return { type: "BALLERINA_WORKSPACE" };
+            }
+
+            const isBallerinaPackage = await checkIsBallerinaPackage(Uri.file(workspaceFolderPath));
+            if (isBallerinaPackage) {
+                return { type: "SINGLE_PROJECT" };
+            }
+
+            const hasMultiplePackages = await hasMultipleBallerinaPackages(Uri.file(workspaceFolderPath));
+            if (hasMultiplePackages) {
+                return { type: "MULTIPLE_PROJECTS" };
+            }
+
+            return { type: "UNKNOWN" };
+        }
+
+        return { type: "UNKNOWN" };
     }
 }

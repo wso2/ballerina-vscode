@@ -31,6 +31,7 @@ export interface CategoryConfig {
     actions: CategoryAction[];
     showWhenEmpty: boolean;
     useConnectionContainer: boolean; // Whether to use getConnectionContainer for rendering
+    fixed?: boolean; // Whether the header should be non-collapsible
 }
 
 // Configuration for all categories with their specific behaviors
@@ -44,7 +45,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAddConnection'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Current Integration": {
         title: "Current Integration",
@@ -72,7 +74,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             }
         ],
         showWhenEmpty: true,
-        useConnectionContainer: false
+        useConnectionContainer: false,
+        fixed: true
     },
     "Agents": {
         title: "Agents", 
@@ -89,7 +92,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Vector Stores": {
         title: "Vector Stores",
@@ -100,7 +104,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Embedding Providers": {
         title: "Embedding Providers",
@@ -111,7 +116,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Data Loaders": {
         title: "Data Loaders",
@@ -122,7 +128,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Chunkers": {
         title: "Chunkers",
@@ -133,7 +140,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     },
     "Knowledge Bases": {
         title: "Knowledge Bases",
@@ -144,7 +152,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             handlerKey: 'onAdd'
         }],
         showWhenEmpty: true,
-        useConnectionContainer: true
+        useConnectionContainer: true,
+        fixed: true
     }
 };
 
@@ -161,6 +170,11 @@ export const shouldShowEmptyCategory = (title: string): boolean => {
 export const shouldUseConnectionContainer = (title: string): boolean => {
     const config = getCategoryConfig(title);
     return config?.useConnectionContainer ?? false;
+};
+
+export const isCategoryFixed = (title: string): boolean => {
+    const config = getCategoryConfig(title);
+    return config?.fixed ?? false;
 };
 
 export const getCategoryActions = (title: string, contextTitle?: string): CategoryAction[] => {

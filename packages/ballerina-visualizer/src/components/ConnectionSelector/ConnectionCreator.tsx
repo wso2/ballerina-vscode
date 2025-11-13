@@ -54,7 +54,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
 
     const initPanel = async () => {
         setLoading(true);
-        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectUri);
+        projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
         connectionsFilePath.current = Utils.joinPath(URI.file(projectPath.current), CONNECTIONS_FILE).fsPath;
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
             filePath: connectionsFilePath.current

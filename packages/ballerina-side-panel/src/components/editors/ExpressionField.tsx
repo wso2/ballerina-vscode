@@ -30,6 +30,7 @@ import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/Tex
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
+import { HelperpaneOnChangeOptions } from '../Form/types';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -59,7 +60,7 @@ export interface ExpressionField {
     changeHelperPaneState: (isOpen: boolean) => void;
     getHelperPane?: (
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     helperPaneHeight?: HelperPaneHeight;
@@ -69,6 +70,8 @@ export interface ExpressionField {
     exprRef: RefObject<FormExpressionEditorRef>;
     anchorRef: RefObject<HTMLDivElement>;
     onToggleHelperPane: () => void;
+    onOpenExpandedMode?: () => void;
+    isInExpandedMode?: boolean;
 }
 
 const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
@@ -118,7 +121,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     exprRef,
     anchorRef,
     onToggleHelperPane,
-    sanitizedExpression
+    sanitizedExpression,
+    onOpenExpandedMode,
+    isInExpandedMode
 }) => {
     if (inputMode === InputMode.TEXT) {
         return (
@@ -137,6 +142,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 growRange={growRange}
                 placeholder={placeholder}
+                onOpenExpandedMode={onOpenExpandedMode}
+                isInExpandedMode={isInExpandedMode}
             />
 
         );
@@ -151,6 +158,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}
+            onOpenExpandedMode={onOpenExpandedMode}
+            onRemove={onRemove}
+            isInExpandedMode={isInExpandedMode}
         />
     );
 };

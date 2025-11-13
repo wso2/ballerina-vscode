@@ -30,7 +30,7 @@ import styled from "@emotion/styled";
 import { getImportsForProperty } from "../../../utils/bi";
 import { DownloadIcon } from "../../../components/DownloadIcon";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { sanitizedHttpPath } from "./utils";
+import { sanitizedHttpPath, normalizeValueToArray } from "./utils";
 
 const Container = styled.div`
     display: flex;
@@ -50,7 +50,7 @@ const Container = styled.div`
 
 const FormContainer = styled.div`
     /* padding-top: 15px; */
-    padding-bottom: 15px;
+    padding-bottom: 100px;
 `;
 
 const StatusContainer = styled.div`
@@ -170,7 +170,7 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
         // Handle MULTIPLE_SELECT and EXPRESSION_SET types
         if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
-            property.values = Array.isArray(value) ? value : value ? [value] : [];
+            property.values = normalizeValueToArray(value);
         } else {
             property.value = value as string;
         }
@@ -340,6 +340,67 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
         }
     }, [model]);
 
+    /**
+     * Recursively processes a property and its nested CHOICE fields
+     *
+     * @param property The property to process
+     * @param data The form data containing all field values
+     */
+    const processPropertyRecursively = (property: PropertyModel, data: FormValues): void => {
+        // If this property is a CHOICE field, process it
+        if (property.valueType === "CHOICE" && property.choices) {
+            property.choices.forEach((choice, index) => {
+                // Disable all choices first
+                choice.enabled = false;
+
+                // The property.value should contain the selected index
+                if (property.value !== undefined && Number(property.value) === index) {
+                    choice.enabled = true;
+
+                    // Process all properties in this selected choice
+                    if (choice.properties) {
+                        for (const nestedKey in choice.properties) {
+                            const nestedProperty = choice.properties[nestedKey];
+
+                            // Set value from form data if available
+                            if (data[nestedKey] !== undefined) {
+                                // Handle MULTIPLE_SELECT and EXPRESSION_SET types
+                                if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                                    const value = data[nestedKey];
+                                    nestedProperty.values = normalizeValueToArray(value);
+                                } else {
+                                    nestedProperty.value = data[nestedKey] as string;
+                                }
+                            }
+
+                            // Recursively process this nested property
+                            processPropertyRecursively(nestedProperty, data);
+                        }
+                    }
+                }
+            });
+        }
+        // If this property has nested properties (like CONDITIONAL_FIELDS), process them
+        else if (property.properties) {
+            for (const nestedKey in property.properties) {
+                const nestedProperty = property.properties[nestedKey];
+
+                // Set value from form data if available
+                if (data[nestedKey] !== undefined) {
+                    if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                        const value = data[nestedKey];
+                        nestedProperty.values = normalizeValueToArray(value);
+                    } else {
+                        nestedProperty.value = data[nestedKey] as string;
+                    }
+                }
+
+                // Recursively process nested properties
+                processPropertyRecursively(nestedProperty, data);
+            }
+        }
+    };
+
     const handleOnSubmit = async (data: FormValues, formImports: FormImports) => {
         setIsSaving(true);
         formFields.forEach(val => {
@@ -348,10 +409,17 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                     choice.enabled = false;
                     if (data[val.key] === index) {
                         choice.enabled = true;
-                        for (const key in choice.properties) {
-                            choice.properties[key].value = data[key];
-                            if (key === "basePath") {
-                                choice.properties[key].value = sanitizedHttpPath(data[key]);
+                        if (choice.properties) {
+                            for (const key in choice.properties) {
+                                const property = choice.properties[key];
+                                if (data[key] !== undefined) {
+                                    if (key === "basePath") {
+                                        property.value = sanitizedHttpPath(data[key]);
+                                    } else {
+                                        property.value = data[key];
+                                    }
+                                }
+                                processPropertyRecursively(property, data);
                             }
                         }
                     }
@@ -359,11 +427,15 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             } else if (data[val.key] !== undefined) {
                 val.value = data[val.key];
             }
+
             if (val.type === "CONDITIONAL_FIELDS") {
                 val.advanceProps.forEach(subField => {
                     const subProperty = model.properties[val.key]?.properties?.[subField.key];
                     if (subProperty) {
-                        subProperty.value = data[subField.key];
+                        if (data[subField.key] !== undefined) {
+                            subProperty.value = data[subField.key];
+                        }
+                        processPropertyRecursively(subProperty, data);
                     }
                 });
             }
@@ -443,7 +515,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                                 onSubmit={handleOnSubmit}
                                                 preserveFieldOrder={true}
                                                 recordTypeFields={recordTypeFields}
-                                                changeOptionalFieldTitle={"Optional Listener Configurations"}
+                                                submitText="Create"
                                             />
                                         )}
                                     </FormContainer>

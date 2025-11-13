@@ -46,9 +46,11 @@ import {
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     getCurrentProjectTomlValues,
-    TomlValues,
+    PackageTomlValues,
     selectFileOrFolderPath,
-    showErrorMessage
+    showErrorMessage,
+    WorkspaceTypeResponse,
+    getWorkspaceType
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -111,8 +113,12 @@ export class CommonRpcClient implements CommonRPCAPI {
     showErrorMessage(params: ShowErrorMessageRequest): void {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
     }
-    
-    getCurrentProjectTomlValues(): Promise<TomlValues> {
+
+    getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
         return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
+    }
+
+    getWorkspaceType(): Promise<WorkspaceTypeResponse> {
+        return this._messenger.sendRequest(getWorkspaceType, HOST_EXTENSION);
     }
 }

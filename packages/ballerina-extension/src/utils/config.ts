@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { SCOPE, TomlValues } from '@wso2/ballerina-core';
+import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
-import { WorkspaceConfiguration, workspace, Uri } from 'vscode';
+import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from 'toml';
@@ -98,18 +98,92 @@ export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, sup
     return false;
 }
 
-export function isSupportedSLVersion(ballerinaExtInstance: BallerinaExtension, minSupportedVersion: number) {
+/**
+ * Creates a version object for comparison.
+ * 
+ * @param major Major version number
+ * @param minor Minor version number  
+ * @param patch Patch version number
+ * @returns A version object with major, minor, and patch components
+ * 
+ * @example
+ * // Version 2201.1.30
+ * createVersionNumber(2201, 1, 30)
+ * // Version 2201.12.10
+ * createVersionNumber(2201, 12, 10)
+ */
+export function createVersionNumber(
+    major: number,
+    minor: number,
+    patch: number
+): SemanticVersion {
+    return { major, minor, patch };
+}
+
+/**
+ * Compares two versions using semantic versioning rules.
+ * Returns true if current version >= minimum version.
+ * 
+ * @param current Current version components
+ * @param minimum Minimum required version components
+ * @returns true if current >= minimum
+ */
+function compareVersions(
+    current: SemanticVersion,
+    minimum: SemanticVersion
+): boolean {
+    // Compare major version first
+    if (current.major !== minimum.major) {
+        return current.major > minimum.major;
+    }
+    
+    // Major versions are equal, compare minor
+    if (current.minor !== minimum.minor) {
+        return current.minor > minimum.minor;
+    }
+    
+    // Major and minor are equal, compare patch
+    return current.patch >= minimum.patch;
+}
+
+/**
+ * Compares the current Ballerina version against a minimum required version.
+ * Only returns true for GA (non-preview/alpha/beta) versions that meet or exceed the minimum.
+ * 
+ * @param ballerinaExtInstance The Ballerina extension instance
+ * @param minSupportedVersion Minimum version (use createVersionNumber helper to generate)
+ * @returns true if current version is GA and meets minimum requirement
+ * 
+ * @example
+ * // Check if version is at least 2201.1.30
+ * isSupportedSLVersion(ext, createVersionNumber(2201, 1, 30))
+ */
+export function isSupportedSLVersion(
+    ballerinaExtInstance: BallerinaExtension,
+    minSupportedVersion: SemanticVersion
+) {
     const ballerinaVersion: string = ballerinaExtInstance.ballerinaVersion.toLocaleLowerCase();
     const isGA: boolean = !ballerinaVersion.includes(VERSION.ALPHA) && !ballerinaVersion.includes(VERSION.BETA) && !ballerinaVersion.includes(VERSION.PREVIEW);
 
+    if (!isGA) {
+        return false;
+    }
+
+    // Parse current version
     const regex = /(\d+)\.(\d+)\.(\d+)/;
     const match = ballerinaVersion.match(regex);
-    const currentVersionNumber = match ? Number(match.slice(1).join("")) : 0;
-
-    if (minSupportedVersion <= currentVersionNumber && isGA) {
-        return true;
+    if (!match) {
+        return false;
     }
-    return false;
+
+    const currentVersion = {
+        major: Number(match[1]),
+        minor: Number(match[2]),
+        patch: Number(match[3])
+    };
+
+    // Compare versions component by component
+    return compareVersions(currentVersion, minSupportedVersion);
 }
 
 export function checkIsBI(uri: Uri): boolean {
@@ -127,9 +201,120 @@ export function checkIsBI(uri: Uri): boolean {
     return false; // Return false if isBI is not set
 }
 
-export function checkIsBallerina(uri: Uri): boolean {
+export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
-    return fs.existsSync(ballerinaTomlPath);
+
+    // First check if the file exists
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return false;
+    }
+
+    try {
+        const tomlValues = await getProjectTomlValues(uri.fsPath);
+        return tomlValues?.package !== undefined;
+    } catch (error) {
+        // If there's an error reading the file, it's not a valid Ballerina project
+        console.error(`Error reading package Ballerina.toml: ${error}`);
+        return false;
+    }
+}
+
+
+export async function checkIsBallerinaWorkspace(uri: Uri): Promise<boolean> {
+    const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
+
+    // First check if the file exists
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return false;
+    }
+
+    try {
+        const tomlValues = await getWorkspaceTomlValues(uri.fsPath);
+        return tomlValues?.workspace !== undefined;
+    } catch (error) {
+        // If there's an error reading the file, it's not a valid Ballerina workspace
+        console.error(`Error reading workspace Ballerina.toml: ${error}`);
+        return false;
+    }
+}
+
+export async function hasMultipleBallerinaPackages(uri: Uri): Promise<boolean> {
+    const packages = await getBallerinaPackages(uri);
+    return packages.length > 1;
+}
+
+export async function getBallerinaPackages(uri: Uri): Promise<string[]> {
+    try {
+        const ballerinaTomlPattern = `**${path.sep}Ballerina.toml`;
+        const tomls = await workspace.findFiles(
+            new RelativePattern(uri.fsPath, ballerinaTomlPattern)
+        );
+
+        if (tomls.length === 0) {
+            return [];
+        }
+
+        // Collect valid package paths (Ballerina.toml files with [package] section)
+        const packagePaths: string[] = [];
+
+        for (const toml of tomls) {
+            const projectRoot = path.dirname(toml.fsPath);
+            try {
+                const tomlValues = await getProjectTomlValues(projectRoot);
+                // Only count as a package if it has a package section
+                if (tomlValues?.package !== undefined) {
+                    packagePaths.push(projectRoot);
+                }
+            } catch (error) {
+                // Skip invalid TOML files
+                console.error(`Error reading Ballerina.toml at ${toml.fsPath}: ${error}`);
+            }
+        }
+
+        return packagePaths;
+    } catch (error) {
+        console.error(`Error checking for multiple Ballerina packages: ${error}`);
+        return [];
+    }
+}
+
+/**
+ * Filters package paths to only include valid Ballerina packages within the workspace.
+ *
+ * For each path, this function:
+ * - Resolves the path (handling relative paths like `.` and `..`)
+ * - Verifies the path exists on the filesystem
+ * - Ensures the path is within the workspace boundaries (prevents path traversal)
+ * - Validates it's a valid Ballerina package
+ *
+ * @param packagePaths Array of package paths (relative or absolute)
+ * @param workspacePath Absolute path to the workspace root
+ * @returns Filtered array of valid Ballerina package paths that exist within the workspace
+ */
+export async function filterPackagePaths(packagePaths: string[], workspacePath: string): Promise<string[]> {
+    const results = await Promise.all(
+        packagePaths.map(async pkgPath => {
+            if (path.isAbsolute(pkgPath)) {
+                const resolvedPath = path.resolve(pkgPath);
+                const resolvedWorkspacePath = path.resolve(workspacePath);
+                if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
+                    return await checkIsBallerinaPackage(Uri.file(resolvedPath));
+                }
+            }
+            const resolvedPath = path.resolve(workspacePath, pkgPath);
+            const resolvedWorkspacePath = path.resolve(workspacePath);
+            if (fs.existsSync(resolvedPath) && isPathInside(resolvedPath, resolvedWorkspacePath)) {
+                return await checkIsBallerinaPackage(Uri.file(resolvedPath));
+            }
+            return false;
+        })
+    );
+    return packagePaths.filter((_, index) => results[index]);
+}
+
+function isPathInside(childPath: string, parentPath: string): boolean {
+    const relative = path.relative(parentPath, childPath);
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 export function getOrgPackageName(projectPath: string): { orgName: string, packageName: string } {
@@ -154,6 +339,32 @@ export function getOrgPackageName(projectPath: string): { orgName: string, packa
     } catch (error) {
         console.error(`Error reading Ballerina.toml: ${error}`);
         return { orgName: '', packageName: '' };
+    }
+}
+
+export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues | undefined> {
+    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
+            return;
+        }
+    }
+}
+
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        try {
+            return parse(tomlContent);
+        } catch (error) {
+            console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
+            return;
+        }
     }
 }
 
@@ -183,17 +394,4 @@ export function setupBIFiles(projectDir: string): void {
             fs.writeFileSync(filePath, '');
         }
     });
-}
-
-export async function getProjectTomlValues(projectPath: string): Promise<TomlValues> {
-    const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-    if (fs.existsSync(ballerinaTomlPath)) {
-        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        try {
-            return parse(tomlContent);
-        } catch (error) {
-            console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
-            return;
-        }
-    }
 }
