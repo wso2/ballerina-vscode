@@ -164,7 +164,10 @@ export function ImportIntegrationForm({
 
             {pullingTool && (
                 <LoadingOverlayContainer>
-                    <LoadingRing message="Pulling integration tool..." />
+                    <LoadingRing
+                        message={toolPullProgress?.message || "Pulling integration tool..."}
+                        progress={toolPullProgress?.percentage}
+                    />
                 </LoadingOverlayContainer>
             )}
         </>
