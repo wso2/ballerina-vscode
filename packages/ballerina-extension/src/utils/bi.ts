@@ -448,6 +448,12 @@ async function createProjectFiles(project: ProjectMigrationResult, projectRoot: 
         }
         writeBallerinaFileDidOpen(filePath, fileContent || "\n");
     }
+
+    // Save migration report for this project
+    if (project.report) {
+        const reportPath = path.join(projectRoot, project.projectName, 'migration_report.html');
+        fs.writeFileSync(reportPath, project.report);
+    }
 }
 
 export async function createBIAutomation(params: ComponentRequest): Promise<CreateComponentResponse> {
