@@ -15,8 +15,8 @@
  */
 package org.ballerinalang.langserver.command.executors;
 
+import io.ballerina.projects.CompilationOptions;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.util.DependencyUtils;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.LSContextOperation;
@@ -93,6 +93,22 @@ public class PullModuleExecutor implements LSCommandExecutor {
     public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
                                                          WorkspaceManager workspaceManager,
                                                          LanguageServerContext languageServerContext) {
+        return resolveModules(fileUri, languageClient, workspaceManager, languageServerContext, false);
+}
+
+    /**
+     * Resolves missing modules for the given file.
+     *
+     * @param fileUri               the file URI
+     * @param languageClient        the language client
+     * @param workspaceManager      the workspace manager
+     * @param languageServerContext the language server context
+     * @param sticky                whether to use sticky mode for dependency resolution
+     * @return a CompletableFuture that completes when module resolution is done
+     */
+    public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
+                                                         WorkspaceManager workspaceManager,
+                                                         LanguageServerContext languageServerContext, boolean sticky) {
         // TODO Prevent running parallel tasks for the same project in future
         String taskId = PULL_MODULE_TASK_PREFIX + UUID.randomUUID();
         Path filePath = PathUtil.getPathFromURI(fileUri)
@@ -118,7 +134,11 @@ public class PullModuleExecutor implements LSCommandExecutor {
                     languageClient.notifyProgress(new ProgressParams(Either.forLeft(taskId),
                             Either.forLeft(beginNotification)));
                 })
-                .thenRunAsync(() -> DependencyUtils.pullMissingDependencies(project))
+                .thenRunAsync(() -> {
+                    CompilationOptions.CompilationOptionsBuilder optionsBuilder = CompilationOptions.builder();
+                    optionsBuilder.setOffline(false).setSticky(sticky);
+                    project.currentPackage().getResolution(optionsBuilder.build());
+                })
                 .thenRunAsync(() -> {
                     try {
                         // Refresh project
