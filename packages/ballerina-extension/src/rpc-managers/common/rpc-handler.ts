@@ -19,11 +19,15 @@
  */
 import {
     BallerinaDiagnosticsRequest,
+    ClearWebviewCache,
     CommandsRequest,
     FileOrDirRequest,
     GoToSourceRequest,
     OpenExternalUrlRequest,
+    RestoreWebviewCache,
     RunExternalCommandRequest,
+    SetWebviewCache,
+    SetWebviewCacheRequestParam,
     ShowErrorMessageRequest,
     WorkspaceFileRequest,
     executeCommand,
@@ -62,4 +66,7 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
+    messenger.onRequest(SetWebviewCache, (params: SetWebviewCacheRequestParam) => rpcManger.setWebviewCache(params));
+    messenger.onRequest(RestoreWebviewCache, (params: string) => rpcManger.restoreWebviewCache(params));
+    messenger.onRequest(ClearWebviewCache, (params: string) => rpcManger.clearWebviewCache(params));
 }

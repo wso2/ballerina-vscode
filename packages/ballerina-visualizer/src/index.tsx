@@ -17,23 +17,12 @@
  */
 
 import React from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 import { Visualizer } from "./Visualizer";
 import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider } from "./Context";
 import { PlatformExtContextProvider } from "./utils/PlatformExtContext";
 import { clearDiagramZoomAndPosition } from "./utils/bi";
-
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            retry: false,
-            refetchOnWindowFocus: false,
-            staleTime: 1000,
-            gcTime: 1000,
-        },
-    },
-});
+import { ReactQueryProvider } from "./providers/react-query-provider";
 
 export function renderWebview(mode: string, target: HTMLElement) {
     // clear diagram memory
@@ -44,11 +33,11 @@ export function renderWebview(mode: string, target: HTMLElement) {
         <VisualizerContextProvider>
             <ModalStackProvider>
                 <RpcContextProvider>
-                    <QueryClientProvider client={queryClient}>
+                    <ReactQueryProvider>
                         <PlatformExtContextProvider>
                             <Visualizer mode={mode} />
                         </PlatformExtContextProvider>
-                    </QueryClientProvider>
+                    </ReactQueryProvider>
                 </RpcContextProvider>
             </ModalStackProvider>
         </VisualizerContextProvider>

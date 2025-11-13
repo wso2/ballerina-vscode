@@ -26,7 +26,7 @@ import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
-import { PlatformExtRpcManager } from 'src/rpc-managers/platform-ext/rpc-manager';
+import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
 
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
     if (!request.include) {

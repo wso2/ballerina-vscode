@@ -32,7 +32,8 @@ import {
     FileOrDirRequest,
     WorkspaceRootResponse,
     ShowErrorMessageRequest,
-    WorkspaceTypeResponse
+    WorkspaceTypeResponse,
+    SetWebviewCacheRequestParam
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -51,4 +52,7 @@ export interface CommonRPCAPI {
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
+    setWebviewCache: (params: SetWebviewCacheRequestParam) => void;
+    restoreWebviewCache: (params: IDBValidKey) => unknown;
+    clearWebviewCache: (params: IDBValidKey) => void;
 }
