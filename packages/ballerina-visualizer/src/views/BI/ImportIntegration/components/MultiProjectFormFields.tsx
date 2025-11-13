@@ -70,35 +70,39 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
     return (
         <>
             <FieldGroup>
-                <TextField
-                    onTextChange={handleIntegrationName}
-                    value={formData.rootFolderName}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={true}
-                    required={true}
-                />
-                <Description>
-                    This will be the parent folder containing all migrated packages from this integration.
-                </Description>
-            </FieldGroup>
-
-            <FieldGroup>
                 <LocationSelector
                     label="Select Path"
                     selectedFile={formData.path}
                     btnText="Select Path"
                     onSelect={handleProjectDirSelection}
                 />
+            </FieldGroup>
 
+            <FieldGroup>
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new directory using the root folder name`}
+                        label={`Create a new folder for the packages`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
                 </CheckboxContainer>
             </FieldGroup>
+
+            {formData.createDirectory && (
+                <FieldGroup>
+                    <TextField
+                        onTextChange={handleIntegrationName}
+                        value={formData.rootFolderName}
+                        label="Folder Name"
+                        placeholder="Enter folder name"
+                        autoFocus={true}
+                        required={true}
+                    />
+                    <Description>
+                        This folder will contain all migrated packages from this integration.
+                    </Description>
+                </FieldGroup>
+            )}
         </>
     );
 }
