@@ -34,6 +34,7 @@ import { BALLERINA_COMMANDS } from "../project";
 import { discoverTests, gatherTestItems } from "./discover";
 import { testController, projectRoot } from "./activator";
 import { extension } from "../../BalExtensionContext";
+import { PlatformExtRpcManager } from "src/rpc-managers/platform-ext/rpc-manager";
 
 enum EXEC_ARG {
     TESTS = '--tests',
@@ -185,6 +186,8 @@ export async function startDebugging(uri: Uri, testDebug: boolean, args: any[])
     : Promise<void> {
     const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
     const debugConfig: DebugConfiguration = await constructDebugConfig(uri, testDebug, args);
+
+    await new PlatformExtRpcManager().setupDevantProxyForDebugging(debugConfig);
 
     return debug.startDebugging(workspaceFolder, debugConfig).then(
         // Wait for debug session to be complete.

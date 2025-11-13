@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructureResponse,
     EVENT_TYPE,
@@ -297,7 +297,14 @@ const DeploymentHeader = styled.div`
         font-size: 13px;
         font-weight: 600;
         margin: 0;
+        width: 100%;
     }
+`;
+
+const DevantHeaderWrap = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `;
 
 interface DeploymentBodyProps {
@@ -312,7 +319,7 @@ const DeploymentBody = styled.div<DeploymentBodyProps>`
 `;
 
 interface DeploymentOptionProps {
-    title: string;
+    title: ReactNode;
     description: string;
     buttonText: string;
     isExpanded: boolean;
@@ -437,7 +444,28 @@ function DeploymentOptions({
                 <Title variant="h3">Deployment Options</Title>
 
                 <DeploymentOption
-                    title={platformExtState?.hasPossibleComponent ? "Deployed in Devant" : "Deploy to Devant"}
+                    title={
+                        platformExtState?.hasPossibleComponent ? (
+                            <DevantHeaderWrap>
+                                <span>Deployed in Devant</span>
+                                {platformExtState.isLoggedIn && (
+                                    <Button
+                                        appearance="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            rpcClient.getCommonRpcClient().executeCommand({
+                                                commands: [PlatformExtCommandIds.RefreshDirectoryContext],
+                                            });
+                                        }}
+                                    >
+                                        <Codicon name="refresh" />
+                                    </Button>
+                                )}
+                            </DevantHeaderWrap>
+                        ) : (
+                            "Deploy to Devant"
+                        )
+                    }                  
                     description={
                         platformExtState?.hasPossibleComponent
                             ? "This integration is already deployed in Devant."

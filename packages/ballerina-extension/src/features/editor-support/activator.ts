@@ -72,37 +72,13 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
     }
 }
 
-
 export async function startDebugging(uri: Uri, testDebug: boolean = false, suggestTryit: boolean = false, noDebugMode: boolean = false): Promise<boolean> {
     const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
     const debugConfig: DebugConfiguration = await constructDebugConfig(uri, testDebug);
     debugConfig.suggestTryit = suggestTryit;
     debugConfig.noDebug = noDebugMode;
 
-    const devantProxyResp = await window.withProgress({ // 64160
-        location: ProgressLocation.Notification,
-        title: 'Connecting to Devant...',
-    }, async () => new PlatformExtRpcManager().startProxyServer());
-
-    if(devantProxyResp.proxyServerPort){
-        debugConfig.env = {  ...(debugConfig.env || {}), ...devantProxyResp.envVars };
-        if(devantProxyResp.requiresProxy){
-            debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST="127.0.0.1",
-            debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT=`${devantProxyResp.proxyServerPort}`;
-        }else{
-            delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST;
-            delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT;
-        }
-    }
-    
-    if(devantProxyResp.proxyServerPort){
-        const disposable = debug.onDidTerminateDebugSession((session) => {
-            if (session.configuration === debugConfig) {
-                new PlatformExtRpcManager().stopProxyServer({proxyPort: devantProxyResp.proxyServerPort});
-                disposable.dispose();
-            }
-        });
-    }
+    await new PlatformExtRpcManager().setupDevantProxyForDebugging(debugConfig);
 
     return debug.startDebugging(workspaceFolder, debugConfig);
 }
