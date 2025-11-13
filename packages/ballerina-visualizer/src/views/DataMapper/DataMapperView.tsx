@@ -285,6 +285,7 @@ export function DataMapperView(props: DataMapperProps) {
                 preserveFieldOrder={true}
                 helperPaneSide="left"
                 {...formProps}
+                targetLineRange={viewState.codedata.lineRange}
             />
         )
     }
