@@ -202,7 +202,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
             a2sMenuItems.push({
                 id: "a2s-aggregate",
-                label: getItemElement("a2s-aggregate", "Aggregate using Query"),
+                label: getItemElement("a2s-aggregate", "Aggregate and map"),
                 onClick: wrapWithProgress(onClickAggregateArray)
             });
         }
