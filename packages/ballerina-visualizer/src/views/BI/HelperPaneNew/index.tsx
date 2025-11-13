@@ -38,6 +38,7 @@ import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
 import { HelperpaneOnChangeOptions } from '@wso2/ballerina-side-panel';
 
+const AI_PROMPT_TYPE = "ai:Prompt";
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -96,7 +97,9 @@ const HelperPaneNewEl = ({
     handleValueTypeConstChange
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = valueTypeConstraint ? 6 : 5
+    const currentMenuItemCount = valueTypeConstraint ?
+        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
+        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
 
     const { addModal } = useModalStack()
 
@@ -326,17 +329,19 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
-                                <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[5] = el}
-                                    to="DOCUMENTS"
-                                >
-                                    <ExpandableList.Item>
-                                        {getHelperPaneIcon(HelperPaneIconType.DOCUMENT)}
-                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                            Documents
-                                        </Typography>
-                                    </ExpandableList.Item>
-                                </SlidingPaneNavContainer>
+                                {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[5] = el}
+                                        to="DOCUMENTS"
+                                    >
+                                        <ExpandableList.Item>
+                                            {getHelperPaneIcon(HelperPaneIconType.DOCUMENT)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Documents
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
+                                )}
                             </ExpandableList>
 
                         </div>
