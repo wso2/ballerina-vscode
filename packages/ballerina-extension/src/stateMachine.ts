@@ -2,10 +2,10 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type } from "@wso2/ballerina-core";
+import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type, dependencyPullProgress } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
-import { commands, extensions, ShellExecution, Task, TaskDefinition, tasks, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
 import * as path from 'path';
@@ -24,6 +24,8 @@ import {
     getWorkspaceTomlValues
 } from './utils';
 import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { runCommandWithOutput } from './utils/runCommand';
+import { buildOutputChannel } from './utils/logger';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
@@ -47,7 +49,7 @@ let pendingProjectRootUpdateResolvers: Array<() => void> = [];
 
 const stateMachine = createMachine<MachineContext>(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QDUCWsCuBDANqgXmAE4DEASgKIDKFAKgPq0Dy9FAGrRQHJUCSTXepQCCAEQCaAbQAMAXUSgADgHtYqAC6plAOwUgAnogC0ARgDsAVgB0AZgvSHANhPS7Ji44BMAGhAAPRHsAFgBfEN80TFwCYitUbQ1UaMISCB0wOO0AN2UAawzI7DxCIkzE5LAEeJyAYyxNHRlZJr0VNQbdJH9ETyCgqwAOO2legE4gxwtLTxtfQwQTT1HpW1G18aCLAaCZsIj0IpjS+PLisBJiImVSxRx6gDNrgFsrQorjhM0KquzlOo6mi0um1Ejo9AEEL1+kN7GMJlMLDM5sYTHYrI5LA4bNILOYpgM9iA3mdSlgaposvUwAAZKipdKZHL5V4Hd5WMkUqm0n61epabSAuStVSgzqgCF2UZWIJmTyIkwDcYDcxBZELGzjaVjUYWUbbbEmUaE4lHdnk1CU9Q0umXa5WW4PZ4sqIks2cq3c6p-PmNORApQijrgxCS6Wy+WKoLKsyqgyIExBPXSxNrSwuBXSAnhIms104WAUIhXUiUWhkKRC4GB-nBhYDTxWQ2LMwKpUqnxx9WanYp3X66SG42501gPxW7RqHRkMBYCD6EhMAAK3HoyF4FAA6v6QCCg10Ib0BtLhjYXPZpMsBo41QmLNZPAMY2tXI4caMzEOXaasqgwAB3YRzSyDIf3-XhPnpbQMi9ZkTRKKxQIAoCQN-P9wI0HlvQBP1KwDdoay6eZz2ldYBgsbFT0TCxfAlcwrA8R8PBcNwPE-Q54MQwCKQyP8wAAIzQf9qWUWd4igSDoN+WDhw41CuItHj+MEv9hNE7QoEw-5+UFeQq3wsF9x6bZ6McRjnFcXEPDVTYGxTPVyNcBMdTYtlOOQqxeIE1DVIgSAJMZPIChk2I3O4jylO8kTfIgTSfQFHDdLw0VayWBshkxUZ3ERMwbD6azpH6OyyIopyLBc11QoUhDUOnWd5yXFc103bddwI8UelPVYbEsbFcUsMwBjVO8j1y7q7BKqjyu-OT3MQ2q5xIJqN3oABVRdRGETgWurAz2shTqNW6hy+vxNVHEmWxHyjPUBmkAavCm2T-3k4Dqv-eb5wAMV4akKFYUReFobb9LFbp9pMLqepxPEBrVMxZWPRY+k2bZdmzOCQpmsLEIoCBEnUkgKABhhRAEChgeSwz9scKwzFGI7NnhxwbAxDt5kfKUZTsl83w-QltGUXz4C6DGiGFEHayMUZr07IxPGZqwRnPZYJnfPoyvR4KPlOGJxcpvbTClSZegGs8FTlDEhqjEi1mKxzJs1r94I5C0uSoPW9wNw10URGVlWh+sPDMOHsUbFMr3rZYH1CR32NifNC2LD22rBw2fZN-3cUDy3O0yiG6dtmFEzumxHtiUdx0nbQPuT3bU+942-bN7Pg87FwJisTwn2WRwgm6uU+f2J3Mee5Da9BiEjCjNVTxp+sUxsB8KMHnNh9KSrXsQ9D1HH2tpCGhwbfsibnNj1ysaqzzlJ8sTd6p-fO1MhsnL1J+o+2Mv14v16r8i2dIDvntYyUZHymRsGRFszhZidgGLAzuSMBo9nsCzT+b0kLYxqjOOcgCwYP3mO3awfRbY3TuleTwqCN4oX-LjfGUAcEQjwfGcwUpRjak8CYRw0sCqODCGEIAA */
+        /** @xstate-layout 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-S3PzToCjSzlMpTMmwo7JgCV-DMRcryOm7ruEMFwcdWhUmCK0QIeYfIMT2k7JYPl9rJurdYjF7yV7SQfZKZUjx7KvpMAnfaAR5GdAkRWSRwsgjmrvSwrBOD8GELMaQ8hGkqE0Mg80EsGqDVZgGJmZZthkOLV-P4qkThIJAfSaB+x2TEnOLMeR2UpYY5RorAa+yq04FLAKmE4+yLzUR2w1kxxvHckCd7kWUI5IyT7SdqVPMjSOgRwEvmQERUQaKbA4PHdwjClnIGKuezq0-G9DkbOks0nyRLoEk8Cz9isU4v4zZoVZz1PZq0x+3TuYYUglJGSDykqqQNQiEAA */
         id: "Visualizer",
         initial: 'initialize',
         predictableActionArguments: true,
@@ -70,7 +72,10 @@ const stateMachine = createMachine<MachineContext>(
                     () => {
                         // Use queueMicrotask to ensure context is updated before command execution
                         queueMicrotask(() => {
+                            console.log('Refreshing BI project explorer');
                             commands.executeCommand("BI.project-explorer.refresh");
+                            console.log('Notifying current webview');
+                            notifyCurrentWebview();
                         });
                     }
                 ]
@@ -325,7 +330,7 @@ const stateMachine = createMachine<MachineContext>(
                             FILE_EDIT: {
                                 target: "viewEditing"
                             },
-                        }
+                        },
                     },
                     viewEditing: {
                         on: {
@@ -427,11 +432,7 @@ const stateMachine = createMachine<MachineContext>(
                         return;
                     }
 
-                    const taskDefinition: TaskDefinition = {
-                        type: 'shell',
-                        task: 'run'
-                    };
-
+                    // Construct the build command
                     let buildCommand = 'bal build';
 
                     const config = workspace.getConfiguration('ballerina');
@@ -440,44 +441,46 @@ const stateMachine = createMachine<MachineContext>(
                         buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
                     }
 
-                    // Use the current process environment which should have the updated PATH
-                    const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
-
-                    if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-                        resolve(true);
-                        return;
-                    }
-
-
-                    const task = new Task(
-                        taskDefinition,
-                        workspace.workspaceFolders![0],
-                        'Ballerina Build',
-                        'ballerina',
-                        execution
-                    );
-
                     try {
-                        const taskExecution = await tasks.executeTask(task);
+                        // Execute the build command with output streaming
+                        const result = await runCommandWithOutput(
+                            buildCommand,
+                            context.projectPath,
+                            buildOutputChannel,
+                            (message: string) => {
+                                // Send progress notification to the visualizer
+                                RPCLayer._messenger.sendNotification(
+                                    dependencyPullProgress,
+                                    { type: 'webview', webviewType: VisualizerWebview.viewType },
+                                    message
+                                );
+                            }
+                        );
 
-                        // Wait for task completion
-                        await new Promise<void>((taskResolve) => {
-                            // Listen for task completion
-                            const disposable = tasks.onDidEndTask((taskEndEvent) => {
-                                if (taskEndEvent.execution === taskExecution) {
-                                    console.log('Build task completed');
-
-                                    // Close the terminal pane on completion
-                                    commands.executeCommand('workbench.action.closePanel');
-
-                                    disposable.dispose();
-                                    taskResolve();
+                        if (result.success) {
+                            console.log('Build task completed successfully');
+                        
+                            // Retry resolving missing dependencies after build is successful. This is a temporary solution to ensure the project is reloaded with new dependencies.
+                            const projectUri = Uri.file(context.projectPath).toString();
+                            await StateMachine.langClient().resolveMissingDependencies({
+                                documentIdentifier: {
+                                    uri: projectUri
                                 }
                             });
-                        });
+
+                            
+                            // Close the output panel on successful completion
+                            commands.executeCommand('workbench.action.closePanel');
+                        } else {
+                            const errorMsg = `Failed to build Ballerina package. Exit code: ${result.exitCode}`;
+                            console.error(errorMsg);
+                            window.showErrorMessage(errorMsg);
+                        }
 
                     } catch (error) {
-                        window.showErrorMessage(`Failed to build Ballerina package: ${error}`);
+                        const errorMsg = `Failed to build Ballerina package: ${error}`;
+                        console.error(errorMsg, error);
+                        window.showErrorMessage(errorMsg);
                     }
                 }
 

@@ -172,16 +172,15 @@ export class VisualizerWebview {
             .loader-wrapper {
                 display: flex;
                 justify-content: center;
-                align-items: flex-start;
-                height: 100%;
+                align-items: center;
+                height: 100vh;
                 width: 100%;
-                padding-top: 30vh;
             }
             .loader {
-                width: 36px;
+                width: 28px;
                 aspect-ratio: 1;
                 border-radius: 50%;
-                border: 6px solid var(--vscode-button-background);
+                border: 5px solid var(--vscode-progressBar-background);
                 animation:
                     l20-1 0.5s infinite linear alternate,
                     l20-2 1s infinite linear;
@@ -210,13 +209,12 @@ export class VisualizerWebview {
                 font-family: var(--vscode-font-family);
             }
             .logo-container {
-                margin-bottom: 2rem;
                 display: flex;
                 justify-content: center;
             }
             .welcome-title {
                 color: var(--vscode-foreground);
-                margin: 0 0 0.5rem 0;
+                margin: 1.5rem 0 0.5rem 0;
                 letter-spacing: -0.02em;
                 font-size: 1.5em;
                 font-weight: 400;
@@ -229,7 +227,7 @@ export class VisualizerWebview {
                 opacity: 0.8;
             }
             .loading-text {
-                color: var(--vscode-foreground);
+                color: var(--vscode-button-background);
                 font-size: 13px;
                 font-weight: 500;
             }
