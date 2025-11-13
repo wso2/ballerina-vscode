@@ -1,0 +1,10 @@
+{
+  "description": "Test workspace project with child packages",
+  "source": "workspace_proj/api-gateway/Ballerina.toml",
+  "output": {
+    "projectKind": "BUILD_PROJECT",
+    "name": "api_gateway",
+    "title": "API Gateway",
+    "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/api-gateway/"
+  }
+}

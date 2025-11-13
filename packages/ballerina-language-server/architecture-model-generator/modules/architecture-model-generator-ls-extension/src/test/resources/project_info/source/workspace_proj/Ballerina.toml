@@ -1,0 +1,2 @@
+[workspace]
+packages = ["api-gateway", "user-service", "common"]
