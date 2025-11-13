@@ -278,17 +278,11 @@ async function showNoBallerinaSourceWarningMessage() {
 
 import { ProjectSource, ProjectModule, OpenAPISpec } from '@wso2/ballerina-core';
 import { langClient } from './activator';
-import { findBallerinaPackageRoot } from '../../utils';
 
 /**
  * Gets the project source including all .bal files and modules
  */
-export async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaPackageRoot(dirPath);
-
-    if (!projectRoot) {
-        return null;
-    }
+export async function getProjectSource(projectRoot: string): Promise<ProjectSource | null> {
 
     const projectSource: ProjectSource = {
         sourceFiles: [],
@@ -341,14 +335,9 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
 /**
  * Gets the project source including test files
  */
-export async function getProjectSourceWithTests(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaPackageRoot(dirPath);
+export async function getProjectSourceWithTests(projectRoot: string): Promise<ProjectSource | null> {
 
-    if (!projectRoot) {
-        return null;
-    }
-
-    const projectSourceWithTests: ProjectSource = await getProjectSource(dirPath);
+    const projectSourceWithTests: ProjectSource = await getProjectSource(projectRoot);
 
     // Read tests
     const testsDir = path.join(projectRoot, 'tests');

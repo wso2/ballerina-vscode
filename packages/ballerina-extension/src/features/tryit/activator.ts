@@ -30,7 +30,7 @@ import { startDebugging } from "../editor-support/activator";
 import { v4 as uuidv4 } from "uuid";
 import { createGraphqlView } from "../../views/graphql";
 import { StateMachine } from "../../stateMachine";
-import { getCurrentProjectRoot } from "../debugger";
+import { getCurrentProjectRoot } from "../../utils/project-utils";
 
 // File constants
 const FILE_NAMES = {

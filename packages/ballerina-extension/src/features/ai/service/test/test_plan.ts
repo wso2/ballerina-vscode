@@ -21,7 +21,7 @@ import { TestGenerationTarget, TestPlanGenerationRequest, Command } from "@wso2/
 import { generateTest, getDiagnostics } from "../../testGenerator";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-import { StateMachine } from "../../../../stateMachine";
+import { getCurrentProjectRoot } from "../../../../utils/project-utils";
 
 export interface TestPlanResponse {
     testPlan: string;
@@ -168,7 +168,14 @@ export async function generateTestPlanCore(
                         type: "content_block",
                         content: `\n\n<progress>Generating tests for the ${target} service. This may take a moment.</progress>`,
                     });
-                    const projectPath = StateMachine.context().projectPath;
+                    let projectPath: string;
+                    try {
+                        projectPath = await getCurrentProjectRoot();
+                    } catch (error) {
+                        console.error("Error getting current project root:", error);
+                        eventHandler({ type: "error", content: getErrorMessage(error) });
+                        return;
+                    }
                     const testResp = await generateTest(projectPath, {
                         targetType: TestGenerationTarget.Service,
                         targetIdentifier: target,

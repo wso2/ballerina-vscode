@@ -33,7 +33,18 @@ import { exec, spawnSync, execSync } from 'child_process';
 import { LanguageClientOptions, State as LS_STATE, RevealOutputChannelOn, ServerOptions } from "vscode-languageclient/node";
 import { getServerOptions } from '../utils/server/server';
 import { ExtendedLangClient } from './extended-language-client';
-import { debug, log, getOutputChannel, outputChannel, isWindows, isWSL, isSupportedVersion, VERSION, isSupportedSLVersion } from '../utils';
+import {
+    debug,
+    log,
+    getOutputChannel,
+    outputChannel,
+    isWindows,
+    isWSL,
+    isSupportedVersion,
+    VERSION,
+    isSupportedSLVersion,
+    createVersionNumber
+} from '../utils';
 import { AssertionError } from "assert";
 import {
     BALLERINA_HOME, ENABLE_ALL_CODELENS, ENABLE_TELEMETRY, ENABLE_SEMANTIC_HIGHLIGHTING, OVERRIDE_BALLERINA_HOME,
@@ -142,6 +153,7 @@ export class BallerinaExtension {
     public ballerinaVersion: string;
     public biSupported: boolean;
     public isNPSupported: boolean;
+    public isWorkspaceSupported: boolean;
     public extension: Extension<any>;
     private clientOptions: LanguageClientOptions;
     public langClient?: ExtendedLangClient;
@@ -172,6 +184,7 @@ export class BallerinaExtension {
             this.ballerinaVersion = '';
             this.biSupported = false;
             this.isNPSupported = false;
+            this.isWorkspaceSupported = false;
             this.isPersist = false;
             this.ballerinaUserHomeName = '.ballerina';
 
@@ -442,9 +455,10 @@ export class BallerinaExtension {
                 }
 
                 try {
-                    this.biSupported = isSupportedSLVersion(this, 2201123); // Minimum supported version for BI
-                    this.isNPSupported = isSupportedSLVersion(this, 2201130) && this.enabledExperimentalFeatures(); // Minimum supported requirements for NP
-                    debug(`[INIT] Feature support calculated - BI: ${this.biSupported}, NP: ${this.isNPSupported}`);
+                    this.biSupported = isSupportedSLVersion(this, createVersionNumber(2201, 12, 3)); // Minimum supported version for BI: 2201.12.3
+                    this.isNPSupported = isSupportedSLVersion(this, createVersionNumber(2201, 13, 0)) && this.enabledExperimentalFeatures(); // Minimum supported requirements for NP: 2201.13.0
+                    this.isWorkspaceSupported = isSupportedSLVersion(this, createVersionNumber(2201, 13, 0)); // Minimum supported requirements for Workspace: 2201.13.0
+                    debug(`[INIT] Feature support calculated - BI: ${this.biSupported}, NP: ${this.isNPSupported}, Workspace: ${this.isWorkspaceSupported}`);
                 } catch (error) {
                     debug(`[INIT] Error calculating feature support: ${error}`);
                     // Don't throw here, we can continue without these features
@@ -464,7 +478,7 @@ export class BallerinaExtension {
                 debug(`[INIT] Final Ballerina Home: ${this.ballerinaHome}`);
                 debug(`[INIT] Plugin Dev Mode: ${this.overrideBallerinaHome()}`);
                 debug(`[INIT] Debug Mode: ${this.enableLSDebug()}`);
-                debug(`[INIT] Feature flags - Experimental: ${this.enabledExperimentalFeatures()}, BI: ${this.biSupported}, NP: ${this.isNPSupported}`);
+                debug(`[INIT] Feature flags - Experimental: ${this.enabledExperimentalFeatures()}, BI: ${this.biSupported}, NP: ${this.isNPSupported}, Workspace: ${this.isWorkspaceSupported}`);
 
                 // Check version compatibility
                 try {
@@ -2283,7 +2297,7 @@ export class BallerinaExtension {
     }
 
     public enabledLiveReload(): boolean {
-        return isSupportedSLVersion(this, 2201100) && workspace.getConfiguration().get(ENABLE_LIVE_RELOAD);
+        return isSupportedSLVersion(this, createVersionNumber(2201, 10, 0)) && workspace.getConfiguration().get(ENABLE_LIVE_RELOAD);
     }
 
     public enabledPerformanceForecasting(): boolean {
@@ -2347,14 +2361,10 @@ export class BallerinaExtension {
         if (textEditor?.document) {
             const fileUri: Uri = textEditor.document.uri;
             checkIsPersistModelFile(fileUri).then(isPersistModelFile => {
-                if (isPersistModelFile) {
-                    this.isPersist = true;
-                    commands.executeCommand('setContext', 'isPersistModelActive', true);
-                    return;
-                } else {
-                    this.isPersist = false;
-                }
+                this.isPersist = isPersistModelFile;
+                commands.executeCommand('setContext', 'isPersistModelActive', isPersistModelFile);
             });
+            return;
         }
         commands.executeCommand('setContext', 'isPersistModelActive', false);
     }
