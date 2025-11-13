@@ -106,14 +106,14 @@ export const TokenizedExpression = (props: TokenizedExpressionProps) => {
                         return (
                             <React.Fragment key={element.id}>
                                 {getTokenChip(
-                                    element.documentMetadata?.content || element.value,
+                                    element.metadata?.content || element.value,
                                     element.type,
                                     undefined,
                                     props.onChipClick,
                                     props.onChipBlur,
                                     props.onChipFocus,
                                     element.id,
-                                    element.documentMetadata?.documentType
+                                    element.metadata?.documentType
                                 )}
                             </React.Fragment>
                         );
