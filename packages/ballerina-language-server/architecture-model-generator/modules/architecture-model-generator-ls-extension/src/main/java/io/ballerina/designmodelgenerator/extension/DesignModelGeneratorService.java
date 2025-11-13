@@ -105,8 +105,6 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             try {
                 Path projectPath = Path.of(request.projectRoot());
                 Project project = workspaceManager.loadProject(projectPath);
-
-                // Populate project info (recursive helper)
                 populateProjectInfo(response, project, true);
             } catch (Throwable e) {
                 response.setError(e);
@@ -123,19 +121,23 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
      * @param includeChildren Whether to populate children (false for child projects to avoid recursion)
      */
     private void populateProjectInfo(ProjectInfoResponse response, Project project, boolean includeChildren) {
-        // Set basic project info
+        // Set common project info
         response.setProjectKind(project.kind().name());
         response.setUri(project.sourceRoot().toUri().toString());
 
         // Handle workspace projects
         if (includeChildren && BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
+            // For workspace projects, use source root folder name as name
             String fileName = project.sourceRoot().getFileName().toString();
             response.setName(fileName);
+
+            // Get the title from the workspace toml if present
             String title = BallerinaCompilerApi.getInstance().getWorkspaceToml(project)
                     .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "workspace"))
                     .orElse(fileName);
             response.setTitle(title);
 
+            // Traverse child projects
             List<ProjectInfoResponse> children = extractChildProjects(project);
             response.setChildren(children);
         } else if (project.kind() == ProjectKind.SINGLE_FILE_PROJECT) {
@@ -144,11 +146,12 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             response.setName(fileName);
             response.setTitle(fileName);
         } else {
+            // Get the project name from the current package
             Package currentPackage = project.currentPackage();
             String packageName = currentPackage.packageName().value();
             response.setName(packageName);
 
-            // Try to get title from Ballerina.toml, fallback to package name
+            // Get the title from Ballerina.toml if present
             String title = currentPackage.ballerinaToml()
                     .map(BallerinaToml::tomlDocument)
                     .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "package"))
@@ -158,8 +161,8 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
     }
 
     /**
-     * Extracts the title from Ballerina.toml if present. First tries to read a custom "title" field from the [package]
-     * table in Ballerina.toml. Falls back to the package name if no title is specified.
+     * Extracts the title from Ballerina.toml if present. First tries to read a custom "title" field in Ballerina.toml.
+     * Falls back to the package name if no title is specified.
      *
      * @param tomlDocument The TomlDocument to extract title from
      * @return Optional containing title
@@ -186,8 +189,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
     }
 
     /**
-     * Extracts child project information for workspace projects. Uses recursive structure - returns
-     * List<ProjectInfoResponse>.
+     * Extracts child project information for workspace projects.
      *
      * @param project The workspace project
      * @return List of child project information
@@ -195,12 +197,9 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
     private List<ProjectInfoResponse> extractChildProjects(Project project) {
         List<ProjectInfoResponse> children = new ArrayList<>();
 
-        // Get compiler API instance
         BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
-
         if (compilerApi.isWorkspaceProject(project)) {
             List<Project> workspaceProjects = compilerApi.getWorkspaceProjectsInOrder(project);
-
             for (Project childProject : workspaceProjects) {
                 ProjectInfoResponse childResponse = new ProjectInfoResponse();
                 // Populate child project info (without their children to keep safe from recursion)
