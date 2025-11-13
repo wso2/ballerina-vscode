@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import React from "react";
 import styled from "@emotion/styled";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { Typography } from "@wso2/ui-toolkit";
 interface LoadingRingProps {
     message?: string;
+    progress?: number;
 }
 
-export const LoadingRing = ({ message }: LoadingRingProps) => {
+export const LoadingRing = ({ message, progress }: LoadingRingProps) => {
     const ProgressContainer = styled.div`
         position: fixed;
         top: 0;
@@ -44,6 +44,13 @@ export const LoadingRing = ({ message }: LoadingRingProps) => {
         font-size: 14px;
     `;
 
+    const ProgressText = styled(Typography)`
+        margin-top: 8px;
+        color: var(--vscode-descriptionForeground);
+        font-size: 12px;
+        text-align: center;
+    `;
+
     return (
         <ProgressContainer>
             <ProgressRing color={ThemeColors.PRIMARY} />
@@ -51,6 +58,11 @@ export const LoadingRing = ({ message }: LoadingRingProps) => {
                 <LoadingText variant="body2">
                     {message}
                 </LoadingText>
+            )}
+            {progress !== undefined && (
+                <ProgressText variant="body2">
+                    {progress}%
+                </ProgressText>
             )}
         </ProgressContainer>
     );
