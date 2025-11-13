@@ -28,10 +28,11 @@ import io.ballerina.designmodelgenerator.extension.request.ProjectInfoRequest;
 import io.ballerina.designmodelgenerator.extension.response.ArtifactResponse;
 import io.ballerina.designmodelgenerator.extension.response.GetDesignModelResponse;
 import io.ballerina.designmodelgenerator.extension.response.ProjectInfoResponse;
+import io.ballerina.projects.BallerinaToml;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
-import io.ballerina.toml.api.Toml;
+import io.ballerina.projects.TomlDocument;
 import io.ballerina.toml.semantic.ast.TomlStringValueNode;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
@@ -115,11 +116,10 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
     }
 
     /**
-     * Populates a ProjectInfoResponse with project metadata.
-     * This method is called recursively for child projects.
+     * Populates a ProjectInfoResponse with project metadata. This method is called recursively for child projects.
      *
-     * @param response The response object to populate
-     * @param project The project to extract information from
+     * @param response        The response object to populate
+     * @param project         The project to extract information from
      * @param includeChildren Whether to populate children (false for child projects to avoid recursion)
      */
     private void populateProjectInfo(ProjectInfoResponse response, Project project, boolean includeChildren) {
@@ -127,8 +127,18 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         response.setProjectKind(project.kind().name());
         response.setUri(project.sourceRoot().toUri().toString());
 
-        // Get package name and title - common for all project types except SINGLE_FILE
-        if (project.kind() == ProjectKind.SINGLE_FILE_PROJECT) {
+        // Handle workspace projects
+        if (includeChildren && BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
+            String fileName = project.sourceRoot().getFileName().toString();
+            response.setName(fileName);
+            String title = BallerinaCompilerApi.getInstance().getWorkspaceToml(project)
+                    .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "workspace"))
+                    .orElse(fileName);
+            response.setTitle(title);
+
+            List<ProjectInfoResponse> children = extractChildProjects(project);
+            response.setChildren(children);
+        } else if (project.kind() == ProjectKind.SINGLE_FILE_PROJECT) {
             // For single file projects, use filename as name/title
             String fileName = project.sourceRoot().getFileName().toString();
             response.setName(fileName);
@@ -139,38 +149,31 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             response.setName(packageName);
 
             // Try to get title from Ballerina.toml, fallback to package name
-            String title = extractTitleFromToml(currentPackage).orElse(packageName);
+            String title = currentPackage.ballerinaToml()
+                    .map(BallerinaToml::tomlDocument)
+                    .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "package"))
+                    .orElse(packageName);
             response.setTitle(title);
-        }
-
-        // Handle workspace projects - only if includeChildren is true
-        if (includeChildren && project.kind() == ProjectKind.WORKSPACE_PROJECT) {
-            List<ProjectInfoResponse> children = extractChildProjects(project);
-            response.setChildren(children);
         }
     }
 
     /**
-     * Extracts the title from Ballerina.toml if present.
-     * First tries to read a custom "title" field from the [package] table in Ballerina.toml.
-     * Falls back to the package name if no title is specified.
+     * Extracts the title from Ballerina.toml if present. First tries to read a custom "title" field from the [package]
+     * table in Ballerina.toml. Falls back to the package name if no title is specified.
      *
-     * @param currentPackage The package to extract title from
+     * @param tomlDocument The TomlDocument to extract title from
      * @return Optional containing title
      */
-    private Optional<String> extractTitleFromToml(Package currentPackage) {
+    private Optional<String> extractTitleFromToml(TomlDocument tomlDocument, String tableName) {
         try {
             // Try to read title from Ballerina.toml [package] table
-            if (currentPackage.ballerinaToml().isPresent()) {
-                var ballerinaToml = currentPackage.ballerinaToml().get();
-                var toml = ballerinaToml.tomlDocument().toml();
-                if (toml.getTable("package").isPresent()) {
-                    var packageTable = toml.getTable("package").get();
-                    if (packageTable.get("title").isPresent()) {
-                        var titleValue = packageTable.get("title").get();
-                        if (titleValue instanceof TomlStringValueNode stringNode) {
-                            return Optional.of(stringNode.getValue());
-                        }
+            var toml = tomlDocument.toml();
+            if (toml.getTable(tableName).isPresent()) {
+                var packageTable = toml.getTable(tableName).get();
+                if (packageTable.get("title").isPresent()) {
+                    var titleValue = packageTable.get("title").get();
+                    if (titleValue instanceof TomlStringValueNode stringNode) {
+                        return Optional.of(stringNode.getValue());
                     }
                 }
             }
@@ -179,12 +182,12 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         }
 
         // Fallback to package name
-        return Optional.of(currentPackage.packageName().value());
+        return Optional.empty();
     }
 
     /**
-     * Extracts child project information for workspace projects.
-     * Uses recursive structure - returns List<ProjectInfoResponse>.
+     * Extracts child project information for workspace projects. Uses recursive structure - returns
+     * List<ProjectInfoResponse>.
      *
      * @param project The workspace project
      * @return List of child project information

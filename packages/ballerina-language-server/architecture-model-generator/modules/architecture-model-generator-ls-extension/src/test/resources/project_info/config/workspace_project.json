@@ -3,8 +3,8 @@
   "source": "workspace_proj",
   "output": {
     "projectKind": "WORKSPACE_PROJECT",
-    "name": "api_gateway",
-    "title": "API Gateway",
+    "name": "workspace_proj",
+    "title": "Workspace Project",
     "uri": "workspace_proj",
     "children": [
       {
