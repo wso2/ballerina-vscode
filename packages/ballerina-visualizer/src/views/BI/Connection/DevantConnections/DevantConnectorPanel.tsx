@@ -21,7 +21,7 @@ import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
-import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: (connName: string) => void }> = ({
     selectedItem,

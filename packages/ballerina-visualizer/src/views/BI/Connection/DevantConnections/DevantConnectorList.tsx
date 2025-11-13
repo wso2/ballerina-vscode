@@ -30,7 +30,7 @@ import {
     ICmdParamsBase as PlatformExtICmdParamsBase,
 } from "@wso2/wso2-platform-core";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const GridContainer = styled.div<{ isHalfView?: boolean }>`
     display: grid;

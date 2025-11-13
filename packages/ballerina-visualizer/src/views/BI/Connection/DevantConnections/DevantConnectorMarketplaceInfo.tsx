@@ -28,7 +28,7 @@ import SwaggerUIReact from "swagger-ui-react";
 import "@wso2/ui-toolkit/src/styles/swagger/styles.css";
 import type SwaggerUIProps from "swagger-ui-react/swagger-ui-react";
 import { Banner } from "../../../../components/Banner";
-import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const StyledContainer = styled.div`
     display: flex;

@@ -33,7 +33,7 @@ import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Button, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { usePlatformExtContext } from "../../../../utils/PlatformExtContext";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 interface Props {
     item: MarketplaceItem;
