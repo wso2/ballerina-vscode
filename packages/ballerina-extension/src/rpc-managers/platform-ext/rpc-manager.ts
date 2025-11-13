@@ -264,6 +264,33 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async setupDevantProxyForDebugging(debugConfig: vscode.DebugConfiguration): Promise<void> {
+        const devantProxyResp = await window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Connecting to Devant before running/debugging the application...',
+        }, this.startProxyServer);
+
+        if(devantProxyResp.proxyServerPort){
+            debugConfig.env = {  ...(debugConfig.env || {}), ...devantProxyResp.envVars };
+            if(devantProxyResp.requiresProxy){
+                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST="127.0.0.1",
+                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT=`${devantProxyResp.proxyServerPort}`;
+            }else{
+                delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST;
+                delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT;
+            }
+        }
+        
+        if(devantProxyResp.proxyServerPort){
+            const disposable = vscode.debug.onDidTerminateDebugSession((session) => {
+                if (session.configuration === debugConfig) {
+                    this.stopProxyServer({proxyPort: devantProxyResp.proxyServerPort});
+                    disposable.dispose();
+                }
+            });
+        }
+    }
+
     async startProxyServer(): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
         // todo: need to take in params from config
         try {
@@ -284,7 +311,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             ) {
                 requiresProxy = true;
             }
-            if (platformExtStore.getState().state?.isLoggedIn) {
+            if (platformExtStore.getState().state?.isLoggedIn && platformExtStore.getState().state?.connectedToDevant) {
                 const selected = platformExtStore.getState().state?.selectedContext;
                 if (selected?.org && selected?.project) {
                     const resp = await platformExt?.startProxyServer({
