@@ -1,10 +1,30 @@
 {
   "description": "Test workspace project with child packages",
-  "source": "workspace_proj/api-gateway/Ballerina.toml",
+  "source": "workspace_proj",
   "output": {
-    "projectKind": "BUILD_PROJECT",
+    "projectKind": "WORKSPACE_PROJECT",
     "name": "api_gateway",
     "title": "API Gateway",
-    "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/api-gateway/"
+    "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/",
+    "children": [
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "common",
+        "title": "common",
+        "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/common/"
+      },
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "api_gateway",
+        "title": "API Gateway",
+        "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/api-gateway/"
+      },
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "user_service",
+        "title": "User Service",
+        "uri": "file:///Users/wso2/projects/ballerina/ballerina-language-server/feat3/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/project_info/source/workspace_proj/user-service/"
+      }
+    ]
   }
 }
