@@ -274,7 +274,8 @@
     {
       "label": "varRecTypeDef",
       "labelDetails": {
-        "detail": " RecordTypeDec"
+        "detail": " RecordTypeDec",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "RecordTypeDec",

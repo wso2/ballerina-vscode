@@ -473,7 +473,8 @@
     {
       "label": "person",
       "labelDetails": {
-        "detail": " Person"
+        "detail": " Person",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Person",
@@ -492,7 +493,8 @@
     {
       "label": "r",
       "labelDetails": {
-        "detail": " recType"
+        "detail": " recType",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "recType",
