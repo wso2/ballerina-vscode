@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -55,13 +56,16 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
         ConfigVariableGetRequest request = new ConfigVariableGetRequest(projectPath, includeImports);
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
-        if (!actualResponse.configVariables().equals(testConfig.configVariables())
+        JsonElement actualResponseJson = gson.toJsonTree(actualResponse.configVariables());
+        JsonElement expectedResponseJson = gson.toJsonTree(testConfig.configVariables());
+        if (!actualResponseJson.equals(expectedResponseJson)
                 || !Objects.equals(actualResponse.errorMsg(), testConfig.errorMsg())) {
-//            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
-//                    testConfig.project(),
-//                    actualResponse.configVariables(),
-//                    actualResponse.errorMsg(),
-//                    actualResponse.stacktrace()));
+            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
+                    testConfig.project(),
+                    actualResponse.configVariables(),
+                    actualResponse.errorMsg(),
+                    actualResponse.stacktrace()));
+            compareJsonElements(actualResponseJson, expectedResponseJson);
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
