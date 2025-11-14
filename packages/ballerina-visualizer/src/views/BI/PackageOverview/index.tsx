@@ -40,7 +40,7 @@ import ReactMarkdown from "react-markdown";
 import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
-import { findScopeByModule } from "./utils";
+import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 
@@ -601,28 +601,8 @@ export function PackageOverview(props: ComponentDiagramProps) {
     }, []);
 
     const deployableIntegrationTypes = useMemo(() => {
-        if (!projectStructure) {
-            return [];
-        }
-
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-
-        const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
-        const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
-
-        let scopes: SCOPE[] = [];
-        if (services) {
-            const svcScopes = services
-                .map(svc => findScopeByModule(svc?.moduleName))
-                .filter(svc => svc !== undefined);
-            scopes = Array.from(new Set(svcScopes));
-        }
-        if (automation?.length > 0) {
-            scopes.push(SCOPE.AUTOMATION);
-        }
-
-        return scopes;
-    }, [projectStructure]);
+        return getIntegrationTypes(projectStructure, projectPath);
+    }, [projectStructure, projectPath]);
 
     const projectName = useMemo(() => {
         if (!projectStructure) {
