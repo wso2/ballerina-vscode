@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { StateEffect, StateField, RangeSet, Transaction, SelectionRange } from "@codemirror/state";
+import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
 import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens, getWordBeforeCursor, getWordBeforeCursorPosition } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
@@ -32,6 +32,8 @@ export type CursorInfo = {
 }
 
 export type TokenType = 'variable' | 'property' | 'parameter';
+
+export const ProgrammerticSelectionChange = Annotation.define<boolean>();
 
 export function createChip(text: string, type: TokenType, start: number, end: number, view: EditorView) {
     class ChipWidget extends WidgetType {
@@ -85,7 +87,7 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             return span;
         }
         ignoreEvent() {
-            return false; 
+            return false;
         }
         eq(other: ChipWidget) {
             return other.text === this.text && other.start === this.start && other.end === this.end;
@@ -272,6 +274,43 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
         }
     });
     return shouldOpenHelperPaneListner;
+};
+
+// this always returns the cursor position with correction for helper pane width overflow
+// make sure all the dropdowns that use this handle has the same width
+export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) => {
+    const selectionListener = EditorView.updateListener.of((update) => {
+        if (!update.selectionSet) return;
+        if (update.docChanged) return;
+        if (!update.view.hasFocus) return;
+
+        if (update.transactions.some(tr => tr.annotation(ProgrammerticSelectionChange))) {
+            return;
+        }
+
+        const cursorPosition = update.state.selection.main;
+        const coords = update.view.coordsAtPos(cursorPosition.to);
+
+        if (coords && coords.top && coords.left) {
+            const editorRect = update.view.dom.getBoundingClientRect();
+            //+5 is to position a little be below the cursor
+            //otherwise it overlaps with the cursor
+            let relativeTop = coords.bottom - editorRect.top + 5;
+            let relativeLeft = coords.left - editorRect.left;
+
+            const HELPER_PANE_WIDTH = 300;
+            const viewportWidth = window.innerWidth;
+            const absoluteLeft = coords.left;
+            const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+
+            if (overflow > 0) {
+                relativeLeft -= overflow;
+            }
+
+            onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
+        }
+    });
+    return selectionListener;
 };
 
 export const buildOnFocusOutListner = (onTrigger: () => void) => {
