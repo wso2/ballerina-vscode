@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField,  RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography, Button, CompletionItem, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner } from "@wso2/ui-toolkit";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind } from "@wso2/ballerina-core";
+import { Dropdown, HelperPane, Typography, Button, CompletionItem, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -78,7 +78,8 @@ export const TwoColumnLayout = styled.div({
 export const LeftColumn = styled.div({
     flex: '1',
     minWidth: '300px',
-    overflow: 'auto'
+    overflow: 'auto',
+    position: 'relative'
 });
 
 export const RightColumn = styled.div({
@@ -88,6 +89,20 @@ export const RightColumn = styled.div({
     paddingLeft: '16px',
     display: 'flex',
     flexDirection: 'column'
+});
+
+export const LoadingOverlay = styled.div({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'var(--vscode-editor-background)',
+    opacity: 0.5,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000
 });
 
 export const ExpressionEditorContainer = styled.div({
@@ -135,17 +150,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const [localExpressionValue, setLocalExpressionValue] = useState<string>(currentValue);
     // Diagnostics state
     const [formDiagnostics, setFormDiagnostics] = useState<any[]>(field?.diagnostics || []);
-    
+
     // Refs for helper pane
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
-    
+
     // Ref to track the latest expression value that should be synced
     // This prevents intermediate values from overwriting the final value
     const latestExpressionToSyncRef = useRef<string>(localExpressionValue);
-    
-    // Refs to track sync direction and prevent infinite loops
-    const isUpdatingFromModelRef = useRef<boolean>(false);
 
     // Create a wrapper for extractArgsFromFunction that matches ChipExpressionBaseComponent's expected signature
     // ChipExpressionBaseComponent expects (value: string, cursorPosition: number) => Promise<...>
@@ -171,7 +183,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         : undefined;
 
     // Create form context for ChipExpressionBaseComponent
-    // Use form methods from local form instance (needed for modal's local state)
     const { control, watch, setValue, getValues, register, unregister, setError, clearErrors, formState } = useForm();
 
     const formContextValue = {
@@ -201,7 +212,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             } else {
                 getNewRecordModel();
             }
-            
+
             // Fetch initial diagnostics if value exists
             if (currentValue && formContext.expressionEditor.getExpressionFormDiagnostics && targetLineRange) {
                 fetchDiagnostics(currentValue);
@@ -214,7 +225,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
-         let org = "";
+        let org = "";
         let module = "";
         let version = "";
         let packageInfo = "";
@@ -388,7 +399,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             if (!formContext.expressionEditor.getExpressionFormDiagnostics || !targetLineRange) {
                 return;
             }
-            
+
             const fieldKey = field?.key || "expression";
             const property: ExpressionProperty = {
                 metadata: recordTypeField?.property?.metadata,
@@ -403,14 +414,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 imports: recordTypeField?.property?.imports,
                 diagnostics: recordTypeField?.property?.diagnostics
             };
-            
+
             // Create a callback to update diagnostics in the field
             // FormDiagnostics is { key: string; diagnostics: DiagnosticMessage[] }
             const handleSetDiagnosticsInfo = (diagnosticsInfo: { key: string; diagnostics: any[] }) => {
                 const diagnostics = diagnosticsInfo?.diagnostics || [];
                 setFormDiagnostics(diagnostics);
             };
-            
+
             await formContext.expressionEditor.getExpressionFormDiagnostics(
                 !field?.optional || value !== '',
                 value,
@@ -431,15 +442,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             console.log(">>> syncExpressionToModel: Expression value outdated, skipping. Current:", expressionValue, "Latest:", latestExpressionToSyncRef.current);
             return;
         }
-        
+
         console.log(">>> syncExpressionToModel", expressionValue);
-        
+
         // First, fetch diagnostics for the expression
         if (!formContext.expressionEditor.getExpressionFormDiagnostics || !targetLineRange) {
             console.log(">>> Cannot fetch diagnostics, skipping sync");
             return;
         }
-        
+
         const fieldKey = field?.key || "expression";
         const property: ExpressionProperty = {
             metadata: recordTypeField?.property?.metadata,
@@ -454,7 +465,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             imports: recordTypeField?.property?.imports,
             diagnostics: recordTypeField?.property?.diagnostics
         };
-        
+
         // Fetch diagnostics and wait for them
         let diagnostics: any[] = [];
         const diagnosticsPromise = new Promise<any[]>((resolve) => {
@@ -463,7 +474,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 setFormDiagnostics(diags);
                 resolve(diags);
             };
-            
+
             formContext.expressionEditor.getExpressionFormDiagnostics(
                 !field?.optional || expressionValue !== '',
                 expressionValue,
@@ -474,28 +485,28 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 undefined // typeValue
             );
         });
-        
+
         diagnostics = await diagnosticsPromise;
-        
+
         // Check again if this is still the latest value (user may have typed more while waiting for diagnostics)
         if (expressionValue !== latestExpressionToSyncRef.current) {
             console.log(">>> syncExpressionToModel: Expression value outdated after diagnostics, skipping. Current:", expressionValue, "Latest:", latestExpressionToSyncRef.current);
             return;
         }
-        
+
         // Check if there are any error diagnostics (severity === 1 indicates error)
         // Only sync if there are no errors
         const hasErrors = diagnostics.some((d: any) => d.severity === 1);
-        
+
         if (hasErrors) {
             console.log(">>> Expression has errors, skipping sync to model. Diagnostics:", diagnostics);
             return;
         }
-        
+
         // Check if the expression differs from the sourceCode (which represents the record model's expression)
         if (expressionValue !== sourceCode.current) {
             console.log(">>> Expression changed, syncing to model. Expression:", expressionValue, "SourceCode:", sourceCode.current);
-            
+
             // Parse the expression to update the record model
             await fetchRecordModelFromSource(expressionValue);
             // Update sourceCode to match the new expression value
@@ -505,14 +516,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             console.log(">>> Expression unchanged, no sync needed");
         }
     };
-    
+
     // Debounced function to sync expression to model when localExpressionValue changes
     const debouncedSyncExpressionToModel = useRef(
         debounce(async (expressionValue: string) => {
             await syncExpressionToModel(expressionValue);
         }, 500)
     ).current;
-    
+
     // Effect to watch localExpressionValue and trigger sync when it differs from sourceCode
     useEffect(() => {
         // Only sync if localExpressionValue differs from sourceCode
@@ -523,15 +534,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             debouncedSyncExpressionToModel(localExpressionValue);
         }
     }, [localExpressionValue, debouncedSyncExpressionToModel]);
-    
+
     const handleExpressionChange = (updatedValue: string, updatedCursorPosition: number) => {
         // Update local expression value when user edits in the ExpressionEditor
         setLocalExpressionValue(updatedValue);
-        
+
         // Fetch diagnostics (debounced) - this will update formDiagnostics state
         // The sync will be triggered by the useEffect that watches localExpressionValue
         fetchDiagnostics(updatedValue);
-        
+
         // Fetch completions when user types - this ensures variable suggestions are available
         if (formContext.expressionEditor.retrieveCompletions && field) {
             const property = getPropertyFromFormField({
@@ -545,72 +556,17 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             );
         }
     }
-    
-    // Component to update field diagnostics from FieldContext
-    // const DiagnosticsUpdater = (): null => {
-    //     const { field: contextField, setField } = useFieldContext();
-    //     const prevDiagnosticsRef = useRef<any[]>([]);
-    //     const contextFieldRef = useRef(contextField);
-        
-    //     // Keep contextFieldRef in sync
-    //     useEffect(() => {
-    //         contextFieldRef.current = contextField;
-    //     }, [contextField]);
-        
-    //     useEffect(() => {
-    //         const currentField = contextFieldRef.current;
-    //         if (!currentField || !setField) {
-    //             return;
-    //         }
-            
-    //         // Compare diagnostics to avoid unnecessary updates
-    //         const currentDiagnostics = formDiagnostics || [];
-    //         const prevDiagnostics = prevDiagnosticsRef.current;
-            
-    //         // Check if diagnostics actually changed
-    //         const diagnosticsChanged = 
-    //             currentDiagnostics.length !== prevDiagnostics.length ||
-    //             currentDiagnostics.some((diag: any, index: number) => {
-    //                 const prevDiag = prevDiagnostics[index];
-    //                 return !prevDiag || diag.message !== prevDiag.message || diag.severity !== prevDiag.severity;
-    //             });
-            
-    //         if (diagnosticsChanged) {
-    //             // Only update if diagnostics actually changed in the field
-    //             const currentFieldDiagnostics = currentField.diagnostics || [];
-    //             const fieldDiagnosticsChanged = 
-    //                 currentDiagnostics.length !== currentFieldDiagnostics.length ||
-    //                 currentDiagnostics.some((diag: any, index: number) => {
-    //                     const fieldDiag = currentFieldDiagnostics[index];
-    //                     return !fieldDiag || diag.message !== fieldDiag.message || diag.severity !== fieldDiag.severity;
-    //                 });
-                
-    //             if (fieldDiagnosticsChanged) {
-    //                 prevDiagnosticsRef.current = currentDiagnostics;
-    //                 setField({
-    //                     ...currentField,
-    //                     diagnostics: currentDiagnostics
-    //                 });
-    //             } else {
-    //                 // Update ref even if we don't update the field
-    //                 prevDiagnosticsRef.current = currentDiagnostics;
-    //             }
-    //         }
-    //     }, [formDiagnostics, setField]); // Only depend on formDiagnostics and setField
-        
-    //     return null;
-    // };
 
     // Create a wrapper for getHelperPane that adapts to ChipExpressionBaseComponent's signature
     // and updates local expression value
-    const wrappedGetHelperPane = getHelperPane 
+    const wrappedGetHelperPane = getHelperPane
         ? (value: string, onChange: (value: string, options?: HelperpaneOnChangeOptions) => void, helperPaneHeight: HelperPaneHeight) => {
             const wrappedOnChange = (newValue: string, options?: HelperpaneOnChangeOptions) => {
                 onChange(newValue, options);
                 // Update local expression value
                 setLocalExpressionValue(newValue);
             };
-            
+
             // Call getHelperPane with all required parameters including refs
             return getHelperPane(
                 "expression",
@@ -619,7 +575,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 "",
                 value,
                 wrappedOnChange,
-                () => {}, // changeHelperPaneState - no-op since ChipExpressionBaseComponent handles it
+                () => { }, // changeHelperPaneState - no-op since ChipExpressionBaseComponent handles it
                 helperPaneHeight,
                 recordTypeField,
                 false, // isAssignIdentifier
@@ -633,12 +589,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     return (
         <>
             <HelperPane.Body sx={{ zIndex: 2000 }} >
-                    <TwoColumnLayout>
-                        <LeftColumn>
-                        {isLoading ? (
-                    <HelperPane.Loader />
-                        ) : (
-                            <>
+                <TwoColumnLayout>
+                    <LeftColumn>
+                        {isLoading && (
+                            <LoadingOverlay>
+                                <ProgressRing color={ThemeColors.PRIMARY} />
+                            </LoadingOverlay>
+                        )}
                         {recordTypeField?.recordTypeMembers.length > 1 && (
                             <LabelContainer>
                                 <Dropdown
@@ -662,72 +619,69 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             ) : (
                                 <Typography variant="body3">Record construction assistance is unavailable.</Typography>
                             )}
-                           </>
-                         )}
-                        </LeftColumn>
-                        <RightColumn>
-                            <ExpressionEditorContainer>
-                                <div>
-                                    <ExpressionEditorLabel>
-                                        {field?.label || "Expression"}
-                                    </ExpressionEditorLabel>
-                                    {field?.documentation && (
-                                        <ExpressionEditorDocumentation>
-                                            <ReactMarkdown>{field.documentation}</ReactMarkdown>
-                                        </ExpressionEditorDocumentation>
-                                    )}
-                                </div>
-                                <FormContext.Provider value={formContextValue}>
-                                    <FieldProvider
-                                        initialField={field ? {
-                                            ...field,
-                                            value: localExpressionValue
-                                        } : {
-                                            key: "expression",
-                                            label: "Expression",
-                                            type: "EXPRESSION",
-                                            value: localExpressionValue,
-                                            optional: false,
-                                            valueTypeConstraint: typeof recordTypeField?.property?.valueTypeConstraint === 'string'
-                                                ? recordTypeField.property.valueTypeConstraint
-                                                : "",
-                                            metadata: recordTypeField?.property?.metadata,
-                                            editable: true,
-                                            documentation: "",
-                                            enabled: true
-                                        }}
-                                        triggerCharacters={triggerCharacters}
-                                    >
-                                        {/* <DiagnosticsUpdater /> */}
-                                        <div ref={anchorRef}>
-                                            <ChipExpressionBaseComponent
-                                                completions={formContext.expressionEditor.completions}
-                                                onChange={handleExpressionChange}
-                                                value={localExpressionValue}
-                                                fileName={fileName}
-                                                targetLineRange={targetLineRange}
-                                                extractArgsFromFunction={wrappedExtractArgsFromFunction}
-                                                getHelperPane={wrappedGetHelperPane}
-                                                expressionHeight="350"
-                                            />
-                                            {formDiagnostics && formDiagnostics.length > 0 && (
-                                                <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
-                                            )}
-                                        </div>
-                                    </FieldProvider>
-                                </FormContext.Provider>
-                            </ExpressionEditorContainer>
-                            <ButtonContainer>
-                                <Button appearance="secondary" onClick={handleCancel}>
-                                    Cancel
-                                </Button>
-                                <Button appearance="primary" onClick={handleSave}>
-                                    Save
-                                </Button>
-                            </ButtonContainer>
-                        </RightColumn>
-                    </TwoColumnLayout>
-                
+                    </LeftColumn>
+                    <RightColumn>
+                        <ExpressionEditorContainer>
+                            <div>
+                                <ExpressionEditorLabel>
+                                    {field?.label || "Expression"}
+                                </ExpressionEditorLabel>
+                                {field?.documentation && (
+                                    <ExpressionEditorDocumentation>
+                                        <ReactMarkdown>{field.documentation}</ReactMarkdown>
+                                    </ExpressionEditorDocumentation>
+                                )}
+                            </div>
+                            <FormContext.Provider value={formContextValue}>
+                                <FieldProvider
+                                    initialField={field ? {
+                                        ...field,
+                                        value: localExpressionValue
+                                    } : {
+                                        key: "expression",
+                                        label: "Expression",
+                                        type: "EXPRESSION",
+                                        value: localExpressionValue,
+                                        optional: false,
+                                        valueTypeConstraint: typeof recordTypeField?.property?.valueTypeConstraint === 'string'
+                                            ? recordTypeField.property.valueTypeConstraint
+                                            : "",
+                                        metadata: recordTypeField?.property?.metadata,
+                                        editable: true,
+                                        documentation: "",
+                                        enabled: true
+                                    }}
+                                    triggerCharacters={triggerCharacters}
+                                >
+                                    <div ref={anchorRef}>
+                                        <ChipExpressionBaseComponent
+                                            completions={formContext.expressionEditor.completions}
+                                            onChange={handleExpressionChange}
+                                            value={localExpressionValue}
+                                            fileName={fileName}
+                                            targetLineRange={targetLineRange}
+                                            extractArgsFromFunction={wrappedExtractArgsFromFunction}
+                                            getHelperPane={wrappedGetHelperPane}
+                                            expressionHeight="350"
+                                        />
+                                        {formDiagnostics && formDiagnostics.length > 0 && (
+                                            <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
+                                        )}
+                                    </div>
+                                </FieldProvider>
+                            </FormContext.Provider>
+                        </ExpressionEditorContainer>
+                        <ButtonContainer>
+                            <Button appearance="secondary" onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                            <Button appearance="primary" onClick={handleSave}>
+                                Save
+                            </Button>
+                        </ButtonContainer>
+                    </RightColumn>
+                </TwoColumnLayout>
+
             </HelperPane.Body>
         </>
     );
