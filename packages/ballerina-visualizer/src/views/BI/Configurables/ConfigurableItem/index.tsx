@@ -167,7 +167,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
 
 
     const sanitizeConfigValue = () => {
-        const variabeName = configVariable?.properties?.variable?.value;
+        const variableName = configVariable?.properties?.variable?.value;
         const configValue = configVariable?.properties?.configValue?.value;
         if (configValue && typeof configValue === 'string') {
             // Check if configValue already looks like an object or JSON (starts with '{' and ends with '}')
@@ -175,8 +175,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
                 return trimmed;
             } else {
-                // Otherwise, remove the leading "variabeName = " if present
-                const sanitizedConfigValue = configValue.replace(new RegExp(`^${variabeName}\\s*=\\s*`, 'g'), '');
+                // Otherwise, remove the leading "variableName = " if present
+                const sanitizedConfigValue = configValue.replace(new RegExp(`^${variableName}\\s*=\\s*`, 'g'), '');
                 return sanitizedConfigValue;
             }
         }

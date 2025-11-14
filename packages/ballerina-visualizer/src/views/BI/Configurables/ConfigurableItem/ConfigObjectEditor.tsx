@@ -21,7 +21,7 @@ import styled from "@emotion/styled";
 import { VSCodeTextField, VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
+import { Codicon, Typography } from "@wso2/ui-toolkit";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -196,7 +196,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
             }
         } else if (isNumericType) {
             // For numeric types, don't wrap with quotes
-            newValue = newValue;
+            // No action needed for numeric types; leave newValue unchanged.
         }
         field.value = newValue;
         onFieldChange(field, newValue);
@@ -448,14 +448,18 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
 
     useEffect(() => {
         loadRecordConfig();
-    }, []);
+    }, [fileName, typeValue, configValue]);
 
     const loadRecordConfig = async () => {
         setIsLoading(true);
         setError('');
         try {
-            console.log('>>> typeMembers', typeValue.typeMembers);
             const typeInfo = typeValue.typeMembers.find(m => typeValue.value.toString().includes(m.type));
+            if (!typeInfo) {
+                setError('Type information not found');
+                setIsLoading(false);
+                return;
+            }
             const parts = typeInfo.packageInfo.split(':');
             let orgName = '';
             let moduleName = '';
