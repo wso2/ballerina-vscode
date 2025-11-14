@@ -1,0 +1,95 @@
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:scheduler="http://www.mulesoft.org/schema/mule/scheduler"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/scheduler http://www.mulesoft.org/schema/mule/scheduler/current/mule-scheduler.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+<http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config" doc:id="a51a0383-6872-4398-ae5a-0f1a01d80ccd" >
+		<http:listener-connection host="0.0.0.0" port="9090" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="da0a8cf4-3c5b-44ac-9ad3-ed25a53c9c25" >
+		<db:my-sql-connection host="localhost" port="3306" user="${db.user}" password="${db.password}" database="test_db"/>
+	</db:config>
+	<flow name="getCustomersFlow">
+    <http:listener config-ref="httpListenerConfig" path="/customers" doc:name="HTTP Listener" allowedMethods="GET"/>
+    <choice doc:name="Choice" doc:id="295207b6-b0b2-4d3e-8602-59892f8c820d" >
+			<when expression="#[attributes.queryParams.mock == 'true']">
+				<ee:transform doc:name="Transform Message">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+            output application/json
+            ---
+            [
+                {
+                    "id": 1,
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                },
+                {
+                    "id": 2,
+                    "name": "Jane Smith",
+                    "email": "jane.smith@example.com"
+                }
+            ]]]></ee:set-payload>
+        </ee:message>
+    </ee:transform>
+			</when>
+			<otherwise >
+				<db:select doc:name="Select" doc:id="7220246f-6be7-48c3-bd8a-e14518ff1e42" config-ref="Database_Config">
+					<db:sql><![CDATA[SELECT * FROM Customers;]]></db:sql>
+				</db:select>
+				<logger level="INFO" doc:name="Logger" doc:id="300f68ac-53be-41e4-adcf-c0cacd9dc50b" message="DB result: #[payload]" />
+			</otherwise>
+		</choice>
+		<error-handler ref="Global_Error_Handler" />
+</flow>
+	<flow name="postCustomerFlow">
+    <http:listener config-ref="httpListenerConfig" path="/customers" doc:name="HTTP Listener" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Log Incoming Customer Data" doc:id="a8727a94-ca27-40b1-84d8-6d963c638354" message="Received payload: #[payload]" />
+		<ee:transform doc:name="Transform Incoming Customer Data">
+                <ee:message>
+                    <ee:set-payload><![CDATA[%dw 2.0
+                    output application/json
+                    ---
+                    {
+                        id: payload.id,
+                        name: upper(payload.name),
+                        email: upper(payload.email)
+                    }]]></ee:set-payload>
+                </ee:message>
+            </ee:transform>
+		<logger level="INFO" doc:name="Log Transformed Customer Data" doc:id="6a1e184e-fa2e-48f2-8d7c-b0d2d10d3b08" message="Modified payload: #[payload]" />
+		<ee:transform doc:name="Response Message">
+                <ee:message>
+                    <ee:set-payload><![CDATA[%dw 2.0
+                    output application/json
+                    ---
+                    {
+                        message: "Customer added successfully",
+                        customerId: payload.id
+                    }]]></ee:set-payload>
+                </ee:message>
+            </ee:transform>
+		<error-handler ref="Global_Error_Handler" />
+</flow>
+	<error-handler name="Global_Error_Handler">
+        <on-error-propagate enableNotifications="true" logException="true">
+            <ee:transform>
+                <ee:message>
+                    <ee:set-payload><![CDATA[%dw 2.0
+                    output application/json
+                    ---
+                    {
+                        error: "An error occurred"
+                    }]]></ee:set-payload>
+                </ee:message>
+            </ee:transform>
+        </on-error-propagate>
+    </error-handler>
+</mule>

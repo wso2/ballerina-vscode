@@ -3,7 +3,7 @@
     "id": 1,
     "title": "MuleSoft",
     "commandName": "migrate-mule",
-    "requiredVersion": "1.2.3",
+    "requiredVersion": "1.2.7",
     "description": "Select your MuleSoft project's root folder or main configuration XML file.",
     "parameters": [
       {
@@ -13,6 +13,13 @@
         "valueType": "enum",
         "defaultValue": "Auto Detect",
         "options": ["Auto Detect","3", "4"]
+      },
+      {
+        "key": "multiRoot",
+        "label": "Migrate Multiple Projects",
+        "description": "Enable to process all MuleSoft projects in the folder.",
+        "valueType": "boolean",
+        "defaultValue": false
       }
     ]
   },
@@ -20,8 +27,16 @@
     "id": 2,
     "title": "TIBCO",
     "commandName": "migrate-tibco",
-    "requiredVersion": "1.2.10",
+    "requiredVersion": "1.2.13",
     "description": "Select your TIBCO BusinessWorks project folder or main configuration file.",
-    "parameters": []
+    "parameters": [
+      {
+        "key": "multiRoot",
+        "label": "Migrate Multiple Projects",
+        "description": "Enable to process all TIBCO projects in the folder.",
+        "valueType": "boolean",
+        "defaultValue": false
+      }
+    ]
   }
 ]
