@@ -19,7 +19,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
-import { ChipExpressionBaseComponent2 } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionBaseComponent2";
+import { ChipExpressionBaseComponent2 } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 
 const ExpressionContainer = styled.div`
     width: 100%;
