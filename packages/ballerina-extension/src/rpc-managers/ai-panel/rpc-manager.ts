@@ -101,7 +101,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 import { checkToken } from "../../../src/views/ai-panel/utils";
-import { filterPackagePaths, getWorkspaceTomlValues } from "./../../../src/utils/config";
+import { getWorkspaceTomlValues } from "./../../../src/utils/config";
 export class AiPanelRpcManager implements AIPanelAPI {
 
     // ==================================
@@ -978,7 +978,7 @@ export async function getProjectSource(requestType: OperationType): Promise<Proj
         return [convertToProjectSource(project, "", true)];
     }
 
-    const packagePaths = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspacePath);
+    const packagePaths = StateMachine.context().projectInfo?.children.map(child => child.projectPath);
 
     // Load all packages in parallel
     const projectSources: ProjectSource[] = await Promise.all(
