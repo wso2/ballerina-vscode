@@ -103,7 +103,8 @@ export const chipTheme = EditorView.theme({
         backgroundColor: "var(--vscode-input-background)"
     },
     ".cm-content": {
-        caretColor: "#ffffff"
+        caretColor: "#ffffff",
+        paddingRight: "40px"
     },
     "&.cm-editor .cm-cursor, &.cm-editor .cm-dropCursor": {
         borderLeftColor: "#ffffff"
