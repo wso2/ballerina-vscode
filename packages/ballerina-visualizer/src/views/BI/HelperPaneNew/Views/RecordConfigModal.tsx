@@ -375,7 +375,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             const content = recordSourceResponse.recordValue;
             sourceCode.current = content;
             // Update local expression value (which updates the ExpressionEditor on the right)
-            // Don't call onChange yet - only update on save/close
             // Also update latestExpressionToSyncRef to prevent outdated syncs
             latestExpressionToSyncRef.current = content;
             setLocalExpressionValue(content);
@@ -416,7 +415,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             };
 
             // Create a callback to update diagnostics in the field
-            // FormDiagnostics is { key: string; diagnostics: DiagnosticMessage[] }
             const handleSetDiagnosticsInfo = (diagnosticsInfo: { key: string; diagnostics: any[] }) => {
                 const diagnostics = diagnosticsInfo?.diagnostics || [];
                 setFormDiagnostics(diagnostics);
@@ -443,7 +441,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             return;
         }
 
-        console.log(">>> syncExpressionToModel", expressionValue);
 
         // First, fetch diagnostics for the expression
         if (!formContext.expressionEditor.getExpressionFormDiagnostics || !targetLineRange) {

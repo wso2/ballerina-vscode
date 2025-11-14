@@ -875,8 +875,6 @@ export function FormGeneratorNew(props: FormProps) {
     }
 
     const openRecordConfigPage = (fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
-        console.log("openRecordConfigPage", fieldKey, currentValue, recordTypeField, onChangeCallback);
-        
         setRecordConfigPageState({
             isOpen: true,
             fieldKey,
@@ -1010,43 +1008,44 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
-            {recordConfigPageState.isOpen && recordConfigPageState.fieldKey && recordConfigPageState.recordTypeField && recordConfigPageState.onChangeCallback && (
-                <DynamicModal
-                    width={800}
-                    height={600}
-                    anchorRef={undefined}
-                    title="Record Configuration"
-                    openState={recordConfigPageState.isOpen}
-                    setOpenState={(isOpen: boolean) => {
-                        if (!isOpen) {
-                            closeRecordConfigPage();
-                        }
-                    }}
-                >
-                    <ConfigureRecordPage
-                        fileName={fileName}
-                        targetLineRange={targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined}
-                        onChange={(value: string, isRecordConfigureChange: boolean) => {
-                            // Call the onChange callback provided by ExpressionEditor
-                            // which will update the form value through react-hook-form
-                            recordConfigPageState.onChangeCallback!(value);
-                        }}
-                        currentValue={recordConfigPageState.currentValue || ""}
-                        recordTypeField={recordConfigPageState.recordTypeField}
-                        onClose={closeRecordConfigPage}
-                        getHelperPane={handleGetHelperPane}
-                        field={fieldsValues.find(f => f.key === recordConfigPageState.fieldKey)}
-                        triggerCharacters={TRIGGER_CHARACTERS}
-                        formContext={{
-                            expressionEditor: expressionEditor,
-                            popupManager: popupManager,
-                            nodeInfo: {
-                                kind: selectedNode || "EXPRESSION"
+            {recordConfigPageState.isOpen &&
+                recordConfigPageState.fieldKey &&
+                recordConfigPageState.recordTypeField &&
+                recordConfigPageState.onChangeCallback && (
+                    <DynamicModal
+                        width={800}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Record Configuration"
+                        openState={recordConfigPageState.isOpen}
+                        setOpenState={(isOpen: boolean) => {
+                            if (!isOpen) {
+                                closeRecordConfigPage();
                             }
                         }}
-                    />
-                </DynamicModal>
-            )}
+                    >
+                        <ConfigureRecordPage
+                            fileName={fileName}
+                            targetLineRange={targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined}
+                            onChange={(value: string, isRecordConfigureChange: boolean) => {
+                                recordConfigPageState.onChangeCallback!(value);
+                            }}
+                            currentValue={recordConfigPageState.currentValue || ""}
+                            recordTypeField={recordConfigPageState.recordTypeField}
+                            onClose={closeRecordConfigPage}
+                            getHelperPane={handleGetHelperPane}
+                            field={fieldsValues.find(f => f.key === recordConfigPageState.fieldKey)}
+                            triggerCharacters={TRIGGER_CHARACTERS}
+                            formContext={{
+                                expressionEditor: expressionEditor,
+                                popupManager: popupManager,
+                                nodeInfo: {
+                                    kind: selectedNode || "EXPRESSION"
+                                }
+                            }}
+                        />
+                    </DynamicModal>
+                )}
         </EditorContext.Provider>
     );
 }

@@ -560,7 +560,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                         value={props.value}
                         fieldContainerRef={fieldContainerRef}
                         expressionHeight={props.expressionHeight}
-                    onFocusChange={(focused) => {
+                        onFocusChange={(focused) => {
                             setIsAnyElementFocused(focused);
                             if (!focused && expressionModel) {
                                 const cleared = expressionModel.map(el => ({ ...el, isFocused: false, focusOffset: undefined }));

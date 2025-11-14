@@ -47,7 +47,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     return (
         <SwitchWrapper>
             <Slider checked={isChecked}>
-                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{isRecordTypeField ? 'Guided' : defaultMode}</Label>
+                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{isRecordTypeField ? InputMode.GUIDED : defaultMode}</Label>
                 <Label active={isChecked} onClick={handleExpressionClick}>Expression</Label>
             </Slider>
         </SwitchWrapper>
