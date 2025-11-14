@@ -49,10 +49,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
@@ -98,6 +100,9 @@ public class FunctionBuilderRouter {
                                                              SemanticModel semanticModel, Project project,
                                                              WorkspaceManager workspaceManager)
             throws Exception {
+        if (function.getKind().equals(OBJECT_METHOD)) {
+            moduleName = DEFAULT;
+        }
         NodeBuilder<Function> functionBuilder = getFunctionBuilder(moduleName);
         UpdateModelContext context =
                 new UpdateModelContext(null, function, semanticModel, project, workspaceManager, filePath,
