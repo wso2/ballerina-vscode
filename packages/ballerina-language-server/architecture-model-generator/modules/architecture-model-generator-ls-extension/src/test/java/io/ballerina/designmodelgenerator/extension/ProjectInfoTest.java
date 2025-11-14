@@ -135,7 +135,7 @@ public class ProjectInfoTest extends AbstractLSTest {
             if (uriString.startsWith("file://")) {
                 Path absolutePath = Paths.get(new URI(uriString));
                 Path relativePath = baseDir.relativize(absolutePath);
-                return relativePath.toString();
+                return relativePath.toString().replace('\\', '/');
             }
         } catch (Exception e) {
             // If conversion fails, return original URI
