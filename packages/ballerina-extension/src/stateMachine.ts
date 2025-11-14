@@ -498,7 +498,7 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
-                const projectTomlValues = await getProjectTomlValues(context.projectPath);
+                const projectTomlValues = context.projectPath ? await getProjectTomlValues(context.projectPath) : undefined;
                 const packageName = projectTomlValues?.package?.name;
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {

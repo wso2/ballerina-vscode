@@ -813,10 +813,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
-        // console.log(">>> Savineadme.md", params);
         return new Promise((resolve) => {
             const projectPath = StateMachine.context().projectPath;
-            const readmePath = path.join(projectPath, README_FILE);
+            const readmePath = projectPath ? path.join(projectPath, README_FILE) : undefined;
+            if (!readmePath) {
+                resolve({ content: "" });
+                return;
+            }
             if (params.read) {
                 if (!fs.existsSync(readmePath)) {
                     resolve({ content: "" });

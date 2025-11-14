@@ -19,6 +19,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 import { Codicon, Typography } from '@wso2/ui-toolkit';
+import { ProjectStructureResponse } from '@wso2/ballerina-core';
 
 export const CardGrid = styled.div`
     display: grid;
@@ -147,12 +148,16 @@ const Chip = styled.div<{ color: string }>`
     white-space: nowrap;
 `;
 
-type PackageType = 'automation' | 'integration-as-api' | 'event-integration' | 'file-integration' | 'ai-agent';
+export type PackageType = 'automation' | 'integration-as-api' | 'event-integration' | 'file-integration' | 'ai-agent';
+
+export interface PackageListViewProps {
+    workspaceStructure: ProjectStructureResponse;
+}
 
 interface Package {
     id: string;
     name: string;
-    types: PackageType[];
+    types?: PackageType[];
 }
 
 const getTypeColor = (type: PackageType): string => {
@@ -188,15 +193,23 @@ const getTypeLabel = (type: PackageType): string => {
     return labels[type];
 };
 
-export function PackageListView() {
+export function PackageListView(props: PackageListViewProps) {
     // TODO: Replace with actual data from props or context
-    const packages: Package[] = [
-        { id: 'ads_service', name: 'Ads Service', types: ['automation', 'event-integration'] },
-        { id: 'payment-service', name: 'Payment Service', types: ['integration-as-api'] },
-        { id: 'checkout-service', name: 'Checkout Service', types: ['event-integration', 'integration-as-api'] },
-        { id: 'document-processor', name: 'Document Processor', types: ['file-integration', 'automation'] },
-        { id: 'customer-support-bot', name: 'Customer Support Bot', types: ['ai-agent'] }
-    ];
+    // const packages: Package[] = [
+    //     { id: 'ads_service', name: 'Ads Service', types: ['automation', 'event-integration'] },
+    //     { id: 'payment-service', name: 'Payment Service', types: ['integration-as-api'] },
+    //     { id: 'checkout-service', name: 'Checkout Service', types: ['event-integration', 'integration-as-api'] },
+    //     { id: 'document-processor', name: 'Document Processor', types: ['file-integration', 'automation'] },
+    //     { id: 'customer-support-bot', name: 'Customer Support Bot', types: ['ai-agent'] }
+    // ];
+    const workspaceStructure = props.workspaceStructure;
+    const packages = workspaceStructure.projects.map((project) => {
+        return {
+            id: project.projectPath,
+            name: project.projectName,
+            types: [] as PackageType[]
+        }
+    });
 
     const handlePackageClick = (packageId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
