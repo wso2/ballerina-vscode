@@ -342,7 +342,7 @@ function DeploymentOption({
     secondaryAction,
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
-    const { hasArtifacts } = usePlatformExtContext();
+    const { deployableArtifacts } = usePlatformExtContext();
 
     const openLearnMoreURL = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
@@ -382,8 +382,8 @@ function DeploymentOption({
                         e.stopPropagation();
                         onDeploy();
                     }}
-                    disabled={!hasArtifacts}
-                    tooltip={hasArtifacts ? "" : "No deployable integration found"}
+                    disabled={!deployableArtifacts?.exists}
+                    tooltip={deployableArtifacts?.exists ? "" : "No deployable integration found"}
                 >
                     {buttonText}
                 </Button>
@@ -548,7 +548,7 @@ export function Overview(props: ComponentDiagramProps) {
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
-    const { platformRpcClient, platformExtState } = usePlatformExtContext();
+    const { platformRpcClient, platformExtState, deployableArtifacts } = usePlatformExtContext();
 
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
@@ -596,6 +596,7 @@ export function Overview(props: ComponentDiagramProps) {
     rpcClient?.onProjectContentUpdated((state: boolean) => {
         if (state) {
             fetchContext();
+            deployableArtifacts?.refetch();
         }
     });
 
