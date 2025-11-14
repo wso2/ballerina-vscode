@@ -23,11 +23,12 @@ import { useFormContext } from "../../../../../context";
 import { buildNeedTokenRefetchListner, buildOnChangeListner, chipPlugin, chipTheme, completionTheme, tokenField, tokensChangeEffect, expressionEditorKeymap, buildCompletionSource, buildHelperPaneKeymap, buildOnFocusListner, CursorInfo, buildOnFocusOutListner } from "../CodeUtils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
-import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton } from "../styles";
+import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HELPER_PANE_EX_BTN_OFFSET, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { Codicon, CompletionItem, FnSignatureDocumentation, HELPER_PANE_EX_BTN_OFFSET, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
+import FXButton from "./FxButton";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -64,6 +65,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
     const editorRef = useRef<HTMLDivElement>(null);
     const helperPaneRef = useRef<HTMLDivElement>(null);
+    const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
     const completionsRef = useRef(props.completions);
@@ -105,7 +107,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         setHelperPaneState(prev => ({ ...prev, isOpen: false }));
     });
 
-    const onHelperItemSelect = (value: string, options: HelperpaneOnChangeOptions) => {
+    const onHelperItemSelect = async (value: string, options: HelperpaneOnChangeOptions) => {
         if (!viewRef.current) return;
         const view = viewRef.current;
         const { from, to } = view.state.selection.main;
@@ -114,7 +116,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             changes: { from, to, insert: value },
             selection: { anchor: from + value.length }
         });
-
+        if (options.closeHelperPane) {
+            setIsTokenUpdateScheduled(true);
+        }
         setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
     }
 
@@ -166,7 +170,11 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 needTokenRefetchListner,
                 handleChangeListner,
                 handleFocusListner,
-                handleFocusOutListner
+                handleFocusOutListner,
+                ...(props.isInExpandedMode ? [EditorView.theme({
+                    "&": { height: "100%" },
+                    ".cm-scroller": { overflow: "auto" }
+                })] : [])
             ]
         });
         const view = new EditorView({
@@ -186,6 +194,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             const isExternalUpdate = props.value !== currentDoc;
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
+
+            const currentSelection = viewRef.current!.state.selection.main;
+
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
@@ -195,7 +206,8 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             if (tokenStream) {
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream),
-                    changes: { from: 0, to: currentDoc.length, insert: props.value }
+                    changes: { from: 0, to: currentDoc.length, insert: props.value },
+                    selection: { anchor: currentSelection.anchor, head: currentSelection.head }
                 });
             }
         };
@@ -230,34 +242,70 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     }, [helperPaneState.isOpen]);
 
     return (
-        <div style={{ position: 'relative' }}>
-            <div ref={editorRef} />
-            {helperPaneState.isOpen &&
-                <HelperPane
-                    ref={helperPaneRef}
-                    top={helperPaneState.top}
-                    left={helperPaneState.left}
-                    getHelperPane={props.getHelperPane}
-                    value={props.value}
-                    onChange={onHelperItemSelect}
-                />
-            }
-            <FloatingButtonContainer>
-                <FloatingToggleButton
+        <>
+            {props.isExpandedVersion && (
+                <button
                     ref={helperPaneToggleButtonRef}
-                    isActive={helperPaneState.isOpen}
                     onClick={handleHelperPaneManualToggle}
-                    title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
+                    tabIndex={-1}
+                    style={{
+                        padding: '6px 12px',
+                        borderRadius: '3px',
+                        border: '1px solid var(--vscode-button-border)',
+                        backgroundColor: helperPaneState.isOpen ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground)',
+                        color: helperPaneState.isOpen ? 'var(--vscode-button-foreground)' : 'var(--vscode-button-secondaryForeground)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        width: '55px',
+                        height: '25px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontFamily: 'var(--vscode-font-family)',
+                        outline: 'none',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        transition: 'all 0.1s ease'
+                    }}
                 >
-                    {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
-                </FloatingToggleButton>
-                {props.onOpenExpandedMode && !props.isInExpandedMode && (
-                    <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
-                        <ExpandButton />
-                    </FloatingToggleButton>
-                )}
-            </FloatingButtonContainer>
-        </div>
+                    <Codicon name="question" />
+                    <Codicon name={helperPaneState.isOpen ? "chevron-right" : "chevron-down"} />
+                </button>
+            )}
+            <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+                {!props.isInExpandedMode && <FXButton />}
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <div ref={editorRef} style={{ height: props.isInExpandedMode ? '100%' : 'auto' }} />
+                    {helperPaneState.isOpen &&
+                        <HelperPane
+                            ref={helperPaneRef}
+                            top={helperPaneState.top}
+                            left={helperPaneState.left}
+                            getHelperPane={props.getHelperPane}
+                            value={props.value}
+                            onChange={onHelperItemSelect}
+                        />
+                    }
+                    <FloatingButtonContainer>
+                        {!props.isExpandedVersion &&
+                            <FloatingToggleButton
+                                ref={helperPaneToggleButtonRef}
+                                isActive={helperPaneState.isOpen}
+                                onClick={handleHelperPaneManualToggle}
+                                title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
+                            >
+                                {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                            </FloatingToggleButton>}
+                        {props.onOpenExpandedMode && !props.isInExpandedMode && (
+                            <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
+                                <ExpandButton />
+                            </FloatingToggleButton>
+                        )}
+                    </FloatingButtonContainer>
+                </div>
+            </ChipEditorContainer>
+        </>
+
     );
 }
 
@@ -279,7 +327,7 @@ export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((pro
             ref={ref}
             top={props.top}
             left={props.left}
-            onMouseDown={e=> {
+            onMouseDown={e => {
                 e.preventDefault();
                 e.stopPropagation();
             }}
