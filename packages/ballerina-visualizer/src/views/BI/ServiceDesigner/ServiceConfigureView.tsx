@@ -977,7 +977,7 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                         </S.Grid>
                     )}
                 </S.TabContainer>
-                <S.TabContainer id="new" data-testid="new-tab">
+                <S.TabContainer id="new" data-testid="new-tab" style={{ overflow: 'auto' }}>
                     {isLoading && (
                         <S.LoadingContainer>
                             <ProgressRing />
