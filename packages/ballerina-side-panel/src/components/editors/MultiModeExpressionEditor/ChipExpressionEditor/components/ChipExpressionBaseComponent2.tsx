@@ -27,7 +27,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 import { HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -235,6 +235,11 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 >
                     {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
                 </FloatingToggleButton>
+                {props.onOpenExpandedMode && !props.isInExpandedMode && (
+                    <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
+                        <ExpandButton />
+                    </FloatingToggleButton>
+                )}
             </FloatingButtonContainer>
         </div>
     );

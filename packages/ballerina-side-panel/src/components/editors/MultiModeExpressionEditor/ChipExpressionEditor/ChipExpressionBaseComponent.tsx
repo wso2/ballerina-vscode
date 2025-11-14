@@ -582,14 +582,14 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                         onOpenExpandedMode={props.onOpenExpandedMode}
                         helperButtonRef={helperButtonRef}
                     >
-                        <TokenizedExpression
+                        {/* <TokenizedExpression
                             expressionModel={expressionModel || []}
                             onExpressionChange={handleExpressionChange}
                             onChipClick={handleChipClick}
                             onTextFocus={handleTextFocus}
                             onChipFocus={handleChipFocus}
                             onChipBlur={handleChipBlur}
-                        />
+                        /> */}
                     </AutoExpandingEditableDiv>
                 </div>
                 {props.onRemove && (
