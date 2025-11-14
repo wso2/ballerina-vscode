@@ -97,6 +97,7 @@ export type ParentMetadata = {
     accessor?: string;
     parameters?: string[];
     return?: string;
+    isServiceFunction?: boolean;
 };
 
 export type ToolData = {
@@ -112,8 +113,8 @@ export type AgentData = {
 };
 
 export type MemoryData = {
-    name: string;
     type: string;
+    size: string
 };
 
 export type Imports = {
@@ -185,6 +186,7 @@ export type CodeData = {
     kind?: string;
     originalName?: string;
     dependentProperty?: string[];
+    data?: { [key: string]: CodeData | string };
 };
 
 export type Branch = {
@@ -321,6 +323,7 @@ export type NodePropertyKey =
     | "expression"
     | "functionName"
     | "functionNameDescription"
+    | "instructions"
     | "isIsolated"
     | "maxIter"
     | "memory"
@@ -332,12 +335,16 @@ export type NodePropertyKey =
     | "parameters"
     | "path"
     | "patterns"
+    | "permittedTools"
     | "prompt"
     | "query"
+    | "role"
     | "scope"
+    | "serverUrl"
     | "sessionId"
     | "size"
     | "statement"
+    | "store"
     | "systemPrompt"
     | "targetType"
     | "tools"
@@ -390,20 +397,23 @@ export type NodeKind =
     | "LV_EXPRESSION"
     | "MATCH"
     | "METHOD_CALL"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"
     | "VECTOR_STORE"
     | "VECTOR_STORES"
-    | "VECTOR_KNOWLEDGE_BASE"
-    | "VECTOR_KNOWLEDGE_BASE_CALL"
-    | "VECTOR_KNOWLEDGE_BASES"
+    | "KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE_CALL"
+    | "KNOWLEDGE_BASES"
     | "EMBEDDING_PROVIDER"
     | "EMBEDDING_PROVIDERS"
     | "DATA_LOADER"
     | "DATA_LOADERS"
     | "CHUNKER"
     | "CHUNKERS"
+    | "MCP_TOOL_KIT"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"

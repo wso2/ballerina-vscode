@@ -38,6 +38,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -45,9 +47,12 @@ import {
     BuildMode,
     ClassFieldModifierRequest,
     ComponentRequest,
+    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -83,7 +88,6 @@ import {
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
     ProjectComponentsResponse,
-    ProjectImports,
     ProjectRequest,
     ProjectStructureResponse,
     ReadmeContentRequest,
@@ -109,6 +113,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspacesResponse,
@@ -119,6 +125,7 @@ import {
     createComponent,
     createGraphqlClassType,
     createProject,
+    addProjectToWorkspace,
     deleteByComponentInfo,
     deleteConfigVariableV2,
     deleteFlowNode,
@@ -129,7 +136,6 @@ import {
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
-    getAllImports,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -177,6 +183,7 @@ import {
     renameIdentifier,
     runProject,
     search,
+    searchNodes,
     updateClassField,
     updateConfigVariables,
     updateConfigVariablesV2,
@@ -185,12 +192,13 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse,
     verifyTypeDelete,
-    ConfigVariableRequest,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    getFormDiagnostics,
+    getExpressionTokens,
+    ExpressionTokensRequest,
+    AddProjectToWorkspaceRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -260,6 +268,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     createProject(params: ProjectRequest): void {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
+    }
+
+    addProjectToWorkspace(params: AddProjectToWorkspaceRequest): void {
+        return this._messenger.sendNotification(addProjectToWorkspace, HOST_EXTENSION, params);
     }
 
     getWorkspaces(): Promise<WorkspacesResponse> {
@@ -370,12 +382,12 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(getBreakpointInfo, HOST_EXTENSION);
     }
 
-    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
-        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
+    getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this._messenger.sendRequest(getFormDiagnostics, HOST_EXTENSION, params);
     }
 
-    getAllImports(): Promise<ProjectImports> {
-        return this._messenger.sendRequest(getAllImports, HOST_EXTENSION);
+    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
+        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
     }
 
     formDidOpen(params: FormDidOpenParams): Promise<void> {
@@ -470,6 +482,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(search, HOST_EXTENSION, params);
     }
 
+    searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return this._messenger.sendRequest(searchNodes, HOST_EXTENSION, params);
+    }
+
     getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         return this._messenger.sendRequest(getRecordNames, HOST_EXTENSION);
     }
@@ -496,5 +512,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
         return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
+    }
+
+    getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
+        return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
     }
 }

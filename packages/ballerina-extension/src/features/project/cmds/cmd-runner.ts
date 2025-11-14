@@ -18,8 +18,9 @@
 
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
-import { isSupportedSLVersion, isWindows } from "../../../utils";
+import { isSupportedSLVersion, isWindows, createVersionNumber } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
+import { TracerMachine } from "../../../features/tracing";
 
 
 export const PALETTE_COMMANDS = {
@@ -90,7 +91,6 @@ export enum MESSAGES {
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';
-export const BAL_TOML = "Ballerina.toml";
 const TERMINAL_NAME = 'Terminal';
 const BAL_CONFIG_FILES = 'BAL_CONFIG_FILES';
 
@@ -98,11 +98,13 @@ let terminal: Terminal;
 
 export function runCommand(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     ...args: string[]) {
+    TracerMachine.startServer();
     runCommandWithConf(file, executor, cmd, '', ...args);
 }
 
 export function runCommandWithConf(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     confPath: string, ...args: string[]) {
+    TracerMachine.startServer();
     if (terminal) {
         terminal.dispose();
     }
@@ -195,7 +197,7 @@ export function createTerminal(path: string, env?: { [key: string]: string }): v
 }
 
 export function getRunCommand(): BALLERINA_COMMANDS {
-    if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+    if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
         return BALLERINA_COMMANDS.RUN_WITH_EXPERIMENTAL;
     } else if (extension.ballerinaExtInstance.enabledLiveReload()) {
         return BALLERINA_COMMANDS.RUN_WITH_WATCH;

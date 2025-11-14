@@ -119,7 +119,7 @@ export function ConnectorView(props: ConnectorViewProps) {
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
     const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<string>(
-        openCustomConnectorView? "LocalConnectors" : "StandardLibrary"
+        openCustomConnectorView ? "LocalConnectors" : "StandardLibrary"
     );
 
     useEffect(() => {
@@ -152,9 +152,8 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .then(async (model) => {
                 console.log(">>> bi connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);
@@ -188,9 +187,8 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .then(async (model) => {
                 console.log(">>> bi searched connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);

@@ -38,7 +38,7 @@ export class IntermediateNodeInitVisitor implements BaseVisitor {
             // Create query expression connector node
             const queryExprNode = new QueryExprConnectorNode(this.context, node);
             this.intermediateNodes.push(queryExprNode);
-        } else if (node.inputs.length > 1 || node.isComplex || node.isFunctionCall) {
+        } else if (node.inputs.length > 1 || node.isComplex || node.isFunctionCall || node.elementAccessIndex) {
             // Create link connector node
             const linkConnectorNode = new LinkConnectorNode(this.context, node);
             this.intermediateNodes.push(linkConnectorNode);

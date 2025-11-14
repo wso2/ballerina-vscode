@@ -20,12 +20,25 @@ import { LineRange } from "../../interfaces/common";
 import { DIRECTORY_MAP, Flow, OverviewFlow } from "../../interfaces/bi";
 import { BallerinaProjectComponents } from "../../interfaces/extended-lang-client";
 import { RemoteFunction, ServiceType } from "../../interfaces/ballerina";
+import { ImportInfo } from "../ai-panel/interfaces";
 
 export interface ProjectRequest {
     projectName: string;
     packageName: string;
     projectPath: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
+    workspaceName?: string;
+    orgName?: string;
+    version?: string;
+}
+
+export interface AddProjectToWorkspaceRequest {
+    projectName: string;
+    packageName: string;
+    path: string;
+    convertToWorkspace?: boolean;
+    workspaceName?: string;
     orgName?: string;
     version?: string;
 }
@@ -143,17 +156,10 @@ export interface AIChatRequest {
     scafold: boolean;
     readme: boolean;
 }
-export interface ImportStatement {
-    moduleName: string;
-    alias?: string;
-}
+
 export interface ImportStatements {
     filePath: string;
-    statements: ImportStatement[];
-}
-export interface ProjectImports {
-    projectPath: string;
-    imports: ImportStatements[];
+    statements: ImportInfo[];
 }
 
 export interface FormDidOpenParams {

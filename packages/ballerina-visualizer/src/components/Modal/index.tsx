@@ -31,29 +31,32 @@ export type DynamicModalProps = {
     height?: number;
     openState: boolean;
     setOpenState: (state: boolean) => void;
+    sx?: any;
 };
 
-const ModalContainer = styled.div`
+const ModalContainer = styled.div<{ sx?: any }>`
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001; 
     display: flex;
     justify-content: center;
     align-items: center;
+    ${(props: { sx?: any }) => props.sx};
 `;
 
+
 const ModalBox = styled.div<{ width?: number; height?: number }>`
-  width: ${({width}:{width:number}) => (width ? `${width}px` : 'auto')};
-  height: ${({height}:{height:number}) => (height ? `${height}px` : 'auto')};
+  width: ${({ width }: { width: number }) => (width ? `${width}px` : 'auto')};
+  height: ${({ height }: { height: number }) => (height ? `${height}px` : 'auto')};
   max-width: 90vw;
   max-height: 90vh;
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   padding: 16px;
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
@@ -82,7 +85,6 @@ const ModalHeaderSection = styled.header`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-inline: 16px;
 `;
 
 type TriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
@@ -97,6 +99,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     height,
     openState,
     setOpenState,
+    sx,
 }) => {
     const { setShowOverlay } = useVisualizerContext();
     let trigger: ReactElement | null = null;
@@ -117,7 +120,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
         setShowOverlay(false);
         onClose && onClose();
     };
-    
+
     useEffect(() => {
         setShowOverlay(openState === true);
     });
@@ -132,7 +135,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
         <>
             {trigger}
             {openState && createPortal(
-                <ModalContainer ref={anchorRef} className="unq-modal-overlay">
+                <ModalContainer ref={anchorRef} className="unq-modal-overlay" sx={sx}>
                     <ModalBox width={width} height={height}>
                         <ModalHeaderSection>
                             <Typography variant="h2" sx={{ margin: 0 }}>
@@ -141,7 +144,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                             <Codicon name="close" onClick={handleClose} />
                         </ModalHeaderSection>
                         <Divider />
-                        <div>{content}</div>
+                        {content}
                     </ModalBox>
                 </ModalContainer>,
                 document.body

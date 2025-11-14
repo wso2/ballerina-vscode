@@ -4,9 +4,48 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.6.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.4.0...ballerina-integrator-1.5.0) - 2025-11-11
 
-## [Unreleased]
+### Added
 
+- **Editor** — Added support for [Ballerina workspaces](https://ballerina.io/learn/workspaces/). This allows you to seamlessly manage, navigate, and build multiple related Ballerina projects within a single VS Code window, greatly improving the development workflow for complex systems.
+
+## [5.5.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.2...ballerina-integrator-1.4.0) - 2025-11-05
+
+### Added
+
+- **Service & Data Handling** — Introduced MCP AI and Solace Event integrations, redesigned Service and Event Integration flows with AI-powered payload generation, and introduced an LLM-based Data Mapper.
+- **GraphQL Designer** — Added schema-based service generation, GraphQL-based type suggestions, `graphql:ID` annotation support, and documentation on GraphQL fields.
+- **Expression Editor** — Enhanced the expression editor with improved syntax highlighting. The expression helper now offers distinct modes for both text and expression inputs.
+
+### Changed
+
+- **AI & Copilot** — Improved AI code generation formatting, step handling, and system prompts for better response structure.
+- **Service Designer** — Revamped the view with more organized listener and service properties, enhanced with readable listener names, and refactored metadata display.
+- **Data Mapper** — Improved breadcrumb labels and refactored preview behavior for output-side arrays.
+- **UI & UX** — Enhanced the Helper Pane UI and navigation, and refactored the Resource form styles. Improved the Type Editor with type import capability and automatic generation of sample JSON for payload types.
+
+### Fixed
+
+- **Data Mapper** — Corrected issues with mappings generated for output header ports.
+- **Service Designer** — Resolved an infinite re-render issue and fixed bugs in the API designer and MCP tool editing.
+- **Expression Editor** — Fixed issues with constrained language in Windows PowerShell, delete key behavior, and text selection.
+- **UI & UX** — Addressed UI glitches, including a popup movement issue when dragging the terminal, and fixed `undo/redo` stack reset conditions.
+- **GraphQL** — Removed Union Types from GraphQL Input Types.
+- **AI & Copilot** — Fixed invalid markdown characters in the chat window, file creation issues, and state management in the chat window. Resolved a bug where the reusable model provider form was not displaying correctly.
+
+## [5.4.2](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.1...ballerina-integrator-1.3.2) - 2025-10-26
+
+### Changed
+
+- **Data Mapper** — Enabled reset and refresh options.
+
+### Fixed
+
+- **Editor** — Allowed artifact creation even when corresponding source files are missing.
+- **Data Mapper** — Added support for mappings with built-in Ballerina sub-types (e.g., `int:Signed32`), fixed creation using types from sub-modules, enabled expression-bar completions for reusable mappers, and corrected link rendering for optional field access.
+- **Type Browser** — Improved type filtering based on user queries.
+- **Service Class Designer** — Enabled connection generation for clients created from WSDL files.
 
 ## [5.4.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.3.0...ballerina-integrator-1.3.1) - 2025-10-15
 

@@ -618,7 +618,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                         <div style={{ flex: 1 }}>
                                             <NodeStyles.MemoryTitle>Memory</NodeStyles.MemoryTitle>
                                             <NodeStyles.MemoryMeta>
-                                                {nodeMetadata?.memory?.type || "MessageWindowChatMemory"}
+                                                {(nodeMetadata?.memory?.type || "MessageWindowChatMemory").replace(/^ai:/, "")}
                                             </NodeStyles.MemoryMeta>
                                         </div>
                                         <NodeStyles.MenuButton

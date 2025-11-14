@@ -36,7 +36,7 @@ async function main() {
 
         if (missingVars.length > 0) {
             console.warn(
-                '\n⚠️  Environment Variable Configuration Warning:\n' +
+                '\n  Environment Variable Configuration Warning:\n' +
                 `Missing required environment variables: ${missingVars.join(', ')}\n` +
                 `Please provide values in either .env file or runtime environment.\n`
             );
@@ -67,7 +67,8 @@ async function main() {
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [
-                '--grep=^AI Code Generator Tests Suite'
+                '--grep=^AI Code Generator Tests Suite',
+                '--grep=^AI Datamapper Tests Suite'
             ],
             extensionTestsEnv: {
                 ...envKeys,

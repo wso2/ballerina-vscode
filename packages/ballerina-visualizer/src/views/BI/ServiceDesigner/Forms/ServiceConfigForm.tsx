@@ -25,11 +25,11 @@ import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
+import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
     max-width: 600px;
-    height: 100%;
     > div:last-child {
         /* padding: 20px 0; */
         > div:last-child {
@@ -67,19 +67,17 @@ interface ServiceConfigFormProps {
     isSaving?: boolean;
     onBack?: () => void;
     formSubmitText?: string;
+    onChange?: (data: ServiceModel) => void;
 }
 
 export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [serviceFields, setServiceFields] = useState<FormField[]>([]);
-    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving } = props;
+    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-
-    const createTitle = `Provide the necessary configuration details for the ${serviceModel.name} to complete the setup.`;
-    const editTitle = `Update the configuration details for the ${serviceModel.name} as needed.`
 
     useEffect(() => {
         // Check if the service is HTTP protocol and any properties with choices
@@ -165,11 +163,41 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
             } else if (data[val.key] !== undefined) {
                 val.value = data[val.key];
             }
+            if (val.key === "basePath") {
+                val.value = sanitizedHttpPath(data[val.key] as string);
+            }
             val.imports = getImportsForProperty(val.key, formImports);
         })
         const response = updateConfig(serviceFields, serviceModel);
         onSubmit(response);
     };
+
+    const handleServiceChange = (fieldKey: string, value: any, allValues: FormValues) => {
+        if (onChange) {
+            // First, check if any changes exist before modifying serviceFields
+            let hasChanges = false;
+            for (let val of serviceFields) {
+                if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
+                    hasChanges = true;
+                    break;
+                }
+            }
+            if (!hasChanges) {
+                return;
+            }
+            // Now, update values
+            serviceFields.forEach(val => {
+                if (allValues[val.key] !== undefined) {
+                    val.value = allValues[val.key];
+                }
+                if (val.key === "basePath") {
+                    val.value = sanitizedHttpPath(allValues[val.key] as string);
+                }
+            });
+            const response = updateConfig(serviceFields, serviceModel);
+            onChange(response);
+        }
+    }
 
     const handleListenerForm = (panel: SubPanel) => {
         if (panel.view === SubPanelView.ADD_NEW_FORM) {
@@ -197,11 +225,11 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                 <>
                     {serviceFields.length > 0 &&
                         <FormContainer>
-                            <FormHeader title={`${serviceModel.name} Configuration`} />
                             {filePath && targetLineRange &&
                                 <FormGeneratorNew
                                     fileName={filePath}
                                     targetLineRange={targetLineRange}
+                                    nestedForm={true}
                                     fields={serviceFields}
                                     onBack={onBack}
                                     isSaving={isSaving}
@@ -210,6 +238,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                     submitText={formSubmitText}
                                     recordTypeFields={recordTypeFields}
                                     preserveFieldOrder={true}
+                                    onChange={handleServiceChange}
+                                    hideSaveButton={onChange ? true : false}
                                 />
                             }
                         </FormContainer>
@@ -222,10 +252,17 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
 
 export default ServiceConfigForm;
 
-function convertConfig(listener: ServiceModel): FormField[] {
+function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
-    for (const key in listener.properties) {
-        const expression = listener.properties[key];
+    for (const key in service.properties) {
+        const expression = service.properties[key];
+        if (expression.valueType === "MULTIPLE_SELECT_LISTENER" || expression.valueType === "SINGLE_SELECT_LISTENER") {
+            continue
+        }
+        // Skip readOnlyMetadata as it's a special property that doesn't have standard form fields
+        if (key === "readOnlyMetadata") {
+            continue;
+        }
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -246,22 +283,26 @@ function convertConfig(listener: ServiceModel): FormField[] {
             lineRange: expression?.codedata?.lineRange
         }
 
+        if (key === "basePath") {
+            formField.value = removeForwardSlashes(formField.value as string);
+        }
+
         formFields.push(formField);
     }
     return formFields;
 }
 
-function updateConfig(formFields: FormField[], listener: ServiceModel): ServiceModel {
+function updateConfig(formFields: FormField[], service: ServiceModel): ServiceModel {
     formFields.forEach(field => {
         const value = field.value;
         if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
-            listener.properties[field.key].values = value as string[];
+            service.properties[field.key].values = value as string[];
         } else {
-            listener.properties[field.key].value = value as string;
+            service.properties[field.key].value = value as string;
         }
         if (value && value.length > 0) {
-            listener.properties[field.key].enabled = true;
+            service.properties[field.key].enabled = true;
         }
     })
-    return listener;
+    return service;
 }
