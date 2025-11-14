@@ -35,7 +35,58 @@ export const getDefaultValue = (type: string) => {
     return DEFAULT_VALUE_MAP[type] || "";
 }
 
+export const isPrimitiveType = (typeDetail: string): boolean => {
+    if (!typeDetail) return true;
+
+    const cleanType = typeDetail.trim().toLowerCase();
+
+    const primitiveTypes = [
+        'string',
+        'int',
+        'boolean',
+        'float',
+        'decimal',
+        'byte',
+        'json',
+        'xml',
+        'any',
+        'anydata',
+        'never',
+        'nil',
+        '()',
+        'error'
+    ];
+
+    // Check if it's a direct primitive type
+    if (primitiveTypes.includes(cleanType)) {
+        return true;
+    }
+
+    // Check if it's an array of primitive types (e.g., "string[]", "int[]")
+    const arrayMatch = cleanType.match(/^(\w+)\[\]$/);
+    if (arrayMatch) {
+        const baseType = arrayMatch[1];
+        return primitiveTypes.includes(baseType);
+    }
+
+    // Check if it's a map of primitive types (e.g., "map<string>", "map<int>")
+    const mapMatch = cleanType.match(/^map<(\w+)>$/);
+    if (mapMatch) {
+        const valueType = mapMatch[1];
+        return primitiveTypes.includes(valueType);
+    }
+
+    // Check if it's a union of primitive types (e.g., "string|int", "int?")
+    if (cleanType.includes('|') || cleanType.endsWith('?')) {
+        const unionTypes = cleanType.replace('?', '|nil').split('|');
+        return unionTypes.every(type => primitiveTypes.includes(type.trim()));
+    }
+
+    return false;
+};
+
 // Determines if a completion item should show the navigation arrow
 export const shouldShowNavigationArrow = (item: CompletionItem): boolean => {
-    return item?.labelDetails?.description === "Record";
+    const typeDetail = item?.labelDetails?.detail || item?.description;
+    return !isPrimitiveType(typeDetail) || item?.labelDetails?.description === "Record";
 };

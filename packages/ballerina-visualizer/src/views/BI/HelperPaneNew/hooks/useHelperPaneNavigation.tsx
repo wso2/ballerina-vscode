@@ -29,18 +29,16 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         replaceText: ""
     }]);
 
-    const navigateToNext = (value: string, currentValue: string, onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void) => {
+    const navigateToNext = (value: string, currentValue: string) => {
+        const separator = currentValue ? '.' : '';
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
-            replaceText: currentValue + value
+            replaceText: currentValue + separator + value
         }];
         setBreadCrumbSteps(newBreadCrumSteps);
-        onChange(value + '.', false, true);
     };
 
-    const navigateToBreadcrumb = (step: BreadCrumbStep, onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void) => {
-        const replaceText = step.replaceText === '' ? step.replaceText : step.replaceText + '.';
-        onChange(replaceText, true);
+    const navigateToBreadcrumb = (step: BreadCrumbStep) => {
         const index = breadCrumbSteps.findIndex(item => item.label === step.label);
         const newSteps = index !== -1 ? breadCrumbSteps.slice(0, index + 1) : breadCrumbSteps;
         setBreadCrumbSteps(newSteps);
@@ -53,11 +51,17 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         return breadCrumbSteps[breadCrumbSteps.length - 1].replaceText;
     };
 
+    const getCurrentNavigationPath = () => {
+        if (breadCrumbSteps.length === 1) return '';
+        return breadCrumbSteps[breadCrumbSteps.length - 1].replaceText;
+    };
+
     return {
         breadCrumbSteps,
         navigateToNext,
         navigateToBreadcrumb,
         isAtRoot,
-        getCurrentPath
+        getCurrentPath,
+        getCurrentNavigationPath
     };
 };

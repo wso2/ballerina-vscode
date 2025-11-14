@@ -64,8 +64,8 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
     );
 
     const endAction = showArrow ? (
-        <Codicon 
-            name="chevron-right" 
+        <Codicon
+            name="chevron-right"
         />
     ) : undefined;
 
@@ -85,40 +85,51 @@ export const Inputs = (props: InputsPageProps) => {
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Inputs");
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Inputs");
 
     const { field, triggerCharacters } = useFieldContext();
+
+    // Use navigation path for completions instead of currentValue
+    const navigationPath = useMemo(() => getCurrentNavigationPath(), [breadCrumbSteps]);
+    const completionContext = useMemo(() =>
+        navigationPath ? navigationPath + '.' : currentValue,
+        [navigationPath, currentValue]
+    );
 
     useEffect(() => {
         setIsLoading(true);
         const triggerCharacter =
-            currentValue.length > 0
-                ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
+            completionContext.length > 0
+                ? triggerCharacters.find((char) => completionContext[completionContext.length - 1] === char)
                 : undefined;
 
         // Only apply minimum loading time if we don't have any completions yet
         const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
         const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
 
+        // When navigating, use length as offset to position cursor after the dot
+        // When at root, use 0 to get all completions
+        const offset = navigationPath ? completionContext.length : 0;
+
         Promise.all([
-            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            handleRetrieveCompletions(completionContext, getPropertyFromFormField(field), offset, triggerCharacter),
             minLoadingTime
         ]).finally(() => {
             setIsLoading(false);
             setShowContent(true);
         });
-    }, [targetLineRange])
+    }, [targetLineRange, breadCrumbSteps, completionContext])
 
     const dropdownItems = useMemo(() => {
         // If we're at the root level, only show parameters
         if (isAtRoot()) {
             return filteredCompletions.filter(
                 (completion) =>
-                completion.kind === "variable" &&
-                completion.labelDetails?.description?.includes("Parameter")
+                    completion.kind === "variable" &&
+                    completion.labelDetails?.description?.includes("Parameter")
             );
         }
-        
+
         // If we're navigating inside an object, show all fields and variables
         return filteredCompletions.filter(
             (completion) =>
@@ -139,15 +150,17 @@ export const Inputs = (props: InputsPageProps) => {
     };
 
     const handleItemSelect = (value: string) => {
-        onChange(value, false);
+        // Build full path from navigation
+        const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
+        onChange(fullPath, false);
     }
 
     const handleInputsMoreIconClick = (value: string) => {
-        navigateToNext(value, currentValue, onChange);
+        navigateToNext(value, navigationPath);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        navigateToBreadcrumb(step, onChange);
+        navigateToBreadcrumb(step);
     }
 
     const ExpandableListItems = () => {
