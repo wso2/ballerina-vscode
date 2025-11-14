@@ -455,11 +455,11 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     }
 
     const setServiceListeners = (service: ServiceModel) => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (service?.properties?.listener) {
                     const listenerProperty = service.properties.listener.properties;
                     const listenersToSet: ProjectStructureArtifactResponse[] = [];
@@ -486,8 +486,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     setListeners(listenersToSet);
                 }
             });
+        });
     };
-
 
     const handleOnAttachListener = async (listenerName: string) => {
         if (serviceModel.properties['listener'].value && serviceModel.properties['listener'].values.length === 0) {

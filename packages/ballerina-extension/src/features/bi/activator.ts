@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { commands, Uri, workspace, window, ConfigurationTarget } from "vscode";
+import { commands, Uri, workspace, window, ConfigurationTarget, TreeItem } from "vscode";
 import {
     BI_COMMANDS,
     BIDeleteByComponentInfoRequest,
@@ -41,6 +41,57 @@ const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
 const TRACE_SERVER_VERBOSE = "verbose";
 
+/**
+ * Helper function to handle command invocation with proper context resolution.
+ * Supports both tree view clicks and command palette invocation.
+ * 
+ * @param item - The tree item (undefined when invoked from command palette)
+ * @param view - The view to open
+ * @param additionalViewParams - Additional parameters to pass to the view
+ */
+function handleCommandWithContext(
+    item: TreeItem | undefined,
+    view: MACHINE_VIEW,
+    additionalViewParams: Record<string, any> = {}
+): void {
+    const isBalWorkspace = StateMachine.context().workspacePath;
+
+    // Scenario 1: Multi-package workspace invoked from command palette
+    if (isBalWorkspace && !item) {
+        const packageList = StateMachine.context().projectInfo?.children.map((child) => child.projectPath);
+        
+        if (!packageList || packageList.length === 0) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
+            return;
+        }
+
+        window.showQuickPick(packageList, {
+            placeHolder: "Select a package"
+        }).then((selectedPackage) => {
+            if (selectedPackage) {
+                openView(EVENT_TYPE.OPEN_VIEW, { 
+                    view, 
+                    package: selectedPackage, 
+                    ...additionalViewParams 
+                });
+            }
+        });
+    } 
+    // Scenario 2: Invoked from tree view with item context
+    else if (item?.resourceUri) {
+        const projectPath = item.resourceUri.fsPath;
+        openView(EVENT_TYPE.OPEN_VIEW, { 
+            view, 
+            projectPath, 
+            ...additionalViewParams 
+        });
+    } 
+    // Scenario 3: Default - no specific context
+    else {
+        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
+    }
+}
+
 export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
         prepareAndGenerateConfig(context, StateMachine.context().projectPath, false, true);
@@ -51,40 +102,45 @@ export function activate(context: BallerinaExtension) {
         startDebugging(Uri.file(StateMachine.context().projectPath), false, true);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConnectionWizard });
+    commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddCustomConnector });
+    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.AddCustomConnector);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIComponentView });
+    commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.BIComponentView);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_TYPE, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram, addType: true });
+    commands.registerCommand(BI_COMMANDS.ADD_TYPE, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { addType: true });
     });
 
-    commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram, rootDiagramId: `type-diagram-${Date.now()}` });
+    commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { rootDiagramId: `type-diagram-${Date.now()}` });
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIFunctionForm });
+    commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.BIFunctionForm);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_CONFIGURATION, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.AddConfigVariables });
+    commands.registerCommand(BI_COMMANDS.ADD_CONFIGURATION, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.AddConfigVariables);
     });
 
-    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
+    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
     });
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        if (isBallerinaWorkspace) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+        } else {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+        }
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
@@ -92,12 +148,12 @@ export function activate(context: BallerinaExtension) {
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm, workspacePath: workspacePath });
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIDataMapperForm });
+    commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.BIDataMapperForm);
     });
 
-    commands.registerCommand(BI_COMMANDS.ADD_NATURAL_FUNCTION, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BINPFunctionForm });
+    commands.registerCommand(BI_COMMANDS.ADD_NATURAL_FUNCTION, (item?: TreeItem) => {
+        handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
     });
 
     commands.registerCommand(BI_COMMANDS.SWITCH_PROJECT, async () => {
@@ -109,15 +165,21 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
-    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item: any) => {
+    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
+        // Guard: DELETE requires a tree item context
+        if (!item) {
+            window.showErrorMessage('This command must be invoked from the project explorer.');
+            return;
+        }
+
         console.log(">>> delete component", item);
 
         if (item.contextValue === DIRECTORY_MAP.CONNECTION) {
-            await handleConnectionDeletion(item.label, item.info);
+            await handleConnectionDeletion(item.label as string, item.info);
         } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
-            await handleLocalModuleDeletion(item.label, item.info);
+            await handleLocalModuleDeletion(item.label as string, item.info);
         } else {
-            await handleComponentDeletion(item.contextValue, item.label, item.info);
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
         }
     });
 
@@ -207,7 +269,10 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const componentCategory = StateMachine.context().projectStructure.directoryMap[componentType];
+    const projectPath = StateMachine.context().projectPath;
+    const projectStructure = await rpcClient.getProjectStructure();
+    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
         console.error(`Component type ${componentType} not found in project structure`);
@@ -256,7 +321,7 @@ const handleConnectionDeletion = async (itemLabel: string, filePath: string) => 
                     console.log(">>> Updated source code after delete", response);
                     if (response.artifacts) {
                         if (hasNoComponentsOpenInDiagram() || isFlowNodeOpenInDiagram(connector)) {
-                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                         }
                     } else {
                         console.error(">>> Error updating source code", response);
@@ -279,7 +344,7 @@ async function deleteComponent(component: ComponentInfo, rpcClient: BiDiagramRpc
     await rpcClient.deleteByComponentInfo(req);
 
     if (hasNoComponentsOpenInDiagram() || isComponentOpenInDiagram(component)) {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
     }
 }
 
