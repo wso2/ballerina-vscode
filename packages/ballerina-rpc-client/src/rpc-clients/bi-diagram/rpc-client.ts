@@ -55,8 +55,6 @@ import {
     DeleteConfigVariableResponseV2,
     DeleteTypeRequest,
     DeleteTypeResponse,
-    DeploymentRequest,
-    DeploymentResponse,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
@@ -130,7 +128,6 @@ import {
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
     deleteType,
-    deployProject,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
@@ -342,10 +339,6 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     renameIdentifier(params: RenameIdentifierRequest): Promise<void> {
         return this._messenger.sendRequest(renameIdentifier, HOST_EXTENSION, params);
-    }
-
-    deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
-        return this._messenger.sendRequest(deployProject, HOST_EXTENSION, params);
     }
 
     openAIChat(params: AIChatRequest): void {

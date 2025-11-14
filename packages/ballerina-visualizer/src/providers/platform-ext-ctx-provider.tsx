@@ -17,20 +17,27 @@
  */
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { PackageTomlValues } from "@wso2/ballerina-core";
+import {
+    DIRECTORY_MAP,
+    findDevantScopeByModule,
+    PackageTomlValues,
+} from "@wso2/ballerina-core";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
-import React, { useContext, FC, ReactNode, useEffect } from "react";
+import { DevantScopes } from "@wso2/wso2-platform-core";
+import React, { useContext, FC, ReactNode, useEffect, useMemo } from "react";
 
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
     projectPath: string;
     projectToml?: { values: PackageTomlValues; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
+    hasArtifacts?: boolean;
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     projectPath: "",
+    hasArtifacts: false,
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -51,8 +58,34 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     });
 
     const { data: projectToml, refetch: refetchToml } = useQuery({
-        queryKey: ["project-toml"],
+        queryKey: ["project-toml", projectPath],
         queryFn: () => rpcClient.getCommonRpcClient().getCurrentProjectTomlValues(),
+    });
+
+    const { data: hasArtifacts, refetch: refetchHasArtifacts } = useQuery({
+        queryKey: ["has-artifacts", projectPath],
+        queryFn: () => rpcClient.getBIDiagramRpcClient().getProjectStructure(),
+        select: (projectStructure) => {
+            if (!projectStructure) {
+                false;
+            }
+
+            const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
+            const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
+
+            let scopes: DevantScopes[] = [];
+            if (services?.length > 0) {
+                const svcScopes = services
+                    .map((svc) => findDevantScopeByModule(svc?.moduleName))
+                    .filter((svc) => !!svc);
+                scopes.push(...Array.from(new Set(svcScopes)));
+            }
+            if (automation?.length > 0) {
+                scopes.push(DevantScopes.AUTOMATION);
+            }
+
+            return scopes.length > 0;
+        },
     });
 
     const { data: platformExtState } = useQuery({
@@ -64,6 +97,12 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         platformRpcClient?.onPlatformExtStoreStateChange((state) => {
             queryClient.setQueryData(["platform-ext-state"], state);
         });
+
+        rpcClient?.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                refetchHasArtifacts();
+            }
+        });
     }, []);
 
     return (
@@ -74,8 +113,9 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     selectedContext: platformExtState?.isLoggedIn ? platformExtState.selectedContext : undefined,
                     selectedComponent: platformExtState?.isLoggedIn ? platformExtState.selectedComponent : undefined,
                     components: platformExtState?.isLoggedIn ? platformExtState.components : [],
-                    connections: platformExtState?.isLoggedIn ? platformExtState.connections : []
+                    connections: platformExtState?.isLoggedIn ? platformExtState.connections : [],
                 },
+                hasArtifacts,
                 projectPath,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },
