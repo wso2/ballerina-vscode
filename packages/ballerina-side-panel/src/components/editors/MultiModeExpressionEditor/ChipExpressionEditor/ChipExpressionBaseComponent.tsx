@@ -243,11 +243,17 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         const cursorPositionAfterUpdate = getAbsoluteCaretPositionFromModel(updatedModel);
         const cursorDelta = updatedValue.length - props.value.length;
 
-        // Update tokens based on cursor movement
-        const previousFullText = getTextValueFromExpressionModel(expressionModel);
-        const updatedTokens = updateTokens(tokens, cursorPositionBeforeUpdate, cursorDelta, previousFullText);
+        // Check if expression model contains merged tokens (document or variable with interpolations)
+        // These tokens have metadata and are created by merging multiple sub-tokens
+        const hasMergedTokens = expressionModel?.some(el => el.metadata !== undefined) || false;
 
-        const shouldUpdateTokens = (!lastTypedText?.startsWith('#$') || lastTypedText === BACKSPACE_MARKER)
+        // Update tokens based on cursor movement
+        // Skip manual token updates if merged tokens are present to avoid breaking their structure
+        const previousFullText = getTextValueFromExpressionModel(expressionModel);
+        const updatedTokens = hasMergedTokens ? tokens : updateTokens(tokens, cursorPositionBeforeUpdate, cursorDelta, previousFullText);
+
+        const shouldUpdateTokens = !hasMergedTokens
+            && (!lastTypedText?.startsWith('#$') || lastTypedText === BACKSPACE_MARKER)
             && JSON.stringify(updatedTokens) !== JSON.stringify(tokens);
 
         if (shouldUpdateTokens) {
@@ -267,7 +273,8 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
         }
 
         // Determine if we need to fetch new tokens
-        if (shouldFetchNewTokens(lastTypedText)) {
+        // Always fetch new tokens if merged tokens are present to maintain their structure
+        if (hasMergedTokens || shouldFetchNewTokens(lastTypedText)) {
             fetchnewTokensRef.current = true;
         }
 
