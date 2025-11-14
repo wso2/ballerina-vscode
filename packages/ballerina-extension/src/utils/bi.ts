@@ -27,7 +27,7 @@ import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "toml";
-import { buildProjectArtifactsStructure } from "./project-artifacts";
+import { buildProjectsStructure } from "./project-artifacts";
 import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
@@ -379,14 +379,14 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
 
 async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
     const viewLocation: VisualizerLocation = {
-        view: MACHINE_VIEW.Overview,
+        view: MACHINE_VIEW.WorkspaceOverview,
         workspacePath: workspacePath,
         projectPath: projectPath,
         package: params.packageName,
         org: params.orgName
     };
 
-    await buildProjectArtifactsStructure(projectPath, StateMachine.langClient(), true);
+    await buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
     openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
 

@@ -63,7 +63,7 @@ import { getSymbolInfo } from "@wso2/ballerina-low-code-diagram";
 import DiagramWrapper from "./views/BI/DiagramWrapper";
 import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { TypeDiagram } from "./views/TypeDiagram";
-import { Overview as OverviewBI } from "./views/BI/Overview/index";
+import { PackageOverview } from "./views/BI/PackageOverview/index";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
 import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
@@ -80,6 +80,7 @@ import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationV
 import Popup from "./components/Popup";
 import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
+import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 
 const globalStyles = css`
     *,
@@ -280,11 +281,16 @@ const MainPanel = () => {
                 setViewComponent(<LoadingRing />);
             } else {
                 switch (value?.view) {
-                    case MACHINE_VIEW.Overview:
+                    case MACHINE_VIEW.PackageOverview:
                         setViewComponent(
-                            <OverviewBI
+                            <PackageOverview
                                 projectPath={value.projectPath}
                             />
+                        );
+                        break;
+                    case MACHINE_VIEW.WorkspaceOverview:
+                        setViewComponent(
+                            <WorkspaceOverview />
                         );
                         break;
                     case MACHINE_VIEW.ServiceDesigner:
@@ -422,8 +428,9 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
-                        const getProjectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-                        const entryPoint = getProjectStructure
+                        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
+                        const entryPoint = project
                             .directoryMap[DIRECTORY_MAP.SERVICE]
                             .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                         setViewComponent(
