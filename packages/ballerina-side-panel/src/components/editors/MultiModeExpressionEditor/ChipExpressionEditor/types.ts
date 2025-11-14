@@ -18,7 +18,8 @@
 
 export enum InputMode {
   TEXT = "Text",
-  EXP = "Expression"
+  EXP = "Expression",
+  GUIDED = "Guided"
 }
 
 export const INPUT_MODE_MAP = {

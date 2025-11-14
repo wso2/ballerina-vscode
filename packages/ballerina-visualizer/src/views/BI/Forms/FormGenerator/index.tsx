@@ -91,6 +91,7 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
+import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
@@ -99,7 +100,7 @@ import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getImportedTypes } from "../../TypeEditor/utils";
-import { useModalStack } from "../../../../Context";
+import { useModalStack, POPUP_IDS } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -419,7 +420,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
-        if (recordTypeFields?.length === 0) {
+        // if (recordTypeFields?.length === 0) {
             const recordTypeFields = Object.entries(formProperties)
                 .filter(([_, property]) =>
                     property.typeMembers &&
@@ -432,7 +433,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 }));
 
             setRecordTypeFields(recordTypeFields);
-        }
+        // }
 
         // get node properties
         let fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
@@ -988,6 +989,71 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         closePopup: closeModal
     }
 
+    
+    
+
+    const openRecordConfigPage = useCallback((fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
+        console.log("openRecordConfigPage", fieldKey, currentValue, recordTypeField, onChangeCallback);
+        const handleClose = () => {
+            closeModal(POPUP_IDS.RECORD_CONFIG);
+        };
+
+        // Find the field from fields array
+        const field = fields.find(f => f.key === fieldKey);
+
+        // Pass handleGetHelperPane directly - ConfigureRecordPage will adapt it to ChipExpressionBaseComponent's signature
+
+        addModal(
+                <ConfigureRecordPage
+                    fileName={fileName}
+                    targetLineRange={updateLineRange(targetLineRange, expressionOffsetRef.current)}
+                    onChange={(value: string, isRecordConfigureChange: boolean) => {
+                        // Call the onChange callback provided by ExpressionEditor
+                        // which will update the form value through react-hook-form
+                        onChangeCallback(value);
+                    }}
+                    currentValue={currentValue}
+                    recordTypeField={recordTypeField}
+                    onClose={handleClose}
+                    getHelperPane={handleGetHelperPane}
+                    field={field}
+                    triggerCharacters={TRIGGER_CHARACTERS}
+                    formContext={{
+                        // expressionEditor: {
+                        //     completions: completions,
+                        //     triggerCharacters: TRIGGER_CHARACTERS,
+                        //     retrieveCompletions: handleRetrieveCompletions,
+                        //     extractArgsFromFunction: extractArgsFromFunction,
+                        //     types: filteredTypes,
+                        //     referenceTypes: types,
+                        //     rpcManager: {
+                        //         getExpressionTokens: getExpressionTokens
+                        //     },
+                        //     retrieveVisibleTypes: handleGetVisibleTypes,
+                        //     getHelperPane: handleGetHelperPane,
+                        //     getTypeHelper: handleGetTypeHelper,
+                        //     getExpressionFormDiagnostics: handleExpressionFormDiagnostics,
+                        //     onCompletionItemSelect: handleCompletionItemSelect,
+                        //     onBlur: handleExpressionEditorBlur,
+                        //     onCancel: handleExpressionEditorCancel,
+                        //     helperPaneOrigin: "vertical",
+                        //     helperPaneHeight: "default",
+                        //     helperPaneZIndex: isInModal ? 40001 : undefined,
+                        // } as FormExpressionEditorProps,
+                        expressionEditor: expressionEditor,
+                        popupManager: popupManager,
+                        nodeInfo: {
+                            kind: node.codedata.node
+                        }
+                    }}
+                />,
+            POPUP_IDS.RECORD_CONFIG,
+            "Record Configuration",
+            600,
+            800
+        );
+    }, [fileName, filteredCompletions, types, filteredTypes, targetLineRange, expressionOffsetRef, addModal, closeModal, handleGetHelperPane, extractArgsFromFunction, getExpressionTokens, handleRetrieveCompletions, completions, fields, popupManager, node, handleGetVisibleTypes, handleGetTypeHelper, handleExpressionFormDiagnostics, handleCompletionItemSelect, handleExpressionEditorBlur, handleExpressionEditorCancel, isInModal]);
+
     const expressionEditor = useMemo(() => {
         return {
             completions: completions,
@@ -1006,6 +1072,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
+            onOpenRecordConfigPage: openRecordConfigPage,
             helperPaneOrigin: "vertical",
             helperPaneHeight: "default",
             helperPaneZIndex: isInModal ? 40001 : undefined,
@@ -1022,6 +1089,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         handleCompletionItemSelect,
         handleExpressionEditorBlur,
         handleExpressionEditorCancel,
+        openRecordConfigPage,
     ]);
 
     const fetchVisualizableFields = async (filePath: string, typeName?: string) => {

@@ -65,6 +65,7 @@ export type ChipExpressionBaseComponentProps = {
     onOpenExpandedMode?: () => void;
     onRemove?: () => void;
     isInExpandedMode?: boolean;
+    expressionHeight?: string | number;
 }
 
 export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentProps) => {
@@ -522,6 +523,7 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                 <AutoExpandingEditableDiv
                     value={props.value}
                     fieldContainerRef={fieldContainerRef}
+                    expressionHeight={props.expressionHeight}
                     onFocusChange={(focused) => {
                         setIsAnyElementFocused(focused);
                         if (!focused && expressionModel) {

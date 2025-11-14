@@ -256,14 +256,14 @@ const HelperPaneNewEl = ({
     const openRecordConfigView = () => {
         addModal(
             <div style={{ padding: '10px 10px' }}>
-                <ConfigureRecordPage
+                {/* <ConfigureRecordPage
                     fileName={fileName}
                     targetLineRange={targetLineRange}
                     onChange={handleChange}
                     currentValue={currentValue}
                     recordTypeField={recordTypeField}
                     onClose={onClose}
-                />
+                /> */}
             </div>
             , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
         onClose();
@@ -278,15 +278,15 @@ const HelperPaneNewEl = ({
                             <ExpandableList >
 
                                 {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
-                                    recordTypeField ?
-                                        <SlidingPaneNavContainer onClick={openRecordConfigView}>
-                                            <ExpandableList.Item>
-                                                {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                    Create value
-                                                </Typography>
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer> :
+                                    // recordTypeField ?
+                                    //     <SlidingPaneNavContainer onClick={openRecordConfigView}>
+                                    //         <ExpandableList.Item>
+                                    //             {getHelperPaneIcon(HelperPaneIconType.VALUE)}
+                                    //             <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                    //                 Create value
+                                    //             </Typography>
+                                    //         </ExpandableList.Item>
+                                    //     </SlidingPaneNavContainer> :
                                         <>
                                             {valueCreationOptions.length > 0 && (
                                                 <SlidingPaneNavContainer
