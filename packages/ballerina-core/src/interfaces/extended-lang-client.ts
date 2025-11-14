@@ -1882,6 +1882,11 @@ export enum ARTIFACT_TYPE {
     Variables = "Variables"
 }
 
+export enum PROJECT_KIND {
+    WORKSPACE_PROJECT = "WORKSPACE_PROJECT",
+    BUILD_PROJECT = "BUILD_PROJECT"
+}
+
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
@@ -1901,9 +1906,24 @@ export interface ArtifactsNotification {
 export interface ProjectArtifactsRequest {
     projectPath: string;
 }
+
 export interface ProjectArtifacts {
     artifacts: Artifacts;
 }
+
+export interface ProjectInfoRequest {
+    projectPath: string;
+}
+
+export interface ProjectInfo {
+    projectKind: PROJECT_KIND;
+    name?: string;
+    title?: string;
+    orgName?: string;
+    version?: string;
+    projectPath?: string;
+    children?: ProjectInfo[];
+};
 
 // <------------ BI INTERFACES --------->
 
@@ -2002,5 +2022,6 @@ export interface ExtendedLangClientInterface extends BIInterface {
     updateStatusBar(): void;
     getDidOpenParams(): DidOpenParams;
     getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts>;
+    getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo>;
     openConfigToml(params: OpenConfigTomlRequest): Promise<void>;
 }
