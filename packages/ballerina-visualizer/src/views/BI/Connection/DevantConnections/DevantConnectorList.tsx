@@ -24,6 +24,7 @@ import ButtonCard from "../../../../components/ButtonCard";
 import { BodyTinyInfo } from "../../../styles";
 import { useQuery } from "@tanstack/react-query";
 import {
+    ICmdParamsBase,
     ICreateComponentCmdParams,
     MarketplaceItem,
     CommandIds as PlatformExtCommandIds,
@@ -46,9 +47,9 @@ export const DevantConnectorList: FC<{
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
-    const { platformExtState, projectPath, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, hasArtifacts, platformRpcClient } = usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
-    
+
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
@@ -84,7 +85,9 @@ export const DevantConnectorList: FC<{
         enabled: platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
         select: (data) => ({
             ...data,
-            data: data.data.filter((item) => item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id),
+            data: data.data.filter(
+                (item) => item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id
+            ),
         }),
     });
 
@@ -92,7 +95,7 @@ export const DevantConnectorList: FC<{
         return (
             <>
                 <Typography variant="body3">
-                    You need to be signed into Devant in order create Devant connections
+                    You need to be signed into Devant in order connect with dependencies in Devant
                 </Typography>
                 <Button
                     onClick={() =>
@@ -110,30 +113,38 @@ export const DevantConnectorList: FC<{
         );
     }
 
-    if (!platformExtState?.selectedComponent) {
+    if (!platformExtState?.selectedContext?.project) {
         return (
             <>
                 <BodyTinyInfo>
-                    In order to connect with a dependency in Devant, you need to deploy your integration in Devant
+                    To connect with dependencies in Devant, you can either deploy your source code now (recommended for
+                    full integration) or associate this directory with an existing Devant project where you plan to
+                    deploy later.
                 </BodyTinyInfo>
-                <Button
-                    onClick={() =>
-                        rpcClient.getCommonRpcClient().executeCommand({
-                            commands: [
-                                PlatformExtCommandIds.CreateNewComponent,
-                                {
-                                    // integrationType: integrationType as any,
-                                    buildPackLang: "ballerina",
-                                    // name: path.basename(StateMachine.context().projectPath),
-                                    componentDir: projectPath,
-                                    extName: "Devant",
-                                } as ICreateComponentCmdParams,
-                            ],
-                        })
-                    }
-                >
-                    Deploy Integration
-                </Button>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <Button
+                        onClick={() => platformRpcClient.deployIntegrationInDevant()}
+                        disabled={!hasArtifacts}
+                        tooltip={
+                            hasArtifacts ? "" : "Please add a deployable artifact to your project in order to deploy it"
+                        }
+                    >
+                        Deploy Now
+                    </Button>
+                    <Button
+                        appearance="secondary"
+                        onClick={() =>
+                            rpcClient.getCommonRpcClient().executeCommand({
+                                commands: [
+                                    PlatformExtCommandIds.CreateDirectoryContext,
+                                    { extName: "Devant" } as ICmdParamsBase,
+                                ],
+                            })
+                        }
+                    >
+                        Associate Project
+                    </Button>
+                </div>
             </>
         );
     }
@@ -142,7 +153,7 @@ export const DevantConnectorList: FC<{
         <>
             <VSCodePanels style={{ height: "100%" }}>
                 <VSCodePanelTab id={`tab-internal-services`} key={`tab-internal-services`}>
-                    Internal Services
+                    Internal API Services
                 </VSCodePanelTab>
                 <VSCodePanelView id={`view-internal-services`} key={`view-internal-services`}>
                     <div style={{ width: "100%" }}>

@@ -19,6 +19,7 @@
 import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
 import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp} from "./interfaces";
 export * from "./rpc-type"
+export * from "./utils"
 
 // TODO: check if we can directly use the wso2-extension api interface
 export interface PlatformExtAPI {
@@ -36,4 +37,5 @@ export interface PlatformExtAPI {
     refreshConnectionList: () => Promise<void>;
     setConnectedToDevant: (connected: boolean) => void;
     setSelectedComponent: (componentId: string) => void;
+    deployIntegrationInDevant: () => void;
 }

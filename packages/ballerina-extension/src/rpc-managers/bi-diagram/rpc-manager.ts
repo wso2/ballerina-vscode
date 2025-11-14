@@ -67,8 +67,6 @@ import {
     DeleteConfigVariableResponseV2,
     DeleteTypeRequest,
     DeleteTypeResponse,
-    DeploymentRequest,
-    DeploymentResponse,
     Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
@@ -144,12 +142,13 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     AddProjectToWorkspaceRequest,
+    findDevantScopeByModule,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
 
-import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { DevantScopes, ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
     Task,
@@ -1039,39 +1038,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         workspace.openTextDocument(readmePath).then((doc) => {
             window.showTextDocument(doc, ViewColumn.Beside);
         });
-    }
-
-
-
-    async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
-        const scopes = params.integrationTypes;
-
-        let integrationType: SCOPE;
-
-        if (scopes.length === 1) {
-            integrationType = scopes[0];
-        } else {
-            // Show a quick pick to select deployment option
-            const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have different types of artifacts within this project. Select the artifact type to be deployed'
-            });
-            integrationType = selectedScope as SCOPE;
-        }
-
-        if (!integrationType) {
-            return { isCompleted: true };
-        }
-
-        const deployementParams: ICreateComponentCmdParams = {
-            integrationType: integrationType as any,
-            buildPackLang: "ballerina", // Example language
-            name: path.basename(StateMachine.context().projectPath),
-            componentDir: StateMachine.context().projectPath,
-            extName: "Devant"
-        };
-        commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
-
-        return { isCompleted: true };
     }
 
     openAIChat(params: AIChatRequest): void {

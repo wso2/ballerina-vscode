@@ -36,6 +36,7 @@ export const refreshConnectionList: RequestType<void,  void> = { method: `${_pre
 export const getPlatformStore: RequestType<void,  PlatformExtState> = { method: `${_preFix}/getPlatformStore` };
 export const setConnectedToDevant: RequestType<boolean,  void> = { method: `${_preFix}/setConnectedToDevant` };
 export const setSelectedComponent: RequestType<string,  void> = { method: `${_preFix}/setSelectedComponent` };
+export const deployIntegrationInDevant: RequestType<void,  void> = { method: `${_preFix}/deployIntegrationInDevant` };
 
 // Notifications
 export const onPlatformExtStoreStateChange: NotificationType<PlatformExtState> = { method: `${_preFix}/onPlatformExtStoreStateChange` };

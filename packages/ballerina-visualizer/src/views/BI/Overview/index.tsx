@@ -25,7 +25,6 @@ import {
     BI_COMMANDS,
     SHARED_COMMANDS,
     DIRECTORY_MAP,
-    SCOPE
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay, Dropdown } from "@wso2/ui-toolkit";
@@ -38,7 +37,6 @@ import ReactMarkdown from "react-markdown";
 import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
-import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 
@@ -326,7 +324,6 @@ interface DeploymentOptionProps {
     onToggle: () => void;
     onDeploy: () => void;
     learnMoreLink?: string;
-    hasDeployableIntegration?: boolean;
     secondaryAction?: {
         description: string;
         buttonText: string;
@@ -343,9 +340,9 @@ function DeploymentOption({
     onDeploy,
     learnMoreLink,
     secondaryAction,
-    hasDeployableIntegration
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
+    const { hasArtifacts } = usePlatformExtContext();
 
     const openLearnMoreURL = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
@@ -385,8 +382,8 @@ function DeploymentOption({
                         e.stopPropagation();
                         onDeploy();
                     }}
-                    disabled={!hasDeployableIntegration}
-                    tooltip={hasDeployableIntegration ? "" : "No deployable integration found"}
+                    disabled={!hasArtifacts}
+                    tooltip={hasArtifacts ? "" : "No deployable integration found"}
                 >
                     {buttonText}
                 </Button>
@@ -411,7 +408,6 @@ interface DeploymentOptionsProps {
     handleJarBuild: () => void;
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
-    hasDeployableIntegration: boolean;
 }
 
 function DeploymentOptions({
@@ -419,7 +415,6 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
-    hasDeployableIntegration
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const { rpcClient } = useRpcContext();
@@ -476,7 +471,6 @@ function DeploymentOptions({
                     onToggle={() => toggleOption("devant")}
                     onDeploy={platformExtState?.hasPossibleComponent ? () => goToDevant() : handleDeploy}
                     learnMoreLink={"https://wso2.com/devant/docs"}
-                    hasDeployableIntegration={hasDeployableIntegration}
                     secondaryAction={
                         platformExtState?.hasPossibleComponent && platformExtState?.hasLocalChanges
                             ? {
@@ -499,7 +493,6 @@ function DeploymentOptions({
                     isExpanded={expandedOptions.has('docker')}
                     onToggle={() => toggleOption('docker')}
                     onDeploy={handleDockerBuild}
-                    hasDeployableIntegration={hasDeployableIntegration}
                 />
 
                 <DeploymentOption
@@ -509,7 +502,6 @@ function DeploymentOptions({
                     isExpanded={expandedOptions.has('vm')}
                     onToggle={() => toggleOption('vm')}
                     onDeploy={handleJarBuild}
-                    hasDeployableIntegration={hasDeployableIntegration}
                 />
             </div>
         </>
@@ -614,28 +606,6 @@ export function Overview(props: ComponentDiagramProps) {
         });
     }, []);
 
-    const deployableIntegrationTypes = useMemo(() => {
-        if (!projectStructure) {
-            return [];
-        }
-
-        const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
-        const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
-
-        let scopes: SCOPE[] = [];
-        if (services) {
-            const svcScopes = services
-                .map(svc => findScopeByModule(svc?.moduleName))
-                .filter(svc => svc !== undefined);
-            scopes = Array.from(new Set(svcScopes));
-        }
-        if (automation?.length > 0) {
-            scopes.push(SCOPE.AUTOMATION);
-        }
-
-        return scopes;
-    }, [projectStructure]);
-
     function isEmptyProject(): boolean {
         // Filter out connections that start with underscore
         const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
@@ -669,9 +639,7 @@ export function Overview(props: ComponentDiagramProps) {
     };
 
     const handleDeploy = async () => {
-        await rpcClient.getBIDiagramRpcClient().deployProject({
-            integrationTypes: deployableIntegrationTypes
-        });
+        platformRpcClient.deployIntegrationInDevant();
     };
 
     const handleICP = (icpEnabled: boolean) => {
@@ -923,7 +891,6 @@ export function Overview(props: ComponentDiagramProps) {
                         handleJarBuild={handleJarBuild}
                         handleDeploy={handleDeploy}
                         goToDevant={goToDevant}
-                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                     />
                     <Divider sx={{ margin: "16px 0" }} />
                     <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />

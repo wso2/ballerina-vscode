@@ -21,6 +21,7 @@ import {
     SyntaxTree,
     PackageTomlValues,
     DIRECTORY_MAP,
+    findDevantScopeByModule,
 } from "@wso2/ballerina-core";
 import { extensions, Uri, window } from "vscode";
 import * as vscode from "vscode";
@@ -44,6 +45,9 @@ import {
     StartProxyServerResp,
     StopProxyServerReq,
     ConnectionDetailed,
+    CommandIds as PlatformExtCommandIds,
+    DevantScopes,
+    ICreateComponentCmdParams
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -62,6 +66,7 @@ import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getDomain, hasContextYaml, initializeDevantConnection } from "./platform-utils";
 import { debounce } from "lodash";
+import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     static platformExtAPI: IWso2PlatformExtensionAPI;
@@ -265,6 +270,49 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     setConnectedToDevant(connectedToDevant: boolean): void {
         platformExtStore.getState().setState({ connectedToDevant });
+    }
+
+    async deployIntegrationInDevant(): Promise<void> {
+        const projectStructure = await new BiDiagramRpcManager().getProjectStructure();
+        if(!projectStructure){
+            return;
+        }
+        const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
+        const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
+
+        let scopes: DevantScopes[] = [];
+        if (services?.length > 0) {
+            const svcScopes = services
+                .map(svc => findDevantScopeByModule(svc?.moduleName))
+                .filter(svc => svc !== undefined);
+            scopes.push(...Array.from(new Set(svcScopes)));
+        }
+        if (automation?.length > 0) {
+            scopes.push(DevantScopes.AUTOMATION);
+        }
+
+        let integrationType: DevantScopes;
+
+        if (scopes.length === 1) {
+            integrationType = scopes[0];
+        } else  if (scopes?.length > 1){
+            const selectedScope = await window.showQuickPick(scopes, {
+                placeHolder: 'You have multiple artifact types within this project. Select the artifact type to be deployed',
+            });
+            if(!selectedScope){
+                return;
+            }
+            integrationType = selectedScope as DevantScopes;
+        }
+
+        const deployementParams: ICreateComponentCmdParams = {
+            integrationType: integrationType,
+            buildPackLang: "ballerina",
+            name: path.basename(StateMachine.context().projectPath),
+            componentDir: StateMachine.context().projectPath,
+            extName: "Devant"
+        };
+        vscode.commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
     }
 
     async getAllConnections(): Promise<ConnectionListItem[]> {

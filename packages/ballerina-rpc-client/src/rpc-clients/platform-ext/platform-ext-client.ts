@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
@@ -83,5 +83,9 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     setSelectedComponent(componentId: string): Promise<void> {
         return this._messenger.sendRequest(setSelectedComponent, HOST_EXTENSION, componentId);
+    }
+
+    deployIntegrationInDevant(): Promise<void> {
+        return this._messenger.sendRequest(deployIntegrationInDevant, HOST_EXTENSION);
     }
 }

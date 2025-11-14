@@ -1834,17 +1834,6 @@ export type OpenAPIClientDeleteResponse = {
     deleteData: OpenAPIClientDeleteData
 }
 
-// <-------- Deployment Related ------->
-
-export interface DeploymentRequest {
-    integrationTypes: SCOPE[];
-}
-
-export interface DeploymentResponse {
-    isCompleted: boolean;
-}
-
-
 // 2201.12.3 -> New Project Component Artifacts Tree
 
 export interface BaseArtifact<T = any> {

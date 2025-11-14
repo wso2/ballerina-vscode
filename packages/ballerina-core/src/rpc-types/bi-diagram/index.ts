@@ -74,8 +74,6 @@ import {
     GetRecordModelFromSourceRequest,
     UpdateTypesRequest,
     UpdateTypesResponse,
-    DeploymentRequest,
-    DeploymentResponse,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
     OpenAPIGeneratedModulesResponse,
@@ -155,7 +153,6 @@ export interface BIDiagramAPI {
     getReadmeContent: () => Promise<ReadmeContentResponse>;
     openReadme: () => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
-    deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
