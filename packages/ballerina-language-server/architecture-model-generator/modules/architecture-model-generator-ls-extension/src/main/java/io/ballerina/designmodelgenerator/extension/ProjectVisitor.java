@@ -64,7 +64,7 @@ public final class ProjectVisitor {
     public void populate() {
         // Set common project info
         response.setProjectKind(project.kind().name());
-        response.setUri(project.sourceRoot().toUri().toString());
+        response.setProjectPath(project.sourceRoot().toUri().toString());
 
         // Handle workspace projects
         if (includeChildren && BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
@@ -107,7 +107,6 @@ public final class ProjectVisitor {
 
     /**
      * Extracts the title from Ballerina.toml if present. First tries to read a custom "title" field in Ballerina.toml.
-     * Falls back to the package name if no title is specified.
      *
      * @param tomlDocument The TomlDocument to extract title from
      * @param tableName    The table name to look for the title field (e.g., "package" or "workspace")

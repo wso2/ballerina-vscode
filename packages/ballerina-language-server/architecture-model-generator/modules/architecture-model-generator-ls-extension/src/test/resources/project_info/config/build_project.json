@@ -5,7 +5,7 @@
     "projectKind": "BUILD_PROJECT",
     "name": "simple_service",
     "title": "Simple Service",
-    "uri": "proj",
+    "projectPath": "proj",
     "org": "test",
     "version": "0.1.0"
   }

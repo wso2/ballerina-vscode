@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,7 @@ public class ProjectInfoResponse extends AbstractResponse {
     private String projectKind;    // Enum value as string: BUILD_PROJECT, WORKSPACE_PROJECT, etc.
     private String name;           // Package name from packageName().value()
     private String title;          // Project title (from Ballerina.toml or name fallback)
-    private String uri;            // Project root as URI string
+    private String projectPath;      // Project root as URI string
     private String org;            // Package organization
     private String version;        // Package version
     private List<ProjectInfoResponse> children;  // Only populated for workspace projects (recursive)
@@ -59,12 +59,12 @@ public class ProjectInfoResponse extends AbstractResponse {
         this.title = title;
     }
 
-    public String getUri() {
-        return uri;
+    public String getProjectPath() {
+        return projectPath;
     }
 
-    public void setUri(String uri) {
-        this.uri = uri;
+    public void setProjectPath(String projectPath) {
+        this.projectPath = projectPath;
     }
 
     public String getOrg() {

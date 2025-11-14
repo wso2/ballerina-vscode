@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -21,8 +21,8 @@ package io.ballerina.designmodelgenerator.extension.request;
 /**
  * Represents the request for the projectInfo API.
  *
- * @param projectRoot Path to the project root
+ * @param projectPath Path to the project root
  * @since 1.4.2
  */
-public record ProjectInfoRequest(String projectRoot) {
+public record ProjectInfoRequest(String projectPath) {
 }
