@@ -48,7 +48,7 @@ export const TextMode: React.FC<EditorModeProps> = ({ value, onChange, field }) 
     return (
         <TextArea
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange(e.target.value, e.target.selectionStart)}
             placeholder={field.placeholder || "Enter your text here..."}
             autoFocus
         />

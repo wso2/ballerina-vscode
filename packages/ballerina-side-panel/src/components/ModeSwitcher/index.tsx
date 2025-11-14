@@ -23,11 +23,12 @@ import { getDefaultExpressionMode } from '../editors/MultiModeExpressionEditor/C
 
 interface ModeSwitcherProps {
     value: InputMode;
+    isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
     valueTypeConstraint: string | string[];
 }
 
-const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, onChange, valueTypeConstraint }) => {
+const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, valueTypeConstraint }) => {
     const isChecked = value === InputMode.EXP;
 
     const defaultMode = useMemo(
@@ -36,7 +37,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, onChange, valueTypeC
     );
 
     const handlePrimaryModeClick = () => {
-        onChange(defaultMode);
+        onChange(isRecordTypeField ? InputMode.GUIDED : defaultMode);
     };
 
     const handleExpressionClick = () => {
@@ -46,7 +47,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, onChange, valueTypeC
     return (
         <SwitchWrapper>
             <Slider checked={isChecked}>
-                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{defaultMode}</Label>
+                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{isRecordTypeField ? InputMode.GUIDED : defaultMode}</Label>
                 <Label active={isChecked} onClick={handleExpressionClick}>Expression</Label>
             </Slider>
         </SwitchWrapper>
