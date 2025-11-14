@@ -28,10 +28,14 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
     isOpen,
     onClick
 }, ref) => {
+    
     return (
         <button
             ref={ref}
             onClick={onClick}
+            type="button"
+            aria-label="Toggle helper pane"
+            aria-pressed={isOpen}
             tabIndex={-1}
             style={{
                 padding: '6px 12px',
