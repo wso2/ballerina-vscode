@@ -99,6 +99,9 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
 }
 
 export const chipTheme = EditorView.theme({
+    "&": {
+        backgroundColor: "var(--vscode-input-background)"
+    },
     ".cm-content": {
         caretColor: "#ffffff"
     },
