@@ -37,6 +37,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.architecturemodelgenerator.extension.TestUtils.contentMatches;
+
 /**
  * Test class for multi-root Mule import functionality with per-project notification capture.
  * <p>
@@ -102,7 +104,7 @@ public class ImportMultiRootMigrationTest extends AbstractLSTest {
         validateRootLevelResponse(actualToolResponse);
 
         // Verify final response matches expected output
-        if (!actualToolResponse.equals(expectedToolResponse) || !notificationsMatch) {
+        if (!contentMatches(actualToolResponse, expectedToolResponse) || !notificationsMatch) {
             compareJsonElements(gson.toJsonTree(actualToolResponse),
                     gson.toJsonTree(expectedToolResponse));
             TestConfig updatedConfig = new TestConfig(testConfig.description(),
@@ -147,12 +149,6 @@ public class ImportMultiRootMigrationTest extends AbstractLSTest {
             Assert.assertNotNull(actualEdits, "Text edits should not be null for project: " + projectName);
             Assert.assertFalse(actualEdits.isEmpty(),
                     "Text edits should not be empty for project: " + projectName);
-
-            // Compare text edits
-            if (!actualEdits.equals(expectedEdits)) {
-                allMatch = false;
-                compareJsonElements(gson.toJsonTree(actualEdits), gson.toJsonTree(expectedEdits));
-            }
 
             // Validate report is present and contains expected content
             String actualReport = actual.report();

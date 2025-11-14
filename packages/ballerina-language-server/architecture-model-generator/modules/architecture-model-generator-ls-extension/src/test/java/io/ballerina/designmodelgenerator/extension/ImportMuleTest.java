@@ -31,6 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static io.ballerina.architecturemodelgenerator.extension.TestUtils.contentMatches;
+
 /**
  * Test class for the Mule import functionality.
  *
@@ -53,7 +55,7 @@ public class ImportMuleTest extends AbstractLSTest {
 
         ImportMuleResponse actualToolResponse = gson.fromJson(response, ImportMuleResponse.class);
         ImportMuleResponse expectedToolResponse = gson.fromJson(testConfig.output(), ImportMuleResponse.class);
-        if (!actualToolResponse.equals(expectedToolResponse)) {
+        if (!contentMatches(actualToolResponse, expectedToolResponse)) {
             TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.projectPath(),
                     testConfig.parameters(), response);
 //            updateConfig(configJsonPath, updatedConfig);
