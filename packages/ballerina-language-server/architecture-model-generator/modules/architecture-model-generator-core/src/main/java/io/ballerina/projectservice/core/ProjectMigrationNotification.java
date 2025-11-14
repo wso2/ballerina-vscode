@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,6 @@ import java.util.Map;
  * @param projectName Name of the migrated project.
  * @param textEdits   Map of file paths to their corresponding text edits as strings.
  * @param report      HTML report of the migration operation.
- * @since 1.5.0
+ * @since 1.4.2
  */
 public record ProjectMigrationNotification(String projectName, Map<String, String> textEdits, String report) { }

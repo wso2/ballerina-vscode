@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.Map;
 /**
  * Internal data structure to hold per-project migration results during multiRoot processing. This is used internally to
  * organize tool output by project before sending notifications.
+ *
+ * @since 1.4.2
  */
 public class ProjectMigrationResult {
 

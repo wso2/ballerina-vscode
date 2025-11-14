@@ -28,7 +28,7 @@ import java.util.TreeMap;
  * Utility class for handling multi-root migration results. Provides common functionality for splitting and organizing
  * migration results across multiple projects.
  *
- * @since 1.5.0
+ * @since 1.4.2
  */
 public class MultiRootMigrationUtil {
 

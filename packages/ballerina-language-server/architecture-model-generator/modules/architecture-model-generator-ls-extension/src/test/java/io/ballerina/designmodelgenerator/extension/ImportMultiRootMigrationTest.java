@@ -51,7 +51,7 @@ import static io.ballerina.architecturemodelgenerator.extension.TestUtils.conten
  * To update test configurations when the migration tool output changes, developers can uncomment the updateConfig()
  * calls in this test.
  *
- * @since 1.2.0
+ * @since 1.4.2
  */
 public class ImportMultiRootMigrationTest extends AbstractLSTest {
 
