@@ -341,8 +341,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         sanitizedExpression // sanitized expression that will be rendered in the editor
     } = props as ExpressionEditorProps;
 
-    console.log("===== recordTypeField", recordTypeField, field);
-
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
     const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
@@ -433,14 +431,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }, [field?.valueTypeConstraint, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
-        console.log("++++ on Focus ExpressionEditor");
         setFocused(true);
         
         // If in guided mode with recordTypeField, open ConfigureRecordPage directly
         if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
             const currentValue = watch(key) || '';
             // Create onChange callback that updates the form value
-            // Use controllerOnChange if available (from Controller render), otherwise use setValue
             const onChangeCallback = (value: string) => {
                 if (controllerOnChange) {
                     controllerOnChange(value);
@@ -479,7 +475,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }
 
     const toggleHelperPaneState = () => {
-        console.log("++++ toggleHelperPaneState", isHelperPaneOpen);
         if (!isHelperPaneOpen) {
             exprRef.current?.focus();
         } else {
