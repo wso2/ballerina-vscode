@@ -40,7 +40,7 @@ const ModalContainer = styled.div<{ sx?: any }>`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2001; 
+    z-index: 2000; 
     display: flex;
     justify-content: center;
     align-items: center;

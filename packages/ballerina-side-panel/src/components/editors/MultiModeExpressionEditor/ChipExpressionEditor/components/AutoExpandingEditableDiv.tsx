@@ -76,6 +76,7 @@ export type AutoExpandingEditableDivProps = {
     isInExpandedMode?: boolean;
     onOpenExpandedMode?: () => void;
     helperButtonRef?: React.RefObject<HTMLButtonElement>;
+    expressionHeight?: string | number;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -276,15 +277,28 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         }
     }
 
+    // Determine height based on expressionHeight prop, or fall back to default behavior
+    const getHeightValue = () => {
+        if (props.expressionHeight !== undefined) {
+            return typeof props.expressionHeight === 'number'
+                ? `${props.expressionHeight}px`
+                : props.expressionHeight;
+        }
+        return props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px';
+    };
+
+    const heightValue = getHeightValue();
+
     return (
         <ChipEditorFieldContainer>
             <ChipEditorField
                 ref={fieldContainerRef}
+                customHeight={props.expressionHeight !== undefined ? `${heightValue}px` : undefined}
                 style={{
                     ...style,
                     flex: 1,
-                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px',
-                    ...(props.isInExpandedMode && {
+                    maxHeight: heightValue,
+                    ...(props.isInExpandedMode && !props.expressionHeight && {
                         height: `${EXPANDED_EDITOR_HEIGHT}px`,
                         minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
                     })
@@ -294,7 +308,13 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 onKeyDown={onKeyDown}
                 onInput={onInput}
             >
-                <div style={{ flex: 1, overflow: 'auto', height: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto' }}>
+                <div style={{
+                    flex: 1,
+                    overflow: 'auto',
+                    height: props.expressionHeight !== undefined ?
+                        heightValue :
+                        (props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto')
+                }}>
                     {children}
                 </div>
             </ChipEditorField>
