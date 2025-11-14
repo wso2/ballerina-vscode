@@ -15,7 +15,7 @@
 // under the License.
 
 import { generateText } from "ai";
-import { ProjectModule, ProjectSource, SourceFile, SourceFiles } from "@wso2/ballerina-core";
+import { ProjectModule, ProjectSource, SourceFile } from "@wso2/ballerina-core";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import path from "path";
 import fs from "fs";
@@ -61,12 +61,12 @@ const evaluationSchema = z.object({
  */
 export async function evaluateCodeWithLLM(
     userQuery: string,
-    initialSource: SourceFiles[],
-    finalSource: SourceFiles[]
+    initialSource: SourceFile[],
+    finalSource: SourceFile[]
 ): Promise<LLMEvaluationResult> {
     console.log("🤖 Starting LLM-based semantic evaluation...");
 
-    const stringifySources = (sources: SourceFiles[]): string => {
+    const stringifySources = (sources: SourceFile[]): string => {
         if (sources.length === 0) return "No files in the project.";
         return sources.map(file => `--- File: ${file.filePath} ---\n${file.content}`).join("\n\n");
     };
@@ -164,7 +164,9 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
         sourceFiles: [],
         projectTests: [],
         projectModules: [],
-        projectName: ""
+        projectName: "",
+        packagePath: projectRoot,
+        isActive: true
     };
 
     // Read root-level .bal files
@@ -206,7 +208,7 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
     return projectSource;
 }
 
-export function getProjectFromResponse(req: string): SourceFiles[] {
+export function getProjectFromResponse(req: string): SourceFile[] {
     const sourceFiles: SourceFile[] = [];
     const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
     let match;
