@@ -26,10 +26,12 @@ import com.google.gson.JsonPrimitive;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.apache.commons.io.FileUtils;
 import org.ballerinalang.diagramutil.DiagramUtil;
 import org.ballerinalang.langserver.command.executors.RunExecutor;
@@ -41,6 +43,7 @@ import org.ballerinalang.langserver.commons.command.CommandArgument;
 import org.ballerinalang.langserver.commons.command.LSCommandExecutorException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.extensions.ballerina.document.ExecutorPositionsUtil;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -69,6 +72,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1000,6 +1004,38 @@ public class TestWorkspaceManager {
         // Verify it's part of a workspace
         Assert.assertEquals(packageRoot.getParent().getFileName().toString(), "single-package-workspace",
                 "Parent should be the workspace directory");
+    }
+
+    /**
+     * Test opening a workspace project with expr:// scheme and verify diagnostics.
+     */
+    @Test(description = "Test expr scheme with workspace project and diagnostics")
+    public void testExprSchemeWorkspaceWithDiagnostics()
+            throws WorkspaceDocumentException, IOException, EventSyncException {
+        // 1. Read file content
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-b").resolve("main.bal").toAbsolutePath();
+        BallerinaWorkspaceManagerProxy workspaceManagerProxy =
+                new BallerinaWorkspaceManagerProxyImpl(new LanguageServerContextImpl());
+        workspaceManagerProxy.get().loadProject(packageAFile);
+        byte[] encodedContent = Files.readAllBytes(packageAFile);
+
+        // 2. Open same file with expr:// scheme
+        String exprUri = packageAFile.toUri().toString().replace("file:///", "expr:///");
+        DidOpenTextDocumentParams exprParams = new DidOpenTextDocumentParams();
+        TextDocumentItem exprDocumentItem = new TextDocumentItem();
+        exprDocumentItem.setUri(exprUri);
+        exprDocumentItem.setText(new String(encodedContent));
+        exprParams.setTextDocument(exprDocumentItem);
+        workspaceManagerProxy.didOpen(exprParams);
+
+        // 3. Get diagnostics and verify no errors
+        Project project = workspaceManagerProxy.get(exprUri).loadProject(packageAFile);
+        PackageCompilation compilation = project.currentPackage().getCompilation();
+        Collection<Diagnostic> diagnostics = compilation.diagnosticResult().diagnostics();
+        Assert.assertTrue(diagnostics.isEmpty(),
+                "Project should not have any compilation errors. Found: " + diagnostics.size());
     }
 
     private List<WorkspaceFolder> mockWorkspaceFolders() {
