@@ -23,6 +23,7 @@ export interface CreateDevantConnectionReq {
         name: string;
 	    visibility: string;
         schemaId: string;
+        isProjectLevel?: boolean;
     }
     marketplaceItem: MarketplaceItem;
 }
