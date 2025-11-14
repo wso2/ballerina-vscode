@@ -72,8 +72,6 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             span.style.outline = "none";
             span.style.verticalAlign = "middle";
             span.style.userSelect = "none";
-            span.style.webkitUserSelect = "none";
-
             // Add click handler to select the chip text
             span.addEventListener("click", (event) => {
                 event.preventDefault();
@@ -87,7 +85,7 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             return span;
         }
         ignoreEvent() {
-            return false; // Allow click events
+            return false; 
         }
         eq(other: ChipWidget) {
             return other.text === this.text && other.start === this.start && other.end === this.end;
@@ -311,6 +309,7 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
         if (!coords || coords.top === null || coords.left === null) {
             throw new Error("Could not get cursor coordinates");
         }
+        const userEvent = update.transactions[0]?.annotation(Transaction.userEvent);
         if (update.docChanged) {
             const editorRect = update.view.dom.getBoundingClientRect();
             //+5 is to position a little be below the cursor

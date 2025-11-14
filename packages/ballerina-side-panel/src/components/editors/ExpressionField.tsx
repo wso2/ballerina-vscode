@@ -152,6 +152,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     return (
         <ChipExpressionBaseComponent2
             getHelperPane={getHelperPane}
+            isExpandedVersion={false}
             completions={completions}
             onChange={onChange}
             value={value}

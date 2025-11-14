@@ -57,6 +57,7 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
                 extractArgsFromFunction={extractArgsFromFunction}
                 getHelperPane={getHelperPane}
                 isInExpandedMode={true}
+                isExpandedVersion={true}
             />
         </ExpressionContainer>
     );

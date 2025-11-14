@@ -19,20 +19,44 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
-import { ChipExpressionBaseComponentProps } from "../ChipExpressionBaseComponent";
 import { useFormContext } from "../../../../../context";
 import { buildNeedTokenRefetchListner, buildOnChangeListner, chipPlugin, chipTheme, completionTheme, tokenField, tokensChangeEffect, expressionEditorKeymap, buildCompletionSource, buildHelperPaneKeymap, buildOnFocusListner, CursorInfo, buildOnFocusOutListner } from "../CodeUtils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HELPER_PANE_EX_BTN_OFFSET, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { LineRange } from "@wso2/ballerina-core";
 
 type HelperPaneState = {
     isOpen: boolean;
     top: number;
     left: number;
+}
+export type ChipExpressionBaseComponentProps = {
+    onTokenRemove?: (token: string) => void;
+    onTokenClick?: (token: string) => void;
+    isExpandedVersion: boolean;
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
+    completions: CompletionItem[];
+    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    value: string;
+    fileName?: string;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    targetLineRange?: LineRange;
+    onOpenExpandedMode?: () => void;
+    onRemove?: () => void;
+    isInExpandedMode?: boolean;
 }
 
 export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentProps) => {
@@ -57,8 +81,9 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         const textBeforeCursor = newValue.slice(0, cursor.position.to);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
         const isTrigger = lastNonSpaceChar === '+' || lastNonSpaceChar === ':';
+        const isRangeSelection = cursor.position.to !== cursor.position.from;
 
-        if (isTrigger) {
+        if (newValue === '' || isTrigger || isRangeSelection) {
             setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         } else {
             setHelperPaneState({ isOpen: false, top: 0, left: 0 });
@@ -90,11 +115,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             selection: { anchor: from + value.length }
         });
 
-        const newDoc = view.state.doc.toString();
-        props.onChange(newDoc, from + value.length);
-        if (options.closeHelperPane) {
-            setIsTokenUpdateScheduled(true);
-        }
         setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
     }
 
@@ -125,32 +145,6 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             isOpen: !prev.isOpen
         }));
     }
-
-    useEffect(() => {
-        if (!props.value || !viewRef.current) return;
-        const updateEditorState = async () => {
-            const currentDoc = viewRef.current!.state.doc.toString();
-            if (currentDoc !== props.value) {
-                viewRef.current!.dispatch({
-                    changes: { from: 0, to: currentDoc.length, insert: props.value }
-                });
-            }
-
-            if (!isTokenUpdateScheduled) return;
-            const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
-                props.value,
-                props.fileName,
-                props.targetLineRange.startLine
-            );
-            setIsTokenUpdateScheduled(false);
-            if (tokenStream) {
-                viewRef.current!.dispatch({
-                    effects: tokensChangeEffect.of(tokenStream)
-                });
-            }
-        };
-        updateEditorState();
-    }, [props.value, props.fileName, props.targetLineRange.startLine, isTokenUpdateScheduled]);
 
     useEffect(() => {
         if (!editorRef.current) return;
@@ -185,6 +179,30 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         };
     }, []);
 
+    useEffect(() => {
+        if (!props.value || !viewRef.current) return;
+        const updateEditorState = async () => {
+            const currentDoc = viewRef.current!.state.doc.toString();
+            const isExternalUpdate = props.value !== currentDoc;
+
+            if (!isTokenUpdateScheduled && !isExternalUpdate) return;
+            const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
+                props.value,
+                props.fileName,
+                props.targetLineRange.startLine
+            );
+            setIsTokenUpdateScheduled(false);
+            if (tokenStream) {
+                viewRef.current!.dispatch({
+                    effects: tokensChangeEffect.of(tokenStream),
+                    changes: { from: 0, to: currentDoc.length, insert: props.value }
+                });
+            }
+        };
+        updateEditorState();
+    }, [props.value, props.fileName, props.targetLineRange.startLine, isTokenUpdateScheduled]);
+
+
     // this keeps completions ref updated
     // just don't touch this.
     useEffect(() => {
@@ -213,9 +231,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
     return (
         <div style={{ position: 'relative' }}>
-            <div ref={editorRef}>
-
-            </div>
+            <div ref={editorRef} />
             {helperPaneState.isOpen &&
                 <HelperPane
                     ref={helperPaneRef}
@@ -263,6 +279,10 @@ export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((pro
             ref={ref}
             top={props.top}
             left={props.left}
+            onMouseDown={e=> {
+                e.preventDefault();
+                e.stopPropagation();
+            }}
         >
             {props.getHelperPane(
                 props.value,
