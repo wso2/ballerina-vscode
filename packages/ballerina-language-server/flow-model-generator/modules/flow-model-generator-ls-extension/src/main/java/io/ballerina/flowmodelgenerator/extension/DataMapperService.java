@@ -26,21 +26,22 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperPositionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperTargetFieldPositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTransformFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClearCacheResponse;
-import io.ballerina.flowmodelgenerator.extension.response.DataMapperFieldPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperNodePositionResponse;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperPositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperSubMappingResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
@@ -284,11 +285,12 @@ public class DataMapperService implements ExtendedLanguageServerService {
             return response;
         });
     }
-
+    
     @JsonRequest
-    public CompletableFuture<DataMapperFieldPositionResponse> portPosition(DataMapperPositionRequest request) {
+    public CompletableFuture<DataMapperPositionResponse> targetFieldPosition(
+            DataMapperTargetFieldPositionRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
+            DataMapperPositionResponse response = new DataMapperPositionResponse();
             try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
@@ -298,7 +300,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                     return response;
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
-                response.setProperty(dataMapManager.getPortPosition(semanticModel.get(), request.codedata(),
+                response.setProperty(dataMapManager.getTargetFieldPosition(semanticModel.get(), request.codedata(),
                         request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
@@ -308,9 +310,9 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMapperFieldPositionResponse> fieldPosition(DataMapperPositionRequest request) {
+    public CompletableFuture<DataMapperPositionResponse> fieldPosition(DataMapperFieldPositionRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            DataMapperFieldPositionResponse response = new DataMapperFieldPositionResponse();
+            DataMapperPositionResponse response = new DataMapperPositionResponse();
             try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);

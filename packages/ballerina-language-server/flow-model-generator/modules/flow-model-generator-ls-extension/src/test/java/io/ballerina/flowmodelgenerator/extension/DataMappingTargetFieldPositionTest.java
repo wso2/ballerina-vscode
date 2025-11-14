@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperPositionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperTargetFieldPositionRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -30,11 +30,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tests for the getting the field position and text edits.
+ * Tests for the getting the target field position.
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
-public class DataMappingPortPositionTest extends AbstractLSTest {
+public class DataMappingTargetFieldPositionTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
@@ -54,14 +54,15 @@ public class DataMappingPortPositionTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        DataMapperPositionRequest request =
-                new DataMapperPositionRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), "", testConfig.targetField(), "");
+        DataMapperTargetFieldPositionRequest request =
+                new DataMapperTargetFieldPositionRequest(
+                        sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
+                        testConfig.codedata(), testConfig.targetField(), "");
         JsonElement property = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("property");
 
         if (!property.equals(testConfig.property())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), property);
+                    testConfig.codedata(), testConfig.targetField(), property);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -69,7 +70,7 @@ public class DataMappingPortPositionTest extends AbstractLSTest {
 
     @Override
     protected String getResourceDir() {
-        return "data_mapper_port_position";
+        return "data_mapper_target_field_position";
     }
 
     @Override
@@ -79,7 +80,7 @@ public class DataMappingPortPositionTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "portPosition";
+        return "targetFieldPosition";
     }
 
     @Override
@@ -93,12 +94,11 @@ public class DataMappingPortPositionTest extends AbstractLSTest {
      * @param source      The source file name
      * @param description The description of the test
      * @param codedata    Details of the node
-     * @param propertyKey The property key
      * @param targetField The target field to add the element
      * @param property    Type property of the type of field ID
      */
-    private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
-                              String targetField, JsonElement property) {
+    private record TestConfig(String source, String description, JsonElement codedata, String targetField,
+                              JsonElement property) {
 
         public String description() {
             return description == null ? "" : description;

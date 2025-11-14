@@ -25,14 +25,12 @@ import com.google.gson.JsonElement;
  *
  * @param filePath    file path of the source file
  * @param codedata    Details of the node
- * @param propertyKey The property that needs to consider to get the type
  * @param targetField The target field that needs to consider to get the type
  * @param portId      The port ID to identify the specific field to get the position
- * @since 1.0.0
+ * @since 2.0.0
  */
-public record DataMapperPositionRequest(String filePath,
-                                        JsonElement codedata,
-                                        String propertyKey,
-                                        String targetField,
-                                        String portId) {
+public record DataMapperFieldPositionRequest(String filePath,
+                                             JsonElement codedata,
+                                             String targetField,
+                                             String portId) {
 }
