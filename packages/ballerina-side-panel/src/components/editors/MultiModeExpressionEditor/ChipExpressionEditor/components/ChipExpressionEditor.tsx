@@ -51,7 +51,7 @@ type HelperPaneState = {
     top: number;
     left: number;
 }
-export type ChipExpressionBaseComponentProps = {
+export type ChipExpressionEditorComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
     isExpandedVersion: boolean;
@@ -70,13 +70,13 @@ export type ChipExpressionBaseComponentProps = {
         currentArgIndex: number;
         documentation?: FnSignatureDocumentation;
     }>;
-    targetLineRange?: LineRange;
+    targetLineRange: LineRange;
     onOpenExpandedMode?: () => void;
     onRemove?: () => void;
     isInExpandedMode?: boolean;
 }
 
-export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentProps) => {
+export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
     const [helperPaneState, setHelperPaneState] = useState<HelperPaneState>({ isOpen: false, top: 0, left: 0 });
 
     const editorRef = useRef<HTMLDivElement>(null);
@@ -119,7 +119,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
     const completionSource = buildCompletionSource(() => completionsRef.current);
 
-    const helperPaneKeymap = buildHelperPaneKeymap(helperPaneState.isOpen, () => {
+    const helperPaneKeymap = buildHelperPaneKeymap(() => helperPaneState.isOpen, () => {
         setHelperPaneState(prev => ({ ...prev, isOpen: false }));
     });
 

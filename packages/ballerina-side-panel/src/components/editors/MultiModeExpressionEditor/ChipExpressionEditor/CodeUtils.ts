@@ -377,12 +377,12 @@ export const buildCompletionSource = (getCompletions: () => CompletionItem[]) =>
     };
 };
 
-export const buildHelperPaneKeymap = (isHelperPaneOpen: boolean, onClose: () => void) => {
+export const buildHelperPaneKeymap = (getIsHelperPaneOpen: () => boolean, onClose: () => void) => {
     return [
         {
             key: "Escape",
             run: (_view) => {
-                if (!isHelperPaneOpen) return false;
+                if (!getIsHelperPaneOpen()) return false;
                 onClose();
                 return true;
             }
