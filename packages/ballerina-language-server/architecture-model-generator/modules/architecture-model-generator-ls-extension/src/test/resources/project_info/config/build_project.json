@@ -1,0 +1,12 @@
+{
+  "description": "Test build project with Ballerina.toml",
+  "source": "proj/Ballerina.toml",
+  "output": {
+    "projectKind": "BUILD_PROJECT",
+    "name": "simple_service",
+    "title": "Simple Service",
+    "projectPath": "proj",
+    "org": "test",
+    "version": "0.1.0"
+  }
+}

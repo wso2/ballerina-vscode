@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,14 +16,13 @@
  *  under the License.
  */
 
-module io.ballerina.LSExtensions.ProjectDesignService {
-    requires io.ballerina.language.server.commons;
-    requires io.ballerina.lang;
-    requires org.eclipse.lsp4j.jsonrpc;
-    requires org.eclipse.lsp4j;
-    requires com.google.gson;
-    requires io.ballerina.tools.api;
-    requires io.ballerina.architecturemodelgenerator;
-    requires io.ballerina.parser;
-    requires io.ballerina.toml;
+package io.ballerina.designmodelgenerator.extension.request;
+
+/**
+ * Represents the request for the projectInfo API.
+ *
+ * @param projectPath Path to the project root
+ * @since 1.4.2
+ */
+public record ProjectInfoRequest(String projectPath) {
 }
