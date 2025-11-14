@@ -142,9 +142,20 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             workspaceType?.type === "VSCODE_WORKSPACE";
     }, [workspaceType]);
 
+    const isAtOverview = useMemo(() => {
+        return history.length > 0 && history[history.length - 1].location.view === MACHINE_VIEW.PackageOverview;
+    }, [history]);
+
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
-    const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
+    const hackToSkipForms = ["workspace overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
+
+    if (workspaceType?.type !== "BALLERINA_WORKSPACE") {
+        hackToSkipForms.push("package overview");
+    }    
+
     const existingLabels = new Set<string>();
+    let hasRenderedPreviousItem = false;
+    
     return (
         <NavContainer>
             {onBack && (
@@ -160,9 +171,12 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                     const shortName = getShortNames(crumb.location.view);
                     if (index === history.length - 1 || !existingLabels.has(shortName) && !hackToSkipForms.includes(shortName.toLowerCase())) {
                         existingLabels.add(shortName);
+                        const shouldShowChevron = hasRenderedPreviousItem;
+                        hasRenderedPreviousItem = true;
+                        
                         return (
                             <React.Fragment key={index}>
-                                {index > 0 && (
+                                {shouldShowChevron && (
                                     <Icon
                                         name="wide-chevron"
                                         iconSx={{
@@ -180,7 +194,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     >
                                         {shortName}
                                     </BreadcrumbText>
-                                    {hasMultiplePackages && crumb.location.package && (
+                                    {hasMultiplePackages && crumb.location.package && !(isAtOverview && index === history.length - 1) && (
                                         <PackageContainer>
                                             <Codicon
                                                 name="project"
