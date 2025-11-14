@@ -35,7 +35,8 @@ import {
     CursorInfo,
     buildOnFocusOutListner,
     buildOnSelectionChange,
-    ProgrammerticSelectionChange
+    ProgrammerticSelectionChange,
+    SyncDocValueWithPropValue
 } from "../CodeUtils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
@@ -272,8 +273,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             if (tokenStream) {
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream),
-                    changes: { from: 0, to: currentDoc.length, insert: props.value },
+                    changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
                     selection: { anchor: currentSelection.anchor, head: currentSelection.head }
+                    ...{annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : []}
                 });
             }
         };
