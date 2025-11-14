@@ -54,7 +54,7 @@ export async function buildProjectsStructure(
     return response;
 }
 
-export async function buildProjectArtifactsStructure(
+async function buildProjectArtifactsStructure(
     projectPath: string,
     packageName: string,
     langClient: ExtendedLangClient
@@ -93,13 +93,13 @@ export async function buildProjectArtifactsStructure(
         projectName = path.basename(projectPath);
     }
     // Get the project name from the ballerina.toml file
-    const commonRpcManager = new CommonRpcManager();
-    const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-    if (tomlValues) {
-        projectName = tomlValues.package?.title || tomlValues.package?.name;
-    }
+    // const commonRpcManager = new CommonRpcManager();
+    // const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
+    // if (tomlValues) {
+    //     projectName = tomlValues.package?.title || tomlValues.package?.name;
+    // }
 
-    result.projectName = projectName;
+    // result.projectName = projectName;
 
     return result;
 }

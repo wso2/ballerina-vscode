@@ -291,7 +291,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.WorkspaceOverview:
                         setViewComponent(
                             <WorkspaceOverview
-                                projectPath={value.projectPath}
+                                workspacePath={value.workspacePath}
                             />
                         );
                         break;

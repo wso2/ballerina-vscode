@@ -209,15 +209,15 @@ const ProjectSubtitle = styled.h2`
 `;
 
 interface WorkspaceOverviewProps {
-    projectPath: string;
+    workspacePath: string;
 }
 
 export function WorkspaceOverview(props: WorkspaceOverviewProps) {
-    const { projectPath } = props;
+    const { workspacePath } = props;
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
+    const [workspaceStructure, setWorkspaceStructure] = React.useState<ProjectStructureResponse>();
 
     const [showAlert, setShowAlert] = React.useState(false);
 
@@ -226,13 +226,13 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
             .getBIDiagramRpcClient()
             .getProjectStructure()
             .then((res) => {
-                setProjectStructure(res);
+                setWorkspaceStructure(res);
             });
         rpcClient
             .getBIDiagramRpcClient()
             .getWorkspaces()
             .then((res) => {
-                const workspace = res.workspaces.find(workspace => workspace.fsPath === projectPath);
+                const workspace = res.workspaces.find(workspace => workspace.fsPath === workspacePath);
                 if (workspace) {
                     setWorkspaceName(workspace.name);
                 }
@@ -267,10 +267,10 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
     }, []);
 
     const isEmptyWorkspace = useMemo(() => {
-        return projectStructure.projects.length === 0;
-    }, [projectStructure]);
+        return workspaceStructure?.projects.length === 0;
+    }, [workspaceStructure]);
 
-    if (!projectStructure) {
+    if (!workspaceStructure) {
         return (
             <SpinnerContainer>
                 <ProgressRing color={ThemeColors.PRIMARY} />
@@ -384,7 +384,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
                                 </ButtonContainer>
                             </EmptyStateContainer>
                         ) : (
-                            <PackageListView />
+                            <PackageListView workspaceStructure={workspaceStructure} />
                         )}
                     </ContentPanel>
                 </Section>
