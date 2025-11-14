@@ -1446,6 +1446,17 @@ public class DataMapManager {
         }
     }
 
+    /**
+     * Checks if the node is a query clause that should be navigated through when deleting mappings.
+     * For COLLECT_CLAUSE: always navigate up (produces scalar value)
+     * For SELECT_CLAUSE: only navigate up if target is NOT an array (array types use default value replacement)
+     */
+    private boolean shouldNavigateThroughQueryClause(NonTerminalNode node, TypeSymbol targetSymbol) {
+        SyntaxKind kind = node.kind();
+        return kind == SyntaxKind.COLLECT_CLAUSE ||
+                (kind == SyntaxKind.SELECT_CLAUSE && !(targetSymbol instanceof ArrayTypeSymbol));
+    }
+
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
                                         List<TextEdit> textEdits, TypeSymbol targetSymbol) {
         if (idx == names.length) {
@@ -1457,6 +1468,17 @@ public class DataMapManager {
                 if (parentNode == null) {
                     break;
                 }
+
+                if (shouldNavigateThroughQueryClause(parentNode, targetSymbol)) {
+                    NonTerminalNode queryExpr = parentNode.parent();
+                    if (queryExpr != null && queryExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                        parentNode = queryExpr.parent();
+                        if (parentNode == null) {
+                            break;
+                        }
+                    }
+                }
+
                 if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
                     NonTerminalNode grandParent = parentNode.parent();
@@ -1480,6 +1502,18 @@ public class DataMapManager {
             } else {
                 NonTerminalNode parent = expr.parent();
                 SyntaxKind parentKind = parent.kind();
+
+                if (shouldNavigateThroughQueryClause(parent, targetSymbol)) {
+                    NonTerminalNode queryExpr = parent.parent();
+                    if (queryExpr != null && queryExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+                        expr = (ExpressionNode) queryExpr;
+                        parent = queryExpr.parent();
+                        if (parent != null) {
+                            parentKind = parent.kind();
+                        }
+                    }
+                }
+
                 if (parentKind == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parent;
                     MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
@@ -1621,6 +1655,16 @@ public class DataMapManager {
                             names, idx + 1, textEdits, targetSymbol);
                 }
             }
+        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+            ClauseNode clauseNode = queryExpr.resultClause();
+            ExpressionNode resultExpr;
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                resultExpr = ((SelectClauseNode) clauseNode).expression();
+            } else {
+                resultExpr = ((CollectClauseNode) clauseNode).expression();
+            }
+            genDeleteMappingSource(semanticModel, resultExpr, names, idx, textEdits, targetSymbol);
         }
     }
 
