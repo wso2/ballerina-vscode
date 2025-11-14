@@ -100,10 +100,20 @@ export const Variables = (props: VariablesPageProps) => {
     const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Variables");
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Variables");
     const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
+
+    // Use navigation path for completions instead of currentValue
+    const navigationPath = useMemo(() => {
+        const path = getCurrentNavigationPath();
+        return path;
+    }, [breadCrumbSteps]);
+    const completionContext = useMemo(() => {
+        const context = navigationPath ? navigationPath + '.' : currentValue;
+        return context;
+    }, [navigationPath, currentValue]);
 
     useEffect(() => {
         getProjectInfo()
@@ -112,23 +122,27 @@ export const Variables = (props: VariablesPageProps) => {
     useEffect(() => {
         setIsLoading(true);
         const triggerCharacter =
-            currentValue.length > 0
-                ? triggerCharacters.find((char) => currentValue[currentValue.length - 1] === char)
+            completionContext.length > 0
+                ? triggerCharacters.find((char) => completionContext[completionContext.length - 1] === char)
                 : undefined;
 
         // Only apply minimum loading time if we don't have any completions yet
         const shouldShowMinLoader = filteredCompletions.length === 0 && !showContent;
         const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
 
+        // When navigating, use length as offset to position cursor after the dot
+        // When at root, use 0 to get all completions
+        const offset = navigationPath ? completionContext.length : 0;
+
         Promise.all([
-            handleRetrieveCompletions(currentValue, getPropertyFromFormField(field), 0, triggerCharacter),
+            handleRetrieveCompletions(completionContext, getPropertyFromFormField(field), offset, triggerCharacter),
             minLoadingTime
         ]).finally(() => {
             setIsLoading(false);
             setShowContent(true);
         });
 
-    }, [targetLineRange])
+    }, [targetLineRange, breadCrumbSteps, completionContext])
 
     const getProjectInfo = async () => {
         const visualizerContext = await rpcClient.getVisualizerLocation();
@@ -180,7 +194,9 @@ export const Variables = (props: VariablesPageProps) => {
     };
 
     const handleItemSelect = (value: string) => {
-        onChange(value, false);
+        // Build full path from navigation
+        const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
+        onChange(fullPath, false);
     }
 
     const handleAddNewVariable = () => {
@@ -200,11 +216,11 @@ export const Variables = (props: VariablesPageProps) => {
         onClose && onClose();
     }
     const handleVariablesMoreIconClick = (value: string) => {
-        navigateToNext(value, currentValue, onChange);
+        navigateToNext(value, navigationPath);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
-        navigateToBreadcrumb(step, onChange);
+        navigateToBreadcrumb(step);
     }
 
     const ExpandableListItems = () => {

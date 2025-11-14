@@ -204,7 +204,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         }}>
             <BreadcrumbNavigation
                 breadCrumbSteps={breadCrumbSteps}
-                onNavigateToBreadcrumb={(step) => navigateToBreadcrumb(step, onChange)}
+                onNavigateToBreadcrumb={(step) => navigateToBreadcrumb(step)}
             />
             {(() => {
                 const filteredCategories = translateToArrayFormat(configVariables)
