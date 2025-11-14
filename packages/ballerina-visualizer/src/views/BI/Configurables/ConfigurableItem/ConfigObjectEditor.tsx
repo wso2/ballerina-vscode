@@ -18,14 +18,13 @@
 
 import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
-import { VSCodeTextField, VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import { VSCodeTextField, VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 
 const EditorContainer = styled.div`
     width: 100%;
-    font-family: var(--vscode-editor-font-family);
     font-size: 13px;
 `;
 
@@ -52,8 +51,7 @@ const FieldLabel = styled.span`
 `;
 
 const FieldType = styled.span`
-    color: var(--vscode-terminal-ansiGreen);
-    font-size: 12px;
+    font-size: 13px;
     margin-left: 4px;
 `;
 
@@ -61,6 +59,25 @@ const OptionalLabel = styled.span`
     color: var(--vscode-descriptionForeground);
     font-size: 12px;
     margin-left: 4px;
+`;
+
+const RequiredLabel = styled.span`
+    color: var(--vscode-editorWarning-foreground);
+    font-size: 12px;
+    margin-left: 4px;
+`;
+
+const DefaultableLabel = styled.span`
+    font-size: 12px;
+    margin-left: 4px;
+`;
+
+const DocumentationText = styled.div`
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+    line-height: 1.4;
 `;
 
 const ExpandIcon = styled(Codicon) <{ expanded: boolean }>`
@@ -119,14 +136,20 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
     const { field, level, onFieldChange } = props;
     const [isExpanded, setIsExpanded] = useState<boolean>(true);
     const [fieldValue, setFieldValue] = useState<string>(field.value !== undefined && field.value !== null ? String(field.value) : '');
+    const [boolValue, setBoolValue] = useState<boolean>(field.value === true || field.value === 'true');
     const [arrayItems, setArrayItems] = useState<any[]>([]);
 
-    // Check if this is an array type
-    const isArrayType = field.typeName?.endsWith('[]') || (field.typeName && field.typeName.includes('array'));
+    // Check field type
+    const isArrayType = field.typeName === 'array' || field.typeName?.endsWith('[]');
+    const isBooleanType = field.typeName === 'boolean';
+    const isNumericType = field.typeName === 'int' || field.typeName === 'float' || field.typeName === 'decimal';
+    const isStringType = field.typeName === 'string';
 
     // Update field value when the field prop changes
     useEffect(() => {
-        if (field.typeName === "string" && field.value !== undefined && field.value !== null) {
+        if (isBooleanType) {
+            setBoolValue(field.value === true || field.value === 'true');
+        } else if (isStringType && field.value !== undefined && field.value !== null) {
             setFieldValue(field.value.replace(/^"|"$/g, ''));
         } else if (isArrayType && field.value !== undefined && field.value !== null) {
             // Parse array value
@@ -149,7 +172,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
         } else {
             setFieldValue(field.value !== undefined && field.value !== null ? String(field.value) : '');
         }
-    }, [field.value, isArrayType]);
+    }, [field.value, isArrayType, isBooleanType, isStringType]);
 
     // Initialize empty array if no value exists
     useEffect(() => {
@@ -166,29 +189,76 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
         setFieldValue(newValue);
 
         // If the field type is string, wrap the value with quotes when updating
-        if (field.typeName === "string") {
+        if (isStringType) {
             // Add quotes only if not already present
             if (!/^".*"$/.test(newValue)) {
                 newValue = `"${newValue}"`;
             }
+        } else if (isNumericType) {
+            // For numeric types, don't wrap with quotes
+            newValue = newValue;
         }
+        field.value = newValue;
         onFieldChange(field, newValue);
     };
 
-    const handleArrayItemChange = (index: number, value: string) => {
+    const handleBooleanChange = (e: any) => {
+        const newValue = e.target.checked;
+        setBoolValue(newValue);
+        field.value = newValue;
+        onFieldChange(field, newValue);
+    };
+
+    const handleNumericChange = (e: any) => {
+        const value = e.target.value;
+        // Only allow numeric input
+        if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+            setFieldValue(value);
+            field.value = value;
+            onFieldChange(field, value);
+        }
+    };
+
+    const handleArrayItemChange = (index: number, value: any) => {
         const newArrayItems = [...arrayItems];
-        newArrayItems[index] = value;
+
+        // Handle based on member type
+        const memberTypeName = field.memberType?.typeName;
+        if (memberTypeName === 'string') {
+            // For strings, wrap in quotes if not already wrapped
+            newArrayItems[index] = value;
+        } else if (memberTypeName === 'boolean') {
+            newArrayItems[index] = value;
+        } else if (memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal') {
+            newArrayItems[index] = value;
+        } else {
+            newArrayItems[index] = value;
+        }
+
         setArrayItems(newArrayItems);
 
         // Update the field with the new array value
         // If all items are empty, set to empty array []
         const filteredItems = newArrayItems.filter(item => item !== '');
         const arrayValue = filteredItems.length > 0 ? JSON.stringify(newArrayItems) : '[]';
+        field.value = arrayValue;
         onFieldChange(field, arrayValue);
     };
 
     const addArrayItem = () => {
-        const newArrayItems = [...arrayItems, ''];
+        // Determine default value based on member type
+        const memberTypeName = field.memberType?.typeName;
+        let defaultValue: any = '';
+
+        if (memberTypeName === 'boolean') {
+            defaultValue = false;
+        } else if (memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal') {
+            defaultValue = '';
+        } else if (memberTypeName === 'string') {
+            defaultValue = '';
+        }
+
+        const newArrayItems = [...arrayItems, defaultValue];
         setArrayItems(newArrayItems);
 
         // Update field value and trigger change
@@ -219,38 +289,34 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
 
     return (
         <FieldRow level={level}>
-            <FieldHeader onClick={toggleExpand}>
+            <FieldHeader onClick={isBooleanType ? undefined : toggleExpand} style={{ cursor: isBooleanType ? 'default' : 'pointer' }}>
                 {(hasNestedFields || isArrayType) && (
                     <ExpandIcon
                         name="chevron-right"
                         expanded={isExpanded}
                     />
                 )}
-                {!hasNestedFields && !isArrayType && <span style={{ width: '16px' }} />}
                 <FieldLabel>{field.name || field.displayName}</FieldLabel>
                 {field.typeName && (
                     <FieldType>{field.typeName}</FieldType>
                 )}
-                {(field.optional || field.defaultable) && (
+                {field.optional && (
                     <OptionalLabel>(Optional)</OptionalLabel>
                 )}
-                {field.description && (
-                    <Tooltip
-                        content={
-                            <Typography variant="body3">
-                                {field.description}
-                            </Typography>
-                        }
-                        position="right"
-                        sx={{ maxWidth: '300px', whiteSpace: 'normal', pointerEvents: 'none' }}
-                    >
-                        <Codicon
-                            name="info"
-                            sx={{ marginLeft: '4px' }}
-                        />
-                    </Tooltip>
+                {!field.optional && !field.defaultable && field.typeName !== "record" && (field.value === undefined || field.value === null || field.value === '' || field.value === '[]') && (
+                    <RequiredLabel>(Required)</RequiredLabel>
+                )}
+                {field.defaultable && (
+                    <DefaultableLabel>(Has Default)</DefaultableLabel>
                 )}
             </FieldHeader>
+
+            {/* Show documentation below header */}
+            {field.documentation && (
+                <DocumentationText>
+                    {field.documentation}
+                </DocumentationText>
+            )}
 
             {/* Array type rendering */}
             {isArrayType && isExpanded && (
@@ -260,23 +326,47 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                             No items ([])
                         </Typography>
                     ) : (
-                        arrayItems.map((item, index) => (
-                            <ArrayItem key={index}>
-                                <VSCodeTextField
-                                    value={typeof item === 'string' ? item : JSON.stringify(item)}
-                                    style={{ flex: 1, maxWidth: '350px' }}
-                                    onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
-                                    placeholder={`Item ${index + 1}`}
-                                />
-                                <RemoveButton
-                                    appearance="icon"
-                                    onClick={() => removeArrayItem(index)}
-                                    title="Remove item"
-                                >
-                                    <Codicon name="trash" />
-                                </RemoveButton>
-                            </ArrayItem>
-                        ))
+                        arrayItems.map((item, index) => {
+                            const memberTypeName = field.memberType?.typeName;
+                            return (
+                                <ArrayItem key={index}>
+                                    {memberTypeName === 'boolean' ? (
+                                        <VSCodeCheckbox
+                                            checked={item === true || item === 'true'}
+                                            onChange={(e: any) => handleArrayItemChange(index, e.target.checked)}
+                                        >
+                                            Item {index + 1}
+                                        </VSCodeCheckbox>
+                                    ) : memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal' ? (
+                                        <VSCodeTextField
+                                            value={typeof item === 'string' ? item : String(item)}
+                                            style={{ flex: 1, maxWidth: '350px' }}
+                                            onChange={(e: any) => {
+                                                const value = e.target.value;
+                                                if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+                                                    handleArrayItemChange(index, value);
+                                                }
+                                            }}
+                                            placeholder={`Item ${index + 1} (${memberTypeName})`}
+                                        />
+                                    ) : (
+                                        <VSCodeTextField
+                                            value={typeof item === 'string' ? item : JSON.stringify(item)}
+                                            style={{ flex: 1, maxWidth: '350px' }}
+                                            onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
+                                            placeholder={`Item ${index + 1}${memberTypeName ? ` (${memberTypeName})` : ''}`}
+                                        />
+                                    )}
+                                    <RemoveButton
+                                        appearance="icon"
+                                        onClick={() => removeArrayItem(index)}
+                                        title="Remove item"
+                                    >
+                                        <Codicon name="trash" />
+                                    </RemoveButton>
+                                </ArrayItem>
+                            );
+                        })
                     )}
                     <ArrayControls>
                         <AddButton
@@ -290,8 +380,38 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                 </ArrayContainer>
             )}
 
-            {/* Regular field rendering */}
-            {!isRecordType && !hasNestedFields && !isArrayType && (
+            {/* Boolean field rendering */}
+            {isBooleanType && (
+                <VSCodeCheckbox
+                    checked={boolValue}
+                    onChange={handleBooleanChange}
+                >
+                    {boolValue ? 'Enabled' : 'Disabled'}
+                </VSCodeCheckbox>
+            )}
+
+            {/* Numeric field rendering */}
+            {isNumericType && !isArrayType && (
+                <VSCodeTextField
+                    value={fieldValue}
+                    style={{ width: '100%', maxWidth: '400px' }}
+                    onChange={handleNumericChange}
+                    placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : 'Enter a number'}
+                />
+            )}
+
+            {/* String field rendering */}
+            {isStringType && !isArrayType && (
+                <VSCodeTextField
+                    value={fieldValue}
+                    style={{ width: '100%', maxWidth: '400px' }}
+                    onChange={handleValueChange}
+                    placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : ''}
+                />
+            )}
+
+            {/* Other types field rendering */}
+            {!isBooleanType && !isNumericType && !isStringType && !isRecordType && !hasNestedFields && !isArrayType && (
                 <VSCodeTextField
                     value={fieldValue}
                     style={{ width: '100%', maxWidth: '400px' }}
@@ -474,14 +594,22 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
 
     return (
         <EditorContainer>
-            {recordConfig.fields.map((field, index) => (
-                <TypeFieldRenderer
-                    key={`${field.name}-${index}`}
-                    field={field}
-                    level={0}
-                    onFieldChange={handleFieldChange}
-                />
-            ))}
+            {/* Show the documentation of the record */}
+            {recordConfig.documentation && (
+                <DocumentationText>
+                    {recordConfig.documentation}
+                </DocumentationText>
+            )}
+            <div style={{ marginLeft: '16px', marginTop: '16px' }} >
+                {recordConfig.fields.map((field, index) => (
+                    <TypeFieldRenderer
+                        key={`${field.name}-${index}`}
+                        field={field}
+                        level={0}
+                        onFieldChange={handleFieldChange}
+                    />
+                ))}
+            </div>
         </EditorContainer>
     );
 };

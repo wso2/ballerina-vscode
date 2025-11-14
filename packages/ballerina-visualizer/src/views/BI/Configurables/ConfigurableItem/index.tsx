@@ -183,6 +183,14 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         return configValue;
     }
 
+    const isRecordType = () => {
+        if (configVariable?.properties?.type?.typeMembers.length > 0) {
+            const recordType = configVariable?.properties?.type?.typeMembers.find(m => configVariable?.properties?.type?.value.toString().includes(m.type));
+            return recordType?.kind === 'RECORD_TYPE';
+        }
+        return false;
+    }
+
     return (
         <Container id={`${String(variable?.properties?.variable?.value)}-variable`}>
             {isEditConfigVariableFormOpen && <Overlay data-testid="config-overlay" />}
@@ -280,13 +288,13 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                 </div>
             }
             <ConfigValueField>
-                {configVariable?.properties?.type.typeMembers.length > 0 && <ConfigObjectEditor
+                {isRecordType() && <ConfigObjectEditor
                     fileName={fileName}
                     configValue={sanitizeConfigValue()}
                     typeValue={configVariable?.properties?.type}
                     onChange={(newValue: string) => handleUpdateConfigValue(newValue, configVariable)}
                 />}
-                {configVariable?.properties?.type.typeMembers.length === 0 && <VSCodeTextArea
+                {!isRecordType() && <VSCodeTextArea
                     name={`${String(variable?.properties?.variable?.value)}-config-value`}
                     rows={(() => {
                         const value = configVariable?.properties?.configValue?.value
