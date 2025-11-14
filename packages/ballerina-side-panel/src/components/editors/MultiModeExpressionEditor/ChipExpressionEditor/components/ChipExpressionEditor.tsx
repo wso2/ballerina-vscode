@@ -131,7 +131,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const newValue = value
         if (!viewRef.current) return;
         const view = viewRef.current;
-        const { from, to } = view.state.selection.main;
+        const { from, to } = options?.replaceFullText?  {from: 0, to: view.state.doc.length} : view.state.selection.main;
 
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;
