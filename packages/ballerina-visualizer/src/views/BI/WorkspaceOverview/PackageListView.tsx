@@ -205,8 +205,8 @@ export function PackageListView(props: PackageListViewProps) {
     const workspaceStructure = props.workspaceStructure;
     const packages = workspaceStructure.projects.map((project) => {
         return {
-            id: project.projectPath,
-            name: project.projectName,
+            id: project.projectName,
+            name: project.projectTitle,
             types: [] as PackageType[]
         }
     });

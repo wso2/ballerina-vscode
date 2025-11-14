@@ -208,14 +208,8 @@ const ProjectSubtitle = styled.h2`
     }
 `;
 
-interface WorkspaceOverviewProps {
-    workspacePath: string;
-}
-
-export function WorkspaceOverview(props: WorkspaceOverviewProps) {
-    const { workspacePath } = props;
+export function WorkspaceOverview() {
     const { rpcClient } = useRpcContext();
-    const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [workspaceStructure, setWorkspaceStructure] = React.useState<ProjectStructureResponse>();
 
@@ -227,15 +221,6 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
             .getProjectStructure()
             .then((res) => {
                 setWorkspaceStructure(res);
-            });
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getWorkspaces()
-            .then((res) => {
-                const workspace = res.workspaces.find(workspace => workspace.fsPath === workspacePath);
-                if (workspace) {
-                    setWorkspaceName(workspace.name);
-                }
             });
 
         rpcClient
@@ -319,7 +304,7 @@ export function WorkspaceOverview(props: WorkspaceOverviewProps) {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{workspaceName}</ProjectTitle>
+                    <ProjectTitle>{workspaceStructure?.workspaceTitle || workspaceStructure?.workspaceName}</ProjectTitle>
                     <ProjectSubtitle>Workspace</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>

@@ -386,10 +386,7 @@ async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, wor
         org: params.orgName
     };
 
-    const packages = StateMachine.context().projectPaths.map(projectPath => ({ packagePath: projectPath }));
-    packages.push({ packagePath: projectPath });
-
-    await buildProjectsStructure(packages, StateMachine.langClient(), true, workspacePath);
+    await buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
     openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
 

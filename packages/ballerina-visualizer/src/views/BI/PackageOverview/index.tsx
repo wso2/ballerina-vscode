@@ -630,7 +630,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
         }
 
         const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-        return project?.projectName || "";
+        return project?.projectTitle || project?.projectName;
     }, [projectStructure, projectPath]);
 
     function isEmptyProject(): boolean {

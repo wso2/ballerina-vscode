@@ -18,32 +18,36 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, NodePosition, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
-import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
-
-export interface PackageInfo {
-    readonly packagePath: string;
-    readonly packageName?: string;
-}
 
 export async function buildProjectsStructure(
-    packages: PackageInfo[],
+    projectInfo: ProjectInfo,
     langClient: ExtendedLangClient,
-    isUpdate: boolean = false,
-    workspaceName?: string,
+    isUpdate: boolean = false
 ): Promise<ProjectStructureResponse> {
+
+    const isWorkspace = projectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+
+    const packages = isWorkspace ? projectInfo.children : [projectInfo];
 
     const projects: ProjectStructure[] = [];
     for (const packageInfo of packages) {
-        const project = await buildProjectArtifactsStructure(packageInfo.packagePath, packageInfo.packageName, langClient);
+        const project = await buildProjectArtifactsStructure(
+            packageInfo.projectPath,
+            packageInfo.name,
+            packageInfo.title,
+            langClient
+        );
         projects.push(project);
     }
 
     const response: ProjectStructureResponse = {
-        workspaceName: workspaceName || undefined,
+        workspaceName: isWorkspace ? projectInfo.name : undefined,
+        workspacePath: isWorkspace ? projectInfo.projectPath : undefined,
+        workspaceTitle: isWorkspace ? projectInfo.title : undefined,
         projects: projects
     };
 
@@ -57,11 +61,13 @@ export async function buildProjectsStructure(
 async function buildProjectArtifactsStructure(
     projectPath: string,
     packageName: string,
+    packageTitle: string,
     langClient: ExtendedLangClient
 ): Promise<ProjectStructure> {
     const result: ProjectStructure = {
         projectName: packageName,
         projectPath: projectPath,
+        projectTitle: packageTitle,
         directoryMap: {
             [DIRECTORY_MAP.AUTOMATION]: [],
             [DIRECTORY_MAP.SERVICE]: [],
@@ -79,27 +85,9 @@ async function buildProjectArtifactsStructure(
     const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
     console.log("designArtifacts", designArtifacts);
     if (designArtifacts?.artifacts) {
-        traverseComponents(designArtifacts.artifacts, result);
+        traverseComponents(designArtifacts.artifacts, projectPath, result);
         await populateLocalConnectors(projectPath, result);
     }
-    // Attempt to get the project name from the workspace folder as a fallback if not found in Ballerina.toml
-    const workspace = vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === projectPath);
-
-    let projectName = "";
-    if (workspace) {
-        projectName = workspace.name;
-    } else {
-        // Project defined within a Ballerina workspace
-        projectName = path.basename(projectPath);
-    }
-    // Get the project name from the ballerina.toml file
-    // const commonRpcManager = new CommonRpcManager();
-    // const tomlValues = await commonRpcManager.getCurrentProjectTomlValues();
-    // if (tomlValues) {
-    //     projectName = tomlValues.package?.title || tomlValues.package?.name;
-    // }
-
-    // result.projectName = projectName;
 
     return result;
 }
@@ -107,7 +95,7 @@ async function buildProjectArtifactsStructure(
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    const projectUri = URI.file(StateMachine.context().projectPath);
+    const projectUri = URI.file(StateMachine.context().projectPath) || URI.file(StateMachine.context().workspacePath);
     const isWithinProject = URI
         .parse(publishedArtifacts.uri).fsPath.toLowerCase()
         .includes(projectUri.fsPath.toLowerCase());
@@ -130,20 +118,21 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     }
 }
 
-async function traverseComponents(artifacts: Artifacts, response: ProjectStructure) {
-    response.directoryMap[DIRECTORY_MAP.AUTOMATION].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], DIRECTORY_MAP.AUTOMATION, "task"));
-    response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], DIRECTORY_MAP.SERVICE, "http-service"));
-    response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], DIRECTORY_MAP.LISTENER, "http-service"));
-    response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Functions], DIRECTORY_MAP.FUNCTION, "function"));
-    response.directoryMap[DIRECTORY_MAP.DATA_MAPPER].push(...await getComponents(artifacts[ARTIFACT_TYPE.DataMappers], DIRECTORY_MAP.DATA_MAPPER, "dataMapper"));
-    response.directoryMap[DIRECTORY_MAP.CONNECTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Connections], DIRECTORY_MAP.CONNECTION, "connection"));
-    response.directoryMap[DIRECTORY_MAP.TYPE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Types], DIRECTORY_MAP.TYPE, "type"));
-    response.directoryMap[DIRECTORY_MAP.CONFIGURABLE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Configurations], DIRECTORY_MAP.CONFIGURABLE, "config"));
-    response.directoryMap[DIRECTORY_MAP.NP_FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.NaturalFunctions], DIRECTORY_MAP.NP_FUNCTION, "function"));
+async function traverseComponents(artifacts: Artifacts, projectPath: string, response: ProjectStructure) {
+    response.directoryMap[DIRECTORY_MAP.AUTOMATION].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], projectPath, DIRECTORY_MAP.AUTOMATION, "task"));
+    response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], projectPath, DIRECTORY_MAP.SERVICE, "http-service"));
+    response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], projectPath, DIRECTORY_MAP.LISTENER, "http-service"));
+    response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Functions], projectPath, DIRECTORY_MAP.FUNCTION, "function"));
+    response.directoryMap[DIRECTORY_MAP.DATA_MAPPER].push(...await getComponents(artifacts[ARTIFACT_TYPE.DataMappers], projectPath, DIRECTORY_MAP.DATA_MAPPER, "dataMapper"));
+    response.directoryMap[DIRECTORY_MAP.CONNECTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Connections], projectPath, DIRECTORY_MAP.CONNECTION, "connection"));
+    response.directoryMap[DIRECTORY_MAP.TYPE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Types], projectPath, DIRECTORY_MAP.TYPE, "type"));
+    response.directoryMap[DIRECTORY_MAP.CONFIGURABLE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Configurations], projectPath, DIRECTORY_MAP.CONFIGURABLE, "config"));
+    response.directoryMap[DIRECTORY_MAP.NP_FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.NaturalFunctions], projectPath, DIRECTORY_MAP.NP_FUNCTION, "function"));
 }
 
 async function getComponents(
     artifacts: Record<string, BaseArtifact>,
+    projectPath: string,
     artifactType: DIRECTORY_MAP,
     icon: string,
     moduleName?: string
@@ -159,14 +148,14 @@ async function getComponents(
         if (artifact.type !== artifactType) {
             continue;
         }
-        const entryValue = await getEntryValue(artifact, icon, moduleName);
+        const entryValue = await getEntryValue(artifact, projectPath, icon, moduleName);
         entries.push(entryValue);
     }
     return entries;
 }
 
-async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: string) {
-    const targetFile = Utils.joinPath(URI.file(StateMachine.context().projectPath), artifact.location.fileName).fsPath;
+async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: string, moduleName?: string) {
+    const targetFile = Utils.joinPath(URI.file(projectPath), artifact.location.fileName).fsPath;
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -203,17 +192,17 @@ async function getEntryValue(artifact: BaseArtifact, icon: string, moduleName?: 
                 };
             } else {
                 // Get the children of the service
-                const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
-                const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
-                const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
+                const resourceFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
+                const remoteFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.REMOTE, icon, artifact.module);
+                const privateFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
                 entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
             }
             break;
         case DIRECTORY_MAP.TYPE:
             if (artifact.children && Object.keys(artifact.children).length > 0) {
-                const resourceFunctions = await getComponents(artifact.children, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
-                const remoteFunctions = await getComponents(artifact.children, DIRECTORY_MAP.REMOTE, icon, artifact.module);
-                const privateFunctions = await getComponents(artifact.children, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
+                const resourceFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.RESOURCE, icon, artifact.module);
+                const remoteFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.REMOTE, icon, artifact.module);
+                const privateFunctions = await getComponents(artifact.children, projectPath, DIRECTORY_MAP.FUNCTION, icon, artifact.module);
                 entryValue.resources = [...resourceFunctions, ...remoteFunctions, ...privateFunctions];
             }
             break;
@@ -326,9 +315,9 @@ async function processAddition(artifact: BaseArtifact, artifactCategoryKey: stri
     const mapping = getDirectoryMapKeyAndIcon(artifact, artifactCategoryKey);
     if (mapping) {
         try {
-            const entryValue = await getEntryValue(artifact, mapping.icon);
-
             const projectPath = StateMachine.context().projectPath;
+            const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
+
             const project = projectStructure.projects.find(project => project.projectPath === projectPath);
             // Ensure the array exists before pushing
             if (!project.directoryMap[mapping.mapKey]) {
@@ -358,8 +347,8 @@ async function processUpdate(artifact: BaseArtifact, artifactCategoryKey: string
     const mapping = getDirectoryMapKeyAndIcon(artifact, artifactCategoryKey);
     if (mapping) {
         try {
-            const entryValue = await getEntryValue(artifact, mapping.icon);
             const projectPath = StateMachine.context().projectPath;
+            const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
             const project = projectStructure.projects.find(project => project.projectPath === projectPath);
             // Ensure the array exists
             if (!project.directoryMap[mapping.mapKey]) {

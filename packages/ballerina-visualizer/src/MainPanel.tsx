@@ -290,9 +290,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.WorkspaceOverview:
                         setViewComponent(
-                            <WorkspaceOverview
-                                workspacePath={value.workspacePath}
-                            />
+                            <WorkspaceOverview />
                         );
                         break;
                     case MACHINE_VIEW.ServiceDesigner:

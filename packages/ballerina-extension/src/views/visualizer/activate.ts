@@ -45,49 +45,59 @@ export function activateSubscriptions() {
 
     // <------------- Shared Commands ------------>
     context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.SHOW_VISUALIZER, async (path: string | vscode.Uri, position, resetHistory = false) => {
+        vscode.commands.registerCommand(
+            SHARED_COMMANDS.SHOW_VISUALIZER,
+            async (path: string | vscode.Uri, position, resetHistory = false, treeViewPath?: string) => {
             // Check if position is a LineRange object (has 'start' and 'end' keys)
-            let nodePosition: NodePosition = position;
-            if (position && typeof position === "object" && "start" in position && "end" in position) {
-                // Convert LineRange to NodePosition
-                nodePosition = {
-                    startLine: position.start.line,
-                    startColumn: position.start.character,
-                    endLine: position.end.line,
-                    endColumn: position.end.character
-                };
-            }
-            let documentPath = "";
-            if (path) {
-                if (typeof path === "string") {
-                    if (path.startsWith("file:")) {
-                        documentPath = vscode.Uri.parse(path).fsPath;
-                    } else {
-                        documentPath = vscode.Uri.file(path).fsPath;
+                let nodePosition: NodePosition = position;
+                if (position && typeof position === "object" && "start" in position && "end" in position) {
+                    // Convert LineRange to NodePosition
+                    nodePosition = {
+                        startLine: position.start.line,
+                        startColumn: position.start.character,
+                        endLine: position.end.line,
+                        endColumn: position.end.character
+                    };
+                }
+                let documentPath = "";
+                if (path) {
+                    if (typeof path === "string") {
+                        if (path.startsWith("file:")) {
+                            documentPath = vscode.Uri.parse(path).fsPath;
+                        } else {
+                            documentPath = vscode.Uri.file(path).fsPath;
+                        }
+                    } else if (path.fsPath) {
+                        documentPath = path.fsPath;
+                    } else if (treeViewPath) {
+                        documentPath = treeViewPath;
                     }
-                } else if (path.fsPath) {
-                    documentPath = path.fsPath;
+                }
+
+                let projectPath = StateMachine.context().projectPath;
+                const projectRoot = await findBallerinaPackageRoot(documentPath);
+                const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+                console.log("isBallerinaWorkspace", projectRoot);
+
+                if (isBallerinaWorkspace && treeViewPath) {
+                    projectPath = treeViewPath;
+                    await StateMachine.updateProjectRoot(treeViewPath);
+                } else if (!projectPath || projectPath !== projectRoot) {
+                    // Initialize project structure if not already set by finding and loading the Ballerina project root
+                    // Can happen when the user opens a directory containing multiple Ballerina projects
+                    if (projectRoot) {
+                        // TODO: Need to create the project structure for the workspace
+                        await StateMachine.updateProjectRoot(projectRoot);
+                    }
+                }
+                
+                if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
+                    openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
+                } else {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BallerinaUpdateView }); // Redirect user to the ballerina update available page
                 }
             }
-
-            const projectPath = StateMachine.context().projectPath;
-            const projectRoot = await findBallerinaPackageRoot(documentPath);
-
-            if (!projectPath || projectPath !== projectRoot) {
-                // Initialize project structure if not already set by finding and loading the Ballerina project root
-                // Can happen when the user opens a directory containing multiple Ballerina projects
-                if (projectRoot) {
-                    await StateMachine.updateProjectRoot(projectRoot);
-                }
-            }
-            
-            if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
-                openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
-            } else {
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BallerinaUpdateView }); // Redirect user to the ballerina update available page
-            }
-
-        })
+        )
     );
 
     context.subscriptions.push(
@@ -98,12 +108,9 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS, () => {
-            return buildProjectsStructure(
-                StateMachine.context().projectPaths.map(projectPath => ({ packagePath: projectPath })),
-                StateMachine.langClient(), 
-                true, 
-                StateMachine.context().workspacePath
-            );
+            console.log("Force updating project artifacts...");
+            console.log("Context: ", StateMachine.context());
+            return buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
         })
     );
 
