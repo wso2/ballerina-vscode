@@ -992,67 +992,34 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     
     
 
-    const openRecordConfigPage = useCallback((fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
+    // State to manage record config page modal
+    const [recordConfigPageState, setRecordConfigPageState] = useState<{
+        isOpen: boolean;
+        fieldKey?: string;
+        currentValue?: string;
+        recordTypeField?: RecordTypeField;
+        onChangeCallback?: (value: string) => void;
+    }>({
+        isOpen: false
+    });
+
+    const openRecordConfigPage = (fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
         console.log("openRecordConfigPage", fieldKey, currentValue, recordTypeField, onChangeCallback);
-        const handleClose = () => {
-            closeModal(POPUP_IDS.RECORD_CONFIG);
-        };
+        
+        setRecordConfigPageState({
+            isOpen: true,
+            fieldKey,
+            currentValue,
+            recordTypeField,
+            onChangeCallback
+        });
+    };
 
-        // Find the field from fields array
-        const field = fields.find(f => f.key === fieldKey);
-
-        // Pass handleGetHelperPane directly - ConfigureRecordPage will adapt it to ChipExpressionBaseComponent's signature
-
-        addModal(
-                <ConfigureRecordPage
-                    fileName={fileName}
-                    targetLineRange={updateLineRange(targetLineRange, expressionOffsetRef.current)}
-                    onChange={(value: string, isRecordConfigureChange: boolean) => {
-                        // Call the onChange callback provided by ExpressionEditor
-                        // which will update the form value through react-hook-form
-                        onChangeCallback(value);
-                    }}
-                    currentValue={currentValue}
-                    recordTypeField={recordTypeField}
-                    onClose={handleClose}
-                    getHelperPane={handleGetHelperPane}
-                    field={field}
-                    triggerCharacters={TRIGGER_CHARACTERS}
-                    formContext={{
-                        // expressionEditor: {
-                        //     completions: completions,
-                        //     triggerCharacters: TRIGGER_CHARACTERS,
-                        //     retrieveCompletions: handleRetrieveCompletions,
-                        //     extractArgsFromFunction: extractArgsFromFunction,
-                        //     types: filteredTypes,
-                        //     referenceTypes: types,
-                        //     rpcManager: {
-                        //         getExpressionTokens: getExpressionTokens
-                        //     },
-                        //     retrieveVisibleTypes: handleGetVisibleTypes,
-                        //     getHelperPane: handleGetHelperPane,
-                        //     getTypeHelper: handleGetTypeHelper,
-                        //     getExpressionFormDiagnostics: handleExpressionFormDiagnostics,
-                        //     onCompletionItemSelect: handleCompletionItemSelect,
-                        //     onBlur: handleExpressionEditorBlur,
-                        //     onCancel: handleExpressionEditorCancel,
-                        //     helperPaneOrigin: "vertical",
-                        //     helperPaneHeight: "default",
-                        //     helperPaneZIndex: isInModal ? 40001 : undefined,
-                        // } as FormExpressionEditorProps,
-                        expressionEditor: expressionEditor,
-                        popupManager: popupManager,
-                        nodeInfo: {
-                            kind: node.codedata.node
-                        }
-                    }}
-                />,
-            POPUP_IDS.RECORD_CONFIG,
-            "Record Configuration",
-            600,
-            800
-        );
-    }, [fileName, filteredCompletions, types, filteredTypes, targetLineRange, expressionOffsetRef, addModal, closeModal, handleGetHelperPane, extractArgsFromFunction, getExpressionTokens, handleRetrieveCompletions, completions, fields, popupManager, node, handleGetVisibleTypes, handleGetTypeHelper, handleExpressionFormDiagnostics, handleCompletionItemSelect, handleExpressionEditorBlur, handleExpressionEditorCancel, isInModal]);
+    const closeRecordConfigPage = () => {
+        setRecordConfigPageState({
+            isOpen: false
+        });
+    };
 
     const expressionEditor = useMemo(() => {
         return {
@@ -1573,6 +1540,43 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     </div>
                 </DynamicModal>
             ))}
+            {recordConfigPageState.isOpen && recordConfigPageState.fieldKey && recordConfigPageState.recordTypeField && recordConfigPageState.onChangeCallback && (
+                <DynamicModal
+                    width={800}
+                    height={600}
+                    anchorRef={undefined}
+                    title="Record Configuration"
+                    openState={recordConfigPageState.isOpen}
+                    setOpenState={(isOpen: boolean) => {
+                        if (!isOpen) {
+                            closeRecordConfigPage();
+                        }
+                    }}
+                >
+                    <ConfigureRecordPage
+                        fileName={fileName}
+                        targetLineRange={updateLineRange(targetLineRange, expressionOffsetRef.current)}
+                        onChange={(value: string, isRecordConfigureChange: boolean) => {
+                            // Call the onChange callback provided by ExpressionEditor
+                            // which will update the form value through react-hook-form
+                            recordConfigPageState.onChangeCallback!(value);
+                        }}
+                        currentValue={recordConfigPageState.currentValue || ""}
+                        recordTypeField={recordConfigPageState.recordTypeField}
+                        onClose={closeRecordConfigPage}
+                        getHelperPane={handleGetHelperPane}
+                        field={fields.find(f => f.key === recordConfigPageState.fieldKey)}
+                        triggerCharacters={TRIGGER_CHARACTERS}
+                        formContext={{
+                            expressionEditor: expressionEditor,
+                            popupManager: popupManager,
+                            nodeInfo: {
+                                kind: node.codedata.node
+                            }
+                        }}
+                    />
+                </DynamicModal>
+            )}
         </EditorContext.Provider>
     );
 });
