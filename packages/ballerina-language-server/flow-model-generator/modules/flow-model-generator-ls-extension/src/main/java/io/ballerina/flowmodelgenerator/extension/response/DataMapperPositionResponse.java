@@ -25,7 +25,7 @@ import com.google.gson.JsonElement;
  *
  * @since 1.0.0
  */
-public class DataMapperFieldPositionResponse extends AbstractFlowModelResponse {
+public class DataMapperPositionResponse extends AbstractFlowModelResponse {
 
     private JsonElement property;
 
