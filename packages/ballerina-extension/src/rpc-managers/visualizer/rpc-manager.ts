@@ -209,6 +209,12 @@ export class VisualizerRpcManager implements VisualizerAPI {
     async joinProjectPath(segments: string | string[]): Promise<string> {
         return new Promise((resolve) => {
             const projectPath = StateMachine.context().projectPath;
+
+            if (!projectPath) {
+                resolve(undefined);
+                return;
+            }
+
             const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
             resolve(filePath.fsPath);
         });

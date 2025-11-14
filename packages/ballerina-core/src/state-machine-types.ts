@@ -20,7 +20,7 @@ import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
-import { Type } from "./interfaces/extended-lang-client";
+import { ProjectInfo, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
@@ -124,6 +124,7 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectPath?: string;
     workspacePath?: string;
+    projectInfo?: ProjectInfo;
     identifier?: string;
     parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;

@@ -24,14 +24,10 @@ import {
 } from './utils';
 import { buildProjectsStructure } from './utils/project-artifacts';
 
-export interface WorkspaceMetadata {
-    readonly isBI: boolean;
-    readonly projects: ProjectMetadata[];
-    readonly workspacePath?: string;
-}
-
 export interface ProjectMetadata {
-    readonly projectPath: string;
+    readonly isBI: boolean;
+    readonly workspacePath?: string;
+    readonly projectPath?: string;
     readonly scope?: SCOPE;
     readonly orgName?: string;
     readonly packageName?: string;
@@ -84,8 +80,7 @@ const stateMachine = createMachine<MachineContext>(
                         projectPath: (context, event) => event.projectPath
                     }),
                     async (context, event) => {
-                        // TODO: Need to handle cases where a pro-code user visualize a construct within a workspace
-                        await buildProjectsStructure(context.projectPaths ? context.projectPaths : [event.projectPath], StateMachine.langClient(), true);
+                        await buildProjectsStructure(context.projectInfo, StateMachine.langClient(), true);
                         notifyCurrentWebview();
                         // Resolve the next pending promise waiting for project root update completion
                         pendingProjectRootUpdateResolvers.shift()?.();
@@ -120,11 +115,11 @@ const stateMachine = createMachine<MachineContext>(
                                     workspacePath: (context, event) => event.data.workspacePath,
                                     scope: (context, event) => event.data.scope,
                                     org: (context, event) => event.data.orgName,
-                                    package: (context, event) => event.data.packageName,
-                                    projectPaths: (context, event) => event.data.projectPaths,
+                                    package: (context, event) => event.data.packageName
                                 }),
                                 async (context, event) => {
-                                    await buildProjectsStructure(event.data.projectPaths, StateMachine.langClient(), true, event.data.workspacePath);
+                                    // TODO: Need to handle the case where the user switches between projects in a workspace
+                                    // await buildProjectsStructure([], context.langClient, true);
                                     openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
                                     notifyCurrentWebview();
                                 }
@@ -146,8 +141,7 @@ const stateMachine = createMachine<MachineContext>(
                                 workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
-                                package: (context, event) => event.data.packageName,
-                                projectPaths: (context, event) => event.data.projectPaths
+                                package: (context, event) => event.data.packageName
                             })
                         },
                         {
@@ -159,8 +153,7 @@ const stateMachine = createMachine<MachineContext>(
                                 workspacePath: (context, event) => event.data.workspacePath,
                                 scope: (context, event) => event.data.scope,
                                 org: (context, event) => event.data.orgName,
-                                package: (context, event) => event.data.packageName,
-                                projectPaths: (context, event) => event.data.projectPaths
+                                package: (context, event) => event.data.packageName
                             })
                         }
                     ],
@@ -184,7 +177,7 @@ const stateMachine = createMachine<MachineContext>(
                 invoke: {
                     src: 'activateLanguageServer',
                     onDone: {
-                        target: "fetchProjectStructure",
+                        target: "fetchProjectInfo",
                         actions: assign({
                             langClient: (context, event) => event.data.langClient,
                             isBISupported: (context, event) => event.data.isBISupported
@@ -194,6 +187,23 @@ const stateMachine = createMachine<MachineContext>(
                         target: "lsError",
                         actions: () => {
                             console.error("Error occurred while activating Language Server.");
+                        }
+                    }
+                }
+            },
+            fetchProjectInfo: {
+                invoke: {
+                    src: 'fetchProjectInfo',
+                    onDone: {
+                        target: "fetchProjectStructure",
+                        actions: assign({
+                            projectInfo: (context, event) => event.data.projectInfo
+                        })
+                    },
+                    onError: {
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while fetching project info.");
                         }
                     }
                 }
@@ -364,23 +374,28 @@ const stateMachine = createMachine<MachineContext>(
                 }
             });
         },
+        fetchProjectInfo: (context, event) => {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const projectInfo = await context.langClient.getProjectInfo({ projectPath: context.workspacePath || context.projectPath });
+                    resolve({ projectInfo });
+                } catch (error) {
+                    throw new Error("Error occurred while fetching project info.", error);
+                }
+            });
+        },
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
                     // Register the event driven listener to get the artifact changes
                     context.langClient.registerPublishArtifacts();
-                    // IF the project paths are not set, we don't need to build the project structure
-                    if (context.projectPaths) {
+                    // IF the project info is not set, we don't need to build the project structure
+                    if (context.projectInfo) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         // Initial Project Structure
-                        const projectStructure = await buildProjectsStructure(
-                            context.projectPaths.map(projectPath => ({ packagePath: projectPath, packageName: '' })),
-                            context.langClient,
-                            false,
-                            context.workspacePath
-                        );
+                        const projectStructure = await buildProjectsStructure(context.projectInfo, context.langClient);
                         resolve({ projectStructure });
                     } else {
                         resolve({ projectStructure: undefined });
@@ -797,7 +812,7 @@ export function updateView(refreshTreeView?: boolean) {
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectsStructure(StateMachine.context().projectPaths.map(projectPath => ({ packagePath: projectPath })), StateMachine.langClient(), true, StateMachine.context().workspacePath);
+        buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }
@@ -839,28 +854,14 @@ async function checkForProjects() {
         return { isBI: false, projects: [] };
     }
 
-    let workspaceMetadata: WorkspaceMetadata;
-
     if (workspaceFolders.length > 1) {
-        workspaceMetadata = await handleMultipleWorkspaceFolders(workspaceFolders);
+        return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    workspaceMetadata = await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
-
-    const isBalWorkspace = workspaceMetadata.workspacePath !== undefined;
-
-    return {
-        isBI: workspaceMetadata.isBI,
-        projectPath: !isBalWorkspace && workspaceMetadata.projects[0].projectPath,
-        workspacePath: workspaceMetadata.workspacePath,
-        scope: !isBalWorkspace && workspaceMetadata.projects[0].scope,
-        orgName: !isBalWorkspace && workspaceMetadata.projects[0].orgName,
-        packageName: !isBalWorkspace && workspaceMetadata.projects[0].packageName,
-        projectPaths: workspaceMetadata.projects.map(project => project.projectPath)
-    };
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
-async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<WorkspaceMetadata> {
+async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
     const balProjectChecks = await Promise.all(
         workspaceFolders.map(async folder => ({
             folder,
@@ -883,32 +884,27 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
         });
 
         // Return empty result to indicate no project should be loaded
-        return { isBI: false, projects: [] };
+        return { isBI: false };
     } else if (balProjects.length === 1) {
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
         const { orgName, packageName } = getOrgPackageName(balProjects[0].uri.fsPath);
         setBIContext(isBI);
         const projectPath = balProjects[0].uri.fsPath;
-        return { isBI, projects: [{ projectPath, scope, orgName, packageName }] };
+        return { isBI, projectPath, scope, orgName, packageName };
     }
 
-    return { isBI: false, projects: [] };
+    return { isBI: false };
 }
 
-async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<WorkspaceMetadata> {
+async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> { 
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
         const isBI = checkIsBI(workspaceURI);
         setBIContext(isBI);
 
-        const workspaceTomlValues = await getWorkspaceTomlValues(workspaceURI.fsPath);
-        const projectPaths = workspaceTomlValues?.workspace?.packages?.map(pkg => {
-            return path.join(workspaceURI.fsPath, pkg);
-        });
-
-        return { isBI, projects: projectPaths.map(projectPath => ({ projectPath })), workspacePath: workspaceURI.fsPath };
+        return { isBI, workspacePath: workspaceURI.fsPath };
     } else {
         const isBallerinaPackage = await checkIsBallerinaPackage(workspaceURI);
         const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
@@ -921,7 +917,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<Workspace
             console.error("No BI enabled workspace found");
         }
 
-        return { isBI, projects: [{ projectPath, scope, orgName, packageName }] };
+        return { isBI, projectPath, scope, orgName, packageName };
     }
 }
 

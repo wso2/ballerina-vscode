@@ -20,6 +20,7 @@ export { WelcomeView } from "./WelcomeView";
 export { ProjectForm } from "./ProjectForm";
 export { AddProjectForm } from "./ProjectForm/AddProjectForm";
 export { PackageOverview } from "./PackageOverview";
+export { WorkspaceOverview } from "./WorkspaceOverview";
 export { ComponentListView } from "./ComponentListView";
 export { ComponentDiagram } from "./ComponentDiagram";
 export { PopupMessage } from "./PopupMessage";

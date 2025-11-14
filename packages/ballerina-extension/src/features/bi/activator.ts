@@ -84,7 +84,12 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        if (isBallerinaWorkspace) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+        } else {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+        }
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {

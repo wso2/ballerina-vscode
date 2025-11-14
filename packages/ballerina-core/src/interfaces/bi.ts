@@ -278,6 +278,8 @@ export type ProjectDirectoryMap = {
  */
 export interface ProjectStructure {
     projectName: string;
+    projectPath?: string;
+    projectTitle?: string;
     directoryMap: ProjectDirectoryMap;
 }
 
@@ -294,6 +296,8 @@ export interface ProjectStructure {
  */
 export interface ProjectStructureResponse {
     workspaceName?: string;
+    workspaceTitle?: string;
+    workspacePath?: string;
     projects: ProjectStructure[];
 }
 

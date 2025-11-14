@@ -268,7 +268,9 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     ExpressionTokensRequest,
-    ExpressionTokensResponse
+    ExpressionTokensResponse,
+    ProjectInfoRequest,
+    ProjectInfo
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -449,6 +451,7 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
+    GET_PROJECT_INFO = 'designModelService/projectInfo',
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
@@ -584,6 +587,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts> {
         return this.sendRequest<ProjectArtifacts>(EXTENDED_APIS.GET_ARTIFACTS, params);
+    }
+
+    async getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo> {
+        return this.sendRequest<ProjectInfo>(EXTENDED_APIS.GET_PROJECT_INFO, params);
     }
 
     async definition(params: DefinitionParams): Promise<Location | Location[] | LocationLink[]> {
