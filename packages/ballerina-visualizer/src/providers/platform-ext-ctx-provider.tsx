@@ -33,11 +33,10 @@ const defaultPlatformExtContext: {
     projectPath: string;
     projectToml?: { values: PackageTomlValues; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
-    hasArtifacts?: boolean;
+    deployableArtifacts?: { exists: boolean, refetch: () => void }
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     projectPath: "",
-    hasArtifacts: false,
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -66,26 +65,19 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         queryKey: ["has-artifacts", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getProjectStructure(),
         select: (projectStructure) => {
-            if (!projectStructure) {
-                false;
-            }
+            if (!projectStructure) return false;
 
-            const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
-            const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
+            const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
+            const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] ?? [];
 
-            let scopes: DevantScopes[] = [];
-            if (services?.length > 0) {
-                const svcScopes = services
-                    .map((svc) => findDevantScopeByModule(svc?.moduleName))
-                    .filter((svc) => !!svc);
-                scopes.push(...Array.from(new Set(svcScopes)));
-            }
-            if (automation?.length > 0) {
-                scopes.push(DevantScopes.AUTOMATION);
-            }
+            const hasAutomation = automation.length > 0;
+            const hasServiceScopes = services
+                .map((s) => findDevantScopeByModule(s?.moduleName))
+                .some(Boolean);
 
-            return scopes.length > 0;
+            return hasAutomation || hasServiceScopes;
         },
+        refetchOnWindowFocus: true,
     });
 
     const { data: platformExtState } = useQuery({
@@ -96,12 +88,6 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     useEffect(() => {
         platformRpcClient?.onPlatformExtStoreStateChange((state) => {
             queryClient.setQueryData(["platform-ext-state"], state);
-        });
-
-        rpcClient?.onProjectContentUpdated((state: boolean) => {
-            if (state) {
-                refetchHasArtifacts();
-            }
         });
     }, []);
 
@@ -115,7 +101,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     components: platformExtState?.isLoggedIn ? platformExtState.components : [],
                     connections: platformExtState?.isLoggedIn ? platformExtState.connections : [],
                 },
-                hasArtifacts,
+                deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
                 projectPath,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },

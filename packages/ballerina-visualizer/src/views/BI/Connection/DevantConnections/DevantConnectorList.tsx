@@ -47,7 +47,7 @@ export const DevantConnectorList: FC<{
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
-    const { platformExtState, hasArtifacts, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, deployableArtifacts, platformRpcClient } = usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
 
     useEffect(() => {
@@ -124,9 +124,9 @@ export const DevantConnectorList: FC<{
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Button
                         onClick={() => platformRpcClient.deployIntegrationInDevant()}
-                        disabled={!hasArtifacts}
+                        disabled={!deployableArtifacts?.exists}
                         tooltip={
-                            hasArtifacts ? "" : "Please add a deployable artifact to your project in order to deploy it"
+                            deployableArtifacts?.exists ? "" : "Please add a deployable artifact to your project in order to deploy it"
                         }
                     >
                         Deploy Now
