@@ -35,6 +35,9 @@ export type TokenType = 'variable' | 'property' | 'parameter';
 
 export const ProgrammerticSelectionChange = Annotation.define<boolean>();
 
+export const SyncDocValueWithPropValue = Annotation.define<boolean>();
+
+
 export function createChip(text: string, type: TokenType, start: number, end: number, view: EditorView) {
     class ChipWidget extends WidgetType {
         constructor(readonly text: string, readonly type: TokenType, readonly start: number, readonly end: number, readonly view: EditorView) {
@@ -349,10 +352,13 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
         const cursorPos = update.view.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPos.to);
 
+        if (update.transactions.some(tr => tr.annotation(SyncDocValueWithPropValue))) {
+            return;
+        }
+
         if (!coords || coords.top === null || coords.left === null) {
             throw new Error("Could not get cursor coordinates");
         }
-        const userEvent = update.transactions[0]?.annotation(Transaction.userEvent);
         if (update.docChanged) {
             const editorRect = update.view.dom.getBoundingClientRect();
             //+5 is to position a little be below the cursor
