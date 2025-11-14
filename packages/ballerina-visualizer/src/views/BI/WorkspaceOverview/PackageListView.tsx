@@ -19,7 +19,8 @@
 import styled from '@emotion/styled';
 import React from 'react';
 import { Codicon, Typography } from '@wso2/ui-toolkit';
-import { ProjectStructureResponse } from '@wso2/ballerina-core';
+import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse } from '@wso2/ballerina-core';
+import { useRpcContext } from '@wso2/ballerina-rpc-client';
 
 export const CardGrid = styled.div`
     display: grid;
@@ -194,6 +195,7 @@ const getTypeLabel = (type: PackageType): string => {
 };
 
 export function PackageListView(props: PackageListViewProps) {
+    const { rpcClient } = useRpcContext();
     // TODO: Replace with actual data from props or context
     // const packages: Package[] = [
     //     { id: 'ads_service', name: 'Ads Service', types: ['automation', 'event-integration'] },
@@ -207,17 +209,24 @@ export function PackageListView(props: PackageListViewProps) {
         return {
             id: project.projectName,
             name: project.projectTitle,
+            projectPath: project.projectPath,
             types: [] as PackageType[]
         }
     });
 
-    const handlePackageClick = (packageId: string, event: React.MouseEvent) => {
+    const handlePackageClick = async (packageId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
         if ((event.target as HTMLElement).closest('.delete-button')) {
             return;
         }
-        // TODO: Implement the logic to open the package view
-        console.log('Opening package:', packageId);
+        await rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                projectPath: packages.find((pkg) => pkg.id === packageId)?.projectPath,
+                view: MACHINE_VIEW.PackageOverview,
+                package: packageId
+            },
+        });
     };
 
     const handleDeleteClick = (packageId: string, event: React.MouseEvent) => {

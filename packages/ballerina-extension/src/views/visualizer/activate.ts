@@ -47,8 +47,10 @@ export function activateSubscriptions() {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             SHARED_COMMANDS.SHOW_VISUALIZER,
-            async (path: string | vscode.Uri, position, resetHistory = false, treeViewPath?: string) => {
-            // Check if position is a LineRange object (has 'start' and 'end' keys)
+            async (pathOrItem: string | vscode.Uri | vscode.TreeItem, position,
+                resetHistory = false
+            ) => {
+                // Check if position is a LineRange object (has 'start' and 'end' keys)
                 let nodePosition: NodePosition = position;
                 if (position && typeof position === "object" && "start" in position && "end" in position) {
                     // Convert LineRange to NodePosition
@@ -60,29 +62,34 @@ export function activateSubscriptions() {
                     };
                 }
                 let documentPath = "";
-                if (path) {
-                    if (typeof path === "string") {
-                        if (path.startsWith("file:")) {
-                            documentPath = vscode.Uri.parse(path).fsPath;
+                if (pathOrItem) {
+                    if (typeof pathOrItem === "string") {
+                        if (pathOrItem.startsWith("file:")) {
+                            documentPath = vscode.Uri.parse(pathOrItem).fsPath;
                         } else {
-                            documentPath = vscode.Uri.file(path).fsPath;
+                            documentPath = vscode.Uri.file(pathOrItem).fsPath;
                         }
-                    } else if (path.fsPath) {
-                        documentPath = path.fsPath;
-                    } else if (treeViewPath) {
-                        documentPath = treeViewPath;
+                    } else if (pathOrItem instanceof vscode.Uri) {
+                        documentPath = pathOrItem.fsPath;
                     }
                 }
 
                 let projectPath = StateMachine.context().projectPath;
                 const projectRoot = await findBallerinaPackageRoot(documentPath);
-                const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-                console.log("isBallerinaWorkspace", projectRoot);
 
-                if (isBallerinaWorkspace && treeViewPath) {
-                    projectPath = treeViewPath;
-                    await StateMachine.updateProjectRoot(treeViewPath);
-                } else if (!projectPath || projectPath !== projectRoot) {
+                const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+                if (isBallerinaWorkspace && pathOrItem instanceof vscode.TreeItem) {
+                    openView(
+                        EVENT_TYPE.OPEN_VIEW,
+                        {
+                            projectPath: pathOrItem.resourceUri?.fsPath,
+                            view: MACHINE_VIEW.PackageOverview
+                        },
+                    );
+                    return;
+                }
+
+                if (!projectPath || projectPath !== projectRoot) {
                     // Initialize project structure if not already set by finding and loading the Ballerina project root
                     // Can happen when the user opens a directory containing multiple Ballerina projects
                     if (projectRoot) {
