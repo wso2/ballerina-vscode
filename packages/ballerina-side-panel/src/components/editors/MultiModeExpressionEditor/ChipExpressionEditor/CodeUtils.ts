@@ -16,46 +16,85 @@
  * under the License.
  */
 
-import { StateEffect, StateField, RangeSet, Transaction } from "@codemirror/state";
-import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate, keymap } from "@codemirror/view";
+import { StateEffect, StateField, RangeSet, Transaction, SelectionRange } from "@codemirror/state";
+import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
 import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens, getWordBeforeCursor, getWordBeforeCursorPosition } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem } from "@wso2/ui-toolkit";
+import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 
 export type TokenStream = number[];
 
 export type CursorInfo = {
     top: number;
     left: number;
-    position: number;
+    position: SelectionRange;
 }
 
-export function createChip(text: string) {
+export type TokenType = 'variable' | 'property' | 'parameter';
+
+export function createChip(text: string, type: TokenType, start: number, end: number, view: EditorView) {
     class ChipWidget extends WidgetType {
-        constructor(readonly text: string) {
+        constructor(readonly text: string, readonly type: TokenType, readonly start: number, readonly end: number, readonly view: EditorView) {
             super();
         }
         toDOM() {
             const span = document.createElement("span");
-            span.textContent = this.text;
-            span.style.background = "#007bff";
-            span.style.color = "white";
-            span.style.borderRadius = "12px";
-            span.style.padding = "2px 8px";
-            span.style.margin = "0 2px";
+            span.textContent = this.type === 'parameter' && /^\$\d+$/.test(this.text) ? '  ' : this.text;
+
+            let backgroundColor = "rgba(0, 122, 204, 0.3)";
+            let color = "white";
+            switch (this.type) {
+                case 'variable':
+                case 'property':
+                    backgroundColor = "rgba(0, 122, 204, 0.3)";
+                    color = "white";
+                    break;
+                case 'parameter':
+                    backgroundColor = "#70c995";
+                    color = "#000000"; // Dark color for light background
+                    break;
+                default:
+                    backgroundColor = "rgba(0, 122, 204, 0.3)";
+                    color = "white";
+            }
+            span.style.background = backgroundColor;
+            span.style.color = color;
+            span.style.borderRadius = "4px";
+            span.style.padding = "2px 10px";
+            span.style.margin = "2px 0px";
             span.style.display = "inline-block";
             span.style.cursor = "pointer";
+            span.style.fontSize = "12px";
+            span.style.minHeight = "20px";
+            span.style.minWidth = "25px";
+            span.style.transition = "all 0.2s ease";
+            span.style.outline = "none";
+            span.style.verticalAlign = "middle";
+            span.style.userSelect = "none";
+            span.style.webkitUserSelect = "none";
+
+            // Add click handler to select the chip text
+            span.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.view.dispatch({
+                    selection: { anchor: this.start, head: this.end }
+                });
+                this.view.focus();
+            });
+
             return span;
         }
         ignoreEvent() {
-            return true;
+            return false; // Allow click events
         }
         eq(other: ChipWidget) {
-            return other.text === this.text;
+            return other.text === this.text && other.start === this.start && other.end === this.end;
         }
     }
     return Decoration.replace({
-        widget: new ChipWidget(text),
+        widget: new ChipWidget(text, type, start, end, view),
         inclusive: false,
         block: false
     });
@@ -68,7 +107,47 @@ export const chipTheme = EditorView.theme({
     "&.cm-editor .cm-cursor, &.cm-editor .cm-dropCursor": {
         borderLeftColor: "#ffffff"
     }
+});
 
+export const completionTheme = EditorView.theme({
+    ".cm-tooltip.cm-tooltip-autocomplete": {
+        backgroundColor: "#2d2d30",
+        border: "1px solid #454545",
+        borderRadius: "3px",
+        padding: "2px 0px",
+        maxHeight: "300px",
+        overflow: "auto",
+        animation: "fadeInUp 0.3s ease forwards",
+    },
+    ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+        fontFamily: "var(--vscode-font-family)",
+        fontSize: "13px",
+        listStyle: "none",
+        margin: "0",
+        padding: "0",
+    },
+    ".cm-tooltip.cm-tooltip-autocomplete > ul > li": {
+        height: "25px",
+        display: "flex",
+        alignItems: "center",
+        padding: "0px 5px",
+        color: "var(--vscode-input-foreground, #ffffff)",
+        cursor: "pointer",
+    },
+    ".cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]": {
+        backgroundColor: "var(--vscode-list-activeSelectionBackground, #094771)",
+    },
+    ".cm-tooltip.cm-tooltip-autocomplete > ul > li:hover": {
+        backgroundColor: "#3e3e42",
+    },
+    ".cm-completionLabel": {
+        flex: "1",
+    },
+    ".cm-completionDetail": {
+        fontStyle: "italic",
+        color: "#858585",
+        fontSize: "12px",
+    },
 });
 
 export const tokensChangeEffect = StateEffect.define<TokenStream>();
@@ -121,7 +200,7 @@ export const chipPlugin = ViewPlugin.fromClass(
 
             for (const token of tokens) {
                 const text = view.state.doc.sliceString(token.start, token.end);
-                widgets.push(createChip(text).range(token.start, token.end));
+                widgets.push(createChip(text, token.type, token.start, token.end, view).range(token.start, token.end));
             }
 
             return Decoration.set(widgets, true);
@@ -158,15 +237,18 @@ export const expressionEditorKeymap = [
     ...historyKeymap
 ];
 
-export const onWordType = (onTrigger: (cursor: CursorInfo, wordBeforeCursor: string) => void) => {
-    const shouldOpenCompletionsListner = EditorView.updateListener.of((update) => {
-        const cursorPosition = update.view.state.selection.main.head;
-        const currentValue = update.view.state.doc.toString();
-        const textBeforeCursor = currentValue.slice(0, cursorPosition);
+// this always returns the cursor position with correction for helper pane width overflow
+// make sure all the dropdowns that use this handle has the same width
+export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => {
+    const shouldOpenHelperPaneListner = EditorView.updateListener.of((update) => {
+        if (update.focusChanged) {
+            if (!update.view.hasFocus) {
+                return;
+            }
 
-        const wordBeforeCursor = getWordBeforeCursorPosition(textBeforeCursor);
-        if (update.docChanged && wordBeforeCursor.length > 0) {
-            const coords = update.view.coordsAtPos(cursorPosition);
+            const cursorPosition = update.view.state.selection.main;
+            const coords = update.view.coordsAtPos(cursorPosition.to);
+
             if (coords && coords.top && coords.left) {
                 const editorRect = update.view.dom.getBoundingClientRect();
                 //+5 is to position a little be below the cursor
@@ -182,48 +264,19 @@ export const onWordType = (onTrigger: (cursor: CursorInfo, wordBeforeCursor: str
                 if (overflow > 0) {
                     relativeLeft -= overflow;
                 }
-                const CursorInfo = {
-                    top: relativeTop,
-                    left: relativeLeft,
-                    position: cursorPosition
-                }
-                onTrigger(CursorInfo, wordBeforeCursor);
+
+                onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
             }
         }
-    })
+    });
+    return shouldOpenHelperPaneListner;
+};
 
-    return shouldOpenCompletionsListner;
-}
-
-export const shouldOpenHelperPaneState = (onTrigger: (state: boolean, top: number, left: number) => void) => {
+export const buildOnFocusOutListner = (onTrigger: () => void) => {
     const shouldOpenHelperPaneListner = EditorView.updateListener.of((update) => {
-        const cursorPosition = update.view.state.selection.main.head;
-        const currentValue = update.view.state.doc.toString();
-        const textBeforeCursor = currentValue.slice(0, cursorPosition);
-        const triggerToken = textBeforeCursor.trimEnd().slice(-1);
-        const coords = update.view.coordsAtPos(cursorPosition);
-
-        if (!update.view.hasFocus) {
-            onTrigger(false, 0, 0);
-            return;
-        }
-        if (coords && coords.top && coords.left && (update.view.hasFocus || triggerToken === '+' || triggerToken === ':')) {
-            const editorRect = update.view.dom.getBoundingClientRect();
-            //+5 is to position a little be below the cursor
-            //otherwise it overlaps with the cursor
-            let relativeTop = coords.bottom - editorRect.top + 5;
-            let relativeLeft = coords.left - editorRect.left;
-
-            const HELPER_PANE_WIDTH = 300;
-            const viewportWidth = window.innerWidth;
-            const absoluteLeft = coords.left;
-            const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
-
-            if (overflow > 0) {
-                relativeLeft -= overflow;
-            }
-
-            onTrigger(true, relativeTop, relativeLeft);
+        if (update.focusChanged) {
+            if (update.view.hasFocus) return;
+            onTrigger();
         }
     });
     return shouldOpenHelperPaneListner;
@@ -252,8 +305,8 @@ export const buildNeedTokenRefetchListner = (onTrigger: () => void) => {
 
 export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: CursorInfo) => void) => {
     const onChangeListner = EditorView.updateListener.of((update) => {
-        const cursorPos = update.view.state.selection.main.head;
-        const coords = update.view.coordsAtPos(cursorPos);
+        const cursorPos = update.view.state.selection.main;
+        const coords = update.view.coordsAtPos(cursorPos.to);
 
         if (!coords || coords.top === null || coords.left === null) {
             throw new Error("Could not get cursor coordinates");
@@ -286,37 +339,50 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
     return onChangeListner;
 }
 
-// export const cursorListener = EditorView.updateListener.of((update) => {
-//     if (update.selectionSet || update.docChanged) {
-//         console.log("Cursor or document changed");
-//     }
-// });
+export const buildCompletionSource = (getCompletions: () => CompletionItem[]) => {
+    return (context: CompletionContext): CompletionResult | null => {
+        const word = context.matchBefore(/\w*/);
+        if (!word || (word.from === word.to && !context.explicit)) {
+            return null;
+        }
 
-// export const focusOutListener = EditorView.updateListener.of((update) => {
-//     if (update.focusChanged && !update.view.hasFocus) {
-//         console.log("Editor lost focus");
-//     }
-// });
+        const textBeforeCursor = context.state.doc.toString().slice(0, context.pos);
+        const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
 
-// export const focusInListener = EditorView.updateListener.of((update) => {
-//     if (update.focusChanged && update.view.hasFocus) {
-//         console.log("Editor gained focus");
-//     }
-// });
+        // Don't show completions for trigger characters
+        if (lastNonSpaceChar === '+' || lastNonSpaceChar === ':') {
+            return null;
+        }
 
-// export const onChangeListener = EditorView.updateListener.of((update) => {
-//     if (update.docChanged) {
-//         const newValue = update.view.state.doc.toString();
-//         console.log("Document changed:", newValue);
-//     }
-// });
+        const completions = getCompletions();
+        const prefix = word.text;
+        const filteredCompletions = filterCompletionsByPrefixAndType(completions, prefix);
 
-// export const cursorPositionedAfterTriggerListener = EditorView.updateListener.of((update) => {
-//     if (update.selectionSet || update.docChanged) {
-//         const cursorPos = update.state.selection.main.head;
-//         const docText = update.state.doc.toString();
-//         if (cursorPos > 0 && docText[cursorPos - 1] === '') {
-//             console.log("Cursor positioned after trigger character '#'");
-//         }
-//     }
-// });
+        if (filteredCompletions.length === 0) {
+            return null;
+        }
+
+        return {
+            from: word.from,
+            options: filteredCompletions.map(item => ({
+                label: item.label,
+                type: item.kind || "variable",
+                detail: item.description,
+                apply: item.value,
+            }))
+        };
+    };
+};
+
+export const buildHelperPaneKeymap = (isHelperPaneOpen: boolean, onClose: () => void) => {
+    return [
+        {
+            key: "Escape",
+            run: (_view) => {
+                if (!isHelperPaneOpen) return false;
+                onClose();
+                return true;
+            }
+        }
+    ];
+};
