@@ -25,6 +25,7 @@ import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
 import EditForm from "../EditConfigurableVariables";
+import ConfigObjectEditor from "./ConfigObjectEditor";
 
 const Container = styled.div`
     padding: 12px 14px 18px;
@@ -123,14 +124,14 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         setEditConfigVariableFormOpen(true);
     };
 
-    const handleUpdateConfigValue = async (newValue: any, prevNode: ConfigVariable) => {
+    const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
         const newConfigVarNode: ConfigVariable = {
             ...prevNode,
             properties: {
                 ...prevNode.properties,
                 configValue: {
                     ...prevNode.properties.configValue,
-                    value: newValue.target.value,
+                    value: newValue,
                     modified: true
                 }
             }
@@ -153,7 +154,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                     ...prevState.properties,
                     configValue: {
                         ...prevState.properties.configValue,
-                        value: newValue.target.value
+                        value: newValue
                     }
                 }
             };
@@ -163,6 +164,24 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     const handleFormClose = () => {
         setEditConfigVariableFormOpen(false);
     };
+
+
+    const sanitizeConfigValue = () => {
+        const variabeName = configVariable?.properties?.variable?.value;
+        const configValue = configVariable?.properties?.configValue?.value;
+        if (configValue && typeof configValue === 'string') {
+            // Check if configValue already looks like an object or JSON (starts with '{' and ends with '}')
+            const trimmed = configValue.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                return trimmed;
+            } else {
+                // Otherwise, remove the leading "variabeName = " if present
+                const sanitizedConfigValue = configValue.replace(new RegExp(`^${variabeName}\\s*=\\s*`, 'g'), '');
+                return sanitizedConfigValue;
+            }
+        }
+        return configValue;
+    }
 
     return (
         <Container id={`${String(variable?.properties?.variable?.value)}-variable`}>
@@ -261,7 +280,13 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                 </div>
             }
             <ConfigValueField>
-                <VSCodeTextArea
+                {configVariable?.properties?.type.typeMembers.length > 0 && <ConfigObjectEditor
+                    fileName={fileName}
+                    configValue={sanitizeConfigValue()}
+                    typeValue={configVariable?.properties?.type}
+                    onChange={(newValue: string) => handleUpdateConfigValue(newValue, configVariable)}
+                />}
+                {configVariable?.properties?.type.typeMembers.length === 0 && <VSCodeTextArea
                     name={`${String(variable?.properties?.variable?.value)}-config-value`}
                     rows={(() => {
                         const value = configVariable?.properties?.configValue?.value
@@ -277,7 +302,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         maxWidth: '350px',
                         minHeight: '20px'
                     }}
-                    onChange={(e: any) => handleUpdateConfigValue(e, configVariable)}
+                    onChange={(e: any) => handleUpdateConfigValue(e.target.value, configVariable)}
                 >
                     <style>{`
                         vscode-text-area::part(control) {
@@ -285,7 +310,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                             min-height: 20px !important;
                     }
                     `}</style>
-                </VSCodeTextArea>
+                </VSCodeTextArea>}
             </ConfigValueField>
             {isEditConfigVariableFormOpen &&
                 <EditForm
