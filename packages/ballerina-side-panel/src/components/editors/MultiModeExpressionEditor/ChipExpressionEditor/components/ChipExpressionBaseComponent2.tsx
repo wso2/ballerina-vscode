@@ -21,134 +21,110 @@ import { EditorView, keymap } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
 import { ChipExpressionBaseComponentProps } from "../ChipExpressionBaseComponent";
 import { useFormContext } from "../../../../../context";
-import { buildNeedTokenRefetchListner, buildOnChangeListner, chipPlugin, chipTheme, tokenField, tokensChangeEffect, expressionEditorKeymap, shouldOpenHelperPaneState, onWordType, CursorInfo } from "../CodeUtils";
+import { buildNeedTokenRefetchListner, buildOnChangeListner, chipPlugin, chipTheme, completionTheme, tokenField, tokensChangeEffect, expressionEditorKeymap, buildCompletionSource, buildHelperPaneKeymap, buildOnFocusListner, CursorInfo, buildOnFocusOutListner } from "../CodeUtils";
 import { history } from "@codemirror/commands";
-import { Completions, ContextMenuContainer } from "../styles";
+import { autocompletion } from "@codemirror/autocomplete";
+import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CompletionsItem } from "./CompletionsItem";
-import { filterCompletionsByPrefixAndType, getWordBeforeCursorPosition } from "../utils";
-
-type ContextMenuType = "HELPER_PANE" | "COMPLETIONS";
+import { HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
 
 type HelperPaneState = {
     isOpen: boolean;
     top: number;
     left: number;
-    type: ContextMenuType;
 }
 
 export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentProps) => {
-    const [contextMenuState, setContextMenuState] = useState<HelperPaneState>({ isOpen: false, top: 0, left: 0, type: "HELPER_PANE" as ContextMenuType });
-    const [completionPrefix, setCompletionPrefix] = useState<string>("");
-    const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
-    const [selectedCompletionItem, setSelectedCompletionItem] = useState<number>(0);
+    const [helperPaneState, setHelperPaneState] = useState<HelperPaneState>({ isOpen: false, top: 0, left: 0 });
 
     const editorRef = useRef<HTMLDivElement>(null);
+    const helperPaneRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef(null);
-    const isTokenUpdateScheduled = useRef(true);
+    const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
+    const completionsRef = useRef(props.completions);
+    const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
 
     const needTokenRefetchListner = buildNeedTokenRefetchListner(() => {
-        isTokenUpdateScheduled.current = true;
+        setIsTokenUpdateScheduled(true);
     });
 
     const handleChangeListner = buildOnChangeListner((newValue, cursor) => {
-        props.onChange(newValue, cursor.position);
-        const textBeforeCursor = newValue.slice(0, cursor.position);
+        props.onChange(newValue, cursor.position.to);
+        const textBeforeCursor = newValue.slice(0, cursor.position.to);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
         const isTrigger = lastNonSpaceChar === '+' || lastNonSpaceChar === ':';
-        const wordBeforeCursor = getWordBeforeCursorPosition(textBeforeCursor);
-        setCompletionPrefix(wordBeforeCursor);
 
         if (isTrigger) {
-            setContextMenuState({ isOpen: true, top: cursor.top, left: cursor.left, type: "HELPER_PANE" });
-            return;
-        }
-
-        // Only show completions if we have a word to complete
-        if (wordBeforeCursor.length > 0) {
-            setContextMenuState({ isOpen: true, top: cursor.top, left: cursor.left, type: "COMPLETIONS" });
+            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         } else {
-            setContextMenuState({ isOpen: false, top: 0, left: 0, type: "COMPLETIONS" });
+            setHelperPaneState({ isOpen: false, top: 0, left: 0 });
         }
     });
 
-    const handleCompletionHover = (index: number) => {
-        setSelectedCompletionItem(index);
-    };
+    const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
 
-    const handleCompletionSelect = (item: CompletionItem) => {
+    });
+
+    const handleFocusOutListner = buildOnFocusOutListner(() => {
+        setIsTokenUpdateScheduled(true);
+    });
+
+    const completionSource = buildCompletionSource(() => completionsRef.current);
+
+    const helperPaneKeymap = buildHelperPaneKeymap(helperPaneState.isOpen, () => {
+        setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+    });
+
+    const onHelperItemSelect = (value: string, options: HelperpaneOnChangeOptions) => {
         if (!viewRef.current) return;
-        const view = viewRef.current as EditorView;
-        const wordBeforeCursor = getWordBeforeCursorPosition(view.state.doc.toString().slice(0, view.state.selection.main.head));
-        const from = view.state.selection.main.head - wordBeforeCursor.length;
-        const to = view.state.selection.main.head;
+        const view = viewRef.current;
+        const { from, to } = view.state.selection.main;
 
         view.dispatch({
-            changes: { from, to, insert: item.label },
-            selection: { anchor: from + item.label.length }
+            changes: { from, to, insert: value },
+            selection: { anchor: from + value.length }
         });
-        setContextMenuState(prev => ({ ...prev, isOpen: false }));
-    };
 
-    const completionKeymap = [
-        {
-            key: "ArrowDown",
-            run: (_view) => {
-                if (contextMenuState.type !== "COMPLETIONS" || !contextMenuState.isOpen) return false;
-                setSelectedCompletionItem(prev =>
-                    prev < filteredCompletions.length - 1 ? prev + 1 : prev
-                );
-                return true;
-            }
-        },
-        {
-            key: "ArrowUp",
-            run: (_view) => {
-                if (contextMenuState.type !== "COMPLETIONS" || !contextMenuState.isOpen) return false;
-                setSelectedCompletionItem(prev =>
-                    prev > 0 ? prev - 1 : -1
-                );
-                return true;
-            }
-        },
-        {
-            key: "Enter",
-            run: (_view) => {
-                if (contextMenuState.type !== "COMPLETIONS" || !contextMenuState.isOpen) return false;
-                if (selectedCompletionItem >= 0 && selectedCompletionItem < filteredCompletions.length) {
-                    handleCompletionSelect(filteredCompletions[selectedCompletionItem]);
-                    return true;
-                }
-                return false;
-            }
-        },
-        {
-            key: "Escape",
-            run: (_view) => {
-                if (!contextMenuState.isOpen) return false;
-                setContextMenuState(prev => ({ ...prev, isOpen: false }));
-                return true;
-            }
-        },
-        ...expressionEditorKeymap
-    ];
-
-    useEffect(() => {
-        const filteredCompletions = filterCompletionsByPrefixAndType(props.completions, completionPrefix);
-        setFilteredCompletions(filteredCompletions);
-
-        if (contextMenuState.type === "COMPLETIONS") {
-            if (filteredCompletions.length === 0 || completionPrefix.length === 0) {
-                setContextMenuState(prev => ({ ...prev, isOpen: false }));
-            } else {
-                setContextMenuState(prev => ({ ...prev, isOpen: true }));
-            }
+        const newDoc = view.state.doc.toString();
+        props.onChange(newDoc, from + value.length);
+        if (options.closeHelperPane) {
+            setIsTokenUpdateScheduled(true);
         }
-    }, [props.completions, completionPrefix]);
+        setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
+    }
+
+    const handleHelperPaneManualToggle = () => {
+        if (
+            !helperPaneToggleButtonRef?.current ||
+            !editorRef?.current
+        ) return;
+        const buttonRect = helperPaneToggleButtonRef.current.getBoundingClientRect();
+        const editorRect = editorRef.current?.getBoundingClientRect();
+        let top = buttonRect.bottom - editorRect.top;
+        let left = buttonRect.left - editorRect.left;
+
+        // Add overflow correction for window boundaries
+        const HELPER_PANE_WIDTH = 300;
+        const viewportWidth = window.innerWidth;
+        const absoluteLeft = buttonRect.left;
+        const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+
+        if (overflow > 0) {
+            left -= overflow;
+        }
+
+        setHelperPaneState(prev => ({
+            ...prev,
+            top,
+            left,
+            isOpen: !prev.isOpen
+        }));
+    }
 
     useEffect(() => {
         if (!props.value || !viewRef.current) return;
@@ -160,13 +136,13 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
                 });
             }
 
-            if (!isTokenUpdateScheduled.current) return;
+            if (!isTokenUpdateScheduled) return;
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
                 props.targetLineRange.startLine
             );
-            isTokenUpdateScheduled.current = false;
+            setIsTokenUpdateScheduled(false);
             if (tokenStream) {
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream)
@@ -174,7 +150,7 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             }
         };
         updateEditorState();
-    }, [props.value, props.fileName, props.targetLineRange.startLine]);
+    }, [props.value, props.fileName, props.targetLineRange.startLine, isTokenUpdateScheduled]);
 
     useEffect(() => {
         if (!editorRef.current) return;
@@ -182,13 +158,21 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
             doc: props.value ?? "",
             extensions: [
                 history(),
-                keymap.of(completionKeymap),
+                keymap.of([...helperPaneKeymap, ...expressionEditorKeymap]),
+                autocompletion({
+                    override: [completionSource],
+                    activateOnTyping: true,
+                    closeOnBlur: true
+                }),
                 chipPlugin,
                 tokenField,
                 chipTheme,
+                completionTheme,
                 EditorView.lineWrapping,
                 needTokenRefetchListner,
                 handleChangeListner,
+                handleFocusListner,
+                handleFocusOutListner
             ]
         });
         const view = new EditorView({
@@ -201,29 +185,62 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         };
     }, []);
 
+    // this keeps completions ref updated
+    // just don't touch this.
+    useEffect(() => {
+        completionsRef.current = props.completions;
+    }, [props.completions]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!helperPaneState.isOpen) return;
+
+            const target = event.target as Element;
+            const isClickInsideEditor = editorRef.current?.contains(target);
+            const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
+
+            if (!isClickInsideEditor && !isClickInsideHelperPane) {
+                setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+            }
+        };
+        if (helperPaneState.isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [helperPaneState.isOpen]);
+
     return (
         <div style={{ position: 'relative' }}>
             <div ref={editorRef}>
 
             </div>
-            {contextMenuState.isOpen &&
-                <ContextMenu
-                    top={contextMenuState.top}
-                    left={contextMenuState.left}
+            {helperPaneState.isOpen &&
+                <HelperPane
+                    ref={helperPaneRef}
+                    top={helperPaneState.top}
+                    left={helperPaneState.left}
                     getHelperPane={props.getHelperPane}
                     value={props.value}
-                    type={contextMenuState.type}
-                    completions={filteredCompletions}
-                    selectedCompletionItem={selectedCompletionItem}
-                    onCompletionSelect={handleCompletionSelect}
-                    onCompletionHover={handleCompletionHover}
+                    onChange={onHelperItemSelect}
                 />
             }
+            <FloatingButtonContainer>
+                <FloatingToggleButton
+                    ref={helperPaneToggleButtonRef}
+                    isActive={helperPaneState.isOpen}
+                    onClick={handleHelperPaneManualToggle}
+                    title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
+                >
+                    {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                </FloatingToggleButton>
+            </FloatingButtonContainer>
         </div>
     );
 }
 
-type ContextMenuProps = {
+type HelperPaneProps = {
     top: number;
     left: number;
     getHelperPane: (
@@ -232,50 +249,21 @@ type ContextMenuProps = {
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
     value: string;
-    type: ContextMenuType;
-    completions: CompletionItem[];
-    selectedCompletionItem: number;
-    onCompletionSelect: (item: CompletionItem) => void;
-    onCompletionHover: (index: number) => void;
+    onChange: (value: string, options?: HelperpaneOnChangeOptions) => void;
 }
 
-export const ContextMenu = (props: ContextMenuProps) => {
-    if (props.type === "COMPLETIONS") {
-        if (props.completions.length === 0) {
-            return null;
-        }
-        return (
-            <ContextMenuContainer
-                top={props.top}
-                left={props.left}
-            >
-                <Completions>
-                    {props.completions.map((item, index) => (
-                        <CompletionsItem
-                            key={`${item.label}-${index}`}
-                            item={item}
-                            isSelected={index === props.selectedCompletionItem}
-                            onClick={() => props.onCompletionSelect?.(item)}
-                            onMouseEnter={() => props.onCompletionHover?.(index)}
-                        />
-                    ))}
-                </Completions>
-            </ContextMenuContainer>
-        );
-    }
-    else if (props.type === "HELPER_PANE") {
-        return (
-            <ContextMenuContainer
-                top={props.top}
-                left={props.left}
-            >
-                {props.getHelperPane(
-                    props.value,
-                    () => { },
-                    "3/4"
-                )}
-            </ContextMenuContainer>
-        );
-    }
-    return null;
-}
+export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((props, ref) => {
+    return (
+        <ContextMenuContainer
+            ref={ref}
+            top={props.top}
+            left={props.left}
+        >
+            {props.getHelperPane(
+                props.value,
+                props.onChange,
+                "3/4"
+            )}
+        </ContextMenuContainer>
+    );
+});

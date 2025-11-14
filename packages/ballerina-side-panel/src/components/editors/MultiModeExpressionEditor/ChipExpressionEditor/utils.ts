@@ -19,6 +19,7 @@
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, ExpressionModel } from "./types";
 import { BACKSPACE_MARKER, DELETE_MARKER, ARROW_RIGHT_MARKER, ARROW_LEFT_MARKER } from "./constants";
+import { TokenType } from "./CodeUtils";
 
 const TOKEN_LINE_OFFSET_INDEX = 0;
 const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -309,12 +310,11 @@ export const createExpressionModelFromTokens = (
 
 
 
-const getTokenTypeFromIndex = (index: number): string => {
-    const tokenTypes: { [key: number]: string } = {
+const getTokenTypeFromIndex = (index: number): TokenType => {
+    const tokenTypes: { [key: number]: TokenType } = {
         0: 'variable',
-        1: 'function',
+        1: 'property',
         2: 'parameter',
-        3: 'property',
     };
     return tokenTypes[index] || 'variable';
 };
@@ -1213,6 +1213,7 @@ export type ParsedToken = {
     id:number;
     start: number;
     end: number;
+    type: TokenType;
 }
 
 export const getParsedExpressionTokens = (tokens: number[], value: string) => {
@@ -1226,6 +1227,7 @@ export const getParsedExpressionTokens = (tokens: number[], value: string) => {
         const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
         const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
         const length = chunk[TOKEN_LENGTH_INDEX];
+        const type = chunk[3];
 
         currentLine += deltaLine;
         if (deltaLine === 0) {
@@ -1237,7 +1239,7 @@ export const getParsedExpressionTokens = (tokens: number[], value: string) => {
         const absoluteStart = getAbsoluteColumnOffset(value, currentLine, currentChar);
         const absoluteEnd = absoluteStart + length;
         
-        tokenObjects.push({ id: tokenId++, start: absoluteStart, end: absoluteEnd });
+        tokenObjects.push({ id: tokenId++, start: absoluteStart, end: absoluteEnd, type: getTokenTypeFromIndex(type) });
     }
     return tokenObjects;
 }
