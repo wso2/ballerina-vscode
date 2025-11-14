@@ -21,10 +21,9 @@ import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { Typography } from "@wso2/ui-toolkit";
 interface LoadingRingProps {
     message?: string;
-    progress?: number;
 }
 
-export const LoadingRing = ({ message, progress }: LoadingRingProps) => {
+export const LoadingRing = ({ message }: LoadingRingProps) => {
     const ProgressContainer = styled.div`
         position: fixed;
         top: 0;
@@ -44,13 +43,6 @@ export const LoadingRing = ({ message, progress }: LoadingRingProps) => {
         font-size: 14px;
     `;
 
-    const ProgressText = styled(Typography)`
-        margin-top: 8px;
-        color: var(--vscode-descriptionForeground);
-        font-size: 12px;
-        text-align: center;
-    `;
-
     return (
         <ProgressContainer>
             <ProgressRing color={ThemeColors.PRIMARY} />
@@ -58,11 +50,6 @@ export const LoadingRing = ({ message, progress }: LoadingRingProps) => {
                 <LoadingText variant="body2">
                     {message}
                 </LoadingText>
-            )}
-            {progress !== undefined && (
-                <ProgressText variant="body2">
-                    {progress}%
-                </ProgressText>
             )}
         </ProgressContainer>
     );

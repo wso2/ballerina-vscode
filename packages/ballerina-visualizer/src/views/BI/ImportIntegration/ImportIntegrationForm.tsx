@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ActionButtons, Icon, LocationSelector, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
-import { LoadingRing } from "../../../components/Loader";
+import { DownloadProgress } from "../../../components/DownloadProgress";
 import { BodyText, LoadingOverlayContainer } from "../../styles";
 import { IntegrationParameters } from "./components/IntegrationParameters";
 import {
@@ -164,9 +164,9 @@ export function ImportIntegrationForm({
 
             {pullingTool && (
                 <LoadingOverlayContainer>
-                    <LoadingRing
+                    <DownloadProgress
                         message={toolPullProgress?.message || "Pulling integration tool..."}
-                        progress={toolPullProgress?.percentage}
+                        percentage={toolPullProgress?.percentage}
                     />
                 </LoadingOverlayContainer>
             )}
