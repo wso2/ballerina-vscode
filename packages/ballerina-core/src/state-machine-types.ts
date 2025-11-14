@@ -284,6 +284,7 @@ export const onMigrationToolStateChanged: NotificationType<string> = { method: '
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
+export const dependencyPullProgress: NotificationType<string> = { method: 'dependencyPullProgress' };
 
 // Artifact updated request and notification
 export const onArtifactUpdatedNotification: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onArtifactUpdatedNotification' };
