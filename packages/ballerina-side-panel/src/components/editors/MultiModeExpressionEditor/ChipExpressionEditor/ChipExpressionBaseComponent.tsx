@@ -18,10 +18,9 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import FXButton from "./components/FxButton";
-import { ChipEditorContainer, SkeletonLoader } from "./styles";
+import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
-import { TokenizedExpression } from "./components/TokenizedExpression";
 import {
     getAbsoluteCaretPosition,
     mapAbsoluteToModel,
@@ -42,7 +41,6 @@ import { useFormContext } from "../../../../context";
 import { DATA_ELEMENT_ID_ATTRIBUTE, FOCUS_MARKER, ARROW_LEFT_MARKER, ARROW_RIGHT_MARKER, BACKSPACE_MARKER, COMPLETIONS_MARKER, HELPER_MARKER, DELETE_MARKER } from "./constants";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { HelperpaneOnChangeOptions } from "../../../Form/types";
-import { ChipExpressionBaseComponent2 } from "./components/ChipExpressionBaseComponent2";
 
 export type ChipExpressionBaseComponentProps = {
     onTokenRemove?: (token: string) => void;
@@ -553,7 +551,6 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
                         onChipFocus={handleChipFocus}
                         onChipBlur={handleChipBlur}
                     /> */}
-                    <ChipExpressionBaseComponent2 {...props} />
                 </AutoExpandingEditableDiv>
             </div>
         </ChipEditorContainer >
