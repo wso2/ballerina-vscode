@@ -432,6 +432,7 @@ function DeploymentOptions({
         });
     };
 
+    const isDeployed = platformExtState?.isLoggedIn ? !!platformExtState?.selectedComponent : platformExtState?.hasPossibleComponent;
 
     return (
         <>
@@ -440,7 +441,7 @@ function DeploymentOptions({
 
                 <DeploymentOption
                     title={
-                        platformExtState?.hasPossibleComponent ? (
+                        isDeployed ? (
                             <DevantHeaderWrap>
                                 <span>Deployed in Devant</span>
                                 {platformExtState.isLoggedIn && (
@@ -462,17 +463,17 @@ function DeploymentOptions({
                         )
                     }                  
                     description={
-                        platformExtState?.hasPossibleComponent
+                        isDeployed
                             ? "This integration is already deployed in Devant."
                             : "Deploy your integration to the cloud using Devant by WSO2."
                     }
-                    buttonText={platformExtState?.hasPossibleComponent ? "View in Devant" : "Deploy"}
+                    buttonText={isDeployed ? "View in Devant" : "Deploy"}
                     isExpanded={expandedOptions.has("devant")}
                     onToggle={() => toggleOption("devant")}
-                    onDeploy={platformExtState?.hasPossibleComponent ? () => goToDevant() : handleDeploy}
+                    onDeploy={isDeployed? () => goToDevant() : handleDeploy}
                     learnMoreLink={"https://wso2.com/devant/docs"}
                     secondaryAction={
-                        platformExtState?.hasPossibleComponent && platformExtState?.hasLocalChanges
+                        isDeployed && platformExtState?.hasLocalChanges
                             ? {
                                 description: "To redeploy in Devant, please commit and push your changes.",
                                 buttonText: "Open Source Control",

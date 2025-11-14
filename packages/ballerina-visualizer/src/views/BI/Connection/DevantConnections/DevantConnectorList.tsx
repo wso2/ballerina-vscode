@@ -24,8 +24,7 @@ import ButtonCard from "../../../../components/ButtonCard";
 import { BodyTinyInfo } from "../../../styles";
 import { useQuery } from "@tanstack/react-query";
 import {
-    ICmdParamsBase,
-    ICreateComponentCmdParams,
+    ICreateDirCtxCmdParams,
     MarketplaceItem,
     CommandIds as PlatformExtCommandIds,
     ICmdParamsBase as PlatformExtICmdParamsBase,
@@ -137,7 +136,7 @@ export const DevantConnectorList: FC<{
                             rpcClient.getCommonRpcClient().executeCommand({
                                 commands: [
                                     PlatformExtCommandIds.CreateDirectoryContext,
-                                    { extName: "Devant" } as ICmdParamsBase,
+                                    { extName: "Devant", skipComponentExistCheck: true } as ICreateDirCtxCmdParams,
                                 ],
                             })
                         }

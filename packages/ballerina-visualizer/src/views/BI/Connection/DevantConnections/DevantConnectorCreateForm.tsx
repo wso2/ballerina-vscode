@@ -175,7 +175,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
 
     const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
-    const isProjectLevel = form.watch('isProjectLevel');
+    const isProjectLevel = form.watch("isProjectLevel");
     return (
         <>
             <HeaderWrap>
@@ -280,15 +280,17 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
                                 errorMsg={form.formState.errors.schemaId?.message}
                             />
                         </FormStyles.Row>
-                        <FormStyles.Row>
-                            <CheckBox
-                                label="Connection available to all integrations within your Devant project"
-                                checked={isProjectLevel}
-                                onChange={(checked: boolean) => {
-                                    form.setValue("isProjectLevel", checked);
-                                }}
-                            />
-                        </FormStyles.Row>
+                        {platformExtState.selectedComponent && (
+                            <FormStyles.Row>
+                                <CheckBox
+                                    label="Connection available to all integrations within your Devant project"
+                                    checked={isProjectLevel}
+                                    onChange={(checked: boolean) => {
+                                        form.setValue("isProjectLevel", checked);
+                                    }}
+                                />
+                            </FormStyles.Row>
+                        )}
                     </>
                 )}
 
