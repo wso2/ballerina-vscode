@@ -24,6 +24,12 @@ import { CompletionItem } from "@wso2/ui-toolkit";
 
 export type TokenStream = number[];
 
+export type CursorInfo = {
+    top: number;
+    left: number;
+    position: number;
+}
+
 export function createChip(text: string) {
     class ChipWidget extends WidgetType {
         constructor(readonly text: string) {
@@ -126,7 +132,7 @@ export const chipPlugin = ViewPlugin.fromClass(
     }
 );
 
-export const expressionEditorKeymap = keymap.of([
+export const expressionEditorKeymap = [
     {
         key: "Backspace",
         run: (view) => {
@@ -150,9 +156,9 @@ export const expressionEditorKeymap = keymap.of([
     },
     ...defaultKeymap,
     ...historyKeymap
-]);
+];
 
-export const shouldOpenCompletionsListner = (onTrigger: (state: boolean, top: number, left: number, filteredCompletions: CompletionItem[]) => void, completions: CompletionItem[]) => {
+export const onWordType = (onTrigger: (cursor: CursorInfo, wordBeforeCursor: string) => void) => {
     const shouldOpenCompletionsListner = EditorView.updateListener.of((update) => {
         const cursorPosition = update.view.state.selection.main.head;
         const currentValue = update.view.state.doc.toString();
@@ -162,8 +168,26 @@ export const shouldOpenCompletionsListner = (onTrigger: (state: boolean, top: nu
         if (update.docChanged && wordBeforeCursor.length > 0) {
             const coords = update.view.coordsAtPos(cursorPosition);
             if (coords && coords.top && coords.left) {
-                const newFilteredCompletions = filterCompletionsByPrefixAndType(completions, wordBeforeCursor);
-                onTrigger(true, coords.top, coords.left, newFilteredCompletions);
+                const editorRect = update.view.dom.getBoundingClientRect();
+                //+5 is to position a little be below the cursor
+                //otherwise it overlaps with the cursor
+                let relativeTop = coords.bottom - editorRect.top + 5;
+                let relativeLeft = coords.left - editorRect.left;
+
+                const HELPER_PANE_WIDTH = 300;
+                const viewportWidth = window.innerWidth;
+                const absoluteLeft = coords.left;
+                const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+
+                if (overflow > 0) {
+                    relativeLeft -= overflow;
+                }
+                const CursorInfo = {
+                    top: relativeTop,
+                    left: relativeLeft,
+                    position: cursorPosition
+                }
+                onTrigger(CursorInfo, wordBeforeCursor);
             }
         }
     })
@@ -226,11 +250,37 @@ export const buildNeedTokenRefetchListner = (onTrigger: () => void) => {
     return needTokenRefetchListner;
 }
 
-export const buildOnChangeListner = (onTrigeer: (newValue: string, cursorPosition: number) => void) => {
+export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: CursorInfo) => void) => {
     const onChangeListner = EditorView.updateListener.of((update) => {
+        const cursorPos = update.view.state.selection.main.head;
+        const coords = update.view.coordsAtPos(cursorPos);
+
+        if (!coords || coords.top === null || coords.left === null) {
+            throw new Error("Could not get cursor coordinates");
+        }
         if (update.docChanged) {
+            const editorRect = update.view.dom.getBoundingClientRect();
+            //+5 is to position a little be below the cursor
+            //otherwise it overlaps with the cursor
+            let relativeTop = coords.bottom - editorRect.top + 5;
+            let relativeLeft = coords.left - editorRect.left;
+
+            const HELPER_PANE_WIDTH = 300;
+            const viewportWidth = window.innerWidth;
+            const absoluteLeft = coords.left;
+            const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+
+            if (overflow > 0) {
+                relativeLeft -= overflow;
+            }
+
             const newValue = update.view.state.doc.toString();
-            onTrigeer(newValue, update.view.state.selection.main.head);
+            const cursorInfo = {
+                top: relativeTop,
+                left: relativeLeft,
+                position: cursorPos
+            };
+            onTrigeer(newValue, cursorInfo);
         }
     });
     return onChangeListner;
