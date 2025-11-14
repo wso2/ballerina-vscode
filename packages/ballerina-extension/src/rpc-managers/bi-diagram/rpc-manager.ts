@@ -853,6 +853,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient()
+                .getDataMapperCompletions(params)
+                .then((completions) => {
+                    resolve(completions);
+                })
+                .catch((error) => {
+                    reject("Error fetching data mapper completions from ls");
+                });
+        });
+    }
+
     async getConfigVariables(): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
             const projectPath = StateMachine.context().projectPath;
@@ -2019,10 +2032,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
-    }
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {
