@@ -33,7 +33,9 @@ import {
     buildHelperPaneKeymap,
     buildOnFocusListner,
     CursorInfo,
-    buildOnFocusOutListner
+    buildOnFocusOutListner,
+    buildOnSelectionChange,
+    ProgrammerticSelectionChange
 } from "../CodeUtils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
@@ -114,7 +116,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
         setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+    });
 
+    const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
     });
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
@@ -131,7 +136,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const newValue = value
         if (!viewRef.current) return;
         const view = viewRef.current;
-        const { from, to } = view.state.selection.main;
+        const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : view.state.selection.main;
 
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;
@@ -224,6 +229,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 handleChangeListner,
                 handleFocusListner,
                 handleFocusOutListner,
+                handleSelectionChange,
                 ...(props.isInExpandedMode
                     ? [EditorView.theme({
                         "&": { height: "100%" },
@@ -291,6 +297,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isClickInsideEditor && !isClickInsideHelperPane) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+                viewRef.current?.dispatch({
+                    selection: { anchor: 0 },
+                    annotations: ProgrammerticSelectionChange.of(true)
+                });
+                viewRef.current?.dom.blur();
             }
         };
         if (helperPaneState.isOpen) {
