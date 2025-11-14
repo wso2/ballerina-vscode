@@ -47,7 +47,7 @@ import {
     ConnectionDetailed,
     CommandIds as PlatformExtCommandIds,
     DevantScopes,
-    ICreateComponentCmdParams
+    ICreateComponentCmdParams,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -101,16 +101,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
         const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
 
-        platformExtStore
-            .getState()
-            .setState({
-                isLoggedIn,
-                components,
-                selectedContext,
-                selectedComponent: matchingComponent || components[0],
-                hasLocalChanges,
-                hasPossibleComponent: components.length > 0 || hasProjectYaml,
-            });
+        platformExtStore.getState().setState({
+            isLoggedIn,
+            components,
+            selectedContext,
+            selectedComponent: matchingComponent || components[0],
+            hasLocalChanges,
+            hasPossibleComponent: components.length > 0 || hasProjectYaml,
+        });
 
         await this.refreshConnectionList();
 
@@ -122,13 +120,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
             );
-            platformExtStore
-                .getState()
-                .setState({
-                    components,
-                    selectedComponent: matchingComponent || components[0],
-                    hasPossibleComponent: components.length > 0 || hasProjectYaml,
-                });
+            platformExtStore.getState().setState({
+                components,
+                selectedComponent: matchingComponent || components[0],
+                hasPossibleComponent: components.length > 0 || hasProjectYaml,
+            });
         });
         platformExt.subscribeContextState((selectedContext) => {
             platformExtStore.getState().setState({ selectedContext });
@@ -274,7 +270,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async deployIntegrationInDevant(): Promise<void> {
         const projectStructure = await new BiDiagramRpcManager().getProjectStructure();
-        if(!projectStructure){
+        if (!projectStructure) {
             return;
         }
         const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
@@ -283,8 +279,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         let scopes: DevantScopes[] = [];
         if (services?.length > 0) {
             const svcScopes = services
-                .map(svc => findDevantScopeByModule(svc?.moduleName))
-                .filter(svc => svc !== undefined);
+                .map((svc) => findDevantScopeByModule(svc?.moduleName))
+                .filter((svc) => svc !== undefined);
             scopes.push(...Array.from(new Set(svcScopes)));
         }
         if (automation?.length > 0) {
@@ -295,11 +291,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
         if (scopes.length === 1) {
             integrationType = scopes[0];
-        } else  if (scopes?.length > 1){
+        } else if (scopes?.length > 1) {
             const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have multiple artifact types within this project. Select the artifact type to be deployed',
+                placeHolder:
+                    "You have multiple artifact types within this project. Select the artifact type to be deployed",
             });
-            if(!selectedScope){
+            if (!selectedScope) {
                 return;
             }
             integrationType = selectedScope as DevantScopes;
@@ -310,7 +307,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             buildPackLang: "ballerina",
             name: path.basename(StateMachine.context().projectPath),
             componentDir: StateMachine.context().projectPath,
-            extName: "Devant"
+            extName: "Devant",
         };
         vscode.commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
     }
@@ -594,9 +591,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
             const projectPath = StateMachine.context().projectPath;
+            const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel
 
             const createdConnection = await platformExt?.createComponentConnection({
-                componentId: platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
                 name: params.params.name,
                 orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
                 orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
@@ -604,11 +602,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceSchemaId: params.params.schemaId,
                 serviceId: params.marketplaceItem.serviceId,
                 serviceVisibility: params.params.visibility!,
-                componentType: getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
+                componentType: isProjectLevel ? "non-component" : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
                 componentPath: projectPath,
-                generateCreds:
-                    platformExtStore.getState().state?.selectedComponent?.spec?.type !==
-                    ComponentDisplayType.ByocWebAppDockerLess,
+                generateCreds: true,
             });
 
             const resp = await initializeDevantConnection({

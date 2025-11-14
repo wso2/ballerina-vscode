@@ -528,15 +528,19 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
 
             {currentStep === WizardStep.DEVANT_CONNECTOR && (
                  <DevantConnectorPanel 
-                    onClose={(connName)=>{
+                    onClose={()=>{
                         setCurrentStep(WizardStep.CONNECTOR_LIST)
-                        setSelectedDevantConnector(undefined)
-                        if(onClose){
-                            if(connName){
+                        setSelectedDevantConnector(undefined);
+                    }}
+                    onCreate={(connName)=>{
+                        if(connName){
+                            setCurrentStep(WizardStep.CONNECTOR_LIST)
+                            setSelectedDevantConnector(undefined)
+                            if(onClose){
                                 onClose({ recentIdentifier: connName, artifactType: DIRECTORY_MAP.CONNECTION })
+                            }else{
+                                gotoHome();
                             }
-                        }else{
-                            gotoHome();
                         }
                     }}
                     selectedItem={selectedDevantConnector}
