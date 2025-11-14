@@ -29,7 +29,7 @@ import { DefaultableParam, FunctionDefinition, IncludedRecordParam, ModulePart, 
 import { addMissingRequiredFields, attemptRepairProject, checkProjectDiagnostics } from "../../../src/rpc-managers/ai-panel/repair-utils";
 import { NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "./constants";
 import { INVALID_RECORD_REFERENCE } from "../../../src/views/ai-panel/errorCodes";
-import { PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
+import { CodeRepairResult, PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
 import { URI } from "vscode-uri";
 import { getAllDataMapperSource } from "./service/datamapper/datamapper";
 import { StateMachine } from "../../stateMachine";
@@ -1321,7 +1321,7 @@ export async function repairCodeAndGetUpdatedContent(
   params: RepairCodeParams,
   langClient: ExtendedLangClient,
   projectRoot: string
-): Promise<{ finalContent: string; customFunctionsContent: string }> {
+): Promise<CodeRepairResult> {
   
   // Read main file content
   let finalContent = fs.readFileSync(params.tempFileMetadata.codeData.lineRange.fileName, 'utf8');
