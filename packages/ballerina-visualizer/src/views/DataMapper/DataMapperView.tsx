@@ -598,8 +598,8 @@ export function DataMapperView(props: DataMapperProps) {
                     fieldId: outputId,
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
-                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
-                let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                const startLine = updateLineRange(property.codedata.lineRange, expressionOffsetRef.current).startLine;
+                let completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
                     filePath,
                     context: {
                         expression: value,
@@ -607,7 +607,7 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: { ...property, valueType: "DATA_MAPPING_EXPRESSION" }
+                        property: property
                     },
                     completionContext: {
                         triggerKind: triggerCharacter ? 2 : 1,
