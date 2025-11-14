@@ -17,12 +17,13 @@
  */
 
 interface DownloadIconProps {
-    color?: string;
+    color?: string; 
+    sx?: React.CSSProperties;
 }
 
-export const DownloadIcon = ({ color = "#000" }: DownloadIconProps) => {
+export const DownloadIcon = ({ color = "#000", sx }: DownloadIconProps) => {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style={sx}>
             <g fill="none" stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                 <path stroke-dasharray="2 4" stroke-dashoffset="6" d="M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9">
                     <animate attributeName="stroke-dashoffset" dur="0.96s" repeatCount="indefinite" values="6;0" />
