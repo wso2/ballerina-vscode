@@ -3,7 +3,7 @@
     "id": 1,
     "title": "MuleSoft",
     "commandName": "migrate-mule",
-    "requiredVersion": "1.2.7",
+    "requiredVersion": "1.2.8",
     "description": "Select your MuleSoft project's root folder or main configuration XML file.",
     "parameters": [
       {
