@@ -96,7 +96,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             try {
                 Path projectPath = Path.of(request.projectPath());
                 Project project = workspaceManager.loadProject(projectPath);
-                ProjectVisitor visitor = new ProjectVisitor(response, project, true);
+                ProjectInfoBuilder visitor = new ProjectInfoBuilder(response, project, true);
                 visitor.populate();
             } catch (Throwable e) {
                 response.setError(e);

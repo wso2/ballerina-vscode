@@ -36,11 +36,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Visitor class for populating project information responses.
+ * Builds project information by extracting and mapping metadata from a given {@link Project} into a
+ * {@link ProjectInfoResponse}.
  *
  * @since 1.4.2
  */
-public final class ProjectVisitor {
+public final class ProjectInfoBuilder {
 
     private final ProjectInfoResponse response;
     private final Project project;
@@ -53,7 +54,7 @@ public final class ProjectVisitor {
      * @param project         The project to extract information from
      * @param includeChildren Whether to populate children (false for child projects to avoid recursion)
      */
-    public ProjectVisitor(ProjectInfoResponse response, Project project, boolean includeChildren) {
+    public ProjectInfoBuilder(ProjectInfoResponse response, Project project, boolean includeChildren) {
         this.response = response;
         this.project = project;
         this.includeChildren = includeChildren;
@@ -133,7 +134,7 @@ public final class ProjectVisitor {
         for (Project childProject : workspaceProjects) {
             ProjectInfoResponse childResponse = new ProjectInfoResponse();
             // Populate child project info (without their children to avoid recursion)
-            ProjectVisitor childVisitor = new ProjectVisitor(childResponse, childProject, false);
+            ProjectInfoBuilder childVisitor = new ProjectInfoBuilder(childResponse, childProject, false);
             childVisitor.populate();
             children.add(childResponse);
         }
@@ -163,7 +164,7 @@ public final class ProjectVisitor {
 
         // Step 3: Capitalize and join
         return words.stream()
-                .map(ProjectVisitor::capitalize)
+                .map(ProjectInfoBuilder::capitalize)
                 .collect(Collectors.joining(" "));
     }
 
