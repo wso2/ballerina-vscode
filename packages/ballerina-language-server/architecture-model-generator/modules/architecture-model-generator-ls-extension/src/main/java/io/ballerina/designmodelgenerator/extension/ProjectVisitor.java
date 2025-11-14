@@ -65,7 +65,7 @@ public final class ProjectVisitor {
     public void populate() {
         // Set common project info
         response.setProjectKind(project.kind().name());
-        response.setProjectPath(project.sourceRoot().toUri().toString());
+        response.setProjectPath(project.sourceRoot().toString());
 
         // Handle workspace projects
         Path filePath = project.sourceRoot().getFileName();

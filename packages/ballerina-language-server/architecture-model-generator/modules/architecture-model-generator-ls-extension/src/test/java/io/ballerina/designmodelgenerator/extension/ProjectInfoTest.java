@@ -27,7 +27,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,18 +128,16 @@ public class ProjectInfoTest extends AbstractLSTest {
         return normalized;
     }
 
-    private String normalizeUriToRelativePath(String uriString, Path baseDir) {
+    private String normalizeUriToRelativePath(String pathString, Path baseDir) {
         try {
-            // Handle file:// URIs
-            if (uriString.startsWith("file://")) {
-                Path absolutePath = Paths.get(new URI(uriString));
-                Path relativePath = baseDir.relativize(absolutePath);
-                return relativePath.toString().replace('\\', '/');
-            }
+            // Handle file paths
+            Path absolutePath = Paths.get(pathString);
+            Path relativePath = baseDir.relativize(absolutePath);
+            return relativePath.toString().replace('\\', '/');
         } catch (Exception e) {
-            // If conversion fails, return original URI
+            // If conversion fails, return original path
         }
-        return uriString;
+        return pathString;
     }
 
     public record TestConfig(String description, String source, JsonObject output) {
