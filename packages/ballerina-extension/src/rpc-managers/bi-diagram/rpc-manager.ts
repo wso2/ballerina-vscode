@@ -2018,6 +2018,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         });
     }
+
+    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {
