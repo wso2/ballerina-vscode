@@ -20,15 +20,31 @@ import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
-import { buildNeedTokenRefetchListner, buildOnChangeListner, chipPlugin, chipTheme, completionTheme, tokenField, tokensChangeEffect, expressionEditorKeymap, buildCompletionSource, buildHelperPaneKeymap, buildOnFocusListner, CursorInfo, buildOnFocusOutListner } from "../CodeUtils";
+import {
+    buildNeedTokenRefetchListner,
+    buildOnChangeListner,
+    chipPlugin,
+    chipTheme,
+    completionTheme,
+    tokenField,
+    tokensChangeEffect,
+    expressionEditorKeymap,
+    buildCompletionSource,
+    buildHelperPaneKeymap,
+    buildOnFocusListner,
+    CursorInfo,
+    buildOnFocusOutListner
+} from "../CodeUtils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
-import { ContextMenuContainer, FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
+import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { Codicon, CompletionItem, FnSignatureDocumentation, HELPER_PANE_EX_BTN_OFFSET, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
+import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
+import { HelperPane } from "./HelperPane";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -108,13 +124,34 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     });
 
     const onHelperItemSelect = async (value: string, options: HelperpaneOnChangeOptions) => {
+        const newValue = value
         if (!viewRef.current) return;
         const view = viewRef.current;
         const { from, to } = view.state.selection.main;
 
+        let finalValue = newValue;
+        let cursorPosition = from + newValue.length;
+
+        if (newValue.endsWith('()')) {
+            if (props.extractArgsFromFunction) {
+                try {
+                    const cursorPositionForExtraction = from + newValue.length - 1;
+                    const fnSignature = await props.extractArgsFromFunction(newValue, cursorPositionForExtraction);
+
+                    if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
+                        const placeholderArgs = fnSignature.args.map((arg, index) => `$${index + 1}`);
+                        finalValue = newValue.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
+                        cursorPosition = from + finalValue.length - 1; 
+                    }
+                } catch (error) {
+                    console.warn('Failed to extract function arguments:', error);
+                }
+            }
+        }
+
         view.dispatch({
-            changes: { from, to, insert: value },
-            selection: { anchor: from + value.length }
+            changes: { from, to, insert: finalValue },
+            selection: { anchor: cursorPosition }
         });
         if (options.closeHelperPane) {
             setIsTokenUpdateScheduled(true);
@@ -244,33 +281,11 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
     return (
         <>
             {props.isExpandedVersion && (
-                <button
+                <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
+                    isOpen={helperPaneState.isOpen}
                     onClick={handleHelperPaneManualToggle}
-                    tabIndex={-1}
-                    style={{
-                        padding: '6px 12px',
-                        borderRadius: '3px',
-                        border: '1px solid var(--vscode-button-border)',
-                        backgroundColor: helperPaneState.isOpen ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground)',
-                        color: helperPaneState.isOpen ? 'var(--vscode-button-foreground)' : 'var(--vscode-button-secondaryForeground)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px',
-                        width: '55px',
-                        height: '25px',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontFamily: 'var(--vscode-font-family)',
-                        outline: 'none',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        transition: 'all 0.1s ease'
-                    }}
-                >
-                    <Codicon name="question" />
-                    <Codicon name={helperPaneState.isOpen ? "chevron-right" : "chevron-down"} />
-                </button>
+                />
             )}
             <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
                 {!props.isInExpandedMode && <FXButton />}
@@ -308,35 +323,3 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
 
     );
 }
-
-type HelperPaneProps = {
-    top: number;
-    left: number;
-    getHelperPane: (
-        value: string,
-        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
-        helperPaneHeight: HelperPaneHeight
-    ) => React.ReactNode;
-    value: string;
-    onChange: (value: string, options?: HelperpaneOnChangeOptions) => void;
-}
-
-export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((props, ref) => {
-    return (
-        <ContextMenuContainer
-            ref={ref}
-            top={props.top}
-            left={props.left}
-            onMouseDown={e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }}
-        >
-            {props.getHelperPane(
-                props.value,
-                props.onChange,
-                "3/4"
-            )}
-        </ContextMenuContainer>
-    );
-});
