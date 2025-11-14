@@ -31,6 +31,8 @@ public class ProjectInfoResponse extends AbstractResponse {
     private String name;           // Package name from packageName().value()
     private String title;          // Project title (from Ballerina.toml or name fallback)
     private String uri;            // Project root as URI string
+    private String org;            // Package organization
+    private String version;        // Package version
     private List<ProjectInfoResponse> children;  // Only populated for workspace projects (recursive)
 
     public String getProjectKind() {
@@ -63,6 +65,22 @@ public class ProjectInfoResponse extends AbstractResponse {
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public String getOrg() {
+        return org;
+    }
+
+    public void setOrg(String org) {
+        this.org = org;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     public List<ProjectInfoResponse> getChildren() {

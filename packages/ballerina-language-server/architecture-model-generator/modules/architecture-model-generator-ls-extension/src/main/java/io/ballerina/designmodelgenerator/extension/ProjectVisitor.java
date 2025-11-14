@@ -98,6 +98,10 @@ public final class ProjectVisitor {
                     .flatMap(tomlDocument -> extractTitleFromToml(tomlDocument, "package"))
                     .orElse(formatNameToTitle(packageName));
             response.setTitle(title);
+
+            // Set org and version for build projects
+            response.setOrg(currentPackage.packageOrg().value());
+            response.setVersion(currentPackage.packageVersion().value().toString());
         }
     }
 
