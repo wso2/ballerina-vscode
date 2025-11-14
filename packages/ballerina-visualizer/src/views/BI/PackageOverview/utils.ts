@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SCOPE } from "@wso2/ballerina-core";
+import { SCOPE, ProjectStructureResponse, DIRECTORY_MAP } from "@wso2/ballerina-core";
 
 const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
 const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
@@ -32,4 +32,46 @@ export function findScopeByModule(moduleName: string): SCOPE {
     } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
         return SCOPE.FILE_INTEGRATION;
     }
+}
+
+/**
+ * Extracts deployable integration types (scopes) from project structure.
+ * 
+ * @param projectStructure - The project structure response containing all projects
+ * @param projectPath - The path of the specific project to extract scopes from
+ * @returns Array of SCOPE enums representing the deployable integration types
+ */
+export function getIntegrationTypes(
+    projectStructure: ProjectStructureResponse | undefined,
+    projectPath: string
+): SCOPE[] {
+    if (!projectStructure) {
+        return [];
+    }
+
+    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    
+    if (!project) {
+        return [];
+    }
+
+    const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
+    const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
+
+    let scopes: SCOPE[] = [];
+    
+    // Extract scopes from services based on their module names
+    if (services) {
+        const svcScopes = services
+            .map(svc => findScopeByModule(svc?.moduleName))
+            .filter(svc => svc !== undefined);
+        scopes = Array.from(new Set(svcScopes)); // Remove duplicates
+    }
+    
+    // Add automation scope if automation exists
+    if (automation?.length > 0) {
+        scopes.push(SCOPE.AUTOMATION);
+    }
+
+    return scopes;
 }

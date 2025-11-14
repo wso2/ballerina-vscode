@@ -19,8 +19,9 @@
 import styled from '@emotion/styled';
 import React from 'react';
 import { Codicon, Typography } from '@wso2/ui-toolkit';
-import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse } from '@wso2/ballerina-core';
+import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse, SCOPE } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
+import { getIntegrationTypes } from '../PackageOverview/utils';
 
 export const CardGrid = styled.div`
     display: grid;
@@ -149,8 +150,6 @@ const Chip = styled.div<{ color: string }>`
     white-space: nowrap;
 `;
 
-export type PackageType = 'automation' | 'integration-as-api' | 'event-integration' | 'file-integration' | 'ai-agent';
-
 export interface PackageListViewProps {
     workspaceStructure: ProjectStructureResponse;
 }
@@ -158,59 +157,54 @@ export interface PackageListViewProps {
 interface Package {
     id: string;
     name: string;
-    types?: PackageType[];
+    types?: SCOPE[];
 }
 
-const getTypeColor = (type: PackageType): string => {
-    const colors: Record<PackageType, string> = {
-        'automation': 'var(--vscode-charts-blue)',
-        'integration-as-api': 'var(--vscode-charts-green)',
-        'event-integration': 'var(--vscode-charts-orange)',
-        'file-integration': 'var(--vscode-charts-purple)',
-        'ai-agent': 'var(--vscode-charts-red)'
+const getTypeColor = (type: SCOPE): string => {
+    const colors: Record<SCOPE, string> = {
+        [SCOPE.AUTOMATION]: 'var(--vscode-charts-blue)',
+        [SCOPE.INTEGRATION_AS_API]: 'var(--vscode-charts-green)',
+        [SCOPE.EVENT_INTEGRATION]: 'var(--vscode-charts-orange)',
+        [SCOPE.FILE_INTEGRATION]: 'var(--vscode-charts-purple)',
+        [SCOPE.AI_AGENT]: 'var(--vscode-charts-red)',
+        [SCOPE.ANY]: 'var(--vscode-charts-gray)'
     };
     return colors[type];
 };
 
-const getTypeIcon = (type: PackageType): string => {
-    const icons: Record<PackageType, string> = {
-        'automation': 'robot',
-        'integration-as-api': 'cloud',
-        'event-integration': 'pulse',
-        'file-integration': 'file',
-        'ai-agent': 'sparkle'
+const getTypeIcon = (type: SCOPE): string => {
+    const icons: Record<SCOPE, string> = {
+        [SCOPE.AUTOMATION]: 'robot',
+        [SCOPE.INTEGRATION_AS_API]: 'cloud',
+        [SCOPE.EVENT_INTEGRATION]: 'pulse',
+        [SCOPE.FILE_INTEGRATION]: 'file',
+        [SCOPE.AI_AGENT]: 'sparkle',
+        [SCOPE.ANY]: 'package'
     };
     return icons[type];
 };
 
-const getTypeLabel = (type: PackageType): string => {
-    const labels: Record<PackageType, string> = {
-        'automation': 'Automation',
-        'integration-as-api': 'API Integration',
-        'event-integration': 'Event Integration',
-        'file-integration': 'File Integration',
-        'ai-agent': 'AI Agent'
+const getTypeLabel = (type: SCOPE): string => {
+    const labels: Record<SCOPE, string> = {
+        [SCOPE.AUTOMATION]: 'Automation',
+        [SCOPE.INTEGRATION_AS_API]: 'API Integration',
+        [SCOPE.EVENT_INTEGRATION]: 'Event Integration',
+        [SCOPE.FILE_INTEGRATION]: 'File Integration',
+        [SCOPE.AI_AGENT]: 'AI Agent',
+        [SCOPE.ANY]: ''
     };
     return labels[type];
 };
 
 export function PackageListView(props: PackageListViewProps) {
     const { rpcClient } = useRpcContext();
-    // TODO: Replace with actual data from props or context
-    // const packages: Package[] = [
-    //     { id: 'ads_service', name: 'Ads Service', types: ['automation', 'event-integration'] },
-    //     { id: 'payment-service', name: 'Payment Service', types: ['integration-as-api'] },
-    //     { id: 'checkout-service', name: 'Checkout Service', types: ['event-integration', 'integration-as-api'] },
-    //     { id: 'document-processor', name: 'Document Processor', types: ['file-integration', 'automation'] },
-    //     { id: 'customer-support-bot', name: 'Customer Support Bot', types: ['ai-agent'] }
-    // ];
     const workspaceStructure = props.workspaceStructure;
     const packages = workspaceStructure.projects.map((project) => {
         return {
             id: project.projectName,
             name: project.projectTitle,
             projectPath: project.projectPath,
-            types: [] as PackageType[]
+            types: getIntegrationTypes(workspaceStructure, project.projectPath)
         }
     });
 
@@ -266,7 +260,7 @@ export function PackageListView(props: PackageListViewProps) {
                             <ChipContainer>
                                 {pkg.types.map((type) => (
                                     <Chip key={type} color={getTypeColor(type)}>
-                                        {getTypeLabel(type)}
+                                        {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
                                     </Chip>
                                 ))}
                             </ChipContainer>
