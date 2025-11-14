@@ -74,6 +74,10 @@ export type ChipExpressionEditorComponentProps = {
     onOpenExpandedMode?: () => void;
     onRemove?: () => void;
     isInExpandedMode?: boolean;
+
+    // TODO: change this prop to pass a style object instead of just height
+    // to allow more flexibility in styling
+    expressionHeight?: string | number;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -146,7 +150,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
                         const placeholderArgs = fnSignature.args.map((arg, index) => `$${index + 1}`);
                         finalValue = newValue.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
-                        cursorPosition = from + finalValue.length - 1; 
+                        cursorPosition = from + finalValue.length - 1;
                     }
                 } catch (error) {
                     console.warn('Failed to extract function arguments:', error);
@@ -192,6 +196,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }));
     }
 
+    // Determine height based on expressionHeight prop, or fall back to default behavior
+    const getHeightValue = (height: string | number) => {
+        return typeof height === 'number'
+            ? `${height}px`
+            : height;
+    };
+
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
@@ -213,10 +224,17 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 handleChangeListner,
                 handleFocusListner,
                 handleFocusOutListner,
-                ...(props.isInExpandedMode ? [EditorView.theme({
-                    "&": { height: "100%" },
-                    ".cm-scroller": { overflow: "auto" }
-                })] : [])
+                ...(props.isInExpandedMode
+                    ? [EditorView.theme({
+                        "&": { height: "100%" },
+                        ".cm-scroller": { overflow: "auto" }
+                    })]
+                    : props.expressionHeight
+                        ? [EditorView.theme({
+                            "&": { height: getHeightValue(props.expressionHeight) },
+                            ".cm-scroller": { overflow: "auto" }
+                        })]
+                        : [])
             ]
         });
         const view = new EditorView({
@@ -292,10 +310,23 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     onClick={handleHelperPaneManualToggle}
                 />
             )}
-            <ChipEditorContainer ref={fieldContainerRef} style={{ position: 'relative', height: props.isInExpandedMode ? '100%' : 'auto' }}>
+            <ChipEditorContainer ref={fieldContainerRef} style={{
+                position: 'relative',
+                height: props.isInExpandedMode
+                    ? '100%'
+                    : props.expressionHeight
+                        ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
+                        : 'auto'
+            }}>
                 {!props.isInExpandedMode && <FXButton />}
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    <div ref={editorRef} style={{ height: props.isInExpandedMode ? '100%' : 'auto' }} />
+                    <div ref={editorRef} style={{
+                        height: props.isInExpandedMode
+                            ? '100%'
+                            : props.expressionHeight
+                                ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
+                                : 'auto'
+                    }} />
                     {helperPaneState.isOpen &&
                         <HelperPane
                             ref={helperPaneRef}
