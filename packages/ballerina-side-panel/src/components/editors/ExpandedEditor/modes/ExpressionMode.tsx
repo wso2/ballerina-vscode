@@ -19,7 +19,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
-import { ChipExpressionBaseComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent";
+import { ChipExpressionBaseComponent2 } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionBaseComponent2";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -48,7 +48,7 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
 
     return (
         <ExpressionContainer>
-            <ChipExpressionBaseComponent
+            <ChipExpressionBaseComponent2
                 value={value}
                 onChange={handleChange}
                 completions={completions}
