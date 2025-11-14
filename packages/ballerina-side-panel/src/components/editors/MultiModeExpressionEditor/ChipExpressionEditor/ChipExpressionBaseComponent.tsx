@@ -18,10 +18,9 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import FXButton from "./components/FxButton";
-import { ChipEditorContainer, SkeletonLoader } from "./styles";
+import { ChipEditorContainer } from "./styles";
 import { ExpressionModel } from "./types";
 import { AutoExpandingEditableDiv } from "./components/AutoExpandingEditableDiv";
-import { TokenizedExpression } from "./components/TokenizedExpression";
 import {
     getAbsoluteCaretPosition,
     mapAbsoluteToModel,
@@ -99,13 +98,15 @@ export const ChipExpressionBaseComponent = (props: ChipExpressionBaseComponentPr
     const fetchUpdatedFilteredTokens = useCallback(async (value: string): Promise<number[]> => {
         setIsLoading(true);
         try {
-            const response = await expressionEditorRpcManager?.getExpressionTokens(
-                value,
-                props.fileName,
-                props.targetLineRange.startLine
-            );
-            setIsLoading(false);
-            return response || [];
+            // const response = await expressionEditorRpcManager?.getExpressionTokens(
+            //     value,
+            //     props.fileName,
+            //     props.targetLineRange.startLine
+            // );
+            // setIsLoading(false);
+            return new Promise<number[]>((resolve) => {
+                resolve([]);
+            });
         } catch (error) {
             setIsLoading(false);
             return [];
