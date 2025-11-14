@@ -34,7 +34,6 @@ export interface ResourceParamProps {
 }
 
 const ResourceResponseContainer = styled.div`
-	margin-bottom: 25px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -61,6 +60,9 @@ export function ResourceResponse(props: ResourceParamProps) {
         param.name.metadata = schema.name.metadata;
         param.headers.metadata = schema.headers.metadata;
         param.type.metadata = schema.type.metadata;
+        if (param.mediaType) {
+            param.mediaType.metadata = schema.mediaType.metadata;
+        }
         setEditModel(param);
     };
 
@@ -112,7 +114,7 @@ export function ResourceResponse(props: ResourceParamProps) {
                     />
                 )
             })}
-            {!editModel && (
+            {!editModel && !readonly && (
                 <AddButtonWrapper>
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />

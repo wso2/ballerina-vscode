@@ -29,25 +29,33 @@ import { TextDocumentEdit } from "vscode-languageserver-types";
 import { modifyFileContent } from "../../utils/modification";
 import { fileURLToPath } from "url";
 import { startDebugging } from "../editor-support/activator";
-import { openView } from "../../stateMachine";
+import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
+import { TracerMachine } from "../tracing";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
-export async function prepareAndGenerateConfig(ballerinaExtInstance: BallerinaExtension, filePath: string, isCommand?: boolean, isBi?: boolean, executeRun: boolean = true, includeOptional: boolean = false): Promise<void> {
-    const currentProject: BallerinaProject | undefined = await getCurrentBIProject(filePath);
+export async function prepareAndGenerateConfig(
+    ballerinaExtInstance: BallerinaExtension,
+    projectPath: string,
+    isCommand?: boolean,
+    isBi?: boolean,
+    executeRun: boolean = true,
+    includeOptional: boolean = false
+): Promise<void> {
+    const currentProject: BallerinaProject | undefined = await getCurrentBIProject(projectPath);
     const ignoreFile = path.join(currentProject.path, ".gitignore");
     const configFile = path.join(currentProject.path, BAL_CONFIG_FILE);
 
     const hasWarnings = (
         await checkConfigUpdateRequired(
             ballerinaExtInstance,
-            filePath
+            projectPath
         )).hasWarnings;
 
     if (!hasWarnings) {
         if (!isCommand && executeRun) {
-            executeRunCommand(ballerinaExtInstance, filePath, isBi);
+            executeRunCommand(ballerinaExtInstance, projectPath, isBi);
         }
         return;
     }
@@ -55,12 +63,15 @@ export async function prepareAndGenerateConfig(ballerinaExtInstance: BallerinaEx
     await handleOnUnSetValues(currentProject.packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi);
 }
 
-export async function checkConfigUpdateRequired(ballerinaExtInstance: BallerinaExtension, filePath: string): Promise<{ hasWarnings: boolean }> {
+export async function checkConfigUpdateRequired(
+    ballerinaExtInstance: BallerinaExtension,
+    projectPath: string
+): Promise<{ hasWarnings: boolean }> {
     try {
         const showLibraryConfigVariables = ballerinaExtInstance.showLibraryConfigVariables();
 
         const response = await ballerinaExtInstance.langClient?.getConfigVariablesV2({
-            projectPath: filePath,
+            projectPath,
             includeLibraries: showLibraryConfigVariables !== false
         }) as ConfigVariableResponse;
 
@@ -140,9 +151,11 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    let currentProject: BallerinaProject = {};
-    currentProject = await getCurrentBallerinaProject(projectPath);
-    return currentProject;
+    if (StateMachine.context().projectPath) {
+        projectPath = StateMachine.context().projectPath;
+    }
+
+    return await getCurrentBallerinaProject(projectPath);
 }
 
 export async function handleOnUnSetValues(packageName: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean): Promise<void> {
@@ -212,6 +225,7 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
 
 
 async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, filePath: string, isBi?: boolean) {
+    TracerMachine.startServer();
     if (ballerinaExtInstance.enabledRunFast() || isBi) {
         filePath = (await getCurrentBallerinaProject(filePath)).path;
         const projectHasErrors = await cleanAndValidateProject(ballerinaExtInstance.langClient, filePath);

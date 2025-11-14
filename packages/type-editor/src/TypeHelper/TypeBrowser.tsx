@@ -17,19 +17,10 @@
  */
 
 import React, { RefObject, useEffect, useRef, useState } from 'react';
-import { Codicon, getIcon, HelperPane } from '@wso2/ui-toolkit';
-import styled from '@emotion/styled';
+import { BrowserEmptyMessage, BrowserItemContainer, BrowserItemLabel, BrowserLoaderContainer, BrowserSectionBody, BrowserSectionContainer, HelperPane, Typography, getIcon } from '@wso2/ui-toolkit';
 
 import { TypeHelperCategory, TypeHelperItem } from '.';
 import { EMPTY_SEARCH_RESULT_MSG, EMPTY_SEARCH_TEXT_MSG } from './constant';
-
-const SearchMsg = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: var(--vscode-descriptionForeground)
-`;
 
 type TypeBrowserProps = {
     typeBrowserRef: RefObject<HTMLDivElement>;
@@ -76,51 +67,71 @@ export const TypeBrowser = (props: TypeBrowserProps) => {
             title="Type Browser"
             titleSx={{ fontFamily: 'GilmerRegular' }}
         >
-            {typeBrowserTypes?.length > 0 ? (
-                typeBrowserTypes.map((category) => (
-                    <HelperPane.Section
-                        key={category.category}
-                        title={category.category}
-                        titleSx={{ fontFamily: 'GilmerMedium' }}
-                        {...(category.items?.length > 0 &&
-                            category.subCategory?.length === 0 && {
-                                columns: 3
-                            })}
-                    >
-                        {category.items?.map((item) => (
-                            <HelperPane.CompletionItem
-                                key={`${category.category}-${item.name}`}
-                                label={item.name}
-                                getIcon={() => getIcon(item.type)}
-                                onClick={() => onTypeItemClick(item)}
-                            />
-                        ))}
-                        {category.subCategory?.map((subCategory) => (
-                            <HelperPane.LibraryBrowserSubSection
-                                key={subCategory.category}
-                                title={subCategory.category}
-                                columns={3}
-                            >
-                                {subCategory.items?.map((item) => (
-                                    <HelperPane.CompletionItem
-                                        key={`${subCategory.category}-${item.name}`}
-                                        label={item.name}
-                                        getIcon={() => getIcon(item.type)}
-                                        onClick={() => onTypeItemClick(item)}
-                                    />
+            {loadingTypeBrowser ? (
+                    <BrowserLoaderContainer>
+                        <Typography variant="body3">Loading...</Typography>
+                    </BrowserLoaderContainer>
+                ) : typeBrowserTypes?.length > 0 ? (
+                    typeBrowserTypes
+                        .filter((category) => 
+                            (category.items && category.items.length > 0) || 
+                            (category.subCategory && category.subCategory.some(sub => sub.items && sub.items.length > 0))
+                        )
+                        .map((category) => (
+                        <BrowserSectionContainer key={category.category}>
+                            <Typography variant="h2" sx={{ margin: 0, fontFamily: 'GilmerMedium', fontSize: '16px', fontWeight: '600' }}>
+                                {category.category}
+                            </Typography>
+                            <BrowserSectionBody columns={category.items?.length > 0 && category.subCategory?.length === 0 ? 3 : 1}>
+                                {category.items?.length > 0 ? (
+                                    category.items.map((item) => (
+                                        <BrowserItemContainer
+                                            key={`${category.category}-${item.name}`}
+                                            onClick={() => onTypeItemClick(item)}
+                                        >
+                                            {getIcon(item.type)}
+                                            <BrowserItemLabel>{item.name}</BrowserItemLabel>
+                                        </BrowserItemContainer>
+                                    ))
+                                ) : (
+                                    !category.subCategory?.length && (
+                                        <BrowserEmptyMessage>
+                                            No items found
+                                        </BrowserEmptyMessage>
+                                    )
+                                )}
+                                {category.subCategory?.filter(sub => sub.items && sub.items.length > 0).map((subCategory) => (
+                                    <div key={`${category.category}-${subCategory.category}`} style={{ marginTop: '12px' }}>
+                                        <Typography variant="body3" sx={{ fontStyle: "italic", marginBottom: '8px' }}>
+                                            {subCategory.category}
+                                        </Typography>
+                                        <BrowserSectionBody columns={3}>
+                                            {subCategory.items?.length > 0 ? (
+                                                subCategory.items.map((item) => (
+                                                    <BrowserItemContainer
+                                                        key={`${subCategory.category}-${item.name}`}
+                                                        onClick={() => onTypeItemClick(item)}
+                                                    >
+                                                        {getIcon(item.type)}
+                                                        <BrowserItemLabel>{item.name}</BrowserItemLabel>
+                                                    </BrowserItemContainer>
+                                                ))
+                                            ) : (
+                                                <BrowserEmptyMessage>
+                                                    No items found
+                                                </BrowserEmptyMessage>
+                                            )}
+                                        </BrowserSectionBody>
+                                    </div>
                                 ))}
-                            </HelperPane.LibraryBrowserSubSection>
-                        ))}
-                    </HelperPane.Section>
-                ))
-            ) : (
-                <SearchMsg>
-                    <Codicon name='search' sx={{ marginRight: '10px' }} />
-                    <p>
+                            </BrowserSectionBody>
+                        </BrowserSectionContainer>
+                    ))
+                ) : (
+                    <BrowserEmptyMessage style={{ textAlign: 'center', padding: '20px' }}>
                         {searchValue !== "" ? EMPTY_SEARCH_RESULT_MSG : EMPTY_SEARCH_TEXT_MSG}
-                    </p>
-                </SearchMsg>
-            )}
+                    </BrowserEmptyMessage>
+                )}
         </HelperPane.LibraryBrowser>
     );
 };

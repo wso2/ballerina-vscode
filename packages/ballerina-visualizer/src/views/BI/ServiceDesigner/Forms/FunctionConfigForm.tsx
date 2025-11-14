@@ -17,52 +17,69 @@
  */
 
 import React, { useState } from "react";
-import { ActionButtons, Dropdown, SidePanelBody } from "@wso2/ui-toolkit";
+import { SidePanelBody } from "@wso2/ui-toolkit";
 import { FunctionModel, ServiceModel } from "@wso2/ballerina-core";
+import ButtonCard from "../../../../components/ButtonCard";
 
 import { EditorContentColumn } from "../styles";
 
 interface FunctionConfigFormProps {
     serviceModel: ServiceModel;
     onSubmit?: (model: FunctionModel) => void;
+    onSelect?: (model: FunctionModel) => void;
     onBack?: () => void;
     isSaving: boolean;
 }
 
 export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
-    const { serviceModel, onSubmit, onBack, isSaving } = props;
+    const { serviceModel, onSubmit, onSelect, onBack, isSaving } = props;
 
-    const options = serviceModel.functions.filter(func => !func.enabled).map((func, index) => ({ id: index.toString(), value: func.name.value }));
-    const [functionName, setFunctionName] = useState<string>(options.length > 0 ? options[0].value : undefined);
+    const nonEnabledFunctions = serviceModel.functions.filter(func => !func.enabled);
+    const [selectedFunctionName, setSelectedFunctionName] = useState<string | undefined>(
+        nonEnabledFunctions.length > 0 ? nonEnabledFunctions[0].name.value : undefined
+    );
 
-    const handleOnSelect = (value: string) => {
-        setFunctionName(value);
+    const handleOnSelect = (functionName: string) => {
+        setSelectedFunctionName(functionName);
+        const selectedFunction = serviceModel.functions.find(func => func.name.value === functionName);
+        if (selectedFunction) {
+            // If onSelect is provided, call it instead of onSubmit
+            if (onSelect) {
+                onSelect(selectedFunction);
+            } else {
+                // Fallback to old behavior if onSelect is not provided
+                handleConfigSave();
+            }
+        }
     };
 
     const handleConfigSave = () => {
-        const selectedFunction = serviceModel.functions.find(func => func.name.value === functionName);
-        selectedFunction.enabled = true;
-        onSubmit(selectedFunction);
+        if (selectedFunctionName) {
+            const selectedFunction = serviceModel.functions.find(func => func.name.value === selectedFunctionName);
+            if (selectedFunction) {
+                selectedFunction.enabled = true;
+                onSubmit(selectedFunction);
+            }
+        }
     };
 
     return (
         <SidePanelBody>
             <EditorContentColumn>
-                <Dropdown
-                    id="function-selector"
-                    sx={{ zIndex: 2, width: "100%", marginBottom: 20 }}
-                    isRequired
-                    items={options}
-                    label="Available Functions"
-                    onValueChange={handleOnSelect}
-                    value={functionName}
-                />
-                <ActionButtons
-                    primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleConfigSave, disabled: isSaving, loading: isSaving }}
-                    secondaryButton={{ text: "Cancel", onClick: onBack, disabled: isSaving }}
-                    sx={{ justifyContent: "flex-end" }}
-                />
+                {nonEnabledFunctions.map((func, index) => (
+                    <ButtonCard
+                        key={func.name.value}
+                        id={`function-card-${index}`}
+                        title={func.name.value}
+                        tooltip={func.metadata?.description || ""}
+                        onClick={() => handleOnSelect(func.name.value)}
+                        disabled={isSaving}
+                    />
+                ))}
+                {nonEnabledFunctions.length === 0 && (
+                    <div>No functions available to enable.</div>
+                )}
             </EditorContentColumn>
         </SidePanelBody>
     );

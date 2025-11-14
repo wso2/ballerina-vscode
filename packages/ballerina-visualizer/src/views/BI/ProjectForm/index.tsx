@@ -66,6 +66,8 @@ export function ProjectForm() {
         packageName: "",
         path: "",
         createDirectory: true,
+        createAsWorkspace: false,
+        workspaceName: "",
         orgName: "",
         version: "",
     });
@@ -80,6 +82,8 @@ export function ProjectForm() {
             packageName: formData.packageName,
             projectPath: formData.path,
             createDirectory: formData.createDirectory,
+            createAsWorkspace: formData.createAsWorkspace,
+            workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
         });
@@ -114,7 +118,7 @@ export function ProjectForm() {
                     onClick={handleCreateProject}
                     appearance="primary"
                 >
-                    Create Integration
+                    {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
                 </Button>
             </ButtonWrapper>
         </FormContainer>

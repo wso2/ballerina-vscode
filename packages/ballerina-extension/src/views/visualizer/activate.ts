@@ -21,8 +21,8 @@ import { PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
-import { ViewColumn } from 'vscode';
 import { buildProjectArtifactsStructure } from '../../utils/project-artifacts';
+import { findBallerinaPackageRoot } from '../../utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -32,7 +32,7 @@ export function activateSubscriptions() {
             if (!path) {
                 return;
             }
-            vscode.window.showTextDocument(vscode.Uri.file(path), { viewColumn: ViewColumn.Beside });
+            vscode.window.showTextDocument(vscode.Uri.file(path), { viewColumn: vscode.ViewColumn.Beside });
         })
     );
 
@@ -45,7 +45,7 @@ export function activateSubscriptions() {
 
     // <------------- Shared Commands ------------>
     context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.SHOW_VISUALIZER, (path: string | vscode.Uri, position, resetHistory = false) => {
+        vscode.commands.registerCommand(SHARED_COMMANDS.SHOW_VISUALIZER, async (path: string | vscode.Uri, position, resetHistory = false) => {
             // Check if position is a LineRange object (has 'start' and 'end' keys)
             let nodePosition: NodePosition = position;
             if (position && typeof position === "object" && "start" in position && "end" in position) {
@@ -69,6 +69,18 @@ export function activateSubscriptions() {
                     documentPath = path.fsPath;
                 }
             }
+
+            const projectPath = StateMachine.context().projectPath;
+            const projectRoot = await findBallerinaPackageRoot(documentPath);
+
+            if (!projectPath || projectPath !== projectRoot) {
+                // Initialize project structure if not already set by finding and loading the Ballerina project root
+                // Can happen when the user opens a directory containing multiple Ballerina projects
+                if (projectRoot) {
+                    await StateMachine.updateProjectRoot(projectRoot);
+                }
+            }
+            
             if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
                 openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
             } else {
@@ -86,7 +98,7 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS, () => {
-            return buildProjectArtifactsStructure(StateMachine.context().projectUri, StateMachine.langClient(), true);
+            return buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
         })
     );
 

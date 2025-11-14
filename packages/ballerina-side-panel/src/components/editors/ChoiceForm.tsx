@@ -79,6 +79,10 @@ export function ChoiceForm(props: ChoiceFormProps) {
         const formFields: FormField[] = [];
         for (const key in model.properties) {
             const expression = model.properties[key];
+            let items = undefined;
+            if (expression.valueType === "MULTIPLE_SELECT" || expression.valueType === "SINGLE_SELECT") {
+                items = expression.items;
+            }
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -92,7 +96,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 valueTypeConstraint: expression.valueTypeConstraint,
                 advanced: expression.advanced,
                 diagnostics: [],
-                items: expression.valueType === "SINGLE_SELECT" ? [""].concat(expression.items) : expression.items,
+                items,
                 choices: expression.choices,
                 placeholder: expression.placeholder,
                 defaultValue: expression.defaultValue as string
@@ -109,7 +113,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 <RadioButtonGroup
                     id="choice-options"
                     label={field.documentation}
-                    defaultValue={1}
+                    defaultValue={selectedOption}
                     defaultChecked={true}
                     value={selectedOption}
                     options={field.choices.map((choice, index) => ({ id: index.toString(), value: index + 1, content: choice.metadata.label }))}
@@ -125,11 +129,12 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.map((dfield) => {
+                {dynamicFields.map((dfield, index) => {
                     return (
                         <EditorFactory
                             key={dfield.key}
                             field={dfield}
+                            autoFocus={index === 0 ? true : false}
                             recordTypeFields={recordTypeFields}
                         />
                     );

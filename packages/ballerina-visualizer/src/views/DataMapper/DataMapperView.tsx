@@ -42,7 +42,8 @@ import {
     IOType,
     MACHINE_VIEW,
     VisualizerLocation,
-    DeleteClauseRequest
+    DeleteClauseRequest,
+    IORoot
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -66,7 +67,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
+    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -605,7 +606,7 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: property,
+                        property: { ...property, valueType: "DATA_MAPPING_EXPRESSION" }
                     },
                     completionContext: {
                         triggerKind: triggerCharacter ? 2 : 1,
@@ -666,7 +667,7 @@ export function DataMapperView(props: DataMapperProps) {
                 <>
                     {reusable && (!hasInputs || !hasOutputs) ? (
                         <FunctionForm
-                            projectPath={projectUri}
+                            projectPath={projectPath}
                             filePath={filePath}
                             functionName={modelState.model.output.name}
                             isDataMapper={true}
@@ -675,6 +676,7 @@ export function DataMapperView(props: DataMapperProps) {
                         <DataMapper
                             modelState={modelState}
                             name={name}
+                            reusable={reusable}
                             onClose={onDMClose}
                             onRefresh={onDMRefresh}
                             onReset={onDMReset}
@@ -714,7 +716,7 @@ export function DataMapperView(props: DataMapperProps) {
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
     inputs: model.inputs.map(i => i.name),
     output: model.output.name,
-    subMappings: model.subMappings?.map(s => s.name) || [],
+    subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 
