@@ -27,6 +27,7 @@ import io.ballerina.projects.TomlDocument;
 import io.ballerina.toml.semantic.ast.TomlStringValueNode;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,9 +68,10 @@ public final class ProjectVisitor {
         response.setProjectPath(project.sourceRoot().toUri().toString());
 
         // Handle workspace projects
+        Path filePath = project.sourceRoot().getFileName();
         if (includeChildren && BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
             // For workspace projects, use source root folder name as name
-            String workspaceName = project.sourceRoot().getFileName().toString();
+            String workspaceName = filePath != null ? filePath.toString() : "Workspace";
             response.setName(workspaceName);
 
             // Get the title from the workspace toml if present
@@ -83,9 +85,9 @@ public final class ProjectVisitor {
             response.setChildren(children);
         } else if (project.kind() == ProjectKind.SINGLE_FILE_PROJECT) {
             // For single file projects, use filename as name/title
-            String fileName = project.sourceRoot().getFileName().toString();
-            response.setName(fileName);
-            response.setTitle(fileName);
+            String projectName = filePath != null ? filePath.toString() : "Single File";
+            response.setName(projectName);
+            response.setTitle(projectName);
         } else {
             // Get the project name from the current package
             Package currentPackage = project.currentPackage();
@@ -113,15 +115,11 @@ public final class ProjectVisitor {
      * @return Optional containing title if found
      */
     private Optional<String> extractTitleFromToml(TomlDocument tomlDocument, String tableName) {
-        try {
-            return tomlDocument.toml()
-                    .getTable(tableName)
-                    .flatMap(table -> table.get("title"))
-                    .filter(titleValue -> titleValue instanceof TomlStringValueNode)
-                    .map(titleValue -> ((TomlStringValueNode) titleValue).getValue());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return tomlDocument.toml()
+                .getTable(tableName)
+                .flatMap(table -> table.get("title"))
+                .filter(titleValue -> titleValue instanceof TomlStringValueNode)
+                .map(titleValue -> ((TomlStringValueNode) titleValue).getValue());
     }
 
     /**
@@ -131,17 +129,13 @@ public final class ProjectVisitor {
      */
     private List<ProjectInfoResponse> extractChildProjects() {
         List<ProjectInfoResponse> children = new ArrayList<>();
-
-        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
-        if (compilerApi.isWorkspaceProject(project)) {
-            List<Project> workspaceProjects = compilerApi.getWorkspaceProjectsInOrder(project);
-            for (Project childProject : workspaceProjects) {
-                ProjectInfoResponse childResponse = new ProjectInfoResponse();
-                // Populate child project info (without their children to keep safe from recursion)
-                ProjectVisitor childVisitor = new ProjectVisitor(childResponse, childProject, false);
-                childVisitor.populate();
-                children.add(childResponse);
-            }
+        List<Project> workspaceProjects = BallerinaCompilerApi.getInstance().getWorkspaceProjectsInOrder(project);
+        for (Project childProject : workspaceProjects) {
+            ProjectInfoResponse childResponse = new ProjectInfoResponse();
+            // Populate child project info (without their children to avoid recursion)
+            ProjectVisitor childVisitor = new ProjectVisitor(childResponse, childProject, false);
+            childVisitor.populate();
+            children.add(childResponse);
         }
         return children;
     }

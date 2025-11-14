@@ -108,7 +108,7 @@ public class ProjectInfoTest extends AbstractLSTest {
             String key = entry.getKey();
             JsonElement value = entry.getValue();
 
-            if ("uri".equals(key) && value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+            if ("projectPath".equals(key) && value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
                 // Convert absolute URI to relative path
                 String uriString = value.getAsString();
                 String relativePath = normalizeUriToRelativePath(uriString, baseDir);
