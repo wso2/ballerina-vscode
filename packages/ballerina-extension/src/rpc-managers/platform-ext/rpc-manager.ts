@@ -15,7 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { onPlatformExtStoreStateChange, PlatformExtAPI, SyntaxTree, PackageTomlValues, DIRECTORY_MAP } from "@wso2/ballerina-core";
+import {
+    onPlatformExtStoreStateChange,
+    PlatformExtAPI,
+    SyntaxTree,
+    PackageTomlValues,
+    DIRECTORY_MAP,
+} from "@wso2/ballerina-core";
 import { extensions, Uri, window } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -55,12 +61,12 @@ import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getDomain, hasContextYaml, initializeDevantConnection } from "./platform-utils";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     static platformExtAPI: IWso2PlatformExtensionAPI;
     private async getPlatformExt() {
-        if(PlatformExtRpcManager.platformExtAPI){
+        if (PlatformExtRpcManager.platformExtAPI) {
             return PlatformExtRpcManager.platformExtAPI;
         }
         const platformExt = extensions.getExtension("wso2.wso2-platform");
@@ -84,13 +90,22 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const isLoggedIn = platformExt.isLoggedIn();
         const components = platformExt.getDirectoryComponents(StateMachine.context().projectPath);
         const selectedContext = platformExt.getSelectedContext();
-        const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
+        const matchingComponent = components.find(
+            (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
+        );
         const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
         const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
 
         platformExtStore
             .getState()
-            .setState({ isLoggedIn, components, selectedContext, selectedComponent: matchingComponent || components[0], hasLocalChanges, hasPossibleComponent: components.length > 0 || hasProjectYaml });
+            .setState({
+                isLoggedIn,
+                components,
+                selectedContext,
+                selectedComponent: matchingComponent || components[0],
+                hasLocalChanges,
+                hasPossibleComponent: components.length > 0 || hasProjectYaml,
+            });
 
         await this.refreshConnectionList();
 
@@ -99,8 +114,16 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         });
         platformExt.subscribeDirComponents(StateMachine.context().projectPath, (components) => {
             const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
-            const matchingComponent = components.find(item=>platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id);
-            platformExtStore.getState().setState({ components, selectedComponent: matchingComponent || components[0], hasPossibleComponent: components.length > 0 || hasProjectYaml  });
+            const matchingComponent = components.find(
+                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
+            );
+            platformExtStore
+                .getState()
+                .setState({
+                    components,
+                    selectedComponent: matchingComponent || components[0],
+                    hasPossibleComponent: components.length > 0 || hasProjectYaml,
+                });
         });
         platformExt.subscribeContextState((selectedContext) => {
             platformExtStore.getState().setState({ selectedContext });
@@ -108,15 +131,19 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
         const debouncedOnFilChange = debounce(async () => {
             const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
-            platformExtStore.getState().setState({hasLocalChanges});
+            platformExtStore.getState().setState({ hasLocalChanges });
         }, 2000);
 
-        const fileWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(StateMachine.context().projectPath, "**/*"));
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(StateMachine.context().projectPath, "**/*")
+        );
         fileWatcher.onDidCreate(debouncedOnFilChange);
         fileWatcher.onDidChange(debouncedOnFilChange);
         fileWatcher.onDidDelete(debouncedOnFilChange);
 
         // todo: move devant related initializers here
+
+        const debouncedRefreshConnectionList = debounce(() => this.refreshConnectionList(), 500);
 
         platformExtStore.subscribe((state, prevState) => {
             messenger.sendNotification(
@@ -126,24 +153,30 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             );
 
             let refetchConnections = false;
-            if(!state.state?.isLoggedIn && prevState?.state?.isLoggedIn){
+            if (!state.state?.isLoggedIn && prevState?.state?.isLoggedIn) {
                 // if user is logging out
                 // todo: check if this needs to be enabled again
                 // platformExtStore.getState().setState({connections: []});
-            } else if(state.state?.selectedComponent && state.state?.selectedComponent.metadata?.id !== prevState?.state?.selectedComponent?.metadata?.id){
+            } else if (
+                state.state?.selectedComponent &&
+                state.state?.selectedComponent.metadata?.id !== prevState?.state?.selectedComponent?.metadata?.id
+            ) {
                 // if component selection has changed
                 // todo: remove connections related to previous component
                 // todo: test after applying fix to support multiple components
                 // platformExtStore.getState().setState({connections: platformExtStore.getState().state?.connections?.filter(item=>item.componentId)});
                 refetchConnections = true;
-            } else if(state.state?.selectedContext?.project && state.state?.selectedContext?.project?.id !== prevState.state?.selectedContext?.project?.id){
+            } else if (
+                state.state?.selectedContext?.project &&
+                state.state?.selectedContext?.project?.id !== prevState.state?.selectedContext?.project?.id
+            ) {
                 // if project selection has changed
-                platformExtStore.getState().setState({connections: []});
+                platformExtStore.getState().setState({ connections: [] });
                 refetchConnections = true;
             }
 
-            if(refetchConnections){
-                this.refreshConnectionList();
+            if (refetchConnections) {
+                debouncedRefreshConnectionList();
             }
         });
     }
@@ -222,20 +255,25 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     setSelectedComponent(componentId: string): void {
-        const selectedComponent = platformExtStore.getState().state?.components?.find(item=>item.metadata?.id === componentId);
-        if(selectedComponent){
-            platformExtStore.getState().setState({selectedComponent});
+        const selectedComponent = platformExtStore
+            .getState()
+            .state?.components?.find((item) => item.metadata?.id === componentId);
+        if (selectedComponent) {
+            platformExtStore.getState().setState({ selectedComponent });
         }
     }
 
     setConnectedToDevant(connectedToDevant: boolean): void {
-        platformExtStore.getState().setState({connectedToDevant});
+        platformExtStore.getState().setState({ connectedToDevant });
     }
 
     async getAllConnections(): Promise<ConnectionListItem[]> {
         try {
             const platformExt = await this.getPlatformExt();
-            if(platformExtStore.getState().state.isLoggedIn && platformExtStore.getState().state.selectedContext?.project?.id){
+            if (
+                platformExtStore.getState().state.isLoggedIn &&
+                platformExtStore.getState().state.selectedContext?.project?.id
+            ) {
                 const projectPromise = platformExt.getConnections({
                     orgId: platformExtStore.getState().state.selectedContext?.org?.id?.toString(),
                     projectId: platformExtStore.getState().state.selectedContext?.project?.id,
@@ -265,26 +303,21 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     async setupDevantProxyForDebugging(debugConfig: vscode.DebugConfiguration): Promise<void> {
-        const devantProxyResp = await window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'Connecting to Devant before running/debugging the application...',
-        }, this.startProxyServer);
+        const devantProxyResp = await this.startProxyServer();
 
-        if(devantProxyResp.proxyServerPort){
-            debugConfig.env = {  ...(debugConfig.env || {}), ...devantProxyResp.envVars };
-            if(devantProxyResp.requiresProxy){
-                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST="127.0.0.1",
-                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT=`${devantProxyResp.proxyServerPort}`;
-            }else{
+        if (devantProxyResp.proxyServerPort) {
+            debugConfig.env = { ...(debugConfig.env || {}), ...devantProxyResp.envVars };
+            if (devantProxyResp.requiresProxy) {
+                (debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST = "127.0.0.1"),
+                    (debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT = `${devantProxyResp.proxyServerPort}`);
+            } else {
                 delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST;
                 delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT;
             }
-        }
-        
-        if(devantProxyResp.proxyServerPort){
+
             const disposable = vscode.debug.onDidTerminateDebugSession((session) => {
                 if (session.configuration === debugConfig) {
-                    this.stopProxyServer({proxyPort: devantProxyResp.proxyServerPort});
+                    this.stopProxyServer({ proxyPort: devantProxyResp.proxyServerPort });
                     disposable.dispose();
                 }
             });
@@ -311,20 +344,32 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             ) {
                 requiresProxy = true;
             }
-            if (platformExtStore.getState().state?.isLoggedIn && platformExtStore.getState().state?.connectedToDevant) {
-                const selected = platformExtStore.getState().state?.selectedContext;
-                if (selected?.org && selected?.project) {
-                    const resp = await platformExt?.startProxyServer({
-                        orgId: selected?.org?.id?.toString(),
-                        project: selected?.project?.id,
-                        component: platformExtStore.getState().state?.selectedComponent?.metadata?.id || "",
-                    });
-                    return { ...resp, requiresProxy };
-                }
+            if (
+                platformExtStore.getState().state?.isLoggedIn &&
+                platformExtStore.getState().state?.selectedContext?.org &&
+                platformExtStore.getState().state?.selectedContext?.project &&
+                platformExtStore.getState().state?.connections?.length > 0 &&
+                platformExtStore.getState().state?.connectedToDevant
+            ) {
+                // TODO: need to check whether at least one devant connection being used
+                const resp = await window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: "Connecting to Devant before running/debugging the application...",
+                    },
+                    () =>
+                        platformExt?.startProxyServer({
+                            orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                            project: platformExtStore.getState().state?.selectedContext?.project?.id,
+                            component: platformExtStore.getState().state?.selectedComponent?.metadata?.id || "",
+                        })
+                );
+                return { ...resp, requiresProxy };
             }
             return { envVars: {}, proxyServerPort: 0, requiresProxy };
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
+            return { envVars: {}, proxyServerPort: 0, requiresProxy: false };
         }
     }
 
@@ -513,7 +558,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceVisibility: params.params.visibility!,
                 componentType: getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
                 componentPath: projectPath,
-                generateCreds: platformExtStore.getState().state?.selectedComponent?.spec?.type !== ComponentDisplayType.ByocWebAppDockerLess,
+                generateCreds:
+                    platformExtStore.getState().state?.selectedComponent?.spec?.type !==
+                    ComponentDisplayType.ByocWebAppDockerLess,
             });
 
             const resp = await initializeDevantConnection({
@@ -584,7 +631,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
             */
 
-            // todo: 
+            // todo:
             /*
             1. store connection with secret info in bal ext
             2. start proxy server. need to pass secure host list.
