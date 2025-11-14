@@ -632,7 +632,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     return (
         <>
-            <HelperPane.Body>
+            <HelperPane.Body sx={{ zIndex: 2000 }} >
                     <TwoColumnLayout>
                         <LeftColumn>
                         {isLoading ? (
