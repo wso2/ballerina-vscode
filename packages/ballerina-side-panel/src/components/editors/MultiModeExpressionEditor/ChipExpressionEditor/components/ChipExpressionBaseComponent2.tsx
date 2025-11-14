@@ -132,6 +132,11 @@ export const ChipExpressionBaseComponent2 = (props: ChipExpressionBaseComponentP
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;
 
+        // HACK: this should be handled properly with completion items template
+        // current API response sends an incorrect response
+        // if API sends $1,$2.. for the arguments in the template
+        // then we can directly handled it without explicitly calling the API
+        // and extracting args 
         if (newValue.endsWith('()')) {
             if (props.extractArgsFromFunction) {
                 try {
