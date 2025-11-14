@@ -65,14 +65,18 @@ export class MigrationReportWebview {
                         link.addEventListener('click', function(event) {
                             event.preventDefault();
                             // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
-                            const projectId = this.id || this.textContent.trim();
-                            const projectName = projectId.split('_')[0];
+                            const projectName = this.id || this.textContent.trim();
 
-                            // Send message to extension via VS Code webview API
-                            vscode.postMessage({
-                                type: 'openSubProjectReport',
-                                projectName: projectName
-                            });
+                            // Validate project name to prevent XSS - allow only alphanumeric, hyphen, underscore
+                            if (/^[a-zA-Z0-9_\-]+$/.test(projectName) && projectName.length > 0) {
+                                // Send message to extension via VS Code webview API
+                                vscode.postMessage({
+                                    type: 'openSubProjectReport',
+                                    projectName: projectName
+                                });
+                            } else {
+                                console.error('Invalid project name format:', projectName);
+                            }
                         });
                     });
                 });
@@ -132,14 +136,18 @@ export class MigrationReportWebview {
                         link.addEventListener('click', function(event) {
                             event.preventDefault();
                             // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
-                            const projectId = this.id || this.textContent.trim();
-                            const projectName = projectId.split('_')[0];
+                            const projectName = this.id || this.textContent.trim();
 
-                            // Send message to extension via VS Code webview API
-                            vscode.postMessage({
-                                type: 'openSubProjectReport',
-                                projectName: projectName
-                            });
+                            // Validate project name to prevent XSS - allow only alphanumeric, hyphen, underscore
+                            if (/^[a-zA-Z0-9_\-]+$/.test(projectName) && projectName.length > 0) {
+                                // Send message to extension via VS Code webview API
+                                vscode.postMessage({
+                                    type: 'openSubProjectReport',
+                                    projectName: projectName
+                                });
+                            } else {
+                                console.error('Invalid project name format:', projectName);
+                            }
                         });
                     });
                 });
