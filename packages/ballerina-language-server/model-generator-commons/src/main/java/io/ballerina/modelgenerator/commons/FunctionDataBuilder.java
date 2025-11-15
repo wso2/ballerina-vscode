@@ -297,18 +297,20 @@ public class FunctionDataBuilder {
                 List<Project> childProjects = compilerApi.getWorkspaceProjectsInOrder(workspaceProject.get());
                 for (Project childProject: childProjects) {
                     Package currentPackage = childProject.currentPackage();
+                    String currentPackageName = currentPackage.packageName().value();
                     if (currentPackage.packageOrg().value().equals(moduleInfo.org()) &&
-                            (currentPackage.packageName().value().equals(moduleInfo.packageName()) ||
-                                    currentPackage.packageName().value().equals(moduleInfo.moduleName()))) {
+                            (currentPackageName.equals(moduleInfo.packageName()) ||
+                                    currentPackageName.equals(moduleInfo.moduleName()))) {
                         // TODO: Extend the support for sub-modules of a project.
                         semanticModel(PackageUtil.getCompilation(childProject)
                                 .getSemanticModel(currentPackage.getDefaultModule().moduleId()));
+                        break;
                     }
                 }
             }
         }
 
-        // Assume the package from an external library, and check if the package is pulled
+        // Assume the package is from an external library, and pull the package if not available locally
         if (semanticModel == null) {
             if (moduleInfo.version() == null) {
                 // Fetch the latest module version from central repository when version is not explicitly provided
