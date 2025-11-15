@@ -28,7 +28,7 @@ import {
     DIRECTORY_MAP
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay } from "@wso2/ui-toolkit";
+import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import ComponentDiagram from "../ComponentDiagram";
@@ -583,7 +583,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
         showLoginAlert().then((status) => {
             setShowAlert(status);
         });
-    }, []);
+    }, [projectPath]);
 
     const deployableIntegrationTypes = useMemo(() => {
         return getIntegrationTypes(projectStructure);
