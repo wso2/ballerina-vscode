@@ -249,7 +249,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     }, []);
 
     useEffect(() => {
-        if (!props.value || !viewRef.current) return;
+        if (props.value == null || !viewRef.current) return;
         const updateEditorState = async () => {
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = props.value !== currentDoc;
@@ -259,19 +259,24 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
-                props.targetLineRange.startLine
+                props.targetLineRange?.startLine
             );
             setIsTokenUpdateScheduled(false);
-            if (tokenStream) {
-                viewRef.current!.dispatch({
-                    effects: tokensChangeEffect.of(tokenStream),
-                    changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
-                    ...{ annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [] }
-                });
-            }
+            const effects = tokenStream ? [tokensChangeEffect.of(tokenStream)] : [];
+            const changes = isExternalUpdate
+                ? { from: 0, to: viewRef.current!.state.doc.length, insert: props.value }
+                : undefined;
+            const annotations = isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [];
+
+            viewRef.current!.dispatch({
+                ...(effects.length > 0 && { effects }),
+                ...(changes && { changes }),
+                ...(annotations.length > 0 && { annotations }),
+            });
+
         };
         updateEditorState();
-    }, [props.value, props.fileName, props.targetLineRange.startLine, isTokenUpdateScheduled]);
+    }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
 
 
     // this keeps completions ref updated
