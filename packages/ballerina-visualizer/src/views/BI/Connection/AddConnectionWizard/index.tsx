@@ -113,6 +113,7 @@ enum SavingFormStatus {
 }
 
 interface AddConnectionWizardProps {
+    projectPath: string;
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
@@ -121,7 +122,7 @@ interface AddConnectionWizardProps {
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
+    const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
@@ -372,6 +373,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         <Container>
             {!isPopupScreen ? (
                 <ConnectorView
+                    projectPath={projectPath}
                     key={connectorsViewKey}
                     fileName={fileName}
                     targetLinePosition={target}
@@ -388,6 +390,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         />
                         <PopupContainer>
                             <ConnectorView
+                                projectPath={projectPath}
                                 key={connectorsViewKey}
                                 fileName={fileName}
                                 targetLinePosition={target}

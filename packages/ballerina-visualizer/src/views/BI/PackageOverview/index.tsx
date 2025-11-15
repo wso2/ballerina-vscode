@@ -518,11 +518,11 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
     );
 }
 
-interface ComponentDiagramProps {
+interface PackageOverviewProps {
     projectPath: string;
 }
 
-export function PackageOverview(props: ComponentDiagramProps) {
+export function PackageOverview(props: PackageOverviewProps) {
     const { projectPath } = props;
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = useState<string>("");
@@ -531,7 +531,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
 
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
-        queryKey: ["devant-metadata", props.projectPath],
+        queryKey: ["devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
         refetchInterval: 5000
     })
@@ -745,7 +745,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
 
     return (
         <>
-            {isWorkspace && <TopNavigationBar />}
+            {isWorkspace && <TopNavigationBar projectPath={projectPath} />}
             <PageLayout>
                 {isWorkspace ? (
                     <TitleBar

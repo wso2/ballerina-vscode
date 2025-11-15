@@ -167,6 +167,7 @@ const Description = styled(Typography)`
 `;
 
 interface ServiceDesignerProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
     serviceIdentifier: string;
@@ -184,7 +185,7 @@ export const EXPORT_OAS = "export-oas";
 export const ADD_HTTP_RESOURCE = "add-http-resource";
 
 export function ServiceDesigner(props: ServiceDesignerProps) {
-    const { filePath, position, serviceIdentifier } = props;
+    const { projectPath, filePath, position, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(undefined);
@@ -764,7 +765,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             {!serviceModel && (
                 <LoadingContainer>
                     <LoadingRing message="Loading Service..." />

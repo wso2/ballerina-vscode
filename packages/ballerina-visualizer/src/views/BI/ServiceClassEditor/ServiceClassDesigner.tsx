@@ -92,6 +92,7 @@ const InfoSection = styled.div`
 `;
 
 interface ServiceClassDesignerProps {
+    projectPath: string;
     isGraphql?: boolean;
     fileName: string;
     position: NodePosition;
@@ -99,7 +100,7 @@ interface ServiceClassDesignerProps {
 }
 
 export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
-    const { isGraphql, fileName, position, type } = props;
+    const { projectPath, isGraphql, fileName, position, type } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel>();
     const [editingFunction, setEditingFunction] = useState<FunctionModel>(undefined);
@@ -461,7 +462,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar
                 title="Service Class Designer"
                 subtitle="Implement and configure your service class"
