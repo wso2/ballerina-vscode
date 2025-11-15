@@ -32,12 +32,12 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     const isChecked = value === InputMode.EXP;
 
     const defaultMode = useMemo(
-        () => getDefaultExpressionMode(valueTypeConstraint),
-        [valueTypeConstraint]
+        () => isRecordTypeField ? InputMode.GUIDED : getDefaultExpressionMode(valueTypeConstraint),
+        [valueTypeConstraint, isRecordTypeField]
     );
 
     const handlePrimaryModeClick = () => {
-        onChange(isRecordTypeField ? InputMode.GUIDED : defaultMode);
+        onChange(defaultMode);
     };
 
     const handleExpressionClick = () => {
@@ -47,7 +47,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     return (
         <SwitchWrapper>
             <Slider checked={isChecked}>
-                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{isRecordTypeField ? InputMode.GUIDED : defaultMode}</Label>
+                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{defaultMode}</Label>
                 <Label active={isChecked} onClick={handleExpressionClick}>Expression</Label>
             </Slider>
         </SwitchWrapper>
