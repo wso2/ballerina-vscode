@@ -1245,6 +1245,14 @@ export interface ImportIntegrationRequest {
     parameters?: Record<string, any>;
 }
 
+export interface ProjectMigrationResult {
+    projectName: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
+}
+
 export interface ImportIntegrationResponse {
     error: string;
     textEdits: {

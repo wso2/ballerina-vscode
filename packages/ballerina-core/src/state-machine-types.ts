@@ -20,7 +20,7 @@ import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
-import { ProjectInfo, Type } from "./interfaces/extended-lang-client";
+import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
@@ -281,6 +281,7 @@ export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
+export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
