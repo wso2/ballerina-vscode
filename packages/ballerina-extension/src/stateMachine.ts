@@ -61,6 +61,15 @@ const stateMachine = createMachine<MachineContext>(
         on: {
             RESET_TO_EXTENSION_READY: {
                 target: "extensionReady",
+                actions: assign({
+                    documentUri: undefined,
+                    position: undefined,
+                    identifier: undefined,
+                    projectPath: undefined,
+                    scope: undefined,
+                    org: undefined,
+                    package: undefined
+                })
             },
             UPDATE_PROJECT_STRUCTURE: {
                 actions: [
@@ -241,6 +250,7 @@ const stateMachine = createMachine<MachineContext>(
                         actions: assign({
                             view: (context, event) => event.viewLocation.view,
                             documentUri: (context, event) => event.viewLocation.documentUri,
+                            projectPath: (context, event) => event.viewLocation?.projectPath,
                             position: (context, event) => event.viewLocation.position,
                             identifier: (context, event) => event.viewLocation.identifier,
                             serviceType: (context, event) => event.viewLocation.serviceType,
@@ -598,8 +608,8 @@ const stateMachine = createMachine<MachineContext>(
                 if (!selectedEntry?.location.view) {
                     return resolve(
                         context.workspacePath
-                        ? { view: MACHINE_VIEW.WorkspaceOverview }
-                        : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
+                            ? { view: MACHINE_VIEW.WorkspaceOverview }
+                            : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
                     );
                 }
 
