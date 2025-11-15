@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues } from '@wso2/ballerina-core';
+import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues, ProjectInfo } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
@@ -355,4 +355,22 @@ export function setupBIFiles(projectDir: string): void {
             fs.writeFileSync(filePath, '');
         }
     });
+}
+
+export function getPackageName(projectInfo: ProjectInfo, projectPath: string): string {
+    if (!projectPath || !projectInfo) {
+        return "";
+    }
+
+    if (projectInfo.children?.length) {
+        const matchedProject = projectInfo.children.find(
+            (child) => child.projectPath === projectPath
+        );
+        
+        if (matchedProject) {
+            return matchedProject.title || matchedProject.name;
+        }
+    }
+
+    return projectInfo.title || projectInfo.name;
 }

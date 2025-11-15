@@ -897,6 +897,7 @@ export function FormGeneratorNew(props: FormProps) {
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
+            fileName: fileName,
             referenceTypes: types,
             rpcManager: {
                 getExpressionTokens: getExpressionTokens
