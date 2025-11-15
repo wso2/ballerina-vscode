@@ -71,6 +71,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
                             <AddConnectionWizard
+                                projectPath={location.projectPath}
                                 fileName={location.documentUri || location.projectPath}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}

@@ -81,6 +81,7 @@ const StatusText = styled(Typography)`
 
 
 export interface ServiceCreationViewProps {
+    projectPath: string;
     orgName: string;
     packageName: string;
     moduleName: string;
@@ -180,7 +181,7 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
 export function ServiceCreationView(props: ServiceCreationViewProps) {
 
-    const { orgName, packageName, moduleName, version } = props;
+    const { projectPath, orgName, packageName, moduleName, version } = props;
     const { rpcClient } = useRpcContext();
 
     const [headerInfo, setHeaderInfo] = useState<HeaderInfo>(null);
@@ -491,7 +492,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
             {!pullingStatus && (
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     {headerInfo && (
                         <TitleBar
                             title={headerInfo.title}
