@@ -262,8 +262,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
-            const currentSelection = viewRef.current!.state.selection.main;
-
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
@@ -274,7 +272,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream),
                     changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
-                    selection: { anchor: currentSelection.anchor, head: currentSelection.head },
                     ...{annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : []}
                 });
             }
