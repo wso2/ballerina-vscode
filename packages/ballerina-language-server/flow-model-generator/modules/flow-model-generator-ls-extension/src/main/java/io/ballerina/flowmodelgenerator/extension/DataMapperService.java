@@ -285,7 +285,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
             return response;
         });
     }
-    
+
     @JsonRequest
     public CompletableFuture<DataMapperPositionResponse> targetFieldPosition(
             DataMapperTargetFieldPositionRequest request) {
