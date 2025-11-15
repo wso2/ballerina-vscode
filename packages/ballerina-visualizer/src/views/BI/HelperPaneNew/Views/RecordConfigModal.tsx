@@ -545,11 +545,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     // and updates local expression value
     const wrappedGetHelperPane = getHelperPane
         ? (value: string, onChange: (value: string, options?: HelperpaneOnChangeOptions) => void, helperPaneHeight: HelperPaneHeight) => {
-            const wrappedOnChange = (newValue: string, options?: HelperpaneOnChangeOptions) => {
-                onChange(newValue, options);
-                // Update local expression value
-                setLocalExpressionValue(newValue);
-            };
 
             // Call getHelperPane with all required parameters including refs
             return getHelperPane(
@@ -558,7 +553,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 anchorRef,
                 "",
                 value,
-                wrappedOnChange,
+                onChange,
                 () => { }, // changeHelperPaneState - no-op since ChipExpressionBaseComponent handles it
                 helperPaneHeight,
                 recordTypeField,
