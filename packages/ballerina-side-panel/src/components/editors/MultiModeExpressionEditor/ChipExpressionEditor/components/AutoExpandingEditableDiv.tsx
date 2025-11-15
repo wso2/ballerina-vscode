@@ -22,7 +22,7 @@ import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
-import { CloseHelperButton, OpenHelperButton, ExpandIcon } from "./FloatingButtonIcons";
+import { CloseHelperIcon, OpenHelperIcon, ExpandIcon } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition, isBetween } from "../utils";
 import styled from "@emotion/styled";
@@ -331,7 +331,7 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 !props.isInExpandedMode && (
                     <FloatingButtonContainer id="floating-button-container">
                         <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
-                            {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                            {props.isHelperPaneOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
                         </FloatingToggleButton>
                     </FloatingButtonContainer>
                 )
