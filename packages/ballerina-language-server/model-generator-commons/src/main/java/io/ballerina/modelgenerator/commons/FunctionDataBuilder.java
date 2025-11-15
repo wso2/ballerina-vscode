@@ -79,6 +79,7 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.eclipse.lsp4j.MessageType;
 
 import java.io.InputStreamReader;
@@ -288,7 +289,26 @@ public class FunctionDataBuilder {
 
         checkLocalModule();
 
-        // Check if the package is pulled
+        // Check if the package exists in the workspace
+        if (semanticModel == null && project != null) {
+            BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+            Optional<Project> workspaceProject = compilerApi.getWorkspaceProject(project);
+            if (workspaceProject.isPresent()) {
+                List<Project> childProjects = compilerApi.getWorkspaceProjectsInOrder(workspaceProject.get());
+                for (Project childProject: childProjects) {
+                    Package currentPackage = childProject.currentPackage();
+                    if (currentPackage.packageOrg().value().equals(moduleInfo.org()) &&
+                            (currentPackage.packageName().value().equals(moduleInfo.packageName()) ||
+                                    currentPackage.packageName().value().equals(moduleInfo.moduleName()))) {
+                        // TODO: Extend the support for sub-modules of a project.
+                        semanticModel(PackageUtil.getCompilation(childProject)
+                                .getSemanticModel(currentPackage.getDefaultModule().moduleId()));
+                    }
+                }
+            }
+        }
+
+        // Assume the package from an external library, and check if the package is pulled
         if (semanticModel == null) {
             if (moduleInfo.version() == null) {
                 // Fetch the latest module version from central repository when version is not explicitly provided
@@ -296,7 +316,6 @@ public class FunctionDataBuilder {
                 moduleInfo = new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
                         centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName()));
             }
-
             if (moduleInfo.isComplete() &&
                     PackageUtil.isModuleUnresolved(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version())) {
                 notifyClient(MessageType.Info, PULLING_THE_MODULE_MESSAGE);
