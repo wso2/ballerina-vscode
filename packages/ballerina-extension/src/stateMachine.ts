@@ -19,7 +19,7 @@ import {
     fetchScope,
     getOrgPackageName,
     UndoRedoManager,
-    getPackageName
+    getOrgAndPackageName
 } from './utils';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -248,6 +248,8 @@ const stateMachine = createMachine<MachineContext>(
                     OPEN_VIEW: {
                         target: "viewActive",
                         actions: assign({
+                            org: (context, event) => event.viewLocation?.org,
+                            package: (context, event) => event.viewLocation?.package,
                             view: (context, event) => event.viewLocation.view,
                             documentUri: (context, event) => event.viewLocation.documentUri,
                             projectPath: (context, event) => event.viewLocation?.projectPath,
@@ -329,6 +331,7 @@ const stateMachine = createMachine<MachineContext>(
                                     identifier: (context, event) => event.viewLocation.identifier,
                                     serviceType: (context, event) => event.viewLocation.serviceType,
                                     projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
+                                    org: (context, event) => event.viewLocation?.org || context?.org,
                                     package: (context, event) => event.viewLocation?.package || context?.package,
                                     type: (context, event) => event.viewLocation?.type,
                                     isGraphql: (context, event) => event.viewLocation?.isGraphql,
@@ -525,7 +528,7 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
-                const packageName = getPackageName(context.projectInfo, context.projectPath);
+                const { orgName, packageName } = getOrgAndPackageName(context.projectInfo, context.projectPath);
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
                         if (!context.projectPath && context.workspacePath) {
@@ -539,7 +542,8 @@ const stateMachine = createMachine<MachineContext>(
                                 location: {
                                     view: MACHINE_VIEW.PackageOverview,
                                     documentUri: context.documentUri,
-                                    package: packageName || context.package
+                                    org: orgName || context.org,
+                                    package: packageName || context.package,
                                 }
                             });
                         }
@@ -557,6 +561,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            org: orgName || context.org,
                             package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
@@ -736,6 +741,9 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     }
     extension.hasPullModuleResolved = false;
     extension.hasPullModuleNotification = false;
+    const { orgName, packageName } = getOrgAndPackageName(StateMachine.context().projectInfo, viewLocation.projectPath);
+    viewLocation.org = orgName;
+    viewLocation.package = packageName;
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
