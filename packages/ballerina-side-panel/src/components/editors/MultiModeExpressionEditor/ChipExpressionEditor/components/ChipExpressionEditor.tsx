@@ -77,10 +77,7 @@ export type ChipExpressionEditorComponentProps = {
     onOpenExpandedMode?: () => void;
     onRemove?: () => void;
     isInExpandedMode?: boolean;
-
-    // TODO: change this prop to pass a style object instead of just height
-    // to allow more flexibility in styling
-    expressionHeight?: string | number;
+    sx?: React.CSSProperties;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -202,13 +199,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }));
     }
 
-    // Determine height based on expressionHeight prop, or fall back to default behavior
-    const getHeightValue = (height: string | number) => {
-        return typeof height === 'number'
-            ? `${height}px`
-            : height;
-    };
-
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
@@ -236,9 +226,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         "&": { height: "100%" },
                         ".cm-scroller": { overflow: "auto" }
                     })]
-                    : props.expressionHeight
+                    : props.sx && 'height' in props.sx
                         ? [EditorView.theme({
-                            "&": { height: getHeightValue(props.expressionHeight) },
+                            "&": {
+                                height: typeof (props.sx as any).height === 'number' ?
+                                    `${(props.sx as any).height}px` :
+                                    (props.sx as any).height
+                            },
                             ".cm-scroller": { overflow: "auto" }
                         })]
                         : [])
@@ -262,8 +256,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
-            const currentSelection = viewRef.current!.state.selection.main;
-
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
@@ -274,8 +266,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream),
                     changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
-                    selection: { anchor: currentSelection.anchor, head: currentSelection.head },
-                    ...{annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : []}
+                    ...{ annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [] }
                 });
             }
         };
@@ -325,20 +316,14 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             )}
             <ChipEditorContainer ref={fieldContainerRef} style={{
                 position: 'relative',
-                height: props.isInExpandedMode
-                    ? '100%'
-                    : props.expressionHeight
-                        ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
-                        : 'auto'
+                ...props.sx,
+                ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
             }}>
                 {!props.isInExpandedMode && <FXButton />}
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <div ref={editorRef} style={{
-                        height: props.isInExpandedMode
-                            ? '100%'
-                            : props.expressionHeight
-                                ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
-                                : 'auto'
+                        ...props.sx,
+                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
                     }} />
                     {helperPaneState.isOpen &&
                         <HelperPane
