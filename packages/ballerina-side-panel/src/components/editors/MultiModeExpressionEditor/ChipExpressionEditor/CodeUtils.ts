@@ -264,9 +264,9 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
                 let relativeLeft = coords.left - editorRect.left;
 
                 const HELPER_PANE_WIDTH = 300;
-                const viewportWidth = window.innerWidth;
-                const absoluteLeft = coords.left;
-                const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+                const editorWidth = editorRect.width;
+                const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
+                const overflow = relativeRight - editorWidth;
 
                 if (overflow > 0) {
                     relativeLeft -= overflow;
@@ -302,9 +302,9 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
             let relativeLeft = coords.left - editorRect.left;
 
             const HELPER_PANE_WIDTH = 300;
-            const viewportWidth = window.innerWidth;
-            const absoluteLeft = coords.left;
-            const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+            const editorWidth = editorRect.width;
+            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
+            const overflow = relativeRight - editorWidth;
 
             if (overflow > 0) {
                 relativeLeft -= overflow;
@@ -367,9 +367,9 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
             let relativeLeft = coords.left - editorRect.left;
 
             const HELPER_PANE_WIDTH = 300;
-            const viewportWidth = window.innerWidth;
-            const absoluteLeft = coords.left;
-            const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+            const editorWidth = editorRect.width;
+            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
+            const overflow = relativeRight - editorWidth;
 
             if (overflow > 0) {
                 relativeLeft -= overflow;
