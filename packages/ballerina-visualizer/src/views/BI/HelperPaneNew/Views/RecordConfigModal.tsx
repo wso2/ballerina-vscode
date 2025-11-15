@@ -593,15 +593,16 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {selectedMemberName && recordModel?.length > 0 ?
-                            (
+                        {!isLoading && (
+                            selectedMemberName && recordModel?.length > 0 ? (
                                 <RecordConfigView
                                     recordModel={recordModel}
                                     onModelChange={handleModelChange}
                                 />
                             ) : (
                                 <Typography variant="body3">Record construction assistance is unavailable.</Typography>
-                            )}
+                            )
+                        )}
                     </LeftColumn>
                     <RightColumn>
                         <ExpressionEditorContainer>
