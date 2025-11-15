@@ -100,7 +100,7 @@ import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getImportedTypes } from "../../TypeEditor/utils";
-import { useModalStack, POPUP_IDS } from "../../../../Context";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
