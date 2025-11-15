@@ -228,7 +228,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     })]
                     : props.sx && 'height' in props.sx
                         ? [EditorView.theme({
-                            "&": { height: typeof (props.sx as any).height === 'number' ? `${(props.sx as any).height}px` : String((props.sx as any).height) },
+                            "&": {
+                                height: typeof (props.sx as any).height === 'number' ?
+                                    `${(props.sx as any).height}px` :
+                                    (props.sx as any).height
+                            },
                             ".cm-scroller": { overflow: "auto" }
                         })]
                         : [])
@@ -262,7 +266,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 viewRef.current!.dispatch({
                     effects: tokensChangeEffect.of(tokenStream),
                     changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
-                    ...{annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : []}
+                    ...{ annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [] }
                 });
             }
         };
