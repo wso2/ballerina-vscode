@@ -18,7 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { OpenHelperButton, CloseHelperButton } from "./FloatingButtonIcons";
+import { OpenHelperIcon, CloseHelperIcon } from "./FloatingButtonIcons";
 import { ThemeColors } from "@wso2/ui-toolkit";
 
 interface HelperPaneToggleButtonProps {
@@ -86,7 +86,7 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
             tabIndex={-1}
             isOpen={isOpen}
         >
-            {isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+            {isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
             <ButtonText>Helper Panel</ButtonText>
         </OutlineButton>
     );
