@@ -376,7 +376,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Also update latestExpressionToSyncRef to prevent outdated syncs
             latestExpressionToSyncRef.current = content;
             setLocalExpressionValue(content);
-
+            // Fetch diagnostics for the updated expression
+            fetchDiagnostics(content);
         }
     }
 
