@@ -17,12 +17,59 @@
  */
 
 import React from "react";
-import { Codicon } from "@wso2/ui-toolkit";
+import styled from "@emotion/styled";
+import { OpenHelperButton, CloseHelperButton } from "./FloatingButtonIcons";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 interface HelperPaneToggleButtonProps {
     isOpen: boolean;
     onClick: () => void;
 }
+
+const OutlineButton = styled.button<{ isOpen: boolean }>`
+    padding: 6px 12px;
+    border-radius: 3px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    background-color: ${props => props.isOpen 
+        ? ThemeColors.SURFACE 
+        : ThemeColors.SURFACE_BRIGHT};
+    color: ${ThemeColors.ON_SURFACE};
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 28px;
+    width: 120px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+    outline: none;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    min-width: fit-content;
+    margin-bottom: 8px;
+
+    &:hover {
+        background-color: ${ThemeColors.SURFACE};
+    }
+
+    &:active {
+        background-color: ${ThemeColors.SURFACE};
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+`;
+
+const ButtonText = styled.span`
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: none;
+`;
 
 export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, HelperPaneToggleButtonProps>(({
     isOpen,
@@ -30,35 +77,17 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
 }, ref) => {
     
     return (
-        <button
+        <OutlineButton
             ref={ref}
             onClick={onClick}
             type="button"
-            aria-label="Toggle helper pane"
+            aria-label="Toggle helper panel"
             aria-pressed={isOpen}
             tabIndex={-1}
-            style={{
-                padding: '6px 12px',
-                borderRadius: '3px',
-                border: '1px solid var(--vscode-button-border)',
-                backgroundColor: isOpen ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground)',
-                color: isOpen ? 'var(--vscode-button-foreground)' : 'var(--vscode-button-secondaryForeground)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                width: '55px',
-                height: '25px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontFamily: 'var(--vscode-font-family)',
-                outline: 'none',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                transition: 'all 0.1s ease'
-            }}
+            isOpen={isOpen}
         >
-            <Codicon name="question" />
-            <Codicon name={isOpen ? "chevron-right" : "chevron-down"} />
-        </button>
+            {isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+            <ButtonText>Helper Panel</ButtonText>
+        </OutlineButton>
     );
 });

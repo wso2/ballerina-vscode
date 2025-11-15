@@ -98,7 +98,7 @@ const ModalHeaderSection = styled.header`
 const ModalContent = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 18px 16px;
+    padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
 `;
@@ -122,6 +122,14 @@ const MinimizeButton = styled.div`
     svg {
         width: 16px;
         height: auto;
+    }
+`;
+
+const TitleWrapper = styled.div`
+    margin: 12px 0;
+    
+    h3 {
+        margin: 0;
     }
 `;
 
@@ -210,7 +218,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <Typography variant="h3">{field.label}</Typography>
+                    <TitleWrapper>
+                        <Typography variant="h3">{field.label}</Typography>
+                    </TitleWrapper>
                     <MinimizeButton onClick={handleMinimize} title="Minimize">
                         <MinimizeIcon />
                     </MinimizeButton>
