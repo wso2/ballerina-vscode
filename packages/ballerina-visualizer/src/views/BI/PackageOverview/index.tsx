@@ -16,18 +16,16 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-    ProjectStructureResponse,
+    ProjectStructure,
     EVENT_TYPE,
     MACHINE_VIEW,
     BuildMode,
     BI_COMMANDS,
     DevantMetadata,
     SHARED_COMMANDS,
-    DIRECTORY_MAP,
-    SCOPE,
-    WorkspaceTypeResponse
+    DIRECTORY_MAP
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay } from "@wso2/ui-toolkit";
@@ -42,6 +40,7 @@ import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
+import { TitleBar } from "../../../components/TitleBar";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -526,10 +525,9 @@ interface ComponentDiagramProps {
 export function PackageOverview(props: ComponentDiagramProps) {
     const { projectPath } = props;
     const { rpcClient } = useRpcContext();
-    const [workspaceName, setWorkspaceName] = React.useState<string>("");
-    const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const [projectStructure, setProjectStructure] = React.useState<ProjectStructureResponse>();
-    const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
+    const [readmeContent, setReadmeContent] = useState<string>("");
+    const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
+    const [isWorkspace, setIsWorkspace] = useState(false);
 
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
@@ -537,7 +535,7 @@ export function PackageOverview(props: ComponentDiagramProps) {
         queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
         refetchInterval: 5000
     })
-    const [showAlert, setShowAlert] = React.useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
 
     const fetchContext = () => {
@@ -545,15 +543,10 @@ export function PackageOverview(props: ComponentDiagramProps) {
             .getBIDiagramRpcClient()
             .getProjectStructure()
             .then((res) => {
-                setProjectStructure(res);
-            });
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getWorkspaces()
-            .then((res) => {
-                const workspace = res.workspaces.find(workspace => workspace.fsPath === projectPath);
-                if (workspace) {
-                    setWorkspaceName(workspace.name);
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                setIsWorkspace(res.workspaceName !== undefined);
+                if (project) {
+                    setProjectStructure(project);
                 }
             });
 
@@ -577,13 +570,6 @@ export function PackageOverview(props: ComponentDiagramProps) {
             .then((res) => {
                 setReadmeContent(res.content);
             });
-
-        rpcClient
-            .getCommonRpcClient()
-            .getWorkspaceType()
-            .then((res) => {
-                setWorkspaceType(res);
-            });
     };
 
     rpcClient?.onProjectContentUpdated((state: boolean) => {
@@ -600,32 +586,25 @@ export function PackageOverview(props: ComponentDiagramProps) {
     }, []);
 
     const deployableIntegrationTypes = useMemo(() => {
-        return getIntegrationTypes(projectStructure, projectPath);
-    }, [projectStructure, projectPath]);
+        return getIntegrationTypes(projectStructure);
+    }, [projectStructure]);
 
     const projectName = useMemo(() => {
-        if (!projectStructure) {
-            return "";
-        }
-
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-        return project?.projectTitle || project?.projectName;
-    }, [projectStructure, projectPath]);
+        return projectStructure?.projectTitle || projectStructure?.projectName;
+    }, [projectStructure]);
 
     function isEmptyProject(): boolean {
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-
         // Filter out connections that start with underscore
-        const validConnections = project.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
+        const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
         ) || [];
 
         return (
-            (!project.directoryMap[DIRECTORY_MAP.AUTOMATION] || project.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
+            (!projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] || projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
             (validConnections.length === 0) &&
-            (!project.directoryMap[DIRECTORY_MAP.LISTENER] || project.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
-            (!project.directoryMap[DIRECTORY_MAP.SERVICE] || project.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
-            (!project.directoryMap.agents || project.directoryMap.agents.length === 0)
+            (!projectStructure.directoryMap[DIRECTORY_MAP.LISTENER] || projectStructure.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
+            (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
+            (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
         );
     }
 
@@ -738,37 +717,68 @@ export function PackageOverview(props: ComponentDiagramProps) {
         return resp;
     }
 
+    const handleBack = () => {
+        rpcClient.getVisualizerRpcClient().goBack();
+    };
+
+    const headerActions = (
+        <>
+            <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
+                <Icon
+                    name="bi-settings"
+                    sx={{
+                        marginRight: 5,
+                        fontSize: "16px",
+                        width: "16px",
+                    }}
+                />
+                Configure
+            </Button>
+            <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                <Codicon name="play" sx={{ marginRight: 5 }} /> Run
+            </Button>
+            <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
+                <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+            </Button>
+        </>
+    );
+
     return (
         <>
-            <TopNavigationBar />
+            {isWorkspace && <TopNavigationBar />}
             <PageLayout>
-                <HeaderRow isBallerinaWorkspace={workspaceType?.type === "BALLERINA_WORKSPACE"}>
-                    <TitleContainer>
-                        <ProjectTitle>{projectName || workspaceName}</ProjectTitle>
-                        <ProjectSubtitle>Integration</ProjectSubtitle>
-                    </TitleContainer>
-                    <HeaderControls>
-                        <UndoRedoGroup key={Date.now()} />
-                        <Button appearance="icon" onClick={handleLocalConfigure} buttonSx={{ padding: "4px 8px" }}>
-                            <Icon
-                                name="bi-settings"
-                                sx={{
-                                    marginRight: 5,
-                                    fontSize: "16px",
-                                    width: "16px",
-                                }}
-                            />
-                            Configure
-                        </Button>
-                        <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                            <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-                        </Button>
-                        <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                            <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
-                        </Button>
-                    </HeaderControls>
-                </HeaderRow>
-
+                {isWorkspace ? (
+                    <TitleBar
+                        title={projectName}
+                        subtitle="Integration"
+                        onBack={handleBack}
+                        actions={headerActions}
+                    />
+                ) : (
+                    <HeaderRow isBallerinaWorkspace={isWorkspace}>
+                        <TitleContainer>
+                            {isWorkspace && (
+                                <IconButtonContainer>
+                                    <Button appearance="icon" onClick={handleBack} buttonSx={{ padding: "4px" }}>
+                                        <Icon
+                                            name="bi-arrow-back"
+                                            sx={{
+                                                fontSize: "20px",
+                                                width: "20px",
+                                            }}
+                                        />
+                                    </Button>
+                                </IconButtonContainer>
+                            )}
+                            <ProjectTitle>{projectName}</ProjectTitle>
+                            <ProjectSubtitle>Integration</ProjectSubtitle>
+                        </TitleContainer>
+                        <HeaderControls>
+                            <UndoRedoGroup key={Date.now()} />
+                            {headerActions}
+                        </HeaderControls>
+                    </HeaderRow>
+                )}
                 <MainContent>
                     <LeftContent>
                         <DiagramPanel noPadding={true}>
