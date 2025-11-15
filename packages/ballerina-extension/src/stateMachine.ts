@@ -100,38 +100,9 @@ const stateMachine = createMachine<MachineContext>(
                         addType: (context, event) => event.viewLocation?.addType !== undefined ? event.viewLocation.addType : context?.addType,
                     })
                 ]
-            },
-            SWITCH_PROJECT: {
-                target: "switch_project"
             }
         },
         states: {
-            switch_project: {
-                invoke: {
-                    src: (context, event) => checkForProjects,
-                    onDone: [
-                        {
-                            target: "viewActive.viewReady",
-                            actions: [
-                                assign({
-                                    isBI: (context, event) => event.data.isBI,
-                                    projectPath: (context, event) => event.data.projectPath,
-                                    workspacePath: (context, event) => event.data.workspacePath,
-                                    scope: (context, event) => event.data.scope,
-                                    org: (context, event) => event.data.orgName,
-                                    package: (context, event) => event.data.packageName
-                                }),
-                                async (context, event) => {
-                                    // TODO: Need to handle the case where the user switches between projects in a workspace
-                                    // await buildProjectsStructure([], context.langClient, true);
-                                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-                                    notifyCurrentWebview();
-                                }
-                            ]
-                        }
-                    ],
-                }
-            },
             initialize: {
                 invoke: {
                     src: (context, event) => checkForProjects,
