@@ -87,7 +87,7 @@ export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
     background-color: ${ThemeColors.SURFACE_CONTAINER};
     border-radius: 4px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    z-index: 1000;
+    z-index: 1600;
     min-width: 120px;
     width: ${COMPLETIONS_WIDTH}px;
     overflow: hidden;
