@@ -1449,6 +1449,44 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         </div>
                     </DynamicModal>)
                 }
+                {recordConfigPageState.isOpen &&
+                    recordConfigPageState.fieldKey &&
+                    recordConfigPageState.recordTypeField &&
+                    recordConfigPageState.onChangeCallback && (
+                        <DynamicModal
+                            width={800}
+                            height={600}
+                            anchorRef={undefined}
+                            title="Record Configuration"
+                            openState={recordConfigPageState.isOpen}
+                            setOpenState={(isOpen: boolean) => {
+                                if (!isOpen) {
+                                    closeRecordConfigPage();
+                                }
+                            }}
+                        >
+                            <ConfigureRecordPage
+                                fileName={fileName}
+                                targetLineRange={updateLineRange(targetLineRange, expressionOffsetRef.current)}
+                                onChange={(value: string, isRecordConfigureChange: boolean) => {
+                                    recordConfigPageState.onChangeCallback!(value);
+                                }}
+                                currentValue={recordConfigPageState.currentValue || ""}
+                                recordTypeField={recordConfigPageState.recordTypeField}
+                                onClose={closeRecordConfigPage}
+                                getHelperPane={handleGetHelperPane}
+                                field={fields.find(f => f.key === recordConfigPageState.fieldKey)}
+                                triggerCharacters={TRIGGER_CHARACTERS}
+                                formContext={{
+                                    expressionEditor: expressionEditor,
+                                    popupManager: popupManager,
+                                    nodeInfo: {
+                                        kind: node.codedata.node
+                                    }
+                                }}
+                            />
+                        </DynamicModal>
+                    )}
             </EditorContext.Provider>
         );
     }
