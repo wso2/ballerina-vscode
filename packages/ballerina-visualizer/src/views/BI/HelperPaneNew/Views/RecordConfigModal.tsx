@@ -649,7 +649,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            expressionHeight="350" 
+                                            sx={{ height: "350px" }}
                                             isExpandedVersion={false}                                            
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
