@@ -43,7 +43,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { CloseHelperButton, ExpandIcon, OpenHelperButton } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -352,7 +352,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                             </FloatingToggleButton>}
                         {props.onOpenExpandedMode && !props.isInExpandedMode && (
                             <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
-                                <ExpandButton />
+                                <ExpandIcon />
                             </FloatingToggleButton>
                         )}
                     </FloatingButtonContainer>
