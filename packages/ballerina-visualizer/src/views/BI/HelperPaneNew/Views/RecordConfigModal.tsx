@@ -594,16 +594,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {!isLoading && (
-                            selectedMemberName && recordModel?.length > 0 ? (
-                                <RecordConfigView
-                                    recordModel={recordModel}
-                                    onModelChange={handleModelChange}
-                                />
-                            ) : (
-                                <Typography variant="body3">Record construction assistance is unavailable.</Typography>
-                            )
-                        )}
+                        {selectedMemberName && recordModel?.length > 0 ? (
+                            <RecordConfigView
+                                recordModel={recordModel}
+                                onModelChange={handleModelChange}
+                            />
+                        ) : !isLoading ? (
+                            <Typography variant="body3">Record construction assistance is unavailable.</Typography>
+                        ) : null}
                     </LeftColumn>
                     <RightColumn>
                         <ExpressionEditorContainer>
@@ -648,7 +646,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
                                             sx={{ height: "350px" }}
-                                            isExpandedVersion={false}                                            
+                                            isExpandedVersion={false}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
