@@ -21,6 +21,7 @@ import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@cod
 import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens, getWordBeforeCursor, getWordBeforeCursorPosition } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem } from "@wso2/ui-toolkit";
+import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 
 export type TokenStream = number[];
@@ -108,22 +109,24 @@ export const chipTheme = EditorView.theme({
         backgroundColor: "var(--vscode-input-background)"
     },
     ".cm-content": {
-        caretColor: "#ffffff",
+        caretColor: ThemeColors.ON_SURFACE,
         paddingRight: "40px"
     },
     "&.cm-editor .cm-cursor, &.cm-editor .cm-dropCursor": {
-        borderLeftColor: "#ffffff"
+        borderLeftColor: ThemeColors.ON_SURFACE
     }
 });
 
 export const completionTheme = EditorView.theme({
     ".cm-tooltip.cm-tooltip-autocomplete": {
-        backgroundColor: "#2d2d30",
-        border: "1px solid #454545",
+        backgroundColor: ThemeColors.SURFACE_BRIGHT,
+        border: `1px solid ${ThemeColors.OUTLINE}`,
         borderRadius: "3px",
         padding: "2px 0px",
         maxHeight: "300px",
         overflow: "auto",
+        zIndex: "3000",
+        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",
         animation: "fadeInUp 0.3s ease forwards",
     },
     ".cm-tooltip.cm-tooltip-autocomplete > ul": {
@@ -138,21 +141,21 @@ export const completionTheme = EditorView.theme({
         display: "flex",
         alignItems: "center",
         padding: "0px 5px",
-        color: "var(--vscode-input-foreground, #ffffff)",
+        color: ThemeColors.ON_SURFACE,
         cursor: "pointer",
     },
     ".cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]": {
-        backgroundColor: "var(--vscode-list-activeSelectionBackground, #094771)",
+        backgroundColor: "rgba(0, 122, 204, 0.5)",
     },
     ".cm-tooltip.cm-tooltip-autocomplete > ul > li:hover": {
-        backgroundColor: "#3e3e42",
+        backgroundColor: ThemeColors.OUTLINE_VARIANT,
     },
     ".cm-completionLabel": {
         flex: "1",
     },
     ".cm-completionDetail": {
         fontStyle: "italic",
-        color: "#858585",
+        color: ThemeColors.ON_SURFACE_VARIANT,
         fontSize: "12px",
     },
 });
