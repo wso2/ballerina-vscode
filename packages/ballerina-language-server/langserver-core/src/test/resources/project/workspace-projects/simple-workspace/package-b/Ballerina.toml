@@ -1,5 +1,7 @@
 [package]
+org = "lstest"
 name = "package_b"
+version = "1.0.0"
 
 [[dependency]]
 org = "lstest"
