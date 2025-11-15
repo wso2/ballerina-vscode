@@ -17,7 +17,7 @@
  */
 
 import { EditorState } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, tooltips } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
 import {
@@ -211,6 +211,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     activateOnTyping: true,
                     closeOnBlur: true
                 }),
+                tooltips({ position: "absolute" }),
                 chipPlugin,
                 tokenField,
                 chipTheme,
