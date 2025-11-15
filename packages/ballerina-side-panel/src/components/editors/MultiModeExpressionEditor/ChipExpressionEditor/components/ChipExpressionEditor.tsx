@@ -292,8 +292,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const target = event.target as Element;
             const isClickInsideEditor = editorRef.current?.contains(target);
             const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
+            const isClickOnToggleButton = helperPaneToggleButtonRef.current?.contains(target);
 
-            if (!isClickInsideEditor && !isClickInsideHelperPane) {
+            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
                 viewRef.current?.dispatch({
                     selection: { anchor: 0 },
