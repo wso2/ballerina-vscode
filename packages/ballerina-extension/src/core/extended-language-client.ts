@@ -270,7 +270,9 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     ProjectInfoRequest,
-    ProjectInfo
+    ProjectInfo,
+    onMigratedProject,
+    ProjectMigrationResult
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -461,6 +463,7 @@ enum EXTENDED_APIS {
     MULE_TO_BI = 'projectService/importMule',
     MIGRATION_TOOL_STATE = 'projectService/stateCallback',
     MIGRATION_TOOL_LOG = 'projectService/logCallback',
+    PUSH_MIGRATED_PROJECT = 'projectService/pushMigratedProject'
 }
 
 enum EXTENDED_APIS_ORG {
@@ -581,6 +584,18 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                 );
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_LOG handler:", error);
+            }
+        });
+
+        this.onNotification(EXTENDED_APIS.PUSH_MIGRATED_PROJECT, async (res: ProjectMigrationResult) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigratedProject,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in PUSH_MIGRATED_PROJECT handler:", error);
             }
         });
     }
