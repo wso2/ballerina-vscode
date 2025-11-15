@@ -25,7 +25,7 @@ import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
-import { CompressButton } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 interface ExpandedPromptEditorProps {
@@ -103,6 +103,27 @@ const ModalContent = styled.div`
     flex-direction: column;
 `;
 
+const MinimizeButton = styled.div`
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 2px;
+
+    &:hover {
+        opacity: 1;
+        background-color: var(--vscode-editor-inactiveSelectionBackground);
+    }
+
+    svg {
+        width: 16px;
+        height: auto;
+    }
+`;
 
 /**
  * Map of mode components - add new modes here
@@ -190,9 +211,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
                     <Typography variant="h3">{field.label}</Typography>
-                    <div onClick={handleMinimize} title="Minimize" style={{ cursor: 'pointer' }}>
-                        <CompressButton />
-                    </div>
+                    <MinimizeButton onClick={handleMinimize} title="Minimize">
+                        <MinimizeIcon />
+                    </MinimizeButton>
                 </ModalHeaderSection>
                 <div style={{ padding: "0 16px" }}>
                     <Divider sx={{ margin: 0 }} />
