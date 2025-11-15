@@ -18,11 +18,12 @@
 
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
-import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens, getWordBeforeCursor, getWordBeforeCursorPosition } from "./utils";
+import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
+import { TokenType } from "./types";
 
 export type TokenStream = number[];
 
@@ -31,8 +32,6 @@ export type CursorInfo = {
     left: number;
     position: SelectionRange;
 }
-
-export type TokenType = 'variable' | 'property' | 'parameter';
 
 export const ProgrammerticSelectionChange = Annotation.define<boolean>();
 
