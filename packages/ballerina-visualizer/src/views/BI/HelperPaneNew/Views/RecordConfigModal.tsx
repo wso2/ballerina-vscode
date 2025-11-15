@@ -376,7 +376,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Also update latestExpressionToSyncRef to prevent outdated syncs
             latestExpressionToSyncRef.current = content;
             setLocalExpressionValue(content);
-
+            // Fetch diagnostics for the updated expression
+            fetchDiagnostics(content);
         }
     }
 
@@ -593,15 +594,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {selectedMemberName && recordModel?.length > 0 ?
-                            (
-                                <RecordConfigView
-                                    recordModel={recordModel}
-                                    onModelChange={handleModelChange}
-                                />
-                            ) : (
-                                <Typography variant="body3">Record construction assistance is unavailable.</Typography>
-                            )}
+                        {selectedMemberName && recordModel?.length > 0 ? (
+                            <RecordConfigView
+                                recordModel={recordModel}
+                                onModelChange={handleModelChange}
+                            />
+                        ) : !isLoading ? (
+                            <Typography variant="body3">Record construction assistance is unavailable.</Typography>
+                        ) : null}
                     </LeftColumn>
                     <RightColumn>
                         <ExpressionEditorContainer>
@@ -646,7 +646,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
                                             sx={{ height: "350px" }}
-                                            isExpandedVersion={false}                                            
+                                            isExpandedVersion={false}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
