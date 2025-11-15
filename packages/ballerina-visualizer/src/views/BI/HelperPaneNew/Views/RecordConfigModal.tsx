@@ -386,10 +386,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         onClose();
     }
 
-    const handleCancel = () => {
-        onClose();
-    }
-
     // Debounced function to fetch diagnostics
     const fetchDiagnostics = useRef(
         debounce(async (value: string) => {
@@ -660,9 +656,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             </FormContext.Provider>
                         </ExpressionEditorContainer>
                         <ButtonContainer>
-                            <Button appearance="secondary" onClick={handleCancel}>
-                                Cancel
-                            </Button>
                             <Button appearance="primary" onClick={handleSave}>
                                 Save
                             </Button>
