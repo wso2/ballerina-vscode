@@ -16,9 +16,9 @@
  * under the License.
  */
 
+import React, { useMemo } from 'react';
 import styled from '@emotion/styled';
-import React from 'react';
-import { Codicon, Typography } from '@wso2/ui-toolkit';
+import { Codicon, Icon, Typography } from '@wso2/ui-toolkit';
 import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse, SCOPE } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { getIntegrationTypes } from '../PackageOverview/utils';
@@ -154,12 +154,6 @@ export interface PackageListViewProps {
     workspaceStructure: ProjectStructureResponse;
 }
 
-interface Package {
-    id: string;
-    name: string;
-    types?: SCOPE[];
-}
-
 const getTypeColor = (type: SCOPE): string => {
     const colors: Record<SCOPE, string> = {
         [SCOPE.AUTOMATION]: 'var(--vscode-charts-blue)',
@@ -172,14 +166,14 @@ const getTypeColor = (type: SCOPE): string => {
     return colors[type];
 };
 
-const getTypeIcon = (type: SCOPE): string => {
-    const icons: Record<SCOPE, string> = {
-        [SCOPE.AUTOMATION]: 'robot',
-        [SCOPE.INTEGRATION_AS_API]: 'cloud',
-        [SCOPE.EVENT_INTEGRATION]: 'pulse',
-        [SCOPE.FILE_INTEGRATION]: 'file',
-        [SCOPE.AI_AGENT]: 'sparkle',
-        [SCOPE.ANY]: 'package'
+const getTypeIcon = (type: SCOPE): { name: string; source: 'icon' | 'codicon' } => {
+    const icons: Record<SCOPE, { name: string; source: 'icon' | 'codicon' }> = {
+        [SCOPE.AUTOMATION]: { name: 'task', source: 'icon' },
+        [SCOPE.INTEGRATION_AS_API]: { name: 'cloud', source: 'codicon' },
+        [SCOPE.EVENT_INTEGRATION]: { name: 'Event', source: 'icon' },
+        [SCOPE.FILE_INTEGRATION]: { name: 'file', source: 'icon' },
+        [SCOPE.AI_AGENT]: { name: 'bi-ai-agent', source: 'icon' },
+        [SCOPE.ANY]: { name: 'project', source: 'codicon' }
     };
     return icons[type];
 };
@@ -196,17 +190,42 @@ const getTypeLabel = (type: SCOPE): string => {
     return labels[type];
 };
 
+const renderIcon = (iconConfig: { name: string; source: 'icon' | 'codicon' }) => {
+    const iconProps = {
+        iconSx: { fontSize: 25, opacity: 0.85 },
+        sx: { height: 25, width: 25 }
+    };
+
+    return iconConfig.source === 'icon' ? (
+        <Icon name={iconConfig.name} {...iconProps} />
+    ) : (
+        <Codicon name={iconConfig.name} {...iconProps} />
+    );
+};
+
+const renderPackageIcon = (types: SCOPE[]) => {
+    if (types.length > 0) {
+        const iconConfig = getTypeIcon(types[0]);
+        return renderIcon(iconConfig);
+    }
+    
+    return renderIcon({ name: 'project', source: 'codicon' });
+};
+
 export function PackageListView(props: PackageListViewProps) {
     const { rpcClient } = useRpcContext();
     const workspaceStructure = props.workspaceStructure;
-    const packages = workspaceStructure.projects.map((project) => {
-        return {
-            id: project.projectName,
-            name: project.projectTitle,
-            projectPath: project.projectPath,
-            types: getIntegrationTypes(workspaceStructure, project.projectPath)
-        }
-    });
+
+    const packages = useMemo(() => {
+        return workspaceStructure.projects.map((project) => {
+            return {
+                id: project.projectName,
+                name: project.projectTitle,
+                projectPath: project.projectPath,
+                types: getIntegrationTypes(workspaceStructure, project.projectPath)
+            }
+        });
+    }, [workspaceStructure]);
 
     const handlePackageClick = async (packageId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
@@ -237,11 +256,7 @@ export function PackageListView(props: PackageListViewProps) {
                         <PackageHeader>
                             <PackageTitleRow title={pkg.name}>
                                 <PackageIcon>
-                                    <Codicon 
-                                        name={pkg.types.length > 0 ? getTypeIcon(pkg.types[0]) : 'package'} 
-                                        iconSx={{ fontSize: 28, opacity: 0.85 }}
-                                        sx={{ height: 28, width: 28 }}
-                                    />
+                                    {renderPackageIcon(pkg.types)}
                                 </PackageIcon>
                                 <PackageName>{pkg.name}</PackageName>
                             </PackageTitleRow>

@@ -19,8 +19,7 @@ import {
     fetchScope,
     getOrgPackageName,
     UndoRedoManager,
-    getProjectTomlValues,
-    getWorkspaceTomlValues
+    getPackageName
 } from './utils';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -516,8 +515,7 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
-                const projectTomlValues = context.projectPath ? await getProjectTomlValues(context.projectPath) : undefined;
-                const packageName = projectTomlValues?.package?.name;
+                const packageName = getPackageName(context.projectInfo, context.projectPath);
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
                         if (!context.projectPath && context.workspacePath) {
