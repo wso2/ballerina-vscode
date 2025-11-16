@@ -243,10 +243,12 @@ export function PackageListView(props: PackageListViewProps) {
         });
     };
 
-    const handleDeleteClick = (packageId: string, event: React.MouseEvent) => {
+    const handleDeleteClick = async (projectPath: string, event: React.MouseEvent) => {
         event.stopPropagation();
-        // TODO: Implement delete confirmation and logic
-        console.log('Deleting package:', packageId);
+        console.log('Deleting package:', projectPath);
+        await rpcClient.getBIDiagramRpcClient().deleteProject({
+            projectPath: projectPath
+        });
     };
 
     return (
@@ -264,7 +266,7 @@ export function PackageListView(props: PackageListViewProps) {
                             <PackageActions>
                                 <DeleteButton 
                                     className="delete-button"
-                                    onClick={(e) => handleDeleteClick(pkg.id, e)}
+                                    onClick={(e) => handleDeleteClick(pkg.projectPath, e)}
                                     title="Delete package"
                                 >
                                     <Codicon name="trash" iconSx={{ fontSize: 18 }} />
