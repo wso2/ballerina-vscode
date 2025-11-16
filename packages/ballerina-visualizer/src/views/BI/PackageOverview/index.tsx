@@ -534,7 +534,7 @@ export function PackageOverview(props: PackageOverviewProps) {
         queryKey: ["devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
         refetchInterval: 5000
-    })
+    });
     const [showAlert, setShowAlert] = useState(false);
 
 

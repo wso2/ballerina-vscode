@@ -181,7 +181,7 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
 export function ServiceCreationView(props: ServiceCreationViewProps) {
 
-    const { projectPath, orgName, packageName, moduleName, version } = props;
+    const { projectPath, orgName, packageName, moduleName } = props;
     const { rpcClient } = useRpcContext();
 
     const [headerInfo, setHeaderInfo] = useState<HeaderInfo>(null);
