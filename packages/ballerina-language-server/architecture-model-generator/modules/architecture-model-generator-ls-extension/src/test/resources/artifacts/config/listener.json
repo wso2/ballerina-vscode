@@ -19,7 +19,7 @@
         "type": "LISTENER",
         "name": "httpDefaultListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       },
@@ -57,7 +57,7 @@
         "type": "LISTENER",
         "name": "rabbitmqListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
         "module": "rabbitmq",
         "children": {}
       },
@@ -77,7 +77,7 @@
         "type": "LISTENER",
         "name": "refListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       }
