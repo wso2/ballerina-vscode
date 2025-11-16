@@ -248,7 +248,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -257,7 +257,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.0",
+                  "version": "2.15.1",
                   "lineRange": {
                     "fileName": "while.bal",
                     "startLine": {
@@ -1517,7 +1517,7 @@
                         "metadata": {
                           "label": "post",
                           "description": "Create a new resource or submit data to a resource for processing.\n",
-                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png"
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
                         },
                         "codedata": {
                           "node": "REMOTE_ACTION_CALL",
@@ -1526,7 +1526,7 @@
                           "packageName": "http",
                           "object": "Client",
                           "symbol": "post",
-                          "version": "2.15.0",
+                          "version": "2.15.1",
                           "lineRange": {
                             "fileName": "while.bal",
                             "startLine": {
