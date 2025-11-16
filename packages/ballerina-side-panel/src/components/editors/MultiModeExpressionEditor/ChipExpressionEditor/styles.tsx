@@ -48,7 +48,8 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
-    margin-top: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 2px;
 `;
 
 export const Chip = styled.div`
