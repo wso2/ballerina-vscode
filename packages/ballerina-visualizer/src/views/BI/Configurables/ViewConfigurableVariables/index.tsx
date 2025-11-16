@@ -25,6 +25,7 @@ import { AddForm } from "../AddConfigurableVariables";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { TitleBar } from "../../../../components/TitleBar";
 import ConfigurableItem from "../ConfigurableItem";
+import { RelativeLoader } from "../../../../components/RelativeLoader";
 
 const Container = styled.div`
     width: 100%;
@@ -118,10 +119,12 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [categoriesWithModules, setCategoriesWithModules] = useState<CategoryWithModules[]>([]);
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
     const integrationCategory = `${props.org}/${props.package}`;
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        getConfigVariables();
-    }, [props]);
+        setIsLoading(true);
+        getConfigVariables(true);
+    }, [props.org, props.package]);
 
     useEffect(() => {
         if (categoriesWithModules.length > 0 && !selectedModule) {
@@ -266,7 +269,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             });
     };
 
-    const getConfigVariables = async () => {
+    const getConfigVariables = async (initialLoad: boolean = false) => {
 
         let data: ConfigVariablesState = {};
         let errorMsg: string = '';
@@ -279,13 +282,13 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;
-            });
+            })
 
         setConfigVariables(data);
         setErrorMessage(errorMsg);
 
         // Only set initial selected module if none is selected
-        if (!selectedModule) {
+        if (!selectedModule || initialLoad) {
             // Extract and set the available categories with their modules
             const extractedCategories = Object.keys(data).map(category => ({
                 name: category,
@@ -300,6 +303,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 module: initialModule
             });
         }
+        setIsLoading(false);
     };
 
     const updateErrorMessage = (message: string) => {
@@ -355,7 +359,8 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
-                        <SplitView defaultWidths={[20, 80]}>
+                        {isLoading && <RelativeLoader message="Loading configurable variables..." />}
+                        {!isLoading && <SplitView defaultWidths={[20, 80]}>
                             {/* Left side tree view */}
                             <div id={`package-treeview`} style={{ padding: "10px 0 50px 0" }}>
                                 {/* Display integration category first */}
@@ -670,7 +675,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                     }
                                 </>
                             </div>
-                        </SplitView>
+                        </SplitView>}
                     </div>
                 </div>
             </ViewContent>

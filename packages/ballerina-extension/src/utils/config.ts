@@ -136,12 +136,12 @@ function compareVersions(
     if (current.major !== minimum.major) {
         return current.major > minimum.major;
     }
-    
+
     // Major versions are equal, compare minor
     if (current.minor !== minimum.minor) {
         return current.minor > minimum.minor;
     }
-    
+
     // Major and minor are equal, compare patch
     return current.patch >= minimum.patch;
 }
@@ -357,20 +357,20 @@ export function setupBIFiles(projectDir: string): void {
     });
 }
 
-export function getPackageName(projectInfo: ProjectInfo, projectPath: string): string {
+export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: string): { orgName: string, packageName: string } {
     if (!projectPath || !projectInfo) {
-        return "";
+        return { orgName: '', packageName: '' };
     }
 
     if (projectInfo.children?.length) {
         const matchedProject = projectInfo.children.find(
             (child) => child.projectPath === projectPath
         );
-        
+
         if (matchedProject) {
-            return matchedProject.title || matchedProject.name;
+            return { orgName: matchedProject.org || matchedProject.orgName, packageName: matchedProject.name };
         }
     }
 
-    return projectInfo.title || projectInfo.name;
+    return { orgName: projectInfo.org || projectInfo.orgName, packageName: projectInfo.name || projectInfo.title };
 }

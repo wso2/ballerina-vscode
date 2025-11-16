@@ -17,7 +17,7 @@
  */
 
 import { EditorState } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, tooltips } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
 import {
@@ -43,7 +43,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -77,10 +77,7 @@ export type ChipExpressionEditorComponentProps = {
     onOpenExpandedMode?: () => void;
     onRemove?: () => void;
     isInExpandedMode?: boolean;
-
-    // TODO: change this prop to pass a style object instead of just height
-    // to allow more flexibility in styling
-    expressionHeight?: string | number;
+    sx?: React.CSSProperties;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -202,13 +199,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }));
     }
 
-    // Determine height based on expressionHeight prop, or fall back to default behavior
-    const getHeightValue = (height: string | number) => {
-        return typeof height === 'number'
-            ? `${height}px`
-            : height;
-    };
-
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
@@ -221,6 +211,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     activateOnTyping: true,
                     closeOnBlur: true
                 }),
+                tooltips({ position: "absolute" }),
                 chipPlugin,
                 tokenField,
                 chipTheme,
@@ -236,9 +227,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         "&": { height: "100%" },
                         ".cm-scroller": { overflow: "auto" }
                     })]
-                    : props.expressionHeight
+                    : props.sx && 'height' in props.sx
                         ? [EditorView.theme({
-                            "&": { height: getHeightValue(props.expressionHeight) },
+                            "&": {
+                                height: typeof (props.sx as any).height === 'number' ?
+                                    `${(props.sx as any).height}px` :
+                                    (props.sx as any).height
+                            },
                             ".cm-scroller": { overflow: "auto" }
                         })]
                         : [])
@@ -255,32 +250,34 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     }, []);
 
     useEffect(() => {
-        if (!props.value || !viewRef.current) return;
+        if (props.value == null || !viewRef.current) return;
         const updateEditorState = async () => {
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = props.value !== currentDoc;
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
-            const currentSelection = viewRef.current!.state.selection.main;
-
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
-                props.targetLineRange.startLine
+                props.targetLineRange?.startLine
             );
             setIsTokenUpdateScheduled(false);
-            if (tokenStream) {
-                viewRef.current!.dispatch({
-                    effects: tokensChangeEffect.of(tokenStream),
-                    changes: { from: 0, to: viewRef.current!.state.doc.length, insert: props.value },
-                    selection: { anchor: currentSelection.anchor, head: currentSelection.head },
-                    ...{annotations: isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : []}
-                });
-            }
+            const effects = tokenStream ? [tokensChangeEffect.of(tokenStream)] : [];
+            const changes = isExternalUpdate
+                ? { from: 0, to: viewRef.current!.state.doc.length, insert: props.value }
+                : undefined;
+            const annotations = isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [];
+
+            viewRef.current!.dispatch({
+                ...(effects.length > 0 && { effects }),
+                ...(changes && { changes }),
+                ...(annotations.length > 0 && { annotations }),
+            });
+
         };
         updateEditorState();
-    }, [props.value, props.fileName, props.targetLineRange.startLine, isTokenUpdateScheduled]);
+    }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
 
 
     // this keeps completions ref updated
@@ -296,8 +293,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const target = event.target as Element;
             const isClickInsideEditor = editorRef.current?.contains(target);
             const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
+            const isClickOnToggleButton = helperPaneToggleButtonRef.current?.contains(target);
 
-            if (!isClickInsideEditor && !isClickInsideHelperPane) {
+            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
                 viewRef.current?.dispatch({
                     selection: { anchor: 0 },
@@ -325,20 +323,15 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             )}
             <ChipEditorContainer ref={fieldContainerRef} style={{
                 position: 'relative',
-                height: props.isInExpandedMode
-                    ? '100%'
-                    : props.expressionHeight
-                        ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
-                        : 'auto'
+                ...props.sx,
+                ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
             }}>
                 {!props.isInExpandedMode && <FXButton />}
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <div ref={editorRef} style={{
-                        height: props.isInExpandedMode
-                            ? '100%'
-                            : props.expressionHeight
-                                ? (typeof props.expressionHeight === 'number' ? `${props.expressionHeight}px` : props.expressionHeight)
-                                : 'auto'
+                        border: '1px solid var(--vscode-dropdown-border)',
+                        ...props.sx,
+                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
                     }} />
                     {helperPaneState.isOpen &&
                         <HelperPane
@@ -354,15 +347,14 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         {!props.isExpandedVersion &&
                             <FloatingToggleButton
                                 ref={helperPaneToggleButtonRef}
-                                isActive={helperPaneState.isOpen}
                                 onClick={handleHelperPaneManualToggle}
-                                title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
+                                title={helperPaneState.isOpen ? "Close Helper Panel" : "Open Helper Panel"}
                             >
-                                {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                                {helperPaneState.isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
                             </FloatingToggleButton>}
-                        {props.onOpenExpandedMode && !props.isInExpandedMode && (
-                            <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
-                                <ExpandButton />
+                        {props.onOpenExpandedMode && (
+                            <FloatingToggleButton onClick={props.onOpenExpandedMode} title={props.isInExpandedMode ? "Minimize Editor" : "Expand Editor"}>
+                                {props.isInExpandedMode ? <MinimizeIcon /> : <ExpandIcon />}
                             </FloatingToggleButton>
                         )}
                     </FloatingButtonContainer>

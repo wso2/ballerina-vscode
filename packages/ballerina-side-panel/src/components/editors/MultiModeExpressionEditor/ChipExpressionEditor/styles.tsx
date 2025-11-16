@@ -48,7 +48,8 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
-    margin-top: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 2px;
 `;
 
 export const Chip = styled.div`
@@ -230,13 +231,13 @@ export const FloatingButtonContainer = styled.div`
     z-index: 1500;
 `;
 
-export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
+export const FloatingToggleButton = styled.button`
     width: 16px;
     height: 16px;
-    border: 1px solid ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE};
+    border: 1px solid ${ThemeColors.OUTLINE};
     border-radius: 2px;
-    background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
-    color: ${props => props.isActive ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -246,20 +247,11 @@ export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
     transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease, transform 0.1s ease;
     outline: none;
     padding: 0;
-    box-shadow: ${props => props.isActive ? `0 0 0 1px ${ThemeColors.PRIMARY}` : '0 1px 2px rgba(0, 0, 0, 0.15)'};
+    box-shadow: ${'0 1px 2px rgba(0, 0, 0, 0.15)'};
 
     &:hover {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_CONTAINER};
-        border-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT};
+        background-color: ${ThemeColors.SURFACE_DIM_2};
         transform: scale(1.05);
-        
-        svg {
-            color: ${ThemeColors.PRIMARY}cc;
-        }
-    }
-
-    &:active {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
     }
 
     &:focus-visible {

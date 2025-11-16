@@ -499,11 +499,17 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
                 // If there's an existing config value, parse it and merge with recordConfig
                 if (configValue) {
                     try {
-                        let parsedValue;
+                        let parsedValue: any;
                         if (typeof configValue === 'string') {
                             // Attempt to fix JSON if it is JavaScript-style (unquoted keys)
                             const fixedJson = configValue.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
                             parsedValue = JSON.parse(fixedJson);
+                            // Check if there are string values that are not wrapped in quotes
+                            Object.keys(parsedValue).forEach(key => {
+                                if (typeof parsedValue[key] === 'string' && !/^".*"$/.test(parsedValue[key])) {
+                                    parsedValue[key] = `"${parsedValue[key]}"`;
+                                }
+                            });
                         } else {
                             parsedValue = configValue;
                         }

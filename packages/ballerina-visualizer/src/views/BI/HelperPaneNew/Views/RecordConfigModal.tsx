@@ -17,12 +17,12 @@
  */
 
 import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography, Button, CompletionItem, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { Dropdown, HelperPane, Typography, Button, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RecordConfigView } from "./RecordConfigView";
-import { ChipExpressionEditorComponent, Context as FormContext, HelperpaneOnChangeOptions, FieldProvider, FormField, FormExpressionEditorProps, useFieldContext, getPropertyFromFormField } from "@wso2/ballerina-side-panel";
+import { ChipExpressionEditorComponent, Context as FormContext, HelperpaneOnChangeOptions, FieldProvider, FormField, FormExpressionEditorProps, getPropertyFromFormField } from "@wso2/ballerina-side-panel";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
@@ -159,9 +159,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     // This prevents intermediate values from overwriting the final value
     const latestExpressionToSyncRef = useRef<string>(localExpressionValue);
 
-    // Create a wrapper for extractArgsFromFunction that matches ChipExpressionBaseComponent's expected signature
-    // ChipExpressionBaseComponent expects (value: string, cursorPosition: number) => Promise<...>
-    // but formContext.expressionEditor.extractArgsFromFunction expects (value: string, property: ExpressionProperty, cursorPosition: number) => Promise<...>
+    // Adapter to match ChipExpressionBaseComponent's signature by providing a default property from recordTypeField.
     const wrappedExtractArgsFromFunction = formContext.expressionEditor.extractArgsFromFunction
         ? async (value: string, cursorPosition: number) => {
             // Create a default property from recordTypeField
@@ -378,17 +376,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Also update latestExpressionToSyncRef to prevent outdated syncs
             latestExpressionToSyncRef.current = content;
             setLocalExpressionValue(content);
-
+            // Fetch diagnostics for the updated expression
+            fetchDiagnostics(content);
         }
     }
 
     const handleSave = () => {
         // Update the form with the current local expression value
         onChange(localExpressionValue, true);
-        onClose();
-    }
-
-    const handleCancel = () => {
         onClose();
     }
 
@@ -437,7 +432,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const syncExpressionToModel = async (expressionValue: string) => {
         // Check if this is still the latest value to sync (user may have typed more)
         if (expressionValue !== latestExpressionToSyncRef.current) {
-            console.log(">>> syncExpressionToModel: Expression value outdated, skipping. Current:", expressionValue, "Latest:", latestExpressionToSyncRef.current);
             return;
         }
 
@@ -487,7 +481,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
         // Check again if this is still the latest value (user may have typed more while waiting for diagnostics)
         if (expressionValue !== latestExpressionToSyncRef.current) {
-            console.log(">>> syncExpressionToModel: Expression value outdated after diagnostics, skipping. Current:", expressionValue, "Latest:", latestExpressionToSyncRef.current);
             return;
         }
 
@@ -496,21 +489,16 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const hasErrors = diagnostics.some((d: any) => d.severity === 1);
 
         if (hasErrors) {
-            console.log(">>> Expression has errors, skipping sync to model. Diagnostics:", diagnostics);
             return;
         }
 
         // Check if the expression differs from the sourceCode (which represents the record model's expression)
         if (expressionValue !== sourceCode.current) {
-            console.log(">>> Expression changed, syncing to model. Expression:", expressionValue, "SourceCode:", sourceCode.current);
 
             // Parse the expression to update the record model
             await fetchRecordModelFromSource(expressionValue);
             // Update sourceCode to match the new expression value
             sourceCode.current = expressionValue;
-            console.log(">>> Synced expression to model, updated sourceCode to:", sourceCode.current);
-        } else {
-            console.log(">>> Expression unchanged, no sync needed");
         }
     };
 
@@ -527,7 +515,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         if (localExpressionValue !== sourceCode.current) {
             // Update the latest expression to sync ref
             latestExpressionToSyncRef.current = localExpressionValue;
-            console.log(">>> localExpressionValue changed, triggering debounced sync. Value:", localExpressionValue, "SourceCode:", sourceCode.current);
             debouncedSyncExpressionToModel(localExpressionValue);
         }
     }, [localExpressionValue, debouncedSyncExpressionToModel]);
@@ -558,20 +545,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     // and updates local expression value
     const wrappedGetHelperPane = getHelperPane
         ? (value: string, onChange: (value: string, options?: HelperpaneOnChangeOptions) => void, helperPaneHeight: HelperPaneHeight) => {
-            const wrappedOnChange = (newValue: string, options?: HelperpaneOnChangeOptions) => {
-                onChange(newValue, options);
-                // Update local expression value
-                setLocalExpressionValue(newValue);
-            };
 
             // Call getHelperPane with all required parameters including refs
             return getHelperPane(
-                "expression",
+                field?.key || "expression",
                 exprRef,
                 anchorRef,
                 "",
                 value,
-                wrappedOnChange,
+                onChange,
                 () => { }, // changeHelperPaneState - no-op since ChipExpressionBaseComponent handles it
                 helperPaneHeight,
                 recordTypeField,
@@ -607,15 +589,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {selectedMemberName && recordModel?.length > 0 ?
-                            (
-                                <RecordConfigView
-                                    recordModel={recordModel}
-                                    onModelChange={handleModelChange}
-                                />
-                            ) : (
-                                <Typography variant="body3">Record construction assistance is unavailable.</Typography>
-                            )}
+                        {selectedMemberName && recordModel?.length > 0 ? (
+                            <RecordConfigView
+                                recordModel={recordModel}
+                                onModelChange={handleModelChange}
+                            />
+                        ) : !isLoading ? (
+                            <Typography variant="body3">Record construction assistance is unavailable.</Typography>
+                        ) : null}
                     </LeftColumn>
                     <RightColumn>
                         <ExpressionEditorContainer>
@@ -659,8 +640,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            expressionHeight="350" 
-                                            isExpandedVersion={false}                                            
+                                            sx={{ height: "350px" }}
+                                            isExpandedVersion={false}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
@@ -670,9 +651,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             </FormContext.Provider>
                         </ExpressionEditorContainer>
                         <ButtonContainer>
-                            <Button appearance="secondary" onClick={handleCancel}>
-                                Cancel
-                            </Button>
                             <Button appearance="primary" onClick={handleSave}>
                                 Save
                             </Button>
