@@ -600,14 +600,20 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         if (params.convertToWorkspace) {
             try {
                 await convertProjectToWorkspace(params);
+                // Refresh project info to update UI with newly added project
+                StateMachine.refreshProjectInfo();
             } catch (error) {
                 window.showErrorMessage("Error converting project to workspace");
+                console.error("Error converting project to workspace:", error);
             }
         } else {
             try {
                 await addProjectToExistingWorkspace(params);
+                // Refresh project info to update UI with newly added project
+                StateMachine.refreshProjectInfo();
             } catch (error) {
                 window.showErrorMessage("Error adding project to existing workspace");
+                console.error("Error adding project to existing workspace:", error);
             }
         }
     }
