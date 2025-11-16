@@ -368,9 +368,15 @@ export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: stri
         );
 
         if (matchedProject) {
-            return { orgName: matchedProject.org || matchedProject.orgName, packageName: matchedProject.name };
+            return {
+                orgName: matchedProject.org || matchedProject.orgName,
+                packageName: matchedProject.title || matchedProject.name
+            };
         }
     }
 
-    return { orgName: projectInfo.org || projectInfo.orgName, packageName: projectInfo.name || projectInfo.title };
+    return {
+        orgName: projectInfo.org || projectInfo.orgName,
+        packageName: projectInfo.title || projectInfo.name
+    };
 }
