@@ -168,10 +168,10 @@ import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
-import { openView, StateMachine, updateView } from "../../stateMachine";
+import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
@@ -595,6 +595,36 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectRoot = createBIProjectPure(params);
             openInVSCode(projectRoot);
         }
+    }
+
+    async deleteProject(params: DeleteProjectRequest): Promise<void> {
+        const projectInfo = StateMachine.context().projectInfo;
+        const targetProject = projectInfo?.children.find((child) => child.projectPath === params.projectPath);
+        const projectName = targetProject?.title || targetProject?.name;
+        if (!projectName) {
+            return;
+        }
+        // Confirm destructive action with user
+        const response = await window.showWarningMessage(
+            `Delete project '${projectName}'?`,
+            {
+                modal: true,
+                detail: "This action cannot be undone. The project will be permanently removed from the workspace."
+            },
+            { title: "Delete", isCloseAffordance: false },
+            { title: "Cancel", isCloseAffordance: true }
+        );
+        
+        if (response?.title !== "Delete") {
+            return;
+        }
+
+        const projectPath = params.projectPath;
+        const workspacePath = projectInfo?.projectPath;
+        await deleteProjectFromWorkspace(workspacePath, projectPath);
+
+        // Refresh project info to update UI with newly added project
+        StateMachine.refreshProjectInfo();
     }
 
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
@@ -2027,11 +2057,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 reject(error);
             });
         });
-    }
-
-    async deleteProject(params: DeleteProjectRequest): Promise<void> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 }
 
