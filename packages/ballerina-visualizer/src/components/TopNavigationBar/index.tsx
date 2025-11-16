@@ -148,7 +148,17 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     }, [history]);
 
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
-    const hackToSkipForms = ["workspace overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
+    const hackToSkipForms = [
+        "workspace overview",
+        "automation",
+        "service",
+        "function",
+        "add natural function",
+        "data mapper",
+        "connection",
+        "add project",
+        "bi add project skip"
+    ];
 
     if (workspaceType?.type !== "BALLERINA_WORKSPACE") {
         hackToSkipForms.push("package overview");
