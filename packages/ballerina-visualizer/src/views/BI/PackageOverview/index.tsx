@@ -755,21 +755,8 @@ export function PackageOverview(props: PackageOverviewProps) {
                         actions={headerActions}
                     />
                 ) : (
-                    <HeaderRow isBallerinaWorkspace={isWorkspace}>
+                    <HeaderRow>
                         <TitleContainer>
-                            {isWorkspace && (
-                                <IconButtonContainer>
-                                    <Button appearance="icon" onClick={handleBack} buttonSx={{ padding: "4px" }}>
-                                        <Icon
-                                            name="bi-arrow-back"
-                                            sx={{
-                                                fontSize: "20px",
-                                                width: "20px",
-                                            }}
-                                        />
-                                    </Button>
-                                </IconButtonContainer>
-                            )}
                             <ProjectTitle>{projectName}</ProjectTitle>
                             <ProjectSubtitle>Integration</ProjectSubtitle>
                         </TitleContainer>
