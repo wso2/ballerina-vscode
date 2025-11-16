@@ -187,3 +187,7 @@ export interface DevantMetadata {
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
 }
+
+export interface DeleteProjectRequest {
+    projectPath: string;
+}
