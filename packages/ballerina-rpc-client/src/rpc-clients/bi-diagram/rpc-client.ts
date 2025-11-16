@@ -53,6 +53,7 @@ import {
     CurrentBreakpointsResponse,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -130,6 +131,7 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteProject,
     deleteType,
     deployProject,
     formDidClose,
@@ -268,6 +270,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     createProject(params: ProjectRequest): void {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
+    }
+
+    deleteProject(params: DeleteProjectRequest): void {
+        return this._messenger.sendNotification(deleteProject, HOST_EXTENSION, params);
     }
 
     addProjectToWorkspace(params: AddProjectToWorkspaceRequest): void {
