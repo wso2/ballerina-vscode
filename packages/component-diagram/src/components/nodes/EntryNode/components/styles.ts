@@ -118,7 +118,7 @@ export const Box = styled.div<NodeStyleProp>`
         ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
-    padding: 0 8px 8px 8px;
+    padding: 8px;
 `;
 
 export const ServiceBox = styled.div`
@@ -128,8 +128,12 @@ export const ServiceBox = styled.div`
     align-items: center;
     gap: 10px;
     width: ${ENTRY_NODE_WIDTH}px;
-    height: ${ENTRY_NODE_HEIGHT}px;
+    height: ${ENTRY_NODE_HEIGHT - 8}px;
     cursor: pointer;
+    &:hover {
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-radius: 8px;
+    }
 `;
 
 export const FunctionBoxWrapper = styled.div`

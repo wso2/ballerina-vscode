@@ -43,7 +43,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CloseHelperButton, ExpandButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { CloseHelperIcon, ExpandIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -293,8 +293,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const target = event.target as Element;
             const isClickInsideEditor = editorRef.current?.contains(target);
             const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
+            const isClickOnToggleButton = helperPaneToggleButtonRef.current?.contains(target);
 
-            if (!isClickInsideEditor && !isClickInsideHelperPane) {
+            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
                 viewRef.current?.dispatch({
                     selection: { anchor: 0 },
@@ -350,11 +351,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                                 onClick={handleHelperPaneManualToggle}
                                 title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
                             >
-                                {helperPaneState.isOpen ? <CloseHelperButton /> : <OpenHelperButton />}
+                                {helperPaneState.isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
                             </FloatingToggleButton>}
                         {props.onOpenExpandedMode && !props.isInExpandedMode && (
                             <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
-                                <ExpandButton />
+                                <ExpandIcon />
                             </FloatingToggleButton>
                         )}
                     </FloatingButtonContainer>
