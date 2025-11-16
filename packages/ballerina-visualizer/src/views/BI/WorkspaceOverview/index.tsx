@@ -340,13 +340,14 @@ export function WorkspaceOverview() {
                     <ContentPanel isEmpty={isEmptyWorkspace}>
                         <SectionHeader>
                             <SectionTitle>Integrations</SectionTitle>
-                            {!isEmptyWorkspace && (
+                            {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                            {/* {!isEmptyWorkspace && (
                                 <SectionActions>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
                                     </Button>
                                 </SectionActions>
-                            )}
+                            )} */}
                         </SectionHeader>
                         {isEmptyWorkspace ? (
                             <EmptyStateContainer>
@@ -357,15 +358,16 @@ export function WorkspaceOverview() {
                                     variant="body1"
                                     sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                 >
-                                    Start by adding integrations or use AI to generate your workspace structure
+                                    Start by adding integrations to your workspace
                                 </Typography>
                                 <ButtonContainer>
                                     <Button appearance="secondary" onClick={handleAddIntegration}>
                                         <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration
                                     </Button>
-                                    <Button appearance="primary" onClick={handleGenerate}>
+                                    {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                                    {/* <Button appearance="primary" onClick={handleGenerate}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                    </Button>
+                                    </Button> */}
                                 </ButtonContainer>
                             </EmptyStateContainer>
                         ) : (
@@ -379,11 +381,12 @@ export function WorkspaceOverview() {
                         <SectionHeader>
                             <SectionTitle>README</SectionTitle>
                             <SectionActions>
-                                {readmeContent && isEmptyWorkspace && (
+                                {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                                {/* {readmeContent && isEmptyWorkspace && (
                                     <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                     </Button>
-                                )}
+                                )} */}
                                 <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
                                     <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
                                 </Button>
