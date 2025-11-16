@@ -1928,6 +1928,7 @@ export interface ProjectInfo {
     name?: string;
     title?: string;
     orgName?: string;
+    org?: string;
     version?: string;
     projectPath?: string;
     children?: ProjectInfo[];

@@ -124,6 +124,20 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         setEditConfigVariableFormOpen(true);
     };
 
+    const handleTextAreaChange = (value: any) => {
+        if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
+            value = `"${value}"`;
+        }
+        handleUpdateConfigValue(value, configVariable);
+    }
+
+    const getPlainValue = (value: string) => {
+        if (configVariable.properties?.type?.value === 'string' && /^".*"$/.test(value)) {
+            return value.replace(/^"|"$/g, '');
+        }
+        return value;
+    }
+
     const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
         const newConfigVarNode: ConfigVariable = {
             ...prevNode,
@@ -304,13 +318,13 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         return Math.min(5, Math.ceil(value.length / 100));
                     })()}
                     resize="vertical"
-                    value={configVariable?.properties?.configValue?.value ? String(configVariable?.properties?.configValue?.value) : ''}
+                    value={configVariable?.properties?.configValue?.value ? getPlainValue(String(configVariable?.properties?.configValue?.value)) : ''}
                     style={{
                         width: '100%',
                         maxWidth: '350px',
                         minHeight: '20px'
                     }}
-                    onChange={(e: any) => handleUpdateConfigValue(e.target.value, configVariable)}
+                    onChange={(e: any) => handleTextAreaChange(e.target.value)}
                 >
                     <style>{`
                         vscode-text-area::part(control) {
