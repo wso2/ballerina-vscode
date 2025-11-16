@@ -163,6 +163,7 @@ namespace S {
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 
 export interface ServiceConfigureProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
     listenerName?: string;
@@ -559,7 +560,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath} />
             {!serviceModel && (
                 <LoadingContainer>
                     <LoadingRing message="Loading service..." />

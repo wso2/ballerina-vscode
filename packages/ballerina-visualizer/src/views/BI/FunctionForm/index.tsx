@@ -367,7 +367,7 @@ export function FunctionForm(props: FunctionFormProps) {
         <View>
             {!isPopup &&
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar
                         title={formType.current}
                         subtitle={titleSubtitle}

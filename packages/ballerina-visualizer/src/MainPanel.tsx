@@ -296,6 +296,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ServiceDesigner:
                         setViewComponent(
                             <ServiceDesigner
+                                projectPath={value.projectPath}
                                 serviceIdentifier={value.identifier}
                                 filePath={value.documentUri}
                                 position={value?.position}
@@ -303,10 +304,13 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.AIAgentDesigner:
-                        setViewComponent(<AIAgentDesigner
-                            filePath={value.documentUri}
-                            position={value?.position}
-                        />);
+                        setViewComponent(
+                            <AIAgentDesigner
+                                projectPath={value?.projectPath}
+                                filePath={value.documentUri}
+                                position={value?.position}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.BIDiagram:
 
@@ -350,7 +354,7 @@ const MainPanel = () => {
                         });
                         break;
                     case MACHINE_VIEW.ERDiagram:
-                        setViewComponent(<ERDiagram />);
+                        setViewComponent(<ERDiagram projectPath={value.projectPath} />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
                         if (value?.identifier) {
@@ -400,6 +404,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.InlineDataMapper:
                         setViewComponent(
                             <DataMapper
+                                projectPath={value.projectPath}
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 name={value?.dataMapperMetadata?.name}
@@ -435,6 +440,7 @@ const MainPanel = () => {
                             .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                         setViewComponent(
                             <GraphQLDiagram
+                                projectPath={value.projectPath}
                                 serviceIdentifier={value?.identifier}
                                 filePath={value?.documentUri}
                                 position={entryPoint?.position ?? value?.position}
@@ -465,17 +471,31 @@ const MainPanel = () => {
                         setViewComponent(<AddProjectForm />);
                         break;
                     case MACHINE_VIEW.BIComponentView:
-                        setViewComponent(<ComponentListView scope={value.scope} />);
+                        setViewComponent(
+                            <ComponentListView
+                                projectPath={value?.projectPath}
+                                scope={value.scope}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.AIChatAgentWizard:
                         setViewComponent(<AIChatAgentWizard />);
                         break;
                     case MACHINE_VIEW.BIServiceWizard:
-                        setViewComponent(<ServiceCreationView orgName={value?.artifactInfo.org} packageName={value?.artifactInfo.packageName} moduleName={value?.artifactInfo.moduleName} version={value?.artifactInfo.version} />);
+                        setViewComponent(
+                            <ServiceCreationView
+                                projectPath={value.projectPath}
+                                orgName={value?.artifactInfo.org}
+                                packageName={value?.artifactInfo.packageName}
+                                moduleName={value?.artifactInfo.moduleName}
+                                version={value?.artifactInfo.version}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.BIServiceClassDesigner:
                         setViewComponent(
                             <ServiceClassDesigner
+                                projectPath={value.projectPath}
                                 type={value?.type}
                                 fileName={value?.documentUri}
                                 position={value?.position}
@@ -486,13 +506,17 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIServiceConfigView:
                         setViewComponent(
                             <ServiceConfigureView
+                                projectPath={value.projectPath}
                                 filePath={value.documentUri}
                                 position={value?.position}
-                                listenerName={value?.identifier} />);
+                                listenerName={value?.identifier}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.BIServiceClassConfigView:
                         setViewComponent(
                             <ServiceClassConfig
+                                projectPath={value.projectPath}
                                 type={value?.type}
                                 fileName={value.documentUri}
                                 position={value?.position}
@@ -500,11 +524,17 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.BIListenerConfigView:
-                        setViewComponent(<ListenerEditView filePath={value.documentUri} position={value?.position} />);
+                        setViewComponent(
+                            <ListenerEditView
+                                projectPath={value.projectPath}
+                                filePath={value.documentUri}
+                                position={value?.position}
+                            />);
                         break;
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
                             <AddConnectionWizard
+                                projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                             />
                         );
@@ -519,6 +549,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddCustomConnector:
                         setViewComponent(
                             <AddConnectionWizard
+                                projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                                 openCustomConnectorView={true}
                             />
@@ -543,15 +574,18 @@ const MainPanel = () => {
                             />);
                         break;
                     case MACHINE_VIEW.BITestFunctionForm:
-                        setViewComponent(<TestFunctionForm
-                            functionName={value?.identifier}
-                            filePath={value?.documentUri}
-                            serviceType={value?.serviceType}
-                        />);
+                        setViewComponent(
+                            <TestFunctionForm
+                                projectPath={value.projectPath}
+                                functionName={value?.identifier}
+                                filePath={value?.documentUri}
+                                serviceType={value?.serviceType}
+                            />);
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
+                                projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 org={value?.org}
                                 package={value?.package}
@@ -561,6 +595,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
+                                projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 org={value?.org}
                                 package={value?.package}

@@ -222,7 +222,7 @@ export function PackageListView(props: PackageListViewProps) {
                 id: project.projectName,
                 name: project.projectTitle,
                 projectPath: project.projectPath,
-                types: getIntegrationTypes(workspaceStructure, project.projectPath)
+                types: getIntegrationTypes(project)
             }
         });
     }, [workspaceStructure]);

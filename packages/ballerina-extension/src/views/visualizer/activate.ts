@@ -47,7 +47,9 @@ export function activateSubscriptions() {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             SHARED_COMMANDS.SHOW_VISUALIZER,
-            async (pathOrItem: string | vscode.Uri | vscode.TreeItem, position,
+            async (
+                pathOrItem: string | vscode.Uri | vscode.TreeItem,
+                position,
                 resetHistory = false
             ) => {
                 // Check if position is a LineRange object (has 'start' and 'end' keys)

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SCOPE, ProjectStructureResponse, DIRECTORY_MAP } from "@wso2/ballerina-core";
+import { SCOPE, DIRECTORY_MAP, ProjectStructure } from "@wso2/ballerina-core";
 
 const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
 const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
@@ -41,22 +41,13 @@ export function findScopeByModule(moduleName: string): SCOPE {
  * @param projectPath - The path of the specific project to extract scopes from
  * @returns Array of SCOPE enums representing the deployable integration types
  */
-export function getIntegrationTypes(
-    projectStructure: ProjectStructureResponse | undefined,
-    projectPath: string
-): SCOPE[] {
+export function getIntegrationTypes(projectStructure: ProjectStructure | undefined): SCOPE[] {
     if (!projectStructure) {
         return [];
     }
 
-    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-    
-    if (!project) {
-        return [];
-    }
-
-    const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
-    const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
+    const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
+    const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
 
     let scopes: SCOPE[] = [];
     

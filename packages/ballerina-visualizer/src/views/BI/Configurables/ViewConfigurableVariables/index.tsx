@@ -77,6 +77,7 @@ const SearchContainer = styled.div`
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 
 export interface ConfigProps {
+    projectPath: string;
     fileName: string;
     org: string;
     package: string;
@@ -315,7 +316,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath} />
             <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
                 <div style={{ display: "flex", gap: '12px', alignItems: 'center' }}>
                     {errorMessage &&
