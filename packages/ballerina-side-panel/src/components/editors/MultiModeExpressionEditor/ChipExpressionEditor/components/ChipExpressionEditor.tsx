@@ -43,7 +43,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
-import { CloseHelperIcon, ExpandIcon, OpenHelperIcon } from "./FloatingButtonIcons";
+import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -347,15 +347,14 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         {!props.isExpandedVersion &&
                             <FloatingToggleButton
                                 ref={helperPaneToggleButtonRef}
-                                isActive={helperPaneState.isOpen}
                                 onClick={handleHelperPaneManualToggle}
-                                title={helperPaneState.isOpen ? "Close Helper" : "Open Helper"}
+                                title={helperPaneState.isOpen ? "Close Helper Panel" : "Open Helper Panel"}
                             >
                                 {helperPaneState.isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
                             </FloatingToggleButton>}
-                        {props.onOpenExpandedMode && !props.isInExpandedMode && (
-                            <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor" isActive={false}>
-                                <ExpandIcon />
+                        {props.onOpenExpandedMode && (
+                            <FloatingToggleButton onClick={props.onOpenExpandedMode} title={props.isInExpandedMode ? "Minimize Editor" : "Expand Editor"}>
+                                {props.isInExpandedMode ? <MinimizeIcon /> : <ExpandIcon />}
                             </FloatingToggleButton>
                         )}
                     </FloatingButtonContainer>
