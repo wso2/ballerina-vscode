@@ -2,12 +2,12 @@
   "description": "",
   "filePath": "proj/automation.bal",
   "context": {
-    "expression": "stude",
+    "expression": "",
     "startLine": {
       "line": 6,
       "offset": 12
     },
-    "offset": 5,
+    "offset": 0,
     "lineOffset": 0,
     "codedata": {
       "lineRange": {

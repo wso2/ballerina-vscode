@@ -1965,12 +1965,20 @@ public class DataMapManager {
             return null;
         }
 
+        MatchingNode matchingNode = targetNode.matchingNode();
+        LineRange lineRange;
+        if (matchingNode.queryExpr() == null) {
+            lineRange = matchingNode.expr().lineRange();
+        } else {
+            lineRange = resultClausePosition(matchingNode.expr());
+        }
+
         Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
         dataMapManagerBuilder = dataMapManagerBuilder
                 .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, targetNode.typeSymbol(), false));
-        dataMapManagerBuilder =
-                    dataMapManagerBuilder.codedata().lineRange(targetNode.matchingNode().expr().lineRange()).stepOut();
+                .codedata()
+                    .lineRange(lineRange)
+                .stepOut();
         return gson.toJsonTree(dataMapManagerBuilder.build());
     }
 
@@ -2258,6 +2266,17 @@ public class DataMapManager {
         } else {
             return expr.lineRange();
         }
+    }
+
+    private LineRange resultClausePosition(ExpressionNode expressionNode) {
+        Node node = expressionNode.parent();
+        while (node != null) {
+            if (node.kind() == SyntaxKind.SELECT_CLAUSE || node.kind() == SyntaxKind.COLLECT_CLAUSE) {
+                return node.lineRange();
+            }
+            node = node.parent();
+        }
+        throw new IllegalStateException("Result clause not found for the expression node");
     }
 
     private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,

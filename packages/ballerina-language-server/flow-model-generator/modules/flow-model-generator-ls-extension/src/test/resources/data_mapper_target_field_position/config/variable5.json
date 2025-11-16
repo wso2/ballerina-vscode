@@ -19,7 +19,6 @@
   "targetField": "personsRecord.persons",
   "property": {
     "valueType": "EXPRESSION",
-    "valueTypeConstraint": "Person[]",
     "optional": false,
     "editable": false,
     "advanced": false,
@@ -29,7 +28,7 @@
         "fileName": "variable4.bal",
         "startLine": {
           "line": 8,
-          "offset": 19
+          "offset": 12
         },
         "endLine": {
           "line": 8,

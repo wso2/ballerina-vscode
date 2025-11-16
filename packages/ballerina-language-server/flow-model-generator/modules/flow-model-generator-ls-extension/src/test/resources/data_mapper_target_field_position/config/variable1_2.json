@@ -16,11 +16,9 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "targetField": "userInfo",
   "property": {
     "valueType": "EXPRESSION",
-    "valueTypeConstraint": "UserInfo",
     "optional": false,
     "editable": false,
     "advanced": false,
