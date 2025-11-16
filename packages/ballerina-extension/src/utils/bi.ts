@@ -15,19 +15,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import { exec } from "child_process";
-import { window, commands, workspace, Uri } from "vscode";
+import { commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectMigrationResult, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
+import {
+    AddProjectToWorkspaceRequest,
+    BallerinaProjectComponents,
+    ComponentRequest,
+    CreateComponentResponse,
+    createFunctionSignature,
+    EVENT_TYPE,
+    MigrateRequest,
+    NodePosition,
+    ProjectMigrationResult,
+    ProjectRequest,
+    STModification,
+    SyntaxTreeResponse,
+    WorkspaceTomlValues
+} from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "toml";
-import { buildProjectsStructure } from "./project-artifacts";
 import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
@@ -308,12 +319,9 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-
     updateWorkspaceToml(workspacePath, params.packageName);
 
-    const projectPath = createProjectInWorkspace(params, workspacePath);
-
-    await openNewlyCreatedProject(params, workspacePath, projectPath);
+    createProjectInWorkspace(params, workspacePath);
 }
 
 function createWorkspaceToml(workspacePath: string, packageName: string) {
@@ -375,19 +383,6 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
     };
 
     return createBIProjectPure(projectRequest);
-}
-
-async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
-    const viewLocation: VisualizerLocation = {
-        view: MACHINE_VIEW.WorkspaceOverview,
-        workspacePath: workspacePath,
-        projectPath: projectPath,
-        package: params.packageName,
-        org: params.orgName
-    };
-
-    await buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
-    openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
 
 export function openInVSCode(projectRoot: string) {

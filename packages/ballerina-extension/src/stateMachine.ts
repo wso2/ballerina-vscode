@@ -91,6 +91,42 @@ const stateMachine = createMachine<MachineContext>(
                     }
                 ]
             },
+            REFRESH_PROJECT_INFO: {
+                actions: [
+                    async (context, event) => {
+                        try {
+                            const projectPath = context.workspacePath || context.projectPath;
+                            if (!projectPath) {
+                                console.warn("No project path available for refreshing project info");
+                                return;
+                            }
+
+                            // Fetch updated project info from language server
+                            const projectInfo = await context.langClient.getProjectInfo({ projectPath });
+                            
+                            // Update context with new project info
+                            stateService.send({
+                                type: 'UPDATE_PROJECT_INFO',
+                                projectInfo
+                            });
+                        } catch (error) {
+                            console.error("Error refreshing project info:", error);
+                        }
+                    }
+                ]
+            },
+            UPDATE_PROJECT_INFO: {
+                actions: [
+                    assign({
+                        projectInfo: (context, event) => event.projectInfo
+                    }),
+                    async (context, event) => {
+                        // Rebuild project structure with updated project info
+                        await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
+                        openView(EVENT_TYPE.OPEN_VIEW, {view: MACHINE_VIEW.WorkspaceOverview})
+                    }
+                ]
+            },
             UPDATE_PROJECT_LOCATION: {
                 actions: [
                     assign({
@@ -684,6 +720,9 @@ export const StateMachine = {
             pendingProjectRootUpdateResolvers.push(resolve);
             stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
         });
+    },
+    refreshProjectInfo: () => {
+        stateService.send({ type: 'REFRESH_PROJECT_INFO' });
     },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
