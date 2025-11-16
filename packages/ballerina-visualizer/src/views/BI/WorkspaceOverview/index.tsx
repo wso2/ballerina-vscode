@@ -20,7 +20,7 @@ import React, { useEffect, useMemo } from "react";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
-    DIRECTORY_MAP
+    BI_COMMANDS
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon } from "@wso2/ui-toolkit";
@@ -282,7 +282,7 @@ export function WorkspaceOverview() {
     };
 
     const handleAddIntegration = () => {
-        // TODO: Implement add integration
+        rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.ADD_PROJECT] })
     };
 
     async function handleSettings() {
