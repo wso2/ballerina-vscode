@@ -60,16 +60,7 @@ const stateMachine = createMachine<MachineContext>(
         },
         on: {
             RESET_TO_EXTENSION_READY: {
-                target: "extensionReady",
-                actions: assign({
-                    documentUri: undefined,
-                    position: undefined,
-                    identifier: undefined,
-                    projectPath: undefined,
-                    scope: undefined,
-                    org: undefined,
-                    package: undefined
-                })
+                target: "extensionReady"
             },
             UPDATE_PROJECT_STRUCTURE: {
                 actions: [
@@ -97,6 +88,42 @@ const stateMachine = createMachine<MachineContext>(
                         notifyCurrentWebview();
                         // Resolve the next pending promise waiting for project root update completion
                         pendingProjectRootUpdateResolvers.shift()?.();
+                    }
+                ]
+            },
+            REFRESH_PROJECT_INFO: {
+                actions: [
+                    async (context, event) => {
+                        try {
+                            const projectPath = context.workspacePath || context.projectPath;
+                            if (!projectPath) {
+                                console.warn("No project path available for refreshing project info");
+                                return;
+                            }
+
+                            // Fetch updated project info from language server
+                            const projectInfo = await context.langClient.getProjectInfo({ projectPath });
+                            
+                            // Update context with new project info
+                            stateService.send({
+                                type: 'UPDATE_PROJECT_INFO',
+                                projectInfo
+                            });
+                        } catch (error) {
+                            console.error("Error refreshing project info:", error);
+                        }
+                    }
+                ]
+            },
+            UPDATE_PROJECT_INFO: {
+                actions: [
+                    assign({
+                        projectInfo: (context, event) => event.projectInfo
+                    }),
+                    async (context, event) => {
+                        // Rebuild project structure with updated project info
+                        await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
+                        openView(EVENT_TYPE.OPEN_VIEW, {view: MACHINE_VIEW.WorkspaceOverview})
                     }
                 ]
             },
@@ -223,7 +250,6 @@ const stateMachine = createMachine<MachineContext>(
                             package: (context, event) => event.viewLocation?.package,
                             view: (context, event) => event.viewLocation.view,
                             documentUri: (context, event) => event.viewLocation.documentUri,
-                            projectPath: (context, event) => event.viewLocation?.projectPath,
                             position: (context, event) => event.viewLocation.position,
                             identifier: (context, event) => event.viewLocation.identifier,
                             serviceType: (context, event) => event.viewLocation.serviceType,
@@ -700,6 +726,9 @@ export const StateMachine = {
             stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
         });
     },
+    refreshProjectInfo: () => {
+        stateService.send({ type: 'REFRESH_PROJECT_INFO' });
+    },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },
@@ -712,7 +741,8 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     }
     extension.hasPullModuleResolved = false;
     extension.hasPullModuleNotification = false;
-    const { orgName, packageName } = getOrgAndPackageName(StateMachine.context().projectInfo, viewLocation.projectPath);
+    const projectPath = viewLocation.projectPath || StateMachine.context().projectPath;
+    const { orgName, packageName } = getOrgAndPackageName(StateMachine.context().projectInfo, projectPath);
     viewLocation.org = orgName;
     viewLocation.package = packageName;
     stateService.send({ type: type, viewLocation: viewLocation });

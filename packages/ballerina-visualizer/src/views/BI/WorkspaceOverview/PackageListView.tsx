@@ -133,6 +133,7 @@ const ChipContainer = styled.div`
     flex-wrap: wrap;
     gap: 6px;
     align-items: center;
+    min-height: 28px;
 `;
 
 const Chip = styled.div<{ color: string }>`
@@ -271,15 +272,13 @@ export function PackageListView(props: PackageListViewProps) {
                                 <Codicon name="chevron-right" iconSx={{ fontSize: 18, opacity: 0.5 }} />
                             </PackageActions>
                         </PackageHeader>
-                        {pkg.types.length > 0 && (
-                            <ChipContainer>
-                                {pkg.types.map((type) => (
-                                    <Chip key={type} color={getTypeColor(type)}>
-                                        {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
-                                    </Chip>
-                                ))}
-                            </ChipContainer>
-                        )}
+                        <ChipContainer>
+                            {pkg.types.length > 0 && pkg.types.map((type) => (
+                                <Chip key={type} color={getTypeColor(type)}>
+                                    {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
+                                </Chip>
+                            ))}
+                        </ChipContainer>
                     </PackageCard>
                 ))}
             </CardGrid>
