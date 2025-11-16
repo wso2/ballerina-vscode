@@ -73,7 +73,10 @@ const stateMachine = createMachine<MachineContext>(
                             console.log('Refreshing BI project explorer');
                             commands.executeCommand("BI.project-explorer.refresh");
                             console.log('Notifying current webview');
-                            notifyCurrentWebview();
+                            // Check if the current view is Service desginer and if so don't notify the webview
+                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner) {
+                                notifyCurrentWebview();
+                            }
                         });
                     }
                 ]
@@ -103,7 +106,7 @@ const stateMachine = createMachine<MachineContext>(
 
                             // Fetch updated project info from language server
                             const projectInfo = await context.langClient.getProjectInfo({ projectPath });
-                            
+
                             // Update context with new project info
                             stateService.send({
                                 type: 'UPDATE_PROJECT_INFO',
@@ -123,7 +126,7 @@ const stateMachine = createMachine<MachineContext>(
                     async (context, event) => {
                         // Rebuild project structure with updated project info
                         await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
-                        openView(EVENT_TYPE.OPEN_VIEW, {view: MACHINE_VIEW.WorkspaceOverview})
+                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview })
                     }
                 ]
             },
