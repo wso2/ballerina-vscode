@@ -310,7 +310,7 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
     createWorkspaceToml(newDirectory, currentPackageName);
-    updateWorkspaceToml(newDirectory, params.packageName);
+    addToWorkspaceToml(newDirectory, params.packageName);
 
     createProjectInWorkspace(params, newDirectory);
 
@@ -319,7 +319,7 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    updateWorkspaceToml(workspacePath, params.packageName);
+    addToWorkspaceToml(workspacePath, params.packageName);
 
     createProjectInWorkspace(params, workspacePath);
 }
@@ -333,7 +333,7 @@ packages = ["${packageName}"]
     writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
 }
 
-function updateWorkspaceToml(workspacePath: string, packageName: string) {
+function addToWorkspaceToml(workspacePath: string, packageName: string) {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
 
     if (!fs.existsSync(ballerinaTomlPath)) {
@@ -356,6 +356,34 @@ function updateWorkspaceToml(workspacePath: string, packageName: string) {
     }
 }
 
+export function deleteProjectFromWorkspace(workspacePath: string, packagePath: string) {
+    const relativeProjectPath = path.relative(workspacePath, packagePath);
+    console.log(">>> relative project path", relativeProjectPath);
+
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return;
+    }
+    
+    try {
+        const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
+        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
+        const existingPackages: string[] = tomlData.workspace?.packages || [];
+
+        if (!existingPackages.includes(relativeProjectPath)) {
+            return; // Package not found
+        }
+
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        fs.writeFileSync(ballerinaTomlPath, updatedContent);
+
+        // delete the project directory
+        fs.rmdirSync(packagePath, { recursive: true });
+    } catch (error) {
+        console.error(">>> error deleting project from workspace", error);
+    }
+}
+
 function addPackageToToml(tomlContent: string, packageName: string): string {
     const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
     const match = tomlContent.match(packagesRegex);
@@ -369,6 +397,26 @@ function addPackageToToml(tomlContent: string, packageName: string): string {
         return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
     } else {
         return tomlContent + `\npackages = ["${packageName}"]\n`;
+    }
+}
+
+function removePackageFromToml(tomlContent: string, packagePath: string): string {
+    const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
+    const match = tomlContent.match(packagesRegex);
+
+    if (match) {
+        const currentArrayContent = match[1].trim();
+        
+        // Split by comma, trim whitespace, and filter out the package to remove
+        const packages = currentArrayContent
+            .split(',')
+            .map(pkg => pkg.trim())
+            .filter(pkg => pkg && pkg !== `"${packagePath}"`);
+        
+        const newArrayContent = packages.length > 0 ? packages.join(', ') : '';
+        return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
+    } else {
+        return tomlContent;
     }
 }
 
