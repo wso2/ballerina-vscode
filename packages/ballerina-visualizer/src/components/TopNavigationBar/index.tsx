@@ -99,12 +99,13 @@ const PackageName = styled.span`
 `;
 
 interface TopNavigationBarProps {
+    projectPath: string;
     onBack?: () => void;
     onHome?: () => void;
 }
 
 export function TopNavigationBar(props: TopNavigationBarProps) {
-    const { onBack, onHome } = props;
+    const { projectPath, onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
@@ -118,7 +119,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             setHistory(history);
             setWorkspaceType(workspaceType);
         });
-    }, []);
+    }, [projectPath]);
 
     const handleBack = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();

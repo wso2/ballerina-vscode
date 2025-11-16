@@ -45,13 +45,14 @@ const Container = styled.div`
 `;
 
 interface TestFunctionDefProps {
+    projectPath: string;
     functionName?: string;
     filePath?: string;
     serviceType?: string;
 }
 
 export function TestFunctionForm(props: TestFunctionDefProps) {
-    const { functionName, filePath, serviceType } = props;
+    const { projectPath, functionName, filePath, serviceType } = props;
     const { rpcClient } = useRpcContext();
     const [formFields, setFormFields] = useState<FormField[]>([]);
     const [testFunction, setTestFunction] = useState<TestFunction>();
@@ -411,7 +412,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar title="Test" subtitle="Create a new test for your integration" />
             <ViewContent padding>
                 <Container>

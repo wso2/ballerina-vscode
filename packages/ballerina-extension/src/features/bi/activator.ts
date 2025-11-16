@@ -156,13 +156,6 @@ export function activate(context: BallerinaExtension) {
         handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
     });
 
-    commands.registerCommand(BI_COMMANDS.SWITCH_PROJECT, async () => {
-        // Hack to switch the project. This will reload the window and prompt the user to select the project.
-        // This is a temporary solution until we provide the support for multi root workspaces.
-        // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
-        StateMachine.sendEvent("SWITCH_PROJECT" as any);
-    });
-
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {

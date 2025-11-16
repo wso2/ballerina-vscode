@@ -59,6 +59,7 @@ const LoadingContainer = styled.div`
 `;
 
 interface ServiceClassConfigProps {
+    projectPath: string;
     fileName: string;
     position: NodePosition;
     type: Type;
@@ -66,7 +67,7 @@ interface ServiceClassConfigProps {
 
 // TODO: Need to support inclusion type configurable option
 export function ServiceClassConfig(props: ServiceClassConfigProps) {
-    const { fileName, position, type } = props;
+    const { projectPath, fileName, position, type } = props;
     const { rpcClient } = useRpcContext();
     const [serviceClassModel, setServiceClassModel] = useState<ServiceClassModel | null>(null);
     const [serviceClassFields, setServiceClassFields] = useState<FormField[]>([]);
@@ -209,7 +210,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar title="Service Class" subtitle="Edit Service Class" />
             <ViewContent padding>
                 {!serviceClassModel &&

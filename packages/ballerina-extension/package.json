@@ -681,13 +681,6 @@
                 "category": "BI"
             },
             {
-                "command": "BI.project-explorer.switch-project",
-                "title": "Switch Project",
-                "icon": "$(distro-switch-project)",
-                "group": "navigation",
-                "category": "BI"
-            },
-            {
                 "command": "BI.project-explorer.add",
                 "title": "Add Project",
                 "icon": "$(add)",
