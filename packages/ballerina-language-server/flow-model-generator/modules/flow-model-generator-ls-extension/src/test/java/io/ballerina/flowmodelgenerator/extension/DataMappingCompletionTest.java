@@ -50,6 +50,7 @@ public class DataMappingCompletionTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("proj1.json")},
                 {Path.of("proj2.json")},
+                {Path.of("proj3.json")},
         };
     }
 

@@ -48,6 +48,7 @@ public class DataMapperCompletionRequest extends
 
     private final CompletionContext completionContext;
     private final TextDocumentService textDocumentService;
+    private static final String RESERVED_VARIABLE_NAME = "__reserved__";
 
     public DataMapperCompletionRequest(ExpressionEditorContext context, CompletionContext completionContext,
                                        TextDocumentService textDocumentService) {
@@ -58,26 +59,19 @@ public class DataMapperCompletionRequest extends
 
     @Override
     public Either<List<CompletionItem>, CompletionList> getResponse(ExpressionEditorContext context) {
-        LinePosition cursorStart = context.startLine();
-        DocumentContext documentContext = context.documentContext();
-        TextDocument textDocument = documentContext.document().textDocument();
-        int textPosition = textDocument.textPositionFrom(cursorStart);
-
-        List<TextEdit> textEdits = new ArrayList<>();
-        ExpressionEditorContext.Info info = context.info();
-        String expression = info.expression();
-        textEdits.add(TextEdit.from(TextRange.from(textPosition, 0), expression));
-        context.applyTextEdits(textEdits);
-
+        context.generateStatement("let any|error __reserved__ = ", System.lineSeparator());
+        Position position = context.getCursorPosition();
         TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
-        CompletionParams params = new CompletionParams(identifier,
-                new Position(cursorStart.line() + info.lineOffset(), cursorStart.offset() + info.offset()),
-                completionContext);
-
-        // Get completions from language server
+        CompletionParams params = new CompletionParams(identifier, position, completionContext);
         CompletableFuture<Either<List<CompletionItem>, CompletionList>> completableFuture =
                 textDocumentService.completion(params);
 
+        Either<List<CompletionItem>, CompletionList> completions = completableFuture.join();
+        if (completions.getLeft() != null) {
+            completions.getLeft().removeIf(item -> RESERVED_VARIABLE_NAME.equals(item.getLabel()));
+        } else if (completions.getRight() != null && completions.getRight().getItems() != null) {
+            completions.getRight().getItems().removeIf(item -> RESERVED_VARIABLE_NAME.equals(item.getLabel()));
+        }
         return completableFuture.join();
     }
 
