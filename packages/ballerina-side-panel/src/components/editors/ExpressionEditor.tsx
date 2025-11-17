@@ -23,12 +23,10 @@ import {
     Button,
     CompletionItem,
     ErrorBanner,
-    FormExpressionEditor,
     FormExpressionEditorRef,
     HelperPaneHeight,
     RequiredFormInput,
-    ThemeColors,
-    Tooltip
+    ThemeColors
 } from '@wso2/ui-toolkit';
 import { getPropertyFromFormField, sanitizeType } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
@@ -45,7 +43,7 @@ import ModeSwitcher from '../ModeSwitcher';
 import { ExpressionField } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
-import { getDefaultExpressionMode, getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
 
 export type ContextAwareExpressionEditorProps = {
@@ -344,8 +342,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
     const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
+    const inputModeRef = useRef<InputMode>(inputMode);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
+    const [targetInputMode, setTargetInputMode] = useState<InputMode | null>(null);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
 
@@ -353,6 +353,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
+
+    // Keep inputModeRef in sync with inputMode state
+    useEffect(() => {
+        inputModeRef.current = inputMode;
+    }, [inputMode]);
 
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
@@ -375,14 +380,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         fetchedInitialDiagnostics: false,
         diagnosticsFetchedTargetLineRange: undefined
     });
-    const fieldValue = rawExpression ? rawExpression(watch(key)) : watch(key);
+    const fieldValue = inputModeRef.current === InputMode.TEMPLATE && rawExpression ? rawExpression(watch(key)) : watch(key);
 
     // Initial render
     useEffect(() => {
         if (!targetLineRange) return;
         // Fetch initial diagnostics
         if (getExpressionEditorDiagnostics && fieldValue !== undefined
-            && inputMode === InputMode.EXP
+            && (inputMode === InputMode.EXP || inputMode === InputMode.TEMPLATE)
             && (previousDiagnosticsFetchContext.current.fetchedInitialDiagnostics === false
                 || previousDiagnosticsFetchContext.current.diagnosticsFetchedTargetLineRange !== targetLineRange
             )) {
@@ -424,8 +429,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             )
         ) {
             setInputMode(InputMode.EXP)
-        }
-        else {
+        } else if (newInputMode === InputMode.TEMPLATE) {
+            if (sanitizedExpression && rawExpression) {
+                const sanitized = sanitizedExpression(initialFieldValue.current as string);
+                if (sanitized === initialFieldValue.current) {
+                    setInputMode(InputMode.EXP);
+                } else {
+                    setInputMode(InputMode.TEMPLATE);
+                }
+            }
+        } else {
             setInputMode(newInputMode);
         }
     }, [field?.valueTypeConstraint, recordTypeField]);
@@ -508,31 +521,60 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleModeChange = (value: InputMode) => {
         const currentValue = watch(key);
+
+        // Warn when switching from EXP to TEXT if value doesn't have quotes
         if (
             inputMode === InputMode.EXP
             && value === InputMode.TEXT
             && (!currentValue.trim().startsWith("\"") || !currentValue.trim().endsWith("\""))
             && currentValue.trim() !== ''
         ) {
+            setTargetInputMode(value);
             setShowModeSwitchWarning(true);
             return;
         }
+
+        // Warn when switching from EXP to TEMPLATE if sanitization would hide parts of the expression
+        if (
+            inputMode === InputMode.EXP
+            && value === InputMode.TEMPLATE
+            && sanitizedExpression
+            && currentValue
+            && currentValue.trim() !== ''
+        ) {
+            setTargetInputMode(value);
+            if (currentValue === sanitizedExpression(currentValue)) {
+                setShowModeSwitchWarning(true);
+            } else {
+                setInputMode(value);
+            }
+            return;
+        }
+
+        // Auto-add quotes when switching from TEXT to EXP if not present
         if (inputMode === InputMode.TEXT && value === InputMode.EXP) {
             if (currentValue && typeof currentValue === 'string' &&
                 !currentValue.startsWith('"') && !currentValue.endsWith('"')) {
                 setValue(key, `"${currentValue}"`);
             }
         }
+
         setInputMode(value);
     };
 
     const handleModeSwitchWarningContinue = () => {
-        const defaultMode = getDefaultExpressionMode(field.valueTypeConstraint);
-        setInputMode(defaultMode);
+        if (targetInputMode !== null) {
+            setInputMode(targetInputMode);
+            setTargetInputMode(null);
+            if (targetInputMode === InputMode.TEMPLATE && inputMode === InputMode.EXP && rawExpression) {
+                setValue(key, rawExpression(""));
+            }
+        }
         setShowModeSwitchWarning(false);
     };
 
     const handleModeSwitchWarningCancel = () => {
+        setTargetInputMode(null);
         setShowModeSwitchWarning(false);
     };
 
@@ -549,7 +591,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     // Only allow opening expanded mode for specific fields or expression mode
     const onOpenExpandedMode = (!props.isInExpandedMode &&
-        (["query", "instructions", "role"].includes(field.key) || inputMode === InputMode.EXP))
+        (["query", "instructions", "role"].includes(field.key) || inputMode === InputMode.EXP || inputMode === InputMode.TEMPLATE))
         ? handleOpenExpandedMode
         : undefined;
 
@@ -632,8 +674,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 fileName={effectiveFileName}
                                 targetLineRange={effectiveTargetLineRange}
                                 autoFocus={recordTypeField ? false : autoFocus}
-                                sanitizedExpression={sanitizedExpression}
-                                rawExpression={rawExpression}
+                                sanitizedExpression={inputMode === InputMode.TEMPLATE ? sanitizedExpression : undefined}
+                                rawExpression={inputMode === InputMode.TEMPLATE ? rawExpression : undefined}
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
@@ -643,10 +685,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
                                     // clear field diagnostics
                                     setFormDiagnostics([]);
-                                    const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                    // Use ref to get current mode (not stale closure value)
+                                    const currentMode = inputModeRef.current;
+                                    const rawValue = currentMode === InputMode.TEMPLATE && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
                                     onChange(rawValue);
-                                    if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
+                                    if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE)) {
                                         getExpressionEditorDiagnostics(
                                             (required ?? !field.optional) || rawValue !== '',
                                             rawValue,
@@ -714,10 +758,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
-                                        const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                        // Use ref to get current mode (not stale closure value)
+                                        const currentMode = inputModeRef.current;
+                                        const rawValue = currentMode === InputMode.TEMPLATE && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
                                         onChange(rawValue);
-                                        if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
+                                        if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE)) {
                                             getExpressionEditorDiagnostics(
                                                 (required ?? !field.optional) || rawValue !== '',
                                                 rawValue,
@@ -754,8 +800,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     completions={completions}
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}
-                                    sanitizedExpression={sanitizedExpression}
-                                    rawExpression={rawExpression}
+                                    sanitizedExpression={inputMode === InputMode.TEMPLATE ? sanitizedExpression : undefined}
+                                    rawExpression={inputMode === InputMode.TEMPLATE ? rawExpression : undefined}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
                                     getHelperPane={handleGetHelperPane}
                                 />
