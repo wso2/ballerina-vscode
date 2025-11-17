@@ -27,12 +27,12 @@ export const ChipEditorField = styled.div<{ customHeight?: string }>`
     min-height: ${props => props.customHeight || `${CHIP_EXPRESSION_EDITOR_HEIGHT}px`};
     height: ${props => props.customHeight || '100%'};
     width: 100%;
-    padding: 1px 25px 1px 8px;
+    padding: 0px 25px 0px 8px;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground, #000000);
     white-space: pre-wrap;
     outline: none;
-    border: 1px solid var(--vscode-dropdown-border);
+    border: 0.5px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
     overflow: auto;
@@ -48,14 +48,13 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 2px;
 `;
 
 export const Chip = styled.div`
     border-radius: 4px;
-    background-color: rgba(0, 122, 204, 0.3);
-    color: var(--vscode-input-foreground, white); /* Updated text color */
+    background-color: rgba(0, 122, 204, 0.7);
+    color: ${ThemeColors.ON_PRIMARY}; 
     cursor: pointer;
     margin: 2px 0px;
     font-size: 12px;
