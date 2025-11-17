@@ -86,7 +86,7 @@ export const getTokenChunks = (tokens: number[]) => {
 };
 
 export const calculateCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>,
+    fieldContainerRef: React.RefObject<HTMLElement>,
     setMenuPosition: React.Dispatch<React.SetStateAction<{ top: number; left: number }>>
 ) => {
     if (fieldContainerRef.current) {
@@ -117,7 +117,7 @@ export const calculateCompletionsMenuPosition = (
 };
 
 export const getCompletionsMenuPosition = (
-    fieldContainerRef: React.RefObject<HTMLDivElement>
+    fieldContainerRef: React.RefObject<HTMLElement>
 ) => {
     const activeElement = document.activeElement as HTMLElement;
     if (activeElement && activeElement.hasAttribute('data-element-id')) {
