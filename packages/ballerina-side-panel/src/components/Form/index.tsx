@@ -620,7 +620,9 @@ export const Form = forwardRef((props: FormProps) => {
     };
 
     // Find the first editable field
-    const firstEditableFieldIndex = formFields.findIndex((field) => field.editable !== false);
+    const firstEditableFieldIndex = formFields.findIndex(
+        (field) => field.editable !== false && (field.value == null || field.value === '')
+    );
 
     const isValid = useMemo(() => {
         let hasDiagnostics: boolean = false;
