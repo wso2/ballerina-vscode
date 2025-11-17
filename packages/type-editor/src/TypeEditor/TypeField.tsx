@@ -122,6 +122,8 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
             const [moduleName, typeName] = value.split(':');
             if (moduleName && typeName) {
                 // Valid module:Type format, skip validation
+                setTypeError("");
+                onValidationError?.(false);
                 return;
             }
         }
