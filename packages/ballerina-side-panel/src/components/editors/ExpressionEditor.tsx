@@ -406,7 +406,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.GUIDED);
             return;
         }
-        
+
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
         if (isModeSwitcherRestricted()) {
             setInputMode(InputMode.EXP);
@@ -432,7 +432,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
-        
+
         // If in guided mode with recordTypeField, open ConfigureRecordPage directly
         if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
             const currentValue = watch(key) || '';
@@ -447,7 +447,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             onOpenRecordConfigPage(key, currentValue, recordTypeField, onChangeCallback);
             return;
         }
-        
+
         // Trigger actions on focus
         await onFocus?.();
         handleOnFieldFocus?.(key);
@@ -633,6 +633,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 targetLineRange={effectiveTargetLineRange}
                                 autoFocus={recordTypeField ? false : autoFocus}
                                 sanitizedExpression={sanitizedExpression}
+                                rawExpression={rawExpression}
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
@@ -754,6 +755,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}
                                     sanitizedExpression={sanitizedExpression}
+                                    rawExpression={rawExpression}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
                                     getHelperPane={handleGetHelperPane}
                                 />

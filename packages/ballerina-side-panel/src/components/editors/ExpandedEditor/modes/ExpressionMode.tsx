@@ -40,7 +40,8 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     targetLineRange,
     sanitizedExpression,
     extractArgsFromFunction,
-    getHelperPane
+    getHelperPane,
+    rawExpression
 }) => {
     // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
@@ -58,6 +59,7 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
                 targetLineRange={targetLineRange}
                 extractArgsFromFunction={extractArgsFromFunction}
                 getHelperPane={getHelperPane}
+                rawExpression={rawExpression}
                 isInExpandedMode={true}
                 isExpandedVersion={true}
             />
