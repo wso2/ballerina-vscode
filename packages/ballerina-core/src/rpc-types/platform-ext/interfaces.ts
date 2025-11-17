@@ -40,6 +40,10 @@ export interface ImportDevantConnectionResp {
     connectionName: string;
 }
 
+export interface BiDevantConnectionListItem extends ConnectionListItem {
+    isUsed?: boolean;
+}
+
 export interface PlatformExtState {
 	isLoggedIn: boolean;
     hasPossibleComponent?: boolean;
@@ -49,5 +53,5 @@ export interface PlatformExtState {
 	selectedContext?: ContextItemEnriched;
     loadingConnections?: boolean;
     connectedToDevant?: boolean;
-    connections?: ConnectionListItem[]
+    connections?: BiDevantConnectionListItem[]
 }
