@@ -100,8 +100,14 @@ export interface RecordsInWorkspaceMentions {
 }
 
 export interface ReadmeContentRequest {
-    read: boolean
+    projectPath: string;
+    read?: boolean
     content?: string;
+}
+
+export interface OpenReadmeRequest {
+    projectPath: string;
+    isWorkspaceReadme?: boolean;
 }
 
 export interface ReadmeContentResponse {
