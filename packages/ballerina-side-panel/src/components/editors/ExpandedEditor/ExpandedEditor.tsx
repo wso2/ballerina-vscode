@@ -60,7 +60,7 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,7 +83,7 @@ const ModalBox = styled.div`
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-    z-index: 30001;
+    z-index: 2001;
     resize: both;
 `;
 
@@ -213,8 +213,10 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             getHelperPane
         })
     };
+    // HACK: Must find a proper central way to manager popups
+    const targetEl = document.getElementById("visualizer-container");
 
-    return createPortal(
+    return targetEl ? createPortal(
         <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
@@ -233,6 +235,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 </ModalContent>
             </ModalBox>
         </ModalContainer>,
-        document.body
-    );
+        targetEl
+    ) : null;
 };
