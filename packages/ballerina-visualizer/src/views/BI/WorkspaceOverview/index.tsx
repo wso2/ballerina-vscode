@@ -402,7 +402,7 @@ export function WorkspaceOverview() {
                         ) : (
                             <EmptyReadmeContainer>
                                 <Description variant="body2">
-                                    Describe your integration and generate your integrations with AI
+                                    Document your workspace and integrations
                                 </Description>
                                 <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
                             </EmptyReadmeContainer>
