@@ -552,7 +552,7 @@ export function PackageOverview(props: PackageOverviewProps) {
 
         rpcClient
             .getBIDiagramRpcClient()
-            .handleReadmeContent({ read: true })
+            .handleReadmeContent({ projectPath, read: true })
             .then((res) => {
                 setReadmeContent(res.content);
             });
@@ -566,7 +566,7 @@ export function PackageOverview(props: PackageOverviewProps) {
 
         rpcClient
             .getBIDiagramRpcClient()
-            .getReadmeContent()
+            .getReadmeContent({ projectPath })
             .then((res) => {
                 setReadmeContent(res.content);
             });
@@ -662,7 +662,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     };
 
     const handleEditReadme = () => {
-        rpcClient.getBIDiagramRpcClient().openReadme();
+        rpcClient.getBIDiagramRpcClient().openReadme({ projectPath });
     };
 
     const handleLocalRun = () => {

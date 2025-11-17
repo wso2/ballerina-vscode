@@ -120,7 +120,8 @@ import {
     DevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
-    DeleteProjectRequest
+    DeleteProjectRequest,
+    OpenReadmeRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -155,8 +156,8 @@ export interface BIDiagramAPI {
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
     getConfigVariableNodeTemplate: (params: GetConfigVariableNodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getModuleNodes: () => Promise<BIModuleNodesResponse>;
-    getReadmeContent: () => Promise<ReadmeContentResponse>;
-    openReadme: () => void;
+    getReadmeContent: (params: ReadmeContentRequest) => Promise<ReadmeContentResponse>;
+    openReadme: (params: OpenReadmeRequest) => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
