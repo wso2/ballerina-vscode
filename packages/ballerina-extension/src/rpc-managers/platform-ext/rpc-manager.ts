@@ -393,7 +393,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state?.isLoggedIn &&
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
-                platformExtStore.getState().state?.connections?.filter(item=>item.isUsed)?.length > 0 &&
+                platformExtStore.getState().state?.connections?.filter((item) => item.isUsed)?.length > 0 &&
                 platformExtStore.getState().state?.connectedToDevant
             ) {
                 // TODO: need to check whether at least one devant connection being used
@@ -443,7 +443,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 const matchingTomlEntry = tomlValues?.tool?.openapi?.find(
                     (item) => `${balPackage}.${item.targetModule}` === moduleName
                 );
-                if (matchingTomlEntry && matchingTomlEntry?.devantConnection) {
+                if (matchingTomlEntry && matchingTomlEntry?.remoteConnection) {
                     const updatedToml: PackageTomlValues = {
                         ...tomlValues,
                         tool: {
@@ -476,20 +476,22 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         return;
                     }
                     const selected = platformExtStore.getState().state?.selectedContext;
-                    if (selected?.org && selected?.project) {
-                        const projectConnections = await platformRpc.getConnections({
-                            orgId: selected?.org?.id?.toString(),
-                            projectId: selected?.project?.id,
-                            componentId: "",
+                    const matchingConnListItem = platformExtStore
+                        .getState()
+                        .state?.connections.find((connItem) => connItem.name === matchingTomlEntry?.remoteConnection);
+                    if (matchingConnListItem) {
+                        await platformRpc.deleteLocalConnectionsConfig({
+                            componentDir: projectPath,
+                            connectionName: matchingTomlEntry?.remoteConnection,
                         });
-                        const matchingProjectConnection = projectConnections.find(
-                            (item) => item.name === matchingTomlEntry?.devantConnection
-                        );
-                        if (matchingProjectConnection) {
-                            await platformRpc.deleteLocalConnectionsConfig({
-                                componentDir: projectPath,
-                                connectionName: matchingTomlEntry?.devantConnection,
+                        if (matchingConnListItem?.componentId) {
+                            await platformExt.deleteConnection({
+                                componentPath: projectPath,
+                                connectionId: matchingConnListItem.groupUuid,
+                                connectionName: matchingConnListItem.name,
+                                orgId: selected.org.id.toString(),
                             });
+                        } else {
                             window
                                 .showInformationMessage(
                                     "In-order to delete your project level Devant connection, please head over to Devant console",
@@ -504,38 +506,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                         );
                                     }
                                 });
-                            StateMachine.setReadyMode();
-                            return;
-                        }
-
-                        if (platformExtStore.getState().state?.selectedComponent) {
-                            const componentConnections = await platformRpc.getConnections({
-                                orgId: selected?.org?.id?.toString(),
-                                projectId: selected?.project?.id,
-                                componentId: platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                            });
-                            const matchingCompConnection = componentConnections.find(
-                                (item) => item.name === matchingTomlEntry?.devantConnection
-                            );
-                            if (matchingCompConnection) {
-                                await platformRpc.deleteLocalConnectionsConfig({
-                                    componentDir: projectPath,
-                                    connectionName: matchingTomlEntry?.devantConnection,
-                                });
-                                await platformExt.deleteConnection({
-                                    componentPath: projectPath,
-                                    connectionId: matchingCompConnection.groupUuid,
-                                    connectionName: matchingCompConnection.name,
-                                    orgId: selected.org.id.toString(),
-                                });
-                                StateMachine.setReadyMode();
-                                return;
-                            }
                         }
                     }
                 }
             }
 
+            this.refreshConnectionList();
             StateMachine.setReadyMode();
         } catch (err) {
             StateMachine.setReadyMode();
@@ -578,6 +554,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             });
 
             StateMachine.setReadyMode();
+            this.refreshConnectionList();
             return { connectionName: resp.connectionName };
         } catch (err) {
             StateMachine.setReadyMode();
@@ -620,6 +597,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             });
 
             StateMachine.setReadyMode();
+            this.refreshConnectionList();
             return { connectionName: resp.connectionName };
         } catch (err) {
             StateMachine.setReadyMode();
@@ -635,7 +613,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
             const connectionsUsed = connections.map((connItem) => ({
                 ...connItem,
-                isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.devantConnection === connItem.name),
+                isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteConnection === connItem.name),
             }));
             platformExtStore.getState().setState({ connections: connectionsUsed });
 
