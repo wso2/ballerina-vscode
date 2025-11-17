@@ -377,6 +377,19 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
 
+        // send didChange event to the language server
+        StateMachine.langClient().didChange({
+            contentChanges: [
+                {
+                    text: updatedContent
+                }
+            ],
+            textDocument: {
+                uri: Uri.file(ballerinaTomlPath).toString(),
+                version: 1
+            }
+        });
+
         // delete the project directory
         fs.rmdirSync(packagePath, { recursive: true });
     } catch (error) {
