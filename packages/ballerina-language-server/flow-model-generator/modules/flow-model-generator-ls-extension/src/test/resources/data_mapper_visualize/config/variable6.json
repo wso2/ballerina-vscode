@@ -1,0 +1,20 @@
+{
+  "source": "variable4.bal",
+  "description": "Test map type visualization",
+  "codedata": {
+    "node": "TYPEDESC",
+    "org": "",
+    "module": "",
+    "packageName": "",
+    "symbol": "SimpleMap",
+    "version": ""
+  },
+  "position": {
+    "line": 16,
+    "offset": 12
+  },
+  "visualizableProperties": {
+    "isDataMapped": true,
+    "defaultValue": "{}"
+  }
+}

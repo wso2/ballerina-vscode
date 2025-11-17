@@ -1,0 +1,169 @@
+{
+  "source": "map1.bal",
+  "description": "Simple map mapping",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "map1.bal",
+      "startLine": {
+        "line": 37,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 40,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 37,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "value": {
+          "fields": [],
+          "name": "complex",
+          "displayName": "<complexItem>",
+          "typeName": "Person",
+          "kind": "record",
+          "ref": "887620673"
+        },
+        "name": "complex",
+        "displayName": "complex",
+        "typeName": "map<Person>",
+        "kind": "map",
+        "category": "local-variable",
+        "ref": "-498580246"
+      },
+      {
+        "value": {
+          "value": {
+            "fields": [],
+            "name": "nested",
+            "displayName": "<nestedItemItem>",
+            "typeName": "Person",
+            "kind": "record",
+            "ref": "887620673"
+          },
+          "name": "nested",
+          "displayName": "<nestedItem>",
+          "typeName": "map<Person>",
+          "kind": "map",
+          "ref": "-498580246"
+        },
+        "name": "nested",
+        "displayName": "nested",
+        "typeName": "map<map<Person>>",
+        "kind": "map",
+        "category": "local-variable",
+        "ref": "-1143377510"
+      },
+      {
+        "value": {
+          "name": "simple",
+          "displayName": "<simpleItem>",
+          "typeName": "string",
+          "kind": "string"
+        },
+        "name": "simple",
+        "displayName": "simple",
+        "typeName": "map<string>",
+        "kind": "map",
+        "category": "local-variable",
+        "ref": "-583192560"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "result",
+      "displayName": "result",
+      "typeName": "RecordWithMap",
+      "kind": "record",
+      "ref": "-1888398663"
+    },
+    "mappings": [
+      {
+        "output": "result.id",
+        "inputs": [],
+        "expression": "\"001\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "result.data",
+        "inputs": [
+          "nested"
+        ],
+        "expression": "nested\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-1888398663": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "value": {
+              "value": {
+                "fields": [],
+                "name": "data",
+                "displayName": "<dataItemItem>",
+                "typeName": "Person",
+                "kind": "record",
+                "ref": "887620673"
+              },
+              "name": "data",
+              "displayName": "<dataItem>",
+              "typeName": "map<Person>",
+              "kind": "map",
+              "ref": "-498580246"
+            },
+            "name": "data",
+            "displayName": "data",
+            "typeName": "map<map<Person>>",
+            "kind": "map",
+            "optional": false,
+            "ref": "-1143377510"
+          }
+        ],
+        "typeName": "RecordWithMap",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}
