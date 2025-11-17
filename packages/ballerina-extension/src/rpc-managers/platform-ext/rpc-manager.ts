@@ -393,7 +393,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state?.isLoggedIn &&
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
-                platformExtStore.getState().state?.connections?.length > 0 &&
+                platformExtStore.getState().state?.connections?.filter(item=>item.isUsed)?.length > 0 &&
                 platformExtStore.getState().state?.connectedToDevant
             ) {
                 // TODO: need to check whether at least one devant connection being used
@@ -591,7 +591,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
             const projectPath = StateMachine.context().projectPath;
-            const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel
+            const isProjectLevel =
+                !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel;
 
             const createdConnection = await platformExt?.createComponentConnection({
                 componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
@@ -602,7 +603,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceSchemaId: params.params.schemaId,
                 serviceId: params.marketplaceItem.serviceId,
                 serviceVisibility: params.params.visibility!,
-                componentType: isProjectLevel ? "non-component" : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
+                componentType: isProjectLevel
+                    ? "non-component"
+                    : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
                 componentPath: projectPath,
                 generateCreds: true,
             });
@@ -629,7 +632,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         try {
             const platformExt = await this.getPlatformExt();
             const connections = await this.getAllConnections();
-            platformExtStore.getState().setState({ connections });
+            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+            const connectionsUsed = connections.map((connItem) => ({
+                ...connItem,
+                isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.devantConnection === connItem.name),
+            }));
+            platformExtStore.getState().setState({ connections: connectionsUsed });
 
             /*
             const envs = await platformExt.getProjectEnvs({

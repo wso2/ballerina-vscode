@@ -759,7 +759,7 @@ export function Overview(props: ComponentDiagramProps) {
                     </Button>
                     {platformExtState.isLoggedIn && (
                         <>
-                            {platformExtState?.connections?.length > 0 && (
+                            {platformExtState?.connections?.filter(item=>item.isUsed)?.length > 0 && (
                                 <Button
                                     appearance="icon"
                                     onClick={() =>
