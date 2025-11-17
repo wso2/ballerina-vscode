@@ -49,9 +49,6 @@ export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEdi
     const templateConfig = getTemplateConfig(props.field.valueTypeConstraint);
 
     const getSanitizedExp = (value: string) => {
-        if (!value) {
-            return value;
-        }
         const { prefix, suffix } = templateConfig;
         if (value.startsWith(prefix) && value.endsWith(suffix)) {
             return value.slice(prefix.length, -suffix.length);
@@ -60,9 +57,6 @@ export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEdi
     };
 
     const getRawExp = (value: string) => {
-        if (!value) {
-            return value;
-        }
         const { prefix, suffix } = templateConfig;
         if (!value.startsWith(prefix) || !value.endsWith(suffix)) {
             return `${prefix}${value}${suffix}`;
