@@ -38,6 +38,7 @@ import {
     ProgrammerticSelectionChange,
     SyncDocValueWithPropValue
 } from "../CodeUtils";
+import { mapSanitizedToRaw } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
@@ -78,6 +79,8 @@ export type ChipExpressionEditorComponentProps = {
     onRemove?: () => void;
     isInExpandedMode?: boolean;
     sx?: React.CSSProperties;
+    sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -143,12 +146,20 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         // current API response sends an incorrect response
         // if API sends $1,$2.. for the arguments in the template
         // then we can directly handled it without explicitly calling the API
-        // and extracting args 
+        // and extracting args
         if (newValue.endsWith('()')) {
             if (props.extractArgsFromFunction) {
                 try {
                     const cursorPositionForExtraction = from + newValue.length - 1;
-                    const fnSignature = await props.extractArgsFromFunction(newValue, cursorPositionForExtraction);
+
+                    // Convert sanitized value and position to raw for API call
+                    const rawValueForApi = props.rawExpression ? props.rawExpression(newValue) : newValue;
+                    const sanitizedValueForApi = props.sanitizedExpression ? props.sanitizedExpression(newValue) : newValue;
+                    const rawCursorPosition = props.rawExpression
+                        ? mapSanitizedToRaw(cursorPositionForExtraction, rawValueForApi, sanitizedValueForApi)
+                        : cursorPositionForExtraction;
+
+                    const fnSignature = await props.extractArgsFromFunction(rawValueForApi, rawCursorPosition);
 
                     if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
                         const placeholderArgs = fnSignature.args.map((arg, index) => `$${index + 1}`);
@@ -252,8 +263,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     useEffect(() => {
         if (props.value == null || !viewRef.current) return;
         const updateEditorState = async () => {
+            const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(props.value) : props.value;
             const currentDoc = viewRef.current!.state.doc.toString();
-            const isExternalUpdate = props.value !== currentDoc;
+            const isExternalUpdate = sanitizedValue !== currentDoc;
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
@@ -263,9 +275,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 props.targetLineRange?.startLine
             );
             setIsTokenUpdateScheduled(false);
-            const effects = tokenStream ? [tokensChangeEffect.of(tokenStream)] : [];
+            const effects = tokenStream ? [tokensChangeEffect.of({
+                tokens: tokenStream,
+                rawValue: props.value,
+                sanitizedValue: sanitizedValue
+            })] : [];
             const changes = isExternalUpdate
-                ? { from: 0, to: viewRef.current!.state.doc.length, insert: props.value }
+                ? { from: 0, to: viewRef.current!.state.doc.length, insert: sanitizedValue }
                 : undefined;
             const annotations = isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [];
 
@@ -285,6 +301,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     useEffect(() => {
         completionsRef.current = props.completions;
     }, [props.completions]);
+
+    // Trigger token update when sanitization mode changes
+    useEffect(() => {
+        setIsTokenUpdateScheduled(true);
+    }, [Boolean(props.sanitizedExpression), Boolean(props.rawExpression)]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
