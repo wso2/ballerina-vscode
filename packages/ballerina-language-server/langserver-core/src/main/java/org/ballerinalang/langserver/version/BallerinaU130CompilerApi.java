@@ -27,6 +27,7 @@ import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectKind;
+import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
@@ -133,5 +134,13 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
             return new ArrayList<>(buildProjects);
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public Optional<TomlDocument> getWorkspaceToml(Project project) {
+        if (project instanceof WorkspaceProject workspaceProject) {
+            return Optional.of(workspaceProject.ballerinaToml().tomlDocument());
+        }
+        return Optional.empty();
     }
 }

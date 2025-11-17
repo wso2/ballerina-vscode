@@ -1,0 +1,36 @@
+{
+  "description": "Test workspace project with child packages",
+  "source": "workspace_proj",
+  "output": {
+    "projectKind": "WORKSPACE_PROJECT",
+    "name": "workspace_proj",
+    "title": "Workspace Project",
+    "projectPath": "workspace_proj",
+    "children": [
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "common",
+        "title": "Common",
+        "projectPath": "workspace_proj/common",
+        "org": "wso2",
+        "version": "0.1.0"
+      },
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "api_gateway",
+        "title": "API Gateway",
+        "projectPath": "workspace_proj/api-gateway",
+        "org": "wso2",
+        "version": "0.1.0"
+      },
+      {
+        "projectKind": "BUILD_PROJECT",
+        "name": "user_service",
+        "title": "User Service",
+        "projectPath": "workspace_proj/user-service",
+        "org": "wso2",
+        "version": "0.1.0"
+      }
+    ]
+  }
+}

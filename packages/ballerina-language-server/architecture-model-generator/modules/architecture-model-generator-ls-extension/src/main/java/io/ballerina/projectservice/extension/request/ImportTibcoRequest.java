@@ -18,14 +18,17 @@
 
 package io.ballerina.projectservice.extension.request;
 
+import java.util.Map;
+
 /**
  * Request to import a Tibco project.
  *
  * @param orgName     The organization name for the Ballerina package.
  * @param packageName The name of the Ballerina package to be created.
  * @param sourcePath  The file system path to the root of the Tibco project to be imported.
- *
+ * @param parameters  Additional parameters for the migration process.
  * @since 1.2.0
  */
-public record ImportTibcoRequest(String orgName, String packageName, String sourcePath) {
+public record ImportTibcoRequest(String orgName, String packageName, String sourcePath,
+                                 Map<String, String> parameters) {
 }

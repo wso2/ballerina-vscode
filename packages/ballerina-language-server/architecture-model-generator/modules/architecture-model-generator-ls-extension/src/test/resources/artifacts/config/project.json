@@ -19,7 +19,7 @@
         "type": "CONNECTION",
         "name": "httpClient",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       },
@@ -39,7 +39,7 @@
         "type": "CONNECTION",
         "name": "httpClient2",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       }
@@ -61,7 +61,7 @@
         "type": "LISTENER",
         "name": "ls",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       },
@@ -81,7 +81,7 @@
         "type": "LISTENER",
         "name": "securedEP",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       },
@@ -101,7 +101,7 @@
         "type": "LISTENER",
         "name": "securedEP2",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {}
       }
@@ -161,7 +161,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /api2",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {
           "get#path": {
@@ -201,7 +201,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /api1",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {
           "get#path": {
@@ -259,7 +259,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {
           "init": {
@@ -317,7 +317,7 @@
         "type": "SERVICE",
         "name": "HTTP Service - /",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
         "module": "http",
         "children": {
           "init": {

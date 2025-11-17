@@ -50,7 +50,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -141,7 +149,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "float",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -232,7 +248,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -325,7 +349,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {

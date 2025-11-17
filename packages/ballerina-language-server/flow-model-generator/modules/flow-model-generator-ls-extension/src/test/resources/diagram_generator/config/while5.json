@@ -50,7 +50,7 @@
         "id": "80618",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -127,7 +127,7 @@
         "id": "81621",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -248,7 +248,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -257,7 +257,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.0",
+                  "version": "2.15.1",
                   "lineRange": {
                     "fileName": "while.bal",
                     "startLine": {
@@ -562,7 +562,7 @@
                 "id": "87697",
                 "metadata": {
                   "label": "Declare Variable",
-                  "description": "Assign a value to a variable"
+                  "description": "Create a new variable"
                 },
                 "codedata": {
                   "node": "VARIABLE",
@@ -1517,7 +1517,7 @@
                         "metadata": {
                           "label": "post",
                           "description": "Create a new resource or submit data to a resource for processing.\n",
-                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png"
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
                         },
                         "codedata": {
                           "node": "REMOTE_ACTION_CALL",
@@ -1526,7 +1526,7 @@
                           "packageName": "http",
                           "object": "Client",
                           "symbol": "post",
-                          "version": "2.15.0",
+                          "version": "2.15.1",
                           "lineRange": {
                             "fileName": "while.bal",
                             "startLine": {

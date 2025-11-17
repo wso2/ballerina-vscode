@@ -301,54 +301,54 @@
       "responses": [
         {
           "statusCode": {
+            "imports": {},
             "valueType": "SINGLE_SELECT",
             "value": "200",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "int",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
+            "imports": {},
             "valueType": "EXPRESSION",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
+            "imports": {},
             "valueType": "IDENTIFIER",
             "value": "HttpOK",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": false
           },
           "type": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
+            "imports": {},
             "valueType": "HEADER_SET",
             "value": [],
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
@@ -360,54 +360,54 @@
         },
         {
           "statusCode": {
+            "imports": {},
             "valueType": "SINGLE_SELECT",
             "value": "201",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "string",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
+            "imports": {},
             "valueType": "EXPRESSION",
             "value": "\"application/text\"",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
+            "imports": {},
             "valueType": "IDENTIFIER",
             "value": "HttpCreated",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": false
           },
           "type": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
+            "imports": {},
             "valueType": "HEADER_SET",
             "value": [],
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
@@ -419,51 +419,52 @@
         },
         {
           "statusCode": {
+            "imports": {},
             "valueType": "SINGLE_SELECT",
             "value": "202",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "string",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
+            "imports": {},
             "valueType": "EXPRESSION",
             "value": "\"application/text\"",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
+            "imports": {},
             "valueType": "IDENTIFIER",
             "value": "HttpAccepted",
-            "imports": {},
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": false
           },
           "type": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
+            "imports": {},
             "valueType": "HEADER_SET",
             "value": [
               {
@@ -472,7 +473,6 @@
                 "name": "x\\-path"
               }
             ],
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
@@ -640,7 +640,7 @@
             "character": 0
           }
         },
-        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n|};"
+        "newText": "public type HttpOK record {|\n\t*http:Ok;\tint body;\n\trecord {|\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t|} headers?;\n|};\n\npublic type HttpCreated record {|\n\t*http:Created;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n\trecord {|\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t|} headers?;\n|};\n\npublic type HttpAccepted record {|\n\t*http:Accepted;\tstring body;\n\t\"\"application/text\"\" mediaType = \"\"application/text\"\";\n\trecord {|\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t|} headers?;\n|};"
       },
       {
         "range": {
