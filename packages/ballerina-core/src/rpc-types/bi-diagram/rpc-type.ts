@@ -122,7 +122,8 @@ import {
     DevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
-    DeleteProjectRequest
+    DeleteProjectRequest,
+    OpenReadmeRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -158,8 +159,8 @@ export const updateConfigVariablesV2: RequestType<UpdateConfigVariableRequestV2,
 export const deleteConfigVariableV2: RequestType<DeleteConfigVariableRequestV2, DeleteConfigVariableResponseV2> = { method: `${_preFix}/deleteConfigVariableV2` };
 export const getConfigVariableNodeTemplate: RequestType<GetConfigVariableNodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getConfigVariableNodeTemplate` };
 export const getModuleNodes: RequestType<void, BIModuleNodesResponse> = { method: `${_preFix}/getModuleNodes` };
-export const getReadmeContent: RequestType<void, ReadmeContentResponse> = { method: `${_preFix}/getReadmeContent` };
-export const openReadme: NotificationType<void> = { method: `${_preFix}/openReadme` };
+export const getReadmeContent: RequestType<ReadmeContentRequest, ReadmeContentResponse> = { method: `${_preFix}/getReadmeContent` };
+export const openReadme: NotificationType<OpenReadmeRequest> = { method: `${_preFix}/openReadme` };
 export const renameIdentifier: NotificationType<RenameIdentifierRequest> = { method: `${_preFix}/renameIdentifier` };
 export const deployProject: RequestType<DeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployProject` };
 export const openAIChat: NotificationType<AIChatRequest> = { method: `${_preFix}/openAIChat` };
