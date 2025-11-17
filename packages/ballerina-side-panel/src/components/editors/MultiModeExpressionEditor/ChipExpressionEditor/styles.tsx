@@ -224,9 +224,8 @@ interface CompletionsItemElProps {
 // Floating toggle button styles - VS Code design philosophy
 export const FloatingButtonContainer = styled.div`
     position: absolute;
-    top: 50%;
-    right: 6px;
-    transform: translateY(-50%);
+    bottom: 6px;
+    right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;
