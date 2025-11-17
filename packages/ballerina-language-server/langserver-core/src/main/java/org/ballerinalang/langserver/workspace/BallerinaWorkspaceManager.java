@@ -993,7 +993,8 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
                             // For workspace toml changes, reload the entire workspace
                             updateWorkspaceToml(Files.readString(filePath), projectContext, false);
                         } catch (IOException e) {
-                            throw new WorkspaceDocumentException("Could not handle workspace Ballerina.toml change!", e);
+                            throw new WorkspaceDocumentException("Could not handle workspace Ballerina.toml change!",
+                                    e);
                         }
                     } else {
                         reloadProject(projectContext, filePath, LSContextOperation.WS_WF_CHANGED.getName());
@@ -1512,10 +1513,11 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         }
 
         // Check if the path points to the workspace Ballerina.toml
+        Path parentDir = path.getParent();
         if (path.getFileName() != null &&
                 path.getFileName().toString().equals(ProjectConstants.BALLERINA_TOML) &&
-                compilerApi.isWorkspaceProjectRoot(path.getParent())) {
-            return path.getParent();
+                parentDir != null && compilerApi.isWorkspaceProjectRoot(parentDir)) {
+            return parentDir;
         }
 
         return ProjectPaths.packageRoot(path);
@@ -1885,7 +1887,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
 
         // Check if the parent directory is a workspace root
         Path parentDir = filePath.getParent();
-        return BallerinaCompilerApi.getInstance().isWorkspaceProjectRoot(parentDir);
+        return parentDir != null && BallerinaCompilerApi.getInstance().isWorkspaceProjectRoot(parentDir);
     }
 
     private static boolean isError(Diagnostic diagnostic) {
