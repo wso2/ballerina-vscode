@@ -42,8 +42,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.TomlDocument;
-import io.ballerina.projects.WorkspaceBallerinaToml;
-import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
 import io.ballerina.tools.diagnostics.Diagnostic;
@@ -1383,15 +1381,15 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         Lock lock = projectContext.lockAndGet();
         try {
             Project project = projectContext.project();
+            BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
 
             // Verify this is a workspace project
-            if (!BallerinaCompilerApi.getInstance().isWorkspaceProject(project)) {
+            if (!compilerApi.isWorkspaceProject(project)) {
                 throw new WorkspaceDocumentException("Project is not a workspace project!");
             }
 
             // Get workspace Ballerina.toml
-            Optional<TomlDocument> workspaceTomlOpt =
-                    BallerinaCompilerApi.getInstance().getWorkspaceToml(project);
+            Optional<TomlDocument> workspaceTomlOpt = compilerApi.getWorkspaceToml(project);
 
             if (workspaceTomlOpt.isEmpty()) {
                 if (createIfNotExists) {
@@ -1402,25 +1400,22 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
                         "Workspace " + ProjectConstants.BALLERINA_TOML + " does not exist!");
             }
 
-            // Cast to WorkspaceProject
-            WorkspaceProject workspaceProject = (WorkspaceProject) project;
+            // Update workspace toml using the compiler API
+            Optional<Project> reloadedProjectOpt = compilerApi.updateWorkspaceToml(project, content);
 
-            // Update toml using the modify pattern
-            WorkspaceBallerinaToml updatedToml = workspaceProject.ballerinaToml()
-                    .modify()
-                    .withContent(content)
-                    .apply();
+            if (reloadedProjectOpt.isEmpty()) {
+                throw new WorkspaceDocumentException(
+                        "Failed to update workspace " + ProjectConstants.BALLERINA_TOML);
+            }
 
-            // Get the reloaded project from the updated toml
-            WorkspaceProject reloadedProject = updatedToml.project();
+            Project reloadedProject = reloadedProjectOpt.get();
 
             // Update the cache with the reloaded workspace
             sourceRootToProject.put(reloadedProject.sourceRoot(),
                     ProjectContext.from(reloadedProject));
 
             // Update all workspace packages in the cache
-            List<Project> workspacePackages =
-                    BallerinaCompilerApi.getInstance().getWorkspaceProjectsInOrder(reloadedProject);
+            List<Project> workspacePackages = compilerApi.getWorkspaceProjectsInOrder(reloadedProject);
             for (Project workspacePackage : workspacePackages) {
                 Path packageRoot = workspacePackage.sourceRoot();
                 sourceRootToProject.put(packageRoot, ProjectContext.from(workspacePackage));
@@ -1428,7 +1423,6 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
 
             // Update the current project context
             projectContext.setProject(reloadedProject);
-
         } finally {
             // Unlock Project Instance
             lock.unlock();
