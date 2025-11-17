@@ -1,5 +1,5 @@
 import { SyntaxTree, PackageTomlValues } from "@wso2/ballerina-core";
-import { ModulePart, STKindChecker, CaptureBindingPattern } from "@wso2/syntax-tree";
+import { ModulePart, STKindChecker, CaptureBindingPattern, TypeDefinition, RecordField } from "@wso2/syntax-tree";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
@@ -141,6 +141,8 @@ export const addConnection = async (
         counter++;
     }
 
+    // get apikey field
+
     const newConnTemplate =
         securityType === "oauth"
             ? Templates.newConnectionWithOAuth({
@@ -159,11 +161,36 @@ export const addConnection = async (
                   CONNECTION_NAME: candidate,
                   MODULE_NAME: moduleName,
                   SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+                  API_KEY_FIELD: await getDevantConnectorInitKey(moduleName),
               });
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
     await workspace.applyEdit(connBalEdits);
     return { connName: candidate, connFileUri: connectionBalFileUri };
+};
+
+const getDevantConnectorInitKey = async (moduleName: string): Promise<string> => {
+    const generatedTypes = path.join(StateMachine.context().projectPath, "generated", moduleName, "types.bal");
+    if (fs.existsSync(generatedTypes)) {
+        const stClientTypes = (await StateMachine.context().langClient.getSyntaxTree({
+            documentIdentifier: { uri: Uri.file(generatedTypes).toString() },
+        })) as SyntaxTree;
+
+        const apiKeyConfigType = (stClientTypes?.syntaxTree as ModulePart)?.members?.find(
+            (member) => STKindChecker.isTypeDefinition(member) && member?.typeName?.value === "ApiKeysConfig"
+        ) as TypeDefinition;
+        if (apiKeyConfigType) {
+            const apiKeyConfigField =
+                STKindChecker.isRecordTypeDesc(apiKeyConfigType.typeDescriptor) &&
+                (apiKeyConfigType.typeDescriptor?.fields?.find(
+                    (field) => STKindChecker.isRecordField(field) && field.fieldName?.value === "Choreo-API-Key"
+                ) as RecordField);
+            if (apiKeyConfigField) {
+                return "Choreo-API-Key";
+            }
+        }
+    }
+    return "choreoAPIKey";
 };
 
 export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "oauth" | "apikey"): string => {
@@ -304,7 +331,7 @@ export const initializeDevantConnection = async (params: {
             ...tomlValues?.tool,
             openapi: tomlValues.tool?.openapi?.map((item) => {
                 if (item.id === moduleName) {
-                    return { ...item, devantConnection: params?.name };
+                    return { ...item, remoteConnection: params?.name, filePath: `.choreo/${moduleName}-spec.yaml` };
                 }
                 return item;
             }),
@@ -441,12 +468,12 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         MODULE_NAME: string;
         CONNECTION_NAME: string;
         SERVICE_URL_VAR_NAME: string;
+        API_KEY_FIELD: string;
         API_KEY_VAR_NAME: string;
     }) => {
-        // todo: get params from LS, use Choreo\\-API\-Key
-        return `final ${params.MODULE_NAME}:Client ${
-            params.CONNECTION_NAME
-        } = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME}}, config = { ${
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { ${
+            params.API_KEY_FIELD
+        }: ${params.API_KEY_VAR_NAME} }, config = { ${
             params.requireProxy ? "proxy: devantProxyConfig, " : ""
         }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },
@@ -472,13 +499,13 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
 };
 
 export const hasContextYaml = (projectPath: string): boolean => {
-	const repoRoot = getRepoRoot(projectPath);
-	if (repoRoot) {
-		const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-		if (fs.existsSync(contextYamlPath)) {
-			return true;
-		}
-	}
+    const repoRoot = getRepoRoot(projectPath);
+    if (repoRoot) {
+        const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+        if (fs.existsSync(contextYamlPath)) {
+            return true;
+        }
+    }
     return false;
 };
 
