@@ -1,0 +1,606 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Migration Summary</title>
+    <style>
+      /* Base styles */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1, h2, h3 {
+        color: #333;
+      }
+
+      h1 {
+        text-align: center;
+        color: #4682B4;
+        font-size: 2.5em;
+        font-weight: 300;
+        margin: 15px auto 40px;
+        padding: 0 0 15px;
+        max-width: 600px;
+        position: relative;
+        border-bottom: 1px solid rgba(70, 130, 180, 0.2);
+      }
+
+      h1::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background-color: rgba(70, 130, 180, 0.8);
+      }
+
+      .summary-container h2 {
+        margin-top: 0;
+        color: #4682B4;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 1.5em;
+      }
+
+      h3 {
+        color: #4682B4;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+
+      /* Summary container styling */
+      .summary-container {
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        margin: 25px 0;
+        transition: box-shadow 0.3s;
+      }
+
+      .summary-container:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Coverage indicator */
+      .coverage-indicator {
+        width: 100%;
+        height: 12px;
+        background-color: #f0f0f0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin: 10px 0 20px 0;
+      }
+
+      .coverage-bar {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.5s ease-in-out;
+      }
+
+      /* Table styling */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #4682B4;
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      tr:hover {
+        background-color: #ddd;
+      }
+
+      /* Estimation notes */
+      .estimation-notes {
+        margin-top: 25px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #4682B4;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .estimation-notes p {
+        margin-top: 0;
+      }
+
+      .estimation-notes ul {
+        margin: 15px 0 5px 25px;
+        padding-left: 0;
+      }
+
+      .estimation-notes li {
+        margin-bottom: 8px;
+        line-height: 1.4;
+      }
+
+      /* Code blocks styling */
+      .unsupported-blocks {
+        padding: 10px;
+      }
+
+      .block-item {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .block-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+      }
+
+      .block-header {
+        background-color: #4682B4;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .block-code {
+        margin: 0;
+        padding: 15px;
+        background-color: #fff;
+        overflow-x: auto;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+
+      .block-number {
+        font-weight: bold;
+      }
+
+      .block-type {
+        font-family: monospace;
+      }
+
+      /* Status badges */
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75em;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        margin-left: 15px;
+      }
+
+      .status-high {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid rgba(46, 125, 50, 0.2);
+      }
+
+      .status-medium {
+        background-color: #fff8e1;
+        color: #f57c00;
+        border: 1px solid rgba(245, 124, 0, 0.2);
+      }
+
+      .status-low {
+        background-color: #ffebee;
+        color: #c62828;
+        border: 1px solid rgba(198, 40, 40, 0.2);
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #666;
+      }
+
+      /* Code in tables */
+      table code {
+        background-color: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+      }
+
+      /* Metric styling with box shape and hover effects */
+      .metric {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15px 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 15px;
+        border: 1px solid #eaeaea;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .metric:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .metric-value {
+        font-weight: bold;
+        font-size: 1.8em;
+        color: #4682B4;
+        margin-bottom: 5px;
+      }
+
+      .metric-label {
+        font-size: 0.9em;
+        color: #666;
+        text-align: center;
+      }
+
+      .metric-left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .metric-right {
+        flex: 1;
+        padding-top: 10px;
+      }
+
+      /* Time estimation table styling */
+      .time-best {
+        color: #4CAF50; /* Green for Best Case */
+        font-weight: 600;
+      }
+
+      .time-avg {
+        color: #4682B4; /* Blue for Average Case */
+        font-weight: 600;
+      }
+
+      .time-worst {
+        color: #FF5722; /* Orange/Red for Worst Case */
+        font-weight: 600;
+      }
+
+      .drawer { overflow: hidden; transition: max-height 0.3s ease-out; max-height: 0; }
+      .drawer.open { max-height: 500px; }
+      .empty-message { text-align: center; padding: 20px; color: #666; }
+    .summary-container {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  margin: 25px 0;
+  transition: box-shadow 0.3s;
+}
+.summary-container:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+.estimation-notes {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #4682B4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+.estimation-notes p {
+  margin-top: 0;
+}
+.estimation-notes ul {
+  margin: 15px 0 5px 25px;
+  padding-left: 0;
+}
+.estimation-notes li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.time-best {
+  color: #4CAF50;
+  font-weight: 600;
+}
+.time-avg {
+  color: #4682B4;
+  font-weight: 600;
+}
+.time-worst {
+  color: #FF5722;
+  font-weight: 600;
+}
+.time-estimates-horizontal {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.time-estimates-horizontal:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+.time-estimate {
+  flex-direction: column;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.time-label {
+  color: #666;
+  font-weight: 500;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+.time-value {
+  flex-direction: column;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+.time-days {
+  font-size: 1.4em;
+  margin-bottom: 2px;
+}
+.time-weeks {
+  color: #777;
+  font-weight: normal;
+  font-size: 0.8em;
+}
+
+    </style>
+  </head>
+  <body>
+  <div class="container">
+    <h1>apiKitProject - Migration Summary</h1>
+
+    <div class="summary-container">
+      <h2>Migration Coverage Overview</h2>
+      <div class="metrics" style="flex-direction: column; align-items: center; width: 100%;">
+
+        <!-- Overall Coverage -->
+        <div class="metric" style="width: 100%; box-sizing: border-box; padding: 15px 20px; display: flex; flex-direction: row; align-items: flex-start; gap: 20px; background-color: #f0f8ff;">
+          <div class="metric-left" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <span class="metric-value" style="font-size: 2em; color: #4682B4;">100%</span>
+            <span class="metric-label" style="font-size: 1em; margin-top: 5px;">Overall Coverage</span>
+            <div class="coverage-indicator" style="width: 80%; height: 6px; background-color: #f0f0f0; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); margin-top: 8px;">
+              <div class="coverage-bar" style="width: 100%; background-color: #4CAF50; height: 100%; border-radius: 3px;"></div>
+            </div>
+            <div style="margin-top: 5px;">
+              <span class="status-badge status-high">High Coverage</span>
+            </div>
+          </div>
+          <div class="metric-right" style="flex: 1; padding-top: 10px;">
+            <div class="coverage-breakdown" style="font-size: 0.85em; color: #666;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Total Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">7</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Migratable Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">7</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Non-migratable Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.9em; color: #666; margin-bottom: 15px; text-align: center;">Breakdown Components:</div>
+
+        <!-- Mule Elements Coverage -->
+        <div class="metric" style="width: 100%; box-sizing: border-box; padding: 15px 20px; display: flex; flex-direction: row; align-items: flex-start; gap: 20px;">
+          <div class="metric-left" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <span class="metric-value">100%</span>
+            <span class="metric-label">Mule Elements Coverage</span>
+            <div class="coverage-indicator" style="width: 80%; height: 6px; background-color: #f0f0f0; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); margin-top: 8px;">
+              <div class="coverage-bar" style="width: 100%; background-color: #4CAF50; height: 100%; border-radius: 3px;"></div>
+            </div>
+          </div>
+          <div class="metric-right" style="flex: 1; padding-top: 10px;">
+            <div class="coverage-breakdown" style="font-size: 0.85em; color: #666;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Total Mule Element Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">7</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Migratable Mule Element Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">7</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Non-migratable Mule Element Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DataWeave Coverage -->
+        <div class="metric" style="width: 100%; box-sizing: border-box; padding: 15px 20px; display: flex; flex-direction: row; align-items: flex-start; gap: 20px;">
+          <div class="metric-left" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <span class="metric-value">N/A</span>
+            <span class="metric-label">DataWeave Coverage</span>
+            <div class="coverage-indicator" style="width: 80%; height: 6px; background-color: #f0f0f0; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); margin-top: 8px;">
+              <div class="coverage-bar" style="width: 0%; background-color: #F44336; height: 100%; border-radius: 3px;"></div>
+            </div>
+          </div>
+          <div class="metric-right" style="flex: 1; padding-top: 10px;">
+            <div class="coverage-breakdown" style="font-size: 0.85em; color: #666;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Total Dataweave Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">0</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Migratable Dataweave Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">0</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span class="breakdown-label">Non-migratable Dataweave Code Lines:</span>
+                <span class="breakdown-value" style="font-weight: 600;">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="summary-container">
+    <h2>Manual Work Estimation</h2>
+    <div class="time-estimates-horizontal">
+        <div class="time-estimate">
+            <div class="time-label">Best Case</div>
+            <div class="time-value time-best">
+                <span class="time-days">0 days</span>
+                <span class="time-weeks">(0 weeks)</span>
+            </div>
+        </div>
+        <div class="time-estimate">
+            <div class="time-label">Average Case</div>
+            <div class="time-value time-avg">
+                <span class="time-days">0 days</span>
+                <span class="time-weeks">(0 weeks)</span>
+            </div>
+        </div>
+        <div class="time-estimate">
+            <div class="time-label">Worst Case</div>
+            <div class="time-value time-worst">
+                <span class="time-days">0 days</span>
+                <span class="time-weeks">(0 weeks)</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="estimation-notes">
+    <p><strong>Estimation Scenarios:</strong> Time measurement: 1 day = 8 hours,
+        5 working days = 1 week</p>
+    <ul>
+      <li>Best case scenario:
+        <ul>
+<li>1.0 hour per each new unsupported element code line for analysis,
+implementation, and testing</li>
+              <li>7.5 minutes per each repeated unsupported element code line for implementation</li>
+          <li>1.0 minutes per each unsupported dataweave code line for translation</li>
+          <li>Assumes minimal complexity and straightforward implementations</li>
+        </ul>
+      </li>
+      <li>Average case scenario:
+        <ul>
+              <li>2.0 hours per each new unsupported element code line for analysis,
+              implementation, and testing</li>
+              <li>15.0 minutes per each repeated unsupported element code line for implementation</li>
+          <li>1.5 minutes per each unsupported dataweave code line for translation</li>
+          <li>Assumes medium complexity with moderate implementation challenges</li>
+        </ul>
+      </li>
+      <li>Worst case scenario:
+        <ul>
+              <li>3.0 hours per each new unsupported element code line for analysis,
+              implementation, and testing</li>
+              <li>30.0 minutes per each repeated unsupported element code line for implementation</li>
+          <li>2.5 minutes per each unsupported dataweave code line for translation</li>
+          <li>Assumes high complexity with significant implementation challenges</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+    <div class="summary-container">
+      <h2>Currently Unsupported Elements</h2>
+      <div id="toolSupportSection">
+        <table>
+          <tr><th>Tag Name</th><th>Frequency</th></tr>
+        </table>
+        <p class="empty-message" id="toolSupportEmpty" style="display: none;">
+          No unsupported elements found
+        </p>
+        <div class="estimation-notes">
+          <p><strong>Note:</strong> These elements are expected to be supported in future versions of the migration tool.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-container">
+      <h2>Element Blocks that Require Manual Conversion</h2>
+      <div class="unsupported-blocks">
+        <p class="empty-message" id="manualBlocksEmpty" style="display: none;">
+          No element blocks require manual conversion
+        </p>
+      </div>
+    </div>
+
+    <div class="summary-container">
+      <h2>DataWeave Expressions that Require Manual Conversion</h2>
+      <div class="unsupported-blocks">
+        <div id="dataweaveContent"></div>
+        <p class="empty-message" id="dataweaveEmpty" style="display: none;">
+          No DataWeave expressions require manual conversion
+        </p>
+      </div>
+    </div>
+  </div>
+  <footer><p>Report generated on: <span id="datetime"></span></p></footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check Currently Unsupported Elements
+        const toolSupportTable = document.querySelector('#toolSupportSection table');
+        if (toolSupportTable.rows.length <= 1) {
+            toolSupportTable.style.display = 'none';
+            document.getElementById('toolSupportEmpty').style.display = 'block';
+            document.querySelector('#toolSupportSection .estimation-notes').style.display = 'none';
+        }
+
+        // Check Element Blocks
+        const manualBlocksSection = document.querySelector('.summary-container:nth-of-type(4) .unsupported-blocks .block-item');
+        if (!manualBlocksSection) {
+            document.getElementById('manualBlocksEmpty').style.display = 'block';
+        }
+
+        // Check DataWeave Expressions
+        const dataweaveBlocks = document.querySelector('#dataweaveContent .block-item');
+        if (!dataweaveBlocks) {
+            document.getElementById('dataweaveEmpty').style.display = 'block';
+        }
+    });
+  </script>
+  <script>document.getElementById("datetime").innerHTML = new Date().toLocaleString();</script>
+  </body></html>

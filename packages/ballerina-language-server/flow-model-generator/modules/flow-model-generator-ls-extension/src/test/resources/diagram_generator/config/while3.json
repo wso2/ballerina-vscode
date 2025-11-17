@@ -48,7 +48,7 @@
         "id": "56812",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -125,7 +125,7 @@
         "id": "57802",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -246,7 +246,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -255,7 +255,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.0",
+                  "version": "2.15.1",
                   "lineRange": {
                     "fileName": "while.bal",
                     "startLine": {
@@ -421,8 +421,8 @@
               {
                 "id": "60964",
                 "metadata": {
-                  "label": "Assign",
-                  "description": "Assign a value to a variable"
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
                 },
                 "codedata": {
                   "node": "ASSIGN",
@@ -444,7 +444,7 @@
                   "expression": {
                     "metadata": {
                       "label": "Expression",
-                      "description": "Assign value"
+                      "description": "Update value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Response received from food service: \" + response.toString()",
@@ -531,8 +531,8 @@
               {
                 "id": "63923",
                 "metadata": {
-                  "label": "Assign",
-                  "description": "Assign a value to a variable"
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
                 },
                 "codedata": {
                   "node": "ASSIGN",
@@ -554,7 +554,7 @@
                   "expression": {
                     "metadata": {
                       "label": "Expression",
-                      "description": "Assign value"
+                      "description": "Update value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Error occurred while invoking food service\"",

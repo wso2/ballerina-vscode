@@ -24,8 +24,10 @@ import io.ballerina.designmodelgenerator.core.DesignModelGenerator;
 import io.ballerina.designmodelgenerator.core.model.DesignModel;
 import io.ballerina.designmodelgenerator.extension.request.ArtifactsRequest;
 import io.ballerina.designmodelgenerator.extension.request.GetDesignModelRequest;
+import io.ballerina.designmodelgenerator.extension.request.ProjectInfoRequest;
 import io.ballerina.designmodelgenerator.extension.response.ArtifactResponse;
 import io.ballerina.designmodelgenerator.extension.response.GetDesignModelResponse;
+import io.ballerina.designmodelgenerator.extension.response.ProjectInfoResponse;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
@@ -80,6 +82,22 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
                 Project project = workspaceManager.loadProject(projectPath);
                 response.setArtifacts(ArtifactsGenerator.artifacts(project));
                 response.setUri(request.projectPath());
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<ProjectInfoResponse> projectInfo(ProjectInfoRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ProjectInfoResponse response = new ProjectInfoResponse();
+            try {
+                Path projectPath = Path.of(request.projectPath());
+                Project project = workspaceManager.loadProject(projectPath);
+                ProjectInfoBuilder visitor = new ProjectInfoBuilder(response, project, true);
+                visitor.populate();
             } catch (Throwable e) {
                 response.setError(e);
             }

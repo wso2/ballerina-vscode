@@ -47,7 +47,7 @@
         "id": "119178",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -204,8 +204,8 @@
               {
                 "id": "123274",
                 "metadata": {
-                  "label": "Assign",
-                  "description": "Assign a value to a variable"
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
                 },
                 "codedata": {
                   "node": "ASSIGN",
@@ -227,7 +227,7 @@
                   "expression": {
                     "metadata": {
                       "label": "Expression",
-                      "description": "Assign value"
+                      "description": "Update value"
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "x + 1",

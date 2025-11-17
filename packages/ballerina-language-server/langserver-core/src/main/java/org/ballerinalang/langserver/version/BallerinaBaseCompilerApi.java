@@ -29,6 +29,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
+import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.SingleFileProject;
@@ -140,6 +141,11 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
     @Override
     public List<Project> getWorkspaceProjects(Project project) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Optional<TomlDocument> getWorkspaceToml(Project project) {
+        return Optional.empty();
     }
 
     private Project createProject(Path filePath, BuildOptions buildOptions) {
