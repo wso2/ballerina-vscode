@@ -83,3 +83,22 @@ export type CursorPosition = {
   start: number;
   end: number;
 }
+
+// Compound token sequence detected from multiple tokens
+export type CompoundTokenSequence = {
+  startIndex: number;
+  endIndex: number;
+  tokenType: TokenType.VARIABLE | TokenType.DOCUMENT;
+  displayText: string;
+  metadata: TokenMetadata;
+  start: number;
+  end: number;
+};
+
+// Token pattern configuration for detecting compound token sequences
+export type TokenPattern = {
+  name: TokenType.VARIABLE | TokenType.DOCUMENT;
+  sequence: readonly TokenType[];
+  extractor: (tokens: any[], startIndex: number, endIndex: number, docText: string) => TokenMetadata | null;
+  priority: number;
+};
