@@ -18,12 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.expressioneditor.services;
 
-import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
-import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.TextDocument;
-import io.ballerina.tools.text.TextEdit;
-import io.ballerina.tools.text.TextRange;
 import org.eclipse.lsp4j.CompletionContext;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
@@ -33,12 +28,11 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Represents a request for code completion in the expression editor. This class extends
+ * Represents a request for code completion in the expression editor in data mapper. This class extends
  * DebouncedExpressionEditorRequest to handle completion requests with debouncing functionality.
  *
  * @since 1.0.0
