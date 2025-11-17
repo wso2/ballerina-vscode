@@ -27,8 +27,7 @@ export const Ribbon = styled.div`
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding-top: 6px;
+    align-items: center;
     border-top-left-radius: 2px;
     border-bottom-left-radius: 2px;
     border-right: none;
