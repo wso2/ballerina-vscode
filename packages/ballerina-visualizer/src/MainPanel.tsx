@@ -588,7 +588,6 @@ const MainPanel = () => {
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 org={value?.org}
-                                package={value?.package}
                             />
                         );
                         break;
@@ -598,7 +597,6 @@ const MainPanel = () => {
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 org={value?.org}
-                                package={value?.package}
                                 addNew={true}
                             />
                         );
