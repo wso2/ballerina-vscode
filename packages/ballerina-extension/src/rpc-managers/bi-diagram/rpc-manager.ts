@@ -146,6 +146,7 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     AddProjectToWorkspaceRequest,
+    OpenReadmeRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -851,7 +852,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {
-            const projectPath = StateMachine.context().projectPath;
+            const projectPath = params.projectPath;
             const readmePath = projectPath ? path.join(projectPath, README_FILE) : undefined;
             if (!readmePath) {
                 resolve({ content: "" });
@@ -1033,16 +1034,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
 
-    async getReadmeContent(): Promise<ReadmeContentResponse> {
+    async getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders || workspaceFolders.length === 0) {
-                resolve({ content: "" });
-                return;
-            }
-
-            const projectRoot = workspaceFolders[0].uri.fsPath;
-            const readmePath = path.join(projectRoot, "README.md");
+            const projectPath = params.projectPath;
+            const readmePath = path.join(projectPath, "README.md");
 
             if (!fs.existsSync(readmePath)) {
                 resolve({ content: "" });
@@ -1060,19 +1055,28 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    openReadme(): void {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            window.showErrorMessage("No workspace folder is open.");
-            return;
-        }
-
-        const projectRoot = workspaceFolders[0].uri.fsPath;
+    openReadme(params: OpenReadmeRequest): void {
+        const projectRoot = params.projectPath;
         const readmePath = path.join(projectRoot, "README.md");
 
         if (!fs.existsSync(readmePath)) {
             // Create README.md if it doesn't exist
-            fs.writeFileSync(readmePath, "# Project Overview\n\nAdd your project description here.");
+
+            const projectInfo = StateMachine.context().projectInfo;
+            let content = "";
+
+            if (params.isWorkspaceReadme) {
+                const workspaceName = projectInfo?.title || projectInfo?.name;
+                content = `# ${workspaceName} Workspace\n\nAdd your workspace description here.`;
+            } else {
+                const project = projectInfo?.children && projectInfo?.children.length > 0
+                    ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
+                    : projectInfo;
+                const projectName = project?.title || project?.name;
+                content = `# ${projectName} Project\n\nAdd your project description here.`;
+            }
+
+            fs.writeFileSync(readmePath, content);
         }
 
         // Open README.md in the editor
@@ -1080,8 +1084,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showTextDocument(doc, ViewColumn.Beside);
         });
     }
-
-
 
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
