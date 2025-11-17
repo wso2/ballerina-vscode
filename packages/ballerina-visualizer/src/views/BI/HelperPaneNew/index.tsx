@@ -36,7 +36,7 @@ import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
-import { HelperpaneOnChangeOptions } from '@wso2/ballerina-side-panel';
+import { HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
 
 const AI_PROMPT_TYPE = "ai:Prompt";
 
@@ -69,6 +69,7 @@ export type HelperPaneNewProps = {
     forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
+    inputMode?: InputMode;
 };
 
 const TitleContainer = styled.div`
@@ -94,7 +95,8 @@ const HelperPaneNewEl = ({
     valueTypeConstraint,
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
-    handleValueTypeConstChange
+    handleValueTypeConstChange,
+    inputMode
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = valueTypeConstraint ?
@@ -445,6 +447,7 @@ const HelperPaneNewEl = ({
                             filteredCompletions={filteredCompletions || []}
                             currentValue={currentValue}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
                 </SlidingWindow>
@@ -522,6 +525,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}
+            inputMode={props.inputMode}
         />
     );
 };
