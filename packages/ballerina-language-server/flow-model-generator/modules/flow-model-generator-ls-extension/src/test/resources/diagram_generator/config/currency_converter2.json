@@ -75,7 +75,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "http:INTERNAL_SERVER_ERROR",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

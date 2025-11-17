@@ -263,7 +263,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "error(\"Error message\")",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

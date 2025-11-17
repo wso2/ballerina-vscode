@@ -444,7 +444,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "{message: stringResult}",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

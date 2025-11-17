@@ -146,7 +146,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"unripe\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -234,7 +234,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"ripe\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -322,7 +322,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"overripe\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -422,7 +422,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"spoiled\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -510,7 +510,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"invalid ripeness level\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

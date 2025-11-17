@@ -230,7 +230,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"large summer pack\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -318,7 +318,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"large off-season pack\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -498,7 +498,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"regular summer pack\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -586,7 +586,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"regular off-season pack\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false

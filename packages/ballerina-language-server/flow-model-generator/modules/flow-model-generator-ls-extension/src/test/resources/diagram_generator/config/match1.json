@@ -146,7 +146,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"sweet\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -234,7 +234,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"sour\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -322,7 +322,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"unknown\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
