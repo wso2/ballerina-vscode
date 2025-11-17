@@ -25,8 +25,10 @@ import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
+import { TemplateMode } from "./modes/TemplateMode";
 import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -141,7 +143,8 @@ const TitleWrapper = styled.div`
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     text: TextMode,
     prompt: PromptMode,
-    expression: ExpressionMode
+    expression: ExpressionMode,
+    template: TemplateMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -167,9 +170,13 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         promptFields.includes(field.key) ? "prompt" : "text"
     );
 
-    const [mode] = useState<EditorMode>(defaultMode);
+    const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
+
+    useEffect(() => {
+        setMode(defaultMode);
+    }, [defaultMode]);
 
     useEffect(() => {
         if (mode === "text") {
@@ -206,7 +213,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
-            onTogglePreview: () => setShowPreview(!showPreview)
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
         }),
         // Props for expression mode
         ...(mode === "expression" && {
@@ -217,6 +224,18 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             rawExpression,
             extractArgsFromFunction,
             getHelperPane
+        }),
+        // Props for expression mode
+        ...(mode === "template" && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            isPreviewMode: showPreview,
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
         })
     };
     // HACK: Must find a proper central way to manager popups
