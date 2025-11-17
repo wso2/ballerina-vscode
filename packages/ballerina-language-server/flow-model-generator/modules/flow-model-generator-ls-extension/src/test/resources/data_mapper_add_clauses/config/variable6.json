@@ -1,0 +1,48 @@
+{
+  "source": "variable6.bal",
+  "description": "Add group by clause with variable assignment",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable6.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 101
+      }
+    },
+    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": -1,
+  "clause": {
+    "type": "group-by",
+    "properties": {
+      "name": "username",
+      "type": "var",
+      "expression": "item.username"
+    }
+  },
+  "targetField": "credentials.0",
+  "output": {
+    "variable6.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 65
+          },
+          "end": {
+            "line": 19,
+            "character": 65
+          }
+        },
+        "newText": "\ngroup by var username = item.username"
+      }
+    ]
+  }
+}

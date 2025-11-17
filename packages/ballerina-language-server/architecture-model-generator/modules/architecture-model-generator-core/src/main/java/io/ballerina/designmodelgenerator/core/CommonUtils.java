@@ -69,6 +69,8 @@ public class CommonUtils {
 
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
+    private static final String MEMORY_TYPE_NAME = "Memory";
+    private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
     private static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
 
     private static final String WSO2_MODEL_PROVIDER = "Wso2ModelProvider";
@@ -283,12 +285,27 @@ public class CommonUtils {
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
     }
 
+    public static boolean isAiMemory(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && (hasAiTypeInclusion(classSymbol, MEMORY_TYPE_NAME));
+    }
+
+    public static boolean isAiShortTermMemoryStore(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && (hasAiTypeInclusion(classSymbol, ST_MEMORY_STORE_TYPE_NAME));
+    }
+
     public static boolean isAiKnowledgeBase(Symbol symbol) {
         if (symbol instanceof ObjectTypeSymbol objectTypeSymbol) {
             return hasAiTypeInclusion(objectTypeSymbol, KNOWLEDGE_BASE_TYPE_NAME);
         }
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, KNOWLEDGE_BASE_TYPE_NAME);
+    }
+
+    public static boolean isHiddenAiClass(Symbol symbol) {
+        return isAgentClass(symbol) || isAiKnowledgeBase(symbol) || isAiMemory(symbol) ||
+                isAiShortTermMemoryStore(symbol);
     }
 
     private static boolean hasAiTypeInclusion(ObjectTypeSymbol objectTypeSymbol, String includedTypeName) {

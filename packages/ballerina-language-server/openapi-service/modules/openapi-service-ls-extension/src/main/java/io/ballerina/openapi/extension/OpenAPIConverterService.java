@@ -38,6 +38,7 @@ import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -140,7 +141,11 @@ public class OpenAPIConverterService implements ExtendedLanguageServerService {
                 response.setError("Error while getting the project.");
                 return response;
             }
-            project = Optional.of(project.get().duplicate());
+            String minorVersion = BallerinaCompilerApi.getInstance().getVersion().split("\\.")[1];
+            boolean isU13Version = Integer.parseInt(minorVersion) >= 13;
+            if (isU13Version && project.get().workspaceProject().isEmpty()) {
+                project = Optional.of(project.get().duplicate());
+            }
             DiagnosticResult diagnosticsFromCodeGenAndModify = project.get()
                     .currentPackage()
                     .runCodeGenAndModifyPlugins();
