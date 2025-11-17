@@ -221,20 +221,20 @@ export function WorkspaceOverview() {
             .getProjectStructure()
             .then((res) => {
                 setWorkspaceStructure(res);
-            });
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .handleReadmeContent({ read: true })
-            .then((res) => {
-                setReadmeContent(res.content);
-            });
-
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getReadmeContent()
-            .then((res) => {
-                setReadmeContent(res.content);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .handleReadmeContent({ projectPath: res.workspacePath, read: true })
+                    .then((res) => {
+                        setReadmeContent(res.content);
+                    });
+        
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getReadmeContent({ projectPath: res.workspacePath })
+                    .then((res) => {
+                        setReadmeContent(res.content);
+                    });
             });
     };
 
@@ -278,7 +278,10 @@ export function WorkspaceOverview() {
     };
 
     const handleEditReadme = () => {
-        rpcClient.getBIDiagramRpcClient().openReadme();
+        rpcClient.getBIDiagramRpcClient().openReadme({
+            projectPath: workspaceStructure?.workspacePath,
+            isWorkspaceReadme: true
+        });
     };
 
     const handleAddIntegration = () => {
