@@ -48,31 +48,30 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             const span = document.createElement("span");
             span.textContent = this.type === 'parameter' && /^\$\d+$/.test(this.text) ? '  ' : this.text;
 
-            let backgroundColor = "rgba(0, 122, 204, 0.3)";
+            let backgroundColor = "rgba(0, 122, 204, 0.6)";
             let color = "white";
             switch (this.type) {
                 case 'variable':
                 case 'property':
-                    backgroundColor = "rgba(0, 122, 204, 0.3)";
-                    color = "white";
+                    backgroundColor = "rgba(0, 122, 204, 0.6)";
                     break;
                 case 'parameter':
                     backgroundColor = "#70c995";
-                    color = "#000000"; // Dark color for light background
+                    color = "black";
                     break;
                 default:
-                    backgroundColor = "rgba(0, 122, 204, 0.3)";
-                    color = "white";
+                    backgroundColor = "rgba(0, 122, 204, 0.6)";
             }
             span.style.background = backgroundColor;
             span.style.color = color;
             span.style.borderRadius = "4px";
-            span.style.padding = "2px 10px";
-            span.style.margin = "2px 0px";
+            span.style.padding = "2px 6px";
+            span.style.margin = "1px 0px";
             span.style.display = "inline-block";
             span.style.cursor = "pointer";
             span.style.fontSize = "12px";
-            span.style.minHeight = "20px";
+            span.style.lineHeight = "12px";
+            span.style.minHeight = "14px";
             span.style.minWidth = "25px";
             span.style.transition = "all 0.2s ease";
             span.style.outline = "none";
@@ -110,7 +109,15 @@ export const chipTheme = EditorView.theme({
     },
     ".cm-content": {
         caretColor: ThemeColors.ON_SURFACE,
+        padding: "1px",
         paddingRight: "40px"
+    },
+    ".cm-editor": {
+        padding: "1px",
+    },
+    ".cm-scroller": {
+        paddingTop: "1px",
+        paddingBottom: "1px",
     },
     "&.cm-editor .cm-cursor, &.cm-editor .cm-dropCursor": {
         borderLeftColor: ThemeColors.ON_SURFACE
