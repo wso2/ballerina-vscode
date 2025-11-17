@@ -42,6 +42,7 @@ interface ExpandedPromptEditorProps {
     fileName?: string;
     targetLineRange?: LineRange;
     sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -155,6 +156,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     fileName,
     targetLineRange,
     sanitizedExpression,
+    rawExpression,
     extractArgsFromFunction,
     getHelperPane
 }) => {
@@ -212,6 +214,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             fileName,
             targetLineRange,
             sanitizedExpression,
+            rawExpression,
             extractArgsFromFunction,
             getHelperPane
         })
