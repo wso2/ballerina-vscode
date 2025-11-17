@@ -23,6 +23,7 @@ import io.ballerina.flowmodelgenerator.core.DataMapManager;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
@@ -38,6 +39,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperTransformFunc
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperClausePositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClearCacheResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperNodePositionResponse;
@@ -189,7 +191,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
 
                 DataMapManager dataMapManager = new DataMapManager(document.get());
-                response.setTextEdits(dataMapManager.addClauses(filePath, request.codedata(), request.clause(),
+                response.setTextEdits(dataMapManager.addClause(filePath, request.codedata(), request.clause(),
                         request.index(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
@@ -324,6 +326,28 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setProperty(dataMapManager.getFieldPosition(semanticModel.get(), request.codedata(),
                         request.targetField(), request.portId()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperClausePositionResponse> clausePosition(DataMapperClausePositionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperClausePositionResponse response = new DataMapperClausePositionResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (semanticModel.isEmpty() || document.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setPosition(dataMapManager.getClausePosition(semanticModel.get(), request.codedata(),
+                        request.targetField(), request.index()));
             } catch (Throwable e) {
                 response.setError(e);
             }
