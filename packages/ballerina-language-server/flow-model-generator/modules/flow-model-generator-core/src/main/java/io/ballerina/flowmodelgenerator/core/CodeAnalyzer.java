@@ -363,7 +363,7 @@ public class CodeAnalyzer extends NodeVisitor {
         NodeBuilder builder = startNode(NodeKind.RETURN, returnStatementNode);
         optExpr.ifPresent(expr -> builder
                 .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
-                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false));
+                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, true));
         nodeBuilder.returning();
         endNode(returnStatementNode);
     }

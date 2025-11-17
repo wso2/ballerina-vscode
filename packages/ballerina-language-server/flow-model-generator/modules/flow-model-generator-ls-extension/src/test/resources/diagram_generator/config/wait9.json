@@ -719,7 +719,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "[val1, mapResult]",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

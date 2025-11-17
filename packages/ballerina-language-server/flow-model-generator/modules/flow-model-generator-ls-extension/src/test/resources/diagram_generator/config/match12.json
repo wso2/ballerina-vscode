@@ -312,7 +312,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "string `Order for ${quantity} ${'type} cherries placed`",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -400,7 +400,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "error(\"Invalid data format\")",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -559,7 +559,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "error(\"Data processing failed\", e)",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false

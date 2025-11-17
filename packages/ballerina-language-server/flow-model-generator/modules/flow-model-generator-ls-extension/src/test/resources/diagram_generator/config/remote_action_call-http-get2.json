@@ -526,7 +526,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "foodClient->get(\"/bananas\")",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

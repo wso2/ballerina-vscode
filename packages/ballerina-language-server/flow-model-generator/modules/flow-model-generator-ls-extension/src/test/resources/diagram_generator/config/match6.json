@@ -158,7 +158,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"available\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -246,7 +246,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"out of stock\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -334,7 +334,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"invalid count\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

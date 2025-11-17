@@ -158,7 +158,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"large order\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -258,7 +258,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"medium order\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -358,7 +358,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"small order\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -446,7 +446,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"invalid order\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

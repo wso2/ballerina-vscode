@@ -270,7 +270,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"expensive\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -407,7 +407,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"moderate\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -455,7 +455,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "\"cheap\"",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false
