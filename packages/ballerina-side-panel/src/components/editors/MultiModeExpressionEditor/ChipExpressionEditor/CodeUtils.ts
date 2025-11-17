@@ -24,6 +24,15 @@ import { CompletionItem } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { TokenType, TokenMetadata, CompoundTokenSequence } from "./types";
+import {
+    DOCUMENT_CHIP_STYLES,
+    DOCUMENT_ICON_STYLES,
+    CHIP_TEXT_STYLES,
+    STANDARD_CHIP_STYLES,
+    getDocumentIconClass,
+    getTokenTypeColor,
+    getChipDisplayContent
+} from "./chipStyles";
 
 export type TokenStream = number[];
 
@@ -79,25 +88,10 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
         }
 
         private createDocumentChip(span: HTMLSpanElement) {
-            const baseStyles = {
-                background: "rgba(59, 130, 246, 0.15)",
-                border: "1px solid rgba(59, 130, 246, 0.4)",
-                borderRadius: "4px",
-                padding: "2px 8px",
-                margin: "2px 0px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                cursor: "pointer",
-                fontSize: "12px",
-                minHeight: "20px",
-                maxWidth: "200px",
-                outline: "none",
-                verticalAlign: "middle",
-                userSelect: "none"
-            };
-
-            Object.assign(span.style, baseStyles);
+            Object.assign(span.style, {
+                ...DOCUMENT_CHIP_STYLES,
+                cursor: "pointer"
+            });
 
             const icon = this.createDocumentIcon();
             const textSpan = this.createTextSpan(this.metadata?.content || this.text);
@@ -107,60 +101,30 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
         }
 
         private createDocumentIcon(): HTMLElement {
-            const iconClassMap: Record<string, string> = {
-                'ImageDocument': 'fw-bi-image',
-                'FileDocument': 'fw-bi-doc',
-                'AudioDocument': 'fw-bi-audio'
-            };
-
             const icon = document.createElement("i");
-            Object.assign(icon.style, {
-                display: "flex",
-                color: "rgba(59, 130, 246, 0.9)",
-                fontSize: "14px"
-            });
+            Object.assign(icon.style, DOCUMENT_ICON_STYLES);
 
-            icon.className = iconClassMap[this.metadata?.documentType || ''] || '';
+            if (this.metadata?.documentType) {
+                icon.className = getDocumentIconClass(this.metadata.documentType);
+            }
             return icon;
         }
 
         private createTextSpan(text: string): HTMLSpanElement {
             const textSpan = document.createElement("span");
             textSpan.textContent = text;
-            Object.assign(textSpan.style, {
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
-            });
+            Object.assign(textSpan.style, CHIP_TEXT_STYLES);
             return textSpan;
         }
 
         private createStandardChip(span: HTMLSpanElement) {
-            span.textContent = this.type === TokenType.PARAMETER && /^\$\d+$/.test(this.text) ? '  ' : this.text;
+            span.textContent = getChipDisplayContent(this.type, this.text);
 
-            const backgroundColors: Partial<Record<TokenType, string>> = {
-                [TokenType.VARIABLE]: "rgba(0, 122, 204, 0.3)",
-                [TokenType.PROPERTY]: "rgba(0, 122, 204, 0.3)",
-                [TokenType.PARAMETER]: "#70c995"
-            };
-
-            const baseStyles = {
-                background: backgroundColors[this.type] || "rgba(0, 122, 204, 0.3)",
-                borderRadius: "4px",
-                padding: "2px 10px",
-                margin: "2px 0px",
-                display: "inline-block",
-                cursor: "pointer",
-                fontSize: "12px",
-                minHeight: "20px",
-                minWidth: "25px",
-                transition: "all 0.2s ease",
-                outline: "none",
-                verticalAlign: "middle",
-                userSelect: "none"
-            };
-
-            Object.assign(span.style, baseStyles);
+            Object.assign(span.style, {
+                ...STANDARD_CHIP_STYLES,
+                background: getTokenTypeColor(this.type),
+                cursor: "pointer"
+            });
         }
 
         ignoreEvent() {

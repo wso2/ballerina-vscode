@@ -20,6 +20,10 @@ import React from "react";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import { ChipComponent } from "./ChipComponent";
+import { DocumentType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
 
 const PreviewContainer = styled.div`
     width: 100%;
@@ -69,10 +73,22 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
     return (
         <PreviewContainer>
             <ReactMarkdown
+                rehypePlugins={[rehypeRaw, remarkGfm]}
                 components={{
                     // Prevent rendering of potentially dangerous elements
                     script: () => null,
                     iframe: () => null,
+                    // Custom chip component for rendering tokens
+                    chip: ({ node }: any) => {
+                        const props = node?.properties || {};
+                        return (
+                            <ChipComponent
+                                type={props.type || 'variable'}
+                                content={props.dataContent || ''}
+                                documentType={props.dataDocType as DocumentType}
+                            />
+                        );
+                    }
                 }}
                 disallowedElements={['script', 'iframe', 'object', 'embed']}
                 unwrapDisallowed={true}

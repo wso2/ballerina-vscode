@@ -797,12 +797,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         setIsExpandedModalOpen(false)
                                     }}
                                     onSave={handleSaveExpandedMode}
-                                    mode={inputMode === InputMode.EXP ? "expression" : undefined}
+                                    mode={inputModeRef.current === InputMode.EXP ? "expression" : inputModeRef.current === InputMode.TEMPLATE ? "template" : undefined}
                                     completions={completions}
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}
-                                    sanitizedExpression={inputMode === InputMode.TEMPLATE ? sanitizedExpression : undefined}
-                                    rawExpression={inputMode === InputMode.TEMPLATE ? rawExpression : undefined}
+                                    sanitizedExpression={inputModeRef.current === InputMode.TEMPLATE ? sanitizedExpression : undefined}
+                                    rawExpression={inputModeRef.current === InputMode.TEMPLATE ? rawExpression : undefined}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
                                     getHelperPane={handleGetHelperPane}
                                 />

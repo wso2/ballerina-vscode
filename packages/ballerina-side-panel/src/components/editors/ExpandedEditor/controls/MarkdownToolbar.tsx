@@ -20,6 +20,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { ThemeColors, Icon, Switch } from "@wso2/ui-toolkit";
 import "@github/markdown-toolbar-element";
+import { HelperPaneToggleButton } from "../../../editors/MultiModeExpressionEditor/ChipExpressionEditor/components/HelperPaneToggleButton";
 
 // Type declarations for GitHub markdown toolbar custom elements
 declare global {
@@ -107,6 +108,12 @@ interface MarkdownToolbarProps {
     isPreviewMode?: boolean;
     /** Callback to toggle preview mode */
     onTogglePreview?: () => void;
+    /** Helper pane toggle button props (optional) */
+    helperPaneToggle?: {
+        ref: React.RefObject<HTMLButtonElement>;
+        isOpen: boolean;
+        onClick: () => void;
+    };
 }
 
 /**
@@ -116,11 +123,23 @@ interface MarkdownToolbarProps {
 export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
     textareaId,
     isPreviewMode = false,
-    onTogglePreview
+    onTogglePreview,
+    helperPaneToggle
 }) => {
     return (
         <ToolbarContainer>
             <markdown-toolbar for={textareaId}>
+                {helperPaneToggle && (
+                    <HelperPaneToggleButton
+                        ref={helperPaneToggle.ref}
+                        isOpen={helperPaneToggle.isOpen}
+                        onClick={helperPaneToggle.onClick}
+                        sx={{ marginBottom: 0 }}
+                    />
+                )}
+
+                <ToolbarDivider />
+
                 <md-bold>
                     <ToolbarButton title="Bold" disabled={isPreviewMode}>
                         <Icon name="bi-bold" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />

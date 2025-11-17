@@ -68,18 +68,13 @@ export interface EditorModeExpressionProps extends EditorModeProps {
         onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
+    /** Whether preview mode is active */
+    isPreviewMode?: boolean;
+    /** Callback to toggle preview mode */
+    onTogglePreview?: (enabled: boolean) => void;
 }
 
 /**
  * Mode type identifier
  */
-export type EditorMode = "text" | "prompt" | "expression";
-
-/**
- * Map of mode identifiers to their display labels
- */
-export const MODE_LABELS: Record<EditorMode, string> = {
-    text: "Text",
-    prompt: "Prompt",
-    expression: "Expression"
-};
+export type EditorMode = "text" | "prompt" | "expression" | "template";

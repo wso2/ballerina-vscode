@@ -49,6 +49,7 @@ import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
+import { listContinuationKeymap } from "../../../../editors/ExpandedEditor/utils/codemirrorListContinuation";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -81,6 +82,15 @@ export type ChipExpressionEditorComponentProps = {
     sx?: React.CSSProperties;
     sanitizedExpression?: (value: string) => string;
     rawExpression?: (value: string) => string;
+    showHelperPaneToggle?: boolean;
+    onHelperPaneStateChange?: (state: {
+        isOpen: boolean;
+        ref: React.RefObject<HTMLButtonElement>;
+        toggle: () => void
+    }) => void;
+    onEditorViewReady?: (view: EditorView) => void;
+    toolbarRef?: React.RefObject<HTMLDivElement>;
+    enableListContinuation?: boolean;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -210,13 +220,28 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }));
     }
 
+    // Expose helper pane state to parent component
+    useEffect(() => {
+        if (props.onHelperPaneStateChange) {
+            props.onHelperPaneStateChange({
+                isOpen: helperPaneState.isOpen,
+                ref: helperPaneToggleButtonRef,
+                toggle: handleHelperPaneManualToggle
+            });
+        }
+    }, [helperPaneState.isOpen]);
+
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
             doc: props.value ?? "",
             extensions: [
                 history(),
-                keymap.of([...helperPaneKeymap, ...expressionEditorKeymap]),
+                keymap.of([
+                    ...helperPaneKeymap,
+                    ...(props.enableListContinuation ? listContinuationKeymap : []),
+                    ...expressionEditorKeymap
+                ]),
                 autocompletion({
                     override: [completionSource],
                     activateOnTyping: true,
@@ -255,6 +280,12 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             parent: editorRef.current
         });
         viewRef.current = view;
+
+        // Notify parent component that the editor view is ready
+        if (props.onEditorViewReady) {
+            props.onEditorViewReady(view);
+        }
+
         return () => {
             view.destroy();
         };
@@ -315,8 +346,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const isClickInsideEditor = editorRef.current?.contains(target);
             const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
             const isClickOnToggleButton = helperPaneToggleButtonRef.current?.contains(target);
+            const isClickInsideToolbar = props.toolbarRef?.current?.contains(target);
 
-            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton) {
+            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton && !isClickInsideToolbar) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
                 viewRef.current?.dispatch({
                     selection: { anchor: 0 },
@@ -331,11 +363,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [helperPaneState.isOpen]);
+    }, [helperPaneState.isOpen, props.toolbarRef]);
+
+    const showToggle = props.showHelperPaneToggle !== false && props.isExpandedVersion;
 
     return (
         <>
-            {props.isExpandedVersion && (
+            {showToggle && (
                 <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
                     isOpen={helperPaneState.isOpen}
