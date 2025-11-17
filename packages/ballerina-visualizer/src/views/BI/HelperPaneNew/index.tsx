@@ -447,7 +447,6 @@ const HelperPaneNewEl = ({
                             filteredCompletions={filteredCompletions || []}
                             currentValue={currentValue}
                             handleRetrieveCompletions={handleRetrieveCompletions}
-                            inputMode={inputMode}
                         />
                     </SlidingPane>
                 </SlidingWindow>
