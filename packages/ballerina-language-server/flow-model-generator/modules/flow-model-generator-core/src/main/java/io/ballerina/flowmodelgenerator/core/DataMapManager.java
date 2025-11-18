@@ -1601,7 +1601,8 @@ public class DataMapManager {
                         }
                     }
                 } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
-                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx, textEdits, targetSymbol);
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx,
+                            textEdits, targetSymbol);
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
