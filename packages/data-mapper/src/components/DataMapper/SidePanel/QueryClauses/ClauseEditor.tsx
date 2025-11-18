@@ -162,12 +162,12 @@ export function ClauseEditor(props: ClauseEditorProps) {
     } = useQuery({
         queryKey: ['getClauseProperty', targetField, index],
         queryFn: async () => await getClauseProperty(targetField, index),
-        select: (data) => data?.codedata?.lineRange,
+        // select: (data) => data?.codedata?.lineRange,
         networkMode: 'always'
     });
 
     const formProps: DMFormProps = {
-        targetLineRange: targetLineRange,
+        targetLineRange: targetLineRange?.codedata?.lineRange,
         fields: generateFields(),
         submitText: onSubmitText || "Add",
         cancelText: "Cancel",
