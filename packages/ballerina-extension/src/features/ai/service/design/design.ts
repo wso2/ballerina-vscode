@@ -21,14 +21,34 @@ import { getErrorMessage, populateHistoryForAgent } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
+import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
 import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
-import { GenerationType, getAllLibraries } from "../libs/libs";
+import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 import { getTempProject, FileModificationInfo } from "../../utils/temp-project-utils";
 import { formatCodebaseStructure } from "./utils";
+import { getSystemPrompt, getUserPrompt } from "./prompts";
+import { LangfuseExporter } from 'langfuse-vercel';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+
+const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
+const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
+
+const langfuseExporter = new LangfuseExporter({
+    secretKey: LANGFUSE_SECRET,
+    publicKey: LANGFUSE_PUBLIC,
+    baseUrl: 'https://cloud.langfuse.com', // 🇪🇺 EU region
+});
+const sdk = new NodeSDK({
+    traceExporter: langfuseExporter,
+    instrumentations: [getNodeAutoInstrumentations()],
+});
+sdk.start();
+
 
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const messageId = params.messageId;
@@ -37,6 +57,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
     const hasHistory = historyMessages.length > 0;
     const { path: tempProjectPath } = await getTempProject(project, hasHistory);
     const cacheOptions = await getProviderCacheControl();
+
 
     const modifiedFiles: string[] = [];
 
@@ -51,7 +72,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
         {
             role: "user",
             content: userMessageContent,
-            providerOptions: cacheOptions,
+            // providerOptions: cacheOptions,
         },
     ];
 
@@ -62,11 +83,12 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
-        LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
+        [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
     };
 
     const { fullStream, response, steps } = streamText({
@@ -77,6 +99,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
         stopWhen: stepCountIs(50),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
+        experimental_telemetry: { isEnabled: true },
     });
 
 
@@ -195,6 +218,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
+                await langfuseExporter.forceFlush();
                 break;
             }
             }
@@ -283,124 +307,6 @@ function saveToolResult(
             }
         }]
     });
-}
-
-/**
- * Generates the system prompt for the design agent
- */
-function getSystemPrompt(): string {
-    return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
-
-ONLY answer Ballerina-related queries.
-
-# Plan Mode Approach
-
-## Step 1: Create High-Level Design
-Create a very high-level and concise design plan for the given user requirement.
-
-## Step 2: Break Down Into Tasks and Execute
-
-**REQUIRED: Use Task Management**
-You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
-This plan will be visible to the user and the execution will be guided on the tasks you create.
-
-- Break down the implementation into specific, actionable tasks.
-- Each task should have a type. This type will be used to guide the user through the generation proccess.
-- Track each task as you work through them
-- Mark tasks as you start and complete them
-- This ensures you don't miss critical steps
-- Each task should be concise and high level as they are visible to a very high level user. During the implementation, you will break them down further as needed and implement them.
-
-**Task Types**:
-1. 'service_design'
-- Responsible for creating the http listener, service, and its resource function signatures.
-- The signature should only have path, query, payload, header paramters and the return types. This step should contain types relevant to the service contract as well.
-2. 'connections_init'
-- Responsible for initializing connections/clients
-- This step should only contain the Client initialization.
-3. 'implementation'
-- for all the other implementations. Have resource function implementations in its own task.
-
-**Task Breakdown Example**:
-1. Create the HTTP service contract
-2. Create the MYSQL Connection
-3. Implement the resource functions
-
-**Critical Rules**:
-- Task management is MANDATORY for all implementations
-- When using ${TASK_WRITE_TOOL_NAME}, always send ALL tasks on every call
-- Do NOT mention internal tool names to users
-
-**Execution Flow**:
-1. Think about and explain your high-level design plan to the user
-2. After explaining the plan, output: <toolcall>Planning...</toolcall>
-3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
-4. The tool will wait for PLAN APPROVAL from the user
-5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
-
-   **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - Implement the task completely (write the Ballerina code)
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - The tool will wait for TASK COMPLETION APPROVAL from the user
-   - Once approved (success: true), immediately start the next task
-   - Repeat until ALL tasks are done
-
-6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
-
-**User Communication**:
-- Using the task_write tool will automatically show progress to the user via a task list
-- Keep language simple and non-technical when responding
-- No need to add manual progress indicators - the task list shows what you're working on
-
-## Code Generation Guidelines
-
-When generating Ballerina code:
-
-1. **Imports**: Import required libraries
-   - Do NOT import these (already available by default): lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map
-
-2. **Structure**:
-   - Define types in types.bal file
-   - Initialize necessary clients
-   - Create service OR main function
-   - Plan data flow and transformations
-
-3. **Service Design Phase** ('service_design' tasks):
-   - Create resource function signatures with comprehensive return types covering all possible scenarios
-   - For unimplemented function bodies, use http:NOT_IMPLEMENTED as the placeholder return value
-
-4. **Implementation Phase** ('implementation' tasks):
-   - Implement the complete logic for resource functions
-   - **CRITICAL**: After implementation, refine the function signature to ONLY include return types that are actually returned in the implementation
-   - Remove any unused return types from the signature to keep it clean and precise
-`;
-}
-
-/**
- * Generates user prompt content array with codebase structure for new threads
- * @param usecase User's query/requirement
- * @param hasHistory Whether chat history exists
- * @param tempProjectPath Path to temp project (used when hasHistory is false)
- */
-function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string) {
-    const content = [];
-
-    if (!hasHistory) {
-        content.push({
-            type: 'text' as const,
-            text: formatCodebaseStructure(tempProjectPath)
-        });
-    }
-
-    content.push({
-        type: 'text' as const,
-        text: `<User Query>
-${usecase}
-</User Query>`
-    });
-
-    return content;
 }
 
 /**
