@@ -1,0 +1,758 @@
+{
+  "start": {
+    "line": 22,
+    "offset": 0
+  },
+  "end": {
+    "line": 39,
+    "offset": 1
+  },
+  "source": "workspace_proj/pkgA/main.bal",
+  "description": "",
+  "diagram": {
+    "fileName": "main.bal",
+    "nodes": [
+      {
+        "id": "56204",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "createConnectionAndMakeRemoteCalls",
+            "isServiceFunction": false,
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 22,
+              "offset": 68
+            },
+            "endLine": {
+              "line": 39,
+              "offset": 1
+            }
+          },
+          "sourceCode": "public function createConnectionAndMakeRemoteCalls() returns error? {\n    // Create new CustomerApiClient connection\n    pkgB:CustomerApiClient apiClient = check new (\"https://api.example.com\");\n\n    // Make remote call to get customer\n    pkgB:ExternalCustomer|error existingCustomer = apiClient->getCustomer(\"CUST001\");\n\n    if existingCustomer is pkgB:ExternalCustomer {\n        io:println(string `Retrieved customer via remote: ${existingCustomer.fullName}`);\n    }\n\n    // Make resource call to get customer\n    pkgB:ExternalCustomer|error customerViaResource = apiClient->/customers/[\"CUST002\"];\n\n    if customerViaResource is pkgB:ExternalCustomer {\n        io:println(string `Retrieved customer via resource: ${customerViaResource.fullName}`);\n    }\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "54606",
+        "metadata": {
+          "label": "Comment",
+          "description": "Create new CustomerApiClient connection"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 23,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 23,
+              "offset": 46
+            }
+          },
+          "sourceCode": "Create new CustomerApiClient connection"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "valueType": "STRING",
+            "value": "Create new CustomerApiClient connection",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "55753",
+        "metadata": {
+          "label": "New Connection",
+          "description": "",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/wso2_pkgB_0.1.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "wso2",
+          "module": "pkgB",
+          "object": "CustomerApiClient",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 24,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 24,
+              "offset": 77
+            }
+          },
+          "sourceCode": "// Create new CustomerApiClient connection\n    pkgB:CustomerApiClient apiClient = check new (\"https://api.example.com\");"
+        },
+        "returning": false,
+        "properties": {
+          "serviceUrl": {
+            "metadata": {
+              "label": "Service Url"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"https://api.example.com\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "serviceUrl"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "valueType": "FLAG",
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "valueType": "ENUM",
+            "value": "Local",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "apiClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 24,
+                  "offset": 27
+                },
+                "endLine": {
+                  "line": 24,
+                  "offset": 36
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "pkgB:CustomerApiClient",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
+        "id": "56614",
+        "metadata": {
+          "label": "Comment",
+          "description": "Make remote call to get customer"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 26,
+              "offset": 39
+            }
+          },
+          "sourceCode": "Make remote call to get customer"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "valueType": "STRING",
+            "value": "Make remote call to get customer",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "58737",
+        "metadata": {
+          "label": "getCustomer",
+          "description": "",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/wso2_pkgB_0.1.0.png"
+        },
+        "codedata": {
+          "node": "REMOTE_ACTION_CALL",
+          "org": "wso2",
+          "module": "pkgB",
+          "packageName": "pkgB",
+          "object": "CustomerApiClient",
+          "symbol": "getCustomer",
+          "version": "0.1.0",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 27,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 27,
+              "offset": 85
+            }
+          },
+          "sourceCode": "// Make remote call to get customer\n    pkgB:ExternalCustomer|error existingCustomer = apiClient->getCustomer(\"CUST001\");"
+        },
+        "returning": false,
+        "properties": {
+          "connection": {
+            "metadata": {
+              "label": "Connection",
+              "description": "Connection to use"
+            },
+            "valueType": "EXPRESSION",
+            "value": "apiClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true
+          },
+          "id": {
+            "metadata": {
+              "label": "Id"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"CUST001\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "id"
+            },
+            "typeMembers": [
+              {
+                "type": "string",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": true
+              }
+            ]
+          },
+          "variable": {
+            "metadata": {
+              "label": "Result",
+              "description": "Name of the result variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "existingCustomer",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 27,
+                  "offset": 32
+                },
+                "endLine": {
+                  "line": 27,
+                  "offset": 48
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Result Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "pkgB:ExternalCustomer",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "60703",
+        "metadata": {
+          "label": "If",
+          "description": "Add conditional branch to the integration flow."
+        },
+        "codedata": {
+          "node": "IF",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 29,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 31,
+              "offset": 5
+            }
+          },
+          "sourceCode": "if existingCustomer is pkgB:ExternalCustomer {\n        io:println(string `Retrieved customer via remote: ${existingCustomer.fullName}`);\n    }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Then",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "CONDITIONAL",
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 29,
+                  "offset": 49
+                },
+                "endLine": {
+                  "line": 31,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n        io:println(string `Retrieved customer via remote: ${existingCustomer.fullName}`);\n    }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "condition": {
+                "metadata": {
+                  "label": "Condition",
+                  "description": "Boolean Condition"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
+                "value": "existingCustomer is pkgB:ExternalCustomer ",
+                "placeholder": "true",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "61841",
+                "metadata": {
+                  "label": "println",
+                  "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "io",
+                  "packageName": "io",
+                  "symbol": "println",
+                  "version": "1.8.0",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 30,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 30,
+                      "offset": 89
+                    }
+                  },
+                  "sourceCode": "io:println(string `Retrieved customer via remote: ${existingCustomer.fullName}`);"
+                },
+                "returning": false,
+                "properties": {
+                  "values": {
+                    "metadata": {
+                      "label": "values",
+                      "description": "The value(s) to be printed"
+                    },
+                    "valueType": "EXPRESSION_SET",
+                    "valueTypeConstraint": "io:Printable",
+                    "value": [
+                      "string `Retrieved customer via remote: ${existingCustomer.fullName}`"
+                    ],
+                    "placeholder": "()",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REST_PARAMETER",
+                      "originalName": "values"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "Printable",
+                        "packageInfo": "ballerina:io:1.8.0",
+                        "packageName": "io",
+                        "kind": "ARRAY_TYPE",
+                        "selected": false
+                      }
+                    ]
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      },
+      {
+        "id": "63560",
+        "metadata": {
+          "label": "Comment",
+          "description": "Make resource call to get customer"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 32,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 33,
+              "offset": 41
+            }
+          },
+          "sourceCode": "Make resource call to get customer"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "valueType": "STRING",
+            "value": "Make resource call to get customer",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "65684",
+        "metadata": {
+          "label": "get",
+          "description": "",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/wso2_pkgB_0.1.0.png"
+        },
+        "codedata": {
+          "node": "RESOURCE_ACTION_CALL",
+          "org": "wso2",
+          "module": "pkgB",
+          "packageName": "pkgB",
+          "object": "CustomerApiClient",
+          "symbol": "get",
+          "version": "0.1.0",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 34,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 34,
+              "offset": 88
+            }
+          },
+          "sourceCode": "// Make resource call to get customer\n    pkgB:ExternalCustomer|error customerViaResource = apiClient->/customers/[\"CUST002\"];",
+          "resourcePath": "/customers/[id]"
+        },
+        "returning": false,
+        "properties": {
+          "resourcePath": {
+            "metadata": {
+              "label": "Resource Path",
+              "description": "Resource Path"
+            },
+            "valueType": "ACTION_PATH",
+            "value": "/customers/[id]",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {
+              "originalName": "/customers/[id]"
+            }
+          },
+          "id": {
+            "metadata": {
+              "label": "id"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "string",
+            "value": "\"CUST002\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PATH_PARAM",
+              "originalName": "id"
+            },
+            "typeMembers": []
+          },
+          "connection": {
+            "metadata": {
+              "label": "Connection",
+              "description": "Connection to use"
+            },
+            "valueType": "EXPRESSION",
+            "value": "apiClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Result",
+              "description": "Name of the result variable"
+            },
+            "valueType": "IDENTIFIER",
+            "value": "customerViaResource",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 34,
+                  "offset": 32
+                },
+                "endLine": {
+                  "line": 34,
+                  "offset": 51
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Result Type",
+              "description": "Type of the variable"
+            },
+            "valueType": "TYPE",
+            "value": "pkgB:ExternalCustomer",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "67647",
+        "metadata": {
+          "label": "If",
+          "description": "Add conditional branch to the integration flow."
+        },
+        "codedata": {
+          "node": "IF",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 36,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 38,
+              "offset": 5
+            }
+          },
+          "sourceCode": "if customerViaResource is pkgB:ExternalCustomer {\n        io:println(string `Retrieved customer via resource: ${customerViaResource.fullName}`);\n    }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Then",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "CONDITIONAL",
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 36,
+                  "offset": 52
+                },
+                "endLine": {
+                  "line": 38,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n        io:println(string `Retrieved customer via resource: ${customerViaResource.fullName}`);\n    }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "condition": {
+                "metadata": {
+                  "label": "Condition",
+                  "description": "Boolean Condition"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "boolean",
+                "value": "customerViaResource is pkgB:ExternalCustomer ",
+                "placeholder": "true",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "68790",
+                "metadata": {
+                  "label": "println",
+                  "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "io",
+                  "packageName": "io",
+                  "symbol": "println",
+                  "version": "1.8.0",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 37,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 37,
+                      "offset": 94
+                    }
+                  },
+                  "sourceCode": "io:println(string `Retrieved customer via resource: ${customerViaResource.fullName}`);"
+                },
+                "returning": false,
+                "properties": {
+                  "values": {
+                    "metadata": {
+                      "label": "values",
+                      "description": "The value(s) to be printed"
+                    },
+                    "valueType": "EXPRESSION_SET",
+                    "valueTypeConstraint": "io:Printable",
+                    "value": [
+                      "string `Retrieved customer via resource: ${customerViaResource.fullName}`"
+                    ],
+                    "placeholder": "()",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REST_PARAMETER",
+                      "originalName": "values"
+                    },
+                    "typeMembers": [
+                      {
+                        "type": "Printable",
+                        "packageInfo": "ballerina:io:1.8.0",
+                        "packageName": "io",
+                        "kind": "ARRAY_TYPE",
+                        "selected": false
+                      }
+                    ]
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}
