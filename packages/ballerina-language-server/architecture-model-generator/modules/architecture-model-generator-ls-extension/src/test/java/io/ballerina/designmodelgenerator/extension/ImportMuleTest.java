@@ -31,6 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static io.ballerina.architecturemodelgenerator.extension.TestUtils.contentMatches;
+
 /**
  * Test class for the Mule import functionality.
  *
@@ -47,14 +49,14 @@ public class ImportMuleTest extends AbstractLSTest {
         bufferedReader.close();
 
         ImportMuleRequest request = new ImportMuleRequest("ballerina", "",
-                sourceDir.resolve(testConfig.projectPath()).toAbsolutePath().toString(), 
+                sourceDir.resolve(testConfig.projectPath()).toAbsolutePath().toString(),
                 testConfig.parameters());
         JsonObject response = getResponse(request).getAsJsonObject();
 
         ImportMuleResponse actualToolResponse = gson.fromJson(response, ImportMuleResponse.class);
         ImportMuleResponse expectedToolResponse = gson.fromJson(testConfig.output(), ImportMuleResponse.class);
-        if (!actualToolResponse.equals(expectedToolResponse)) {
-            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.projectPath(), 
+        if (!contentMatches(actualToolResponse, expectedToolResponse)) {
+            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.projectPath(),
                     testConfig.parameters(), response);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
@@ -89,13 +91,13 @@ public class ImportMuleTest extends AbstractLSTest {
      * @param parameters  Parameters for Mule import (e.g., forceVersion)
      * @param output      Expected output as a JSON object
      */
-    private record TestConfig(String description, String projectPath, Map<String, String> parameters, 
-                             JsonObject output) {
+    private record TestConfig(String description, String projectPath, Map<String, String> parameters,
+                              JsonObject output) {
 
         public String description() {
             return description == null ? "" : description;
         }
-        
+
         public Map<String, String> parameters() {
             return parameters == null ? Map.of() : parameters;
         }

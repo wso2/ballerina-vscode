@@ -25,4 +25,5 @@ module io.ballerina.LSExtensions.ProjectDesignService {
     requires io.ballerina.tools.api;
     requires io.ballerina.architecturemodelgenerator;
     requires io.ballerina.parser;
+    requires io.ballerina.toml;
 }

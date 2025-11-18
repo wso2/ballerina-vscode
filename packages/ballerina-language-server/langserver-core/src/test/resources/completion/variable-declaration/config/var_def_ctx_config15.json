@@ -481,7 +481,8 @@
     {
       "label": "t",
       "labelDetails": {
-        "detail": " MyType"
+        "detail": " MyType",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "MyType",

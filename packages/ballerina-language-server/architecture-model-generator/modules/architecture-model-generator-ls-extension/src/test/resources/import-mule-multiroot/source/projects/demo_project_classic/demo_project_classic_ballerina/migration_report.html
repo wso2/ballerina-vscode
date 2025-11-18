@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Migration Summary</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #FF6347; color: white; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+    tr:hover { background-color: #ddd; }
+    h1 { text-align: center; }
+    footer { text-align: center; margin-top: 20px; font-size: 0.9em; color: #666; }
+    .drawer { overflow: hidden; transition: max-height 0.3s ease-out; max-height: 0; }
+    .drawer.open { max-height: 500px; }
+    .summary-container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); margin: 20px 0; }
+    .blue-table th { background-color: #4682B4; color: white; }
+    .blue-table tr:nth-child(even) { background-color: #e0f0ff; }
+    .blue-table tr:hover { background-color: #b0d4f1; }
+    .blue-table code {
+        background-color: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+    .estimation-notes { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
+    .estimation-notes ul { margin: 10px 0 0 20px; }
+    .estimation-notes li { margin-bottom: 5px; }
+    .unsupported-blocks { padding: 10px; }
+    .block-item {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    .block-header {
+        background-color: #4682B4;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .block-code {
+        margin: 0;
+        padding: 15px;
+        background-color: #fff;
+        overflow-x: auto;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+    .block-number { font-weight: bold; }
+    .block-type { font-family: monospace; }
+  </style>
+</head>
+<body>
+<h1>Migration Summary</h1>
+
+<h3>Automated Migration Coverage: 100%</h3>
+
+<div class="summary-container">
+  <h3>Implementation Time Estimation</h3>
+  <table class="blue-table">
+    <tr>
+      <th>Scenario</th>
+      <th>Days</th>
+      <th>Weeks (approx.)</th>
+    </tr>
+    <tr>
+      <td>Best Case</td>
+      <td>0.0 days</td>
+      <td>0 weeks</td>
+    </tr>
+    <tr>
+      <td>Average Case</td>
+      <td>0.0 days</td>
+      <td>0 weeks</td>
+    </tr>
+    <tr>
+      <td>Worst Case</td>
+      <td>0.0 days</td>
+      <td>0 weeks</td>
+    </tr>
+  </table>
+  <div class="estimation-notes">
+    <p><strong>Note:</strong></p>
+    <ul>
+      <li>Best case scenario:
+        <ul>
+          <li>1.0 day per unsupported element for analysis, implementation, and testing</li>
+          <li>0.0625 days per unsupported dataweave expression for translation and validation</li>
+          <li>Assumes minimal complexity and straightforward implementations</li>
+        </ul>
+      </li>
+      <li>Average case scenario:
+        <ul>
+          <li>2.0 days per unsupported element for analysis, implementation, and testing</li>
+          <li>0.125 days per unsupported dataweave expression including edge cases</li>
+          <li>Includes time for code review and integration testing</li>
+        </ul>
+      </li>
+      <li>Worst case scenario:
+        <ul>
+          <li>3.0 days per unsupported element due to complex dependencies and edge cases</li>
+          <li>0.25 days per unsupported dataweave expression with complex transformations</li>
+          <li>Accounts for additional requirements, debugging, and performance optimization</li>
+        </ul>
+      </li>
+      <li>Project scope:
+        <ul>
+          <li>Total distinct unsupported elements: 0</li>
+          <li>Total DataWeave expressions requiring manual conversion: 0</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+<div class="summary-container">
+  <h3>Elements Awaiting Tool Support</h3>
+  <div id="toolSupportSection">
+    <table class="blue-table">
+      <tr><th>Tag Name</th><th>Frequency</th></tr>
+    </table>
+    <p class="empty-message" id="toolSupportEmpty" style="display: none; text-align: center; padding: 20px; color: #666;">
+      No elements awaiting tool support
+    </p>
+  </div>
+</div>
+<div class="summary-container">
+  <h3>Element Blocks that Require Manual Conversion</h3>
+  <div class="unsupported-blocks">
+    <p class="empty-message" id="manualBlocksEmpty" style="display: none; text-align: center; padding: 20px; color: #666;">
+      No element blocks require manual conversion
+    </p>
+  </div>
+</div>
+<div class="summary-container">
+  <h3>DataWeave Expressions that Require Manual Conversion</h3>
+  <div class="unsupported-blocks">
+    <div id="dataweaveContent"></div>
+    <p class="empty-message" id="dataweaveEmpty" style="display: none; text-align: center; padding: 20px; color: #666;">
+      No DataWeave expressions require manual conversion
+    </p>
+  </div>
+</div>
+<footer><p>Report generated on: <span id="datetime"></span></p></footer>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Check Elements Awaiting Tool Support
+      const toolSupportTable = document.querySelector('#toolSupportSection table');
+      if (toolSupportTable.rows.length <= 1) {
+          toolSupportTable.style.display = 'none';
+          document.getElementById('toolSupportEmpty').style.display = 'block';
+      }
+
+      // Check Element Blocks
+      const manualBlocksSection = document.querySelector('.summary-container:nth-of-type(3) .unsupported-blocks .block-item');
+      if (!manualBlocksSection) {
+          document.getElementById('manualBlocksEmpty').style.display = 'block';
+      }
+
+      // Check DataWeave Expressions
+      const dataweaveBlocks = document.querySelector('#dataweaveContent .block-item');
+      if (!dataweaveBlocks) {
+          document.getElementById('dataweaveEmpty').style.display = 'block';
+      }
+  });
+</script>
+<script>document.getElementById("datetime").innerHTML = new Date().toLocaleString();</script>
+</body></html>

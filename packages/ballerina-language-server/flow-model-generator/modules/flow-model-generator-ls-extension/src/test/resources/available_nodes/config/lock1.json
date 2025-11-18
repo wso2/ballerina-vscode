@@ -179,8 +179,8 @@
         },
         {
           "metadata": {
-            "label": "Assign",
-            "description": "Assign a value to a variable"
+            "label": "Update Variable",
+            "description": "Update the value of an existing variable"
           },
           "codedata": {
             "node": "ASSIGN"

@@ -29,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Test class for the Tibco import functionality.
@@ -46,13 +47,15 @@ public class ImportTibcoTest extends AbstractLSTest {
         bufferedReader.close();
 
         ImportTibcoRequest request = new ImportTibcoRequest("ballerina", "tibco_project",
-                sourceDir.resolve(testConfig.projectPath()).toAbsolutePath().toString());
+                sourceDir.resolve(testConfig.projectPath()).toAbsolutePath().toString(), testConfig.parameters());
         JsonObject response = getResponse(request).getAsJsonObject();
 
         ImportTibcoResponse actualToolResponse = gson.fromJson(response, ImportTibcoResponse.class);
         ImportTibcoResponse expectedToolResponse = gson.fromJson(testConfig.output(), ImportTibcoResponse.class);
         if (!actualToolResponse.equals(expectedToolResponse)) {
-            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.projectPath(), response);
+            TestConfig updatedConfig =
+                    new TestConfig(testConfig.description(), testConfig.projectPath(), testConfig.parameters(),
+                            response);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -83,9 +86,11 @@ public class ImportTibcoTest extends AbstractLSTest {
      *
      * @param description Description of the test case
      * @param projectPath Path to the Ballerina project
-     * @param output Expected output as a JSON object
+     * @param parameters  Additional parameters for the import process
+     * @param output      Expected output as a JSON object
      */
-    private record TestConfig(String description, String projectPath, JsonObject output) {
+    private record TestConfig(String description, String projectPath, Map<String, String> parameters,
+                              JsonObject output) {
 
         public String description() {
             return description == null ? "" : description;

@@ -1,0 +1,84 @@
+{
+  "source": "workspace_proj/pkgC/main.bal",
+  "position": {
+    "line": 1,
+    "offset": 4
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "symbol": "greetUser",
+    "org": "wso2",
+    "module": "pkgB"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "greetUser",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/wso2_null_null.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "wso2",
+      "module": "pkgB",
+      "symbol": "greetUser",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "$name": {
+        "metadata": {
+          "label": "Name"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "name"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "string",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "stringResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

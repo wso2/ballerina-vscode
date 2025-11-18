@@ -21,8 +21,22 @@ package io.ballerina.flowmodelgenerator.extension;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.TypeBuilder;
+import io.ballerina.compiler.api.Types;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
+import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
+import io.ballerina.compiler.api.symbols.TableTypeSymbol;
+import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
@@ -51,6 +65,8 @@ import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableNodeTemp
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableUpdateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariablesGetResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -740,7 +756,19 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 .stepOut()
                 .properties()
                 .variableName(variableName, isRootProject)
-                .type(typedBindingPattern.typeDescriptor(), isRootProject)
+                .custom()
+                    .metadata()
+                        .label(Property.TYPE_LABEL)
+                        .description(Property.TYPE_DOC)
+                        .stepOut()
+                    .placeholder("var")
+                    .value(CommonUtils.getVariableName(typedBindingPattern.typeDescriptor()))
+                    .type(Property.ValueType.TYPE)
+                    .typeMembers(extractTypeMembersFromTypeDescriptor(
+                        typedBindingPattern.typeDescriptor(), semanticModel))
+                    .editable(isRootProject)
+                    .stepOut()
+                    .addProperty(Property.TYPE_KEY, typedBindingPattern.typeDescriptor().lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
                 .configValue(configValueExpr)
                 .documentation(markdownDocs.orElse(null), isRootProject)
@@ -1036,5 +1064,135 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     "until the file is manually fixed.");
             response.setError(exception);
         }
+    }
+
+    /**
+     * Extracts type members from a TypeDescriptorNode using SemanticModel.
+     * For union types, this extracts all member types with their metadata.
+     *
+     * <p>
+     * TODO: this is a replicate implementation of {@link io.ballerina.modelgenerator.commons.FunctionDataBuilder},
+     * and should be refactored to reuse the implementation
+     *
+     * @param typeDescriptor The type descriptor node to extract type members from.
+     * @param semanticModel  The semantic model for type resolution.
+     * @return A list of {@link ParameterMemberTypeData} representing the type members.
+     */
+    private List<ParameterMemberTypeData> extractTypeMembersFromTypeDescriptor(
+            Node typeDescriptor, SemanticModel semanticModel) {
+        List<ParameterMemberTypeData> typeMembers = new ArrayList<>();
+
+        if (semanticModel == null) {
+            return typeMembers;
+        }
+
+        Optional<TypeSymbol> typeSymbol = semanticModel.symbol(typeDescriptor)
+                .filter(symbol -> symbol instanceof TypeSymbol)
+                .map(symbol -> (TypeSymbol) symbol);
+        if (typeSymbol.isEmpty()) {
+            return typeMembers;
+        }
+
+        // Create a union type of basic types for subtype checking
+        Types types = semanticModel.types();
+        TypeBuilder builder = semanticModel.types().builder();
+        UnionTypeSymbol union = builder.UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL, types.STRING,
+                types.INT, types.FLOAT, types.DECIMAL, types.BYTE, types.REGEX, types.XML).build();
+
+        addTypeMembersFromSymbol(typeSymbol.get(), typeMembers, union);
+        return typeMembers;
+    }
+
+    /**
+     * Recursively adds type members from a TypeSymbol.
+     *
+     * <p>
+     * TODO: this is a replicate implementation of {@link io.ballerina.modelgenerator.commons.FunctionDataBuilder},
+     * and should be refactored to reuse the implementation
+     *
+     * @param typeSymbol  The type symbol to extract members from.
+     * @param typeMembers The list to add extracted type members to.
+     * @param union       The union type symbol for subtype checking.
+     */
+    private void addTypeMembersFromSymbol(TypeSymbol typeSymbol, List<ParameterMemberTypeData> typeMembers,
+                                          UnionTypeSymbol union) {
+        // Handle UnionTypeSymbol - recursively extract members
+        if (typeSymbol instanceof UnionTypeSymbol unionTypeSymbol) {
+            unionTypeSymbol.memberTypeDescriptors().forEach(
+                    memberType -> addTypeMembersFromSymbol(memberType, typeMembers, union));
+            return;
+        }
+
+        String packageIdentifier = "";
+        ModuleInfo moduleInfo = null;
+        if (typeSymbol.getModule().isPresent()) {
+            ModuleID id = typeSymbol.getModule().get().id();
+            packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
+            moduleInfo = ModuleInfo.from(id);
+        }
+
+        String type = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+        String kind = "OTHER";
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+
+        // Check if it's a basic type by verifying if it's a subtype of union
+        if (typeSymbol.subtypeOf(union)) {
+            kind = "BASIC_TYPE";
+        } else if (rawType instanceof TupleTypeSymbol) {
+            kind = "TUPLE_TYPE";
+        } else if (rawType instanceof ArrayTypeSymbol arrayTypeSymbol) {
+            kind = "ARRAY_TYPE";
+            // For arrays, extract the member type information
+            TypeSymbol memberType = arrayTypeSymbol.memberTypeDescriptor();
+            if (memberType.getModule().isPresent()) {
+                ModuleID id = memberType.getModule().get().id();
+                packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
+                moduleInfo = ModuleInfo.from(id);
+            }
+            type = CommonUtils.getTypeSignature(memberType, moduleInfo);
+        } else if (rawType instanceof RecordTypeSymbol) {
+            if (typeSymbol instanceof RecordTypeSymbol) {
+                kind = "ANON_RECORD_TYPE";
+            } else {
+                kind = "RECORD_TYPE";
+            }
+        } else if (rawType instanceof MapTypeSymbol mapTypeSymbol) {
+            kind = "MAP_TYPE";
+            // For maps, extract the type parameter information
+            TypeSymbol typeParam = mapTypeSymbol.typeParam();
+            if (typeParam.getModule().isPresent()) {
+                ModuleID id = typeParam.getModule().get().id();
+                packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
+                moduleInfo = ModuleInfo.from(id);
+            }
+            type = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+        } else if (rawType instanceof TableTypeSymbol tableTypeSymbol) {
+            kind = "TABLE_TYPE";
+            // For tables, extract the row type parameter information
+            TypeSymbol rowTypeParameter = tableTypeSymbol.rowTypeParameter();
+            if (rowTypeParameter.getModule().isPresent()) {
+                ModuleID id = rowTypeParameter.getModule().get().id();
+                packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
+                moduleInfo = ModuleInfo.from(id);
+            }
+            type = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+        } else if (rawType instanceof StreamTypeSymbol) {
+            kind = "STREAM_TYPE";
+        } else if (rawType instanceof ObjectTypeSymbol) {
+            kind = "OBJECT_TYPE";
+        } else if (rawType instanceof FunctionTypeSymbol) {
+            kind = "FUNCTION_TYPE";
+        } else if (rawType instanceof ErrorTypeSymbol) {
+            kind = "ERROR_TYPE";
+        }
+
+        // Remove module prefix from type name if present
+        String[] typeParts = type.split(":");
+        if (typeParts.length > 1) {
+            type = typeParts[1];
+        }
+
+        typeMembers.add(new ParameterMemberTypeData(type, kind, packageIdentifier,
+                moduleInfo == null ? "" : moduleInfo.packageName()));
     }
 }

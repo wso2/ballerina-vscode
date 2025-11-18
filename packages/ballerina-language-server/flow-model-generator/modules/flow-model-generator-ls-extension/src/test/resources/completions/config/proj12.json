@@ -54,7 +54,8 @@
     {
       "label": "rec",
       "labelDetails": {
-        "detail": " MyRecord"
+        "detail": " MyRecord",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "MyRecord",
@@ -65,7 +66,8 @@
     {
       "label": "strucrturedRec",
       "labelDetails": {
-        "detail": " MyRecord"
+        "detail": " MyRecord",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "MyRecord",

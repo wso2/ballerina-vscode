@@ -1,0 +1,10 @@
+{
+  "description": "Test single file project info",
+  "source": "single.bal",
+  "output": {
+    "projectKind": "SINGLE_FILE_PROJECT",
+    "name": "single.bal",
+    "title": "single.bal",
+    "projectPath": "single.bal"
+  }
+}
