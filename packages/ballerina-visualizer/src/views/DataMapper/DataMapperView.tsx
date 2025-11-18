@@ -285,7 +285,6 @@ export function DataMapperView(props: DataMapperProps) {
                 preserveFieldOrder={true}
                 helperPaneSide="left"
                 {...formProps}
-                targetLineRange={viewState.codedata.lineRange}
             />
         )
     }
@@ -357,6 +356,21 @@ export function DataMapperView(props: DataMapperProps) {
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
+        }
+    }
+
+    const getClauseProperty = async (targetField: string, index: number) => {
+        try {
+            const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+                filePath,
+                codedata: viewState.codedata,
+                propertyKey: "expression", // TODO: Remove this once the API is updated
+                targetField: targetField,
+                fieldId: undefined,
+            });
+            return property;
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -498,7 +512,7 @@ export function DataMapperView(props: DataMapperProps) {
             propertyKey: "expression", // TODO: Remove this once the API is updated
             targetField: viewId,
             fieldId: outputId,
-        })
+        });
         if (property.codedata) {
             const position: NodePosition = {
                 startLine: property.codedata.lineRange?.startLine?.line,
@@ -689,6 +703,7 @@ export function DataMapperView(props: DataMapperProps) {
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
                             deleteClause={deleteClause}
+                            getClauseProperty={getClauseProperty}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}

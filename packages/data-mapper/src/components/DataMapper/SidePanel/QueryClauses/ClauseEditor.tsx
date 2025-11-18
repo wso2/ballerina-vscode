@@ -17,22 +17,26 @@
  */
 
 import React from "react";
-import { EditorContainer } from "./styles";
-import { Divider, Dropdown, OptionProps, Typography } from "@wso2/ui-toolkit";
-import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps } from "@wso2/ballerina-core";
+import { EditorContainer, ProgressRingWrapper } from "./styles";
+import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
+import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, Property } from "@wso2/ballerina-core";
 import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ClauseEditorProps {
+    index: number;
+    targetField: string;
     clause?: IntermediateClause;
     onSubmitText?: string;
     isSaving: boolean;
     onSubmit: (clause: IntermediateClause) => void;
     onCancel: () => void;
+    getClauseProperty: (targetField: string, index: number) => Promise<Property>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseEditor(props: ClauseEditorProps) {
-    const { clause, onSubmitText, isSaving, onSubmit, onCancel, generateForm } = props;
+    const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClauseProperty, generateForm } = props;
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
@@ -152,8 +156,18 @@ export function ClauseEditor(props: ClauseEditorProps) {
         }
     }
 
+    const { 
+        data: targetLineRange, 
+        isFetching: isFetchingTargetLineRange
+    } = useQuery({
+        queryKey: ['getClauseProperty', targetField, index],
+        queryFn: async () => await getClauseProperty(targetField, index),
+        select: (data) => data?.codedata?.lineRange,
+        networkMode: 'always'
+    });
+
     const formProps: DMFormProps = {
-        targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+        targetLineRange: targetLineRange,
         fields: generateFields(),
         submitText: onSubmitText || "Add",
         cancelText: "Cancel",
@@ -179,7 +193,12 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 value={clauseType}
             />
 
-            {generateForm(formProps)}
+            {isFetchingTargetLineRange ?
+                <ProgressRingWrapper>
+                    <ProgressRing sx={{ height: "20px", width: "20px" }} />
+                </ProgressRingWrapper> :
+                generateForm(formProps)
+            }
             
         </EditorContainer >
     );
