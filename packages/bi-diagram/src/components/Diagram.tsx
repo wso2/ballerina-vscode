@@ -41,7 +41,7 @@ import { InitVisitor } from "../visitors/InitVisitor";
 import { LinkTargetVisitor } from "../visitors/LinkTargetVisitor";
 import { NodeTypes } from "../resources/constants";
 import Controls from "./Controls";
-import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
+import { CurrentBreakpointsResponse as BreakpointInfo, JoinProjectPathRequest, traverseFlow } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
 import { PopupOverlay } from "./PopupOverlay";
@@ -86,7 +86,7 @@ export interface DiagramProps {
     project?: {
         org: string;
         path: string;
-        getProjectPath?:(segments: string | string[]) => Promise<string>;
+        getProjectPath?: (props: JoinProjectPathRequest) => Promise<string>;
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;

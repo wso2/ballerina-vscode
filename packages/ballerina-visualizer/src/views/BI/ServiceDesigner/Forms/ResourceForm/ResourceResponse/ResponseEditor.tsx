@@ -55,7 +55,7 @@ export function ResponseEditor(props: ParamProps) {
     useEffect(() => {
         rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
             setResponseCodes(res);
-            rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
+            rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((filePath) => {
                 setFilePath(filePath);
             });
         });

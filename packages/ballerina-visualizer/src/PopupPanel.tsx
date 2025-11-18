@@ -96,7 +96,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BIFunctionForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] });
                         setViewComponent(<FunctionForm
                             projectPath={location.projectPath}
                             filePath={defaultFunctionsFile}
@@ -108,7 +108,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BIDataMapperForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('data_mappings.bal');
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['data_mappings.bal'] });
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectPath}
@@ -123,7 +123,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BINPFunctionForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
+                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] });
                         setViewComponent(
                             <FunctionForm
                                 projectPath={location.projectPath}

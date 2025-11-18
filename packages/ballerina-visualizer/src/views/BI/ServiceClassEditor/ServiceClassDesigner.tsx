@@ -151,7 +151,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
     const getServiceClassModel = async () => {
         if (!position || !fileName) return;
 
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
@@ -165,9 +165,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
 
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
         if (serviceClassModelResponse.model) {
-            const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(
-                serviceClassModelResponse.model.codedata.lineRange.fileName
-            );
+            const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModelResponse.model.codedata.lineRange.fileName] });
             console.log("Service Class Model: ", serviceClassModelResponse.model);
             setServiceClassModel(serviceClassModelResponse.model);
             setServiceClassFilePath(serviceClassFilePath);
@@ -187,14 +185,14 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: func?.codedata?.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
 
     const onFunctionImplement = async (func: FunctionModel) => {
         const lineRange: LineRange = func.codedata.lineRange;
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
         const nodePosition: NodePosition = { startLine: lineRange.startLine.line, startColumn: lineRange.startLine.offset, endLine: lineRange.endLine.line, endColumn: lineRange.endLine.offset }
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
@@ -206,7 +204,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         setIsSaving(true);
         try {
             let lsResponse;
-            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModel.codedata.lineRange.fileName] });
             if (isNew) {
                 lsResponse = await rpcClient.getServiceDesignerRpcClient().addFunctionSourceCode({
                     filePath: currentFilePath,
@@ -251,7 +249,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
     const handleVariableSave = async (updatedVariable: FieldType) => {
         setIsSaving(true);
         try {
-            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
+            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModel.codedata.lineRange.fileName] });
             if (isNew) {
                 const lsResponse = await rpcClient.getBIDiagramRpcClient().addClassField({
                     filePath: currentFilePath,
@@ -387,7 +385,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endColumn: variable?.codedata.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
@@ -429,7 +427,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             endLine: lineRange.endLine.line,
             endColumn: lineRange.endLine.offset,
         };
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
         await rpcClient
             .getVisualizerRpcClient()
             .openView({

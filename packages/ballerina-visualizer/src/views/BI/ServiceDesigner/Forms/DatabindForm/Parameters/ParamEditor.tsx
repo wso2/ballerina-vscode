@@ -46,7 +46,7 @@ export function ParamEditor(props: ParamProps) {
     };
 
     useEffect(() => {
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((filePath) => {
             setFilePath(filePath);
         });
         updateFormFields();

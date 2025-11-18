@@ -20,6 +20,7 @@
 import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP } from '@wso2/ballerina-core';
 import { FormField, Parameter, FormValues, FormImports } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../../utils/bi';
+import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
 
 type ServiceFunctionError = {
     type: 'LOAD_ERROR' | 'SAVE_ERROR' | 'VALIDATION_ERROR';
@@ -27,9 +28,9 @@ type ServiceFunctionError = {
     originalError?: unknown;
 };
 
-const resolveFilePath = async (rpcClient: any, fileName: string): Promise<string> => {
+const resolveFilePath = async (rpcClient: BallerinaRpcClient, fileName: string): Promise<string> => {
     try {
-        return await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        return await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
     } catch (error) {
         throw new Error(`Failed to resolve file path for ${fileName}`);
     }

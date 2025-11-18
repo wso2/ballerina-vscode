@@ -275,7 +275,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.(fileName);
+        const filePath = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
@@ -290,7 +290,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.(fileName);
+        const filePath = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
             openView(filePath, {
                 startLine: startLine.line,
