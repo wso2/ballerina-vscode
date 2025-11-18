@@ -509,7 +509,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
             documentUri: location.documentUri,
-            position: location.position
+            position: location.position,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };

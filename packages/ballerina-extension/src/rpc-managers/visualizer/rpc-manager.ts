@@ -213,7 +213,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return new Promise((resolve) => {
             let projectPath = StateMachine.context().projectPath;
             // If code data is provided, try to find the project path from the project structure
-            if (params.codeData) {
+            if (params.codeData && params.codeData.packageName) {
                 const packageInfo = StateMachine.context().projectStructure.projects.find(project => {
                     console.log(">>> project", project);
                     return project.projectName === params.codeData.packageName;
