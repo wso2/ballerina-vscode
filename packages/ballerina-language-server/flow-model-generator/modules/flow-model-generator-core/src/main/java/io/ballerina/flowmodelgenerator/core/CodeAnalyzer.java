@@ -224,6 +224,7 @@ public class CodeAnalyzer extends NodeVisitor {
     public static final String MCP_TOOL_KIT = "McpToolKit";
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
+    private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
 
     // Metadata data keys
     private static final String KIND_KEY = "kind";
@@ -1866,7 +1867,13 @@ public class CodeAnalyzer extends NodeVisitor {
         NameReferenceNode nameReferenceNode = functionCallExpressionNode.functionName();
         String functionName = getIdentifierName(nameReferenceNode);
 
-        if (dataMappings.containsKey(functionName)) {
+        // TODO: This only covers the common cases by treating any function in `data_mappings.bal` as a data-mapper
+        //  function. Ideally, the information about an expression-bodied function should be embedded into the
+        //  semantic model.
+        if (dataMappings.containsKey(functionName) ||
+                functionSymbol.getLocation()
+                        .map(loc -> DATA_MAPPINGS_BAL.equals(loc.lineRange().fileName()))
+                        .orElse(false)) {
             startNode(NodeKind.DATA_MAPPER_CALL, functionCallExpressionNode.parent());
         } else if (isAgentClass(symbol.get())) {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
