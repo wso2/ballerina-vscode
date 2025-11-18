@@ -52,6 +52,11 @@ import java.util.Optional;
  */
 public final class CompletionUtil {
 
+    private static final String CONFIGURABLE_CATEGORY = "Configurable";
+    private static final String LISTENER_CATEGORY = "Listener";
+    private static final String CLIENT_CATEGORY = "Client";
+    private static final String RECORD_CATEGORY = "Record";
+
     private CompletionUtil() {
     }
 
@@ -176,11 +181,6 @@ public final class CompletionUtil {
         }
         return false;
     }
-
-    private static final String CONFIGURABLE_CATEGORY = "Configurable";
-    private static final String LISTENER_CATEGORY = "Listener";
-    private static final String CLIENT_CATEGORY = "Client";
-    private static final String RECORD_CATEGORY = "Record";
 
     /**
      * Get the category description for a symbol based on its type and qualifiers.

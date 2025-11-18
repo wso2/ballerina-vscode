@@ -50,11 +50,7 @@ public class RecordFieldCompletionItem extends AbstractLSCompletionItem {
         completionItem.setDetail(detail);
 
         // Set label details with type and category
-        CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-        labelDetails.setDetail(" " + detail);
-        CompletionUtil.getCategoryDescription(fieldSymbol.typeDescriptor(), fieldSymbol.qualifiers())
-                .ifPresent(labelDetails::setDescription);
-        completionItem.setLabelDetails(labelDetails);
+        setLabelDetails(fieldSymbol, completionItem, detail);
     }
 
     public RecordFieldCompletionItem(BallerinaCompletionContext context, RecordFieldSymbol fieldSymbol,
@@ -64,6 +60,17 @@ public class RecordFieldCompletionItem extends AbstractLSCompletionItem {
         completionItem.setDetail(detail);
 
         // Set label details with type and category
+        setLabelDetails(fieldSymbol, completionItem, detail);
+    }
+
+    /**
+     * Set the label details for the given completion item using the field's type and qualifiers.
+     *
+     * @param fieldSymbol      the record field symbol used to derive the category/description
+     * @param completionItem   the completion item whose label details will be updated
+     * @param detail           the detail string to display for the label
+     */
+    private static void setLabelDetails(RecordFieldSymbol fieldSymbol, CompletionItem completionItem, String detail) {
         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
         labelDetails.setDetail(" " + detail);
         CompletionUtil.getCategoryDescription(fieldSymbol.typeDescriptor(), fieldSymbol.qualifiers())
