@@ -132,18 +132,13 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
                 groups.push(groupId);
             }
         } else {
-            // Single project - group at root level (skip DEFAULT_GROUP for cleaner view)
-            if (group === 'DEFAULT_GROUP') {
-                // For single project with DEFAULT_GROUP, add tests at root level
-                groupItem = undefined; // We'll add tests directly to the controller
-            } else {
-                const groupId = `group:${group}`;
-                groupItem = testController.items.get(groupId);
-                if (!groupItem) {
-                    groupItem = testController.createTestItem(groupId, group);
-                    testController.items.add(groupItem);
-                    groups.push(groupId);
-                }
+            // Single project - create group at root level (including DEFAULT_GROUP)
+            const groupId = `group:${group}`;
+            groupItem = testController.items.get(groupId);
+            if (!groupItem) {
+                groupItem = testController.createTestItem(groupId, group);
+                testController.items.add(groupItem);
+                groups.push(groupId);
             }
         }
 
@@ -175,13 +170,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             );
             testItem.range = new Range(startPosition, endPosition);
 
-            // Add the test item to the appropriate parent
-            if (groupItem) {
-                groupItem.children.add(testItem);
-            } else {
-                // For single project with DEFAULT_GROUP, add directly to test controller
-                testController.items.add(testItem);
-            }
+            groupItem.children.add(testItem);
         }
     }
 }
@@ -192,9 +181,10 @@ export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     // Determine which project this file belongs to
     const projectInfo = StateMachine.context().projectInfo;
     let targetProjectPath: string | undefined;
+    const isWorkspace = projectInfo?.children?.length > 0;
 
     // Check if this file belongs to a child project in a workspace
-    if (projectInfo?.children?.length > 0) {
+    if (isWorkspace) {
         for (const child of projectInfo.children) {
             if (uri.path.startsWith(child.projectPath)) {
                 targetProjectPath = child.projectPath;
@@ -221,9 +211,8 @@ export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
         return;
     }
 
-    handleFileDelete(uri, testController);
-    // Pass the project path to createTests for proper grouping
-    createTests(response, testController, targetProjectPath);
+    await handleFileDelete(uri, testController);
+    createTests(response, testController, isWorkspace ? targetProjectPath : undefined);
     setGroupsContext();
 }
 
@@ -280,12 +269,7 @@ export async function handleFileDelete(uri: Uri, testController: TestController)
 
     // Iterate over all root-level items in the Test Explorer
     testController.items.forEach((item) => {
-        if (isTestFunctionItem(item)) {
-            // If the item is a test function, check if it belongs to the deleted file
-            if (belongsToFile(item)) {
-                testController.items.delete(item.id);
-            }
-        } else if (isProjectGroupItem(item)) {
+        if (isProjectGroupItem(item)) {
             // Only process this project group if it matches our target project
             const projectName = path.basename(targetProjectPath);
             if (item.id !== `project:${projectName}`) {
