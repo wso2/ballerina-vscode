@@ -21,7 +21,8 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
-    ClausePropertyRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DMModelRequest,
@@ -55,7 +56,7 @@ import {
     deleteClause,
     deleteMapping,
     deleteSubMapping,
-    getClauseProperty,
+    getClausePosition,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -147,8 +148,8 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(getFieldProperty, HOST_EXTENSION, params);
     }
 
-    getClauseProperty(params: ClausePropertyRequest): Promise<PropertyResponse> {
-        return this._messenger.sendRequest(getClauseProperty, HOST_EXTENSION, params);
+    getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return this._messenger.sendRequest(getClausePosition, HOST_EXTENSION, params);
     }
 
     getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {

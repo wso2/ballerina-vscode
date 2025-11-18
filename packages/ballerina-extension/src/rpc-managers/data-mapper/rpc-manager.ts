@@ -21,6 +21,8 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClausePropertyRequest,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
@@ -418,4 +420,8 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }

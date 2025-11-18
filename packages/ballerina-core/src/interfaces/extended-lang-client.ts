@@ -481,12 +481,19 @@ export interface FieldPropertyRequest extends PropertyRequest {
     fieldId: string;
 }
 
-export interface ClausePropertyRequest extends PropertyRequest {
+export interface PropertyResponse {
+    property: Property;
+}
+
+export interface ClausePositionRequest {
+    filePath: string;
+    codedata: CodeData;
+    targetField: string;
     index: number;
 }
 
-export interface PropertyResponse {
-    property: Property;
+export interface ClausePositionResponse {
+    position: LinePosition;
 }
 
 export interface GraphqlDesignServiceParams {
