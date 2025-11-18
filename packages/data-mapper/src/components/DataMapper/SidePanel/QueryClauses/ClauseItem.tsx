@@ -34,11 +34,12 @@ import {
 } from "./styles";
 import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
 import {  ClauseEditor } from "./ClauseEditor";
-import { DMFormProps, IntermediateClause, IntermediateClauseType } from "@wso2/ballerina-core";
+import { DMFormProps, IntermediateClause, IntermediateClauseType, Property } from "@wso2/ballerina-core";
 import { set } from "lodash";
 
 export interface ClauseItemProps {
     index: number;
+    targetField: string;
     clause: IntermediateClause;
     isSaving: boolean;
     isAdding: boolean;
@@ -49,11 +50,12 @@ export interface ClauseItemProps {
     onAdd: (clause: IntermediateClause, index?: number) => void;
     onEdit: (clause: IntermediateClause, index: number) => void;
     onDelete: (index: number) => void;
+    getClauseProperty: (targetField: string, index: number) => Promise<Property>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseItem(props: ClauseItemProps) {
-    const { index, clause, isSaving, isAdding, isEditing, isDeleting, setAdding, setEditing, onDelete, onEdit, onAdd, generateForm } = props;
+    const { index, targetField, clause, isSaving, isAdding, isEditing, isDeleting, setAdding, setEditing, onDelete, onEdit, onAdd, getClauseProperty, generateForm } = props;
     const { type: clauseType, properties: clauseProps } = clause;
 
 
@@ -104,20 +106,26 @@ export function ClauseItem(props: ClauseItemProps) {
 
             {isEditing && (
                 <ClauseEditor
+                    index={index}
+                    targetField={targetField}
                     clause={clause}
                     onSubmitText="Update"
                     isSaving={isSaving}
                     onSubmit={onHandleEdit}
                     onCancel={() => setEditing(undefined)}
+                    getClauseProperty={getClauseProperty}
                     generateForm={generateForm}
                 />
             )}
 
             {isAdding ? (
                 <ClauseEditor
+                    index={index + 1}
+                    targetField={targetField}
                     isSaving={isSaving}
                     onCancel={() => setAdding(undefined)}
                     onSubmit={onHandleAdd}
+                    getClauseProperty={getClauseProperty}
                     generateForm={generateForm} />
             ) : (
                 <AddButton onClick={() => setAdding(index)} />
