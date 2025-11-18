@@ -160,7 +160,6 @@ export const addConnection = async (
                   CONNECTION_NAME: candidate,
                   MODULE_NAME: moduleName,
                   SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
-                  API_KEY_FIELD: await getDevantConnectorInitKey(moduleName),
               });
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
@@ -168,6 +167,7 @@ export const addConnection = async (
     return { connName: candidate, connFileUri: connectionBalFileUri };
 };
 
+/*
 const getDevantConnectorInitKey = async (moduleName: string): Promise<string> => {
     const generatedTypes = path.join(StateMachine.context().projectPath, "generated", moduleName, "types.bal");
     if (fs.existsSync(generatedTypes)) {
@@ -191,6 +191,7 @@ const getDevantConnectorInitKey = async (moduleName: string): Promise<string> =>
     }
     return "choreoAPIKey";
 };
+*/
 
 export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "oauth" | "apikey"): string => {
     try {
@@ -470,12 +471,9 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         MODULE_NAME: string;
         CONNECTION_NAME: string;
         SERVICE_URL_VAR_NAME: string;
-        API_KEY_FIELD: string;
         API_KEY_VAR_NAME: string;
     }) => {
-        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { ${
-            params.API_KEY_FIELD
-        }: ${params.API_KEY_VAR_NAME} }, config = { ${
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { Choreo\\-API\\-Key: ${params.API_KEY_VAR_NAME} }, config = { ${
             params.requireProxy ? "proxy: devantProxyConfig, " : ""
         }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },
