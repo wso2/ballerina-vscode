@@ -86,7 +86,7 @@ export function EditConnectionWizard(props: EditConnectionWizardProps) {
                     return;
                 }
                 const connectionFile = connector.codedata.lineRange.fileName;
-                let connectionFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(connectionFile);
+                let connectionFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [connectionFile] })).filePath;
                 setFilePath(connectionFilePath);
 
                 setConnection(connector);
