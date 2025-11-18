@@ -28,7 +28,7 @@ import {
     insertMarkdownUnorderedList,
     insertMarkdownOrderedList,
     insertMarkdownTaskList
-} from "../utils/codemirrorMarkdownUtils";
+} from "../utils/templateUtils";
 import { HelperPaneToggleButton } from "../../../editors/MultiModeExpressionEditor/ChipExpressionEditor/components/HelperPaneToggleButton";
 
 const ToolbarContainer = styled.div`
@@ -138,6 +138,7 @@ export const CodeMirrorMarkdownToolbar = React.forwardRef<HTMLDivElement, CodeMi
                 {helperPaneToggle && (
                     <HelperPaneToggleButton
                         ref={helperPaneToggle.ref}
+                        disabled={isPreviewMode}
                         isOpen={helperPaneToggle.isOpen}
                         onClick={helperPaneToggle.onClick}
                         sx={{ marginBottom: 0 }}
