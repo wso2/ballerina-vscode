@@ -129,17 +129,6 @@ export const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
     return (
         <ToolbarContainer>
             <markdown-toolbar for={textareaId}>
-                {helperPaneToggle && (
-                    <HelperPaneToggleButton
-                        ref={helperPaneToggle.ref}
-                        isOpen={helperPaneToggle.isOpen}
-                        onClick={helperPaneToggle.onClick}
-                        sx={{ marginBottom: 0 }}
-                    />
-                )}
-
-                <ToolbarDivider />
-
                 <md-bold>
                     <ToolbarButton title="Bold" disabled={isPreviewMode}>
                         <Icon name="bi-bold" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
