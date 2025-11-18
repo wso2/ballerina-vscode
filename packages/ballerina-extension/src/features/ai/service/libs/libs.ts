@@ -36,6 +36,8 @@ const LibraryListSchema = z.object({
     libraries: z.array(z.string()),
 });
 
+export const LIBRARY_PROVIDER_TOOL = "LibraryProviderTool";
+
 // export async function getRelevantLibs(params: GenerateCodeParams): Promise<Library[]> {
 //     // const prompt = getReadmeQuery(params);
 //     const selectedLibs: string[] = await getSelectedLibraries(prompt);
