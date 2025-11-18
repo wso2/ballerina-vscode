@@ -134,7 +134,15 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_NEW_PROJECT, () => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+            if (isBallerinaWorkspace) {
+                openView(EVENT_TYPE.OPEN_VIEW, {
+                    view: MACHINE_VIEW.BIAddProjectForm,
+                    workspacePath: StateMachine.context().workspacePath
+                });
+            } else {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            }
         })
     );
 
