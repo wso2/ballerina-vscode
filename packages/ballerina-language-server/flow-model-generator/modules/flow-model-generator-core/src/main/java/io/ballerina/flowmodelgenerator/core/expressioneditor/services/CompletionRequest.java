@@ -82,7 +82,7 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
             }
         }
         if (!generatedFunctionDefinition) {
-            context.generateStatement();
+            context.generateStatement("any|error __reserved__ = ", ";%s".formatted(System.lineSeparator()));
         }
 
         Position position = context.getCursorPosition();

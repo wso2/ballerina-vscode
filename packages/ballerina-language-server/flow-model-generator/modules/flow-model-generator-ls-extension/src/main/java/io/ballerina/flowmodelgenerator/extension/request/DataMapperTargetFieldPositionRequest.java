@@ -21,16 +21,16 @@ package io.ballerina.flowmodelgenerator.extension.request;
 import com.google.gson.JsonElement;
 
 /**
- * Represents a request to get the position of given field.
+ * Represents a request to get the data mapper model for types.
  *
  * @param filePath    file path of the source file
  * @param codedata    Details of the node
  * @param targetField The target field that needs to consider to get the type
  * @param portId      The port ID to identify the specific field to get the position
- * @since 2.0.0
+ * @since 1.0.0
  */
-public record DataMapperFieldPositionRequest(String filePath,
-                                             JsonElement codedata,
-                                             String targetField,
-                                             String portId) {
+public record DataMapperTargetFieldPositionRequest(String filePath,
+                                                   JsonElement codedata,
+                                                   String targetField,
+                                                   String portId) {
 }

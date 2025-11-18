@@ -49,7 +49,7 @@ public class SignatureHelpRequest extends DebouncedExpressionEditorRequest<Signa
 
     @Override
     public SignatureHelp getResponse(ExpressionEditorContext context) {
-        context.generateStatement();
+        context.generateStatement("any|error __reserved__ = ", ";%s".formatted(System.lineSeparator()));
         Position position = context.getCursorPosition();
         TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
         SignatureHelpParams params = new SignatureHelpParams(identifier, position, signatureHelpContext);
