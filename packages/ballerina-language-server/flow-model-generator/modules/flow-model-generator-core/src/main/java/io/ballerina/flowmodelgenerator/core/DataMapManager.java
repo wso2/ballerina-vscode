@@ -2076,7 +2076,6 @@ public class DataMapManager {
                                         String fieldId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
         if (targetNode == null) {
             return null;
@@ -2091,6 +2090,32 @@ public class DataMapManager {
         if (lineRange != null) {
             dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();
         }
+        return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
+    public JsonElement getTargetFieldPosition(SemanticModel semanticModel, JsonElement cd, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        MatchingNode matchingNode = targetNode.matchingNode();
+        LineRange lineRange;
+        if (matchingNode.queryExpr() == null) {
+            lineRange = matchingNode.expr().lineRange();
+        } else {
+            lineRange = resultClausePosition(matchingNode.expr());
+        }
+
+        Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
+        dataMapManagerBuilder = dataMapManagerBuilder
+                .type(Property.ValueType.EXPRESSION)
+                .codedata()
+                    .lineRange(lineRange)
+                .stepOut();
         return gson.toJsonTree(dataMapManagerBuilder.build());
     }
 
@@ -2430,6 +2455,17 @@ public class DataMapManager {
         } else {
             return expr.lineRange();
         }
+    }
+
+    private LineRange resultClausePosition(ExpressionNode expressionNode) {
+        Node node = expressionNode.parent();
+        while (node != null) {
+            if (node.kind() == SyntaxKind.SELECT_CLAUSE || node.kind() == SyntaxKind.COLLECT_CLAUSE) {
+                return node.lineRange();
+            }
+            node = node.parent();
+        }
+        throw new IllegalStateException("Result clause not found for the expression node");
     }
 
     private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,
