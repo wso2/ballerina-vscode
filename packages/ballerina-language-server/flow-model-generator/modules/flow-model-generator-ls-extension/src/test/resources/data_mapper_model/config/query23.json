@@ -41,6 +41,13 @@
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
         "ref": "-782972947"
+      },
+      {
+        "name": "code",
+        "displayName": "code",
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "secondaryPhonesItem.code"
       }
     ],
     "output": {

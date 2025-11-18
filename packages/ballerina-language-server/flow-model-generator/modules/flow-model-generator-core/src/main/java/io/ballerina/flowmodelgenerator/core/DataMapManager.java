@@ -327,6 +327,8 @@ public class DataMapManager {
                 }
             }
 
+            addIntermediateClauseVariables(queryExpressionNode, inputPorts, semanticModel, typeDefSymbols, references);
+
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
                     expression.toSourceCode().trim(), null, null, null, false));
             ClauseNode clauseNode = queryExpressionNode.resultClause();
@@ -375,6 +377,45 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
+    }
+
+    private void addIntermediateClauseVariables(QueryExpressionNode queryExpressionNode, List<MappingPort> inputPorts,
+                                                SemanticModel semanticModel, List<Symbol> typeDefSymbols,
+                                                Map<String, MappingPort> references) {
+        for (IntermediateClauseNode intermediateClause : queryExpressionNode.queryPipeline().intermediateClauses()) {
+            SyntaxKind clauseKind = intermediateClause.kind();
+            if (clauseKind == SyntaxKind.LET_CLAUSE) {
+                LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
+                for (LetVariableDeclarationNode letVarDecl : letClauseNode.letVarDeclarations()) {
+                    String letVarName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    Optional<TypeSymbol> letTypeSymbol = semanticModel.typeOf(letVarDecl.expression());
+                    if (letTypeSymbol.isPresent()) {
+                        MappingPort mappingPort = getRefMappingPort(letVarName, letVarName,
+                                Objects.requireNonNull(ReferenceType.fromSemanticSymbol(letTypeSymbol.get(),
+                                        typeDefSymbols)), new HashMap<>(), references);
+                        mappingPort.focusExpression = letVarDecl.expression().toSourceCode().trim();
+                        inputPorts.add(mappingPort);
+                    }
+                }
+            } else if (clauseKind == SyntaxKind.GROUP_BY_CLAUSE) {
+                GroupByClauseNode groupByClause = (GroupByClauseNode) intermediateClause;
+                SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
+                for (Node groupingKey : groupingKeys) {
+                    if (groupingKey.kind() == SyntaxKind.GROUPING_KEY_VAR_DECLARATION) {
+                        GroupingKeyVarDeclarationNode varDecl = (GroupingKeyVarDeclarationNode) groupingKey;
+                        String groupByVarName = varDecl.simpleBindingPattern().toSourceCode().trim();
+                        Optional<TypeSymbol> groupByTypeSymbol = semanticModel.typeOf(varDecl.expression());
+                        if (groupByTypeSymbol.isPresent()) {
+                            MappingPort mappingPort = getRefMappingPort(groupByVarName, groupByVarName,
+                                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(groupByTypeSymbol.get(),
+                                            typeDefSymbols)), new HashMap<>(), references);
+                            mappingPort.focusExpression = varDecl.expression().toSourceCode().trim();
+                            inputPorts.add(mappingPort);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private List<JoinClauseNode> getJoinClause(QueryExpressionNode query) {
