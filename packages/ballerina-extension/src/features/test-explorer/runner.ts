@@ -64,6 +64,26 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
     return StateMachine.context().projectPath;
 }
 
+/**
+ * Check if we're in a workspace context (multiple projects)
+ * Returns the project name if in workspace, undefined otherwise
+ */
+function getProjectNameIfWorkspace(projectPath: string): string | undefined {
+    const projectInfo = StateMachine.context().projectInfo;
+
+    // Check if this is a workspace with multiple child projects
+    if (projectInfo?.children?.length > 0) {
+        // Find the matching child project
+        for (const child of projectInfo.children) {
+            if (child.projectPath === projectPath) {
+                return path.basename(projectPath);
+            }
+        }
+    }
+
+    return undefined;
+}
+
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
     if (!request.include) {
         return;
@@ -102,6 +122,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             return;
         }
 
+        // Check if we're in a workspace with multiple projects
+        const projectName = getProjectNameIfWorkspace(projectPath);
+
         let command: string;
         const executor = extension.ballerinaExtInstance.getBallerinaCmd();
 
@@ -110,23 +133,42 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             let testCaseNames: string[] = [];
             let testItems: TestItem[] = [];
 
-            // Collect all test functions from all groups in the project
-            test.children.forEach((groupItem) => {
-                groupItem.children.forEach((child) => {
-                    if (isTestFunctionItem(child)) {
-                        testCaseNames.push(child.label);
-                        testItems.push(child);
-                        run.started(child);
-                    }
-                });
+            // Collect all test functions from the project
+            // Children can be either test groups or test functions directly (when DEFAULT_GROUP is skipped)
+            test.children.forEach((child) => {
+                if (isTestFunctionItem(child)) {
+                    // Test added directly to project (DEFAULT_GROUP was skipped)
+                    testCaseNames.push(child.label);
+                    testItems.push(child);
+                    run.started(child);
+                } else if (isTestGroupItem(child)) {
+                    // Test group - iterate through its children
+                    child.children.forEach((testFunc) => {
+                        if (isTestFunctionItem(testFunc)) {
+                            testCaseNames.push(testFunc.label);
+                            testItems.push(testFunc);
+                            run.started(testFunc);
+                        }
+                    });
+                }
             });
 
-            command = testCaseNames.length > 0
-                ? `${executor} test --tests ${testCaseNames.join(',')} --code-coverage`
-                : `${executor} test --code-coverage`;
+            if (projectName) {
+                // Workspace context - include project name in command
+                command = testCaseNames.length > 0
+                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`
+                    : `${executor} test --code-coverage ${projectName}`;
+            } else {
+                // Single project context
+                command = testCaseNames.length > 0
+                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`
+                    : `${executor} test --code-coverage`;
+            }
 
             const startTime = Date.now();
-            runCommand(command, projectPath).then(() => {
+            // For workspace, run from workspace root; for single project, run from project path
+            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
+            runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
                 const timeElapsed = testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
 
@@ -155,10 +197,18 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
-            command = `${executor} test --tests ${testCaseNames.join(',')} --code-coverage`;
+            if (projectName) {
+                // Workspace context - include project name in command
+                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`;
+            } else {
+                // Single project context
+                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`;
+            }
 
             const startTime = Date.now();
-            runCommand(command, projectPath).then(() => {
+            // For workspace, run from workspace root; for single project, run from project path
+            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
+            runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
                 const timeElapsed = (endTime - startTime) / testItems.length;
 
@@ -178,7 +228,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 });
             });
         } else if (isTestFunctionItem(test)) {
-            command = `${executor} test --tests ${test.label} --code-coverage`;
+            if (projectName) {
+                // Workspace context - include project name in command
+                command = `${executor} test --code-coverage --tests ${test.label} ${projectName}`;
+            } else {
+                // Single project context
+                command = `${executor} test --code-coverage --tests ${test.label}`;
+            }
 
             const parentGroup = test.parent;
             let testItems: TestItem[] = [];
@@ -191,7 +247,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             }
 
             const startTime = Date.now();
-            runCommand(command, projectPath).then(() => {
+            // For workspace, run from workspace root; for single project, run from project path
+            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
+            runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
                 const timeElapsed = (endTime - startTime) / testItems.length;
 
@@ -225,8 +283,21 @@ enum TEST_STATUS {
 
 async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false) {
     // reading test results
+    // For workspace projects, results are in workspace/target, not project/target
+    const projectInfo = StateMachine.context().projectInfo;
+    const workspacePath = StateMachine.context().workspacePath;
+
+    let testResultsPath: string;
+    if (projectInfo?.children?.length > 0 && workspacePath) {
+        // Workspace with multiple projects - results are at workspace root
+        testResultsPath = path.join(workspacePath, TEST_RESULTS_PATH);
+    } else {
+        // Single project - results are in project directory
+        testResultsPath = path.join(projectPath, TEST_RESULTS_PATH);
+    }
+
     let testsJson: JSON | undefined = undefined;
-    testsJson = await readTestJson(path.join(projectPath, TEST_RESULTS_PATH).toString());
+    testsJson = await readTestJson(testResultsPath);
     if (!testsJson) {
         for (const test of testItems) {
             const testMessage: TestMessage = new TestMessage("Command failed");
@@ -235,7 +306,33 @@ async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapse
         return;
     }
 
-    const moduleStatus = testsJson["moduleStatus"];
+    // For workspace projects, test results are nested under packages[].moduleStatus
+    // For single projects, they're directly at moduleStatus
+    let moduleStatus;
+    if (testsJson["packages"]) {
+        // Workspace structure - find the matching package
+        const projectName = path.basename(projectPath);
+        const packages = testsJson["packages"];
+        const matchingPackage = packages.find(pkg => pkg["projectName"] === projectName);
+
+        if (matchingPackage) {
+            moduleStatus = matchingPackage["moduleStatus"];
+        } else {
+            // If we can't find the specific package, try the first one
+            moduleStatus = packages[0]?.["moduleStatus"];
+        }
+    } else {
+        // Single project structure
+        moduleStatus = testsJson["moduleStatus"];
+    }
+
+    if (!moduleStatus) {
+        for (const test of testItems) {
+            const testMessage: TestMessage = new TestMessage("No test results found");
+            run.failed(test, testMessage, timeElapsed);
+        }
+        return;
+    }
 
     for (const test of testItems) {
         let found = false;

@@ -189,6 +189,30 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
 
 export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     uri: Uri, testController: TestController) {
+    // Determine which project this file belongs to
+    const projectInfo = StateMachine.context().projectInfo;
+    let targetProjectPath: string | undefined;
+
+    // Check if this file belongs to a child project in a workspace
+    if (projectInfo?.children?.length > 0) {
+        for (const child of projectInfo.children) {
+            if (uri.path.startsWith(child.projectPath)) {
+                targetProjectPath = child.projectPath;
+                break;
+            }
+        }
+    }
+
+    // If not found in children, use the main project path
+    if (!targetProjectPath) {
+        targetProjectPath = await getCurrentProjectRoot();
+    }
+
+    if (!targetProjectPath) {
+        console.warn('Could not determine project path for file change:', uri.path);
+        return;
+    }
+
     const request: TestsDiscoveryRequest = {
         projectPath: uri.path
     };
@@ -198,20 +222,50 @@ export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     }
 
     handleFileDelete(uri, testController);
-    createTests(response, testController);
+    // Pass the project path to createTests for proper grouping
+    createTests(response, testController, targetProjectPath);
     setGroupsContext();
 }
 
 export async function handleFileDelete(uri: Uri, testController: TestController) {
-    const filePath = path.basename(uri.path);
-    const fullPath = uri.path;
+    // Determine which project this file belongs to
+    const projectInfo = StateMachine.context().projectInfo;
+    let targetProjectPath: string | undefined;
+
+    // Check if this file belongs to a child project in a workspace
+    if (projectInfo?.children?.length > 0) {
+        for (const child of projectInfo.children) {
+            if (uri.path.startsWith(child.projectPath)) {
+                targetProjectPath = child.projectPath;
+                break;
+            }
+        }
+    }
+
+    // If not found in children, use the main project path
+    if (!targetProjectPath) {
+        targetProjectPath = await getCurrentProjectRoot();
+    }
+
+    if (!targetProjectPath) {
+        console.warn('Could not determine project path for file deletion:', uri.path);
+        return;
+    }
+
+    const fileName = path.basename(uri.path);
+
+    // Helper function to check if a test belongs to the specific file in the specific project
+    const belongsToFile = (testItem: TestItem): boolean => {
+        // Test ID format: test:${projectPath}:${fileName}:${functionName}
+        // We need to match both the project path and the filename
+        return testItem.id.startsWith(`test:${targetProjectPath}:${fileName}:`);
+    };
 
     // Helper function to delete tests from a test group item
     const deleteTestsFromGroup = (groupItem: TestItem) => {
         const childrenToDelete: TestItem[] = [];
         groupItem.children.forEach((child) => {
-            // Check if test belongs to the deleted file using full path or filename
-            if (child.id.includes(`:${filePath}:`) || child.id.includes(fullPath)) {
+            if (belongsToFile(child)) {
                 childrenToDelete.push(child);
             }
         });
@@ -228,18 +282,38 @@ export async function handleFileDelete(uri: Uri, testController: TestController)
     testController.items.forEach((item) => {
         if (isTestFunctionItem(item)) {
             // If the item is a test function, check if it belongs to the deleted file
-            if (item.id.includes(`:${filePath}:`) || item.id.includes(fullPath)) {
+            if (belongsToFile(item)) {
                 testController.items.delete(item.id);
             }
         } else if (isProjectGroupItem(item)) {
-            // If it's a project group, iterate through its test group children
-            const groupsToDelete: TestItem[] = [];
+            // Only process this project group if it matches our target project
+            const projectName = path.basename(targetProjectPath);
+            if (item.id !== `project:${projectName}`) {
+                return; // Skip this project, it's not the one we're looking for
+            }
 
-            item.children.forEach((groupItem) => {
-                const isEmpty = deleteTestsFromGroup(groupItem);
-                if (isEmpty) {
-                    groupsToDelete.push(groupItem);
+            // Project group can contain either test groups or tests directly (when DEFAULT_GROUP is skipped)
+            const groupsToDelete: TestItem[] = [];
+            const testsToDelete: TestItem[] = [];
+
+            item.children.forEach((child) => {
+                if (isTestFunctionItem(child)) {
+                    // Test added directly to project (DEFAULT_GROUP was skipped)
+                    if (belongsToFile(child)) {
+                        testsToDelete.push(child);
+                    }
+                } else if (isTestGroupItem(child)) {
+                    // Test group - check if it becomes empty after deletion
+                    const isEmpty = deleteTestsFromGroup(child);
+                    if (isEmpty) {
+                        groupsToDelete.push(child);
+                    }
                 }
+            });
+
+            // Remove tests that belong to the file
+            testsToDelete.forEach((test) => {
+                item.children.delete(test.id);
             });
 
             // Remove empty test groups
