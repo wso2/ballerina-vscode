@@ -40,7 +40,7 @@ const ModalContainer = styled.div<{ sx?: any }>`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000; 
+    z-index: 2001; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,7 +61,7 @@ const ModalBox = styled.div<{ width?: number; height?: number }>`
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-  z-index: 30001;
+  z-index: 2001;
 `;
 
 const InvisibleButton = styled.button`
@@ -131,10 +131,12 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
         };
     }, []);
 
+    const targetEl = document.getElementById("visualizer-container");
+
     return (
         <>
             {trigger}
-            {openState && createPortal(
+            {openState && targetEl && createPortal(
                 <ModalContainer ref={anchorRef} className="unq-modal-overlay" sx={sx}>
                     <ModalBox width={width} height={height}>
                         <ModalHeaderSection>
@@ -147,7 +149,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                         {content}
                     </ModalBox>
                 </ModalContainer>,
-                document.body
+                targetEl
             )}
         </>
     );
