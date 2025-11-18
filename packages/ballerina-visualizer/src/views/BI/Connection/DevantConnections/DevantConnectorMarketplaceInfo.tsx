@@ -208,7 +208,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseCl
                 <Badge>Status: {item?.status}</Badge>
             </StyledBadgeContainer>
             {item?.summary?.trim() && <StyledSummary>{item?.summary?.trim()}</StyledSummary>}
-            {item?.tags.length > 0 && (
+            {(item?.tags?.length ?? 0) > 0 && ( 
                 <StyledTagsContainer>
                     {item?.tags?.map((tagItem) => (
                         <Badge key={tagItem}>{tagItem}</Badge>

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { FC, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, FlowNode, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -27,10 +27,7 @@ import { BodyText, BodyTinyInfo, TopBar } from "../../../styles";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import { TitleBar } from "../../../../components/TitleBar";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
-import { useQuery } from "@tanstack/react-query";
-import { ICreateComponentCmdParams, MarketplaceItem, CommandIds as PlatformExtCommandIds, ICmdParamsBase as PlatformExtICmdParamsBase } from "@wso2/wso2-platform-core";
-import { VSCodeLink, VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import { PanelContainer } from "@wso2/ballerina-side-panel";
+import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorList } from "../DevantConnections/DevantConnectorList";
 
 const ViewWrapper = styled.div<{ isHalfView?: boolean }>`

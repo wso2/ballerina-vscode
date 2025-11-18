@@ -31,7 +31,7 @@ const webviewStatePersister = (queryBaseKey: string) => {
     const { rpcClient } = useRpcContext()
     return {
         persistClient: async (client: PersistedClient) => {
-			rpcClient.getCommonRpcClient().setWebviewCache({cacheKey: queryBaseKey, data: client});
+			await rpcClient.getCommonRpcClient().setWebviewCache({cacheKey: queryBaseKey, data: client});
 		},
 		restoreClient: async () => {
 			const cache = await rpcClient.getCommonRpcClient().restoreWebviewCache(queryBaseKey);

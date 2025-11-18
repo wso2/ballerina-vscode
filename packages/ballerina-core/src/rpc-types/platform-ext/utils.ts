@@ -5,7 +5,7 @@ const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.g
 const FILE_INTEGRATION_MODULES = ["ftp", "file"];
 const AI_AGENT_MODULE = "ai";
 
-export function findDevantScopeByModule(moduleName: string): DevantScopes {
+export function findDevantScopeByModule(moduleName: string): DevantScopes | undefined {
     if (AI_AGENT_MODULE === moduleName) {
         return DevantScopes.AI_AGENT;
     } else if (INTEGRATION_API_MODULES.includes(moduleName)) {

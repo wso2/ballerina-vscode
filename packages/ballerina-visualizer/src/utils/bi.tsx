@@ -79,7 +79,6 @@ import { DocSection } from "../components/ExpressionEditor";
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
-import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ConnectionListItem, ContextItemEnriched } from "@wso2/wso2-platform-core";
 hljs.registerLanguage("ballerina", ballerina);
 
@@ -137,7 +136,7 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
     };
 }
 
-
+/** Map devant connection details with BI connection and to figure out which Devant connection are not used */
 export function enrichCategoryWithDevant(
     selected: ContextItemEnriched,
     tomlValues: PackageTomlValues,

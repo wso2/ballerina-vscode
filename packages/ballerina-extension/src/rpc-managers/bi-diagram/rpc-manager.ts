@@ -142,13 +142,11 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     AddProjectToWorkspaceRequest,
-    findDevantScopeByModule,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
 
-import { DevantScopes, ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
     Task,

@@ -69,7 +69,7 @@ export const DevantConnectorList: FC<{
         ],
         queryFn: () =>
             platformRpcClient?.getMarketplaceItems({
-                orgId: platformExtState?.selectedContext?.org?.id.toString(),
+                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
                 request: {
                     limit: 60,
                     offset: 0,
