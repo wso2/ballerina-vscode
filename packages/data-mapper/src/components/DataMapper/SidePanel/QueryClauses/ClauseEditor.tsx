@@ -114,7 +114,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const rhsExpressionField: DMFormField = {
         key: "rhsExpression",
         label: "RHS Expression",
-        type: "EXPRESSION",
+        type: "DM_JOIN_CLAUSE_RHS_EXPRESSION",
         optional: false,
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
