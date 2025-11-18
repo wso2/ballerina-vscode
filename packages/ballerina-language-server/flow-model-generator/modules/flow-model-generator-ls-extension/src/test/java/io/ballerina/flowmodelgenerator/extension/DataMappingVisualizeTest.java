@@ -51,6 +51,8 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
                 {Path.of("variable4.json")},
                 {Path.of("variable5.json")},
                 {Path.of("variable6.json")},
+                {Path.of("variable7.json")},
+                {Path.of("variable8.json")},
         };
     }
 
