@@ -146,6 +146,28 @@
         },
         "returning": false,
         "properties": {
+          "view": {
+            "metadata": {
+              "label": "View",
+              "description": "Function definition location"
+            },
+            "valueType": "VIEW",
+            "value": {
+              "fileName": "data_mappings.bal",
+              "startLine": {
+                "line": 0,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 4,
+                "offset": 2
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
           "customer": {
             "metadata": {
               "label": "Customer"

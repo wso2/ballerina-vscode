@@ -1821,12 +1821,8 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         }
 
-        if (CommonUtils.isDefaultPackage(functionSymbol, moduleInfo)) {
-            functionSymbol.getLocation()
-                    .flatMap(location -> CommonUtil.findNode(functionSymbol,
-                            CommonUtils.getDocument(project, location).syntaxTree()))
-                    .ifPresent(node -> nodeBuilder.properties().view(node.lineRange()));
-        }
+        CommonUtils.getViewLineRange(functionSymbol, moduleInfo, project)
+                .ifPresent(lineRange -> nodeBuilder.properties().view(lineRange));
 
         FunctionDataBuilder functionDataBuilder =
                 new FunctionDataBuilder()
@@ -1867,8 +1863,8 @@ public class CodeAnalyzer extends NodeVisitor {
         NameReferenceNode nameReferenceNode = functionCallExpressionNode.functionName();
         String functionName = getIdentifierName(nameReferenceNode);
 
-        // TODO: This only covers the common cases by treating any function in `data_mappings.bal` as a data-mapper
-        //  function. Ideally, the information about an expression-bodied function should be embedded into the
+        // TODO: Here we address the majority of cases by assuming that data mappings reside in `functions.bal`.
+        //  Ideally, there should be a path to determine whether a symbol is an expression-bodied function using the
         //  semantic model.
         if (dataMappings.containsKey(functionName) ||
                 functionSymbol.getLocation()
@@ -1883,12 +1879,8 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
 
-        if (CommonUtils.isDefaultPackage(functionSymbol, moduleInfo)) {
-            functionSymbol.getLocation()
-                    .flatMap(location -> CommonUtil.findNode(functionSymbol,
-                            CommonUtils.getDocument(project, location).syntaxTree()))
-                    .ifPresent(node -> nodeBuilder.properties().view(node.lineRange()));
-        }
+        CommonUtils.getViewLineRange(functionSymbol, moduleInfo, project)
+                .ifPresent(lineRange -> nodeBuilder.properties().view(lineRange));
 
         FunctionDataBuilder functionDataBuilder =
                 new FunctionDataBuilder()

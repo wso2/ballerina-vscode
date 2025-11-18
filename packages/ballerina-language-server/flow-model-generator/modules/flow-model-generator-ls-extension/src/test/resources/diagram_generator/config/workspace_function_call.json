@@ -73,6 +73,28 @@
         },
         "returning": false,
         "properties": {
+          "view": {
+            "metadata": {
+              "label": "View",
+              "description": "Function definition location"
+            },
+            "valueType": "VIEW",
+            "value": {
+              "fileName": "functions.bal",
+              "startLine": {
+                "line": 2,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 17,
+                "offset": 1
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
           "customer": {
             "metadata": {
               "label": "Customer"
