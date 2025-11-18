@@ -101,7 +101,7 @@ const ModalHeaderSection = styled.header`
 
 const ModalContent = styled.div`
     flex: 1;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;

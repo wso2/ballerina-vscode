@@ -272,7 +272,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                             },
                             ".cm-scroller": { overflow: "auto" }
                         })]
-                        : [])
+                        : [EditorView.theme({
+                            "&": { maxHeight: "150px" },
+                            ".cm-scroller": { overflow: "auto" }
+                        })])
             ]
         });
         const view = new EditorView({
@@ -386,7 +389,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     <div ref={editorRef} style={{
                         border: '1px solid var(--vscode-dropdown-border)',
                         ...props.sx,
-                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
+                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto', maxHeight: '150px' })
                     }} />
                     {helperPaneState.isOpen &&
                         <HelperPane
