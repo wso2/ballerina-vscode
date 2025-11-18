@@ -34,6 +34,7 @@ import { getPropertyFromFormField, sanitizeType } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
+    ExpressionProperty,
     LineRange,
     RecordTypeField,
     SubPanel,
@@ -304,6 +305,33 @@ export const ContextAwareExpressionEditor = (props: ContextAwareExpressionEditor
         />
     );
 };
+
+export const DataMapperJoinClauseRhsEditor = (props: ContextAwareExpressionEditorProps) => {
+    const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
+
+    const modifiedExpressionEditor = {
+        ...expressionEditor
+    };
+
+    modifiedExpressionEditor.retrieveCompletions = async (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => {
+        const varName = form.watch('name');
+        const expression = form.watch('expression');
+        const prefixExpr = `from var ${varName} in ${expression} select `;
+        return await expressionEditor.retrieveCompletions(prefixExpr + value, property, prefixExpr.length + offset, triggerCharacter);
+    }
+
+    return (
+        <ExpressionEditor
+            fileName={fileName}
+            targetLineRange={targetLineRange}
+            helperPaneZIndex={props.helperPaneZIndex}
+            {...form}
+            {...modifiedExpressionEditor}
+            {...props}
+        />
+    );
+};
+
 
 export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const {
