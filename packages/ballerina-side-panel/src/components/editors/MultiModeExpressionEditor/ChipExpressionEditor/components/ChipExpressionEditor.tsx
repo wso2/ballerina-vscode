@@ -49,7 +49,7 @@ import { LineRange } from "@wso2/ballerina-core";
 import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
-import { listContinuationKeymap } from "../../../../editors/ExpandedEditor/utils/codemirrorListContinuation";
+import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -91,7 +91,7 @@ export type ChipExpressionEditorComponentProps = {
     onEditorViewReady?: (view: EditorView) => void;
     toolbarRef?: React.RefObject<HTMLDivElement>;
     enableListContinuation?: boolean;
-    disableAutoOpenHelperPane? : boolean;
+    disableAutoOpenHelperPane?: boolean;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {

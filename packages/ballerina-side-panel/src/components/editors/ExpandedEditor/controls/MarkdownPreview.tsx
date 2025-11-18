@@ -24,7 +24,7 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { ChipComponent } from "./ChipComponent";
 import { DocumentType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
-import "../utils/markdown-preview.css";
+import "../styles/markdown-preview.css";
 
 const PreviewContainer = styled.div`
     width: 100%;
