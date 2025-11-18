@@ -23,6 +23,9 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.projectservice.core.MigrationTool;
 import io.ballerina.projectservice.core.MuleImporter;
+import io.ballerina.projectservice.core.MultiRootMigrationUtil;
+import io.ballerina.projectservice.core.ProjectMigrationNotification;
+import io.ballerina.projectservice.core.ProjectMigrationResult;
 import io.ballerina.projectservice.core.TibcoImporter;
 import io.ballerina.projectservice.core.ToolExecutionResult;
 import io.ballerina.projectservice.core.baltool.BalToolsUtil;
@@ -105,8 +108,20 @@ public class ProjectService implements ExtendedLanguageServerService {
             Consumer<String> stateCallback = langClient::stateCallback;
             Consumer<String> logCallback = langClient::logCallback;
             ToolExecutionResult result = TibcoImporter.importTibco(request.orgName(), request.packageName(),
-                    request.sourcePath(), stateCallback, logCallback);
-            return ImportTibcoResponse.from(result);
+                    request.sourcePath(), request.parameters(), stateCallback, logCallback);
+
+            // Handle multiRoot migration: process and send per-project notifications
+            boolean isMultiRoot = Boolean.parseBoolean(request.parameters().getOrDefault("multiRoot", "false"));
+            if (isMultiRoot && result != null) {
+                List<ProjectMigrationResult> projectResults = MultiRootMigrationUtil.processMultiRootResults(result);
+                sendProjectMigrationNotifications(projectResults, langClient);
+                result = MultiRootMigrationUtil.extractRootLevelEdits(result, projectResults);
+            }
+
+            if (result != null) {
+                return ImportTibcoResponse.from(result);
+            }
+            return new ImportTibcoResponse("Migration failed", null, null, null);
         });
     }
 
@@ -127,8 +142,39 @@ public class ProjectService implements ExtendedLanguageServerService {
             Consumer<String> logCallback = langClient::logCallback;
             ToolExecutionResult result = MuleImporter.importMule(request.orgName(), request.packageName(),
                     request.sourcePath(), request.parameters(), stateCallback, logCallback);
-            return ImportMuleResponse.from(result);
+
+            // Handle multiRoot migration: process and send per-project notifications
+            boolean isMultiRoot = Boolean.parseBoolean(request.parameters().getOrDefault("multiRoot", "false"));
+            if (isMultiRoot && result != null) {
+                List<ProjectMigrationResult> projectResults = MultiRootMigrationUtil.processMultiRootResults(result);
+                sendProjectMigrationNotifications(projectResults, langClient);
+                result = MultiRootMigrationUtil.extractRootLevelEdits(result, projectResults);
+            }
+
+            if (result != null) {
+                return ImportMuleResponse.from(result);
+            }
+            return new ImportMuleResponse("Migration failed", null, null, null);
         });
+    }
+
+    /**
+     * Sends per-project migration notifications to the client. Each project gets its own notification with its text
+     * edits and report.
+     *
+     * @param projectResults The list of per-project migration results
+     * @param langClient     The language client to send notifications through
+     */
+    private void sendProjectMigrationNotifications(List<ProjectMigrationResult> projectResults,
+                                                   ExtendedLanguageClient langClient) {
+        for (ProjectMigrationResult projectResult : projectResults) {
+            ProjectMigrationNotification notification = new ProjectMigrationNotification(
+                    projectResult.getProjectName(),
+                    projectResult.getTextEdits(),
+                    projectResult.getReport()
+            );
+            langClient.pushMigratedProject(notification);
+        }
     }
 
     @JsonRequest

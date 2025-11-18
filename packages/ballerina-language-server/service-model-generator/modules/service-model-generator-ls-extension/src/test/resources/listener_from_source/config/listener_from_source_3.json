@@ -17,10 +17,10 @@
       "description": "Gets invoked during module initialization to initialize the listener.\n",
       "moduleName": "http",
       "orgName": "ballerina",
-      "version": "2.15.0",
+      "version": "2.15.1",
       "packageName": "http",
       "listenerProtocol": "http",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -90,7 +90,7 @@
           "typeMembers": [
             {
               "type": "ListenerConfiguration",
-              "packageInfo": "ballerina:http:2.15.0",
+              "packageInfo": "ballerina:http:2.15.1",
               "kind": "RECORD_TYPE",
               "selected": false
             }

@@ -50,7 +50,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -141,7 +141,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -232,7 +232,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Color",
+                  "packageInfo": "config_tests:complexconfigs2:0.1.0",
+                  "packageName": "complexconfigs2",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -323,7 +331,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Foo",
+                  "packageInfo": "config_tests:complexconfigs2:0.1.0",
+                  "packageName": "complexconfigs2",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -414,7 +430,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -505,7 +521,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -596,7 +612,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -687,7 +703,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -778,7 +794,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -869,7 +885,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "EmployeeReadOnly",
+                  "packageInfo": "config_tests:complexconfigs2:0.1.0",
+                  "packageName": "complexconfigs2",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
