@@ -284,6 +284,7 @@ export function DataMapperView(props: DataMapperProps) {
                 fileName={filePath}
                 preserveFieldOrder={true}
                 helperPaneSide="left"
+                isDataMapperEditor={true}
                 {...formProps}
             />
         )
@@ -361,12 +362,11 @@ export function DataMapperView(props: DataMapperProps) {
 
     const getClauseProperty = async (targetField: string, index: number) => {
         try {
-            const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+            const { property } = await rpcClient.getDataMapperRpcClient().getClauseProperty({
                 filePath,
                 codedata: viewState.codedata,
-                propertyKey: "expression", // TODO: Remove this once the API is updated
                 targetField: targetField,
-                fieldId: undefined,
+                index: index
             });
             return property;
         } catch (error) {
@@ -506,10 +506,9 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToSource = async (outputId: string, viewId: string) => {
-        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+        const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
-            propertyKey: "expression", // TODO: Remove this once the API is updated
             targetField: viewId,
             fieldId: outputId,
         });
@@ -607,9 +606,7 @@ export function DataMapperView(props: DataMapperProps) {
                 const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
                     filePath,
                     codedata: viewState.codedata,
-                    propertyKey: "expression", // TODO: Remove this once the API is updated
-                    targetField: viewId,
-                    fieldId: outputId,
+                    targetField: viewId
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
                 const startLine = updateLineRange(property.codedata.lineRange, expressionOffsetRef.current).startLine;
