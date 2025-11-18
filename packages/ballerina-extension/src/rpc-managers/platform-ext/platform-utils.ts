@@ -142,8 +142,6 @@ export const addConnection = async (
         counter++;
     }
 
-    // get apikey field
-
     const newConnTemplate =
         securityType === "oauth"
             ? Templates.newConnectionWithOAuth({
