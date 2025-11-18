@@ -28,7 +28,9 @@ import { ExpressionMode } from "./modes/ExpressionMode";
 import { TemplateMode } from "./modes/TemplateMode";
 import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
 import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { FieldError } from "react-hook-form";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -56,6 +58,9 @@ interface ExpandedPromptEditorProps {
         onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
+    // Error diagnostics props
+    error?: FieldError;
+    formDiagnostics?: DiagnosticMessage[];
 }
 
 const ModalContainer = styled.div`
@@ -161,7 +166,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     sanitizedExpression,
     rawExpression,
     extractArgsFromFunction,
-    getHelperPane
+    getHelperPane,
+    error,
+    formDiagnostics
 }) => {
     const promptFields = ["query", "instructions", "role"];
 
@@ -223,9 +230,11 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             sanitizedExpression,
             rawExpression,
             extractArgsFromFunction,
-            getHelperPane
+            getHelperPane,
+            error,
+            formDiagnostics
         }),
-        // Props for expression mode
+        // Props for template mode
         ...(mode === "template" && {
             completions,
             fileName,
@@ -235,7 +244,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             extractArgsFromFunction,
             getHelperPane,
             isPreviewMode: showPreview,
-            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled),
+            error,
+            formDiagnostics
         })
     };
     // HACK: Must find a proper central way to manager popups

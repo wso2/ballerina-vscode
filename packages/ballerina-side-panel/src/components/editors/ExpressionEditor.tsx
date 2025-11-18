@@ -805,6 +805,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     rawExpression={inputModeRef.current === InputMode.TEMPLATE ? rawExpression : undefined}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
                                     getHelperPane={handleGetHelperPane}
+                                    error={error}
+                                    formDiagnostics={formDiagnostics}
                                 />
                             )}
                         </div>
