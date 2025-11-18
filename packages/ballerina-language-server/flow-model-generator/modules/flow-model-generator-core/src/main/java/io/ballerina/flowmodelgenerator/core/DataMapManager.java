@@ -1446,17 +1446,6 @@ public class DataMapManager {
         }
     }
 
-    /**
-     * Checks if the node is a query clause that should be navigated through when deleting mappings.
-     * For COLLECT_CLAUSE: always navigate up (produces scalar value)
-     * For SELECT_CLAUSE: only navigate up if target is NOT an array (array types use default value replacement)
-     */
-    private boolean shouldNavigateThroughQueryClause(NonTerminalNode node, TypeSymbol targetSymbol) {
-        SyntaxKind kind = node.kind();
-        return kind == SyntaxKind.COLLECT_CLAUSE ||
-                (kind == SyntaxKind.SELECT_CLAUSE && !(targetSymbol instanceof ArrayTypeSymbol));
-    }
-
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
                                         List<TextEdit> textEdits, TypeSymbol targetSymbol) {
         if (idx == names.length) {
