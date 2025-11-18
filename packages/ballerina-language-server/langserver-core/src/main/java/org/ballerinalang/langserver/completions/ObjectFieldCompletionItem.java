@@ -21,7 +21,9 @@ import io.ballerina.compiler.api.symbols.ObjectFieldSymbol;
 import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompletionContext;
 import org.ballerinalang.langserver.commons.completion.AbstractLSCompletionItem;
+import org.ballerinalang.langserver.completions.util.CompletionUtil;
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 
 /**
  * Represents an Object/Class Field Descriptor Completion Item.
@@ -34,7 +36,16 @@ public class ObjectFieldCompletionItem extends AbstractLSCompletionItem {
     public ObjectFieldCompletionItem(BallerinaCompletionContext context, ObjectFieldSymbol fieldSymbol,
                                      CompletionItem completionItem) {
         super(context, completionItem, CompletionItemType.OBJECT_FIELD);
-        completionItem.setDetail(NameUtil.getModifiedTypeName(context, fieldSymbol.typeDescriptor()));
+        String detail = NameUtil.getModifiedTypeName(context, fieldSymbol.typeDescriptor());
+        completionItem.setDetail(detail);
+
+        // Set label details with type and category
+        CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+        labelDetails.setDetail(" " + detail);
+        CompletionUtil.getCategoryDescription(fieldSymbol.typeDescriptor(), fieldSymbol.qualifiers())
+                .ifPresent(labelDetails::setDescription);
+        completionItem.setLabelDetails(labelDetails);
+
         this.fieldSymbol = fieldSymbol;
     }
 
