@@ -78,8 +78,8 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
 
     useEffect(() => {
         getServiceClassModel();
-        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] }).then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] }).then((response) => {
+            setFilePath(response.filePath);
         });
     }, [fileName, position]);
 
@@ -87,7 +87,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
     const getServiceClassModel = async () => {
         if (!fileName || !position) return;
 
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
+        const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
@@ -176,7 +176,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
 
         // Only proceed with update if there are actual changes
         if (hasChanges) {
-            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
+            const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
 
             const updateModelRequest: ServiceClassSourceRequest = {
                 filePath: currentFilePath,

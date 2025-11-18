@@ -54,3 +54,8 @@ export interface JoinProjectPathRequest {
     segments: string | string[];
     codeData?: CodeData;
 }
+
+export interface JoinProjectPathResponse {
+    filePath: string;
+    projectPath: string;
+}
