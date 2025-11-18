@@ -91,6 +91,7 @@ export type ChipExpressionEditorComponentProps = {
     onEditorViewReady?: (view: EditorView) => void;
     toolbarRef?: React.RefObject<HTMLDivElement>;
     enableListContinuation?: boolean;
+    disableAutoOpenHelperPane? : boolean;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -126,11 +127,15 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     });
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+        if (!props.disableAutoOpenHelperPane) {
+            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+        }
     });
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+        if (!props.disableAutoOpenHelperPane) {
+            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+        }
     });
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
@@ -360,11 +365,23 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 viewRef.current?.dom.blur();
             }
         };
+
+        const handleEscapeKey = (event: KeyboardEvent) => {
+            if (!helperPaneState.isOpen) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+            }
+        };
+
         if (helperPaneState.isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleEscapeKey);
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscapeKey);
         };
     }, [helperPaneState.isOpen, props.toolbarRef]);
 
