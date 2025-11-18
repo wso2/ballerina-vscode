@@ -1,0 +1,40 @@
+{
+  "source": "variable4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4.bal",
+      "startLine": {
+        "line": 5,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 6,
+        "offset": 115
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "persons.0",
+  "property": {
+    "valueType": "EXPRESSION",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "variable4.bal",
+        "startLine": {
+          "line": 6,
+          "offset": 12
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 114
+        }
+      }
+    }
+  }
+}

@@ -29,6 +29,7 @@ import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.semantictokens.SemanticTokenVisitor;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.CompletionRequest;
+import io.ballerina.flowmodelgenerator.core.expressioneditor.services.DataMapperCompletionRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.DiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.core.expressioneditor.services.SignatureHelpRequest;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -152,6 +153,21 @@ public class ExpressionEditorService implements ExtendedLanguageServerService {
             ExpressionEditorCompletionRequest request) {
         String fileUri = CommonUtils.getExprUri(request.filePath());
         return Debouncer.getInstance().debounce(new CompletionRequest(
+                new ExpressionEditorContext(
+                        workspaceManagerProxy,
+                        fileUri,
+                        request.context(),
+                        Path.of(request.filePath())
+                ),
+                request.completionContext(),
+                langServer.getTextDocumentService()));
+    }
+
+    @JsonRequest
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> dataMapperCompletion(
+            ExpressionEditorCompletionRequest request) {
+        String fileUri = CommonUtils.getExprUri(request.filePath());
+        return Debouncer.getInstance().debounce(new DataMapperCompletionRequest(
                 new ExpressionEditorContext(
                         workspaceManagerProxy,
                         fileUri,

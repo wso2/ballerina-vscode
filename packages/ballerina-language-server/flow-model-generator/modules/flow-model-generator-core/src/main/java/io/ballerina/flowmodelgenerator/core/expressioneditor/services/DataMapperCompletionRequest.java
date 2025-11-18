@@ -1,0 +1,81 @@
+/*
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package io.ballerina.flowmodelgenerator.core.expressioneditor.services;
+
+import io.ballerina.flowmodelgenerator.core.expressioneditor.ExpressionEditorContext;
+import org.eclipse.lsp4j.CompletionContext;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.TextDocumentIdentifier;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.services.TextDocumentService;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Represents a request for code completion in the expression editor in data mapper. This class extends
+ * DebouncedExpressionEditorRequest to handle completion requests with debouncing functionality.
+ *
+ * @since 1.0.0
+ */
+public class DataMapperCompletionRequest extends
+        DebouncedExpressionEditorRequest<Either<List<CompletionItem>, CompletionList>> {
+
+    private final CompletionContext completionContext;
+    private final TextDocumentService textDocumentService;
+    private static final String RESERVED_VARIABLE_NAME = "__reserved__";
+
+    public DataMapperCompletionRequest(ExpressionEditorContext context, CompletionContext completionContext,
+                                       TextDocumentService textDocumentService) {
+        super(context);
+        this.completionContext = completionContext;
+        this.textDocumentService = textDocumentService;
+    }
+
+    @Override
+    public Either<List<CompletionItem>, CompletionList> getResponse(ExpressionEditorContext context) {
+        context.generateStatement("let any|error __reserved__ = ", System.lineSeparator());
+        Position position = context.getCursorPosition();
+        TextDocumentIdentifier identifier = new TextDocumentIdentifier(context.fileUri());
+        CompletionParams params = new CompletionParams(identifier, position, completionContext);
+        CompletableFuture<Either<List<CompletionItem>, CompletionList>> completableFuture =
+                textDocumentService.completion(params);
+
+        Either<List<CompletionItem>, CompletionList> completions = completableFuture.join();
+        if (completions.getLeft() != null) {
+            completions.getLeft().removeIf(item -> RESERVED_VARIABLE_NAME.equals(item.getLabel()));
+        } else if (completions.getRight() != null && completions.getRight().getItems() != null) {
+            completions.getRight().getItems().removeIf(item -> RESERVED_VARIABLE_NAME.equals(item.getLabel()));
+        }
+        return completableFuture.join();
+    }
+
+    @Override
+    public String getKey() {
+        return "dataMapperCompletions";
+    }
+
+    @Override
+    public long getDelay() {
+        return 150;
+    }
+}
