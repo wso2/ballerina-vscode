@@ -445,7 +445,8 @@
     {
       "label": "mytype",
       "labelDetails": {
-        "detail": " MyType"
+        "detail": " MyType",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "MyType",
