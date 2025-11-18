@@ -23,7 +23,6 @@ import {
     AddSubMappingRequest,
     ClausePositionRequest,
     ClausePositionResponse,
-    ClausePropertyRequest,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
@@ -35,7 +34,6 @@ import {
     DeleteMappingRequest,
     DeleteSubMappingRequest,
     DMModelRequest,
-    ELineRange,
     ExpandedDMModel,
     ExpandedDMModelResponse,
     FieldPropertyRequest,
@@ -248,13 +246,13 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-    async getClauseProperty(params: ClausePropertyRequest): Promise<PropertyResponse> {
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
         return new Promise(async (resolve) => {
-            const lineRange: any = await StateMachine
+            const position: any = await StateMachine
                 .langClient()
-                .getClauseProperty(params);
+                .getClausePosition(params);
 
-            resolve({ property : {codedata:{lineRange: { startLine : lineRange.position} as ELineRange} }} as PropertyResponse);
+            resolve(position);
         });
     }
 
@@ -420,8 +418,4 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
-    }
 }

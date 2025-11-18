@@ -139,7 +139,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         deleteClause,
-        getClauseProperty,
+        getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
@@ -362,7 +362,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
                                 deleteClause={deleteClause}
-                                getClauseProperty={getClauseProperty}
+                                getClausePosition={getClausePosition}
                                 generateForm={generateForm}
                             />
                         )}

@@ -19,7 +19,7 @@
 import React from "react";
 import { EditorContainer, ProgressRingWrapper } from "./styles";
 import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
-import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, Property } from "@wso2/ballerina-core";
+import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
 import { useDMQueryClausesPanelStore } from "../../../../store/store";
 import { useQuery } from "@tanstack/react-query";
 
@@ -31,12 +31,12 @@ export interface ClauseEditorProps {
     isSaving: boolean;
     onSubmit: (clause: IntermediateClause) => void;
     onCancel: () => void;
-    getClauseProperty: (targetField: string, index: number) => Promise<Property>;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseEditor(props: ClauseEditorProps) {
-    const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClauseProperty, generateForm } = props;
+    const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
@@ -157,17 +157,16 @@ export function ClauseEditor(props: ClauseEditorProps) {
     }
 
     const { 
-        data: targetLineRange, 
+        data: clausePosition, 
         isFetching: isFetchingTargetLineRange
     } = useQuery({
-        queryKey: ['getClauseProperty', targetField, index],
-        queryFn: async () => await getClauseProperty(targetField, index),
-        // select: (data) => data?.codedata?.lineRange,
+        queryKey: ['getClausePosition', targetField, index],
+        queryFn: async () => await getClausePosition(targetField, index),
         networkMode: 'always'
     });
 
     const formProps: DMFormProps = {
-        targetLineRange: targetLineRange?.codedata?.lineRange,
+        targetLineRange: { startLine: clausePosition, endLine: clausePosition },
         fields: generateFields(),
         submitText: onSubmitText || "Add",
         cancelText: "Cancel",

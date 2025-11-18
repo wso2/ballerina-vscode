@@ -34,7 +34,7 @@ import {
 } from "./styles";
 import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
 import {  ClauseEditor } from "./ClauseEditor";
-import { DMFormProps, IntermediateClause, IntermediateClauseType, Property } from "@wso2/ballerina-core";
+import { DMFormProps, IntermediateClause, IntermediateClauseType, LinePosition } from "@wso2/ballerina-core";
 import { set } from "lodash";
 
 export interface ClauseItemProps {
@@ -50,12 +50,12 @@ export interface ClauseItemProps {
     onAdd: (clause: IntermediateClause, index?: number) => void;
     onEdit: (clause: IntermediateClause, index: number) => void;
     onDelete: (index: number) => void;
-    getClauseProperty: (targetField: string, index: number) => Promise<Property>;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseItem(props: ClauseItemProps) {
-    const { index, targetField, clause, isSaving, isAdding, isEditing, isDeleting, setAdding, setEditing, onDelete, onEdit, onAdd, getClauseProperty, generateForm } = props;
+    const { index, targetField, clause, isSaving, isAdding, isEditing, isDeleting, setAdding, setEditing, onDelete, onEdit, onAdd, getClausePosition, generateForm } = props;
     const { type: clauseType, properties: clauseProps } = clause;
 
 
@@ -113,7 +113,7 @@ export function ClauseItem(props: ClauseItemProps) {
                     isSaving={isSaving}
                     onSubmit={onHandleEdit}
                     onCancel={() => setEditing(undefined)}
-                    getClauseProperty={getClauseProperty}
+                    getClausePosition={getClausePosition}
                     generateForm={generateForm}
                 />
             )}
@@ -125,7 +125,7 @@ export function ClauseItem(props: ClauseItemProps) {
                     isSaving={isSaving}
                     onCancel={() => setAdding(undefined)}
                     onSubmit={onHandleAdd}
-                    getClauseProperty={getClauseProperty}
+                    getClausePosition={getClausePosition}
                     generateForm={generateForm} />
             ) : (
                 <AddButton onClick={() => setAdding(index)} />

@@ -360,15 +360,15 @@ export function DataMapperView(props: DataMapperProps) {
         }
     }
 
-    const getClauseProperty = async (targetField: string, index: number) => {
+    const getClausePosition = async (targetField: string, index: number) => {
         try {
-            const { property } = await rpcClient.getDataMapperRpcClient().getClauseProperty({
+            const { position } = await rpcClient.getDataMapperRpcClient().getClausePosition({
                 filePath,
                 codedata: viewState.codedata,
                 targetField: targetField,
                 index: index
             });
-            return property;
+            return position;
         } catch (error) {
             console.error(error);
         }
@@ -700,7 +700,7 @@ export function DataMapperView(props: DataMapperProps) {
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
                             deleteClause={deleteClause}
-                            getClauseProperty={getClauseProperty}
+                            getClausePosition={getClausePosition}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}

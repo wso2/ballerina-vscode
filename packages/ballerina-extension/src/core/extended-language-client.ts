@@ -270,7 +270,8 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     FieldPropertyRequest,
-    ClausePropertyRequest
+    ClausePositionResponse,
+    ClausePositionRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -370,7 +371,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/targetFieldPosition',
     DATA_MAPPER_FIELD_PROPERTY = 'dataMapper/fieldPosition',
-    DATA_MAPPER_CLAUSE_PROPERTY = 'dataMapper/clausePosition',
+    DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
@@ -831,8 +832,8 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_FIELD_PROPERTY, params);
     }
 
-    async getClauseProperty(params: ClausePropertyRequest): Promise<PropertyResponse | NOT_SUPPORTED_TYPE> {
-        return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_CLAUSE_PROPERTY, params);
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return this.sendRequest<ClausePositionResponse>(EXTENDED_APIS.DATA_MAPPER_CLAUSE_POSITION, params);
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
