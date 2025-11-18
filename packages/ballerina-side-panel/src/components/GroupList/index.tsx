@@ -187,8 +187,14 @@ export function GroupList(props: GroupListProps) {
         setExpandedTitleIndex(null);
     };
 
-    if(category.devant && category.unusedDevantConn){
-        return <UnusedDevantCard devantConn={category.devant} onImportDevantConn={onImportDevantConn}/>
+    if (category.devant && category.unusedDevantConn) {
+        return (
+            <UnusedDevantCard
+                title={category.title}
+                devantConn={category.devant}
+                onImportDevantConn={onImportDevantConn}
+            />
+        );
     }
 
     if (nodes.length === 0) {
@@ -239,15 +245,26 @@ export function GroupList(props: GroupListProps) {
     );
 }
 
-const UnusedDevantCard = (props: { devantConn: ConnectionListItem, onImportDevantConn?: (devantConn: ConnectionListItem) => void; }) => {
-    const { devantConn, onImportDevantConn } = props;
+const UnusedDevantCard = (props: {
+    title: string;
+    devantConn: ConnectionListItem;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+}) => {
+    const { title, devantConn, onImportDevantConn } = props;
     return (
         <S.DevantInputCard>
             <S.DevantPullTitleRow>
                 <S.CardIcon>{<DownloadIcon />}</S.CardIcon>
-                <S.Title>{devantConn.name}</S.Title>
+                <S.Title>{title || devantConn?.name}</S.Title>
+                <Codicon name="info" tooltip="Unused Devant Connection" />
                 <S.CardAction>
-                    <Button appearance="icon" onClick={onImportDevantConn ? () => onImportDevantConn(devantConn) : undefined}>Import</Button>
+                    <Button
+                        tooltip="Import and use this Devant connection"
+                        appearance="icon"
+                        onClick={onImportDevantConn ? () => onImportDevantConn(devantConn) : undefined}
+                    >
+                        Import
+                    </Button>
                 </S.CardAction>
             </S.DevantPullTitleRow>
         </S.DevantInputCard>

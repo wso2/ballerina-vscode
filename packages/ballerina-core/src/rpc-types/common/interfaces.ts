@@ -91,6 +91,11 @@ export interface ShowErrorMessageRequest {
     message: string;
 }
 
+export interface ShowInfoModalRequest {
+    message: string;
+    items?: string[];
+}
+
 export interface TomlWorkspace {
     packages: string[];
 }

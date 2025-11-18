@@ -321,6 +321,7 @@ interface NodeListProps {
     onClose?: () => void;
     searchPlaceholder?: string;
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+    onLinkDevantProject?: () => void;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -338,6 +339,7 @@ export function NodeList(props: NodeListProps) {
         onClose,
         searchPlaceholder,
         onImportDevantConn,
+        onLinkDevantProject,
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -436,6 +438,12 @@ export function NodeList(props: NodeListProps) {
             onAdd();
         }
     };
+
+    const handleOnLinkDevantProject = () => {
+        if (onLinkDevantProject){
+            onLinkDevantProject();
+        }
+    }
 
     const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
         const safeItems = items.filter((item) => item != null);
@@ -623,7 +631,8 @@ export function NodeList(props: NodeListProps) {
                                                         const handlers = {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
-                                                            onAdd: handleAdd
+                                                            onAdd: handleAdd,
+                                                            onLinkDevantProject: handleOnLinkDevantProject
                                                         };
                                                         
                                                         const handler = handlers[action.handlerKey];
@@ -643,7 +652,7 @@ export function NodeList(props: NodeListProps) {
                                                                         handler();
                                                                     }}
                                                                 >
-                                                                    <Codicon name="add" />
+                                                                    <Codicon name={action?.codeIcon || "add"} />
                                                                 </Button>
                                                             </Tooltip>
                                                         );
@@ -676,7 +685,8 @@ export function NodeList(props: NodeListProps) {
                                                     const handlers = {
                                                         onAddConnection: handleAddConnection,
                                                         onAddFunction: handleAddFunction,
-                                                        onAdd: handleAdd
+                                                        onAdd: handleAdd,
+                                                        onLinkDevantProject: handleOnLinkDevantProject
                                                     };
                                                     
                                                     const handler = handlers[action.handlerKey];
@@ -692,7 +702,7 @@ export function NodeList(props: NodeListProps) {
                                                             key={`empty-${group.title}-${actionIndex}`}
                                                             onClick={handler}
                                                         >
-                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            <Codicon name={action?.codeIcon || "add"} iconSx={{ fontSize: 12 }} />
                                                             {buttonLabel}
                                                         </S.HighlightedButton>
                                                     );

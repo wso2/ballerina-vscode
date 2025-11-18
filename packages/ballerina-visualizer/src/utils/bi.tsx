@@ -164,7 +164,6 @@ export function enrichCategoryWithDevant(
                         usedConnIds.push(matchingDevantConn.groupUuid);
                         return {
                             ...categoryItem,
-                            title: matchingDevantConn.name,
                             devant: matchingDevantConn,
                             unusedDevantConn: false,
                         };
@@ -175,7 +174,7 @@ export function enrichCategoryWithDevant(
             const unusedCategoryItems: PanelCategory[] = connections
                 .filter((conn) => !usedConnIds.includes(conn.groupUuid))
                 .map((conn) => ({
-                    title: conn.name,
+                    title: conn.name?.replaceAll("-","_").replaceAll(" ","_"),
                     items: [] as PanelItem[],
                     description: "Unused Devant connection",
                     devant: conn,
