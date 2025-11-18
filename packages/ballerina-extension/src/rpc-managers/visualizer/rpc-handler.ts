@@ -28,6 +28,7 @@ import {
     goSelected,
     HistoryEntry,
     joinProjectPath,
+    JoinProjectPathRequest,
     openView,
     OpenViewRequest,
     redo,
@@ -51,7 +52,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(redo, (count: number) => rpcManger.redo(count));
     messenger.onNotification(addToUndoStack, (args: AddToUndoStackRequest) => rpcManger.addToUndoStack(args));
     messenger.onRequest(undoRedoState, () => rpcManger.undoRedoState());
-    messenger.onRequest(joinProjectPath, (args: string | string[]) => rpcManger.joinProjectPath(args));
+    messenger.onRequest(joinProjectPath, (args: JoinProjectPathRequest) => rpcManger.joinProjectPath(args));
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());
     messenger.onRequest(updateCurrentArtifactLocation, (args: UpdatedArtifactsResponse) => rpcManger.updateCurrentArtifactLocation(args));
 }

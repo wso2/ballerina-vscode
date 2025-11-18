@@ -20,6 +20,8 @@ import {
     ColorThemeKind,
     EVENT_TYPE,
     HistoryEntry,
+    JoinProjectPathRequest,
+    JoinProjectPathResponse,
     MACHINE_VIEW,
     OpenViewRequest,
     PopupVisualizerLocation,
@@ -71,9 +73,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
         commands.executeCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS).then(() => {
             openView(
                 EVENT_TYPE.OPEN_VIEW,
-                { view: isWithinBallerinaWorkspace
-                    ? MACHINE_VIEW.WorkspaceOverview
-                    : MACHINE_VIEW.PackageOverview
+                {
+                    view: isWithinBallerinaWorkspace
+                        ? MACHINE_VIEW.WorkspaceOverview
+                        : MACHINE_VIEW.PackageOverview
                 },
                 true
             );
@@ -206,17 +209,25 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    async joinProjectPath(segments: string | string[]): Promise<string> {
+    async joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
         return new Promise((resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-
+            let projectPath = StateMachine.context().projectPath;
+            // If code data is provided, try to find the project path from the project structure
+            if (params.codeData && params.codeData.packageName) {
+                const packageInfo = StateMachine.context().projectStructure.projects.find(project => {
+                    console.log(">>> project", project);
+                    return project.projectName === params.codeData.packageName;
+                });
+                if (packageInfo) {
+                    projectPath = packageInfo.projectPath;
+                }
+            }
             if (!projectPath) {
-                resolve(undefined);
+                resolve({ filePath: "", projectPath: "" });
                 return;
             }
-
-            const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
-            resolve(filePath.fsPath);
+            const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
