@@ -345,7 +345,10 @@ export const initializeDevantConnection = async (params: {
 
     const configFileUri = getConfigFileUri();
 
-    const connectionKeys = params.configurations[Object.keys(params.configurations)?.[0]]?.entries;
+    const envIds = Object.keys(params.configurations || {});  
+    const firstEnvConfig = envIds.length > 0 ? params.configurations[envIds[0]] : undefined;  
+    const connectionKeys = firstEnvConfig?.entries ?? {};  
+
     interface IkeyVal {
         keyname: string;
         envName: string;

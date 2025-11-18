@@ -19,7 +19,7 @@
 import React, { ReactNode, useRef, useState, createContext, useContext } from "react";
 import { BallerinaRpcClient, VisualizerContext as RpcContext, Context } from "@wso2/ballerina-rpc-client";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
-import { ConnectorInfo, TriggerModelsResponse} from "@wso2/ballerina-core";
+import { ConnectorInfo, TriggerModelsResponse } from "@wso2/ballerina-core";
 
 export function RpcContextProvider({ children }: { children: ReactNode }) {
     const rpcClient = useRef(new BallerinaRpcClient());

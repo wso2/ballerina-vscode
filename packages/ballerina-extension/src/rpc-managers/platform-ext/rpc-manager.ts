@@ -240,7 +240,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     async getDevantConsoleUrl(): Promise<string> {
         try {
             const platformExt = await this.getPlatformExt();
-            return platformExt?.getDevantConsoleUrl();
+            return await platformExt?.getDevantConsoleUrl();
         } catch (err) {
             log(`Failed to delete connection config: ${err}`);
         }
@@ -459,8 +459,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
                     fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
 
-                    const platformRpc = new PlatformExtRpcManager();
-                    const devantUrl = await platformRpc.getDevantConsoleUrl();
+                    const devantUrl = await this.getDevantConsoleUrl();
                     if (!platformExtStore.getState().state?.isLoggedIn) {
                         window
                             .showErrorMessage(
@@ -480,7 +479,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         .getState()
                         .state?.connections.find((connItem) => connItem.name === matchingTomlEntry?.remoteConnection);
                     if (matchingConnListItem) {
-                        await platformRpc.deleteLocalConnectionsConfig({
+                        await this.deleteLocalConnectionsConfig({
                             componentDir: projectPath,
                             connectionName: matchingTomlEntry?.remoteConnection,
                         });
@@ -526,9 +525,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setEditMode();
 
             let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
-            if (params.connectionListItem?.schemaName.toLowerCase()?.includes("organization")) {
+            if (params.connectionListItem?.schemaName?.toLowerCase()?.includes("organization")) {
                 visibility = ServiceInfoVisibilityEnum.Organization;
-            } else if (params.connectionListItem?.schemaName.toLowerCase()?.includes("project")) {
+            } else if (params.connectionListItem?.schemaName?.toLowerCase()?.includes("project")) {
                 visibility = ServiceInfoVisibilityEnum.Project;
             }
 
@@ -616,58 +615,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteConnection === connItem.name),
             }));
             platformExtStore.getState().setState({ connections: connectionsUsed });
-
-            /*
-            const envs = await platformExt.getProjectEnvs({
-                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                projectId: platformExtStore.getState().state?.selectedContext?.project?.id
-            })
-
-            const lowestEnv = envs.find(item=>!item.critical)
-            if(!lowestEnv){
-                throw new Error("failed to find env when refreshing devant connection list")
-            }
-
-            const secureHosts = new Set<string>()
-            const envMap = new Map<string, string>()
-
-            for(const connItem of connections){
-                const connectionDetailedItem = await platformExt.getConnection({
-                    connectionGroupId: connItem.groupUuid,
-                    orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString()
-                });
-                const matchingConfig = connectionDetailedItem.configurations[lowestEnv.templateId];
-                if(matchingConfig){
-                    for(const entryName in matchingConfig.entries ){
-                        if(matchingConfig.entries[entryName].value){
-                            if(connItem.schemaName?.toLowerCase().includes("organization") && entryName==="ServiceURL" && matchingConfig.entries[entryName].value.startsWith("https://")){
-                                const domain = getDomain(matchingConfig.entries[entryName].value)
-                                secureHosts.add(domain)
-                                envMap.set(entryName, matchingConfig.entries[entryName].value.replace("https://", "http://"))
-                            }else{
-                                envMap.set(entryName, matchingConfig.entries[entryName].value)
-                            }
-                            if((envMap.get(entryName).startsWith("https://") || envMap.get(entryName).startsWith("http://")) && envMap.get(entryName).endsWith("/")){
-                                envMap.set(entryName,  envMap.get(entryName.slice(0, -1)))
-                            }
-                        }else if(matchingConfig.entries[entryName].isSensitive && !matchingConfig.entries[entryName].isFile){
-                            ///////////
-                            // todo: //
-                            ///////////
-                        }
-                    }
-                }
-            }
-            */
-
-            // todo:
-            /*
-            1. store connection with secret info in bal ext
-            2. start proxy server. need to pass secure host list.
-            3. leave the server running
-            4. on extension exit, kill the server if its running
-            */
         } catch (err) {
             log(`Failed to refresh connection list: ${err}`);
         }

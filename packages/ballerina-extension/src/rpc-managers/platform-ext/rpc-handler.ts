@@ -22,10 +22,13 @@ import { PlatformExtRpcManager } from "./rpc-manager";
 import { DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, } from "@wso2/wso2-platform-core";
 import { CreateDevantConnectionReq, ImportDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { platformExtStore } from "./platform-store";
+import { debug } from "../../utils";
 
 export function registerPlatformExtRpcHandlers(messenger: Messenger) {
     const rpcManger = new PlatformExtRpcManager();
-    rpcManger.initStateSubscription(messenger);
+    rpcManger.initStateSubscription(messenger).catch((err) => {  
+        debug(`Failed to init platform ext state: ${err?.message}`);
+    });  
     
     messenger.onRequest(getPlatformStore, () => platformExtStore.getState().state);
     messenger.onRequest(getMarketplaceItems, (params: GetMarketplaceListReq) => rpcManger.getMarketplaceItems(params));

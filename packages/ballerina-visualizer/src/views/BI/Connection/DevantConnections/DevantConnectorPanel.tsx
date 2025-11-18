@@ -52,7 +52,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                     <DevantConnectorCreateForm
                         item={selectedItem}
                         onCreate={(connName) => onCreate(connName)}
-                        project={platformExtState?.selectedContext.project}
+                        project={platformExtState?.selectedContext?.project}
                         onShowInfo={() => setShowInfo(true)}
                         isShowingInfo={showInfo}
                     />
