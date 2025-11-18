@@ -82,7 +82,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
     public CompletableFuture<TestsDiscoveryResponse> discoverInFile(TestsDiscoveryRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Path filePath = Path.of(request.filePath());
+                Path filePath = Path.of(request.projectPath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 if (document.isEmpty()) {
@@ -109,7 +109,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
     public CompletableFuture<TestsDiscoveryResponse> discoverInProject(TestsDiscoveryRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Path filePath = Path.of(request.filePath());
+                Path filePath = Path.of(request.projectPath());
                 Project project = this.workspaceManager.loadProject(filePath);
                 io.ballerina.projects.Package currentPackage = project.currentPackage();
                 Module defaultModule = currentPackage.getDefaultModule();
