@@ -19,11 +19,11 @@
 package io.ballerina.testmanagerservice.extension.request;
 
 /**
- * Represents a request to discover tests in a file.
+ * Represents a request to discover tests in a project.
  *
- * @param filePath path of the file to discover tests
+ * @param projectPath path of the project to discover tests
  *
  * @since 1.0.0
  */
-public record TestsDiscoveryRequest(String filePath) {
+public record TestsDiscoveryRequest(String projectPath) {
 }
