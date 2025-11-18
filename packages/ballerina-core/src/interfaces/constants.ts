@@ -52,4 +52,5 @@ export const BI_COMMANDS = {
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
+    ADD_INTEGRATION: 'BI.project-explorer.add-integration',
 };
