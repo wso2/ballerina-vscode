@@ -115,6 +115,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArra
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefStreamType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
@@ -994,6 +995,7 @@ public class DataMapManager {
             case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
             case "tuple" -> handleTupleType(id, name, typeName, type, visitedTypes, references);
             case "map" -> handleMapType(id, name, type, visitedTypes, references);
+            case "stream" -> handleStreamType(id, name, type, visitedTypes, references);
             default -> {
                 if (type.hashCode != null && !type.hashCode.isEmpty()) {
                     throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
@@ -1181,6 +1183,69 @@ public class DataMapManager {
             mapTypeName = type.moduleInfo.modulePrefix + ":" + mapTypeName;
         }
         return mapTypeName;
+    }
+
+    private MappingPort handleStreamType(String id, String name, RefType type,
+                                          Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefStreamType streamType)) {
+            return new MappingStreamPort(id, name, "stream", "stream", type.key);
+        }
+
+        String valueName = getItemName(name);
+        MappingPort valuePort = getRefMappingPort(id, valueName, streamType.valueType, visitedTypes, references);
+        if (valuePort.displayName == null) {
+            valuePort.displayName = valueName;
+        }
+
+        MappingPort completionPort = null;
+        if (streamType.completionType != null) {
+            String completionName = name + "Completion";
+            completionPort = getRefMappingPort(id, completionName, streamType.completionType, visitedTypes, references);
+            if (completionPort.displayName == null) {
+                completionPort.displayName = completionName;
+            }
+        }
+
+        String streamTypeName = buildStreamTypeName(valuePort, completionPort, type);
+        MappingStreamPort streamPort = new MappingStreamPort(id, name, streamTypeName, "stream", type.hashCode);
+        streamPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+        streamPort.setValue(valuePort);
+        if (completionPort != null) {
+            streamPort.setCompletion(completionPort);
+        }
+        processDependentTypes(id, streamType.dependentTypes, visitedTypes, references);
+
+        return streamPort;
+    }
+
+    private String buildStreamTypeName(MappingPort valuePort, MappingPort completionPort, RefType type) {
+        if (valuePort == null) {
+            return "stream<any>";
+        }
+
+        String valueTypeName = valuePort.typeName;
+        boolean isUnionValue = valuePort.kind.endsWith("union");
+        if (isUnionValue) {
+            valueTypeName = "(" + valueTypeName + ")";
+        }
+
+        String streamTypeName;
+        if (completionPort != null && !"()".equals(completionPort.typeName) &&
+                !"nil".equals(completionPort.typeName)) {
+            String completionTypeName = completionPort.typeName;
+            boolean isUnionCompletion = completionPort.kind.endsWith("union");
+            if (isUnionCompletion) {
+                completionTypeName = "(" + completionTypeName + ")";
+            }
+            streamTypeName = "stream<" + valueTypeName + ", " + completionTypeName + ">";
+        } else {
+            streamTypeName = "stream<" + valueTypeName + ">";
+        }
+
+        if (isExternalType(type) && !isUnionValue && valuePort.typeInfo == null) {
+            streamTypeName = type.moduleInfo.modulePrefix + ":" + streamTypeName;
+        }
+        return streamTypeName;
     }
 
     private void processRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
@@ -2805,6 +2870,35 @@ public class DataMapManager {
 
         MappingPort getValue() {
             return this.value;
+        }
+    }
+
+    private static class MappingStreamPort extends MappingPort {
+        MappingPort value;
+        MappingPort completion;
+
+        MappingStreamPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingStreamPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+
+        void setValue(MappingPort value) {
+            this.value = value;
+        }
+
+        MappingPort getValue() {
+            return this.value;
+        }
+
+        void setCompletion(MappingPort completion) {
+            this.completion = completion;
+        }
+
+        MappingPort getCompletion() {
+            return this.completion;
         }
     }
 

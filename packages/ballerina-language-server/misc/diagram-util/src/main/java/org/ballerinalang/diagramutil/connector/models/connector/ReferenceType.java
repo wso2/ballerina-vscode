@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
@@ -40,6 +41,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefCons
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefStreamType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
@@ -195,6 +197,25 @@ public class ReferenceType {
                     typeDefSymbols);
             mapType.valueType = processMemberType(valueType, mapType);
             return mapType;
+        } else if (kind == TypeDescKind.STREAM) {
+            StreamTypeSymbol streamTypeSymbol = (StreamTypeSymbol) symbol;
+            RefStreamType streamType = new RefStreamType(name);
+            streamType.hashCode = typeHash;
+            streamType.key = typeKey;
+            streamType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+            TypeSymbol valueTypeSymbol = streamTypeSymbol.typeParameter();
+            String valueTypeName = valueTypeSymbol.getName().orElse("");
+            ModuleID valueModuleId = getModuleID(valueTypeSymbol, moduleID);
+            RefType valueType = fromSemanticSymbol(valueTypeSymbol, valueTypeName, valueModuleId,
+                    typeDefSymbols);
+            streamType.valueType = processMemberType(valueType, streamType);
+            TypeSymbol completionTypeSymbol = streamTypeSymbol.completionValueTypeParameter();
+            String completionTypeName = completionTypeSymbol.getName().orElse("");
+            ModuleID completionModuleId = getModuleID(completionTypeSymbol, moduleID);
+            RefType completionType = fromSemanticSymbol(completionTypeSymbol, completionTypeName, completionModuleId,
+                    typeDefSymbols);
+            streamType.completionType = processMemberType(completionType, streamType);
+            return streamType;
         } else if (kind == TypeDescKind.UNION) {
             UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) symbol;
             List<TypeSymbol> typeSymbols = filterNilOrError(unionTypeSymbol);
@@ -374,6 +395,7 @@ public class ReferenceType {
             case BYTE -> "byte";
             case STRING_CHAR -> "string:Char";
             case NEVER -> "never";
+            case ERROR -> "error";
             default -> null;
         };
     }
@@ -412,6 +434,10 @@ public class ReferenceType {
             case MAP -> {
                 MapTypeSymbol mapType = (MapTypeSymbol) typeSymbol;
                 return resolveModuleIDWithFallback(mapType.typeParam(), fallbackModuleId);
+            }
+            case STREAM -> {
+                StreamTypeSymbol streamType = (StreamTypeSymbol) typeSymbol;
+                return resolveModuleIDWithFallback(streamType.typeParameter(), fallbackModuleId);
             }
             case UNION -> {
                 UnionTypeSymbol unionType = (UnionTypeSymbol) typeSymbol;
