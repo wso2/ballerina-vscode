@@ -296,18 +296,16 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
         const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
-            openView(
-                {
-                    documentUri: response.filePath,
-                    position: {
-                        startLine: startLine.line,
-                        startColumn: startLine.offset,
-                        endLine: endLine.line,
-                        endColumn: endLine.offset,
-                    },
-                    projectPath: response.projectPath,
-                }
-            );
+            openView({
+                documentUri: response.filePath,
+                position: {
+                    startLine: startLine.line,
+                    startColumn: startLine.offset,
+                    endLine: endLine.line,
+                    endColumn: endLine.offset,
+                },
+                projectPath: response.projectPath,
+            });
     };
 
     const toggleEditable = () => {
