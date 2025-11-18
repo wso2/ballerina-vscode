@@ -62,7 +62,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     const initPanel = async () => {
         // get agent file path
         const visualizerContext = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] });
+        agentFilePath.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
         projectPath.current = visualizerContext.projectPath;
         // fetch tools and agent node
         await fetchAgentNode();
@@ -83,7 +83,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
         }
         try {
             const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
-            const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode.codedata.lineRange.fileName] });
+            const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode.codedata.lineRange.fileName] })).filePath;
             // generate the source code
             const agentResponse = await rpcClient
                 .getBIDiagramRpcClient()

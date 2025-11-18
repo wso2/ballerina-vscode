@@ -126,7 +126,7 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
         const res = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({

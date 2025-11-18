@@ -262,13 +262,17 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
+        const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
-            openView(filePath, {
-                startLine: startLine.line,
-                startColumn: startLine.offset,
-                endLine: endLine.line,
-                endColumn: endLine.offset,
+            openView({
+                documentUri: response.filePath,
+                position: {
+                    startLine: startLine.line,
+                    startColumn: startLine.offset,
+                    endLine: endLine.line,
+                    endColumn: endLine.offset,
+                },
+                projectPath: response.projectPath,
             });
     };
 
@@ -277,13 +281,17 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
+        const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
-            openView(filePath, {
-                startLine: startLine.line,
-                startColumn: startLine.offset,
-                endLine: endLine.line,
-                endColumn: endLine.offset,
+            openView({
+                documentUri: response.filePath,
+                position: {
+                    startLine: startLine.line,
+                    startColumn: startLine.offset,
+                    endLine: endLine.line,
+                    endColumn: endLine.offset,
+                },
+                projectPath: response.projectPath,
             });
     };
 

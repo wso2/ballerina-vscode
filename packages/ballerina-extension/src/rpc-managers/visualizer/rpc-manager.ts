@@ -21,6 +21,7 @@ import {
     EVENT_TYPE,
     HistoryEntry,
     JoinProjectPathRequest,
+    JoinProjectPathResponse,
     MACHINE_VIEW,
     OpenViewRequest,
     PopupVisualizerLocation,
@@ -208,7 +209,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    async joinProjectPath(params: JoinProjectPathRequest): Promise<string> {
+    async joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
         return new Promise((resolve) => {
             let projectPath = StateMachine.context().projectPath;
             // If code data is provided, try to find the project path from the project structure
@@ -222,11 +223,11 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 }
             }
             if (!projectPath) {
-                resolve(undefined);
+                resolve({ filePath: "", projectPath: "" });
                 return;
             }
             const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
-            resolve(filePath.fsPath);
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {

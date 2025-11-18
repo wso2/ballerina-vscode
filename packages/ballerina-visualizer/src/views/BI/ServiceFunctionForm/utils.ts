@@ -30,7 +30,7 @@ type ServiceFunctionError = {
 
 const resolveFilePath = async (rpcClient: BallerinaRpcClient, fileName: string): Promise<string> => {
     try {
-        return await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] });
+        return (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
     } catch (error) {
         throw new Error(`Failed to resolve file path for ${fileName}`);
     }
