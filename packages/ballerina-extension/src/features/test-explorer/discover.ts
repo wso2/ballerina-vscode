@@ -22,80 +22,165 @@ import { StateMachine } from "../../stateMachine";
 import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
-import { getCurrentProjectRoot } from "../../utils/project-utils";
+import { getWorkspaceRoot, getCurrentProjectRoot } from "../../utils/project-utils";
 
 let groups: string[] = [];
 
 export async function discoverTestFunctionsInProject(ballerinaExtInstance: BallerinaExtension,
     testController: TestController) {
     groups.push(testController.id);
+    
+    const workspaceRoot = getWorkspaceRoot();
+    const projectInfo = await ballerinaExtInstance.langClient?.getProjectInfo({ projectPath: workspaceRoot });
 
+    // Handle workspace with multiple child projects
+    if (projectInfo?.children?.length > 0) {
+        await discoverTestsInWorkspace(projectInfo.children, ballerinaExtInstance, testController);
+        return;
+    }
+
+    // Handle single project
+    await discoverTestsInSingleProject(ballerinaExtInstance, testController);
+}
+
+async function discoverTestsInWorkspace(
+    children: any[],
+    ballerinaExtInstance: BallerinaExtension,
+    testController: TestController
+) {
+    // Iterate over project children sequentially to allow awaiting each request
+    for (const child of children) {
+        if (!child?.projectPath) {
+            continue;
+        }
+
+        const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getProjectTestFunctions({
+            projectPath: child.projectPath
+        });
+
+        if (response) {
+            createTests(response, testController, child.projectPath);
+            setGroupsContext();
+        }
+    }
+}
+
+async function discoverTestsInSingleProject(
+    ballerinaExtInstance: BallerinaExtension,
+    testController: TestController,
+) {
     const projectPath = await getCurrentProjectRoot();
 
     if (!projectPath) {
+        console.warn('No project root found for test discovery');
         return;
     }
 
     const request: TestsDiscoveryRequest = { projectPath };
     const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getProjectTestFunctions(request);
+
     if (response) {
         createTests(response, testController);
         setGroupsContext();
     }
 }
 
-function createTests(response: TestsDiscoveryResponse, testController: TestController) {
-    if (response.result) {
-        // Check if the result is a Map or a plain object
-        const isMap = response.result instanceof Map;
+function createTests(response: TestsDiscoveryResponse, testController: TestController, projectPath?: string) {
+    if (!response.result) {
+        return;
+    }
 
-        // Convert the result to an iterable format
-        const entries = isMap
-            ? Array.from(response.result.entries()) // If it's a Map, convert to an array of entries
-            : Object.entries(response.result); // If it's a plain object, use Object.entries
+    // Check if the result is a Map or a plain object
+    const isMap = response.result instanceof Map;
 
-        // Iterate over the result map
-        for (const [group, testFunctions] of entries) {
-            // Create a test item for the group
-            const groupId = `group:${group}`;
-            let groupItem: TestItem = testController.items.get(groupId);
+    // Convert the result to an iterable format
+    const entries = isMap
+        ? Array.from(response.result.entries()) // If it's a Map, convert to an array of entries
+        : Object.entries(response.result); // If it's a plain object, use Object.entries
 
+    // Determine if we're in a workspace context (multiple projects)
+    const isWorkspaceContext = projectPath !== undefined;
+
+    // Get or create the project-level group for workspace scenarios
+    let projectGroupItem: TestItem | undefined;
+    if (isWorkspaceContext) {
+        const projectName = path.basename(projectPath);
+        const projectGroupId = `project:${projectName}`;
+
+        projectGroupItem = testController.items.get(projectGroupId);
+        if (!projectGroupItem) {
+            projectGroupItem = testController.createTestItem(projectGroupId, projectName);
+            testController.items.add(projectGroupItem);
+            groups.push(projectGroupId);
+        }
+    }
+
+    // Iterate over the result map (test groups)
+    for (const [group, testFunctions] of entries) {
+        let groupItem: TestItem | undefined;
+
+        // For workspace context with DEFAULT_GROUP, skip the group level and add tests directly to project
+        if (isWorkspaceContext && group === 'DEFAULT_GROUP' && projectGroupItem) {
+            groupItem = projectGroupItem;
+        } else if (isWorkspaceContext && projectGroupItem) {
+            // For workspace context with named groups, create test group under project
+            const groupId = `group:${path.basename(projectPath)}:${group}`;
+            groupItem = projectGroupItem.children.get(groupId);
             if (!groupItem) {
-                // If the group doesn't exist, create it
                 groupItem = testController.createTestItem(groupId, group);
-                testController.items.add(groupItem);
+                projectGroupItem.children.add(groupItem);
                 groups.push(groupId);
             }
+        } else {
+            // Single project - group at root level (skip DEFAULT_GROUP for cleaner view)
+            if (group === 'DEFAULT_GROUP') {
+                // For single project with DEFAULT_GROUP, add tests at root level
+                groupItem = undefined; // We'll add tests directly to the controller
+            } else {
+                const groupId = `group:${group}`;
+                groupItem = testController.items.get(groupId);
+                if (!groupItem) {
+                    groupItem = testController.createTestItem(groupId, group);
+                    testController.items.add(groupItem);
+                    groups.push(groupId);
+                }
+            }
+        }
 
-            // Ensure testFunctions is iterable (convert to an array if necessary)
-            const testFunctionsArray = Array.isArray(testFunctions)
-                ? testFunctions // If it's already an array, use it directly
-                : Object.values(testFunctions); // If it's an object, convert to an array
+        // Ensure testFunctions is iterable (convert to an array if necessary)
+        const testFunctionsArray = Array.isArray(testFunctions)
+            ? testFunctions // If it's already an array, use it directly
+            : Object.values(testFunctions); // If it's an object, convert to an array
 
-            // Iterate over the test functions in the group
-            for (const tf of testFunctionsArray) {
-                const testFunc: FunctionTreeNode = tf as FunctionTreeNode;
-                // Generate a unique ID for the test item using the function name
-                const fileName: string = testFunc.lineRange.fileName;
-                const fileUri = Uri.file(path.join(StateMachine.context().projectPath, fileName));
-                const testId = `test:${path.basename(fileUri.path)}:${testFunc.functionName}`;
+        // Iterate over the test functions in the group
+        for (const tf of testFunctionsArray) {
+            const testFunc: FunctionTreeNode = tf as FunctionTreeNode;
+            // Generate a unique ID for the test item using the function name
+            const fileName: string = testFunc.lineRange.fileName;
+            const resolvedProjectPath = projectPath || StateMachine.context().projectPath;
+            const fileUri = Uri.file(path.join(resolvedProjectPath, fileName));
+            const testId = `test:${resolvedProjectPath}:${path.basename(fileUri.path)}:${testFunc.functionName}`;
 
-                // Create a test item for the test function
-                const testItem = testController.createTestItem(testId, testFunc.functionName);
+            // Create a test item for the test function
+            const testItem = testController.createTestItem(testId, testFunc.functionName, fileUri);
 
-                // Set the range for the test (optional, for navigation)
-                const startPosition = new Position(
-                    testFunc.lineRange.startLine.line, // Convert to 0-based line number
-                    testFunc.lineRange.startLine.offset
-                );
-                const endPosition = new Position(
-                    testFunc.lineRange.endLine.line, // Convert to 0-based line number
-                    testFunc.lineRange.endLine.offset
-                );
-                testItem.range = new Range(startPosition, endPosition);
+            // Set the range for the test (optional, for navigation)
+            const startPosition = new Position(
+                testFunc.lineRange.startLine.line, // Convert to 0-based line number
+                testFunc.lineRange.startLine.offset
+            );
+            const endPosition = new Position(
+                testFunc.lineRange.endLine.line, // Convert to 0-based line number
+                testFunc.lineRange.endLine.offset
+            );
+            testItem.range = new Range(startPosition, endPosition);
 
-                // Add the test item to the group
+            // Add the test item to the appropriate parent
+            if (groupItem) {
                 groupItem.children.add(testItem);
+            } else {
+                // For single project with DEFAULT_GROUP, add directly to test controller
+                testController.items.add(testItem);
             }
         }
     }
@@ -119,30 +204,61 @@ export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
 
 export async function handleFileDelete(uri: Uri, testController: TestController) {
     const filePath = path.basename(uri.path);
+    const fullPath = uri.path;
+
+    // Helper function to delete tests from a test group item
+    const deleteTestsFromGroup = (groupItem: TestItem) => {
+        const childrenToDelete: TestItem[] = [];
+        groupItem.children.forEach((child) => {
+            // Check if test belongs to the deleted file using full path or filename
+            if (child.id.includes(`:${filePath}:`) || child.id.includes(fullPath)) {
+                childrenToDelete.push(child);
+            }
+        });
+
+        // Remove the matching test function items
+        childrenToDelete.forEach((child) => {
+            groupItem.children.delete(child.id);
+        });
+
+        return groupItem.children.size === 0;
+    };
 
     // Iterate over all root-level items in the Test Explorer
     testController.items.forEach((item) => {
         if (isTestFunctionItem(item)) {
             // If the item is a test function, check if it belongs to the deleted file
-            if (item.id.startsWith(`test:${filePath}:`)) {
+            if (item.id.includes(`:${filePath}:`) || item.id.includes(fullPath)) {
                 testController.items.delete(item.id);
             }
-        } else if (isTestGroupItem(item)) {
-            // If the item is a test group, iterate over its children
-            const childrenToDelete: TestItem[] = [];
-            item.children.forEach((child) => {
-                if (child.id.startsWith(`test:${filePath}:`)) {
-                    childrenToDelete.push(child);
+        } else if (isProjectGroupItem(item)) {
+            // If it's a project group, iterate through its test group children
+            const groupsToDelete: TestItem[] = [];
+
+            item.children.forEach((groupItem) => {
+                const isEmpty = deleteTestsFromGroup(groupItem);
+                if (isEmpty) {
+                    groupsToDelete.push(groupItem);
                 }
             });
 
-            // Remove the matching test function items
-            childrenToDelete.forEach((child) => {
-                item.children.delete(child.id);
+            // Remove empty test groups
+            groupsToDelete.forEach((groupItem) => {
+                item.children.delete(groupItem.id);
+                groups = groups.filter((group) => group !== groupItem.id);
             });
 
-            // If the group is empty after deletion, remove it
+            // If the project group is empty after deletion, remove it
             if (item.children.size === 0) {
+                testController.items.delete(item.id);
+                groups = groups.filter((group) => group !== item.id);
+            }
+        } else if (isTestGroupItem(item)) {
+            // Single project scenario - test group at root level
+            const isEmpty = deleteTestsFromGroup(item);
+
+            // If the group is empty after deletion, remove it
+            if (isEmpty) {
                 testController.items.delete(item.id);
                 groups = groups.filter((group) => group !== item.id);
             }
@@ -158,6 +274,11 @@ export function isTestFunctionItem(item: TestItem): boolean {
 export function isTestGroupItem(item: TestItem): boolean {
     // Test group items have IDs starting with "group:"
     return item.id.startsWith('group:');
+}
+
+export function isProjectGroupItem(item: TestItem): boolean {
+    // Project group items have IDs starting with "project:"
+    return item.id.startsWith('project:');
 }
 
 function setGroupsContext() {
