@@ -1457,7 +1457,6 @@ public class DataMapManager {
                 if (parentNode == null) {
                     break;
                 }
-
                 if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
                     NonTerminalNode grandParent = parentNode.parent();
@@ -1481,7 +1480,6 @@ public class DataMapManager {
             } else {
                 NonTerminalNode parent = expr.parent();
                 SyntaxKind parentKind = parent.kind();
-
                 if (parentKind == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parent;
                     MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
