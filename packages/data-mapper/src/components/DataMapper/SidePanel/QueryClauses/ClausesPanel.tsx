@@ -23,21 +23,21 @@ import { useDMQueryClausesPanelStore } from "../../../../store/store";
 import { AddButton, ClauseItem } from "./ClauseItem";
 import { ClauseEditor } from "./ClauseEditor";
 import { ClauseItemListContainer } from "./styles";
-import { DMFormProps, IntermediateClause, Property, Query } from "@wso2/ballerina-core";
+import { DMFormProps, IntermediateClause, LinePosition, Query } from "@wso2/ballerina-core";
 
 export interface ClausesPanelProps {
     query: Query;
     targetField: string;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
-    getClauseProperty: (targetField: string, index: number) => Promise<Property>;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
-    const { query, targetField, addClauses, deleteClause, getClauseProperty, generateForm } = props;
+    const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm } = props;
 
     const [adding, setAdding] = React.useState<number>();
     const [editing, setEditing] = React.useState<number>();
@@ -110,7 +110,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
                         isSaving={saving === -1}
                         onCancel={() => setAdding(undefined)}
                         onSubmit={onAdd}
-                        getClauseProperty={getClauseProperty}
+                        getClausePosition={getClausePosition}
                         generateForm={generateForm}
                     />
                 ) : (
@@ -133,7 +133,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
                             onAdd={onAdd}
                             onEdit={onEdit}
                             onDelete={onDelete}
-                            getClauseProperty={getClauseProperty}
+                            getClausePosition={getClausePosition}
                             generateForm={generateForm} />
                     ))}
                 </ClauseItemListContainer>
