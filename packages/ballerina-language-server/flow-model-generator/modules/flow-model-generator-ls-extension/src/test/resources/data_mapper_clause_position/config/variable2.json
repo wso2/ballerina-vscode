@@ -1,0 +1,25 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 5,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 6,
+        "offset": 115
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "persons.0",
+  "index": 0,
+  "position": {
+    "line": 6,
+    "offset": 12
+  }
+}
