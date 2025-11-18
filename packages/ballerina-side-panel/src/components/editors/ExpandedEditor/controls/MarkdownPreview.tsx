@@ -24,15 +24,13 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { ChipComponent } from "./ChipComponent";
 import { DocumentType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import "../utils/markdown-preview.css";
 
 const PreviewContainer = styled.div`
     width: 100%;
     height: 100%;
-    padding: 12px;
-    fontSize: 14px;
-    font-family: var(--vscode-editor-font-family);
+    padding: 16px;
     background: var(--input-background);
-    color: ${ThemeColors.ON_SURFACE};
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-top: none;
     border-radius: 0 0 4px 4px;
@@ -40,24 +38,10 @@ const PreviewContainer = styled.div`
     overflow-x: auto;
     box-sizing: border-box;
 
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word;
-
-    p, li, td, th, blockquote {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-
-    pre {
-        overflow-x: auto;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-    
-    code {
-        white-space: pre-wrap;
-        word-wrap: break-word;
+    .markdown-body {
+        background: transparent;
+        font-size: 14px;
+        color: ${ThemeColors.ON_SURFACE};
     }
 `;
 
@@ -72,29 +56,31 @@ interface MarkdownPreviewProps {
 export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => {
     return (
         <PreviewContainer>
-            <ReactMarkdown
-                rehypePlugins={[rehypeRaw, remarkGfm]}
-                components={{
-                    // Prevent rendering of potentially dangerous elements
-                    script: () => null,
-                    iframe: () => null,
-                    // Custom chip component for rendering tokens
-                    chip: ({ node }: any) => {
-                        const props = node?.properties || {};
-                        return (
-                            <ChipComponent
-                                type={props.type || 'variable'}
-                                content={props.dataContent || ''}
-                                documentType={props.dataDocType as DocumentType}
-                            />
-                        );
-                    }
-                }}
-                disallowedElements={['script', 'iframe', 'object', 'embed']}
-                unwrapDisallowed={true}
-            >
-                {content}
-            </ReactMarkdown>
+            <div className="markdown-body">
+                <ReactMarkdown
+                    rehypePlugins={[rehypeRaw, remarkGfm]}
+                    components={{
+                        // Prevent rendering of potentially dangerous elements
+                        script: () => null,
+                        iframe: () => null,
+                        // Custom chip component for rendering tokens
+                        chip: ({ node }: any) => {
+                            const props = node?.properties || {};
+                            return (
+                                <ChipComponent
+                                    type={props.type || 'variable'}
+                                    content={props.dataContent || ''}
+                                    documentType={props.dataDocType as DocumentType}
+                                />
+                            );
+                        }
+                    }}
+                    disallowedElements={['script', 'iframe', 'object', 'embed']}
+                    unwrapDisallowed={true}
+                >
+                    {content}
+                </ReactMarkdown>
+            </div>
         </PreviewContainer>
     );
 };
