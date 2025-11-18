@@ -19,13 +19,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 - **Expression Editor & Configuration Views** — Resolved multiple issues in the expression editor, including problems with completions, styles, and value synchronization in the record config view. Fixed popup stacking order and button alignment in configuration popups.
 - **General UI & Editor** — Addressed UI glitches, including a helper pane overflow issue, incorrect tree item highlighting with diagnostics, and an infinite re-render bug in the print form. Fixed a language server project loading issue in workspace setups.
-- **Security** — Updated `js-yaml` to resolve a security vulnerability (`CVE-2025-64718`).
+- **Security** — Updated dependencies to address security vulnerabilities (`CVE-2025-64718`, `CVE-2025-64756`).
 
 ## [5.6.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.0...ballerina-integrator-1.5.1) - 2025-11-12
 
 ### Fixed
 
-- **Ballerina Version Compatibility** — The "New Project" and "NP functions" features are now only shown for Ballerina versions 2201.13.0 and above.
+- **Ballerina Version Compatibility** — The "New Project" and "Natural Programming functions" features are now only shown for Ballerina versions 2201.13.0 and above.
 
 
 ## [5.6.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.4.0...ballerina-integrator-1.5.0) - 2025-11-11
