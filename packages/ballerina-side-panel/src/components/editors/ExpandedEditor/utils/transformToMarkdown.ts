@@ -132,8 +132,6 @@ export const transformExpressionToMarkdown = (
                 token.chipTag +
                 transformed.slice(token.end);
         }
-
-        console.log('transformed:', transformed);
         return transformed;
     } catch (error) {
         console.error('Error transforming expression to markdown:', error);
