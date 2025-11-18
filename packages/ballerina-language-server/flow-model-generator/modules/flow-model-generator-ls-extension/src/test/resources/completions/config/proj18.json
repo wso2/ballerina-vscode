@@ -43,6 +43,9 @@
   "completions": [
     {
       "label": "houseNo",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -51,6 +54,9 @@
     },
     {
       "label": "line1",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -59,6 +65,9 @@
     },
     {
       "label": "line2",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -67,6 +76,9 @@
     },
     {
       "label": "city",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -75,6 +87,9 @@
     },
     {
       "label": "country",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",

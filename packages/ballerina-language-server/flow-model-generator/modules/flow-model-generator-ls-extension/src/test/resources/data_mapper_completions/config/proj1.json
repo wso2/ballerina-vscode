@@ -43,6 +43,9 @@
   "completions": [
     {
       "label": "id",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "CA",
@@ -51,6 +54,9 @@
     },
     {
       "label": "fullName",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "CA",
@@ -59,6 +65,9 @@
     },
     {
       "label": "age",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "CA",
@@ -67,6 +76,9 @@
     },
     {
       "label": "courses",
+      "labelDetails": {
+        "detail": " record {|string title; int credits; anydata...;|}[]"
+      },
       "kind": "Field",
       "detail": "record {|string title; int credits; anydata...;|}[]",
       "sortText": "CA",
@@ -75,6 +87,9 @@
     },
     {
       "label": "totalCredits",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Field",
       "detail": "int",
       "sortText": "AA",
@@ -83,6 +98,9 @@
     },
     {
       "label": "visaType",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "CA",
@@ -91,6 +109,9 @@
     },
     {
       "label": "contactPhone",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "CA",

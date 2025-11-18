@@ -8,6 +8,7 @@
       "offset": 0
     },
     "offset": 4,
+    "lineOffset": 0,
     "codedata": {
       "node": "ASSIGN",
       "lineRange": {
@@ -41,6 +42,9 @@
   "completions": [
     {
       "label": "id",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -49,6 +53,9 @@
     },
     {
       "label": "value",
+      "labelDetails": {
+        "detail": " int"
+      },
       "kind": "Field",
       "detail": "int",
       "sortText": "AA",
