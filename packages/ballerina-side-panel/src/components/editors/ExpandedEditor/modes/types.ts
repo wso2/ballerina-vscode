@@ -19,6 +19,8 @@
 import { FormField, HelperpaneOnChangeOptions } from "../../../Form/types";
 import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
+import { FieldError } from "react-hook-form";
 
 /**
  * Base props that all editor mode components must implement
@@ -72,6 +74,10 @@ export interface EditorModeExpressionProps extends EditorModeProps {
     isPreviewMode?: boolean;
     /** Callback to toggle preview mode */
     onTogglePreview?: (enabled: boolean) => void;
+    /** Form validation error */
+    error?: FieldError;
+    /** Form diagnostics messages */
+    formDiagnostics?: DiagnosticMessage[];
 }
 
 /**

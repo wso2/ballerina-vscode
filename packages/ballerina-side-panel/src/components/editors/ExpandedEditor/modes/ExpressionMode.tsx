@@ -20,6 +20,7 @@ import React from "react";
 import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
+import { ErrorBanner } from "@wso2/ui-toolkit";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -41,7 +42,9 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     sanitizedExpression,
     extractArgsFromFunction,
     getHelperPane,
-    rawExpression
+    rawExpression,
+    error,
+    formDiagnostics
 }) => {
     // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
@@ -49,20 +52,27 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     };
 
     return (
-        <ExpressionContainer>
-            <ChipExpressionEditorComponent
-                value={value}
-                onChange={handleChange}
-                completions={completions}
-                sanitizedExpression={sanitizedExpression}
-                fileName={fileName}
-                targetLineRange={targetLineRange}
-                extractArgsFromFunction={extractArgsFromFunction}
-                getHelperPane={getHelperPane}
-                rawExpression={rawExpression}
-                isInExpandedMode={true}
-                isExpandedVersion={true}
-            />
-        </ExpressionContainer>
+        <>
+            <ExpressionContainer>
+                <ChipExpressionEditorComponent
+                    value={value}
+                    onChange={handleChange}
+                    completions={completions}
+                    sanitizedExpression={sanitizedExpression}
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
+                    extractArgsFromFunction={extractArgsFromFunction}
+                    getHelperPane={getHelperPane}
+                    rawExpression={rawExpression}
+                    isInExpandedMode={true}
+                    isExpandedVersion={true}
+                />
+            </ExpressionContainer>
+            {error ?
+                <ErrorBanner errorMsg={error.message.toString()} /> :
+                formDiagnostics && formDiagnostics.length > 0 &&
+                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+            }
+        </>
     );
 };

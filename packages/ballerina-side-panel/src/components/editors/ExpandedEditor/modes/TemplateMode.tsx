@@ -25,6 +25,7 @@ import { CodeMirrorMarkdownToolbar } from "../controls/CodeMirrorMarkdownToolbar
 import { MarkdownPreview } from "../controls/MarkdownPreview";
 import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
 import { useFormContext } from "../../../../context/form";
+import { ErrorBanner } from "@wso2/ui-toolkit";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -46,7 +47,9 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     getHelperPane,
     rawExpression,
     isPreviewMode = false,
-    onTogglePreview
+    onTogglePreview,
+    error,
+    formDiagnostics
 }) => {
     const [transformedContent, setTransformedContent] = useState<string>("");
     const [editorView, setEditorView] = useState<EditorView | null>(null);
@@ -149,6 +152,11 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                     />
                 </ExpressionContainer>
             )}
+            {error ?
+                <ErrorBanner errorMsg={error.message.toString()} /> :
+                formDiagnostics && formDiagnostics.length > 0 &&
+                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+            }
         </>
     );
 };
