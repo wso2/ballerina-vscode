@@ -53,4 +53,5 @@ export const BI_COMMANDS = {
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
     ADD_INTEGRATION: 'BI.project-explorer.add-integration',
+    NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify',
 };
