@@ -273,7 +273,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
             // Update the agent node with the memory reference
             const updatedAgentNode = cloneDeep(agentNode);
-            const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(updatedAgentNode?.codedata?.lineRange?.fileName);
+            const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode?.codedata?.lineRange?.fileName] });
             updatedAgentNode.properties.memory.value = updatedNode?.properties.variable.value || "";
 
             await rpcClient.getBIDiagramRpcClient().getSourceCode({

@@ -478,7 +478,7 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToFunction = async (functionRange: LineRange) => {
-        const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath(functionRange.fileName);
+        const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] });
         const position: NodePosition = {
             startLine: functionRange.startLine.line,
             startColumn: functionRange.startLine.offset,

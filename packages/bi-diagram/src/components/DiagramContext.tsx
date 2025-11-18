@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 import { Flow, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
 import { CompletionItem } from "@wso2/ui-toolkit";
-import { ExpressionProperty, TextEdit } from "@wso2/ballerina-core";
+import { ExpressionProperty, JoinProjectPathRequest, TextEdit } from "@wso2/ballerina-core";
 
 type CompletionConditionalProps = {
     completions: CompletionItem[];
@@ -93,7 +93,7 @@ export interface DiagramContextState {
     project?: {
         org: string;
         path: string;
-        getProjectPath?:(segments: string | string[]) => Promise<string>;
+        getProjectPath?: (props: JoinProjectPathRequest) => Promise<string>;
     };
     readOnly?: boolean;
     lockCanvas?: boolean;

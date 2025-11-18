@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { CodeData } from "../../interfaces/bi";
 import { EVENT_TYPE, PopupVisualizerLocation, VisualizerLocation } from "../../state-machine-types";
 
 export interface UpdateUndoRedoMangerRequest {
@@ -47,4 +48,9 @@ export interface AddToUndoStackRequest {
     filePath: string;
     source: string;
     description?: string;
+}
+
+export interface JoinProjectPathRequest {
+    segments: string | string[];
+    codeData?: CodeData;
 }
