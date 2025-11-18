@@ -24,6 +24,7 @@ import {
     addNewArrayElement,
     addSubMapping,
     AddSubMappingRequest,
+    ClausePropertyRequest,
     clearTypeCache,
     convertToQuery,
     ConvertToQueryRequest,
@@ -36,11 +37,14 @@ import {
     deleteSubMapping,
     DeleteSubMappingRequest,
     DMModelRequest,
+    FieldPropertyRequest,
+    getClauseProperty,
     getDataMapperCodedata,
     GetDataMapperCodedataRequest,
     getDataMapperModel,
     getDataMapperSource,
     getExpandedDMFromDMModel,
+    getFieldProperty,
     getInitialIDMSource,
     getProcessTypeReference,
     getProperty,
@@ -53,7 +57,7 @@ import {
     mapWithTransformFn,
     ProcessTypeReferenceRequest,
     PropertyRequest,
-    VisualizableFieldsRequest
+    VisualizableFieldsRequest,
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { DataMapperRpcManager } from "./rpc-manager";
@@ -76,6 +80,8 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getDataMapperCodedata, (args: GetDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));
+    messenger.onRequest(getFieldProperty, (args: FieldPropertyRequest) => rpcManger.getFieldProperty(args));
+    messenger.onRequest(getClauseProperty, (args: ClausePropertyRequest) => rpcManger.getClauseProperty(args));
     messenger.onRequest(getExpandedDMFromDMModel, (args: DMModelRequest) => rpcManger.getExpandedDMFromDMModel(args));
     messenger.onRequest(getProcessTypeReference, (args: ProcessTypeReferenceRequest) => rpcManger.getProcessTypeReference(args));
     messenger.onRequest(clearTypeCache, () => rpcManger.clearTypeCache());

@@ -474,9 +474,15 @@ export interface GetDataMapperCodedataResponse {
 export interface PropertyRequest {
     filePath: string;
     codedata: CodeData;
-    propertyKey: string,
     targetField: string;
+}
+
+export interface FieldPropertyRequest extends PropertyRequest {
     fieldId: string;
+}
+
+export interface ClausePropertyRequest extends PropertyRequest {
+    index: number;
 }
 
 export interface PropertyResponse {
