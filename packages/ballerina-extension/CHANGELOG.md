@@ -4,6 +4,30 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+
+## [5.6.2](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.1...ballerina-integrator-1.5.2) - 2025-11-18
+
+### Changed
+
+- **Workspace & Project Management** — Improved workspace management with a new Workspace Overview, expanded tree view support, and multi-project migration capabilities. Integration management is enhanced, allowing additions and deletions directly from the overview. The build command and language server integration have also been updated for better multi-project support.
+- **Editor & Configuration** — Updated the expression editor with an expanded view for a better editing experience. The service and record configuration views have been improved with better styling, diagnostics, and form support. Configuration editing is enhanced with a new configuration object editor, and the dependency pull flow now has improved user feedback.
+- **AI Features** — Enhanced the AI Data Mapper to support multiple file uploads and updated the AI code generator for compatibility with Ballerina workspaces.
+- **Editor & UX** — Improved the user experience for the expanded expression editor and component diagram. Refactored floating button styles in the expression editor for better theming, and improved chip styling for light themes.
+- **Project & Configuration** — Enhanced feature compatibility validation across different Ballerina versions. Updated the package configurable view for better configuration management.
+
+### Fixed
+
+- **Expression Editor & Configuration Views** — Resolved multiple issues in the expression editor, including problems with completions, styles, and value synchronization in the record config view. Fixed popup stacking order and button alignment in configuration popups.
+- **General UI & Editor** — Addressed UI glitches, including a helper pane overflow issue, incorrect tree item highlighting with diagnostics, and an infinite re-render bug in the print form. Fixed a language server project loading issue in workspace setups.
+- **Security** — Updated `js-yaml` to resolve a security vulnerability (`CVE-2025-64718`).
+
+## [5.6.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.0...ballerina-integrator-1.5.1) - 2025-11-12
+
+### Fixed
+
+- **Ballerina Version Compatibility** — The "New Project" and "NP functions" features are now only shown for Ballerina versions 2201.13.0 and above.
+
+
 ## [5.6.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.4.0...ballerina-integrator-1.5.0) - 2025-11-11
 
 ### Added
