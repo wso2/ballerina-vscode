@@ -146,6 +146,32 @@ function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCr
 }
 
 /**
+ * Creates .vscode folder and settings.json file
+ * @param projectRoot - Root directory of the project
+ */
+function createVSCodeSettings(projectRoot: string): void {
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    if (!fs.existsSync(vscodeDir)) {
+        fs.mkdirSync(vscodeDir);
+    }
+
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    fs.writeFileSync(settingsPath, settingsJsonContent);
+}
+
+/**
+ * Creates .vscode folder with both settings.json and launch.json files
+ * @param projectRoot - Root directory of the project
+ */
+function createVSCodeSettingsWithLaunch(projectRoot: string): void {
+    createVSCodeSettings(projectRoot);
+
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    const launchPath = path.join(vscodeDir, 'launch.json');
+    fs.writeFileSync(launchPath, launchJsonContent.trim());
+}
+
+/**
  * Resolves the project root path and creates the directory if needed
  * @param projectPath - Base project path
  * @param sanitizedPackageName - Sanitized package name for directory creation
@@ -212,6 +238,9 @@ packages = ["${projectRequest.packageName}"]
     // Create Ballerina Package
     createBIProjectPure({ ...projectRequest, projectPath: workspaceRoot, createDirectory: true });
 
+    // create settings.json file
+    createVSCodeSettings(workspaceRoot);
+
     console.log(`BI workspace created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
@@ -270,19 +299,8 @@ sticky = true
     const datamappingsBalPath = path.join(projectRoot, 'data_mappings.bal');
     writeBallerinaFileDidOpen(datamappingsBalPath, EMPTY);
 
-    // Create a .vscode folder
-    const vscodeDir = path.join(projectRoot, '.vscode');
-    if (!fs.existsSync(vscodeDir)) {
-        fs.mkdirSync(vscodeDir);
-    }
-
-    // Create launch.json file
-    const launchPath = path.join(vscodeDir, 'launch.json');
-    fs.writeFileSync(launchPath, launchJsonContent.trim());
-
-    // Create settings.json file
-    const settingsPath = path.join(vscodeDir, 'settings.json');
-    fs.writeFileSync(settingsPath, settingsJsonContent);
+    // Create .vscode configuration files
+    createVSCodeSettingsWithLaunch(projectRoot);
 
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');
@@ -313,6 +331,9 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     addToWorkspaceToml(newDirectory, params.packageName);
 
     createProjectInWorkspace(params, newDirectory);
+
+    // create settings.json file
+    createVSCodeSettings(newDirectory);
 
     openInVSCode(newDirectory);
 }
@@ -473,19 +494,8 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         createProjectFiles(project, projectRoot);
     });
 
-    // Create a .vscode folder
-    const vscodeDir = path.join(projectRoot, '.vscode');
-    if (!fs.existsSync(vscodeDir)) {
-        fs.mkdirSync(vscodeDir);
-    }
-
-    // Create launch.json file
-    const launchPath = path.join(vscodeDir, 'launch.json');
-    fs.writeFileSync(launchPath, launchJsonContent.trim());
-
-    // Create settings.json file
-    const settingsPath = path.join(vscodeDir, 'settings.json');
-    fs.writeFileSync(settingsPath, settingsJsonContent);
+    // Create .vscode configuration files
+    createVSCodeSettingsWithLaunch(projectRoot);
 
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');

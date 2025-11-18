@@ -662,11 +662,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async addFilesToProject(params: AddFilesToProjectRequest): Promise<boolean> {
         try {
-            let projectPath = StateMachine.context().projectPath;
-            const workspacePath = StateMachine.context().workspacePath;
-            if (workspacePath) {
-                projectPath = workspacePath;
-            }
+            const projectPath = StateMachine.context().projectPath;
 
             const ballerinaProjectFile = path.join(projectPath, "Ballerina.toml");
             if (!fs.existsSync(ballerinaProjectFile)) {

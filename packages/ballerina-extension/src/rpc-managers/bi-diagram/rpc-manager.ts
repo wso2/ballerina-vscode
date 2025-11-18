@@ -607,10 +607,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
         // Confirm destructive action with user
         const response = await window.showWarningMessage(
-            `Delete project '${projectName}'?`,
+            `Delete Integration '${projectName}'?`,
             {
                 modal: true,
-                detail: "This action cannot be undone. The project will be permanently removed from the workspace."
+                detail: "This action cannot be undone. The integration will be permanently removed from the workspace."
             },
             { title: "Delete", isCloseAffordance: false },
             { title: "Cancel", isCloseAffordance: true }
@@ -635,8 +635,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error converting project to workspace");
-                console.error("Error converting project to workspace:", error);
+                window.showErrorMessage("Error converting integration to workspace");
+                console.error("Error converting integration to workspace:", error);
             }
         } else {
             try {
@@ -644,8 +644,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error adding project to existing workspace");
-                console.error("Error adding project to existing workspace:", error);
+                window.showErrorMessage("Error adding integration to existing workspace");
+                console.error("Error adding integration to existing workspace:", error);
             }
         }
     }
@@ -1073,7 +1073,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
                     : projectInfo;
                 const projectName = project?.title || project?.name;
-                content = `# ${projectName} Project\n\nAdd your project description here.`;
+                content = `# ${projectName} Integration\n\nAdd your integration description here.`;
             }
 
             fs.writeFileSync(readmePath, content);
@@ -1095,7 +1095,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             // Show a quick pick to select deployment option
             const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have different types of artifacts within this project. Select the artifact type to be deployed'
+                placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
             });
             integrationType = selectedScope as SCOPE;
         }
