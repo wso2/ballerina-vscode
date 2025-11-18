@@ -374,7 +374,8 @@
     {
       "label": "person",
       "labelDetails": {
-        "detail": " Person"
+        "detail": " Person",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Person",
