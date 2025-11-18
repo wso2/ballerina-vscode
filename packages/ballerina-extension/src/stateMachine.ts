@@ -126,7 +126,7 @@ const stateMachine = createMachine<MachineContext>(
                     async (context, event) => {
                         // Rebuild project structure with updated project info
                         await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
-                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview })
+                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
                     }
                 ]
             },
