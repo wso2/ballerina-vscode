@@ -44,7 +44,9 @@ import {
     ProcessTypeReferenceResponse,
     ProcessTypeReferenceRequest,
     ExpandedDMModelResponse,
-    ClearTypeCacheResponse
+    ClearTypeCacheResponse,
+    FieldPropertyRequest,
+    ClausePropertyRequest
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -65,6 +67,8 @@ export const mapWithTransformFn: RequestType<MapWithFnRequest, DataMapperSourceR
 export const getDataMapperCodedata: RequestType<GetDataMapperCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
 export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };
+export const getFieldProperty: RequestType<FieldPropertyRequest, PropertyResponse> = { method: `${_preFix}/getFieldProperty` };
+export const getClauseProperty: RequestType<ClausePropertyRequest, PropertyResponse> = { method: `${_preFix}/getClauseProperty` };
 export const getExpandedDMFromDMModel: RequestType<DMModelRequest, ExpandedDMModelResponse> = { method: `${_preFix}/getExpandedDMFromDMModel` };
 export const getProcessTypeReference: RequestType<ProcessTypeReferenceRequest, ProcessTypeReferenceResponse> = { method: `${_preFix}/getProcessTypeReference` };
 export const clearTypeCache: RequestType<void, ClearTypeCacheResponse> = { method: `${_preFix}/clearTypeCache` };
