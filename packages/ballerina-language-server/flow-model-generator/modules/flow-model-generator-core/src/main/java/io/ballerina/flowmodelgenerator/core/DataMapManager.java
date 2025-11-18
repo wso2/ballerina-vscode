@@ -1469,16 +1469,6 @@ public class DataMapManager {
                     break;
                 }
 
-                if (shouldNavigateThroughQueryClause(parentNode, targetSymbol)) {
-                    NonTerminalNode queryExpr = parentNode.parent();
-                    if (queryExpr != null && queryExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-                        parentNode = queryExpr.parent();
-                        if (parentNode == null) {
-                            break;
-                        }
-                    }
-                }
-
                 if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
                     NonTerminalNode grandParent = parentNode.parent();
@@ -1502,17 +1492,6 @@ public class DataMapManager {
             } else {
                 NonTerminalNode parent = expr.parent();
                 SyntaxKind parentKind = parent.kind();
-
-                if (shouldNavigateThroughQueryClause(parent, targetSymbol)) {
-                    NonTerminalNode queryExpr = parent.parent();
-                    if (queryExpr != null && queryExpr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-                        expr = (ExpressionNode) queryExpr;
-                        parent = queryExpr.parent();
-                        if (parent != null) {
-                            parentKind = parent.kind();
-                        }
-                    }
-                }
 
                 if (parentKind == SyntaxKind.SPECIFIC_FIELD) {
                     SpecificFieldNode specificField = (SpecificFieldNode) parent;
@@ -1634,6 +1613,8 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
+                } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx, textEdits, targetSymbol);
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
