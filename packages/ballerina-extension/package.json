@@ -685,7 +685,8 @@
                 "title": "Add Project",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "BI",
+                "when": "ballerina.bi.workspaceSupported"
             },
             {
                 "command": "BI.project-explorer.overview",

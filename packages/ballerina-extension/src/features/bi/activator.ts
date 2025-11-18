@@ -23,7 +23,6 @@ import {
     DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
-    FOCUS_FLOW_DIAGRAM_VIEW,
     MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
@@ -36,6 +35,8 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
+import { createVersionNumber, isSupportedSLVersion } from ".././../utils";
+import { extension } from "../../BalExtensionContext";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -93,6 +94,11 @@ function handleCommandWithContext(
 }
 
 export function activate(context: BallerinaExtension) {
+    const isWorkspaceSupported = isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0));
+    
+    // Set context for command visibility
+    commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
+
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
         prepareAndGenerateConfig(context, StateMachine.context().projectPath, false, true);
     });
@@ -144,8 +150,17 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
-        const workspacePath = StateMachine.context().workspacePath;
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm, workspacePath: workspacePath });
+        if (!isWorkspaceSupported) {
+            window.showErrorMessage('This command requires Ballerina version 2201.13.0 or higher. ');
+            return;
+        }
+        
+        const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
+        if (projectPath) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
+        } else {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+        }
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, (item?: TreeItem) => {
