@@ -2189,7 +2189,7 @@ public class DataMapManager {
                     if (funcDefNode.functionName().text().equals(name)) {
                         return gson.toJsonTree(new Codedata.Builder<>(null)
                                 .lineRange(stNode.lineRange())
-                                .node(NodeKind.VARIABLE)
+                                .node(NodeKind.DATA_MAPPER)
                                 .build());
                     }
                 }
