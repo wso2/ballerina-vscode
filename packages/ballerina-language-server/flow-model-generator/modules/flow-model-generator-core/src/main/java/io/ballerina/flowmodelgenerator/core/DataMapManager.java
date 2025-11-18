@@ -1867,7 +1867,12 @@ public class DataMapManager {
             semanticModel = optSemanticModel.get();
         }
 
-        String[] typeParts = codedata.symbol().split("\\[", 2);
+        String symbolStr = codedata.symbol();
+        if (symbolStr.startsWith("[") && symbolStr.contains(",")) {
+            return gson.toJsonTree(new DataMapCapability(true, "[]"));
+        }
+
+        String[] typeParts = symbolStr.split("\\[", 2);
         String type = typeParts[0];
         boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
         boolean isMapType = type.startsWith("map<") && type.endsWith(">");
@@ -1911,7 +1916,12 @@ public class DataMapManager {
         TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
-        if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+        if (kind == TypeDescKind.TUPLE) {
+            if (isArray) {
+                return new DataMapCapability(true, "[]");
+            }
+            return new DataMapCapability(true, "[]");
+        } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
             if (isArray) {
                 return new DataMapCapability(true, "[]");
             }
@@ -1953,7 +1963,7 @@ public class DataMapManager {
             TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
             return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
         }
-        return kind == TypeDescKind.RECORD;
+        return kind == TypeDescKind.RECORD || kind == TypeDescKind.TUPLE;
     }
 
     public JsonElement addElement(SemanticModel semanticModel, JsonElement cd, Path filePath, String targetField,
