@@ -18,7 +18,8 @@
     {
       "label": "c",
       "labelDetails": {
-        "detail": " Outer"
+        "detail": " Outer",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Outer",

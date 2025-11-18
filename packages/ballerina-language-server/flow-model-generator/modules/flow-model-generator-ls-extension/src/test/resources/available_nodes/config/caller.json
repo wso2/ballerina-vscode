@@ -30,7 +30,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "respond",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -49,7 +49,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "promise",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -68,7 +68,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "pushPromisedResponse",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -87,7 +87,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "'continue",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -106,7 +106,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "redirect",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -125,7 +125,7 @@
                 "packageName": "http",
                 "object": "Caller",
                 "symbol": "getRemoteHostName",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "caller",
                 "resourcePath": ""
               },
@@ -301,8 +301,8 @@
         },
         {
           "metadata": {
-            "label": "Assign",
-            "description": "Assign a value to a variable"
+            "label": "Update Variable",
+            "description": "Update the value of an existing variable"
           },
           "codedata": {
             "node": "ASSIGN"

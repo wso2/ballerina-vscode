@@ -569,7 +569,8 @@
     {
       "label": "studentsItem",
       "labelDetails": {
-        "detail": " Student"
+        "detail": " Student",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Student",

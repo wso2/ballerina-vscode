@@ -30,7 +30,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "get",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -49,7 +49,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "post",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -68,7 +68,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "put",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -87,7 +87,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "delete",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -106,7 +106,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "patch",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -125,7 +125,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "head",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -144,7 +144,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "options",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -163,7 +163,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "execute",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -182,7 +182,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "forward",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -201,7 +201,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "submit",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -220,7 +220,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getResponse",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -239,7 +239,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "hasPromise",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -258,7 +258,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getNextPromise",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -277,7 +277,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getPromisedResponse",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -296,7 +296,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "rejectPromise",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -315,7 +315,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCookieStore",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -334,7 +334,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceClose",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -353,7 +353,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceOpen",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -372,7 +372,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCircuitBreakerCurrentState",
-                "version": "2.15.0",
+                "version": "2.15.1",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -548,8 +548,8 @@
         },
         {
           "metadata": {
-            "label": "Assign",
-            "description": "Assign a value to a variable"
+            "label": "Update Variable",
+            "description": "Update the value of an existing variable"
           },
           "codedata": {
             "node": "ASSIGN"

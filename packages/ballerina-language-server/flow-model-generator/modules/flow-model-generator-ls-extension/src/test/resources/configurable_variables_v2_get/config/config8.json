@@ -50,7 +50,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "int",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -141,7 +149,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -232,7 +248,7 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
@@ -323,7 +339,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Student",
+                  "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
+                  "packageName": "simpleconfigs_errors",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -414,7 +438,15 @@
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Student",
+                  "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
+                  "packageName": "simpleconfigs_errors",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
@@ -462,5 +494,5 @@
     }
   },
   "errorMsg": "Config.toml contains syntax errors. Features like config editing, local run, and debugging may not function properly until the file is manually fixed.",
-  "stacktrace": "[io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.handleConfigTomlErrors(ConfigEditorV2Service.java:1034), io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.lambda$getConfigVariables$0(ConfigEditorV2Service.java:166), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760), java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387), java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312), java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843), java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808), java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)]"
+  "stacktrace": "[io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.handleConfigTomlErrors(ConfigEditorV2Service.java:1060), io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.lambda$getConfigVariables$0(ConfigEditorV2Service.java:180), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760), java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387), java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312), java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843), java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808), java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)]"
 }

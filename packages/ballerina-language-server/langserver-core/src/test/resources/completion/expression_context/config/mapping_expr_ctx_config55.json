@@ -53,7 +53,8 @@
     {
       "label": "rec1",
       "labelDetails": {
-        "detail": " TestRecord"
+        "detail": " TestRecord",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "TestRecord",

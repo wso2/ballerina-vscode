@@ -56,7 +56,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -241,7 +241,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -433,7 +433,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -618,7 +618,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -807,7 +807,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -992,7 +992,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1178,7 +1178,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1363,7 +1363,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1548,7 +1548,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.0",
+          "version": "2.15.1",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {

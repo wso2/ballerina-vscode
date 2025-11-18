@@ -28,6 +28,7 @@ import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
+import io.ballerina.projects.TomlDocument;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import org.wso2.ballerinalang.util.RepoUtils;
@@ -226,6 +227,14 @@ public abstract class BallerinaCompilerApi {
      * @return A list of all build projects in the workspace, or empty if not a workspace project.
      */
     public abstract List<Project> getWorkspaceProjects(Project project);
+
+    /**
+     * Gets the Ballerina.toml for a workspace project.
+     *
+     * @param project The workspace project.
+     * @return An Optional containing the TomlDocument if the project is a workspace project with a Ballerina.toml.
+     */
+    public abstract Optional<TomlDocument> getWorkspaceToml(Project project);
 
     /**
      * Loads a project from the given path using the appropriate ProjectLoader API.

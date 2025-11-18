@@ -50,7 +50,7 @@
         "id": "80618",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -127,7 +127,7 @@
         "id": "81621",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -257,7 +257,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.0",
+                  "version": "2.15.1",
                   "lineRange": {
                     "fileName": "while.bal",
                     "startLine": {
@@ -562,7 +562,7 @@
                 "id": "87697",
                 "metadata": {
                   "label": "Declare Variable",
-                  "description": "Assign a value to a variable"
+                  "description": "Create a new variable"
                 },
                 "codedata": {
                   "node": "VARIABLE",
@@ -1526,7 +1526,7 @@
                           "packageName": "http",
                           "object": "Client",
                           "symbol": "post",
-                          "version": "2.15.0",
+                          "version": "2.15.1",
                           "lineRange": {
                             "fileName": "while.bal",
                             "startLine": {

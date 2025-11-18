@@ -9,7 +9,7 @@
       "metadata": {
         "label": "ai",
         "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.7.0.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.8.0.png"
       },
       "codedata": {
         "node": "MCP_TOOL_KIT",
@@ -17,7 +17,7 @@
         "module": "ai",
         "packageName": "ai",
         "object": "McpToolKit",
-        "version": "1.7.0",
+        "version": "1.8.0",
         "isNew": true
       },
       "returning": false,
@@ -76,7 +76,7 @@
           "typeMembers": [
             {
               "type": "Implementation",
-              "packageInfo": "ballerina:mcp:1.0.0",
+              "packageInfo": "ballerina:mcp:1.0.2",
               "packageName": "mcp",
               "kind": "RECORD_TYPE",
               "selected": false

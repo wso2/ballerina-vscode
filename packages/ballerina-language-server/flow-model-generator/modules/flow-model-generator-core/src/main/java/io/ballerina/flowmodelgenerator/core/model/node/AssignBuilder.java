@@ -37,9 +37,9 @@ import java.util.Optional;
  */
 public class AssignBuilder extends NodeBuilder {
 
-    public static final String LABEL = "Assign";
-    public static final String DESCRIPTION = "Assign a value to a variable";
-    public static final String EXPRESSION_DOC = "Assign value";
+    public static final String LABEL = "Update Variable";
+    public static final String DESCRIPTION = "Update the value of an existing variable";
+    public static final String EXPRESSION_DOC = "Update value";
 
     public static final String VARIABLE_LABEL = "Variable";
     public static final String VARIABLE_DOC = "Name of the variable/field";
