@@ -20,9 +20,10 @@ export type CategoryActionType = 'connection' | 'function' | 'add';
 
 export interface CategoryAction {
     type: CategoryActionType;
+    codeIcon?: string;
     tooltip: string;
     emptyStateLabel: string;
-    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd';
+    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject';
     condition?: (title: string) => boolean; // For special conditions like data mapper
 }
 
@@ -38,12 +39,21 @@ export interface CategoryConfig {
 export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
     "Connections": {
         title: "Connections",
-        actions: [{
-            type: 'connection',
-            tooltip: "Add Connection",
-            emptyStateLabel: "Add Connection",
-            handlerKey: 'onAddConnection'
-        }],
+         actions: [
+            {
+                type: "connection",
+                codeIcon: "vm-connect",
+                tooltip: "Use Devant Connections",
+                emptyStateLabel: "Use Devant Connections",
+                handlerKey: "onLinkDevantProject",
+            },
+            {
+                type: "connection",
+                tooltip: "Add Connection",
+                emptyStateLabel: "Add Connection",
+                handlerKey: "onAddConnection",
+            },
+        ],
         showWhenEmpty: true,
         useConnectionContainer: true,
         fixed: true

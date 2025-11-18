@@ -54,7 +54,9 @@ import {
     SetWebviewCacheRequestParam,
     SetWebviewCache,
     RestoreWebviewCache,
-    ClearWebviewCache
+    ClearWebviewCache,
+    ShowInfoModalRequest,
+    showInformationModal
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -116,6 +118,10 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     showErrorMessage(params: ShowErrorMessageRequest): void {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
+    }
+    
+    showInformationModal(params: ShowInfoModalRequest): Promise<string> {
+        return this._messenger.sendRequest(showInformationModal, HOST_EXTENSION, params);
     }
 
     getCurrentProjectTomlValues(): Promise<PackageTomlValues> {

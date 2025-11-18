@@ -92,6 +92,7 @@ export const addProxyConfigurable = async (configBalFileUri: Uri) => {
 };
 
 export const addConnection = async (
+    connectionName: string,
     moduleName: string,
     securityType: "oauth" | "apikey",
     requireProxy: boolean,
@@ -129,7 +130,7 @@ export const addConnection = async (
     const newConnEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), Templates.emptyLine());
 
-    let baseName = `${moduleName}Client`;
+    let baseName = connectionName?.replaceAll("-","_").replaceAll(" ","_");
     let candidate = baseName;
     let counter = 1;
     while (
@@ -406,7 +407,7 @@ export const initializeDevantConnection = async (params: {
         await addProxyConfigurable(configFileUri);
     }
 
-    const resp = await addConnection(moduleName, params.securityType, requireProxy, {
+    const resp = await addConnection(params.name, moduleName, params.securityType, requireProxy, {
         apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
         svsUrlVarName: keys?.ServiceURL?.keyname,
         tokenClientIdVarName: keys?.ConsumerKey?.keyname,

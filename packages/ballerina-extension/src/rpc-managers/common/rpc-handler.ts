@@ -29,6 +29,7 @@ import {
     SetWebviewCache,
     SetWebviewCacheRequestParam,
     ShowErrorMessageRequest,
+    showInformationModal,
     WorkspaceFileRequest,
     executeCommand,
     experimentalEnabled,
@@ -44,7 +45,8 @@ import {
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     selectFileOrFolderPath,
-    showErrorMessage
+    showErrorMessage,
+    ShowInfoModalRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { CommonRpcManager } from "./rpc-manager";
@@ -64,6 +66,7 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isNPSupported, () => rpcManger.isNPSupported());
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
+    messenger.onRequest(showInformationModal, (params: ShowInfoModalRequest) => rpcManger.showInformationModal(params));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
     messenger.onRequest(SetWebviewCache, (params: SetWebviewCacheRequestParam) => rpcManger.setWebviewCache(params));

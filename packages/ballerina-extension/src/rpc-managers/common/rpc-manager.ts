@@ -42,6 +42,7 @@ import {
     WorkspacesFileResponse,
     WorkspaceTypeResponse,
     SetWebviewCacheRequestParam,
+    ShowInfoModalRequest,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
@@ -253,6 +254,10 @@ export class CommonRpcManager implements CommonRPCAPI {
         const messageWithLink = new MarkdownString(params.message);
         messageWithLink.appendMarkdown(`\n\nPlease [create an issue](${BALLERINA_INTEGRATOR_ISSUES_URL}) if the issue persists.`);
         window.showErrorMessage(messageWithLink.value);
+    }
+
+    async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
+        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
     }
 
     async isNPSupported(): Promise<boolean> {
