@@ -253,9 +253,9 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
             rpcClient
                 .getVisualizerRpcClient()
-                .joinProjectPath(MAIN_BALLERINA_FILE)
-                .then((filePath) => {
-                    setFilePath(filePath);
+                .joinProjectPath({ segments: [MAIN_BALLERINA_FILE] })
+                .then((response) => {
+                    setFilePath(response.filePath);
                 });
         };
 
