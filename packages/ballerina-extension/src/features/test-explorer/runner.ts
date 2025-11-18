@@ -21,11 +21,48 @@ import { exec } from 'child_process';
 import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind } from 'vscode';
 import { testController } from './activator';
 import { StateMachine } from "../../stateMachine";
-import { isTestFunctionItem, isTestGroupItem } from './discover';
+import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
 import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
+
+/**
+ * Extract project path from a test item
+ * Test IDs have the format: test:${projectPath}:${fileName}:${functionName}
+ */
+function getProjectPathFromTestItem(test: TestItem): string | undefined {
+    if (isTestFunctionItem(test)) {
+        // Extract from test ID: test:${projectPath}:${fileName}:${functionName}
+        const parts = test.id.split(':');
+        if (parts.length >= 2) {
+            return parts[1];
+        }
+    } else if (isProjectGroupItem(test)) {
+        // For project groups, we need to get a child test to extract the path
+        let projectPath: string | undefined;
+        test.children.forEach((child) => {
+            if (!projectPath) {
+                projectPath = getProjectPathFromTestItem(child);
+            }
+        });
+        return projectPath;
+    } else if (isTestGroupItem(test)) {
+        // For test groups, check if they have a parent project or extract from children
+        if (test.parent && isProjectGroupItem(test.parent)) {
+            return getProjectPathFromTestItem(test.parent);
+        }
+        // Otherwise extract from children
+        let projectPath: string | undefined;
+        test.children.forEach((child) => {
+            if (!projectPath) {
+                projectPath = getProjectPathFromTestItem(child);
+            }
+        });
+        return projectPath;
+    }
+    return StateMachine.context().projectPath;
+}
 
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
     if (!request.include) {
@@ -57,11 +94,60 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
         run.started(test);
 
+        // Get the project path for this test
+        const projectPath = getProjectPathFromTestItem(test);
+        if (!projectPath) {
+            run.failed(test, new TestMessage('Could not determine project path for test'));
+            run.end();
+            return;
+        }
+
         let command: string;
         const executor = extension.ballerinaExtInstance.getBallerinaCmd();
-        if (isTestGroupItem(test)) {
+
+        // Handle running all tests in a project group
+        if (isProjectGroupItem(test)) {
             let testCaseNames: string[] = [];
-            let testItems : TestItem[] = [];
+            let testItems: TestItem[] = [];
+
+            // Collect all test functions from all groups in the project
+            test.children.forEach((groupItem) => {
+                groupItem.children.forEach((child) => {
+                    if (isTestFunctionItem(child)) {
+                        testCaseNames.push(child.label);
+                        testItems.push(child);
+                        run.started(child);
+                    }
+                });
+            });
+
+            command = testCaseNames.length > 0
+                ? `${executor} test --tests ${testCaseNames.join(',')} --code-coverage`
+                : `${executor} test --code-coverage`;
+
+            const startTime = Date.now();
+            runCommand(command, projectPath).then(() => {
+                const endTime = Date.now();
+                const timeElapsed = testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
+
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                    endGroup(test, true, run);
+                }).catch(() => {
+                    endGroup(test, false, run);
+                });
+            }).catch(() => {
+                const endTime = Date.now();
+                const timeElapsed = testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
+
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                    endGroup(test, true, run);
+                }).catch(() => {
+                    endGroup(test, false, run);
+                });
+            });
+        } else if (isTestGroupItem(test)) {
+            let testCaseNames: string[] = [];
+            let testItems: TestItem[] = [];
             test.children.forEach((child) => {
                 const functionName = child.label;
                 testCaseNames.push(functionName);
@@ -69,23 +155,23 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
-            command = `bal test --tests ${testCaseNames.join(',')} --code-coverage`;
+            command = `${executor} test --tests ${testCaseNames.join(',')} --code-coverage`;
 
             const startTime = Date.now();
-            runCommand(command).then(() => {
-                const EndTime = Date.now();
-                const timeElapsed = (EndTime - startTime) / testItems.length;
+            runCommand(command, projectPath).then(() => {
+                const endTime = Date.now();
+                const timeElapsed = (endTime - startTime) / testItems.length;
 
-                reportTestResults(run, testItems, timeElapsed).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
             }).catch(() => {
-                const EndTime = Date.now();
-                const timeElapsed = (EndTime - startTime) / testItems.length;
+                const endTime = Date.now();
+                const timeElapsed = (endTime - startTime) / testItems.length;
 
-                reportTestResults(run, testItems, timeElapsed).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -105,25 +191,25 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             }
 
             const startTime = Date.now();
-            runCommand(command).then(() => {
-                const EndTime = Date.now();
-                const timeElapsed = (EndTime - startTime) / testItems.length;
+            runCommand(command, projectPath).then(() => {
+                const endTime = Date.now();
+                const timeElapsed = (endTime - startTime) / testItems.length;
 
-                reportTestResults(run, testItems, timeElapsed, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
             }).catch(() => {
-                const EndTime = Date.now();
-                const timeElapsed = (EndTime - startTime) / testItems.length;
+                const endTime = Date.now();
+                const timeElapsed = (endTime - startTime) / testItems.length;
 
-                reportTestResults(run, testItems, timeElapsed, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
-            }).finally(() => { 
+            }).finally(() => {
                 run.end();
             });
         }
@@ -137,12 +223,10 @@ enum TEST_STATUS {
     SKIPPED = 'SKIPPED',
 }
 
-async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, individualTest: boolean = false) {
-    const projectRoot = StateMachine.context().projectPath;
-
+async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false) {
     // reading test results
     let testsJson: JSON | undefined = undefined;
-    testsJson = await readTestJson(path.join(projectRoot!, TEST_RESULTS_PATH).toString());
+    testsJson = await readTestJson(path.join(projectPath, TEST_RESULTS_PATH).toString());
     if (!testsJson) {
         for (const test of testItems) {
             const testMessage: TestMessage = new TestMessage("Command failed");
@@ -211,9 +295,9 @@ function endGroup(test: TestItem, allPassed: boolean, run: TestRun) {
     run.end();
 }
 
-async function runCommand(command: string): Promise<void> {
+async function runCommand(command: string, projectPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
-        exec(command, { cwd: StateMachine.context().projectPath }, (error, stdout, stderr) => {
+        exec(command, { cwd: projectPath }, (error, stdout, stderr) => {
             if (error) {
                 // Report test failure
                 reject(new Error(stderr || 'Test failed!'));
