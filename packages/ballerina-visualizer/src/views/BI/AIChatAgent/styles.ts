@@ -16,12 +16,19 @@
  * under the License.
  */
 
-export enum InputMode {
-    TEXT = "Text",
-    EXP = "Expression"
-}
+import styled from "@emotion/styled";
 
-export const INPUT_MODE_MAP = {
-  string: InputMode.TEXT,
-  //later add more when needed
-};
+export const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+`;
+
+export const LoaderContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+`;

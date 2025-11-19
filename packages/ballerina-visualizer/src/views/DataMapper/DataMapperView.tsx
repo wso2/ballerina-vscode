@@ -67,7 +67,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
+    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -606,7 +606,7 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: property,
+                        property: { ...property, valueType: "DATA_MAPPING_EXPRESSION" }
                     },
                     completionContext: {
                         triggerKind: triggerCharacter ? 2 : 1,
@@ -667,7 +667,7 @@ export function DataMapperView(props: DataMapperProps) {
                 <>
                     {reusable && (!hasInputs || !hasOutputs) ? (
                         <FunctionForm
-                            projectPath={projectUri}
+                            projectPath={projectPath}
                             filePath={filePath}
                             functionName={modelState.model.output.name}
                             isDataMapper={true}

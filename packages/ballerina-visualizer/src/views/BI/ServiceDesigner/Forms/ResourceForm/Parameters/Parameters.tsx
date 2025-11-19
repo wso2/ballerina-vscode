@@ -23,8 +23,8 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel, PayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
-import { ContextBasedFormTypeEditor } from '../../../../../../components/ContextBasedFormTypeEditor';
+import { ConfigProperties, ParameterModel, HttpPayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
+import { EntryPointTypeCreator } from '../../../../../../components/EntryPointTypeCreator';
 
 export interface ParametersProps {
     parameters: ParameterModel[];
@@ -34,7 +34,7 @@ export interface ParametersProps {
     pathName?: string;
     showPayload: boolean;
     isNewResource?: boolean;
-    payloadContext?: PayloadContext;
+    payloadContext?: HttpPayloadContext;
 }
 
 const AddButtonWrapper = styled.div`
@@ -208,27 +208,30 @@ export function Parameters(props: ParametersProps) {
     };
 
     const generatePayloadName = () => {
-        if (pathName) {
-            // Remove leading/trailing slashes and split by slash
-            const pathSegments = pathName.replace(/^\/|\/$/g, '').split('/');
-
-            // Filter out segments that contain brackets (parameters) and keep only valid segments
-            const validSegments = pathSegments.filter(segment => !segment.includes('[') && !segment.includes(']'));
-
-            // Join with underscores and sanitize to only allow letters, numbers, and underscores
-            const sanitizedPath = validSegments
-                .join('_')
-                .replace(/[^a-zA-Z0-9_]/g, ''); // Remove any characters that are not letters, numbers, or underscores
-
-            if (sanitizedPath) {
-                const newPayloadName = `${sanitizedPath}_payload`;
-                const capitalizedPath = newPayloadName.charAt(0).toUpperCase() + newPayloadName.slice(1);
-                return capitalizedPath;
-            } else {
-                return "PayloadType";
-            }
+        if (!pathName) {
+            return "PayloadType";
         }
-        return "PayloadType";
+
+        // Extract valid segments
+        const validSegments = pathName
+            .replace(/^\/|\/$/g, '') // Remove leading/trailing slashes
+            .split('/')
+            .filter(segment => !segment.includes('[') && !segment.includes(']')) // Filter out parameter segments
+            .map(segment => segment.replace(/[^a-zA-Z0-9]/g, '')) // Clean each segment
+            .filter(segment => segment.length > 0); // Remove empty segments
+
+        if (validSegments.length === 0) {
+            return "PayloadType";
+        }
+
+        const camelCasePath = validSegments
+            .map((segment, index) => index === 0
+                ? segment.toLowerCase()
+                : segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+            )
+            .join('');
+
+        return camelCasePath.charAt(0).toUpperCase() + camelCasePath.slice(1) + 'Payload';
     }
 
     const onSaveParam = (param: ParameterModel) => {
@@ -281,11 +284,14 @@ export function Parameters(props: ParametersProps) {
     return (
         <div>
             {/* <---------------- Query Parameters Start ----------------> */}
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Query Parameters</Typography>
+            {normalParameters.filter((param: ParameterModel) => param.httpParamType === "QUERY").length > 0 && (
+                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Query Parameters</Typography>
+            )}
             {normalParameters
                 .filter((param: ParameterModel) => param.httpParamType === "QUERY")
                 .map((param: ParameterModel, index) => (
                     <ParamItem
+                        readonly={readonly}
                         key={`query-${index}`}
                         param={param}
                         onDelete={onDelete}
@@ -302,20 +308,25 @@ export function Parameters(props: ParametersProps) {
                     type="QUERY"
                 />
             }
-            <AddButtonWrapper >
-                <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("QUERY"))}>
-                    <Codicon name="add" />
-                    <>Query Parameter</>
-                </LinkButton>
-            </AddButtonWrapper>
+            {!readonly && (
+                <AddButtonWrapper >
+                    <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("QUERY"))}>
+                        <Codicon name="add" />
+                        <>Query Parameter</>
+                    </LinkButton>
+                </AddButtonWrapper>
+            )}
 
             {/* <---------------- Header Parameters Start ----------------> */}
             <>
-                <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Headers</Typography>
+                {normalParameters.filter((param: ParameterModel) => param.httpParamType === "HEADER").length > 0 && (
+                    <Typography sx={{ marginBlockEnd: 10, marginTop: 20 }} variant="h4">Headers</Typography>
+                )}
                 {normalParameters
                     .filter((param: ParameterModel) => param.httpParamType === "HEADER")
                     .map((param: ParameterModel, index) => (
                         <ParamItem
+                            readonly={readonly}
                             key={`header-${index}`}
                             param={param}
                             onDelete={onDelete}
@@ -332,12 +343,14 @@ export function Parameters(props: ParametersProps) {
                         type="HEADER"
                     />
                 }
-                <AddButtonWrapper >
-                    <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
-                        <Codicon name="add" />
-                        <>Header</>
-                    </LinkButton>
-                </AddButtonWrapper>
+                {!readonly && (
+                    <AddButtonWrapper >
+                        <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : () => (!readonly && onAddParamClick("HEADER"))}>
+                            <Codicon name="add" />
+                            <>Header</>
+                        </LinkButton>
+                    </AddButtonWrapper>
+                )}
             </>
 
             {/* <---------------- Normal Parameters End Query|HEADER ----------------> */}
@@ -345,9 +358,12 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Payload Parameters Start --------------------> */}
             {showPayload && (
                 <>
-                    <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Payload</Typography>
+                    {payloadParameters.length > 0 && (
+                        <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Payload</Typography>
+                    )}
                     {payloadParameters.map((param: ParameterModel, index) => (
                         <ParamItem
+                            readonly={readonly}
                             key={index}
                             param={param}
                             onDelete={onDelete}
@@ -368,14 +384,14 @@ export function Parameters(props: ParametersProps) {
                 />
             }
 
-            {showPayload && payloadParameters.length === 0 &&
+            {showPayload && payloadParameters.length === 0 && !readonly && (
                 <AddButtonWrapper >
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" } || editModel && { opacity: 0.5, pointerEvents: 'none' }} onClick={editModel ? undefined : (!readonly && onAddPayloadClick)}>
                         <Codicon name="add" />
                         <>Define Payload</>
                     </LinkButton>
                 </AddButtonWrapper>
-            }
+            )}
             {/* <-------------------- Payload Parameters End --------------------> */}
 
             {/* <-------------------- Advanced Parameters Start --------------------> */}
@@ -420,43 +436,53 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters Checkbox Start --------------------> */}
             {!isNewResource && (
                 <>
-                    <OptionalConfigRow>
-                        Advanced Parameters
-                        <OptionalConfigButtonContainer>
-                            {!showOptionalConfigurations && (
-                                <LinkButton
-                                    onClick={handleShowOptionalConfigurations}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                                >
-                                    <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                    Expand
-                                </LinkButton>
-                            )}
-                            {showOptionalConfigurations && (
-                                <LinkButton
-                                    onClick={handleHideOptionalConfigurations}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                                >
-                                    <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                    Collapse
-                                </LinkButton>
-                            )}
-                        </OptionalConfigButtonContainer>
-                    </OptionalConfigRow>
+                    {((readonly && advancedEnabledParameters.length > 0) || !readonly) && (
+                        <OptionalConfigRow>
+                            Advanced Parameters
+                            <OptionalConfigButtonContainer>
+                                {!showOptionalConfigurations && (
+                                    <LinkButton
+                                        onClick={handleShowOptionalConfigurations}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                                    >
+                                        <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showOptionalConfigurations && (
+                                    <LinkButton
+                                        onClick={handleHideOptionalConfigurations}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
+                                    >
+                                        <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                        Collapse
+                                    </LinkButton>
+                                )}
+                            </OptionalConfigButtonContainer>
+                        </OptionalConfigRow>
+                    )}
                     {showOptionalConfigurations && (
                         <OptionalConfigContent>
                             <CheckBoxGroup direction="vertical">
-                                {
-                                    advancedAllParameters.map((param: ParameterModel, index) => (
-                                        <CheckBox
-                                            key={index}
-                                            label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
-                                            checked={param.enabled}
-                                            onChange={(checked) => onAdvancedChecked(param, checked)}
-                                            sx={{ description: getParameterDescription(param.metadata.label) }}
-                                        />
-                                    ))
-                                }
+                                {!readonly && advancedAllParameters.map((param: ParameterModel, index) => (
+                                    <CheckBox
+                                        key={index}
+                                        label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
+                                        checked={param.enabled}
+                                        onChange={(checked) => onAdvancedChecked(param, checked)}
+                                        sx={{ description: getParameterDescription(param.metadata.label) }}
+                                    />
+                                ))}
+                                {readonly && advancedEnabledParameters.map((param: ParameterModel, index) => (
+                                    <CheckBox
+                                        key={index}
+                                        disabled={true}
+                                        label={param.metadata.label.charAt(0).toUpperCase() + param.metadata.label.slice(1)}
+                                        checked={param.enabled}
+                                        onChange={(checked) => onAdvancedChecked(param, checked)}
+                                        sx={{ description: getParameterDescription(param.metadata.label) }}
+                                    />
+                                ))}
                             </CheckBoxGroup>
                         </OptionalConfigContent>
                     )}
@@ -466,12 +492,11 @@ export function Parameters(props: ParametersProps) {
             {/* <-------------------- Advanced Parameters Checkbox End --------------------> */}
 
             {/* FormTypeEditor Modal for Add Payload */}
-            <ContextBasedFormTypeEditor
+            <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadName()}
-                editMode={false}
                 modalTitle={"Define Payload"}
                 payloadContext={{
                     ...payloadContext,

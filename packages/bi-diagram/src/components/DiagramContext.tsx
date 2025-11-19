@@ -98,6 +98,7 @@ export interface DiagramContextState {
     readOnly?: boolean;
     lockCanvas?: boolean;
     setLockCanvas?: (lock: boolean) => void;
+    isUserAuthenticated?: boolean;
     expressionContext: ExpressionContextProps;
 }
 
@@ -154,6 +155,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     readOnly: false,
     lockCanvas: false,
     setLockCanvas: (lock: boolean) => {},
+    isUserAuthenticated: false,
     expressionContext: {
         completions: [],
         triggerCharacters: [],

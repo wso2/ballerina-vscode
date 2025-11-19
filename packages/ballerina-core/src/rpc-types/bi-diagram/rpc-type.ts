@@ -96,7 +96,10 @@ import {
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     FormDiagnosticsRequest,
-    FormDiagnosticsResponse
+    FormDiagnosticsResponse,
+    ExpressionTokensRequest,
+    BISearchNodesRequest,
+    BISearchNodesResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -117,7 +120,8 @@ import {
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
-    GeneratedClientSaveResponse
+    GeneratedClientSaveResponse,
+    AddProjectToWorkspaceRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -137,6 +141,7 @@ export const getEnclosedFunction: RequestType<BIGetEnclosedFunctionRequest, BIGe
 export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getNodeTemplate` };
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
 export const createProject: NotificationType<ProjectRequest> = { method: `${_preFix}/createProject` };
+export const addProjectToWorkspace: NotificationType<AddProjectToWorkspaceRequest> = { method: `${_preFix}/addProjectToWorkspace` };
 export const getWorkspaces: RequestType<void, WorkspacesResponse> = { method: `${_preFix}/getWorkspaces` };
 export const getProjectStructure: RequestType<void, ProjectStructureResponse> = { method: `${_preFix}/getProjectStructure` };
 export const getProjectComponents: RequestType<void, ProjectComponentsResponse> = { method: `${_preFix}/getProjectComponents` };
@@ -153,7 +158,7 @@ export const getConfigVariableNodeTemplate: RequestType<GetConfigVariableNodeTem
 export const getModuleNodes: RequestType<void, BIModuleNodesResponse> = { method: `${_preFix}/getModuleNodes` };
 export const getReadmeContent: RequestType<void, ReadmeContentResponse> = { method: `${_preFix}/getReadmeContent` };
 export const openReadme: NotificationType<void> = { method: `${_preFix}/openReadme` };
-export const renameIdentifier: RequestType<RenameIdentifierRequest, void> = { method: `${_preFix}/renameIdentifier` };
+export const renameIdentifier: NotificationType<RenameIdentifierRequest> = { method: `${_preFix}/renameIdentifier` };
 export const deployProject: RequestType<DeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployProject` };
 export const openAIChat: NotificationType<AIChatRequest> = { method: `${_preFix}/openAIChat` };
 export const getSignatureHelp: RequestType<SignatureHelpRequest, SignatureHelpResponse> = { method: `${_preFix}/getSignatureHelp` };
@@ -189,6 +194,7 @@ export const addFunction: RequestType<AddFunctionRequest, AddImportItemResponse>
 export const getFunctionNode: RequestType<FunctionNodeRequest, FunctionNodeResponse> = { method: `${_preFix}/getFunctionNode` };
 export const getEndOfFile: RequestType<EndOfFileRequest, LinePosition> = { method: `${_preFix}/getEndOfFile` };
 export const search: RequestType<BISearchRequest, BISearchResponse> = { method: `${_preFix}/search` };
+export const searchNodes: RequestType<BISearchNodesRequest, BISearchNodesResponse> = { method: `${_preFix}/searchNodes` };
 export const getRecordNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getRecordNames` };
 export const getFunctionNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getFunctionNames` };
 export const getDevantMetadata: RequestType<void, DevantMetadata> = { method: `${_preFix}/getDevantMetadata` };
@@ -196,3 +202,4 @@ export const generateOpenApiClient: RequestType<OpenAPIClientGenerationRequest, 
 export const getOpenApiGeneratedModules: RequestType<OpenAPIGeneratedModulesRequest, OpenAPIGeneratedModulesResponse> = { method: `${_preFix}/getOpenApiGeneratedModules` };
 export const deleteOpenApiGeneratedModules: RequestType<OpenAPIClientDeleteRequest, OpenAPIClientDeleteResponse> = { method: `${_preFix}/deleteOpenApiGeneratedModules` };
 export const openConfigToml: RequestType<OpenConfigTomlRequest, void> = { method: `${_preFix}/openConfigToml` };
+export const getExpressionTokens: RequestType<ExpressionTokensRequest, number[]> = { method: `${_preFix}/getExpressionTokens` };

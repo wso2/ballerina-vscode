@@ -27,7 +27,7 @@ import {
     DebugAdapterTrackerFactory,
     DebugAdapterTracker,
     ViewColumn,
-    TabInputText
+    TaskScope
 } from 'vscode';
 import * as child_process from "child_process";
 import { getPortPromise } from 'portfinder';
@@ -36,24 +36,29 @@ import {
     BallerinaExtension, LANGUAGE, OLD_BALLERINA_VERSION_DEBUGGER_RUNINTERMINAL,
     UNSUPPORTED_DEBUGGER_RUNINTERMINAL_KIND, INVALID_DEBUGGER_RUNINTERMINAL_KIND
 } from '../../core';
-import { ExtendedLangClient } from '../../core/extended-language-client';
 import {
     TM_EVENT_START_DEBUG_SESSION, CMP_DEBUGGER, sendTelemetryEvent, sendTelemetryException,
     CMP_NOTEBOOK, TM_EVENT_START_NOTEBOOK_DEBUG
 } from '../telemetry';
-import { log, debug as debugLog, isSupportedSLVersion, isWindows } from "../../utils";
+import {
+    log,
+    debug as debugLog,
+    isSupportedSLVersion,
+    isWindows,
+    createVersionNumber
+} from "../../utils";
+import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join, sep } from 'path';
-import { parseTomlToConfig } from '../config-generator/utils';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { LoggingDebugSession, OutputEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { PALETTE_COMMANDS, PROJECT_TYPE } from '../project/cmds/cmd-runner';
+import { PALETTE_COMMANDS } from '../project/cmds/cmd-runner';
 import { Disposable } from 'monaco-languageclient';
-import { getCurrentBallerinaFile, getCurrentBallerinaProject } from '../../utils/project-utils';
-import { BallerinaProject, BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
+import { getCurrentProjectRoot, selectBallerinaProjectForDebugging } from '../../utils/project-utils';
+import { BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
 import { openView, StateMachine } from '../../stateMachine';
 import { waitForBallerinaService } from '../tryit/utils';
 import { BreakpointManager } from './breakpoint-manager';
@@ -67,9 +72,6 @@ import { findHighestVersionJdk } from '../../utils/server/server';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
-const BALLERINA_TOML_REGEX = `**${sep}Ballerina.toml`;
-const BALLERINA_FILE_REGEX = `**${sep}*.bal`;
-const BALLERINA_TOML = `Ballerina.toml`;
 
 export enum DEBUG_REQUEST {
     LAUNCH = 'launch'
@@ -80,17 +82,6 @@ export enum DEBUG_CONFIG {
     TEST_DEBUG_NAME = 'Ballerina Test'
 }
 
-export interface BALLERINA_TOML {
-    package: PACKAGE;
-    "build-options": any;
-}
-
-export interface PACKAGE {
-    org: string;
-    name: string;
-    version: string;
-    distribution: string;
-}
 
 class DebugConfigProvider implements DebugConfigurationProvider {
     async resolveDebugConfiguration(_folder: WorkspaceFolder, config: DebugConfiguration)
@@ -114,7 +105,7 @@ function getValueFromProgramArgs(programArgs: string[], idx: number) {
 async function handleMainFunctionParams(config: DebugConfiguration) {
     const res = await extension.ballerinaExtInstance.langClient?.getMainFunctionParams({
         projectRootIdentifier: {
-            uri: "file://" + StateMachine.context().projectUri
+            uri: Uri.file(StateMachine.context().projectPath).toString()
         }
     }) as MainFunctionParamsResponse;
     if (res.hasMain) {
@@ -253,6 +244,12 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
 
     config.noDebug = Boolean(config.noDebug);
 
+    // Notify debug server that the debug session is started in low-code mode
+    const isWebviewPresent = isVisualizerWebviewActive();
+    if (isWebviewPresent && StateMachine.context().isBI) {
+        config.lowCodeMode = true;
+    }
+
     const activeTextEditor = window.activeTextEditor;
 
     if (activeTextEditor && activeTextEditor.document.fileName.endsWith(BAL_NOTEBOOK)) {
@@ -267,52 +264,11 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
     }
 
     if (!config.script) {
-        const tomls = await workspace.findFiles(workspaceFolder ? new RelativePattern(workspaceFolder, BALLERINA_TOML_REGEX) : BALLERINA_TOML_REGEX);
-        const projects: { project: BallerinaProject; balFile: Uri; relativePath: string }[] = [];
-        for (const toml of tomls) {
-            const projectRoot = dirname(toml.fsPath);
-            const balFiles = await workspace.findFiles(new RelativePattern(projectRoot, BALLERINA_FILE_REGEX), undefined, 1);
-            if (balFiles.length > 0) {
-
-                const tomlContent: string = readFileSync(toml.fsPath, 'utf8');
-                const tomlObj: BALLERINA_TOML = parseTomlToConfig(tomlContent) as BALLERINA_TOML;
-                const relativePath = workspace.asRelativePath(projectRoot);
-                projects.push({ project: { packageName: tomlObj.package.name }, balFile: balFiles[0], relativePath });
-            }
-        }
-
-        if (projects.length > 0) {
-            if (projects.length === 1) {
-                config.script = projects[0].balFile.fsPath;
-            } else {
-                const selectedProject = await window.showQuickPick(projects.map((project) => {
-                    return {
-                        label: project.project.packageName,
-                        description: project.relativePath
-                    };
-                }), { placeHolder: "Select a Ballerina project to debug", canPickMany: false });
-                if (selectedProject) {
-                    config.script = projects[projects.indexOf(projects.find((project) => {
-                        return project.project.packageName === selectedProject.label;
-                    }))].balFile.fsPath;
-                } else {
-                    return Promise.reject();
-                }
-            }
+        // If webview is present and in BI mode, use the project path from the state machine (focused project in BI)
+        if (StateMachine.context().isBI && isWebviewPresent && StateMachine.context().projectPath) {
+            config.script = StateMachine.context().projectPath;
         } else {
-            extension.ballerinaExtInstance.showMessageInvalidProject();
-            return Promise.reject();
-        }
-
-        let langClient = <ExtendedLangClient>extension.ballerinaExtInstance.langClient;
-        if (langClient.initializeResult) {
-            const { experimental } = langClient.initializeResult!.capabilities;
-            if (experimental && experimental.introspection && experimental.introspection.port > 0) {
-                config.networkLogsPort = experimental.introspection.port;
-                if (config.networkLogs === undefined) {
-                    config.networkLogs = false;
-                }
-            }
+            config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
         }
     }
 
@@ -338,12 +294,11 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
         config.debugServer = debugServerPort.toString();
     }
 
-    // Notify debug server that the debug session is started in low-code mode
-    const isWebviewPresent = VisualizerWebview.currentPanel !== undefined;
-    if (isWebviewPresent && StateMachine.context().isBI) {
-        config.lowCodeMode = true;
-    }
     return config;
+}
+
+function isVisualizerWebviewActive() {
+    return VisualizerWebview.currentPanel !== undefined;
 }
 
 export async function constructDebugConfig(uri: Uri, testDebug: boolean, args?: any): Promise<DebugConfiguration> {
@@ -467,7 +422,7 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                         BreakpointManager.getInstance().setActiveBreakpoint(clientBreakpoint);
 
                         if (isWebviewPresent) {
-                            await handleBreakpointVisualization(uri, clientBreakpoint);
+                            await handleDebugHitVisualization(uri, clientBreakpoint);
                         }
                     } else if (msg.command === "continue" || msg.command === "next" || msg.command === "stepIn" || msg.command === "stepOut") {
                         // clear the active breakpoint
@@ -484,7 +439,7 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                         notifyBreakpointChange();
 
                         // restart the fast-run
-                        getCurrentRoot().then(async (root) => {
+                        getCurrentProjectRoot().then(async (root) => {
                             const didStop = await stopRunFast(root);
                             if (didStop) {
                                 runFast(root, msg.body);
@@ -516,13 +471,13 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
     }
 }
 
-async function handleBreakpointVisualization(uri: Uri, clientBreakpoint: DebugProtocol.StackFrame) {
+async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProtocol.StackFrame) {
     const newContext = StateMachine.context();
 
-    // Check if breakpoint is in a different project
-    if (!uri.fsPath.startsWith(newContext.projectUri)) {
-        console.log("Breakpoint is in a different project");
-        window.showInformationMessage("Cannot visualize breakpoint since it belongs to a different project");
+    // Check if breakpoint is in a different package
+    if (!uri.fsPath.startsWith(newContext.projectPath)) {
+        console.log("Debug hit in a different package");
+        window.showInformationMessage("Cannot visualize debug hit since it belongs to a different integration");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);
         notifyBreakpointChange();
         return;
@@ -540,7 +495,7 @@ async function handleBreakpointVisualization(uri: Uri, clientBreakpoint: DebugPr
     const res = await StateMachine.langClient().getEnclosedFunctionDef(req);
 
     if (!res?.startLine || !res?.endLine) {
-        window.showInformationMessage("Failed to open the respective view for the breakpoint. Please manually navigate to the respective view.");
+        window.showInformationMessage("Failed to open the respective view for the debug hit. Please manually navigate to the respective view.");
         notifyBreakpointChange();
         return;
     }
@@ -570,7 +525,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     async createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): Promise<DebugAdapterDescriptor> {
         // Check if the project contains errors(and fix the possible ones) before starting the debug session
         const langClient = extension.ballerinaExtInstance.langClient;
-        const projectRoot = await getCurrentRoot();
+        const projectRoot = await getCurrentProjectRoot();
         await cleanAndValidateProject(langClient, projectRoot);
 
         // Check if config generation is required before starting the debug session
@@ -582,7 +537,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
             });
         }
 
-        if (session.configuration.noDebug && StateMachine.context().isBI) {
+        if (session.configuration.noDebug) {
             return new Promise((resolve) => {
                 resolve(new DebugAdapterInlineImplementation(new BIRunAdapter()));
             });
@@ -665,7 +620,7 @@ class FastRunDebugAdapter extends LoggingDebugSession {
         });
         this.notificationHandler = notificationHandler;
         this.programArgs = (args as any).programArgs;
-        getCurrentRoot().then((root) => {
+        getCurrentProjectRoot().then((root) => {
             this.root = root;
             runFast(root, { programArgs: this.programArgs }).then((didRan) => {
                 response.success = didRan;
@@ -692,48 +647,73 @@ class BIRunAdapter extends LoggingDebugSession {
     taskTerminationListener: Disposable | null = null;
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        const taskDefinition: TaskDefinition = {
-            type: 'shell',
-            task: 'run'
-        };
+        getCurrentProjectRoot().then((projectRoot) => {
+            const taskDefinition: TaskDefinition = {
+                type: 'shell',
+                task: 'run'
+            };
 
-        let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
 
-        const programArgs = (args as any).programArgs;
-        if (programArgs && programArgs.length > 0) {
-            runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
-        }
+            const programArgs = (args as any).programArgs;
+            if (programArgs && programArgs.length > 0) {
+                runCommand = `${runCommand} -- ${programArgs.join(' ')}`;
+            }
 
-        if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
-            runCommand = `${runCommand} --experimental`;
-        }
+            if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+                runCommand = `${runCommand} --experimental`;
+            }
 
-        const execution = new ShellExecution(runCommand);
-        const task = new Task(
-            taskDefinition,
-            workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
-            'Ballerina Run',
-            'ballerina',
-            execution
-        );
+            // Use the current process environment which should have the updated PATH
+            const env = process.env;
+            debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
-        try {
-            tasks.executeTask(task).then((taskExecution) => {
-                this.task = taskExecution;
-
-                // Add task termination listener
-                this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
-                    if (e.execution === this.task) {
-                        this.sendEvent(new TerminatedEvent());
-                    }
-                });
-
-                response.success = true;
+            // Determine the correct working directory for the task
+            let cwd: string;
+            try {
+                cwd = getProjectWorkingDirectory(projectRoot);
+                debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
+            } catch (error) {
+                window.showErrorMessage(`Failed to determine working directory`);
+                response.success = false;
                 this.sendResponse(response);
+                throw error;
+            }
+
+            const execution = new ShellExecution(runCommand, {
+                env: env as { [key: string]: string },
+                cwd: cwd
             });
-        } catch (error) {
-            window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
-        }
+            const task = new Task(
+                taskDefinition,
+                TaskScope.Workspace,
+                'Ballerina Run',
+                'ballerina',
+                execution
+            );
+
+            try {
+                tasks.executeTask(task).then((taskExecution) => {
+                    this.task = taskExecution;
+
+                    // Add task termination listener
+                    this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
+                        if (e.execution === this.task) {
+                            this.sendEvent(new TerminatedEvent());
+                        }
+                    });
+
+                    response.success = true;
+                    this.sendResponse(response);
+                });
+            } catch (error) {
+                window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
+            }
+        }).catch((error) => {
+            window.showErrorMessage(`Failed to determine project root: ${error}`);
+            response.success = false;
+            this.sendResponse(response);
+        });
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
@@ -790,29 +770,6 @@ async function stopRunFast(root: string): Promise<boolean> {
     });
 }
 
-async function getCurrentRoot(): Promise<string> {
-    let file: string | undefined;
-    try {
-        file = getCurrentBallerinaFile();
-    } catch (error) {
-        // ignore
-    }
-
-    // If no Ballerina files are open, safe to assume that the workspace root is same as the package root in BI mode.
-    if (!file) {
-        const workspaceRoot = getWorkspaceRoot();
-        if (!workspaceRoot && StateMachine.context().isBI) {
-            throw new Error("Unable to determine the current workspace root.");
-        }
-        if (isBallerinaProject(workspaceRoot)) {
-            return workspaceRoot;
-        }
-    }
-
-    const currentProject = await getCurrentBallerinaProject(file);
-    return (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) ? currentProject.path! : file;
-}
-
 function getJavaCommand(): string {
     const ballerinaHome = isWindows() ? fs.realpathSync.native(extension.ballerinaExtInstance.getBallerinaHome()) : extension.ballerinaExtInstance.getBallerinaHome();
     // Get the base ballerina home by removing the distribution part
@@ -839,10 +796,6 @@ function getJavaCommand(): string {
     return cmd;
 }
 
-function getWorkspaceRoot(): string | undefined {
-    return workspace.workspaceFolders?.[0]?.uri.fsPath;
-}
-
 function findFreePort(): Promise<number> {
     return getPortPromise({ port: 5010, stopPort: 20000 });
 }
@@ -850,9 +803,4 @@ function findFreePort(): Promise<number> {
 function isFastRunEnabled(): boolean {
     const config = workspace.getConfiguration('ballerina');
     return config.get<boolean>('enableRunFast');
-}
-
-function isBallerinaProject(projectPath: string): boolean {
-    const ballerinaToml = path.join(projectPath, BALLERINA_TOML);
-    return existsSync(ballerinaToml);
 }

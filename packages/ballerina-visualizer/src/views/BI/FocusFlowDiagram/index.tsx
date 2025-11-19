@@ -42,7 +42,8 @@ import {
     TriggerCharacter,
     TextEdit,
     ParentMetadata,
-    UpdatedArtifactsResponse
+    UpdatedArtifactsResponse,
+    NodePosition
 } from "@wso2/ballerina-core";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList } from "../../../components/ConnectionSelector";
@@ -56,7 +57,6 @@ import {
     updateLineRange,
 } from "../../../utils/bi";
 import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
-import { NodePosition } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
@@ -78,7 +78,7 @@ export interface BIFocusFlowDiagramProps {
     projectPath: string;
     filePath: string;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
 }
 
 export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
@@ -164,13 +164,16 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                                 const parentMetadata = model.flowModel.nodes.find(
                                     (node) => node.codedata.node === "EVENT_START"
                                 )?.metadata.data as ParentMetadata | undefined;
-                                onReady(model.flowModel.fileName, parentMetadata);
+                                // Get visualizer location and pass position to onReady
+                                rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
+                                    onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                                });
                             }
                         }
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
-                        onReady(undefined);
+                        onReady(undefined, undefined, undefined);
                     });
             });
     };
@@ -643,11 +646,11 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 >
                     {connectionView === SidePanelView.CONNECTION_CONFIG && (
                         <ConnectionConfig
+                            fileName={filePath}
                             connectionKind={selectedConnectionKind}
                             selectedNode={selectedNodeRef.current}
                             onSave={handleUpdateNodeWithConnection}
                             onNavigateToSelectionList={handleNavigateToSelectionList}
-                            // onCreateNew={handleCreateNewConnection}
                         />
                     )}
                     {connectionView === SidePanelView.CONNECTION_SELECT && (

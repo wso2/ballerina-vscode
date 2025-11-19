@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { FunctionModel, ParameterModel, Type } from "@wso2/ballerina-core";
+import { ConfigProperties, FunctionModel, ParameterModel, MessageQueuePayloadContext, Type } from "@wso2/ballerina-core";
 import {
     ActionButtons,
     CheckBox,
@@ -29,12 +29,14 @@ import {
     SidePanelBody,
     TextField,
     ThemeColors,
+    Tooltip,
     Typography,
 } from "@wso2/ui-toolkit";
 import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
-import { ContextBasedFormTypeEditor } from "../../../../../components/ContextBasedFormTypeEditor";
+import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
+import { hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -81,7 +83,7 @@ const MessageTypeNameFieldContainer = styled.div`
 `;
 
 const PayloadSection = styled.div`
-    padding-top: 12px;
+    // padding-top: 12px;
 `;
 
 const AddButtonWrapper = styled.div`
@@ -99,12 +101,16 @@ export const EditorContentColumn = styled.div`
 export interface DatabindFormProps {
     model: FunctionModel;
     isSaving?: boolean;
-    onSave: (functionModel: FunctionModel) => void;
+    onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
     onClose: () => void;
+    isNew?: boolean;
+    payloadContext?: MessageQueuePayloadContext;
+    serviceProperties?: ConfigProperties;
+    serviceModuleName?: string;
 }
 
 export function DatabindForm(props: DatabindFormProps) {
-    const { model, isSaving = false, onSave, onClose } = props;
+    const { model, isSaving = false, onSave, onClose, isNew = false, payloadContext, serviceProperties, serviceModuleName } = props;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
@@ -113,7 +119,6 @@ export function DatabindForm(props: DatabindFormProps) {
 
     // State for payload editor
     const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
-    const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     // State for type editor modal
@@ -139,6 +144,31 @@ export function DatabindForm(props: DatabindFormProps) {
         const moduleName = functionModel?.codedata?.moduleName || "";
         const key = `${moduleName}-${parameterName}`.toLowerCase();
         return parameterDescriptionMap[key] || "";
+    };
+
+    /**
+     * Gets the queue name description string based on module name
+     * @param moduleName - The module name (e.g., "rabbitmq", "kafka")
+     * @returns Description string about where the payload comes from
+     */
+    const getQueueDescriptionByModule = (moduleName: string): string => {
+        if (!moduleName) {
+            return "";
+        }
+        const lowerModuleName = moduleName.toLowerCase();
+        if (lowerModuleName === "rabbitmq") {
+            return serviceProperties.stringLiteral?.value;
+        }
+        const metaValue = serviceProperties?.readOnlyMetadata?.value;
+        if (metaValue && typeof metaValue === "object") {
+            for (const [key, val] of Object.entries(metaValue as Record<string, any>)) {
+                const valueStr = String(val).toLowerCase();
+                if (valueStr.length > 0) {
+                    return valueStr;
+                }
+            }
+        }
+        return "";
     };
 
     const handleParamChange = (params: ParameterModel[]) => {
@@ -175,7 +205,8 @@ export function DatabindForm(props: DatabindFormProps) {
     };
 
     const handleSave = () => {
-        onSave(functionModel);
+        // For new handlers, always open diagram after save
+        onSave(functionModel, isNew);
     };
 
     const handleCancel = () => {
@@ -255,14 +286,13 @@ export function DatabindForm(props: DatabindFormProps) {
             p => p.metadata.label === param.metadata.label && p.name.value === param.name.value
         );
         setEditingIndex(index);
-        setIsNew(false);
         setEditModel(param);
     };
 
     const onChangeParam = (param: ParameterModel) => {
         setEditModel(param);
         // Update the parameters array in real-time for existing parameters
-        if (!isNew && editingIndex >= 0) {
+        if (editingIndex >= 0) {
             const updatedParameters = [...functionModel.parameters];
             updatedParameters[editingIndex] = param;
             handleParamChange(updatedParameters);
@@ -280,23 +310,18 @@ export function DatabindForm(props: DatabindFormProps) {
             }
         }
 
-        if (isNew) {
-            handleParamChange([...functionModel.parameters, param]);
-            setIsNew(false);
+        // Use the editingIndex for more reliable updates
+        if (editingIndex >= 0) {
+            const updatedParameters = [...functionModel.parameters];
+            updatedParameters[editingIndex] = param;
+            handleParamChange(updatedParameters);
         } else {
-            // Use the editingIndex for more reliable updates
-            if (editingIndex >= 0) {
-                const updatedParameters = [...functionModel.parameters];
-                updatedParameters[editingIndex] = param;
-                handleParamChange(updatedParameters);
-            } else {
-                // Fallback to the original logic if index is not available
-                handleParamChange(
-                    functionModel.parameters.map((p) =>
-                        p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p
-                    )
-                );
-            }
+            // Fallback to the original logic if index is not available
+            handleParamChange(
+                functionModel.parameters.map((p) =>
+                    p.metadata.label === param.metadata.label && p.name.value === param.name.value ? param : p
+                )
+            );
         }
         setEditModel(undefined);
         setEditingIndex(-1);
@@ -335,24 +360,28 @@ export function DatabindForm(props: DatabindFormProps) {
                             <MessageConfigContent>
                                 <PayloadSection>
                                     {/* Payload Section */}
-                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
-                                        {payloadFieldName} Schema
-                                    </Typography>
                                     {!payloadParameter && !editModel && (
                                         <AddButtonWrapper>
-                                            <LinkButton onClick={onAddPayloadClick}>
-                                                <Codicon name="add" />
-                                                Define Schema
-                                            </LinkButton>
+                                            <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
+                                                <LinkButton onClick={onAddPayloadClick}>
+                                                    <Codicon name="add" />
+                                                    Define {payloadFieldName}
+                                                </LinkButton>
+                                            </Tooltip>
                                         </AddButtonWrapper>
                                     )}
                                     {payloadParameter && (
-                                        <Parameters
-                                            parameters={[payloadParameter]}
-                                            onChange={handlePayloadParamChange}
-                                            onEditClick={onEditPayloadClick}
-                                            showPayload={true}
-                                        />
+                                        <>
+                                            <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                                {payloadFieldName}
+                                            </Typography>
+                                            <Parameters
+                                                parameters={[payloadParameter]}
+                                                onChange={handlePayloadParamChange}
+                                                onEditClick={onEditPayloadClick}
+                                                showPayload={true}
+                                            />
+                                        </>
                                     )}
 
                                     {/* Payload Editor */}
@@ -427,12 +456,12 @@ export function DatabindForm(props: DatabindFormProps) {
                             </MessageConfigContent>
                         </MessageConfigSection>
                     </MessageConfigContainer>
-                    <Divider sx={{ margin: 0 }} />
 
 
                     {/* Advanced Parameters Section - Only show if there are additional parameters beyond the first */}
-                    {advancedParameters.length > 0 && (
+                    {hasEditableParameters(advancedParameters) && (
                         <>
+                            <Divider sx={{ margin: 0 }} />
                             <OptionalConfigRow>
                                 Advanced Parameters
                                 <OptionalConfigButtonContainer>
@@ -534,13 +563,16 @@ export function DatabindForm(props: DatabindFormProps) {
             </SidePanelBody>
 
             {/* FormTypeEditor Modal for Add Payload */}
-            <ContextBasedFormTypeEditor
+            <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={generatePayloadTypeName()}
-                editMode={false}
-                modalTitle={"Define " + payloadFieldName + " Schema"}
+                modalTitle={"Define " + payloadFieldName}
+                payloadContext={{
+                    ...payloadContext,
+                    queueOrTopic: getQueueDescriptionByModule(serviceModuleName)
+                }}
                 modalWidth={650}
                 modalHeight={600}
             />

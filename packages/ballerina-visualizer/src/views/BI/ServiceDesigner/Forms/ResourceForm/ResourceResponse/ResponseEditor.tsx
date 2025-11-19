@@ -21,19 +21,14 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, ResponseCode, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { TypeHelperContext } from '../../../../../../constants';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { URI, Utils } from 'vscode-uri';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
-
-enum Views {
-    NEW = "NEW",
-    EXISTING = "EXISTING",
-}
 
 export interface ParamProps {
     index: number;
@@ -58,8 +53,7 @@ export function ResponseEditor(props: ParamProps) {
     const newFieldsRef = useRef<FormField[]>([]);
 
     useEffect(() => {
-        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: undefined }).then((res) => {
-            console.log("Resource Return Types: ", res);
+        rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
             setResponseCodes(res);
             rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
                 setFilePath(filePath);
@@ -117,11 +111,12 @@ export function ResponseEditor(props: ParamProps) {
                 key: `statusCode`,
                 value: getTitleFromStatusCodeAndType(responseCodes, res.statusCode.value, res.type.value),
                 itemOptions: getCategorizedOptions(responseCodes),
-                onValueChange: (value: string) => {
+                onValueChange: (value: string | boolean) => {
                     const responseCodeData = responseCodes.find(code => getTitleFromStatusCodeAndType(responseCodes, code.labelDetails.detail, code.detail) === value);
                     res.statusCode.value = responseCodeData.labelDetails.detail;
+                    const description = responseCodeData.labelDetails.description as string;
                     res.type.value = responseCodeData.detail;
-                    if (NO_BODY_TYPES.includes(responseCodeData.detail)) {
+                    if (NO_BODY_TYPES.includes(responseCodeData.detail) || description === "User-Defined") {
                         updateNewFields(res, false);
                     } else {
                         updateNewFields(res, true);
@@ -134,7 +129,7 @@ export function ResponseEditor(props: ParamProps) {
             fields.push({
                 ...convertPropertyToFormField(res.body),
                 key: `body`,
-                onValueChange: (value: string) => {
+                onValueChange: (value: string | boolean) => {
                     switch (value) {
                         case "json":
                             res.mediaType.value = "application/json";
@@ -155,50 +150,73 @@ export function ResponseEditor(props: ParamProps) {
                                 defaultValue: res.mediaType.value
                             };
                         }
+                        if (field.key === 'body') {
+                            return {
+                                ...field,
+                                value: value as string,
+                                defaultValue: value as string
+                            };
+                        }
                         return field;
                     });
                     newFieldsRef.current = updatedFields;
                     setNewFields([...updatedFields]);
                 }
             });
-            fields.push({
-                ...convertPropertyToFormField(res.mediaType),
-                type: "AUTOCOMPLETE",
-                items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
-                key: `mediaType`,
-                defaultValue: res.mediaType.value,
-            });
-            fields.push({
-                ...convertPropertyToFormField(res.headers, defaultItems),
-                key: `headers`,
-            });
-            fields.push({
-                ...convertPropertyToFormField(res.name),
-                key: `check`,
-                type: "FLAG",
-                label: "Make this response reusable",
-                documentation: "Check this option to make this response reusable",
-                onValueChange: (value: boolean) => {
-                    if (value) {
-                        // When checked, add the name field after the checkbox
-                        const nameField: FormField = {
-                            ...convertPropertyToFormField(res.name),
-                            key: `name`,
-                        };
-                        // Insert name field right after the checkbox
-                        const checkboxIndex = newFieldsRef.current.findIndex(f => f.key === 'check');
-                        newFieldsRef.current.splice(checkboxIndex + 1, 0, nameField);
-                        newFieldsRef.current = [...newFieldsRef.current];
-                        setNewFields([...newFieldsRef.current]);
-                    } else {
-                        // When unchecked, remove the name field and clear its value
-                        res.name.value = "";
-                        const filteredFields = newFieldsRef.current.filter(f => f.key !== 'name');
-                        newFieldsRef.current = [...filteredFields];
-                        setNewFields([...newFieldsRef.current]);
+            if (res.mediaType) {
+                fields.push({
+                    ...convertPropertyToFormField(res.mediaType),
+                    type: "AUTOCOMPLETE",
+                    items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
+                    key: `mediaType`,
+                    defaultValue: res.mediaType.value,
+                });
+            }
+            if (response.editable || res.headers.value !== undefined) {
+                fields.push({
+                    ...convertPropertyToFormField(res.headers, defaultItems),
+                    key: `headers`,
+                });
+            }
+            if (response.editable) {
+                fields.push({
+                    ...convertPropertyToFormField(res.name),
+                    key: `check`,
+                    type: "FLAG",
+                    label: "Make this response reusable",
+                    documentation: "Check this option to make this response reusable",
+                    onValueChange: (value: string | boolean) => {
+                        if (value === true) {
+
+                            // Get a default value for the response name
+                            const responseCodeData = responseCodes.find(code => code.labelDetails.detail === res.statusCode.value);
+                            const responseCodeName = responseCodeData?.label || "";
+
+                            // Default name for the response: removes spaces from response code name and appends 'Response'. Example: AcceptedResponse.
+                            const defaultName = `${responseCodeName.replace(/\s+/g, '')}Response`;
+
+                            // When checked, add the name field after the checkbox
+                            const nameField: FormField = {
+                                ...convertPropertyToFormField(res.name),
+                                key: `name`,
+                                value: defaultName,
+                                defaultValue: defaultName
+                            };
+                            // Insert name field right after the checkbox
+                            const checkboxIndex = newFieldsRef.current.findIndex(f => f.key === 'check');
+                            newFieldsRef.current.splice(checkboxIndex + 1, 0, nameField);
+                            newFieldsRef.current = [...newFieldsRef.current];
+                            setNewFields([...newFieldsRef.current]);
+                        } else {
+                            // When unchecked, remove the name field and clear its value
+                            res.name.value = "";
+                            const filteredFields = newFieldsRef.current.filter(f => f.key !== 'name');
+                            newFieldsRef.current = [...filteredFields];
+                            setNewFields([...newFieldsRef.current]);
+                        }
                     }
-                }
-            });
+                });
+            }
 
             // If name already has a value, add the name field by default
             if (res.name.value) {
@@ -364,22 +382,20 @@ export function ResponseEditor(props: ParamProps) {
     return (
         <EditorContainer>
             <EditorContent>
-                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Response Configuration</Typography>
+                <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">Response Configuration</Typography>
             </EditorContent>
             <Divider />
             {filePath && targetLineRange &&
-                <div>
-                    <FormGeneratorNew
-                        fileName={filePath}
-                        targetLineRange={targetLineRange}
-                        fields={newFields}
-                        onBack={handleOnCancel}
-                        onSubmit={handleOnNewSubmit}
-                        submitText={isEdit ? "Save" : "Add"}
-                        nestedForm={true}
-                        helperPaneSide='left'
-                    />
-                </div>
+                <FormGeneratorNew
+                    fileName={filePath}
+                    targetLineRange={targetLineRange}
+                    fields={newFields}
+                    onBack={handleOnCancel}
+                    onSubmit={handleOnNewSubmit}
+                    submitText={isEdit ? "Save" : "Add"}
+                    nestedForm={true}
+                    helperPaneSide='left'
+                />
             }
         </EditorContainer >
     );

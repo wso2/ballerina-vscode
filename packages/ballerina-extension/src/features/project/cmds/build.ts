@@ -26,7 +26,7 @@ import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, MESSAGE
     from "./cmd-runner";
 import { getCurrentBallerinaProject, getCurrenDirectoryPath, getCurrentBallerinaFile }
     from "../../../utils/project-utils";
-import { isSupportedSLVersion } from "../../../utils";
+import { isSupportedSLVersion, createVersionNumber } from "../../../utils";
 
 export function activateBuildCommand() {
     // register run project build handler
@@ -45,7 +45,7 @@ export function activateBuildCommand() {
 
             let balCommand = BALLERINA_COMMANDS.BUILD;
 
-            if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+            if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
                 balCommand = BALLERINA_COMMANDS.BUILD_WITH_EXPERIMENTAL;
             }
 

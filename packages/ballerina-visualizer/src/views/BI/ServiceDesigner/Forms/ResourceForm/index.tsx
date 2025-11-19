@@ -23,9 +23,10 @@ import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
 import { getDefaultResponse, HTTP_METHOD, removeForwardSlashes, sanitizedHttpPath } from '../../utils';
-import { FunctionModel, ParameterModel, PayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
+import { ConfigProperties, FunctionModel, ParameterModel, HttpPayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
+import { ResourceConfig } from './ResourceConfig/ResourceConfig';
 
 namespace S {
 	export const Grid = styled.div<{ columns: number }>`
@@ -41,7 +42,7 @@ namespace S {
         flex-direction: row;
         align-items: center;
         gap: 5px;
-        padding: 5px;
+        padding: 12px;
         border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
         border-radius: 5px;
         height: 36px;
@@ -87,11 +88,12 @@ export interface ResourceFormProps {
 	onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
 	onClose: () => void;
 	isNew?: boolean;
-	payloadContext?: PayloadContext;
+	payloadContext?: HttpPayloadContext;
+	filePath?: string;
 }
 
 export function ResourceForm(props: ResourceFormProps) {
-	const { model, isSaving, onSave, onClose, isNew, payloadContext } = props;
+	const { model, isSaving, onSave, onClose, isNew, payloadContext, filePath } = props;
 
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
@@ -113,7 +115,7 @@ export function ResourceForm(props: ResourceFormProps) {
 
 		const updatedResponse = {
 			...model.returnType.responses[0],
-			statusCode: { value: defaultStatusCode }
+			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
 		const updatedFunctionModel = {
@@ -157,6 +159,15 @@ export function ResourceForm(props: ResourceFormProps) {
 		console.log("Response Change: ", updatedFunctionModel);
 	};
 
+	const handleConfigChange = (properties: ConfigProperties, value: any) => {
+		const updatedFunctionModel = {
+			...functionModel,
+			properties: { ...functionModel.properties, ...properties }
+		};
+		setFunctionModel(updatedFunctionModel);
+		console.log("Config Change: ", updatedFunctionModel);
+	};
+
 	const handleSave = () => {
 		console.log("Saved Resource", functionModel);
 		if (createMore) {
@@ -172,14 +183,15 @@ export function ResourceForm(props: ResourceFormProps) {
 				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 				<SidePanelBody>
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-						onError={onResourcePathError} />
+						onError={onResourcePathError} readonly={!functionModel.editable} />
 					<Divider />
-					<Parameters 
-						showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} 
-						parameters={functionModel.parameters} 
-						onChange={handleParamChange} 
-						schemas={functionModel.schema} 
-						pathName={functionModel?.name?.value} 
+					<Parameters
+						readonly={!functionModel.editable}
+						showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")}
+						parameters={functionModel.parameters}
+						onChange={handleParamChange}
+						schemas={functionModel.schema}
+						pathName={functionModel?.name?.value}
 						payloadContext={{
 							...payloadContext,
 							resourceBasePath: functionModel?.name?.value || '',
@@ -188,9 +200,10 @@ export function ResourceForm(props: ResourceFormProps) {
 						}}
 					/>
 					<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+					<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} readonly={!functionModel.editable} />
+					<ResourceConfig properties={functionModel.properties} filePath={filePath} onChange={handleConfigChange} readonly={!functionModel.editable} />
 					<ActionButtons
-						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
+						primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving || !functionModel.editable, loading: isSaving }}
 						secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
 						sx={{ justifyContent: "flex-end" }}
 					/>
@@ -206,15 +219,13 @@ export function ResourceForm(props: ResourceFormProps) {
 				<SidePanelBody>
 					{/* Render HTTP Methods as components using S.Component and S.Grid */}
 					<div style={{ marginBottom: "16px" }}>
-						<div style={{ fontWeight: 500, fontSize: "14px", marginBottom: "8px" }}>HTTP Methods</div>
-						<S.Grid columns={2}>
+						<S.Grid columns={1}>
 							{verbs.map((method: PropertyModel, idx: number) => (
 								<S.Component
 									key={method.value || idx}
 									enabled={true}
 									onClick={() => setResourceMethod(method.value)}
 								>
-									<S.IconContainer>{<Icon name='globe' isCodicon={true} />}</S.IconContainer>
 									<S.ComponentTitle>
 										{method.value}
 									</S.ComponentTitle>
@@ -235,13 +246,13 @@ export function ResourceForm(props: ResourceFormProps) {
 						<SidePanelBody>
 							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} />
 							<Divider />
-							<Parameters 
-								isNewResource={true} 
-								showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")} 
-								parameters={functionModel.parameters} 
-								onChange={handleParamChange} 
-								schemas={functionModel.schema} 
-								pathName={functionModel?.name?.value} 
+							<Parameters
+								isNewResource={true}
+								showPayload={(functionModel.accessor.value && functionModel.accessor.value.toUpperCase() !== "GET")}
+								parameters={functionModel.parameters}
+								onChange={handleParamChange}
+								schemas={functionModel.schema}
+								pathName={functionModel?.name?.value}
 								payloadContext={{
 									...payloadContext,
 									resourceBasePath: functionModel?.name?.value || '',
@@ -250,16 +261,16 @@ export function ResourceForm(props: ResourceFormProps) {
 								}}
 							/>
 							<Typography sx={{ marginBlockEnd: 10 }} variant="h4">Responses</Typography>
-							<ResourceResponse readonly={true} method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
+							<ResourceResponse method={functionModel.accessor.value.toUpperCase() as HTTP_METHOD} response={functionModel.returnType} onChange={handleResponseChange} />
 							<Divider sx={{ marginBottom: 30 }} />
-							<Tooltip content='Keep creating more resources' containerSx={{ position: "fixed", width: "120px", marginLeft: 60 }}>
+							<Tooltip content='Keep adding more resources' containerSx={{ position: "fixed", width: "180px", marginLeft: 1 }}>
 								<CheckBoxGroup columns={2}>
-									<CheckBox label='Create More' checked={createMore} onChange={() => setCreateMore(!createMore)} />
+									<CheckBox label='Add more resources' checked={createMore} onChange={() => setCreateMore(!createMore)} />
 								</CheckBoxGroup>
 							</Tooltip>
 							<ActionButtons
 								primaryButton={{ text: isSaving ? "Saving..." : "Save", onClick: handleSave, tooltip: isSaving ? "Saving..." : "Save", disabled: !isPathValid || isSaving, loading: isSaving }}
-								secondaryButton={{ text: "Cancel", onClick: onClose, tooltip: "Cancel", disabled: isSaving }}
+								secondaryButton={{ text: "Cancel", onClick: closeMethod, tooltip: "Cancel", disabled: isSaving }}
 								sx={{ justifyContent: "flex-end" }}
 							/>
 						</SidePanelBody>

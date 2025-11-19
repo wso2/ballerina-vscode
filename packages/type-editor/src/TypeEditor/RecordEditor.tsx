@@ -129,6 +129,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
             {type.members.map((member, index) => (
                 <>
                     <FieldEditor
+                        isGraphql={isGraphql}
                         key={index}
                         member={member}
                         onChange={handleMemberChange(index)}

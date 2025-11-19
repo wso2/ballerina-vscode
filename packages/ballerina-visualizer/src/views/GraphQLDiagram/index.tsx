@@ -36,7 +36,7 @@ import {
     View,
     ViewContent,
     Typography,
-    Codicon,
+    Icon,
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { GraphqlServiceEditor } from "./GraphqlServiceEditor";
@@ -81,12 +81,11 @@ const Path = styled.span`
 interface GraphQLDiagramProps {
     filePath: string;
     position: NodePosition;
-    projectUri?: string;
     serviceIdentifier: string;
 }
 
 export function GraphQLDiagram(props: GraphQLDiagramProps) {
-    const { filePath, position, projectUri, serviceIdentifier } = props;
+    const { filePath, position, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const queryClient = useQueryClient();
     const [isServiceEditorOpen, setIsServiceEditorOpen] = useState<boolean>(false);
@@ -400,7 +399,14 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         }
                         actions={
                             <ActionButton appearance="secondary" onClick={handleServiceEdit} data-testid="edit-service-btn">
-                                <Codicon name="settings-gear" sx={{ marginRight: 8, fontSize: 16 }} /> Configure
+                                <Icon
+                                    name="bi-settings"
+                                    sx={{
+                                        marginRight: 5,
+                                        fontSize: "16px",
+                                        width: "16px",
+                                    }}
+                                /> Configure
                             </ActionButton>
                         }
                     />
@@ -486,17 +492,17 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                             title="Create New Type"
                             openState={isTypeEditorOpen}
                             setOpenState={handleTypeEditorStateChange}>
-                            <div style={{ padding: '0px 20px' }}>
-                                <BreadcrumbContainer>
-                                    {stack.slice(1, i + 2).map((stackItem, index) => (
-                                        <React.Fragment key={index}>
-                                            {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                            <BreadcrumbItem>
-                                                {stackItem?.type?.name || "NewType"}
-                                            </BreadcrumbItem>
-                                        </React.Fragment>
-                                    ))}
-                                </BreadcrumbContainer>
+                            <BreadcrumbContainer>
+                                {stack.slice(1, i + 2).map((stackItem, index) => (
+                                    <React.Fragment key={index}>
+                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                        <BreadcrumbItem>
+                                            {stackItem?.type?.name || "NewType"}
+                                        </BreadcrumbItem>
+                                    </React.Fragment>
+                                ))}
+                            </BreadcrumbContainer>
+                            <div style={{ height: '560px', overflow: 'auto' }}>
                                 <FormTypeEditor
                                     key={editingType?.name ?? 'new-type'}
                                     type={peekTypeStack()?.type}
@@ -520,7 +526,6 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                     serviceIdentifier={serviceIdentifier}
                     onClose={onTypeEditorClosed}
                     type={editingType}
-                    projectUri={projectUri}
                     onImplementation={handleOnImplementation}
                 />
             )}

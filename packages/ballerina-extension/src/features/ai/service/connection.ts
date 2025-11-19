@@ -92,6 +92,15 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             }
         }
 
+        // Handle usage limit exceeded
+        if (response.status === 429) {
+            console.log("Usage limit exceeded (429)");
+            const error = new Error("Usage limit exceeded. Please try again later.");
+            error.name = "UsageLimitError";
+            (error as any).statusCode = 429;
+            throw error;
+        }
+
         return response;
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
@@ -111,9 +120,10 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
+        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
         if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
-                baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
+                baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });

@@ -196,7 +196,7 @@ const AIChat: React.FC = () => {
     async function fetchBackendUrl() {
         try {
             backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
+            chatLocation = (await rpcClient.getVisualizerLocation()).projectPath ;
             setIsReqFileExists(
                 chatLocation != null &&
                 chatLocation != undefined &&
@@ -341,12 +341,19 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             const command = response.command;
-            addChatEntry(
-                "user",
-                messages[messages.length - 2].content,
-                command != undefined && command == Command.Code
-            ); // Handle this in input layer?
-            addChatEntry("assistant", messages[messages.length - 1].content);
+
+            // Use functional update to access current state (avoid stale closure)
+            setMessages((prevMessages) => {
+                if (prevMessages.length >= 2) {
+                    addChatEntry(
+                        "user",
+                        prevMessages[prevMessages.length - 2].content,
+                        command != undefined && command == Command.Code
+                    );
+                    addChatEntry("assistant", prevMessages[prevMessages.length - 1].content);
+                }
+                return prevMessages;
+            });
         } else if (type === "error") {
             console.log("Received error signal");
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${response.content}</error>`;

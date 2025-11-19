@@ -308,7 +308,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                     level={0}
                                                 >
                                                     <div style={{ marginTop: '10px' }}>
-                                                        {category.items.map((item) => (
+                                                        {category.items.filter((item) => item.name !== "record").map((item) => (
                                                             <SlidingPaneNavContainer
                                                                 key={`${category.category}-${item.name}`}
                                                                 onClick={() => handleTypeItemClick(item)}
@@ -375,23 +375,22 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
                             <Divider sx={{ margin: '0px' }} />
                             <div style={{
-                                marginTop: "auto",
+                                margin: '4px 0',
                                 display: 'flex',
                                 flexDirection: 'column'
                             }}>
                                 {onTypeCreate && (
                                     <FooterButtons
                                         sx={{ display: 'flex', justifyContent: 'space-between' }}
-                                        startIcon='add'
                                         title={getTypeCreateText(currentType, referenceTypes, newTypeName)}
                                         onClick={() => onTypeCreate(newTypeName.current)}
                                     />
                                 )}
                                 <FooterButtons
                                     sx={{ display: 'flex', justifyContent: 'space-between' }}
-                                    startIcon='library'
                                     title="Open Type Browser"
                                     onClick={() => setIsTypeBrowserOpen(true)}
+                                    startIcon="bi-arrow-outward"
                                 />
                             </div>
                         </SlidingPane>

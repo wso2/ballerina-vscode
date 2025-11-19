@@ -17,7 +17,7 @@
  */
 
 import React, { useState } from "react";
-import { SidePanelBody, ProgressRing, Icon, TabPanel } from "@wso2/ui-toolkit";
+import { ProgressRing, Icon, TabPanel, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { Member, Type, TypeNodeKind, Imports, AddImportItemResponse, EVENT_TYPE, UpdateTypeResponse, PayloadContext } from "@wso2/ballerina-core";
@@ -27,25 +27,17 @@ import { GenericImportTab } from "./GenericImportTab";
 import { ContextTypeCreatorTab } from "./ContextTypeCreator";
 import { BrowseTypesTab } from "./BrowseTypesTab";
 
-namespace S {
-    export const Container = styled(SidePanelBody)`
-        display: flex;
-        flex-direction: column;
-        padding: 0px;
-    `;
-
-    export const TabContainer = styled.div`
+export const TabContainer = styled.div`
         height: 100%;
-        overflow: hidden;
+        overflow: auto;
         display: flex;
         flex-direction: column;
         padding-bottom: 0px;
-        padding-top: 8px;
+        padding-top: 10px;
     `;
-}
 
 export const ContentBody = styled.div`
-    height: 450px;
+    height: 430px;
 `;
 
 export const Footer = styled.div`
@@ -56,6 +48,29 @@ export const Footer = styled.div`
     align-items: center;
     padding-top: 16px;
     flex-shrink: 0;
+`;
+
+export const StickyFooterContainer = styled.div`
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+`;
+
+export const FloatingFooter = styled.div`
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border-top: 1px solid var(--vscode-panel-border);
+    box-shadow: 0 -1px 10px 0 rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    padding-top: 16px;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 `;
 
 interface ContextTypeEditorProps {
@@ -172,7 +187,6 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
 
     return (
         <TypeHelperContext.Provider value={props.typeHelper}>
-            <S.Container style={{ height: '525px', overflow: 'hidden' }} data-testid="type-editor-container">
                 {!type ? (
                     <ProgressRing />
                 ) : (
@@ -210,7 +224,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                         onViewChange={handleTabChange}
                         childrenSx={{ height: '100%', overflow: 'hidden' }}
                     >
-                        <S.TabContainer id="import" data-testid="import-tab">
+                        <TabContainer id="import" data-testid="import-tab">
                             <GenericImportTab
                                 type={type}
                                 onTypeSave={onTypeSave}
@@ -218,9 +232,10 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isPopupTypeForm={isPopupTypeForm}
                                 setIsSaving={setIsSaving}
                                 payloadContext={payloadContext}
+                                onTypeSelect={props.onSaveType}
                             />
-                        </S.TabContainer>
-                        <S.TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">
+                        </TabContainer>
+                        <TabContainer id="create-from-scratch" data-testid="create-from-scratch-tab">
                             <ContextTypeCreatorTab
                                 onTypeChange={props.onTypeChange}
                                 editingType={type}
@@ -231,8 +246,8 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 isSaving={isSaving}
                                 setIsSaving={setIsSaving}
                             />
-                        </S.TabContainer>
-                        <S.TabContainer id="browse-exisiting-types" data-testid="browse-exisiting-types-tab">
+                        </TabContainer>
+                        <TabContainer id="browse-exisiting-types" data-testid="browse-exisiting-types-tab">
                             <BrowseTypesTab
                                 basicTypes={props.typeHelper.basicTypes}
                                 importedTypes={props.typeHelper.importedTypes}
@@ -242,10 +257,9 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                                 onTypeSelect={props.onSaveType}
                                 simpleType={simpleType}
                             />
-                        </S.TabContainer>
+                        </TabContainer>
                     </TabPanel>
                 )}
-            </S.Container>
         </TypeHelperContext.Provider>
     );
 }
