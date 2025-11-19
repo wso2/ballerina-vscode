@@ -30,7 +30,8 @@ export const BASE_CHIP_STYLES = {
     outline: "none",
     verticalAlign: "middle",
     userSelect: "none",
-    margin: "2px 0px"
+    margin: "2px 0px",
+    padding: "2px 8px",
 } as const;
 
 /**
@@ -40,7 +41,6 @@ export const DOCUMENT_CHIP_STYLES = {
     ...BASE_CHIP_STYLES,
     background: "rgba(59, 130, 246, 0.15)",
     border: "1px solid rgba(59, 130, 246, 0.4)",
-    padding: "2px 8px",
     gap: "4px",
     maxWidth: "200px"
 } as const;
@@ -50,7 +50,6 @@ export const DOCUMENT_CHIP_STYLES = {
  */
 export const STANDARD_CHIP_STYLES = {
     ...BASE_CHIP_STYLES,
-    padding: "2px 10px",
     minWidth: "25px",
     transition: "all 0.2s ease",
     display: "inline-block"
@@ -75,18 +74,30 @@ export const CHIP_TEXT_STYLES = {
 } as const;
 
 /**
- * Background colors for different token types
+ * Color configuration for different token types
  */
-export const TOKEN_TYPE_COLORS: Partial<Record<TokenType, string>> = {
-    [TokenType.VARIABLE]: "rgba(0, 122, 204, 0.3)",
-    [TokenType.PROPERTY]: "rgba(0, 122, 204, 0.3)",
-    [TokenType.PARAMETER]: "#70c995"
+export const TOKEN_TYPE_COLORS: Partial<Record<TokenType, { background: string; border: string }>> = {
+    [TokenType.VARIABLE]: {
+        background: "rgba(59, 130, 246, 0.15)",
+        border: "rgba(0, 122, 204, 0.4)"
+    },
+    [TokenType.PROPERTY]: {
+        background: "rgba(59, 130, 246, 0.15)",
+        border: "rgba(59, 130, 246, 0.4)"
+    },
+    [TokenType.PARAMETER]: {
+        background: "rgba(0, 204, 109, 0.15)",
+        border: "rgba(0, 204, 109, 0.4)"
+    }
 };
 
 /**
- * Default background color for chips
+ * Default chip colors
  */
-export const DEFAULT_CHIP_COLOR = "rgba(0, 122, 204, 0.3)";
+export const DEFAULT_CHIP_COLOR = {
+    background: "rgba(59, 130, 246, 0.15)",
+    border: "rgba(59, 130, 246, 0.4)"
+};
 
 /**
  * Icon class mapping for document types
@@ -105,9 +116,9 @@ export const getDocumentIconClass = (documentType: DocumentType): string => {
 };
 
 /**
- * Get background color for a token type
+ * Get color configuration for a token type
  */
-export const getTokenTypeColor = (tokenType: TokenType): string => {
+export const getTokenTypeColor = (tokenType: TokenType): { background: string; border: string } => {
     return TOKEN_TYPE_COLORS[tokenType] || DEFAULT_CHIP_COLOR;
 };
 

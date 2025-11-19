@@ -120,9 +120,11 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
         private createStandardChip(span: HTMLSpanElement) {
             span.textContent = getChipDisplayContent(this.type, this.text);
 
+            const colors = getTokenTypeColor(this.type);
             Object.assign(span.style, {
                 ...STANDARD_CHIP_STYLES,
-                background: getTokenTypeColor(this.type),
+                background: colors.background,
+                border: `1px solid ${colors.border}`,
                 cursor: "pointer"
             });
         }
