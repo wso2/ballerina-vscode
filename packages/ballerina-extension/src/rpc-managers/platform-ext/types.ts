@@ -17,6 +17,7 @@ export interface OpenAPISecurityScheme {
     bearerFormat?: string;
     flows?: any;
     openIdConnectUrl?: string;
+    "x-ballerina-name"?: string;
 }
 
 export interface OpenAPIComponents {
