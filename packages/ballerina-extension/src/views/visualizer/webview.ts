@@ -68,7 +68,7 @@ export class VisualizerWebview {
             const documentUri = document.document.uri.toString();
             const isDocumentUnderProject = documentUri.includes(projectPath);
             // Reset visualizer the undo-redo stack if user did changes in the editor
-            if (isOpened && isDocumentUnderProject && !this._panel?.active) {
+            if (isOpened && isDocumentUnderProject && !this._panel?.active && !undoRedoManager?.isBatchInProgress()) {
                 undoRedoManager.reset();
             }
 
