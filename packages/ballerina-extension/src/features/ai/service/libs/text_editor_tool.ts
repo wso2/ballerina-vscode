@@ -305,10 +305,14 @@ export function createEditExecute(files: SourceFile[], updatedFileNames: string[
 
     // Perform replacement
     let newContent: string;
-    if (replace_all) {
-      newContent = content.replaceAll(old_string, new_string);
+    if (content.trim() === "" && old_string.trim() === "") {
+        newContent = new_string;
     } else {
-      newContent = content.replace(old_string, new_string);
+      if (replace_all) {
+        newContent = content.replaceAll(old_string, new_string);
+      } else {
+        newContent = content.replace(old_string, new_string);
+      }
     }
 
     updateOrCreateFile(files, file_path, newContent);
@@ -400,10 +404,14 @@ export function createMultiEditExecute(files: SourceFile[], updatedFileNames: st
       }
 
       // Apply the edit to simulate the sequence
-      if (edit.replace_all) {
-        content = content.replaceAll(edit.old_string, edit.new_string);
+      if (content.trim() === "" && edit.old_string.trim() === "") {
+        content = edit.new_string;
       } else {
-        content = content.replace(edit.old_string, edit.new_string);
+        if (edit.replace_all) {
+          content = content.replaceAll(edit.old_string, edit.new_string);
+        } else {
+          content = content.replace(edit.old_string, edit.new_string);
+        }
       }
     }
 
