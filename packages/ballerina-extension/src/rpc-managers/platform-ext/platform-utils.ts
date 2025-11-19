@@ -215,6 +215,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
             type: "apiKey",
             in: "header",
             name: "Choreo-API-Key",
+            "x-ballerina-name": "choreoAPIKey"
         };
 
         if (securityType === "oauth") {
@@ -473,7 +474,7 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         SERVICE_URL_VAR_NAME: string;
         API_KEY_VAR_NAME: string;
     }) => {
-        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { Choreo\\-API\\-Key: ${params.API_KEY_VAR_NAME} }, config = { ${
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME} }, config = { ${
             params.requireProxy ? "proxy: devantProxyConfig, " : ""
         }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },

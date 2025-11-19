@@ -21,6 +21,7 @@ export type CategoryActionType = 'connection' | 'function' | 'add';
 export interface CategoryAction {
     type: CategoryActionType;
     codeIcon?: string;
+    hideOnEmptyState?: boolean;
     tooltip: string;
     emptyStateLabel: string;
     handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject';
@@ -44,7 +45,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
                 type: "connection",
                 codeIcon: "vm-connect",
                 tooltip: "Use Devant Connections",
-                emptyStateLabel: "Use Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
                 handlerKey: "onLinkDevantProject",
             },
             {

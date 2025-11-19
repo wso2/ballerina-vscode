@@ -693,7 +693,7 @@ export function NodeList(props: NodeListProps) {
                                                     const propsHandler = props[action.handlerKey];
                                                     
                                                     // Only render if the handler exists in props
-                                                    if (!propsHandler || !handler) return null;
+                                                    if (!propsHandler || !handler || action.hideOnEmptyState) return null;
                                                     
                                                     const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
                                                     
