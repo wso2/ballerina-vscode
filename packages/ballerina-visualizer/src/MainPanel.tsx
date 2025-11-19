@@ -272,8 +272,8 @@ const MainPanel = () => {
     const fetchContext = () => {
         setNavActive(true);
         rpcClient.getVisualizerLocation().then(async (value) => {
-            const configFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath('config.bal');
-            let defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
+            const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
+            let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
             if (value.documentUri) {
                 defaultFunctionsFile = value.documentUri
             }

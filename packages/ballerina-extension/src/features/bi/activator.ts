@@ -77,7 +77,7 @@ function handleCommandWithContext(
                 });
             }
         });
-    } 
+    }
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
         const projectPath = item.resourceUri.fsPath;
