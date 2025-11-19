@@ -432,10 +432,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         } else if (newInputMode === InputMode.TEMPLATE) {
             if (sanitizedExpression && rawExpression) {
                 const sanitized = sanitizedExpression(initialFieldValue.current as string);
-                if (sanitized === initialFieldValue.current) {
-                    setInputMode(InputMode.EXP);
-                } else {
+                if (sanitized !== initialFieldValue.current || !initialFieldValue.current || initialFieldValue.current.trim() === '') {
                     setInputMode(InputMode.TEMPLATE);
+                } else {
+                    setInputMode(InputMode.EXP);
                 }
             }
         } else {
