@@ -474,13 +474,26 @@ export interface GetDataMapperCodedataResponse {
 export interface PropertyRequest {
     filePath: string;
     codedata: CodeData;
-    propertyKey: string,
     targetField: string;
+}
+
+export interface FieldPropertyRequest extends PropertyRequest {
     fieldId: string;
 }
 
 export interface PropertyResponse {
     property: Property;
+}
+
+export interface ClausePositionRequest {
+    filePath: string;
+    codedata: CodeData;
+    targetField: string;
+    index: number;
+}
+
+export interface ClausePositionResponse {
+    position: LinePosition;
 }
 
 export interface GraphqlDesignServiceParams {
