@@ -506,10 +506,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         return removeEmptyNodes(nodeWithUpdatedProps);
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
+    const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
