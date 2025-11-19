@@ -73,6 +73,12 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
             project.ifPresent(this.clonedWorkspaceManager::open);
         } else {
             this.baseWorkspaceManager.didOpen(path.get(), params);
+
+            // Send didOpen if the project is already opened in the cloned workspace
+            Optional<Project> project = this.clonedWorkspaceManager.project(path.get());
+            if (project.isPresent()) {
+                this.clonedWorkspaceManager.didOpen(path.get(), params);
+            }
         }
     }
 
@@ -87,6 +93,12 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
             this.clonedWorkspaceManager.didChange(path.get(), params);
         } else {
             this.baseWorkspaceManager.didChange(path.get(), params);
+
+            // Send didChange if the project is already opened in the cloned workspace
+            Optional<Project> project = this.clonedWorkspaceManager.project(path.get());
+            if (project.isPresent()) {
+                this.clonedWorkspaceManager.didChange(path.get(), params);
+            }
         }
     }
 
