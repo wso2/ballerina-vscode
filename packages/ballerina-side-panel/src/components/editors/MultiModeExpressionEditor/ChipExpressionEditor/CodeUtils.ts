@@ -269,28 +269,39 @@ export const iterateTokenStream = (
 ) => {
     const docLength = content.length;
 
-    // Create a set of token indices that are part of compounds
+    const compoundsByStartIndex = new Map<number, CompoundTokenSequence[]>();
     const compoundTokenIndices = new Set<number>();
-    for (const compound of compounds) {
-        for (let i = compound.startIndex; i <= compound.endIndex; i++) {
-            compoundTokenIndices.add(i);
-        }
-    }
 
-    // Process compound tokens
     for (const compound of compounds) {
         // Validate compound range
         if (compound.start < 0 || compound.end > docLength || compound.start >= compound.end) {
             continue;
         }
-        callbacks.onCompound(compound);
+
+        // Group compounds by their starting token index
+        const existing = compoundsByStartIndex.get(compound.startIndex) || [];
+        existing.push(compound);
+        compoundsByStartIndex.set(compound.startIndex, existing);
+
+        // Mark all indices within this compound as consumed
+        for (let i = compound.startIndex; i <= compound.endIndex; i++) {
+            compoundTokenIndices.add(i);
+        }
     }
 
-    // Process individual tokens that are not part of compounds
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
-        // Skip tokens that are part of compound sequences
+        // Check if any compounds begin at this token index
+        const startingCompounds = compoundsByStartIndex.get(i);
+        if (startingCompounds) {
+            // Trigger callback for each compound starting here
+            for (const compound of startingCompounds) {
+                callbacks.onCompound(compound);
+            }
+        }
+
+        // Check if the individual token is consumed by a compound
         if (compoundTokenIndices.has(i)) {
             continue;
         }
