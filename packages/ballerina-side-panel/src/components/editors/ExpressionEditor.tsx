@@ -521,7 +521,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     };
 
     const handleModeChange = (value: InputMode) => {
-        const currentValue = watch(key);
+        const raw = watch(key);
+        const currentValue = typeof raw === "string" ? raw.trim() : "";
 
         // Warn when switching from EXP to TEXT if value doesn't have quotes
         if (

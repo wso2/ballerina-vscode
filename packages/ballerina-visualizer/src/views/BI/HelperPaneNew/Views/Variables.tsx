@@ -195,7 +195,7 @@ export const Variables = (props: VariablesPageProps) => {
         setSearchValue(searchText);
     };
 
-    const handleItemSelect = (value: string) => {
+    const handleItemSelect = (value: string, _item?: CompletionItem) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
         // Wrap in template interpolation if in template mode
