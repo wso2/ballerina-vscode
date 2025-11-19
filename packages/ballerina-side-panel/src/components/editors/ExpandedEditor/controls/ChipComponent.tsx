@@ -17,73 +17,16 @@
  */
 
 import React from "react";
-import styled from "@emotion/styled";
+
 import { DocumentType, TokenType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
 import {
-    BASE_CHIP_STYLES,
-    DOCUMENT_CHIP_STYLES,
-    STANDARD_CHIP_STYLES,
-    DOCUMENT_ICON_STYLES,
-    CHIP_TEXT_STYLES,
     getDocumentIconClass,
-    getTokenTypeColor,
-    getChipDisplayContent
+    getChipDisplayContent,
+    DocumentChip,
+    StandardChip,
+    DocumentIcon,
+    ChipText
 } from "../../MultiModeExpressionEditor/ChipExpressionEditor/chipStyles";
-
-/**
- * Base chip styling matching CodeMirror chip appearance
- */
-const BaseChip = styled.span`
-    border-radius: ${BASE_CHIP_STYLES.borderRadius};
-    display: ${BASE_CHIP_STYLES.display};
-    align-items: ${BASE_CHIP_STYLES.alignItems};
-    font-size: ${BASE_CHIP_STYLES.fontSize};
-    min-height: ${BASE_CHIP_STYLES.minHeight};
-    outline: ${BASE_CHIP_STYLES.outline};
-    vertical-align: ${BASE_CHIP_STYLES.verticalAlign};
-    user-select: ${BASE_CHIP_STYLES.userSelect};
-    margin: ${BASE_CHIP_STYLES.margin};
-`;
-
-/**
- * Document chip with icon - matches CodeUtils.ts createDocumentChip
- */
-const DocumentChip = styled(BaseChip)`
-    background: ${DOCUMENT_CHIP_STYLES.background};
-    border: ${DOCUMENT_CHIP_STYLES.border};
-    padding: ${DOCUMENT_CHIP_STYLES.padding};
-    gap: ${DOCUMENT_CHIP_STYLES.gap};
-    max-width: ${DOCUMENT_CHIP_STYLES.maxWidth};
-`;
-
-/**
- * Standard chip for variables/properties/parameters
- */
-const StandardChip = styled(BaseChip) <{ chipType: TokenType }>`
-    background: ${props => getTokenTypeColor(props.chipType).background};
-    border: 1px solid ${props => getTokenTypeColor(props.chipType).border};
-    padding: ${STANDARD_CHIP_STYLES.padding};
-    min-width: ${STANDARD_CHIP_STYLES.minWidth};
-    transition: ${STANDARD_CHIP_STYLES.transition};
-`;
-
-/**
- * Icon container for document chips
- */
-const DocumentIcon = styled.i`
-    display: ${DOCUMENT_ICON_STYLES.display};
-    color: ${DOCUMENT_ICON_STYLES.color};
-    font-size: ${DOCUMENT_ICON_STYLES.fontSize};
-`;
-
-/**
- * Text container with ellipsis for long content
- */
-const ChipText = styled.span`
-    overflow: ${CHIP_TEXT_STYLES.overflow};
-    text-overflow: ${CHIP_TEXT_STYLES.textOverflow};
-    white-space: ${CHIP_TEXT_STYLES.whiteSpace};
-`;
 
 /**
  * Props for ChipComponent
