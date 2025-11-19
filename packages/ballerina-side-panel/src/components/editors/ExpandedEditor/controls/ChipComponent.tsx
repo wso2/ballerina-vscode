@@ -20,42 +20,25 @@ import React from "react";
 
 import { DocumentType, TokenType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
 import {
-    getDocumentIconClass,
     getChipDisplayContent,
-    DocumentChip,
     StandardChip,
-    DocumentIcon,
-    ChipText
+    ChipText,
+    getTokenIconClass,
+    StandardIcon
 } from "../../MultiModeExpressionEditor/ChipExpressionEditor/chipStyles";
 
-/**
- * Props for ChipComponent
- */
 export interface ChipComponentProps {
     type: TokenType;
     content: string;
     documentType?: DocumentType;
 }
 
-/**
- * ChipComponent - Reusable chip component for markdown preview
- * Matches the styling from CodeUtils.ts createChip function
- */
 export const ChipComponent: React.FC<ChipComponentProps> = ({ type, content, documentType }) => {
-    if (type === TokenType.DOCUMENT && documentType) {
-        return (
-            <DocumentChip>
-                <DocumentIcon className={getDocumentIconClass(documentType)} />
-                <ChipText>{content}</ChipText>
-            </DocumentChip>
-        );
-    }
-
-    const displayContent = getChipDisplayContent(type, content);
-
+    let iconClass = getTokenIconClass(type, documentType);
     return (
         <StandardChip chipType={type}>
-            {displayContent}
+            <StandardIcon chipType={type} className={iconClass} />
+            <ChipText>{getChipDisplayContent(type, content)}</ChipText>
         </StandardChip>
     );
 };

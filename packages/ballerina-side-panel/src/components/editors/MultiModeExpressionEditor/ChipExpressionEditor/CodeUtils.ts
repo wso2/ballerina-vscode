@@ -25,11 +25,10 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { TokenType, TokenMetadata, CompoundTokenSequence } from "./types";
 import {
-    DOCUMENT_CHIP_STYLES,
-    DOCUMENT_ICON_STYLES,
     CHIP_TEXT_STYLES,
-    STANDARD_CHIP_STYLES,
-    getDocumentIconClass,
+    BASE_CHIP_STYLES,
+    BASE_ICON_STYLES,
+    getTokenIconClass,
     getTokenTypeColor,
     getChipDisplayContent
 } from "./chipStyles";
@@ -67,12 +66,7 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
         }
         toDOM() {
             const span = document.createElement("span");
-
-            if (this.type === TokenType.DOCUMENT && this.metadata?.documentType) {
-                this.createDocumentChip(span);
-            } else {
-                this.createStandardChip(span);
-            }
+            this.createChip(span);
 
             // Add click handler to select the chip text
             span.addEventListener("click", (event) => {
@@ -87,46 +81,39 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             return span;
         }
 
-        private createDocumentChip(span: HTMLSpanElement) {
+        private createChip(span: HTMLSpanElement) {
+            let displayText = getChipDisplayContent(this.type, this.text);
+            if (this.type === TokenType.DOCUMENT) {
+                displayText = this.metadata?.content || this.text;
+            }
+
+            const colors = getTokenTypeColor(this.type);
+
+            // Apply base styles to the chip container
             Object.assign(span.style, {
-                ...DOCUMENT_CHIP_STYLES,
-                cursor: "pointer"
+                ...BASE_CHIP_STYLES,
+                background: colors.background,
+                border: `1px solid ${colors.border}`
             });
 
-            const icon = this.createDocumentIcon();
-            const textSpan = this.createTextSpan(this.metadata?.content || this.text);
+            // Create icon element for standard chip
+            const icon = document.createElement("i");
+            let iconClass = getTokenIconClass(this.type, this.metadata?.documentType);
+            if (iconClass) {
+                icon.className = iconClass;
+            }
+            Object.assign(icon.style, {
+                ...BASE_ICON_STYLES,
+                color: colors.icon
+            });
+
+            // Create text span with ellipsis handling
+            const textSpan = document.createElement("span");
+            textSpan.textContent = displayText;
+            Object.assign(textSpan.style, CHIP_TEXT_STYLES);
 
             span.appendChild(icon);
             span.appendChild(textSpan);
-        }
-
-        private createDocumentIcon(): HTMLElement {
-            const icon = document.createElement("i");
-            Object.assign(icon.style, DOCUMENT_ICON_STYLES);
-
-            if (this.metadata?.documentType) {
-                icon.className = getDocumentIconClass(this.metadata.documentType);
-            }
-            return icon;
-        }
-
-        private createTextSpan(text: string): HTMLSpanElement {
-            const textSpan = document.createElement("span");
-            textSpan.textContent = text;
-            Object.assign(textSpan.style, CHIP_TEXT_STYLES);
-            return textSpan;
-        }
-
-        private createStandardChip(span: HTMLSpanElement) {
-            span.textContent = getChipDisplayContent(this.type, this.text);
-
-            const colors = getTokenTypeColor(this.type);
-            Object.assign(span.style, {
-                ...STANDARD_CHIP_STYLES,
-                background: colors.background,
-                border: `1px solid ${colors.border}`,
-                cursor: "pointer"
-            });
         }
 
         ignoreEvent() {
