@@ -16,27 +16,6 @@
  * under the License.
  */
 
-export const DEFAULT_VALUE_MAP: Record<string, string> = {
-    "struct": "{}",
-    "array": "[]",
-    "map": "{}",
-    "int": "0",
-    "float": "0.0",
-    "boolean": "false",
-    "any": "null",
-    "decimal": "0.0",
-    "byte": "0"
-}
-
-export const isRowType = (type: string | string[]) => {
-    return type && type === "struct";
-}
-
-export const isUnionType = (type: string) => {
-    return type && type === "enum";
-}
-
-export const getDefaultValue = (type: string) => {
-    //TODO: handle this using API
-     return DEFAULT_VALUE_MAP[type] || "";
-}
+export { activateTracing, TRACE_WINDOW_COMMAND, ENABLE_TRACING_COMMAND, TRACE_VIEW_ID } from './activate';
+export { TracerMachine } from './tracer-machine';
+export { TraceServer } from './trace-server';

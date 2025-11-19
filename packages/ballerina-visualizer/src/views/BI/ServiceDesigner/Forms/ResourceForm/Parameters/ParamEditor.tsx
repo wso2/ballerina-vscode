@@ -218,8 +218,8 @@ export function ParamEditor(props: ParamProps) {
                     enabled: true,
                     value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
                     valueTypeConstraint: "",
-                    onValueChange: (value: string) => {
-                        const sanitizeValue = value
+                    onValueChange: (value: string | boolean) => {
+                        const sanitizeValue = (value as string)
                             .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/\.([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
                             .replace(/[^a-zA-Z0-9]/g, '');
@@ -353,18 +353,9 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType.charAt(0).toUpperCase() + param.httpParamType.slice(1).toLowerCase()} {param.httpParamType === "QUERY" && "Parameter"}</Typography>}
-            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label}</Typography>}
+            {param.httpParamType && <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">{param.httpParamType.charAt(0).toUpperCase() + param.httpParamType.slice(1).toLowerCase()} {param.httpParamType === "QUERY" && "Parameter"}</Typography>}
+            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">{param.metadata.label}</Typography>}
             <Divider />
-            {/* {param.httpParamType !== "PAYLOAD" && !isNewResource &&
-                <EditorContent>
-                    {param.httpParamType === "QUERY" && (
-                        <VSCodeCheckbox checked={param.kind === "REQUIRED"} onChange={handleReqFieldChange} id="is-req-checkbox">
-                            Is Required?
-                        </VSCodeCheckbox>
-                    )}
-                </EditorContent>
-            } */}
             <>
                 {filePath && targetLineRange &&
                     <FormGeneratorNew

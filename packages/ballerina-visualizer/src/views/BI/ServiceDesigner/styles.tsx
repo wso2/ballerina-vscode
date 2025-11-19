@@ -27,13 +27,15 @@ export const EditorContainer = styled.div<CSSObject>`
     border-radius: 5px;
     padding: 10px;
     border: 1px solid var(--vscode-dropdown-border);
+    & .side-panel-body {
+        padding: unset;
+    }
 `;
 
 export const EditorContent = styled.div<CSSObject>`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding-left: 16px;
     padding-right: 16px;
     gap: 10px;
 `;

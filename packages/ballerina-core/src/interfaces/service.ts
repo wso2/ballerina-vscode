@@ -107,14 +107,24 @@ export interface StatusCodeResponse extends PropertyModel {
     mediaType: PropertyModel;
 }
 
-export interface PayloadContext {
+export interface HttpPayloadContext {
+    protocol: "HTTP";
     serviceName: string;
     serviceBasePath: string;
     resourceBasePath?: string;
     resourceMethod?: string;
-    resourceDocumentation?:string;
-    paramDetails?:ParamDetails[];
+    resourceDocumentation?: string;
+    paramDetails?: ParamDetails[];
 }
+
+export interface MessageQueuePayloadContext {
+    protocol: "MESSAGE_BROKER";
+    serviceName: string;
+    queueOrTopic?: string;
+    messageDocumentation?: string;
+}
+
+export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext;
 
 export interface ParamDetails {
     name: string;
@@ -164,6 +174,7 @@ export interface PropertyModel {
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;
     hidden?: boolean;
+    isGraphqlId?: boolean;
 }
 
 export interface ParameterModel extends PropertyModel {

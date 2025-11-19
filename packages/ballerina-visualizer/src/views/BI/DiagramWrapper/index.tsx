@@ -181,6 +181,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [basePath, setBasePath] = useState("");
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
+    const [currentPosition, setCurrentPosition] = useState<NodePosition>();
 
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
     const [servicePosition, setServicePosition] = useState<NodePosition>();
@@ -250,13 +251,16 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setLoadingDiagram(true);
     };
 
-    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata) => {
+    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition) => {
         setLoadingDiagram(false);
         if (fileName) {
             setFileName(fileName);
         }
         if (parentMetadata) {
             setParentMetadata(parentMetadata);
+        }
+        if (position) {
+            setCurrentPosition(position);
         }
     };
 
@@ -300,20 +304,21 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
 
-    const handleEdit = (fileUri?: string) => {
+    const handleEdit = (fileUri?: string, position?: NodePosition) => {
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
                     ? MACHINE_VIEW.BINPFunctionForm
-                    : MACHINE_VIEW.BIFunctionForm,
+                    : parentMetadata?.isServiceFunction ?
+                        MACHINE_VIEW.ServiceFunctionForm : MACHINE_VIEW.BIFunctionForm,
             identifier: parentMetadata?.label || "",
             documentUri: fileUri,
+            position: position || currentPosition
         };
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
 
     let isAutomation = parentMetadata?.kind === "Function" && parentMetadata?.label === "main";
-    let isFunction = parentMetadata?.kind === "Function" && parentMetadata?.label !== "main";
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
@@ -384,7 +389,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             return (
                 <>
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
-                        <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                        <Icon
+                            name="bi-settings"
+                            sx={{
+                                marginRight: 5,
+                                fontSize: "16px",
+                                width: "16px",
+                            }}
+                        />
                         Configure
                     </ActionButton >
                     <ActionButton
@@ -400,9 +412,15 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
         if (parentMetadata && !isResource && !isRemote) {
             return (
-                <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName)}>
-                    <Icon isCodicon={true} name="settings-gear" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                    Configure
+                <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName, currentPosition)}>
+                    <Icon
+                        name="bi-settings"
+                        sx={{
+                            marginRight: 5,
+                            fontSize: "16px",
+                            width: "16px",
+                        }}
+                    /> Configure
                 </ActionButton>
             );
         }
@@ -486,6 +504,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     <ResourceForm
                         model={functionModel}
                         isSaving={isSaving}
+                        filePath={filePath}
                         onSave={handleResourceSubmit}
                         onClose={handleFunctionClose}
                     />

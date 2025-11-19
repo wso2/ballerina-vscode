@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
@@ -40,6 +40,7 @@ import {
 } from "../form-utils";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
+import { URI, Utils } from "vscode-uri";
 
 const DEFAULT_CHUNKER_VALUE = "\"AUTO\"";
 
@@ -72,7 +73,7 @@ namespace S {
     `;
 }
 
-interface VectorKnowledgeBaseFormProps {
+interface KnowledgeBaseFormProps {
     fileName: string;
     node: FlowNode;
     targetLineRange: LineRange;
@@ -92,7 +93,7 @@ interface VectorKnowledgeBaseFormProps {
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
 }
 
-export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
+export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
     const {
         fileName,
         node,
@@ -126,7 +127,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             .getBIDiagramRpcClient()
             .formDidOpen({ filePath: fileName })
             .then(() => {
-                console.log(">>> Vector Knowledge Base form opened");
+                console.log(">>> Knowledge Base form opened");
             });
     };
 
@@ -135,7 +136,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             .getBIDiagramRpcClient()
             .formDidClose({ filePath: fileName })
             .then(() => {
-                console.log(">>> Vector Knowledge Base form closed");
+                console.log(">>> Knowledge Base form closed");
             });
     };
 
@@ -152,7 +153,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
         }
     };
 
-    const initializeForm = () => {
+    const initializeForm = async () => {
         const formProperties = getFormProperties(node);
         const fields = convertNodePropertiesToFormFields(formProperties);
         const actionFields = ["vectorStore", "embeddingModel", "chunker"];
@@ -170,11 +171,17 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
             if (originalName === "chunker") {
                 // hack: set default value for chunker field
                 field.defaultValue = DEFAULT_CHUNKER_VALUE;
-                field.value ??= field.defaultValue;
+                field.advanced = true;
             }
         });
         setKnowledgeBaseFields(fields);
         setFormImports(getImportsForFormFields(fields));
+    };
+
+    const updateNodePropertyValue = (fieldKey: string, value: any): void => {
+        if (node.properties && node.properties[fieldKey as keyof typeof node.properties]) {
+            node.properties[fieldKey as keyof typeof node.properties].value = value;
+        }
     };
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange): FlowNode => {
@@ -219,6 +226,7 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
                                 disableSaveButton={!isFormValid}
                                 isSaving={showProgressIndicator || saving}
                                 onChange={(fieldKey, value, allValues) => {
+                                    updateNodePropertyValue(fieldKey, value);
                                     const isValid = allValues["vectorStore"] !== "" && allValues["embeddingModel"] !== "";
                                     setIsFormValid(isValid);
                                     setKnowledgeBaseFormValues(allValues);
@@ -232,4 +240,4 @@ export function VectorKnowledgeBaseForm(props: VectorKnowledgeBaseFormProps) {
     );
 }
 
-export default VectorKnowledgeBaseForm;
+export default KnowledgeBaseForm;

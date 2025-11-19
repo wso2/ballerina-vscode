@@ -18,7 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { BallerinaPackagesParams, BallerinaProjectComponents, BallerinaSTParams, ComponentModels, ComponentModelsParams, ExecutorPositions, PartialST, PartialSTParams, ProjectDiagnosticsRequest, ProjectDiagnosticsResponse, STModifyParams, SymbolInfo, SymbolInfoParams, SyntaxTree, SyntaxTreeParams, TypeFromExpressionParams, TypeFromSymbolParams, TypesFromFnDefinitionParams } from "../../interfaces/extended-lang-client";
-import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest } from "./interfaces";
+import { BallerinaVersionResponse, CompletionRequest, CompletionResponse, DiagnosticsResponse, CodeActionRequest, CodeActionResponse, RenameRequest, RenameResponse, DefinitionPositionRequest, UpdateFileContentRequest, UpdateFileContentResponse, DefinitionResponse, ExecutorPositionsRequest, DidCloseRequest, TypesFromExpressionResponse, TypesFromSymbolResponse, DidOpenRequest, DidChangeRequest, SemanticVersion } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "lang-client";
@@ -27,6 +27,7 @@ export const getST: RequestType<SyntaxTreeParams, SyntaxTree> = { method: `${_pr
 export const getSTByRange: RequestType<BallerinaSTParams, SyntaxTree> = { method: `${_preFix}/getSTByRange` };
 export const getBallerinaProjectComponents: RequestType<BallerinaPackagesParams, BallerinaProjectComponents> = { method: `${_preFix}/getBallerinaProjectComponents` };
 export const getBallerinaVersion: RequestType<void, BallerinaVersionResponse> = { method: `${_preFix}/getBallerinaVersion` };
+export const isSupportedSLVersion: RequestType<SemanticVersion, boolean> = { method: `${_preFix}/isSupportedSLVersion` };
 export const getCompletion: RequestType<CompletionRequest, CompletionResponse> = { method: `${_preFix}/getCompletion` };
 export const getDiagnostics: RequestType<SyntaxTreeParams, DiagnosticsResponse> = { method: `${_preFix}/getDiagnostics` };
 export const getProjectDiagnostics: RequestType<ProjectDiagnosticsRequest, ProjectDiagnosticsResponse> = { method: `${_preFix}/getProjectDiagnostics` };

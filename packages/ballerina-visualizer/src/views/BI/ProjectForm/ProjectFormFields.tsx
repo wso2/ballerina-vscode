@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon } from "@wso2/ui-toolkit";
+import { LocationSelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon, FormCheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { sanitizePackageName, validatePackageName } from "./utils";
@@ -50,11 +50,19 @@ const OptionalConfigContent = styled.div`
     margin-top: 16px;
 `;
 
+const Description = styled.div`
+    color: var(--vscode-list-deemphasizedForeground);
+    margin-top: 4px;
+    text-align: left;
+`;
+
 export interface ProjectFormData {
     integrationName: string;
     packageName: string;
     path: string;
     createDirectory: boolean;
+    createAsWorkspace: boolean;
+    workspaceName: string;
     orgName: string;
     version: string;
 }
@@ -144,7 +152,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
             <FieldGroup>
                 <LocationSelector
-                    label="Select Integration Path"
+                    label="Select Path"
                     selectedFile={formData.path}
                     btnText="Select Path"
                     onSelect={handleProjectDirSelection}
@@ -152,7 +160,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
                 <CheckboxContainer>
                     <CheckBox
-                        label="Create a new directory using the package name"
+                        label={`Create a new directory using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
@@ -185,6 +193,27 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
             {showOptionalConfigurations && (
                 <OptionalConfigContent>
+                    <FieldGroup>
+                        <CheckboxContainer>
+                            <CheckBox
+                                label="Create as workspace"
+                                checked={formData.createAsWorkspace}
+                                onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
+                            />
+                            <Description>
+                                Include this integration in a new workspace for multi-project management.
+                            </Description>
+                        </CheckboxContainer>
+                        {formData.createAsWorkspace && (
+                            <TextField
+                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                value={formData.workspaceName}
+                                label="Workspace Name"
+                                placeholder="Enter workspace name"
+                                required={true}
+                            />
+                        )}
+                    </FieldGroup>
                     <FieldGroup>
                         <TextField
                             onTextChange={(value) => onFormDataChange({ orgName: value })}

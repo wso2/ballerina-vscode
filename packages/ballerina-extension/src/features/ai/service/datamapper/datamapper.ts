@@ -29,11 +29,10 @@ import { getDataMappingPrompt } from "./dataMappingPrompt";
 import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { getErrorMessage } from "../utils";
-import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
+import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
 import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../../../../src/utils/source-utils";
-import { getBallerinaProjectRoot } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
-import { StateMachine } from "../../../../../src/stateMachine";
+import { StateMachine } from "../../../../stateMachine";
 import { extractVariableDefinitionSource, getHasStopped, setHasStopped } from "../../../../../src/rpc-managers/data-mapper/utils";
 import { commands, Uri, window } from "vscode";
 import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
@@ -62,6 +61,7 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const mappingsModel = dataMapperModelResponse.mappingsModel as DMModel;
             const existingMappings = mappingsModel.mappings;
             const userProvidedMappingHints = mappingsModel.mapping_fields || {};
+            const existingSubMappings = mappingsModel.subMappings as Mapping[] || [];
 
             if (!mappingsModel.inputs || !mappingsModel.output) {
                 throw new Error("Mappings model must contain both inputs and output fields");
@@ -77,7 +77,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const aiGeneratedMappings = await generateAIMappings(
                 dataModelStructure,
                 existingMappings,
-                userProvidedMappingHints
+                userProvidedMappingHints,
+                existingSubMappings
             );
 
             if (Object.keys(aiGeneratedMappings).length === 0) {
@@ -99,7 +100,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
 async function generateAIMappings(
     dataModelStructure: DataModelStructure,
     existingUserMappings: Mapping[],
-    userProvidedMappingHints: { [key: string]: MappingFields }
+    userProvidedMappingHints: { [key: string]: MappingFields },
+    existingSubMappings: Mapping[]
 ): Promise<Mapping[]> {
     if (!dataModelStructure.inputs || !dataModelStructure.output) {
         throw new Error("Data model structure must contain inputs and output");
@@ -109,7 +111,8 @@ async function generateAIMappings(
     const aiPrompt = getDataMappingPrompt(
         JSON.stringify(dataModelStructure),
         JSON.stringify(existingUserMappings || []),
-        JSON.stringify(userProvidedMappingHints || {})
+        JSON.stringify(userProvidedMappingHints || {}),
+        JSON.stringify(existingSubMappings || [])
     );
 
     const chatMessages: ModelMessage[] = [
@@ -257,7 +260,7 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     const biDiagramRpcManager = new BiDiagramRpcManager();
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectPath;
 
     const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -338,8 +341,8 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
 
-    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits });
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits, skipPayloadCheck: true });
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string;
     let customFunctionsFileName: string;
@@ -440,9 +443,9 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
 }
 
 async function collectAllImportsFromProject(): Promise<ProjectImports> {
-    const projectUri = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
-    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
+    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
 
     const importStatements: ImportStatements[] = [];
 
@@ -454,7 +457,7 @@ async function collectAllImportsFromProject(): Promise<ProjectImports> {
     }
 
     return {
-        projectPath: projectUri,
+        projectPath: projectPath,
         imports: importStatements,
     };
 }
@@ -637,12 +640,12 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectPath;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context);
 
-    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits });
+    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string | undefined;
@@ -761,24 +764,20 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
 
     try {
         const biDiagramRpcManager = new BiDiagramRpcManager();
+        const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
 
-        // Generate types from context
-        const { typesCode, filePath, recordMap } = await generateTypesFromContext(
+        // Generate types from context with validation
+        const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
-            projectComponents
+            projectComponents,
+            langClient
         );
 
-        const extractedNewRecords = extractRecordTypes(typesCode);
-        for (const newRecord of extractedNewRecords) {
-            if (recordMap.has(newRecord.name)) {
-                throw new Error(`Record "${newRecord.name}" already exists in the workspace.`);
-            }
-        }
-
         // Build assistant response
-        const sourceAttachmentName = typeCreationRequest.attachments?.[0]?.name || "attachment";
-        assistantResponse = `Record types generated from the ${sourceAttachmentName} file shown below.\n`;
+        const sourceAttachmentNames = typeCreationRequest.attachments?.map(a => a.name).join(", ") || "attachment";
+        const fileText = typeCreationRequest.attachments?.length === 1 ? "file" : "files";
+        assistantResponse = `Record types generated from the ${sourceAttachmentNames} ${fileText} shown below.\n`;
         assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
 
         // Send assistant response through event handler

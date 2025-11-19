@@ -16,31 +16,21 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
-import { Button, TextField, Typography, ProgressRing } from '@wso2/ui-toolkit';
+import { Button, TextField, Typography, ProgressRing, Codicon } from '@wso2/ui-toolkit';
 import { TypeHelperCategory, TypeHelperItem } from '../../TypeHelper';
 import { Type } from '@wso2/ballerina-core';
-import { ContentBody, Footer } from './ContextTypeEditor';
+import { ContentBody, StickyFooterContainer, FloatingFooter } from './ContextTypeEditor';
 
 
 const SearchContainer = styled.div`
     width: 100%;
     margin-bottom: 8px;
+    margin-top: 5px;
 `;
 
 const CategorySection = styled.div`
-    margin-top: 8px;
-`;
-
-const TypesContainer = styled.div`
-    border: 1px solid var(--vscode-editorIndentGuide-background);
-    border-radius: 4px;
-    padding: 8px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 380px;
     margin-top: 8px;
 `;
 
@@ -51,6 +41,11 @@ const CategoryTitle = styled(Typography)`
     margin-bottom: 8px;
 `;
 
+const SubCategoryContainer = styled.div`
+    margin-left: 12px;
+    margin-top: 8px;
+`;
+
 const TypeList = styled.div`
     display: flex;
     flex-direction: column;
@@ -59,18 +54,32 @@ const TypeList = styled.div`
     flex: 1;
 `;
 
-const TypeItem = styled.div`
+const TypeItem = styled.div<{ isSelected?: boolean }>`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px 12px;
-    background-color: var(--vscode-list-inactiveSelectionBackground);
+    background-color: ${({ isSelected }) =>
+        isSelected
+            ? 'var(--vscode-list-activeSelectionBackground)'
+            : 'var(--vscode-list-inactiveSelectionBackground)'
+    };
     border-radius: 3px;
     cursor: pointer;
-    transition: background-color 0.15s ease;
-    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    border: 1px solid ${({ isSelected }) =>
+        isSelected
+            ? 'var(--vscode-focusBorder)'
+            : 'transparent'
+    };
 
     &:hover {
-        background-color: var(--vscode-list-hoverBackground);
+        background-color: ${({ isSelected }) =>
+        isSelected
+            ? 'var(--vscode-list-activeSelectionBackground)'
+            : 'var(--vscode-list-hoverBackground)'
+    };
         border-color: var(--vscode-focusBorder);
     }
 
@@ -79,10 +88,22 @@ const TypeItem = styled.div`
     }
 `;
 
-const TypeName = styled(Typography)`
+const TypeName = styled(Typography)<{ isSelected?: boolean }>`
     font-family: var(--vscode-editor-font-family);
-    color: var(--vscode-foreground);
-    margin-bottom: 4px;
+    color: ${({ isSelected }) =>
+        isSelected
+            ? 'var(--vscode-list-activeSelectionForeground)'
+            : 'var(--vscode-foreground)'
+    };
+    font-weight: ${({ isSelected }) => isSelected ? '500' : '400'};
+`;
+
+const SelectIndicator = styled.div<{ isSelected?: boolean }>`
+    display: flex;
+    align-items: center;
+    opacity: ${({ isSelected }) => isSelected ? '1' : '0'};
+    transition: opacity 0.15s ease;
+    color: var(--vscode-list-activeSelectionForeground);
 `;
 
 const LoadingContainer = styled.div`
@@ -105,7 +126,7 @@ const EmptyState = styled.div`
 const ScrollableSection = styled.div`
     flex: 1;
     overflow-y: auto;
-    max-height: 320px
+    max-height: 390px;
 `;
 
 interface BrowseTypesTabProps {
@@ -129,6 +150,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         simpleType
     } = props;
 
+    const firstRender = useRef<boolean>(true);
     const [searchText, setSearchText] = useState<string>('');
     const [selectedType, setSelectedType] = useState<TypeHelperItem | null>(null);
     const [isSelecting, setIsSelecting] = useState<boolean>(false);
@@ -143,12 +165,16 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         }
     }, [simpleType]);
 
-    // Trigger search when component mounts
+    // Trigger initial search when component mounts
     useEffect(() => {
-        onSearchTypeHelper('', true);
+        if (firstRender.current) {
+            firstRender.current = false;
+            onSearchTypeHelper('', true);
+            return;
+        }
     }, []);
 
-    const handleSearchChange = (value: string) => {
+    const handleSearch = (value: string) => {
         setSearchText(value);
         onSearchTypeHelper(value, true);
     };
@@ -204,7 +230,8 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
             'Primitive Types': '0',
             'Data Types': '1',
             'User-Defined': '2',
-            'Structural Types': '3'
+            'Structural Types': '3',
+            'Imported Types': '4'
         };
 
         // Update sortText based on the desired order
@@ -241,80 +268,103 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                 {category.category && (
                     <CategoryTitle variant="h5">{category.category}</CategoryTitle>
                 )}
-                <TypeList>
-                    {category.items.map((item, itemIndex) => (
-                        <TypeItem
-                            key={itemIndex}
-                            onClick={() => handleTypeClick(item)}
-                            style={{
-                                backgroundColor: selectedType?.name === item.name
-                                    ? 'var(--vscode-list-activeSelectionBackground)'
-                                    : undefined
-                            }}
-                        >
-                            <TypeName
-                                variant="body3"
-                                sx={{
-                                    color: selectedType?.name === item.name
-                                        ? 'var(--vscode-list-activeSelectionForeground)'
-                                        : undefined
-                                }}
-                            >
-                                {item.name}
-                            </TypeName>
-                        </TypeItem>
-                    ))}
-                </TypeList>
+                
+                {/* Render direct items if they exist */}
+                {category.items && category.items.length > 0 && (
+                    <TypeList>
+                        {category.items.map((item, itemIndex) => {
+                            const isSelected = selectedType?.name === item.name;
+                            return (
+                                <TypeItem
+                                    key={itemIndex}
+                                    isSelected={isSelected}
+                                    onClick={() => handleTypeClick(item)}
+                                >
+                                    <TypeName
+                                        variant="body3"
+                                        isSelected={isSelected}
+                                    >
+                                        {item.name}
+                                    </TypeName>
+                                    <SelectIndicator isSelected={isSelected}>
+                                        <Codicon name="check" />
+                                    </SelectIndicator>
+                                </TypeItem>
+                            );
+                        })}
+                    </TypeList>
+                )}
+
+                {/* Render subcategories if they exist (for Imported Types) */}
+                {category.subCategory && category.subCategory.map((subCat, subCatIndex) => (
+                    <SubCategoryContainer key={subCatIndex}>
+                        <CategoryTitle variant="h5">
+                            {subCat.category}
+                        </CategoryTitle>
+                        <TypeList>
+                            {subCat.items.map((item, itemIndex) => {
+                                const isSelected = selectedType?.name === item.name;
+                                return (
+                                    <TypeItem
+                                        key={itemIndex}
+                                        isSelected={isSelected}
+                                        onClick={() => handleTypeClick(item)}
+                                    >
+                                        <TypeName
+                                            variant="body3"
+                                            isSelected={isSelected}
+                                        >
+                                            {item.name}
+                                        </TypeName>
+                                        <SelectIndicator isSelected={isSelected}>
+                                            <Codicon name="check" />
+                                        </SelectIndicator>
+                                    </TypeItem>
+                                );
+                            })}
+                        </TypeList>
+                    </SubCategoryContainer>
+                ))}
             </CategorySection>
         ));
     };
 
     return (
-        <>
+        <StickyFooterContainer>
             <ContentBody>
-                <TextField
-                    id="selected-type"
-                    label="Type"
-                    value={selectedType?.name}
-                    placeholder="Select a type from the list below"
-                    readOnly
-                />
-
-                <TypesContainer>
-                    <SearchContainer>
-                        <TextField
-                            value={searchText}
-                            onChange={(e) => handleSearchChange(e.target.value)}
-                            placeholder="Search types..."
-                            autoFocus
-                        />
-                    </SearchContainer>
-                    {loading ? (
-                        <LoadingContainer>
-                            <ProgressRing />
-                        </LoadingContainer>
-                    ) : (
-                        <ScrollableSection>
-                            {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
-                            {(!basicTypes || basicTypes.length === 0) && (
-                                <EmptyState>
-                                    <Typography variant="body3">No types found</Typography>
-                                </EmptyState>
-                            )}
-                        </ScrollableSection>
-                    )}
-                </TypesContainer>
+                <SearchContainer>
+                    <TextField
+                        value={searchText}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        placeholder="Search types..."
+                        autoFocus
+                    />
+                </SearchContainer>
+                {(loading && (!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0)) ? (
+                    <LoadingContainer>
+                        <ProgressRing />
+                    </LoadingContainer>
+                ) : (
+                    <ScrollableSection>
+                        {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
+                        {importedTypes && importedTypes.length > 0 && renderTypeItems(importedTypes)}
+                        {(!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && !loading && (
+                            <EmptyState>
+                                <Typography variant="body3">No matching types found</Typography>
+                            </EmptyState>
+                        )}
+                    </ScrollableSection>
+                )}
             </ContentBody>
-
-            <Footer>
+            <FloatingFooter>
                 <Button
                     onClick={handleSelectType}
                     disabled={!selectedType || isSelecting}
                 >
-                    {isSelecting ? <Typography variant="progress">Selecting...</Typography> : 'Select Type'}
+                    {isSelecting ? <Typography variant="progress">Saving...</Typography> : 'Save'}
                 </Button>
-            </Footer>
-        </>
+            </FloatingFooter>
+        </StickyFooterContainer>
     );
 }
 

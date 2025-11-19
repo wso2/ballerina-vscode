@@ -20,8 +20,14 @@ import {
     AgentChatAPI,
     ChatReqMessage,
     ChatRespMessage,
+    TraceInput,
+    TraceStatus
 } from "@wso2/ballerina-core";
+import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
+import { TracerMachine, TraceServer } from "../../features/tracing";
+import { TraceDetailsWebview } from "../../features/tracing/trace-details-webview";
+import { Trace } from "../../features/tracing/trace-server";
 
 export class AgentChatRpcManager implements AgentChatAPI {
     private currentAbortController: AbortController | null = null;
@@ -121,5 +127,109 @@ export class AgentChatRpcManager implements AgentChatAPI {
             }
             throw new Error(errorMessage);
         }
+    }
+
+    async getTracingStatus(): Promise<TraceStatus> {
+        return new Promise(async (resolve) => {
+            const isEnabled = TracerMachine.isEnabled();
+            resolve({
+                enabled: isEnabled
+            });
+        });
+    }
+
+
+    /**
+     * Find the trace that corresponds to a chat message by matching span attributes
+     * @param userMessage The user's input message
+     * @returns The matching trace or undefined if not found
+     */
+    findTraceForMessage(userMessage: string): Trace | undefined {
+        // Get all traces from the TraceServer
+        const traces = TraceServer.getTraces();
+
+        // Helper function to extract string value from attribute value
+        const extractValue = (value: any): string => {
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (value && typeof value === 'object' && 'stringValue' in value) {
+                return String(value.stringValue);
+            }
+            return '';
+        };
+
+        // Iterate through each trace to find matching spans
+        for (const trace of traces) {
+            // Check each span in the trace
+            for (const span of trace.spans || []) {
+                // Check if this span matches our criteria:
+                // 1. span.type === "ai"
+                // 2. gen_ai.operation.name === "invoke_agent"
+                // 3. gen_ai.input.messages matches the user message
+
+                const attributes = span.attributes || [];
+
+                // Find relevant attributes
+                let spanType: string | undefined;
+                let operationName: string | undefined;
+                let inputMessages: string | undefined;
+
+                for (const attr of attributes) {
+                    const attrValue = extractValue(attr.value);
+
+                    if (attr.key === 'span.type') {
+                        spanType = attrValue;
+                    } else if (attr.key === 'gen_ai.operation.name') {
+                        operationName = attrValue;
+                    } else if (attr.key === 'gen_ai.input.messages') {
+                        inputMessages = attrValue;
+                    }
+                }
+
+                // Check if all criteria match
+                if (spanType === 'ai' &&
+                    operationName === 'invoke_agent' &&
+                    inputMessages) {
+                    // Check if the input message matches
+                    // inputMessages might be JSON or contain the message
+                    if (inputMessages.includes(userMessage)) {
+                        return trace;
+                    }
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Show trace details webview for a given chat message
+     * Finds the trace matching the message and opens it in the trace details webview
+     * @param userMessage The user's input message
+     * @throws Error if no trace is found for the message
+     */
+    async showTraceDetailsForMessage(userMessage: string): Promise<void> {
+        try {
+            // Find the trace that matches the user message
+            const trace = this.findTraceForMessage(userMessage);
+
+            if (!trace) {
+                const errorMessage = 'No trace found for the given message. Make sure tracing is enabled and the agent has processed this message.';
+                vscode.window.showErrorMessage(errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            // Open the trace details webview with isAgentChat=true
+            TraceDetailsWebview.show(trace, true);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
+            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            throw error;
+        }
+    }
+
+    async showTraceView(params: TraceInput): Promise<void> {
+        await this.showTraceDetailsForMessage(params.message);
     }
 }

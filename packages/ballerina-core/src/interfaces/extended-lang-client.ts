@@ -23,7 +23,7 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
@@ -568,7 +568,7 @@ export interface ExecutorPositions {
 // Test Manager related interfaces 
 
 export interface TestsDiscoveryRequest {
-    filePath: string;
+    projectPath: string;
 }
 
 export interface TestsDiscoveryResponse {
@@ -905,11 +905,12 @@ export type SearchKind =
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
     | "EMBEDDING_PROVIDER"
-    | "VECTOR_KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE"
     | "DATA_LOADER"
     | "CHUNKER"
     | "AGENT"
-    | "MEMORY_MANAGER"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "AGENT_TOOL"
     | "CLASS_INIT";
 
@@ -922,6 +923,22 @@ export type BISearchRequest = {
 
 export type BISearchResponse = {
     categories: Category[];
+}
+
+export type BISearchNodesRequest = {
+    filePath: string;
+    position?: LinePosition;
+    queryMap?: SearchNodesQueryParams;
+}
+
+export type BISearchNodesResponse = {
+    output: FlowNode[];
+    error: string;
+}
+
+export type SearchNodesQueryParams = {
+    kind?: NodeKind;
+    exactMatch?: string;
 }
 
 export type BIGetEnclosedFunctionRequest = {
@@ -1315,6 +1332,16 @@ export interface AddFieldRequest {
     };
 }
 
+export interface ExpressionTokensRequest {
+    expression: string;
+    filePath: string;
+    position?: LinePosition;
+}
+
+export interface ExpressionTokensResponse {
+    data: number[];
+}
+
 export interface SourceEditResponse {
     textEdits?: {
         [key: string]: TextEdit[];
@@ -1405,6 +1432,8 @@ export interface TypeFunctionModel {
     returnType?: Type | string;
     refs: string[];
     imports?: Imports;
+    isGraphqlId?: boolean;
+    properties?: { [key: string]: any };
 }
 
 export interface TypeMetadata {
@@ -1439,6 +1468,7 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    isGraphqlId?: boolean;
 }
 
 export interface GetGraphqlTypeRequest {
@@ -1627,6 +1657,7 @@ export interface FunctionSourceCodeRequest {
         lineRange: LineRange; // For the entire service
     };
     service?: ServiceModel;
+    artifactType?: DIRECTORY_MAP;
 }
 export interface ResourceSourceCodeResponse {
     textEdits: {
@@ -1646,11 +1677,7 @@ export interface ResponseCode {
     statusCode: string;
     hasBody?: boolean;
 }
-export interface ResourceReturnTypesResponse {
-    completions: ResponseCode[];
-}
-
-
+export type ResourceReturnTypesResponse = VisibleTypeItem[];
 // <-------- Service Designer Related ------->
 
 export interface FunctionFromSourceRequest {
@@ -1739,8 +1766,7 @@ export interface AIToolResponse {
 
 export interface McpToolsRequest {
     serviceUrl?: string;
-    configs?: Record<string, string>;
-    filePath?: string;
+    accessToken?: string;
 }
 
 export interface McpToolsResponse {
@@ -1748,7 +1774,7 @@ export interface McpToolsResponse {
         name: string;
         description?: string;
     }>;
-    error?: string;
+    errorMsg?: string;
 }
 
 export interface AIGentToolsRequest {

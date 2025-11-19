@@ -30,6 +30,7 @@ import {
     BIGetEnclosedFunctionRequest,
     BIGetVisibleVariableTypesRequest,
     BINodeTemplateRequest,
+    BISearchNodesRequest,
     BISearchRequest,
     BISourceCodeRequest,
     BreakpointRequest,
@@ -123,6 +124,7 @@ import {
     RenameIdentifierRequest,
     runProject,
     search,
+    searchNodes,
     ServiceClassSourceRequest,
     SignatureHelpRequest,
     updateClassField,
@@ -142,7 +144,11 @@ import {
     verifyTypeDelete,
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
-    FormDiagnosticsRequest
+    FormDiagnosticsRequest,
+    getExpressionTokens,
+    ExpressionTokensRequest,
+    addProjectToWorkspace,
+    AddProjectToWorkspaceRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -164,6 +170,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
     messenger.onNotification(createProject, (args: ProjectRequest) => rpcManger.createProject(args));
+    messenger.onNotification(addProjectToWorkspace, (args: AddProjectToWorkspaceRequest) => rpcManger.addProjectToWorkspace(args));
     messenger.onRequest(getWorkspaces, () => rpcManger.getWorkspaces());
     messenger.onRequest(getProjectStructure, () => rpcManger.getProjectStructure());
     messenger.onRequest(getProjectComponents, () => rpcManger.getProjectComponents());
@@ -193,6 +200,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getBreakpointInfo, () => rpcManger.getBreakpointInfo());
     messenger.onRequest(getFormDiagnostics, (args: FormDiagnosticsRequest) => rpcManger.getFormDiagnostics(args));
     messenger.onRequest(getExpressionDiagnostics, (args: ExpressionDiagnosticsRequest) => rpcManger.getExpressionDiagnostics(args));
+    messenger.onRequest(getExpressionTokens, (args: ExpressionTokensRequest) => rpcManger.getExpressionTokens(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));
     messenger.onRequest(getDesignModel, () => rpcManger.getDesignModel());
@@ -217,6 +225,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getFunctionNode, (args: FunctionNodeRequest) => rpcManger.getFunctionNode(args));
     messenger.onRequest(getEndOfFile, (args: EndOfFileRequest) => rpcManger.getEndOfFile(args));
     messenger.onRequest(search, (args: BISearchRequest) => rpcManger.search(args));
+    messenger.onRequest(searchNodes, (args: BISearchNodesRequest) => rpcManger.searchNodes(args));
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());

@@ -40,7 +40,7 @@ export const LabelContainer = styled.div({
 });
 
 export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
-    const { fileName, targetLineRange, onChange, currentValue, recordTypeField, onClose } = props;
+    const { fileName, onChange, currentValue, recordTypeField, onClose } = props;
     const { rpcClient } = useRpcContext();
 
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
