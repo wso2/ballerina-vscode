@@ -19,7 +19,7 @@
 import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox, Typography, ThemeColors, Button, TextField } from "@wso2/ui-toolkit";
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel";
+import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel";
 import { ExpandableList } from "../Components/ExpandableList";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
@@ -38,6 +38,7 @@ type DocumentConfigProps = {
     currentValue: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     isInModal?: boolean;
+    inputMode?: InputMode;
 };
 
 enum AIDocumentType {
@@ -60,12 +61,13 @@ const getAIDocumentType = (documentType: DocumentInputType): AIDocumentType => {
 };
 
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: DocumentInputType, content: string): string => {
+const wrapInDocumentType = (documentType: DocumentInputType, content: string, addInterpolation: boolean = true): string => {
     const docType = getAIDocumentType(documentType);
-    return `\${<${docType}>{content: ${content}}}`;
+    const docStructure = `<${docType}>{content: ${content}}`;
+    return addInterpolation ? `\${${docStructure}}` : docStructure;
 };
 
-export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal }: DocumentConfigProps) => {
+export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
     const { getParams } = useSlidingPane();
     const params = getParams();
     const documentType = (params?.documentType as DocumentInputType) || DocumentInputType.File;
@@ -174,12 +176,19 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         // Check if the type is string or byte[] - these need to be wrapped with type casting
         const needsTypeCasting = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
 
+        // Check if we're in template mode
+        const isTemplateMode = inputMode === InputMode.TEMPLATE;
+
         if (isAIDocumentType) {
-            // For AI document types, just wrap in string interpolation
-            onChange(`\${${fullPath}}`, false);
+            // For AI document types, wrap in string interpolation only in template mode
+            if (isTemplateMode) {
+                onChange(`\${${fullPath}}`, false);
+            } else {
+                onChange(fullPath, false);
+            }
         } else if (needsTypeCasting) {
-            // Wrap the variable in the document structure with type casting
-            const wrappedValue = wrapInDocumentType(documentType, fullPath);
+            // Wrap the variable in the document structure with or without interpolation based on mode
+            const wrappedValue = wrapInDocumentType(documentType, fullPath, isTemplateMode);
             onChange(wrappedValue, false);
         } else {
             // For other types (records, etc.), insert directly
@@ -220,7 +229,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             if (!url.trim()) {
                 return;
             }
-            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`);
+            const isTemplateMode = inputMode === InputMode.TEMPLATE;
+            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode);
             onChange(wrappedValue, false, false);
             closeModal(POPUP_IDS.DOCUMENT_URL);
         };
