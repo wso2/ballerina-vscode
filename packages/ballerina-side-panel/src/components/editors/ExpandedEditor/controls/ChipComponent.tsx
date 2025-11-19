@@ -89,35 +89,17 @@ const ChipText = styled.span`
  * Props for ChipComponent
  */
 export interface ChipComponentProps {
-    type: 'variable' | 'document' | 'property' | 'parameter';
+    type: TokenType;
     content: string;
     documentType?: DocumentType;
 }
-
-/**
- * Map string type to TokenType enum
- */
-const mapToTokenType = (type: string): TokenType => {
-    switch (type) {
-        case 'variable':
-            return TokenType.VARIABLE;
-        case 'property':
-            return TokenType.PROPERTY;
-        case 'parameter':
-            return TokenType.PARAMETER;
-        case 'document':
-            return TokenType.DOCUMENT;
-        default:
-            return TokenType.VARIABLE;
-    }
-};
 
 /**
  * ChipComponent - Reusable chip component for markdown preview
  * Matches the styling from CodeUtils.ts createChip function
  */
 export const ChipComponent: React.FC<ChipComponentProps> = ({ type, content, documentType }) => {
-    if (type === 'document' && documentType) {
+    if (type === TokenType.DOCUMENT && documentType) {
         return (
             <DocumentChip>
                 <DocumentIcon className={getDocumentIconClass(documentType)} />
@@ -126,11 +108,10 @@ export const ChipComponent: React.FC<ChipComponentProps> = ({ type, content, doc
         );
     }
 
-    const tokenType = mapToTokenType(type);
-    const displayContent = getChipDisplayContent(tokenType, content);
+    const displayContent = getChipDisplayContent(type, content);
 
     return (
-        <StandardChip chipType={tokenType}>
+        <StandardChip chipType={type}>
             {displayContent}
         </StandardChip>
     );
