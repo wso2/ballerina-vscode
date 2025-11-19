@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { iterateTokenStream } from "../../MultiModeExpressionEditor/ChipExpressionEditor/CodeUtils";
 import { TokenType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { getParsedExpressionTokens, detectTokenPatterns } from "../../MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
@@ -50,69 +51,39 @@ export const transformExpressionToMarkdown = (
     }
 
     try {
-        // Parse tokens to get absolute positions
         const parsedTokens = getParsedExpressionTokens(tokenStream, expression);
-
-        // Detect compound token patterns (variables and documents)
         const compounds = detectTokenPatterns(parsedTokens, expression);
-
         const renderableTokens: RenderableToken[] = [];
 
-        // Create a set of token indices that are part of compounds
-        const compoundTokenIndices = new Set<number>();
-        for (const compound of compounds) {
-            for (let i = compound.startIndex; i <= compound.endIndex; i++) {
-                compoundTokenIndices.add(i);
+        // Use the shared iterator from CodeUtils
+        iterateTokenStream(parsedTokens, compounds, expression, {
+            onCompound: (compound) => {
+                let chipTag: string | undefined;
+                if (compound.tokenType === TokenType.DOCUMENT && compound.metadata.documentType) {
+                    chipTag = createChipTag(TokenType.DOCUMENT, compound.metadata.content, compound.metadata.documentType);
+                } else if (compound.tokenType === TokenType.VARIABLE) {
+                    chipTag = createChipTag(TokenType.VARIABLE, compound.metadata.content);
+                }
+
+                if (chipTag) {
+                    renderableTokens.push({
+                        start: compound.start,
+                        end: compound.end,
+                        chipTag
+                    });
+                }
+            },
+            onToken: (token, content) => {
+                const chipTag = createChipTag(token.type, content);
+                if (chipTag) {
+                    renderableTokens.push({
+                        start: token.start,
+                        end: token.end,
+                        chipTag
+                    });
+                }
             }
-        }
-
-        // Process compound tokens
-        for (const compound of compounds) {
-            let chipTag: string;
-
-            if (compound.tokenType === TokenType.DOCUMENT && compound.metadata.documentType) {
-                chipTag = createChipTag('document', compound.metadata.content, compound.metadata.documentType);
-            } else if (compound.tokenType === TokenType.VARIABLE) {
-                chipTag = createChipTag('variable', compound.metadata.content);
-            } else {
-                // Skip unknown token types
-                continue;
-            }
-
-            renderableTokens.push({
-                start: compound.start,
-                end: compound.end,
-                chipTag
-            });
-        }
-
-        // Process individual tokens that are not part of compounds
-        for (let i = 0; i < parsedTokens.length; i++) {
-            const token = parsedTokens[i];
-
-            // Skip tokens that are part of compound sequences
-            if (compoundTokenIndices.has(i)) {
-                continue;
-            }
-
-            // Skip START_EVENT and END_EVENT tokens
-            if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
-                continue;
-            }
-
-            // Get the actual text content for this token
-            const content = expression.slice(token.start, token.end);
-
-            let chipTag = createChipTag(token.type, content);
-
-            if (chipTag) {
-                renderableTokens.push({
-                    start: token.start,
-                    end: token.end,
-                    chipTag
-                });
-            }
-        }
+        });
 
         // If no tokens to render, return original expression
         if (renderableTokens.length === 0) {
@@ -120,22 +91,19 @@ export const transformExpressionToMarkdown = (
         }
 
         // Sort by position in reverse order to maintain position integrity
-        // when replacing (replace from end to start)
         const sortedTokens = renderableTokens.sort((a, b) => b.start - a.start);
 
         let transformed = expression;
-
         for (const token of sortedTokens) {
-            // Replace the token range with chip tag
             transformed =
                 transformed.slice(0, token.start) +
                 token.chipTag +
                 transformed.slice(token.end);
         }
         return transformed;
+
     } catch (error) {
         console.error('Error transforming expression to markdown:', error);
-        // Return original expression if transformation fails
         return expression;
     }
 };

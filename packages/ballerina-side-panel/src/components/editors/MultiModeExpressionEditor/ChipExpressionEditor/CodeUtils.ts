@@ -258,6 +258,58 @@ export const tokenField = StateField.define<TokenFieldState>({
     }
 });
 
+export const iterateTokenStream = (
+    tokens: ParsedToken[],
+    compounds: CompoundTokenSequence[],
+    content: string,
+    callbacks: {
+        onCompound: (compound: CompoundTokenSequence) => void;
+        onToken: (token: ParsedToken, text: string) => void;
+    }
+) => {
+    const docLength = content.length;
+
+    // Create a set of token indices that are part of compounds
+    const compoundTokenIndices = new Set<number>();
+    for (const compound of compounds) {
+        for (let i = compound.startIndex; i <= compound.endIndex; i++) {
+            compoundTokenIndices.add(i);
+        }
+    }
+
+    // Process compound tokens
+    for (const compound of compounds) {
+        // Validate compound range
+        if (compound.start < 0 || compound.end > docLength || compound.start >= compound.end) {
+            continue;
+        }
+        callbacks.onCompound(compound);
+    }
+
+    // Process individual tokens that are not part of compounds
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        // Skip tokens that are part of compound sequences
+        if (compoundTokenIndices.has(i)) {
+            continue;
+        }
+
+        // Skip START_EVENT and END_EVENT tokens
+        if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
+            continue;
+        }
+
+        // Validate token range
+        if (token.start < 0 || token.end > docLength || token.start >= token.end) {
+            continue;
+        }
+
+        const text = content.slice(token.start, token.end);
+        callbacks.onToken(token, text);
+    }
+};
+
 export const chipPlugin = ViewPlugin.fromClass(
     class {
         decorations: RangeSet<Decoration>;
@@ -274,60 +326,35 @@ export const chipPlugin = ViewPlugin.fromClass(
             }
         }
         buildDecorations(view: EditorView) {
-            const widgets = [];
+            const widgets: any[] = []; // Type as any[] to allow pushing Range<Decoration>
             const { tokens, compounds } = view.state.field(tokenField);
-            const docLength = view.state.doc.length;
+            const docContent = view.state.doc.toString();
 
-            // Create a set of token indices that are part of compounds
-            const compoundTokenIndices = new Set<number>();
-            for (const compound of compounds) {
-                for (let i = compound.startIndex; i <= compound.endIndex; i++) {
-                    compoundTokenIndices.add(i);
+            iterateTokenStream(tokens, compounds, docContent, {
+                onCompound: (compound) => {
+                    widgets.push(
+                        createChip(
+                            compound.displayText,
+                            compound.tokenType,
+                            compound.start,
+                            compound.end,
+                            view,
+                            compound.metadata
+                        ).range(compound.start, compound.end)
+                    );
+                },
+                onToken: (token, text) => {
+                    widgets.push(
+                        createChip(
+                            text,
+                            token.type,
+                            token.start,
+                            token.end,
+                            view
+                        ).range(token.start, token.end)
+                    );
                 }
-            }
-
-            // Render compound tokens as single chips
-            for (const compound of compounds) {
-                // Validate compound range
-                if (compound.start < 0 || compound.end > docLength || compound.start >= compound.end) {
-                    continue;
-                }
-
-                const chipType: TokenType = compound.tokenType;
-                widgets.push(
-                    createChip(
-                        compound.displayText,
-                        chipType,
-                        compound.start,
-                        compound.end,
-                        view,
-                        compound.metadata
-                    ).range(compound.start, compound.end)
-                );
-            }
-
-            // Render individual tokens that are not part of compounds
-            for (let i = 0; i < tokens.length; i++) {
-                const token = tokens[i];
-
-                // Skip tokens that are part of compound sequences
-                if (compoundTokenIndices.has(i)) {
-                    continue;
-                }
-
-                // Skip START_EVENT and END_EVENT tokens
-                if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
-                    continue;
-                }
-
-                // Validate token range
-                if (token.start < 0 || token.end > docLength || token.start >= token.end) {
-                    continue;
-                }
-
-                const text = view.state.doc.sliceString(token.start, token.end);
-                widgets.push(createChip(text, token.type, token.start, token.end, view).range(token.start, token.end));
-            }
+            });
 
             return Decoration.set(widgets, true);
         }
