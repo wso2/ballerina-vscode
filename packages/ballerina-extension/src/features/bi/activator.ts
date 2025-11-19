@@ -72,7 +72,7 @@ function handleCommandWithContext(
             if (selectedPackage) {
                 openView(EVENT_TYPE.OPEN_VIEW, { 
                     view, 
-                    projectPath: selectedPackage, 
+                    package: selectedPackage, 
                     ...additionalViewParams 
                 });
             }
