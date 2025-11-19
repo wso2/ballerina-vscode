@@ -35,7 +35,7 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
     if (isTestFunctionItem(test)) {
         // Extract from test ID: test:${projectPath}:${fileName}:${functionName}
         const parts = test.id.split(':');
-        if (parts.length >= 2) {
+        if (parts.length >= 2  && parts[0] === 'test') {
             return parts[1];
         }
     } else if (isProjectGroupItem(test)) {
@@ -170,7 +170,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
             runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
-                const timeElapsed = testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
@@ -179,7 +179,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 });
             }).catch(() => {
                 const endTime = Date.now();
-                const timeElapsed = testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
@@ -210,7 +210,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
             runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
-                const timeElapsed = (endTime - startTime) / testItems.length;
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
@@ -219,7 +219,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 });
             }).catch(() => {
                 const endTime = Date.now();
-                const timeElapsed = (endTime - startTime) / testItems.length;
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                     endGroup(test, true, run);
@@ -251,7 +251,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
             runCommand(command, workingDirectory).then(() => {
                 const endTime = Date.now();
-                const timeElapsed = (endTime - startTime) / testItems.length;
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                     endGroup(test, true, run);
@@ -260,7 +260,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 });
             }).catch(() => {
                 const endTime = Date.now();
-                const timeElapsed = (endTime - startTime) / testItems.length;
+                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                     endGroup(test, true, run);
@@ -273,6 +273,17 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
         }
     });
 }
+/**
+ * Calculate time elapsed per test item
+ * @param startTime - Start time in milliseconds
+ * @param endTime - End time in milliseconds
+ * @param testItems - Array of test items
+ * @returns Time elapsed per test item in milliseconds
+ */
+function calculateTimeElapsed(startTime: number, endTime: number, testItems: TestItem[]): number {
+    return testItems.length > 0 ? (endTime - startTime) / testItems.length : (endTime - startTime);
+}
+
 const TEST_RESULTS_PATH = path.join("target", "report", "test_results.json").toString();
 
 enum TEST_STATUS {
