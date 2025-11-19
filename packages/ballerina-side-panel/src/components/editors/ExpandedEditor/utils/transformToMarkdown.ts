@@ -90,11 +90,8 @@ export const transformExpressionToMarkdown = (
             return expression;
         }
 
-        // Sort by position in reverse order to maintain position integrity
-        const sortedTokens = renderableTokens.sort((a, b) => b.start - a.start);
-
         let transformed = expression;
-        for (const token of sortedTokens) {
+        for (const token of renderableTokens) {
             transformed =
                 transformed.slice(0, token.start) +
                 token.chipTag +
