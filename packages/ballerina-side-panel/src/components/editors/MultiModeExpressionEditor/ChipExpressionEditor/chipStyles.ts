@@ -17,6 +17,7 @@
  */
 
 import { TokenType, DocumentType } from "./types";
+import styled from "@emotion/styled";
 
 /**
  * Base chip styles shared across all chip types
@@ -135,3 +136,35 @@ export const shouldRenderAsEmptySpace = (tokenType: TokenType, content: string):
 export const getChipDisplayContent = (tokenType: TokenType, content: string): string => {
     return shouldRenderAsEmptySpace(tokenType, content) ? '  ' : content;
 };
+
+/**
+ * Base chip styling matching CodeMirror chip appearance
+ */
+export const BaseChip = styled('span')(BASE_CHIP_STYLES);
+
+/**
+ * Document chip with icon - matches CodeUtils.ts createDocumentChip
+ */
+export const DocumentChip = styled(BaseChip)(DOCUMENT_CHIP_STYLES);
+
+/**
+ * Standard chip for variables/properties/parameters
+ */
+export const StandardChip = styled(BaseChip)<{ chipType: TokenType }>((props) => ({
+    background: getTokenTypeColor(props.chipType).background,
+    border: `1px solid ${getTokenTypeColor(props.chipType).border}`,
+    padding: STANDARD_CHIP_STYLES.padding,
+    minWidth: STANDARD_CHIP_STYLES.minWidth,
+    transition: STANDARD_CHIP_STYLES.transition,
+    display: STANDARD_CHIP_STYLES.display,
+}));
+
+/**
+ * Icon container for document chips
+ */
+export const DocumentIcon = styled.i(DOCUMENT_ICON_STYLES);
+
+/**
+ * Text container with ellipsis for long content
+ */
+export const ChipText = styled.span(CHIP_TEXT_STYLES);
