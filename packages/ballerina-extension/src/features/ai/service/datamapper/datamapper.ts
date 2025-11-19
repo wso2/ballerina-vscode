@@ -800,6 +800,7 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
     try {
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
+        const context = StateMachine.context();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
 
         // Generate types from context with validation
@@ -809,11 +810,22 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
             langClient
         );
 
+        // For workspace projects, compute relative file path from workspace root
+        const workspacePath = context.workspacePath;
+        const projectRoot = context.projectPath;
+        let targetFilePath = filePath;
+
+        if (workspacePath && projectRoot) {
+            // Workspace project: need to include package path prefix (e.g., "foo/types.bal")
+            const absoluteFilePath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath);
+            targetFilePath = path.relative(workspacePath, absoluteFilePath);
+        }
+
         // Build assistant response
         const sourceAttachmentNames = typeCreationRequest.attachments?.map(a => a.name).join(", ") || "attachment";
         const fileText = typeCreationRequest.attachments?.length === 1 ? "file" : "files";
         assistantResponse = `Record types generated from the ${sourceAttachmentNames} ${fileText} shown below.\n`;
-        assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
 
         // Send assistant response through event handler
         eventHandler({ type: "content_block", content: assistantResponse });
