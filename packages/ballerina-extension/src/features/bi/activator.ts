@@ -72,12 +72,12 @@ function handleCommandWithContext(
             if (selectedPackage) {
                 openView(EVENT_TYPE.OPEN_VIEW, { 
                     view, 
-                    package: selectedPackage, 
+                    projectPath: selectedPackage, 
                     ...additionalViewParams 
                 });
             }
         });
-    } 
+    }
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
         const projectPath = item.resourceUri.fsPath;
