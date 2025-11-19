@@ -22,7 +22,7 @@ import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
-import { findBallerinaPackageRoot } from '../../utils';
+import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -134,7 +134,17 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_NEW_PROJECT, () => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+            const isWorkspaceSupported = isSupportedSLVersion(
+                extension.ballerinaExtInstance,
+                createVersionNumber(2201, 13, 0)
+            );
+
+            if (isBallerinaWorkspace && isWorkspaceSupported) {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
+            } else {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            }
         })
     );
 
