@@ -253,6 +253,7 @@ const stateMachine = createMachine<MachineContext>(
                             package: (context, event) => event.viewLocation?.package,
                             view: (context, event) => event.viewLocation.view,
                             documentUri: (context, event) => event.viewLocation.documentUri,
+                            projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
                             position: (context, event) => event.viewLocation.position,
                             identifier: (context, event) => event.viewLocation.identifier,
                             serviceType: (context, event) => event.viewLocation.serviceType,
