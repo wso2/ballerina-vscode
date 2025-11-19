@@ -268,7 +268,10 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     ExpressionTokensRequest,
-    ExpressionTokensResponse
+    ExpressionTokensResponse,
+    FieldPropertyRequest,
+    ClausePositionResponse,
+    ClausePositionRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -350,6 +353,7 @@ enum EXTENDED_APIS {
     BI_GEN_ERROR_HANDLER = 'flowDesignService/addErrorHandler',
     BI_GET_ENCLOSED_FUNCTION = 'flowDesignService/getEnclosedFunctionDef',
     BI_EXPRESSION_COMPLETIONS = 'expressionEditor/completion',
+    BI_DATA_MAPPER_COMPLETIONS = 'expressionEditor/dataMapperCompletion',
     VISIBLE_VARIABLE_TYPES = 'expressionEditor/visibleVariableTypes',
     DATA_MAPPER_MAPPINGS = 'dataMapper/mappings',
     DATA_MAPPER_GET_SOURCE = 'dataMapper/getSource',
@@ -365,7 +369,9 @@ enum EXTENDED_APIS {
     DATA_MAPPER_MAP_WITH_TRANSFORM_FN = 'dataMapper/transformationFunction',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
-    DATA_MAPPER_PROPERTY = 'dataMapper/fieldPosition',
+    DATA_MAPPER_PROPERTY = 'dataMapper/targetFieldPosition',
+    DATA_MAPPER_FIELD_PROPERTY = 'dataMapper/fieldPosition',
+    DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
@@ -822,6 +828,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_PROPERTY, params);
     }
 
+    async getFieldProperty(params: FieldPropertyRequest): Promise<PropertyResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest<PropertyResponse>(EXTENDED_APIS.DATA_MAPPER_FIELD_PROPERTY, params);
+    }
+
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return this.sendRequest<ClausePositionResponse>(EXTENDED_APIS.DATA_MAPPER_CLAUSE_POSITION, params);
+    }
+
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
         return this.sendRequest<ClearTypeCacheResponse>(EXTENDED_APIS.DATA_MAPPER_CLEAR_TYPE_CACHE);
     }
@@ -1121,6 +1135,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
         return this.sendRequest<ExpressionCompletionsResponse>(EXTENDED_APIS.BI_EXPRESSION_COMPLETIONS, params);
+    }
+
+    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return this.sendRequest<ExpressionCompletionsResponse>(EXTENDED_APIS.BI_DATA_MAPPER_COMPLETIONS, params);
     }
 
     async getModuleNodes(params: BIModuleNodesRequest): Promise<BIModuleNodesResponse> {

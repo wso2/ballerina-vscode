@@ -21,6 +21,8 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
@@ -34,6 +36,7 @@ import {
     DMModelRequest,
     ExpandedDMModel,
     ExpandedDMModelResponse,
+    FieldPropertyRequest,
     GetDataMapperCodedataRequest,
     GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
@@ -233,6 +236,26 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getFieldProperty(params: FieldPropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine
+                .langClient()
+                .getFieldProperty(params) as PropertyResponse;
+
+            resolve(property);
+        });
+    }
+
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return new Promise(async (resolve) => {
+            const position: any = await StateMachine
+                .langClient()
+                .getClausePosition(params);
+
+            resolve(position);
+        });
+    }
+
     async deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -394,4 +417,5 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 });
         });
     }
+
 }
