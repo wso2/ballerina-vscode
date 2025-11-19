@@ -195,7 +195,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar
                 title="Service Function"
                 subtitle="Build reusable custom flows"

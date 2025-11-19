@@ -140,7 +140,7 @@ async function getContext(): Promise<VisualizerLocation> {
             metadata: {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
-                recordFilePath: path.join(context.projectPath, "types.bal"),
+                recordFilePath: context.projectPath ? path.join(context.projectPath, "types.bal") : undefined,
                 enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                 target: context.metadata?.target
             },

@@ -330,6 +330,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         onCancel,
         onRemove,
         handleOnFieldFocus,
+        onOpenRecordConfigPage,
         targetLineRange,
         fileName,
         helperPaneHeight,
@@ -342,7 +343,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
+    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
@@ -400,6 +401,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }, [fieldValue, targetLineRange]);
 
     useEffect(() => {
+        // If recordTypeField is present, always use GUIDED mode
+        if (recordTypeField) {
+            setInputMode(InputMode.GUIDED);
+            return;
+        }
+        
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
         if (isModeSwitcherRestricted()) {
             setInputMode(InputMode.EXP);
@@ -421,10 +428,26 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         else {
             setInputMode(newInputMode);
         }
-    }, [field?.valueTypeConstraint]);
+    }, [field?.valueTypeConstraint, recordTypeField]);
 
-    const handleFocus = async () => {
+    const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
+        
+        // If in guided mode with recordTypeField, open ConfigureRecordPage directly
+        if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
+            const currentValue = watch(key) || '';
+            // Create onChange callback that updates the form value
+            const onChangeCallback = (value: string) => {
+                if (controllerOnChange) {
+                    controllerOnChange(value);
+                } else {
+                    setValue(key, value);
+                }
+            };
+            onOpenRecordConfigPage(key, currentValue, recordTypeField, onChangeCallback);
+            return;
+        }
+        
         // Trigger actions on focus
         await onFocus?.();
         handleOnFieldFocus?.(key);
@@ -545,6 +568,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     };
 
     const isModeSwitcherAvailable = () => {
+        if (recordTypeField) return true;
         if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
         if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
@@ -585,6 +609,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 {isModeSwitcherAvailable() && (
                                     <ModeSwitcher
                                         value={inputMode}
+                                        isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
                                         valueTypeConstraint={field.valueTypeConstraint}
                                     />
@@ -606,7 +631,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 completions={completions}
                                 fileName={effectiveFileName}
                                 targetLineRange={effectiveTargetLineRange}
-                                autoFocus={autoFocus}
+                                autoFocus={recordTypeField ? false : autoFocus}
                                 sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
@@ -652,7 +677,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 extractArgsFromFunction={handleExtractArgsFromFunction}
                                 onCompletionSelect={handleCompletionSelect}
                                 onFocus={async () => {
-                                    handleFocus();
+                                    handleFocus(onChange);
                                 }}
                                 onBlur={handleBlur}
                                 onSave={handleSave}

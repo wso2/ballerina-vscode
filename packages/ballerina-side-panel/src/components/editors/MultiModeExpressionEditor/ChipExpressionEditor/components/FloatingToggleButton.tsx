@@ -35,7 +35,6 @@ export const FloatingToggleButton: React.FC<FloatingToggleButtonProps> = ({
 }) => {
     return (
         <StyledButton
-            isActive={isActive ?? false}
             onClick={onClick}
             title={title}
             {...{[ARIA_PRESSED_ATTRIBUTE]: isActive ?? false}}
