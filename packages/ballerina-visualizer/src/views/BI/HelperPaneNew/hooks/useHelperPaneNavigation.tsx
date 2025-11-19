@@ -51,10 +51,7 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         return breadCrumbSteps[breadCrumbSteps.length - 1].replaceText;
     };
 
-    const getCurrentNavigationPath = () => {
-        if (breadCrumbSteps.length === 1) return '';
-        return breadCrumbSteps[breadCrumbSteps.length - 1].replaceText;
-    };
+    const getCurrentNavigationPath = getCurrentPath;
 
     return {
         breadCrumbSteps,
