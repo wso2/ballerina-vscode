@@ -21,7 +21,7 @@ import styled from "@emotion/styled";
 import { EditorView } from "@codemirror/view";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
-import { CodeMirrorMarkdownToolbar } from "../controls/CodeMirrorMarkdownToolbar";
+import { TemplateMarkdownToolbar } from "../controls/TemplateMarkdownToolbar";
 import { MarkdownPreview } from "../controls/MarkdownPreview";
 import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
 import { useFormContext } from "../../../../context/form";
@@ -120,7 +120,7 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     return (
         <>
             {hasPreviewSupport && (
-                <CodeMirrorMarkdownToolbar
+                <TemplateMarkdownToolbar
                     ref={toolbarRef}
                     editorView={editorView}
                     isPreviewMode={isPreviewMode}

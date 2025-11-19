@@ -29,7 +29,7 @@ import {
     insertMarkdownOrderedList,
     insertMarkdownTaskList
 } from "../utils/templateUtils";
-import { HelperPaneToggleButton } from "../../../editors/MultiModeExpressionEditor/ChipExpressionEditor/components/HelperPaneToggleButton";
+import { HelperPaneToggleButton } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/HelperPaneToggleButton";
 
 const ToolbarContainer = styled.div`
     display: flex;
@@ -91,14 +91,10 @@ const ToolbarDivider = styled.div`
     margin: 0 4px;
 `;
 
-interface CodeMirrorMarkdownToolbarProps {
-    /** CodeMirror EditorView instance this toolbar controls */
+interface TemplateMarkdownToolbarProps {
     editorView: EditorView | null;
-    /** Whether preview mode is active */
     isPreviewMode?: boolean;
-    /** Callback to toggle preview mode */
     onTogglePreview?: () => void;
-    /** Helper pane toggle button props (optional) */
     helperPaneToggle?: {
         ref: React.RefObject<HTMLButtonElement>;
         isOpen: boolean;
@@ -106,12 +102,7 @@ interface CodeMirrorMarkdownToolbarProps {
     };
 }
 
-/**
- * Markdown formatting toolbar for CodeMirror editors
- * Provides buttons for common markdown formatting operations
- * Uses the same styles and icons as the textarea-based MarkdownToolbar
- */
-export const CodeMirrorMarkdownToolbar = React.forwardRef<HTMLDivElement, CodeMirrorMarkdownToolbarProps>(({
+export const TemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, TemplateMarkdownToolbarProps>(({
     editorView,
     isPreviewMode = false,
     onTogglePreview,
@@ -206,4 +197,4 @@ export const CodeMirrorMarkdownToolbar = React.forwardRef<HTMLDivElement, CodeMi
     );
 });
 
-CodeMirrorMarkdownToolbar.displayName = 'CodeMirrorMarkdownToolbar';
+TemplateMarkdownToolbar.displayName = 'TemplateMarkdownToolbar';
