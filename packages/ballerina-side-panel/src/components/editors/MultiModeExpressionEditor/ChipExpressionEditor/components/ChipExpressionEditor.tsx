@@ -104,6 +104,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
     const completionsRef = useRef(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
+    const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -120,6 +121,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const isRangeSelection = cursor.position.to !== cursor.position.from;
 
         if (newValue === '' || isTrigger || isRangeSelection) {
+            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
             setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         } else {
             setHelperPaneState({ isOpen: false, top: 0, left: 0 });
@@ -128,12 +130,14 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
         if (!props.disableAutoOpenHelperPane) {
+            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
             setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         }
     });
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
         if (!props.disableAutoOpenHelperPane) {
+            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
             setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         }
     });
@@ -152,7 +156,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const newValue = value
         if (!viewRef.current) return;
         const view = viewRef.current;
-        const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : view.state.selection.main;
+
+        // Use saved selection if available, otherwise fall back to current selection
+        const currentSelection = savedSelectionRef.current || view.state.selection.main;
+        const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
 
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;
@@ -195,6 +202,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             setIsTokenUpdateScheduled(true);
         }
         setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
+
+        // Clear saved selection after use
+        savedSelectionRef.current = null;
     }
 
     const handleHelperPaneManualToggle = () => {
@@ -202,6 +212,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             !helperPaneToggleButtonRef?.current ||
             !editorRef?.current
         ) return;
+
+        // Save current cursor position before toggling
+        if (viewRef.current) {
+            const selection = viewRef.current.state.selection.main;
+            savedSelectionRef.current = { from: selection.from, to: selection.to };
+        }
+
         const buttonRect = helperPaneToggleButtonRef.current.getBoundingClientRect();
         const editorRect = editorRef.current?.getBoundingClientRect();
         let top = buttonRect.bottom - editorRect.top;
