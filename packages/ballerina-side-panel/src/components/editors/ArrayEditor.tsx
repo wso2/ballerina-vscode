@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -102,18 +102,31 @@ export function ArrayEditor(props: ArrayEditorProps) {
             const value = watch(`${field.key}-${index}`);
 
             let updatedValue = value;
+            
             if (updatedValue === undefined) {
                 // Use the initial array value if available
                 updatedValue = Array.isArray(field.value) ? field.value[index] : "";
                 setValue(`${field.key}-${index}`, updatedValue ?? "");
             }
+            // HACK: When using expression editor and if the user deleted whole text then the value becomes
+            // an empty value. 
+            if (updatedValue === "") {
+                setValue(`${field.key}-${index}`, " ");
+            }
 
             return updatedValue;
         })
-        .filter(Boolean);
 
     // Update the main field.value array whenever individual fields change
+    const previousValuesRef = useRef<string>();
     useEffect(() => {
+        const serializedValues = JSON.stringify(values);
+        if (previousValuesRef.current === serializedValues) {
+            return;
+        }
+
+        // Prevent redundant form updates which would otherwise trigger endless rerenders.
+        previousValuesRef.current = serializedValues;
         setValue(field.key, values);
     }, [values, field.key, setValue]);
 

@@ -268,7 +268,11 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     ExpressionTokensRequest,
-    ExpressionTokensResponse
+    ExpressionTokensResponse,
+    ProjectInfoRequest,
+    ProjectInfo,
+    onMigratedProject,
+    ProjectMigrationResult
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -449,6 +453,7 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
+    GET_PROJECT_INFO = 'designModelService/projectInfo',
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
@@ -458,6 +463,7 @@ enum EXTENDED_APIS {
     MULE_TO_BI = 'projectService/importMule',
     MIGRATION_TOOL_STATE = 'projectService/stateCallback',
     MIGRATION_TOOL_LOG = 'projectService/logCallback',
+    PUSH_MIGRATED_PROJECT = 'projectService/pushMigratedProject'
 }
 
 enum EXTENDED_APIS_ORG {
@@ -580,10 +586,26 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                 console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
         });
+
+        this.onNotification(EXTENDED_APIS.PUSH_MIGRATED_PROJECT, async (res: ProjectMigrationResult) => {
+            try {
+                RPCLayer._messenger.sendNotification(
+                    onMigratedProject,
+                    { type: "webview", webviewType: VisualizerWebview.viewType },
+                    res
+                );
+            } catch (error) {
+                console.error("Error in PUSH_MIGRATED_PROJECT handler:", error);
+            }
+        });
     }
 
     async getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts> {
         return this.sendRequest<ProjectArtifacts>(EXTENDED_APIS.GET_ARTIFACTS, params);
+    }
+
+    async getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo> {
+        return this.sendRequest<ProjectInfo>(EXTENDED_APIS.GET_PROJECT_INFO, params);
     }
 
     async definition(params: DefinitionParams): Promise<Location | Location[] | LocationLink[]> {
