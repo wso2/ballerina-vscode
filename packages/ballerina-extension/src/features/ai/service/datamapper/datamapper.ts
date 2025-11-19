@@ -346,10 +346,19 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     let customFunctionsTargetPath: string;
     let customFunctionsFileName: string;
-    
+
     if (allMappingsRequest.customFunctionsFilePath) {
-        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
-        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
+        customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
+
+        // For workspace projects, make path relative to workspace root
+        const workspacePath = context.workspacePath;
+        if (workspacePath) {
+            customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
+        } else {
+            // Normal project: use relative path from project root
+            customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+        }
     }
 
     // Check if mappings file and custom functions file are the same
@@ -395,7 +404,15 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     );
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    let targetFilePath = path.join(projectRoot, mappingContext.filePath);
+    // For workspace projects, compute relative file path from workspace root
+    const workspacePath = context.workspacePath;
+    let targetFilePath = mappingContext.filePath;
+
+    if (workspacePath) {
+        // Workspace project: need to include package path prefix (e.g., "foo/mappings.bal")
+        const absoluteFilePath = path.join(projectRoot, mappingContext.filePath);
+        targetFilePath = path.relative(workspacePath, absoluteFilePath);
+    }
 
     const generatedSourceFiles = buildMappingFileArray(
         targetFilePath,
@@ -416,12 +433,12 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     if (isSameFile) {
         const mergedContent = `${generatedFunctionDefinition.source}\n${customContent}`;
-        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
     } else {
-        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
 
         if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
         }
     }
 
@@ -650,10 +667,19 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     let customFunctionsTargetPath: string | undefined;
     let customFunctionsFileName: string | undefined;
-    
+
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
-        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, targetFileName);
-        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, targetFileName);
+        customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
+
+        // For workspace projects, make path relative to workspace root
+        const workspacePath = context.workspacePath;
+        if (workspacePath) {
+            customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
+        } else {
+            // Normal project: use relative path from project root
+            customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+        }
     }
 
     // Check if mappings file and custom functions file are the same
@@ -691,8 +717,17 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         }, langClient, projectRoot);
     }
 
+    // For workspace projects, compute relative file path from workspace root
+    let targetFilePath = path.relative(projectRoot, context.documentUri);
+    const workspacePath = context.workspacePath;
+
+    if (workspacePath) {
+        // Workspace project: make path relative to workspace root (e.g., "foo/mappings.bal")
+        targetFilePath = path.relative(workspacePath, context.documentUri);
+    }
+
     const generatedSourceFiles = buildMappingFileArray(
-        context.documentUri,
+        targetFilePath,
         codeRepairResult.finalContent,
         customFunctionsTargetPath,
         codeRepairResult.customFunctionsContent,
@@ -718,12 +753,12 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     if (isSameFile) {
         const mergedCodeDisplay = customContent ? `${codeToDisplay}\n${customContent}` : codeToDisplay;
-        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
     } else {
-        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
 
         if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
         }
     }
 
