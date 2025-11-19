@@ -636,9 +636,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
-                                    if (updatedValue === value) {
-                                        return;
-                                    }
 
                                     // clear field diagnostics
                                     setFormDiagnostics([]);
@@ -707,9 +704,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     field={field}
                                     value={watch(key)}
                                     onChange={async (updatedValue: string, updatedCursorPosition: number) => {
-                                        if (updatedValue === value) {
-                                            return;
-                                        }
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
