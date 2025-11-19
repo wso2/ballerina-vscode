@@ -221,8 +221,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                 return;
             }
             const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`);
-            closeModal(POPUP_IDS.DOCUMENT_URL);
             onChange(wrappedValue, false, false);
+            closeModal(POPUP_IDS.DOCUMENT_URL);
         };
 
         return (
@@ -257,7 +257,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         addModal(
             <URLInputModal />,
             POPUP_IDS.DOCUMENT_URL,
-            "Add from URL",
+            "Insert Hardcoded URL",
             220,
             355
         );
@@ -299,7 +299,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             <Divider sx={{ margin: "0px" }} />
             {!isInModal && (
                 <div style={{ margin: '4px 0' }}>
-                    <FooterButtons onClick={handleAddFromURL} title="Add from URL" />
+                    <FooterButtons onClick={handleAddFromURL} title="Insert Hardcoded URL" />
                 </div>
             )}
         </div>
