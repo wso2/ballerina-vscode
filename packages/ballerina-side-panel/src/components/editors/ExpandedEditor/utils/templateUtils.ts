@@ -16,8 +16,7 @@
  * under the License.
  */
 
-import { EditorView } from "@codemirror/view";
-import { KeyBinding } from "@codemirror/view";
+import { EditorView, KeyBinding } from "@codemirror/view";
 
 /**
  * Inserts or removes markdown formatting around selected text (toggles)
@@ -32,60 +31,44 @@ export const insertMarkdownFormatting = (
     const { from, to } = view.state.selection.main;
     const selectedText = view.state.sliceDoc(from, to);
 
-    // Check if the selection is already formatted
-    const isAlreadyFormatted =
+    // Check if the selection itself is wrapped
+    const isInternallyFormatted =
         selectedText.startsWith(prefix) &&
         selectedText.endsWith(suffix) &&
         selectedText.length >= prefix.length + suffix.length;
 
-    let newText: string;
-    let newSelectionStart: number;
-    let newSelectionEnd: number;
-
-    if (isAlreadyFormatted) {
-        // Remove formatting
-        newText = selectedText.slice(prefix.length, selectedText.length - suffix.length);
-        newSelectionStart = from;
-        newSelectionEnd = from + newText.length;
-    } else {
-        // Check if formatting exists around the selection
-        const beforeSelection = view.state.sliceDoc(Math.max(0, from - prefix.length), from);
-        const afterSelection = view.state.sliceDoc(to, Math.min(view.state.doc.length, to + suffix.length));
-
-        if (beforeSelection === prefix && afterSelection === suffix) {
-            // Remove surrounding formatting
-            newText = selectedText;
-            view.dispatch({
-                changes: [
-                    { from: from - prefix.length, to: from, insert: '' },
-                    { from: to, to: to + suffix.length, insert: '' }
-                ],
-                selection: {
-                    anchor: from - prefix.length,
-                    head: to - prefix.length
-                }
-            });
-            view.focus();
-            return;
-        }
-
-        // Add formatting
-        newText = `${prefix}${selectedText}${suffix}`;
-        newSelectionStart = from + prefix.length;
-        newSelectionEnd = from + prefix.length + selectedText.length;
+    if (isInternallyFormatted) {
+        // Unwrap selection
+        const newText = selectedText.slice(prefix.length, selectedText.length - suffix.length);
+        view.dispatch({
+            changes: { from, to, insert: newText },
+            selection: { anchor: from, head: from + newText.length }
+        });
+        view.focus();
+        return;
     }
 
-    view.dispatch({
-        changes: {
-            from,
-            to,
-            insert: newText
-        },
-        selection: {
-            anchor: newSelectionStart,
-            head: newSelectionEnd
-        }
-    });
+    // Check if the surrounding text is wrapped
+    const beforeSelection = view.state.sliceDoc(Math.max(0, from - prefix.length), from);
+    const afterSelection = view.state.sliceDoc(to, Math.min(view.state.doc.length, to + suffix.length));
+
+    if (beforeSelection === prefix && afterSelection === suffix) {
+        // Unwrap surrounding
+        view.dispatch({
+            changes: [
+                { from: from - prefix.length, to: from, insert: '' },
+                { from: to, to: to + suffix.length, insert: '' }
+            ],
+            selection: { anchor: from - prefix.length, head: to - prefix.length }
+        });
+    } else {
+        // Wrap selection
+        const newText = `${prefix}${selectedText}${suffix}`;
+        view.dispatch({
+            changes: { from, to, insert: newText },
+            selection: { anchor: from + prefix.length, head: from + prefix.length + selectedText.length }
+        });
+    }
 
     view.focus();
 };
@@ -98,33 +81,17 @@ export const insertMarkdownHeader = (view: EditorView | null, level: number = 3)
 
     const { from } = view.state.selection.main;
     const line = view.state.doc.lineAt(from);
-    const lineText = line.text;
+    const match = line.text.match(/^(#{1,6})\s*/);
 
-    // Check for existing header markers
-    const headerMatch = lineText.match(/^(#{1,6})\s*/);
-    const existingLevel = headerMatch ? headerMatch[1].length : 0;
-    const textWithoutHeader = headerMatch ? lineText.slice(headerMatch[0].length) : lineText;
+    const existingLevel = match ? match[1].length : 0;
+    const cleanText = match ? line.text.slice(match[0].length) : line.text;
 
-    let newText: string;
-
-    // If header exists at the same level, remove it (toggle off)
-    // Otherwise, add/update to the specified level
-    if (existingLevel === level) {
-        newText = textWithoutHeader;
-    } else {
-        const headerPrefix = '#'.repeat(level) + ' ';
-        newText = headerPrefix + textWithoutHeader;
-    }
+    // If same level, toggle off (remove). Otherwise, update level.
+    const newText = existingLevel === level ? cleanText : '#'.repeat(level) + ' ' + cleanText;
 
     view.dispatch({
-        changes: {
-            from: line.from,
-            to: line.to,
-            insert: newText
-        },
-        selection: {
-            anchor: line.from + newText.length
-        }
+        changes: { from: line.from, to: line.to, insert: newText },
+        selection: { anchor: line.from + newText.length }
     });
 
     view.focus();
@@ -138,71 +105,51 @@ export const insertMarkdownLink = (view: EditorView | null) => {
 
     const { from, to } = view.state.selection.main;
     const selectedText = view.state.sliceDoc(from, to);
-
-    // Check if selection is already a link [text](url)
     const linkMatch = selectedText.match(/^\[(.+?)\]\((.+?)\)$/);
 
     if (linkMatch) {
-        // Remove link formatting, keep only the link text
+        // Unwrap existing link: [text](url) -> text
         const linkText = linkMatch[1];
         view.dispatch({
-            changes: {
-                from,
-                to,
-                insert: linkText
-            },
-            selection: {
-                anchor: from,
-                head: from + linkText.length
-            }
+            changes: { from, to, insert: linkText },
+            selection: { anchor: from, head: from + linkText.length }
         });
     } else {
-        // Check if link surrounds the selection
-        const beforeText = view.state.sliceDoc(Math.max(0, from - 1), from);
+        // Check surrounding context for existing link
+        const before = view.state.sliceDoc(Math.max(0, from - 1), from);
         const afterStart = view.state.sliceDoc(to, Math.min(view.state.doc.length, to + 2));
 
-        if (beforeText === '[' && afterStart.startsWith('](')) {
-            // Find the end of the URL
+        // Simple heuristic for surrounding link
+        if (before === '[' && afterStart.startsWith('](')) {
             const textAfter = view.state.sliceDoc(to, Math.min(view.state.doc.length, to + 200));
-            const urlEndMatch = textAfter.match(/^\]\((.+?)\)/);
+            const urlMatch = textAfter.match(/^\]\((.+?)\)/);
 
-            if (urlEndMatch) {
-                // Remove surrounding link
-                const urlLength = urlEndMatch[0].length;
+            if (urlMatch) {
+                const urlLen = urlMatch[0].length;
                 view.dispatch({
                     changes: [
                         { from: from - 1, to: from, insert: '' },
-                        { from: to - 1, to: to - 1 + urlLength, insert: '' }
+                        { from: to, to: to + urlLen - 1, insert: '' } // -1 to keep the ')' logic aligned
                     ],
-                    selection: {
-                        anchor: from - 1,
-                        head: to - 1
-                    }
+                    selection: { anchor: from - 1, head: to - 1 }
                 });
                 view.focus();
                 return;
             }
         }
 
-        // Add link formatting
-        const linkText = selectedText || 'link text';
-        const linkUrl = 'url';
-        const insert = `[${linkText}](${linkUrl})`;
-
+        // Create new link
+        const label = selectedText || 'link text';
+        const url = 'url';
         view.dispatch({
-            changes: {
-                from,
-                to,
-                insert
-            },
+            changes: { from, to, insert: `[${label}](${url})` },
             selection: {
-                // Select the URL part
-                anchor: from + linkText.length + 3,
-                head: from + linkText.length + 3 + linkUrl.length
+                // Highlight the URL portion
+                anchor: from + label.length + 3,
+                head: from + label.length + 3 + url.length
             }
         });
     }
-
     view.focus();
 };
 
@@ -215,370 +162,186 @@ export const insertMarkdownBlockquote = (view: EditorView | null) => {
     const { from, to } = view.state.selection.main;
     const selection = view.state.sliceDoc(from, to);
 
-    if (selection.includes('\n')) {
-        // Multi-line selection: toggle "> " on each line
-        const lines = selection.split('\n');
-        const allQuoted = lines.every(line => line.trim() === '' || line.startsWith('> '));
+    // Handle both single line (cursor only) and multiline selection
+    // If cursor is just on a line, treat it as that line being selected
+    let workingSelection = selection;
+    let startPos = from;
 
-        const processedLines = allQuoted
-            ? lines.map(line => line.startsWith('> ') ? line.slice(2) : line)
-            : lines.map(line => line.startsWith('> ') ? line : `> ${line}`);
-
-        const insert = processedLines.join('\n');
-
-        view.dispatch({
-            changes: { from, to, insert },
-            selection: { anchor: from, head: from + insert.length }
-        });
-    } else {
-        // Single line or no selection: toggle "> " on current line
+    if (from === to) {
         const line = view.state.doc.lineAt(from);
-        const lineText = line.text;
-        const newText = lineText.startsWith('> ') ? lineText.slice(2) : `> ${lineText}`;
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: newText
-            },
-            selection: { anchor: line.from + newText.length }
-        });
+        workingSelection = line.text;
+        startPos = line.from;
     }
+
+    const lines = workingSelection.split('\n');
+    const allQuoted = lines.every(l => l.trim() === '' || l.startsWith('> '));
+
+    const newLines = lines.map(line => {
+        if (allQuoted) return line.startsWith('> ') ? line.slice(2) : line;
+        return line.startsWith('> ') ? line : `> ${line}`;
+    });
+
+    const insert = newLines.join('\n');
+
+    view.dispatch({
+        changes: { from: startPos, to: startPos + workingSelection.length, insert },
+        selection: { anchor: startPos, head: startPos + insert.length }
+    });
 
     view.focus();
 };
 
-/**
- * Toggles markdown unordered list
- */
+// --- List Logic ---
+
+type ListConfig = {
+    isListed: (trimmed: string) => boolean;
+    strip: (trimmed: string) => string;
+    add: (trimmed: string, index: number) => string;
+};
+
+const toggleList = (view: EditorView | null, config: ListConfig) => {
+    if (!view) return;
+
+    const { from, to } = view.state.selection.main;
+    const selection = view.state.sliceDoc(from, to);
+
+    const isMultiLine = selection.includes("\n");
+    const hasSelection = from !== to; // Check if user actually selected text
+
+    // If single line/cursor, expand to full line content
+    // Note: We use the line boundaries for calculation but keep track of original 'from'
+    let lines = isMultiLine ? selection.split("\n") : [view.state.doc.lineAt(from).text];
+    let startOffset = isMultiLine ? from : view.state.doc.lineAt(from).from;
+
+    const allListed = lines.every(line => {
+        const trimmed = line.trim();
+        return trimmed === "" || config.isListed(trimmed);
+    });
+
+    const processedLines = lines.map((line, index) => {
+        const indent = line.match(/^\s*/)?.[0] ?? "";
+        const trimmed = line.trim();
+
+        if (allListed) {
+            // Strip formatting
+            return config.isListed(trimmed) ? indent + config.strip(trimmed) : line;
+        }
+        // Add formatting
+        if (config.isListed(trimmed)) return line;
+        return indent + config.add(trimmed, index);
+    });
+
+    const insert = processedLines.join("\n");
+    const endOffset = startOffset + insert.length;
+
+    view.dispatch({
+        changes: {
+            from: startOffset,
+            to: startOffset + (isMultiLine ? selection.length : lines[0].length),
+            insert
+        },
+        selection: hasSelection
+            ? { anchor: startOffset, head: endOffset } // Preserve selection range for toggling
+            : { anchor: endOffset }                    // Move cursor to end for typing
+    });
+
+    view.focus();
+};
+
 export const insertMarkdownUnorderedList = (view: EditorView | null) => {
-    if (!view) return;
-
-    const { from, to } = view.state.selection.main;
-    const selection = view.state.sliceDoc(from, to);
-
-    if (selection.includes('\n')) {
-        // Multi-line selection: toggle "- " on each line
-        const lines = selection.split('\n');
-        const allListed = lines.every(line => {
-            const trimmed = line.trim();
-            return trimmed === '' || trimmed.startsWith('- ') || trimmed.startsWith('* ');
-        });
-
-        const listLines = allListed
-            ? lines.map(line => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                if (trimmed.startsWith('- ')) return indent + trimmed.slice(2);
-                if (trimmed.startsWith('* ')) return indent + trimmed.slice(2);
-                return line;
-            })
-            : lines.map(line => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) return line;
-                return `${indent}- ${trimmed}`;
-            });
-
-        const insert = listLines.join('\n');
-
-        view.dispatch({
-            changes: { from, to, insert },
-            selection: { anchor: from, head: from + insert.length }
-        });
-    } else {
-        // Single line or no selection
-        const line = view.state.doc.lineAt(from);
-        const lineText = line.text;
-        const indent = lineText.match(/^\s*/)?.[0] || '';
-        const trimmed = lineText.trim();
-
-        let newText: string;
-        if (trimmed.startsWith('- ')) {
-            newText = indent + trimmed.slice(2);
-        } else if (trimmed.startsWith('* ')) {
-            newText = indent + trimmed.slice(2);
-        } else {
-            newText = `${indent}- ${trimmed}`;
-        }
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: newText
-            },
-            selection: { anchor: line.from + newText.length }
-        });
-    }
-
-    view.focus();
+    toggleList(view, {
+        isListed: t => t.startsWith("- ") || t.startsWith("* "),
+        strip: t => t.replace(/^[-*]\s/, ""),
+        add: t => `- ${t}`
+    });
 };
 
-/**
- * Toggles markdown ordered list
- */
 export const insertMarkdownOrderedList = (view: EditorView | null) => {
-    if (!view) return;
-
-    const { from, to } = view.state.selection.main;
-    const selection = view.state.sliceDoc(from, to);
-
-    if (selection.includes('\n')) {
-        // Multi-line selection: toggle numbered list on each line
-        const lines = selection.split('\n');
-        const allListed = lines.every(line => {
-            const trimmed = line.trim();
-            return trimmed === '' || /^\d+\.\s/.test(trimmed);
-        });
-
-        const listLines = allListed
-            ? lines.map(line => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                const numberMatch = trimmed.match(/^\d+\.\s(.*)$/);
-                return numberMatch ? indent + numberMatch[1] : line;
-            })
-            : lines.map((line, index) => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                const numberMatch = trimmed.match(/^\d+\.\s/);
-                if (numberMatch) return line;
-                return `${indent}${index + 1}. ${trimmed}`;
-            });
-
-        const insert = listLines.join('\n');
-
-        view.dispatch({
-            changes: { from, to, insert },
-            selection: { anchor: from, head: from + insert.length }
-        });
-    } else {
-        // Single line or no selection
-        const line = view.state.doc.lineAt(from);
-        const lineText = line.text;
-        const indent = lineText.match(/^\s*/)?.[0] || '';
-        const trimmed = lineText.trim();
-
-        let newText: string;
-        const numberMatch = trimmed.match(/^\d+\.\s(.*)$/);
-        if (numberMatch) {
-            newText = indent + numberMatch[1];
-        } else {
-            newText = `${indent}1. ${trimmed}`;
-        }
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: newText
-            },
-            selection: { anchor: line.from + newText.length }
-        });
-    }
-
-    view.focus();
+    toggleList(view, {
+        isListed: t => /^\d+\.\s/.test(t),
+        strip: t => t.replace(/^\d+\.\s/, ""),
+        add: (t, i) => `${i + 1}. ${t}`
+    });
 };
 
-/**
- * Toggles markdown task list
- */
 export const insertMarkdownTaskList = (view: EditorView | null) => {
-    if (!view) return;
-
-    const { from, to } = view.state.selection.main;
-    const selection = view.state.sliceDoc(from, to);
-
-    if (selection.includes('\n')) {
-        // Multi-line selection: toggle "- [ ] " on each line
-        const lines = selection.split('\n');
-        const allTasks = lines.every(line => {
-            const trimmed = line.trim();
-            return trimmed === '' || /^-\s\[[ x]\]\s/.test(trimmed);
-        });
-
-        const taskLines = allTasks
-            ? lines.map(line => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                const taskMatch = trimmed.match(/^-\s\[[ x]\]\s(.*)$/);
-                return taskMatch ? indent + taskMatch[1] : line;
-            })
-            : lines.map(line => {
-                const indent = line.match(/^\s*/)?.[0] || '';
-                const trimmed = line.trim();
-                if (trimmed.match(/^-\s\[[ x]\]\s/)) return line;
-                return `${indent}- [ ] ${trimmed}`;
-            });
-
-        const insert = taskLines.join('\n');
-
-        view.dispatch({
-            changes: { from, to, insert },
-            selection: { anchor: from, head: from + insert.length }
-        });
-    } else {
-        // Single line or no selection
-        const line = view.state.doc.lineAt(from);
-        const lineText = line.text;
-        const indent = lineText.match(/^\s*/)?.[0] || '';
-        const trimmed = lineText.trim();
-
-        let newText: string;
-        const taskMatch = trimmed.match(/^-\s\[[ x]\]\s(.*)$/);
-        if (taskMatch) {
-            newText = indent + taskMatch[1];
-        } else {
-            newText = `${indent}- [ ] ${trimmed}`;
-        }
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: newText
-            },
-            selection: { anchor: line.from + newText.length }
-        });
-    }
-
-    view.focus();
+    toggleList(view, {
+        isListed: t => /^-\s\[[ x]\]\s/.test(t),
+        strip: t => t.replace(/^-\s\[[ x]\]\s/, ""),
+        add: t => `- [ ] ${t}`
+    });
 };
+
+// --- List Continuation on Enter ---
+
+interface ListPattern {
+    regex: RegExp;
+    nextMarker: (match: RegExpMatchArray) => string;
+}
+
+const LIST_PATTERNS: ListPattern[] = [
+    {
+        // Task List: "- [ ] " or "- [x] "
+        regex: /^(\s*)([-*])\s+\[([ x])\]\s+(.*)$/,
+        nextMarker: (m) => `${m[1]}${m[2]} [ ] `
+    },
+    {
+        // Unordered List: "- " or "* "
+        regex: /^(\s*)([-*])\s+(.*)$/,
+        nextMarker: (m) => `${m[1]}${m[2]} `
+    },
+    {
+        // Ordered List: "1. "
+        regex: /^(\s*)(\d+)\.\s+(.*)$/,
+        nextMarker: (m) => `${m[1]}${parseInt(m[2], 10) + 1}. `
+    }
+];
 
 export const handleEnterForListContinuation = (view: EditorView): boolean => {
-    const state = view.state;
+    const { state } = view;
     const selection = state.selection.main;
 
-    // Only handle if there's no selection (just a cursor)
-    if (selection.from !== selection.to) {
-        return false;
-    }
+    if (!selection.empty) return false;
 
-    const cursorPosition = selection.from;
-    const line = state.doc.lineAt(cursorPosition);
+    const line = state.doc.lineAt(selection.from);
     const lineText = line.text;
+    const cursorInLine = selection.from - line.from;
 
-    // Check if cursor is at the end of the line or in the middle
-    const cursorInLine = cursorPosition - line.from;
+    for (const pattern of LIST_PATTERNS) {
+        const match = lineText.match(pattern.regex);
+        if (!match) continue;
 
-    // Check for task list (- [ ] or - [x])
-    const taskMatch = lineText.match(/^(\s*)([-*])\s+\[([ x])\]\s+(.*)$/);
-    if (taskMatch) {
-        const [, indent, marker, , content] = taskMatch;
+        // content matches the last capture group in all patterns above
+        const content = match[match.length - 1];
 
-        // If the task item is empty, remove it and exit list mode
         if (!content.trim()) {
+            // Empty list item -> Exit list (delete the line content)
             view.dispatch({
-                changes: {
-                    from: line.from,
-                    to: line.to,
-                    insert: ''
-                },
-                selection: {
-                    anchor: line.from
-                }
+                changes: { from: line.from, to: line.to, insert: '' },
+                selection: { anchor: line.from }
             });
             return true;
         }
 
-        // Continue the task list with unchecked box
+        // Split line at cursor and insert new list item
         const textBeforeCursor = lineText.substring(0, cursorInLine);
         const textAfterCursor = lineText.substring(cursorInLine);
-        const newListItem = indent + marker + ' [ ] ';
+        const newItemMarker = pattern.nextMarker(match);
 
         view.dispatch({
             changes: {
                 from: line.from,
                 to: line.to,
-                insert: textBeforeCursor + '\n' + newListItem + textAfterCursor
+                insert: `${textBeforeCursor}\n${newItemMarker}${textAfterCursor}`
             },
             selection: {
-                anchor: line.from + textBeforeCursor.length + 1 + newListItem.length
+                // Cursor placed after the new marker
+                anchor: line.from + textBeforeCursor.length + 1 + newItemMarker.length
             }
         });
         return true;
     }
 
-    // Check for unordered list (- or *)
-    const unorderedMatch = lineText.match(/^(\s*)([-*])\s+(.*)$/);
-    if (unorderedMatch) {
-        const [, indent, marker, content] = unorderedMatch;
-
-        // If the list item is empty (just the marker), remove it and exit list mode
-        if (!content.trim()) {
-            view.dispatch({
-                changes: {
-                    from: line.from,
-                    to: line.to,
-                    insert: ''
-                },
-                selection: {
-                    anchor: line.from
-                }
-            });
-            return true;
-        }
-
-        // Continue the list
-        const textBeforeCursor = lineText.substring(0, cursorInLine);
-        const textAfterCursor = lineText.substring(cursorInLine);
-        const newListItem = indent + marker + ' ';
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: textBeforeCursor + '\n' + newListItem + textAfterCursor
-            },
-            selection: {
-                anchor: line.from + textBeforeCursor.length + 1 + newListItem.length
-            }
-        });
-        return true;
-    }
-
-    // Check for ordered list (1., 2., etc.)
-    const orderedMatch = lineText.match(/^(\s*)(\d+)\.\s+(.*)$/);
-    if (orderedMatch) {
-        const [, indent, number, content] = orderedMatch;
-
-        // If the list item is empty (just the number), remove it and exit list mode
-        if (!content.trim()) {
-            view.dispatch({
-                changes: {
-                    from: line.from,
-                    to: line.to,
-                    insert: ''
-                },
-                selection: {
-                    anchor: line.from
-                }
-            });
-            return true;
-        }
-
-        // Continue the list with incremented number
-        const textBeforeCursor = lineText.substring(0, cursorInLine);
-        const textAfterCursor = lineText.substring(cursorInLine);
-        const nextNumber = parseInt(number, 10) + 1;
-        const newListItem = indent + nextNumber + '. ';
-
-        view.dispatch({
-            changes: {
-                from: line.from,
-                to: line.to,
-                insert: textBeforeCursor + '\n' + newListItem + textAfterCursor
-            },
-            selection: {
-                anchor: line.from + textBeforeCursor.length + 1 + newListItem.length
-            }
-        });
-        return true;
-    }
-
-    // Not a list, use default Enter behavior
     return false;
 };
 
