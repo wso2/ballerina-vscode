@@ -1,0 +1,221 @@
+{
+  "source": "variable36.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable36.bal",
+      "startLine": {
+        "line": 0,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 4,
+        "offset": 10
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 0,
+    "offset": 56
+  },
+  "propertyKey": "expression",
+  "targetField": "transform.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "input",
+          "displayName": "<inputItem>",
+          "typeName": "InRoot",
+          "kind": "record",
+          "ref": "694571155"
+        },
+        "name": "input",
+        "displayName": "input",
+        "typeName": "InRoot[]",
+        "kind": "array",
+        "category": "parameter",
+        "ref": "1509884770"
+      },
+      {
+        "fields": [],
+        "name": "subMapping",
+        "displayName": "subMapping",
+        "typeName": "InArrType",
+        "kind": "record",
+        "category": "variable",
+        "ref": "996977642"
+      },
+      {
+        "fields": [],
+        "name": "inputItem",
+        "displayName": "inputItem",
+        "typeName": "InRoot",
+        "kind": "record",
+        "focusExpression": "input",
+        "ref": "694571155"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "transform",
+        "displayName": "<transformItem>",
+        "typeName": "OutRoot",
+        "kind": "record",
+        "ref": "1317863908"
+      },
+      "name": "transform",
+      "displayName": "transform",
+      "typeName": "OutRoot[]",
+      "kind": "array",
+      "ref": "1900900499"
+    },
+    "mappings": [
+      {
+        "output": "transform.oArr1D",
+        "inputs": [
+          "inputItem.iArr1D"
+        ],
+        "expression": "from var iArr1DItem in inputItem.iArr1D\n                select {p1: 0, p2: \"\"}\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "transform",
+      "inputs": [
+        "input"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "inputItem",
+          "type": "InRoot",
+          "expression": "input",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{\n            oArr1D: from var iArr1DItem in inputItem.iArr1D\n                select {p1: 0, p2: \"\"}\n        }",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-1927205639": {
+        "fields": [
+          {
+            "name": "p1",
+            "displayName": "p1",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "p2",
+            "displayName": "p2",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "OutArrType",
+        "kind": "record"
+      },
+      "996977642": {
+        "fields": [
+          {
+            "name": "p1",
+            "displayName": "p1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "p2",
+            "displayName": "p2",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "p3",
+            "displayName": "p3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "InArrType",
+        "kind": "record"
+      },
+      "1317863908": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "oArr1D",
+              "displayName": "<oArr1DItem>",
+              "typeName": "OutArrType",
+              "kind": "record",
+              "ref": "-1927205639"
+            },
+            "name": "oArr1D",
+            "displayName": "oArr1D",
+            "typeName": "OutArrType[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "607395090"
+          }
+        ],
+        "typeName": "OutRoot",
+        "kind": "record"
+      },
+      "694571155": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "iArr1D",
+              "displayName": "<iArr1DItem>",
+              "typeName": "InArrType",
+              "kind": "record",
+              "ref": "996977642"
+            },
+            "name": "iArr1D",
+            "displayName": "iArr1D",
+            "typeName": "InArrType[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1874896930"
+          },
+          {
+            "name": "p1",
+            "displayName": "p1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "p2",
+            "displayName": "p2",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "InRoot",
+        "kind": "record"
+      }
+    }
+  }
+}
