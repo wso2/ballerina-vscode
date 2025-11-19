@@ -23,7 +23,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { ChipComponent } from "./ChipComponent";
-import { DocumentType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { DocumentType, TokenType } from "../../MultiModeExpressionEditor/ChipExpressionEditor/types";
 import "../styles/markdown-preview.css";
 
 const PreviewContainer = styled.div`
@@ -68,7 +68,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content }) => 
                             const props = node?.properties || {};
                             return (
                                 <ChipComponent
-                                    type={props.type || 'variable'}
+                                    type={props.type || TokenType.VARIABLE}
                                     content={props.dataContent || ''}
                                     documentType={props.dataDocType as DocumentType}
                                 />
