@@ -397,22 +397,24 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
     return onChangeListner;
 }
 
-export const buildCompletionSource = (getCompletions: () => CompletionItem[]) => {
-    return (context: CompletionContext): CompletionResult | null => {
-        const word = context.matchBefore(/\w*/);
-        if (!word || (word.from === word.to && !context.explicit)) {
-            return null;
-        }
-
+export const buildCompletionSource = (getCompletions: () => Promise<CompletionItem[]>) => {
+    return async (context: CompletionContext): Promise<CompletionResult | null> => {
         const textBeforeCursor = context.state.doc.toString().slice(0, context.pos);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
 
-        // Don't show completions for trigger characters
-        if (lastNonSpaceChar === '+' || lastNonSpaceChar === ':') {
+        const word = context.matchBefore(/\w*/);
+        if (lastNonSpaceChar !== '.' && (
+            !word || (word.from === word.to && !context.explicit)
+        )) {
             return null;
         }
 
-        const completions = getCompletions();
+        // Don't show completions for trigger characters
+        if (lastNonSpaceChar === '+') {
+            return null;
+        }
+
+        const completions = await getCompletions();
         const prefix = word.text;
         const filteredCompletions = filterCompletionsByPrefixAndType(completions, prefix);
 
