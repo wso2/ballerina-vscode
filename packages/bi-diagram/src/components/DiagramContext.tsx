@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 import { Flow, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
 import { CompletionItem } from "@wso2/ui-toolkit";
-import { ExpressionProperty, TextEdit } from "@wso2/ballerina-core";
+import { ExpressionProperty, JoinProjectPathRequest, JoinProjectPathResponse, TextEdit, VisualizerLocation } from "@wso2/ballerina-core";
 
 type CompletionConditionalProps = {
     completions: CompletionItem[];
@@ -64,7 +64,7 @@ export interface DiagramContextState {
     removeBreakpoint?: (node: FlowNode) => void;
     onConnectionSelect?: (connectionName: string) => void;
     goToSource: (node: FlowNode) => void;
-    openView: (filePath: string, position: NodePosition) => void;
+    openView: (location: VisualizerLocation) => void;
     draftNode?: {
         override: boolean;
         showSpinner?: boolean;
@@ -93,7 +93,7 @@ export interface DiagramContextState {
     project?: {
         org: string;
         path: string;
-        getProjectPath?:(segments: string | string[]) => Promise<string>;
+        getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     };
     readOnly?: boolean;
     lockCanvas?: boolean;
@@ -106,22 +106,22 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     flow: { fileName: "", nodes: [], connections: [] },
     componentPanel: {
         visible: false,
-        show: () => {},
-        hide: () => {},
+        show: () => { },
+        hide: () => { },
     },
     showErrorFlow: false,
     expandedErrorHandler: undefined,
-    toggleErrorHandlerExpansion: () => {},
-    onAddNode: () => {},
-    onAddNodePrompt: () => {},
-    onDeleteNode: () => {},
-    onAddComment: () => {},
-    onNodeSelect: () => {},
-    onConnectionSelect: () => {},
-    goToSource: () => {},
-    addBreakpoint: () => {},
-    removeBreakpoint: () => {},
-    openView: () => {},
+    toggleErrorHandlerExpansion: () => { },
+    onAddNode: () => { },
+    onAddNodePrompt: () => { },
+    onDeleteNode: () => { },
+    onAddComment: () => { },
+    onNodeSelect: () => { },
+    onConnectionSelect: () => { },
+    goToSource: () => { },
+    addBreakpoint: () => { },
+    removeBreakpoint: () => { },
+    openView: () => { },
     draftNode: {
         override: true,
         showSpinner: false,
@@ -129,32 +129,32 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     },
     selectedNodeId: undefined,
     agentNode: {
-        onModelSelect: () => {},
-        onAddTool: () => {},
-        onAddMcpServer: () => {},
-        onSelectTool: () => {},
-        onSelectMcpToolkit: () => {},
-        onDeleteTool: () => {},
-        goToTool: () => {},
-        onSelectMemoryManager: () => {},
-        onDeleteMemoryManager: () => {},
+        onModelSelect: () => { },
+        onAddTool: () => { },
+        onAddMcpServer: () => { },
+        onSelectTool: () => { },
+        onSelectMcpToolkit: () => { },
+        onDeleteTool: () => { },
+        goToTool: () => { },
+        onSelectMemoryManager: () => { },
+        onDeleteMemoryManager: () => { },
     },
     aiNodes: {
-        onModelSelect: () => {},
+        onModelSelect: () => { },
     },
     suggestions: {
         fetching: false,
-        onAccept: () => {},
-        onDiscard: () => {},
+        onAccept: () => { },
+        onDiscard: () => { },
     },
     project: {
         org: "",
         path: "",
-        getProjectPath: () => Promise.resolve(""),
+        getProjectPath: () => Promise.resolve({ filePath: "", projectPath: "" }),
     },
     readOnly: false,
     lockCanvas: false,
-    setLockCanvas: (lock: boolean) => {},
+    setLockCanvas: (lock: boolean) => { },
     isUserAuthenticated: false,
     expressionContext: {
         completions: [],
@@ -167,7 +167,7 @@ export const useDiagramContext = () => React.useContext(DiagramContext);
 
 export function DiagramContextProvider(props: { children: React.ReactNode; value: DiagramContextState }) {
     const [lockCanvas, setLockCanvas] = useState(false);
-    
+
     const ctx = {
         ...props.value,
         lockCanvas,

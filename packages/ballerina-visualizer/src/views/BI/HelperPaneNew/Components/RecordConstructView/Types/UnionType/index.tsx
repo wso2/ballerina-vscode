@@ -44,7 +44,7 @@ export default function UnionType(props: TypeProps) {
     // Initialize: If the union is selected, ensure the selected member and its required fields are also selected
     useEffect(() => {
         if (paramSelected && initSelectedMember) {
-            handleMemberType(paramSelected ? selectedMemberType : "");
+            handleMemberType(paramSelected ? selectedMemberType : "", false);
         }
     }, []);
 
@@ -68,11 +68,19 @@ export default function UnionType(props: TypeProps) {
         });
     };
 
-    const handleMemberType = (type: string) => {
+    const handleMemberType = (type: string, inCheckboxTrigger: boolean = true) => {
         const selectedMember = param.members.find((field) => getUnionParamName(field) === type);
         updateFormFieldMemberSelection(selectedMember);
         setSelectedMemberType(type);
         setParameter(selectedMember);
+
+        // Till the LS issue is fixed to generate proper source based on the selected member,
+        // we need to clear the value of the param.
+        if (inCheckboxTrigger) {
+            if (param?.value !== undefined) {
+                param.value = "";
+            }
+        }
 
         // If the parent is selected and the selected member has fields, ensure required fields are selected
         if (param.selected && selectedMember && selectedMember.fields && selectedMember.fields.length > 0) {

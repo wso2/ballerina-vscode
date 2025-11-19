@@ -126,7 +126,7 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
         const res = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
@@ -367,7 +367,7 @@ export function FunctionForm(props: FunctionFormProps) {
         <View>
             {!isPopup &&
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar
                         title={formType.current}
                         subtitle={titleSubtitle}
