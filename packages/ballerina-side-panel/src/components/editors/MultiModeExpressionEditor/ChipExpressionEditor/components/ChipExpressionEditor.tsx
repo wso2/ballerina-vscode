@@ -91,7 +91,6 @@ export type ChipExpressionEditorComponentProps = {
     onEditorViewReady?: (view: EditorView) => void;
     toolbarRef?: React.RefObject<HTMLDivElement>;
     enableListContinuation?: boolean;
-    disableAutoOpenHelperPane?: boolean;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -129,17 +128,13 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     });
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
-        if (!props.disableAutoOpenHelperPane) {
-            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
-            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-        }
+        savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
     });
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
-        if (!props.disableAutoOpenHelperPane) {
-            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
-            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-        }
+        savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
     });
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
