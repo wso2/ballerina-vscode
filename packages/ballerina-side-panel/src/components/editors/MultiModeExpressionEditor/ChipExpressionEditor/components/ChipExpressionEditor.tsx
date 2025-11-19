@@ -164,24 +164,34 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         // if API sends $1,$2.. for the arguments in the template
         // then we can directly handled it without explicitly calling the API
         // and extracting args
-        if (newValue.endsWith('()')) {
+        if (newValue.endsWith('()') || newValue.endsWith(')}')) {
             if (props.extractArgsFromFunction) {
                 try {
-                    const cursorPositionForExtraction = from + newValue.length - 1;
-
-                    // Convert sanitized value and position to raw for API call
-                    const rawValueForApi = props.rawExpression ? props.rawExpression(newValue) : newValue;
-                    const sanitizedValueForApi = props.sanitizedExpression ? props.sanitizedExpression(newValue) : newValue;
-                    const rawCursorPosition = props.rawExpression
-                        ? mapSanitizedToRaw(cursorPositionForExtraction, rawValueForApi, sanitizedValueForApi)
-                        : cursorPositionForExtraction;
-
-                    const fnSignature = await props.extractArgsFromFunction(rawValueForApi, rawCursorPosition);
+                    // Extract the function definition from string templates like "${func()}"
+                    let functionDef = newValue;
+                    let prefix = '';
+                    let suffix = '';
+                    
+                    // Check if it's within a string template
+                    const stringTemplateMatch = newValue.match(/^(.*\$\{)([^}]+)(\}.*)$/);
+                    if (stringTemplateMatch) {
+                        prefix = stringTemplateMatch[1];
+                        functionDef = stringTemplateMatch[2];
+                        suffix = stringTemplateMatch[3];
+                    }
+                    
+                    let cursorPositionForExtraction = from + prefix.length + functionDef.length - 1;
+                    if (functionDef.endsWith(')}')) {
+                        cursorPositionForExtraction -= 1;
+                    }
+                    
+                    const fnSignature = await props.extractArgsFromFunction(functionDef, cursorPositionForExtraction);
 
                     if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
                         const placeholderArgs = fnSignature.args.map((arg, index) => `$${index + 1}`);
-                        finalValue = newValue.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
-                        cursorPosition = from + finalValue.length - 1;
+                        const updatedFunctionDef = functionDef.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
+                        finalValue = prefix + updatedFunctionDef + suffix;
+                        cursorPosition = from + prefix.length + updatedFunctionDef.length - 1;
                     }
                 } catch (error) {
                     console.warn('Failed to extract function arguments:', error);

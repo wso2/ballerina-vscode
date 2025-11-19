@@ -412,7 +412,8 @@ const HelperPaneNewEl = ({
                             onClose={onClose}
                             onChange={handleChange}
                             updateImports={updateImports}
-                            selectedType={selectedType} />
+                            selectedType={selectedType}
+                            inputMode={inputMode} />
                     </SlidingPane>
 
                     <SlidingPane name="CONFIGURABLES" paneWidth={300}>
