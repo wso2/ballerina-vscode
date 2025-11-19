@@ -25,7 +25,7 @@ import { ScrollableContainer } from "../Components/ScrollableContainer";
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation";
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation";
-import { DocumentInputType } from "./Documents";
+import { AIDocumentType } from "./Documents";
 import { VariableItem } from "./Variables";
 import FooterButtons from "../Components/FooterButtons";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
@@ -41,36 +41,18 @@ type DocumentConfigProps = {
     inputMode?: InputMode;
 };
 
-enum AIDocumentType {
-    FileDocument = 'ai:FileDocument',
-    ImageDocument = 'ai:ImageDocument',
-    AudioDocument = 'ai:AudioDocument'
-}
 const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
-// Helper function to get the AI document type based on input type
-const getAIDocumentType = (documentType: DocumentInputType): AIDocumentType => {
-    switch (documentType) {
-        case DocumentInputType.Image:
-            return AIDocumentType.ImageDocument;
-        case DocumentInputType.Audio:
-            return AIDocumentType.AudioDocument;
-        default:
-            return AIDocumentType.FileDocument;
-    }
-};
-
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: DocumentInputType, content: string, addInterpolation: boolean = true): string => {
-    const docType = getAIDocumentType(documentType);
-    const docStructure = `<${docType}>{content: ${content}}`;
+const wrapInDocumentType = (documentType: AIDocumentType, content: string, addInterpolation: boolean = true): string => {
+    const docStructure = `<${documentType}>{content: ${content}}`;
     return addInterpolation ? `\${${docStructure}}` : docStructure;
 };
 
 export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
     const { getParams } = useSlidingPane();
     const params = getParams();
-    const documentType = (params?.documentType as DocumentInputType) || DocumentInputType.File;
+    const documentType = (params?.documentType as AIDocumentType) || AIDocumentType.FileDocument;
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
@@ -112,15 +94,15 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     }, [targetLineRange, breadCrumbSteps, completionContext]);
 
     // Get allowed types based on document type
-    const getAllowedTypes = (docType: DocumentInputType): string[] => {
+    const getAllowedTypes = (docType: AIDocumentType): string[] => {
         const baseTypes = ["string", "ai:Url", "byte[]"];
 
         switch (docType) {
-            case DocumentInputType.File:
+            case AIDocumentType.FileDocument:
                 return [...baseTypes, AIDocumentType.FileDocument];
-            case DocumentInputType.Image:
+            case AIDocumentType.ImageDocument:
                 return [...baseTypes, AIDocumentType.ImageDocument];
-            case DocumentInputType.Audio:
+            case AIDocumentType.AudioDocument:
                 return [...baseTypes, AIDocumentType.AudioDocument];
             default:
                 return baseTypes;

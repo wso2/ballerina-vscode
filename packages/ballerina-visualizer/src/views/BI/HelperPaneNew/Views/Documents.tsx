@@ -19,10 +19,10 @@
 import { Icon, SlidingPaneNavContainer, Typography } from "@wso2/ui-toolkit";
 import { ExpandableList } from "../Components/ExpandableList";
 
-export enum DocumentInputType {
-    File = 'file',
-    Image = 'image',
-    Audio = 'audio'
+export enum AIDocumentType {
+    FileDocument = 'ai:FileDocument',
+    ImageDocument = 'ai:ImageDocument',
+    AudioDocument = 'ai:AudioDocument'
 }
 
 export const Documents = () => {
@@ -32,7 +32,7 @@ export const Documents = () => {
                 <ExpandableList>
                     <SlidingPaneNavContainer
                         to="DOCUMENT_CONFIG"
-                        data={{ documentType: DocumentInputType.File }}
+                        data={{ documentType: AIDocumentType.FileDocument }}
                     >
                         <ExpandableList.Item>
                             <Icon name="bi-doc" sx={{ fontSize: "16px" }} />
@@ -44,7 +44,7 @@ export const Documents = () => {
 
                     <SlidingPaneNavContainer
                         to="DOCUMENT_CONFIG"
-                        data={{ documentType: DocumentInputType.Image }}
+                        data={{ documentType: AIDocumentType.ImageDocument }}
                     >
                         <ExpandableList.Item>
                             <Icon name="bi-image" sx={{ fontSize: "16px" }} />
@@ -56,7 +56,7 @@ export const Documents = () => {
 
                     <SlidingPaneNavContainer
                         to="DOCUMENT_CONFIG"
-                        data={{ documentType: DocumentInputType.Audio }}
+                        data={{ documentType: AIDocumentType.AudioDocument }}
                     >
                         <ExpandableList.Item>
                             <Icon name="bi-audio" sx={{ fontSize: "16px" }} />
