@@ -24,7 +24,6 @@ import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEven
 import { workspace } from 'vscode';
 import { GenerateAgentCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
-import { cleanupTempProject, getTempProjectPath } from '../../features/ai/utils/temp-project-utils';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -109,6 +108,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         projectId: undefined,
         currentApproval: undefined,
         autoApproveEnabled: false,
+        previousState: undefined,
+        currentSpec: undefined,
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_PROMPT]: {
@@ -169,6 +170,24 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             target: 'Error',
             actions: assign({
                 errorMessage: (_ctx, event) => event.payload.message,
+            }),
+        },
+        [AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED]: {
+            target: 'WaitingForConnectorSpec',
+            actions: assign({
+                previousState: (ctx, event, meta) => {
+                    if (event.payload.fromState) {
+                        return event.payload.fromState;
+                    }
+                    const currentState = meta?.state?.value as AIChatMachineStateValue;
+                    if (currentState) {
+                        return currentState;
+                    }
+                    return ctx.previousState || 'GeneratingPlan';
+                },
+                currentSpec: (_ctx, event) => ({
+                    requestId: event.payload.requestId,
+                }),
             }),
         },
     },
@@ -383,7 +402,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Completed: {
-            entry: ['saveChatState', 'cleanupTempProject'],
+            entry: 'saveChatState',
         },
         PartiallyCompleted: {
             entry: 'saveChatState',
@@ -396,8 +415,92 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 },
             },
         },
+        WaitingForConnectorSpec: {
+            entry: 'saveChatState',
+            on: {
+                [AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC]: [
+                    {
+                        target: 'GeneratingPlan',
+                        cond: (ctx) => {
+                            console.log('[State Machine] PROVIDE_CONNECTOR_SPEC: previousState =', ctx.previousState);
+                            return ctx.previousState === 'GeneratingPlan';
+                        },
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                spec: event.payload.spec,
+                                provided: true,
+                            }),
+                        }),
+                    },
+                    {
+                        target: 'Initiating',
+                        cond: (ctx) => ctx.previousState === 'Initiating',
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                spec: event.payload.spec,
+                                provided: true,
+                            }),
+                        }),
+                    },
+                    {
+                        target: 'ExecutingTask',
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                spec: event.payload.spec,
+                                provided: true,
+                            }),
+                        }),
+                    },
+                ],
+                [AIChatMachineEventType.SKIP_CONNECTOR_GENERATION]: [
+                    {
+                        target: 'GeneratingPlan',
+                        cond: (ctx) => {
+                            console.log('[State Machine] SKIP_CONNECTOR_GENERATION: previousState =', ctx.previousState);
+                            return ctx.previousState === 'GeneratingPlan';
+                        },
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                skipped: true,
+                                comment: event.payload.comment,
+                            }),
+                        }),
+                    },
+                    {
+                        target: 'Initiating',
+                        cond: (ctx) => ctx.previousState === 'Initiating',
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                skipped: true,
+                                comment: event.payload.comment,
+                            }),
+                        }),
+                    },
+                    {
+                        target: 'ExecutingTask',
+                        actions: assign({
+                            currentSpec: (ctx, event) => ({
+                                ...ctx.currentSpec,
+                                requestId: event.payload.requestId,
+                                skipped: true,
+                                comment: event.payload.comment,
+                            }),
+                        }),
+                    },
+                ],
+            },
+        },
         Error: {
-            entry: 'cleanupTempProject',
             on: {
                 [AIChatMachineEventType.RETRY]: [
                     {
@@ -661,15 +764,6 @@ const chatStateService = interpret(
         actions: {
             saveChatState: (context) => saveChatState(context),
             clearChatState: (context) => clearChatStateAction(context),
-            cleanupTempProject: () => {
-                try {
-                    const tempProjectPath = getTempProjectPath();
-                    console.log(`[AIChatMachine] Cleaning up temp project: ${tempProjectPath}`);
-                    cleanupTempProject(tempProjectPath);
-                } catch (error) {
-                    console.error('[AIChatMachine] Failed to cleanup temp project:', error);
-                }
-            },
         },
     })
 );

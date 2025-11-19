@@ -19,6 +19,8 @@ import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
+import type { TextEdit } from 'vscode-languageserver-protocol';
 
 /**
  * File extensions to include in codebase structure
@@ -125,9 +127,10 @@ ${sourceFile.content}
  * Formats complete codebase structure into XML for Claude
  * Used when starting a new session without history
  * @param tempProjectPath Path to the temporary project directory
+ * @param packageName Name of the Ballerina package
  * @returns Formatted XML string with codebase structure
  */
-export function formatCodebaseStructure(tempProjectPath: string): string {
+export function formatCodebaseStructure(tempProjectPath: string, packageName: string): string {
     const allFiles: string[] = [];
 
     function collectFiles(dir: string, basePath: string = '') {
@@ -157,11 +160,47 @@ export function formatCodebaseStructure(tempProjectPath: string): string {
     collectFiles(tempProjectPath);
 
     let text = '<codebase_structure>\n';
-    text += 'This is the complete structure of the codebase you are working with. ';
+    text += `This is the complete structure of the codebase you are working with (Package: ${packageName}). `;
     text += 'You do not need to acknowledge or list these files in your response. ';
     text += 'This information is provided for your awareness only.\n\n';
     text += '<files>\n' + allFiles.join('\n') + '\n</files>\n';
     text += '</codebase_structure>';
 
     return text;
+}
+
+/**
+ * Applies LSP text edits to create or modify a file
+ * @param filePath Absolute path to the file
+ * @param textEdits Array of LSP TextEdit objects
+ */
+export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): Promise<void> {
+    const workspaceEdit = new vscode.WorkspaceEdit();
+    const fileUri = vscode.Uri.file(filePath);
+    const dirPath = path.dirname(filePath);
+    const dirUri = vscode.Uri.file(dirPath);
+
+    try {
+        await vscode.workspace.fs.createDirectory(dirUri);
+        workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
+    } catch (error) {
+        console.error(`[applyTextEdits] Error creating file or directory:`, error);
+    }
+
+    for (const edit of textEdits) {
+        const range = new vscode.Range(
+            edit.range.start.line,
+            edit.range.start.character,
+            edit.range.end.line,
+            edit.range.end.character
+        );
+        workspaceEdit.replace(fileUri, range, edit.newText);
+    }
+
+    try {
+        await vscode.workspace.applyEdit(workspaceEdit);
+    } catch (error) {
+        console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
+        throw error;
+    }
 }
