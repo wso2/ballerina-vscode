@@ -59,8 +59,9 @@ const DocumentChip = styled(BaseChip)`
 /**
  * Standard chip for variables/properties/parameters
  */
-const StandardChip = styled(BaseChip)<{ chipType: TokenType }>`
-    background: ${props => getTokenTypeColor(props.chipType)};
+const StandardChip = styled(BaseChip) <{ chipType: TokenType }>`
+    background: ${props => getTokenTypeColor(props.chipType).background};
+    border: 1px solid ${props => getTokenTypeColor(props.chipType).border};
     padding: ${STANDARD_CHIP_STYLES.padding};
     min-width: ${STANDARD_CHIP_STYLES.minWidth};
     transition: ${STANDARD_CHIP_STYLES.transition};
