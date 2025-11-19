@@ -21,11 +21,12 @@ import { TypeIndicator } from "../Components/TypeIndicator"
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useState } from "react"
-import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
+import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
+import { wrapInTemplateInterpolation } from "../utils/utils"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -38,6 +39,7 @@ type InputsPageProps = {
     filteredCompletions: CompletionItem[];
     currentValue: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
+    inputMode?: InputMode;
 }
 
 type InputItemProps = {
@@ -81,7 +83,7 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
 };
 
 export const Inputs = (props: InputsPageProps) => {
-    const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions } = props;
+    const { targetLineRange, onChange, filteredCompletions, currentValue, handleRetrieveCompletions, inputMode } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
@@ -152,7 +154,9 @@ export const Inputs = (props: InputsPageProps) => {
     const handleItemSelect = (value: string) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
-        onChange(fullPath, false);
+        // Wrap in template interpolation if in template mode
+        const wrappedPath = wrapInTemplateInterpolation(fullPath, inputMode);
+        onChange(wrappedPath, false);
     }
 
     const handleInputsMoreIconClick = (value: string) => {

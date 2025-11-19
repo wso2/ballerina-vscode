@@ -512,7 +512,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             recordTypeField,
             field.type === "LV_EXPRESSION",
             field.valueTypeConstraint,
-            inputMode,
+            inputModeRef.current,
         );
     };
 

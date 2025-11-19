@@ -367,6 +367,7 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
                             onClose={onClose}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
 
@@ -383,6 +384,7 @@ const HelperPaneNewEl = ({
                             filteredCompletions={filteredCompletions}
                             currentValue={currentValue}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
 
@@ -424,6 +426,7 @@ const HelperPaneNewEl = ({
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
                             onClose={onClose}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
 
@@ -447,6 +450,7 @@ const HelperPaneNewEl = ({
                             filteredCompletions={filteredCompletions || []}
                             currentValue={currentValue}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
                 </SlidingWindow>

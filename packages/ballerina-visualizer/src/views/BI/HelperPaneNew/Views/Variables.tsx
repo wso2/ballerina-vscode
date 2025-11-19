@@ -22,7 +22,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client"
 import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { getPropertyFromFormField, useFieldContext } from "@wso2/ballerina-side-panel"
+import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
 import { FormGenerator } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
@@ -32,6 +32,7 @@ import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
+import { wrapInTemplateInterpolation } from "../utils/utils"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -50,6 +51,7 @@ type VariablesPageProps = {
     isInModal?: boolean;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     onClose?: () => void;
+    inputMode?: InputMode;
 }
 
 export type VariableItemProps = {
@@ -93,7 +95,7 @@ export const VariableItem = ({ item, onItemSelect, onMoreIconClick, hideArrow }:
 };
 
 export const Variables = (props: VariablesPageProps) => {
-    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, isInModal, handleRetrieveCompletions } = props;
+    const { fileName, targetLineRange, onChange, onClose, handleOnFormSubmit, selectedType, filteredCompletions, currentValue, isInModal, handleRetrieveCompletions, inputMode } = props;
     const [searchValue, setSearchValue] = useState<string>("");
     const { rpcClient } = useRpcContext();
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -196,7 +198,9 @@ export const Variables = (props: VariablesPageProps) => {
     const handleItemSelect = (value: string) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
-        onChange(fullPath, false);
+        // Wrap in template interpolation if in template mode
+        const wrappedPath = wrapInTemplateInterpolation(fullPath, inputMode);
+        onChange(wrappedPath, false);
     }
 
     const handleAddNewVariable = () => {
