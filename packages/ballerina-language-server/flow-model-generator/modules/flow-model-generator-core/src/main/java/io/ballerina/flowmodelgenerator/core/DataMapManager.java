@@ -1600,6 +1600,9 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
+                } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx,
+                            textEdits, targetSymbol);
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
@@ -1621,6 +1624,16 @@ public class DataMapManager {
                             names, idx + 1, textEdits, targetSymbol);
                 }
             }
+        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+            ClauseNode clauseNode = queryExpr.resultClause();
+            ExpressionNode resultExpr;
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                resultExpr = ((SelectClauseNode) clauseNode).expression();
+            } else {
+                resultExpr = ((CollectClauseNode) clauseNode).expression();
+            }
+            genDeleteMappingSource(semanticModel, resultExpr, names, idx, textEdits, targetSymbol);
         }
     }
 
