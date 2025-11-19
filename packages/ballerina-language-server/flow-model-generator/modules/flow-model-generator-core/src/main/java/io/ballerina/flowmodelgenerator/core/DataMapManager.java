@@ -39,6 +39,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
@@ -132,10 +133,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -306,6 +309,11 @@ public class DataMapManager {
                 }
             }
 
+            // TODO: The sequence variables should be identified from the variable symbol itself
+            //  after fixing the issue https://github.com/ballerina-platform/ballerina-lang/issues/44409
+            Set<String> clauseDefinedVars = new HashSet<>();
+            clauseDefinedVars.add(fromClauseVar);
+
             List<JoinClauseNode> joinClauses = getJoinClause(queryExpressionNode);
             if (!joinClauses.isEmpty()) {
                 for (JoinClauseNode joinClause : joinClauses) {
@@ -313,6 +321,7 @@ public class DataMapManager {
                     inputs.add(joinExpression.toSourceCode().trim());
                     Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
                     String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    clauseDefinedVars.add(joinClauseVar);
                     if (joinTypeSymbol.isPresent()) {
                         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(joinTypeSymbol.get());
                         if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
@@ -327,7 +336,8 @@ public class DataMapManager {
                 }
             }
 
-            addIntermediateClauseVariables(queryExpressionNode, inputPorts, semanticModel, typeDefSymbols, references);
+            addIntermediateClauseVariables(queryExpressionNode, inputPorts, semanticModel, typeDefSymbols,
+                    references, clauseDefinedVars);
 
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
                     expression.toSourceCode().trim(), null, null, null, false));
@@ -381,40 +391,60 @@ public class DataMapManager {
 
     private void addIntermediateClauseVariables(QueryExpressionNode queryExpressionNode, List<MappingPort> inputPorts,
                                                 SemanticModel semanticModel, List<Symbol> typeDefSymbols,
-                                                Map<String, MappingPort> references) {
+                                                Map<String, MappingPort> references, Set<String> clauseDefinedVars) {
+        Set<String> groupingKeyNames = new HashSet<>();
+        boolean hasGroupBy = false;
+
         for (IntermediateClauseNode intermediateClause : queryExpressionNode.queryPipeline().intermediateClauses()) {
             SyntaxKind clauseKind = intermediateClause.kind();
             if (clauseKind == SyntaxKind.LET_CLAUSE) {
                 LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
                 for (LetVariableDeclarationNode letVarDecl : letClauseNode.letVarDeclarations()) {
-                    String letVarName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
-                    Optional<TypeSymbol> letTypeSymbol = semanticModel.typeOf(letVarDecl.expression());
-                    if (letTypeSymbol.isPresent()) {
-                        MappingPort mappingPort = getRefMappingPort(letVarName, letVarName,
-                                Objects.requireNonNull(ReferenceType.fromSemanticSymbol(letTypeSymbol.get(),
-                                        typeDefSymbols)), new HashMap<>(), references);
-                        mappingPort.focusExpression = letVarDecl.expression().toSourceCode().trim();
-                        inputPorts.add(mappingPort);
-                    }
+                    String varName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    String expression = letVarDecl.expression().toSourceCode().trim();
+                    addClauseVariable(varName, expression, letVarDecl, clauseDefinedVars, inputPorts,
+                            semanticModel, typeDefSymbols, references);
                 }
             } else if (clauseKind == SyntaxKind.GROUP_BY_CLAUSE) {
+                hasGroupBy = true;
                 GroupByClauseNode groupByClause = (GroupByClauseNode) intermediateClause;
                 SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
+
                 for (Node groupingKey : groupingKeys) {
                     if (groupingKey.kind() == SyntaxKind.GROUPING_KEY_VAR_DECLARATION) {
-                        GroupingKeyVarDeclarationNode varDecl = (GroupingKeyVarDeclarationNode) groupingKey;
-                        String groupByVarName = varDecl.simpleBindingPattern().toSourceCode().trim();
-                        Optional<TypeSymbol> groupByTypeSymbol = semanticModel.typeOf(varDecl.expression());
-                        if (groupByTypeSymbol.isPresent()) {
-                            MappingPort mappingPort = getRefMappingPort(groupByVarName, groupByVarName,
-                                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(groupByTypeSymbol.get(),
-                                            typeDefSymbols)), new HashMap<>(), references);
-                            mappingPort.focusExpression = varDecl.expression().toSourceCode().trim();
-                            inputPorts.add(mappingPort);
-                        }
+                        GroupingKeyVarDeclarationNode groupVarDecl = (GroupingKeyVarDeclarationNode) groupingKey;
+                        BindingPatternNode bindingPattern = groupVarDecl.simpleBindingPattern();
+                        String varName = bindingPattern.toSourceCode().trim();
+                        String expression = groupVarDecl.expression().toSourceCode().trim();
+                        groupingKeyNames.add(varName);
+                        addClauseVariable(varName, expression, bindingPattern, clauseDefinedVars, inputPorts,
+                                semanticModel, typeDefSymbols, references);
                     }
                 }
             }
+        }
+
+        if (hasGroupBy) {
+            for (MappingPort port : inputPorts) {
+                if (port.name != null && clauseDefinedVars.contains(port.name)
+                        && !groupingKeyNames.contains(port.name)) {
+                    port.setIsSeq(true);
+                }
+            }
+        }
+    }
+
+    private void addClauseVariable(String varName, String expression, Node node, Set<String> clauseDefinedVars,
+                                   List<MappingPort> inputPorts, SemanticModel semanticModel,
+                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references) {
+        clauseDefinedVars.add(varName);
+        Optional<Symbol> varSymbol = semanticModel.symbol(node);
+        if (varSymbol.isPresent()) {
+            MappingPort mappingPort = getRefMappingPort(varName, varName,
+                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(varSymbol.get(),
+                            typeDefSymbols)), new HashMap<>(), references);
+            mappingPort.focusExpression = expression;
+            inputPorts.add(mappingPort);
         }
     }
 
@@ -2803,6 +2833,7 @@ public class DataMapManager {
         Boolean optional;
         String ref;
         TypeInfo typeInfo;
+        Boolean isSeq;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2885,6 +2916,14 @@ public class DataMapManager {
 
         void setOptional(Boolean optional) {
             this.optional = optional;
+        }
+
+        void setIsSeq(Boolean isSeq) {
+            this.isSeq = isSeq;
+        }
+
+        Boolean getIsSeq() {
+            return this.isSeq;
         }
 
         public String getFocusExpression() {
