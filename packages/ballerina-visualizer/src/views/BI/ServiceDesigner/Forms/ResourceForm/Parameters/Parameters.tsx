@@ -23,7 +23,7 @@ import { Codicon, Divider, LinkButton, Typography, CheckBox, CheckBoxGroup, Them
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
-import { ConfigProperties, ParameterModel, HttpPayloadContext, PropertyModel, Type } from '@wso2/ballerina-core';
+import { ConfigProperties, ParameterModel, HttpPayloadContext, PropertyModel, Type, Imports } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../../components/EntryPointTypeCreator';
 
 export interface ParametersProps {
@@ -139,12 +139,15 @@ export function Parameters(props: ParametersProps) {
         setIsTypeEditorOpen(true);
     };
 
-    const handleTypeCreated = (type: Type | string) => {
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
         // When a type is created, set it as the payload type
         const updatedPayloadModel = { ...payloadModel };
         updatedPayloadModel.name.value = "payload";
         updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
         updatedPayloadModel.enabled = true;
+        if (imports) {
+            updatedPayloadModel.imports = imports;
+        }
 
         // Check if we're editing an existing payload or adding a new one
         const existingPayloadIndex = parameters.findIndex(p => p.httpParamType === "PAYLOAD");

@@ -34,15 +34,19 @@ export const Label = styled.span<LabelProps>`
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   
   &:first-of-type {
     left: 0;
-    width: 30%;
+    width: 40%;
   }
   
   &:last-of-type {
-    left: 30%;
-    width: 70%;
+    left: 40%;
+    width: 60%;
   }
 `;
 
@@ -67,8 +71,8 @@ export const Slider = styled.div<{ checked: boolean }>`
     content: "";
     position: absolute;
     height: calc(100% - 4px);
-    width: ${props => props.checked ? 'calc(70% - 6px)' : 'calc(30% - 2px)'};
-    left: ${props => props.checked ? 'calc(30% + 4px)' : '2px'};
+    width: ${props => props.checked ? 'calc(60% - 4px)' : 'calc(40% - 2px)'};
+    left: ${props => props.checked ? 'calc(40% + 2px)' : '2px'};
     border-radius: 1px;
     background: ${ThemeColors.SURFACE_DIM};
     transition: all 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -90,7 +94,7 @@ export const SwitchWrapper = styled.div`
   position: relative;
   display: inline-flex;
   align-items: center;
-  width: 110px;
+  width: 112px;
   height: 24px;
   margin-top: 2px;
 `;
