@@ -16,16 +16,9 @@
  * under the License.
  */
 
-export * from "./EditorFactory";
-export * from "./TypeEditor";
-export * from "./TextEditor";
-export * from "./MultiSelectEditor";
-export * from "./ExpressionEditor";
-export * from "./ArrayEditor";
-export * from "./MapEditor";
-export * from "./FileSelect";
-export * from "./FormMapEditor";
-export * from "./FieldContext";
-export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
-export { getPropertyFromFormField } from "./utils";
-export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { InputMode } from "@wso2/ballerina-side-panel";
+
+// Wraps a value in template interpolation syntax ${} if in template mode
+export const wrapInTemplateInterpolation = (value: string, inputMode?: InputMode): string => {
+    return inputMode === InputMode.TEMPLATE ? `\${${value}}` : value;
+};
