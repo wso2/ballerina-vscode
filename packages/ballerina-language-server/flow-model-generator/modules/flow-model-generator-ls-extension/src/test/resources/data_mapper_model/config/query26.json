@@ -46,23 +46,7 @@
         "typeName": "Sale",
         "kind": "record",
         "focusExpression": "sales",
-        "ref": "1120091376",
-        "isSeq": true
-      },
-      {
-        "name": "quantity",
-        "displayName": "quantity",
-        "typeName": "int",
-        "kind": "int",
-        "focusExpression": "salesItem.quantity",
-        "isSeq": true
-      },
-      {
-        "name": "item",
-        "displayName": "item",
-        "typeName": "string",
-        "kind": "string",
-        "focusExpression": "salesItem.item"
+        "ref": "1120091376"
       }
     ],
     "output": {
