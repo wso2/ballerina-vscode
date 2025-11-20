@@ -143,8 +143,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
         }
 
         serviceModel && setServiceFields(convertConfig(serviceModel));
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+            setFilePath(response.filePath);
         });
     }, [serviceModel]);
 

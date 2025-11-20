@@ -27,21 +27,23 @@ import {
 interface ReportButtonsProps {
     onViewReport: () => void;
     onSaveReport: () => void;
+    isMultiProject?: boolean;
 }
 
 export const ReportButtons: React.FC<ReportButtonsProps> = ({
     onViewReport,
     onSaveReport,
+    isMultiProject = false,
 }) => {
     return (
         <ReportButtonsContainer>
             <ViewReportButton onClick={onViewReport} appearance="secondary">
                 <Codicon name="file-text" />
-                &nbsp;View Full Report
+                &nbsp;{isMultiProject ? "View Aggregate Report" : "View Full Report"}
             </ViewReportButton>
             <SaveReportButton onClick={onSaveReport} appearance="secondary">
                 <Codicon name="save" />
-                &nbsp;Save Report
+                &nbsp;{isMultiProject ? "Save Reports" : "Save Report"}
             </SaveReportButton>
         </ReportButtonsContainer>
     );

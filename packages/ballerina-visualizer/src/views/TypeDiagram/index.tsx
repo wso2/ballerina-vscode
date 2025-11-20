@@ -473,7 +473,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
     return (
         <>
             <View>
-                <TopNavigationBar />
+                <TopNavigationBar projectPath={projectPath} />
                 {!focusedNodeId && (
                     <TitleBar
                         title="Types"

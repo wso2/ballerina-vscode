@@ -96,8 +96,12 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
 }
 
 export const getValueForTextModeEditor = (value: string) => {
-     if (value) {
-        return value.replace(/"/g, "");
+    if (value) {
+        // Only remove starting and ending double quotes, preserve quotes within the string
+        if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
+            return value.slice(1, -1);
+        }
+        return value;
     }
     return value;
 }

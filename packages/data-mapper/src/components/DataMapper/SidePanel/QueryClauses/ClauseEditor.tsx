@@ -52,7 +52,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         type: "IDENTIFIER",
         optional: false,
         editable: true,
-        documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter the name for variable",
+        documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
         valueTypeConstraint: "Global",
         enabled: true,

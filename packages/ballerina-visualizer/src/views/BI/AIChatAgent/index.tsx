@@ -67,12 +67,13 @@ const FunctionsContainer = styled.div`
 `;
 
 interface AIAgentDesignerProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
 }
 
 export function AIAgentDesigner(props: AIAgentDesignerProps) {
-    const { filePath, position } = props;
+    const { projectPath, filePath, position } = props;
     const { rpcClient } = useRpcContext();
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
     const [serviceName, setServiceName] = useState<string>("");
@@ -110,15 +111,16 @@ export function AIAgentDesigner(props: AIAgentDesignerProps) {
     };
 
     const getProjectListeners = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);
                 }
             });
+        });
     };
 
     const handleOpenListener = (value: string) => {
@@ -214,7 +216,7 @@ export function AIAgentDesigner(props: AIAgentDesignerProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar
                 title="AI Chat Agent"
                 subtitle={serviceName}

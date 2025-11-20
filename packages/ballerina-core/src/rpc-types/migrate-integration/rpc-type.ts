@@ -18,7 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
-import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, SaveMigrationReportRequest } from "./interfaces";
+import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, OpenSubProjectReportRequest, SaveMigrationReportRequest, StoreSubProjectReportsRequest } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "migrate-integration";
@@ -26,5 +26,7 @@ export const getMigrationTools: RequestType<void, GetMigrationToolsResponse> = {
 export const pullMigrationTool: NotificationType<MigrationToolPullRequest> = { method: `${_preFix}/pullMigrationTool` };
 export const importIntegration: RequestType<ImportIntegrationRPCRequest, ImportIntegrationResponse> = { method: `${_preFix}/importIntegration` };
 export const openMigrationReport: NotificationType<OpenMigrationReportRequest> = { method: `${_preFix}/openMigrationReport` };
+export const openSubProjectReport: NotificationType<OpenSubProjectReportRequest> = { method: `${_preFix}/openSubProjectReport` };
+export const storeSubProjectReports: NotificationType<StoreSubProjectReportsRequest> = { method: `${_preFix}/storeSubProjectReports` };
 export const saveMigrationReport: NotificationType<SaveMigrationReportRequest> = { method: `${_preFix}/saveMigrationReport` };
 export const migrateProject: NotificationType<MigrateRequest> = { method: `${_preFix}/migrateProject` };
