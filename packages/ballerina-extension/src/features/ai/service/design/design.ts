@@ -84,7 +84,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, project.projectName),
+        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, project.projectName, modifiedFiles),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
@@ -185,7 +185,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                 break;
             }
             case "text-start": {
-                    eventHandler({ type: "content_block", content: " \n" });
+                eventHandler({ type: "content_block", content: " \n" });
                 break;
             }
             case "abort": {
