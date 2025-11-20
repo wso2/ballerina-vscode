@@ -816,7 +816,7 @@ const AIChat: React.FC = () => {
                 if (command === "ai_map") {
                     const matchingFile = filePaths?.find(file => {
                         const filePathName = file.filePath.split('/').pop();
-                        return filePathName === filePath;
+                        return filePathName === filePath.split('/').pop();
                     });
                     segmentText = matchingFile.content
                 } else if (command === "test" || command === "type_creator") {

@@ -48,6 +48,7 @@ import {
     Type,
     VisualizableField,
     NodeProperties,
+    VisualizerLocation,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -323,7 +324,7 @@ export interface FormProps {
     onFormValidation?: (data: FormValues, dirtyFields?: any) => Promise<boolean>;
     isSaving?: boolean;
     openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
-    openView?: (filePath: string, position: NodePosition) => void;
+    openView?: (location: VisualizerLocation) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     onCancelForm?: () => void;
