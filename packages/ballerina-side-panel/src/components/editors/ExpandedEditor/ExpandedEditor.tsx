@@ -61,6 +61,7 @@ interface ExpandedPromptEditorProps {
     // Error diagnostics props
     error?: FieldError;
     formDiagnostics?: DiagnosticMessage[];
+    inputMode?: InputMode;
 }
 
 const ModalContainer = styled.div`
@@ -168,7 +169,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     extractArgsFromFunction,
     getHelperPane,
     error,
-    formDiagnostics
+    formDiagnostics,
+    inputMode
 }) => {
     const promptFields = ["query", "instructions", "role"];
 
@@ -186,6 +188,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     }, [defaultMode]);
 
     useEffect(() => {
+        // Only text mode and prompt mode don't support preview
         if (mode === "text") {
             setShowPreview(false);
         }
@@ -234,7 +237,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             error,
             formDiagnostics
         }),
-        // Props for template mode
+        // Props for template mode (uses ProseMirror with source view toggle)
         ...(mode === "template" && {
             completions,
             fileName,
@@ -243,10 +246,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             rawExpression,
             extractArgsFromFunction,
             getHelperPane,
-            isPreviewMode: showPreview,
-            onTogglePreview: (enabled: boolean) => setShowPreview(enabled),
             error,
-            formDiagnostics
+            formDiagnostics,
+            inputMode
         })
     };
     // HACK: Must find a proper central way to manager popups

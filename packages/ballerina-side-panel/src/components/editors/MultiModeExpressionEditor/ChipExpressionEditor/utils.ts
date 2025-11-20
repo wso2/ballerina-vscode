@@ -18,6 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
+import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
 export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -328,4 +329,88 @@ export const detectTokenPatterns = (
     }
 
     return compounds;
+};
+
+// Calculates helper pane position with viewport overflow correction
+export const calculateHelperPanePosition = (
+    targetCoords: { bottom: number; left: number },
+    editorRect: DOMRect,
+    helperPaneWidth: number,
+    scrollTop: number = 0
+): { top: number; left: number } => {
+    // Position relative to the editor container, accounting for scroll
+    let top = targetCoords.bottom - editorRect.top + scrollTop;
+    let left = targetCoords.left - editorRect.left;
+
+    // Add overflow correction for window boundaries
+    const viewportWidth = window.innerWidth;
+    const absoluteLeft = targetCoords.left;
+    const overflow = absoluteLeft + helperPaneWidth - viewportWidth;
+
+    if (overflow > 0) {
+        left -= overflow;
+    }
+
+    return { top, left };
+};
+
+export interface FunctionExtractionResult {
+    finalValue: string;
+    cursorAdjustment: number; // How much to adjust cursor position from base position
+}
+
+// Processes a value that ends with () or )}, extracting function arguments and creating placeholders
+export const processFunctionWithArguments = async (
+    value: string,
+    basePosition: number,
+    extractArgsFromFunction: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>
+): Promise<FunctionExtractionResult> => {
+    try {
+        // Extract the function definition from string templates like "${func()}"
+        let functionDef = value;
+        let prefix = '';
+        let suffix = '';
+
+        // Check if it's within a string template
+        const stringTemplateMatch = value.match(/^(.*\$\{)([^}]+)(\}.*)$/);
+        if (stringTemplateMatch) {
+            prefix = stringTemplateMatch[1];
+            functionDef = stringTemplateMatch[2];
+            suffix = stringTemplateMatch[3];
+        }
+
+        // Calculate cursor position for extraction relative to the functionDef string
+        let cursorPositionForExtraction = functionDef.length - 1;
+        if (functionDef.endsWith(')}')) {
+            cursorPositionForExtraction -= 1;
+        }
+
+        // Extract function signature from backend
+        const fnSignature = await extractArgsFromFunction(functionDef, cursorPositionForExtraction);
+
+        if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
+            // Generate placeholder arguments: $1, $2, $3, etc.
+            const placeholderArgs = fnSignature.args.map((_arg, index) => `$${index + 1}`);
+            const updatedFunctionDef = functionDef.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
+            const finalValue = prefix + updatedFunctionDef + suffix;
+
+            // Cursor adjustment is relative to the start of the inserted value
+            const closingParenIndex = finalValue.lastIndexOf(")");
+            const cursorAdjustment =
+                closingParenIndex >= 0 ? closingParenIndex : finalValue.length;
+
+            return { finalValue, cursorAdjustment };
+        }
+    } catch (error) {
+        console.warn('Failed to extract function arguments:', error);
+    }
+
+    // Return original value if extraction failed or no arguments
+    // Keep caret at the end of the inserted snippet.
+    return { finalValue: value, cursorAdjustment: value.length };
 };

@@ -56,12 +56,11 @@ import { HelperPane } from "./HelperPane";
 import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionDefaultConfig";
 import { ChipExpressionEditorConfig } from "../../Configurations";
+import { HELPER_PANE_WIDTH } from "../constants";
+import { processFunctionWithArguments } from "../utils";
+import { useHelperPaneClickOutside, useHelperPane } from "../hooks/useHelperPane";
+import { InputMode } from "../types";
 
-type HelperPaneState = {
-    isOpen: boolean;
-    top: number;
-    left: number;
-}
 export type ChipExpressionEditorComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
@@ -98,6 +97,7 @@ export type ChipExpressionEditorComponentProps = {
     toolbarRef?: React.RefObject<HTMLDivElement>;
     enableListContinuation?: boolean;
     configuration?: ChipExpressionEditorDefaultConfiguration;
+    inputMode?: InputMode;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -111,7 +111,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const completionsFetchScheduledRef = useRef<boolean>(false);
-    const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
@@ -149,6 +148,25 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const tooltipExtension = hoverTooltip((view, pos) => {
         return docTooltip(view, pos);
     });
+    // Helper pane state management with conditional fixed placement for toolbar toggle in PROMPT mode
+    const { helperPaneState, setHelperPaneState, handleManualToggle, handleKeyboardToggle } = useHelperPane(
+        {
+            editorRef,
+            toggleButtonRef: helperPaneToggleButtonRef,
+            helperPaneWidth: HELPER_PANE_WIDTH,
+            onStateChange: props.onHelperPaneStateChange,
+            customManualToggle: props.inputMode === InputMode.PROMPT && props.isInExpandedMode ? (setHelperPaneState) => {
+                if (!editorRef?.current) return;
+
+                setHelperPaneState(prev => {
+                    if (prev.isOpen) return { ...prev, isOpen: false };
+                    const scrollTop = editorRef.current!.scrollTop || 0;
+                    return { isOpen: true, top: scrollTop, left: 10 };
+                });
+            } : undefined
+        },
+        () => viewRef.current?.coordsAtPos(viewRef.current.state.selection.main.head) || null
+    );
 
     const needTokenRefetchListner = buildNeedTokenRefetchListner(() => {
         setIsTokenUpdateScheduled(true);
@@ -163,7 +181,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const isRangeSelection = cursor.position.to !== cursor.position.from;
 
         if (newValue === '' || isTrigger || isRangeSelection) {
-            savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
             setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
         } else {
             setHelperPaneState({ isOpen: false, top: 0, left: 0 });
@@ -171,12 +188,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     });
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
-        savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
         setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
     });
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
-        savedSelectionRef.current = { from: cursor.position.from, to: cursor.position.to };
         setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
     });
 
@@ -201,16 +216,20 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         return buildCompletionSource(waitForStateChange);
     }, [props.completions]);
 
-    const helperPaneKeymap = buildHelperPaneKeymap(() => helperPaneState.isOpen, () => {
-        setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-    });
+    const helperPaneKeymap = buildHelperPaneKeymap(
+        () => helperPaneState.isOpen,
+        () => {
+            setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+        },
+        handleKeyboardToggle
+    );
 
     const onHelperItemSelect = async (value: string, options: HelperpaneOnChangeOptions) => {
         if (!viewRef.current) return;
         const view = viewRef.current;
 
         // Use saved selection if available, otherwise fall back to current selection
-        const currentSelection = savedSelectionRef.current || view.state.selection.main;
+        const currentSelection = view.state.selection.main;
         const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
         
         const selectionIsOnToken = isSelectionOnToken(currentSelection.from, currentSelection.to, view);
@@ -267,9 +286,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             setIsTokenUpdateScheduled(true);
         }
         setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
-
-        // Clear saved selection after use
-        savedSelectionRef.current = null;
     }
 
     const handleHelperPaneManualToggle = () => {
@@ -436,40 +452,23 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         setIsTokenUpdateScheduled(true);
     }, [Boolean(props.sanitizedExpression), Boolean(props.rawExpression)]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (!helperPaneState.isOpen) return;
-
-            const target = event.target as Element;
-            const isClickInsideEditor = editorRef.current?.contains(target);
-            const isClickInsideHelperPane = helperPaneRef.current?.contains(target);
-            const isClickOnToggleButton = helperPaneToggleButtonRef.current?.contains(target);
-            const isClickInsideToolbar = props.toolbarRef?.current?.contains(target);
-
-            if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton && !isClickInsideToolbar) {
-                setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-                viewRef.current?.dom.blur();
-            }
-        };
-
-        const handleEscapeKey = (event: KeyboardEvent) => {
-            if (!helperPaneState.isOpen) return;
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                event.stopPropagation();
-                setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-            }
-        };
-
-        if (helperPaneState.isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('keydown', handleEscapeKey);
+    // Handle click outside and escape key for helper pane
+    useHelperPaneClickOutside({
+        enabled: helperPaneState.isOpen,
+        refs: {
+            editor: editorRef,
+            helperPane: helperPaneRef,
+            toggleButton: helperPaneToggleButtonRef,
+            toolbar: props.toolbarRef
+        },
+        onClickOutside: () => {
+            setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+            viewRef.current?.dom.blur();
+        },
+        onEscapeKey: () => {
+            setHelperPaneState(prev => ({ ...prev, isOpen: false }));
         }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscapeKey);
-        };
-    }, [helperPaneState.isOpen, props.toolbarRef]);
+    });
 
     const showToggle = props.showHelperPaneToggle !== false && props.isExpandedVersion;
 
@@ -479,7 +478,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
                     isOpen={helperPaneState.isOpen}
-                    onClick={handleHelperPaneManualToggle}
+                    onClick={handleManualToggle}
+                    title="Toggle Helper Panel (Ctrl+/ or Cmd+/)"
                 />
             )}
             <ChipEditorContainer ref={fieldContainerRef} style={{
@@ -512,7 +512,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         {!props.isExpandedVersion &&
                             <FloatingToggleButton
                                 ref={helperPaneToggleButtonRef}
-                                onClick={handleHelperPaneManualToggle}
+                                onClick={handleManualToggle}
                                 title={helperPaneState.isOpen ? "Close Helper Panel" : "Open Helper Panel"}
                             >
                                 {helperPaneState.isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
