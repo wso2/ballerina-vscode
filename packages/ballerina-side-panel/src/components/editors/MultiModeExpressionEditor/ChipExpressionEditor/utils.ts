@@ -257,19 +257,19 @@ export const extractVariableMetadata = (
 };
 
 // Token patterns for detecting compound token sequences
-// Patterns are checked in priority order (higher priority first)
+// Patterns are checked in priority order (higher priority number = higher priority)
 export const TOKEN_PATTERNS: readonly TokenPattern[] = [
     {
         name: TokenType.DOCUMENT,
         sequence: [TokenType.START_EVENT, TokenType.TYPE_CAST, TokenType.VALUE, TokenType.END_EVENT],
         extractor: extractDocumentMetadata,
-        priority: 1
+        priority: 2
     },
     {
         name: TokenType.VARIABLE,
         sequence: [TokenType.START_EVENT, TokenType.VARIABLE, TokenType.END_EVENT],
         extractor: extractVariableMetadata,
-        priority: 2
+        priority: 1
     }
 ];
 
