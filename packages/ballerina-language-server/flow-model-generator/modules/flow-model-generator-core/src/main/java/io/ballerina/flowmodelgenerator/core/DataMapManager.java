@@ -455,18 +455,23 @@ public class DataMapManager {
             return null;
         }
 
-        ExpressionNode initializer = getMappingExpr(parentNode);
-        if (initializer == null) {
+        ExpressionNode expr = getMappingExpr(parentNode);
+        if (expr == null) {
             return new TargetNode(typeSymbol, name, null);
         }
 
         if (targetField == null) {
-            return new TargetNode(typeSymbol, name, new MatchingNode(initializer, null, null));
+            return new TargetNode(typeSymbol, name, new MatchingNode(expr, null, null));
         }
 
         String[] fieldSplits = targetField.split(DOT);
         int idx = 1;
-        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+
+        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
+            expr = ((LetExpressionNode) expr).expression();
+        }
+
+        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
             if (fieldSplits.length >= 2 && fieldSplits[1].equals(ZERO)) {
                 idx = 2;
             }
@@ -494,10 +499,6 @@ public class DataMapManager {
             }
         }
 
-        ExpressionNode expr = initializer;
-        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
-            expr = ((LetExpressionNode) expr).expression();
-        }
         MatchingNode matchingNode = getTargetMappingExpr(expr, targetField);
         if (matchingNode == null) {
             return null;
