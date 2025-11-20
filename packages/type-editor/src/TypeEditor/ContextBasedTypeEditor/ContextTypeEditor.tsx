@@ -78,7 +78,7 @@ interface ContextTypeEditorProps {
     imports?: Imports;
     rpcClient: BallerinaRpcClient;
     onTypeChange: (type: Type, rename?: boolean) => void;
-    onSaveType: (type: Type | string) => void;
+    onSaveType: (type: Type | string, imports?: Imports) => void;
     newType: boolean;
     newTypeValue?: string;
     isPopupTypeForm: boolean;

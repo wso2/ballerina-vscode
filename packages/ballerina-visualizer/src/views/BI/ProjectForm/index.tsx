@@ -98,10 +98,21 @@ export function ProjectForm() {
         });
     };
 
+    const goBack = () => {
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            if (projectPath) {
+                rpcClient.getVisualizerRpcClient().goBack();
+            } else {
+                gotToWelcome();
+            }
+        });
+    };
+
     return (
         <FormContainer>
             <TitleContainer>
-                <IconButton onClick={gotToWelcome}>
+                <IconButton onClick={goBack}>
                     <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 <Typography variant="h2">Create Your Integration</Typography>

@@ -24,6 +24,7 @@ import {
     MACHINE_VIEW,
     MigrateRequest,
     MigrationTool,
+    ProjectMigrationResult,
     ProjectRequest,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -44,6 +45,7 @@ export function ImportIntegration() {
     const [toolPullProgress, setToolPullProgress] = useState<DownloadProgress | null>(null);
     const [migrationToolState, setMigrationToolState] = useState<string | null>(null);
     const [migrationToolLogs, setMigrationToolLogs] = useState<string[]>([]);
+    const [migratedProjects, setMigratedProjects] = useState<ProjectMigrationResult[]>([]);
     const [pullingTool, setPullingTool] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<MigrationTool | null>(null);
     const [migrationTools, setMigrationTools] = useState<MigrationTool[]>([]);
@@ -53,6 +55,8 @@ export function ImportIntegration() {
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
 
     const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
+
+    const isMultiProject = migratedProjects.length! > 0;
 
     const pullIntegrationTool = (commandName: string, version: string) => {
         setPullingTool(true);
@@ -101,6 +105,7 @@ export function ImportIntegration() {
             const params: MigrateRequest = {
                 project: project,
                 textEdits: migrationResponse.textEdits,
+                projects: migratedProjects,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
         }
@@ -122,6 +127,7 @@ export function ImportIntegration() {
             setMigrationCompleted(false);
             setMigrationSuccessful(false);
             setMigrationResponse(null);
+            setMigratedProjects([]);
         }
 
         setStep(step - 1);
@@ -158,6 +164,10 @@ export function ImportIntegration() {
 
         rpcClient.onMigrationToolLogs((log) => {
             setMigrationToolLogs((prevLogs) => [...prevLogs, log]);
+        });
+
+        rpcClient.onMigratedProject((project) => {
+            setMigratedProjects((prevProjects) => [...prevProjects, project]);
         });
     }, [rpcClient]);
 
@@ -199,11 +209,13 @@ export function ImportIntegration() {
                     migrationCompleted={migrationCompleted}
                     migrationSuccessful={migrationSuccessful}
                     migrationResponse={migrationResponse}
+                    projects={migratedProjects}
+                    isMultiProject={isMultiProject}
                     onNext={() => setStep(2)}
                     onBack={handleStepBack}
                 />
             )}
-            {step === 2 && <ConfigureProjectForm onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
         </FormContainer>
     );
 }

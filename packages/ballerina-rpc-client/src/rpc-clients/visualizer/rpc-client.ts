@@ -21,6 +21,8 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     HistoryEntry,
+    JoinProjectPathRequest,
+    JoinProjectPathResponse,
     OpenViewRequest,
     ProjectStructureArtifactResponse,
     UndoRedoStateResponse,
@@ -90,8 +92,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
     }
 
-    joinProjectPath(segments: string | string[]): Promise<string> {
-        return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, segments);
+    joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
+        return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, params);
     }
 
     getThemeKind(): Promise<ColorThemeKind> {

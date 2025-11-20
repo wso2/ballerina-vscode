@@ -22,7 +22,7 @@ import { CompletionItem, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { ContextMenuContainer, Completions, FloatingButtonContainer, COMPLETIONS_WIDTH } from "../styles";
 import { CompletionsItem } from "./CompletionsItem";
 import { FloatingToggleButton } from "./FloatingToggleButton";
-import { CloseHelperButton, OpenHelperButton } from "./FloatingButtonIcons";
+import { CloseHelperIcon, OpenHelperIcon, ExpandIcon } from "./FloatingButtonIcons";
 import { DATA_CHIP_ATTRIBUTE, DATA_ELEMENT_ID_ATTRIBUTE, ARIA_PRESSED_ATTRIBUTE, CHIP_MENU_VALUE, CHIP_TRUE_VALUE, EXPANDED_EDITOR_HEIGHT } from '../constants';
 import { getCompletionsMenuPosition, isBetween } from "../utils";
 import styled from "@emotion/styled";
@@ -37,7 +37,13 @@ const ChipEditorFieldContainer = styled.div`
         transition: opacity 0.2s ease-in-out;
     }
 
-    &:hover #floating-button-container {
+    #chip-expression-expand {
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    &:hover #floating-button-container,
+    &:hover #chip-expression-expand {
         opacity: 1;
     }
 `;
@@ -66,9 +72,11 @@ export type AutoExpandingEditableDivProps = {
     isHelperPaneOpen?: boolean;
     onHelperPaneClose?: () => void;
     onToggleHelperPane?: () => void;
-    handleHelperPaneValueChange?: (value: string,  options?: HelperpaneOnChangeOptions) => void;
+    handleHelperPaneValueChange?: (value: string, options?: HelperpaneOnChangeOptions) => void;
     isInExpandedMode?: boolean;
     onOpenExpandedMode?: () => void;
+    helperButtonRef?: React.RefObject<HTMLButtonElement>;
+    expressionHeight?: string | number;
 }
 
 export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) => {
@@ -122,7 +130,10 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
     const renderHelperPane = () => {
         if (!props.getHelperPane || !props.isHelperPaneOpen || !fieldContainerRef?.current) return null;
 
-        const menuPosition = getCompletionsMenuPosition(fieldContainerRef);
+        const positionRef = props.isInExpandedMode && props.helperButtonRef ? props.helperButtonRef : fieldContainerRef;
+        if (!positionRef?.current) return null;
+
+        const menuPosition = getCompletionsMenuPosition(positionRef as React.RefObject<HTMLElement>);
         const menuWidth = COMPLETIONS_WIDTH;
         const viewportWidth = document.documentElement.clientWidth;
         const adjustedLeft = Math.max(0, Math.min(menuPosition.left, viewportWidth - menuWidth - 10));
@@ -266,15 +277,28 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
         }
     }
 
+    // Determine height based on expressionHeight prop, or fall back to default behavior
+    const getHeightValue = () => {
+        if (props.expressionHeight !== undefined) {
+            return typeof props.expressionHeight === 'number'
+                ? `${props.expressionHeight}px`
+                : props.expressionHeight;
+        }
+        return props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px';
+    };
+
+    const heightValue = getHeightValue();
+
     return (
         <ChipEditorFieldContainer>
             <ChipEditorField
                 ref={fieldContainerRef}
+                customHeight={props.expressionHeight !== undefined ? `${heightValue}px` : undefined}
                 style={{
                     ...style,
                     flex: 1,
-                    maxHeight: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : '100px',
-                    ...(props.isInExpandedMode && {
+                    maxHeight: heightValue,
+                    ...(props.isInExpandedMode && !props.expressionHeight && {
                         height: `${EXPANDED_EDITOR_HEIGHT}px`,
                         minHeight: `${EXPANDED_EDITOR_HEIGHT}px`,
                     })
@@ -284,17 +308,34 @@ export const AutoExpandingEditableDiv = (props: AutoExpandingEditableDivProps) =
                 onKeyDown={onKeyDown}
                 onInput={onInput}
             >
-                <div style={{ flex: 1, overflow: 'auto', height: props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto' }}>
+                <div style={{
+                    flex: 1,
+                    overflow: 'auto',
+                    height: props.expressionHeight !== undefined ?
+                        heightValue :
+                        (props.isInExpandedMode ? `${EXPANDED_EDITOR_HEIGHT}px` : 'auto')
+                }}>
                     {children}
                 </div>
             </ChipEditorField>
             {renderCompletionsMenu()}
             {renderHelperPane()}
-            <FloatingButtonContainer id="floating-button-container">
-                <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
-                    {props.isHelperPaneOpen ? <CloseHelperButton /> : <OpenHelperButton />}
-                </FloatingToggleButton>
-            </FloatingButtonContainer>
+            {props.onOpenExpandedMode && !props.isInExpandedMode && (
+                <div id="chip-expression-expand" style={{ position: 'absolute', bottom: '6px', right: '26px' }}>
+                    <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor">
+                        <ExpandIcon />
+                    </FloatingToggleButton>
+                </div>
+            )}
+            {
+                !props.isInExpandedMode && (
+                    <FloatingButtonContainer id="floating-button-container">
+                        <FloatingToggleButton onClick={() => props.onToggleHelperPane?.()} title={props.isHelperPaneOpen ? "Close Helper" : "Open Helper"}>
+                            {props.isHelperPaneOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
+                        </FloatingToggleButton>
+                    </FloatingButtonContainer>
+                )
+            }
         </ChipEditorFieldContainer>
     )
 }
