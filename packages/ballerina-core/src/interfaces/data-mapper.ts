@@ -96,6 +96,7 @@ export interface IOType {
     defaultValue?: unknown;
     optional?: boolean;
     isFocused?: boolean;
+    isSeq?: boolean;
     isRecursive?: boolean;
     isDeepNested?: boolean;
     ref?: string;

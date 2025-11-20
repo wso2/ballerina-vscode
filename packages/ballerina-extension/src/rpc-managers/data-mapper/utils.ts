@@ -605,10 +605,7 @@ function processArray(
             parentId = member.name;
             fieldId = member.name;
             isFocused = true;
-
-            if (model.traversingRoot){
-                model.focusInputRootMap[parentId] = model.traversingRoot;
-            }
+            model.focusInputRootMap[fieldId] = model.traversingRoot;
         }
     }
 
@@ -718,13 +715,26 @@ function processTypeFields(
     if (!type.fields) { return []; }
 
     return type.fields.map(field => {
-        const fieldId = generateFieldId(parentId, field.name!);
+        let fieldId = generateFieldId(parentId, field.name!);
+
+        let isFocused = false;
+        if (model.focusInputs) {
+            const focusMember = model.focusInputs[fieldId];
+            if (focusMember) {
+                field = focusMember;
+                fieldId = field.name;
+                isFocused = true;
+                model.focusInputRootMap[fieldId] = model.traversingRoot;
+            }
+        }
+
         const ioType: IOType = {
             id: fieldId,
             name: field.name,
             displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
+            ...(isFocused && { isFocused }),
             ...(field.optional !== undefined && { optional: field.optional }),
             ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
