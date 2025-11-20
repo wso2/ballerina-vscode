@@ -155,6 +155,18 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
+    } else if (!field.items && (field.type === "RAW_TEMPLATE" || field.valueTypeConstraint === "ai:Prompt") && field.editable) {
+        return (
+            <ContextAwareRawExpressionEditor
+                field={field}
+                openSubPanel={openSubPanel}
+                subPanelView={subPanelView}
+                handleOnFieldFocus={handleOnFieldFocus}
+                onBlur={onBlur}
+                autoFocus={autoFocus}
+                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
+            />
+        );
     } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
         // Expression field is a inline expression editor
         return (
@@ -166,13 +178,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 onBlur={onBlur}
                 autoFocus={autoFocus}
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-            />
-        );
-    } else if (!field.items && field.type === "RAW_TEMPLATE" && field.editable) {
-        return (
-            <ContextAwareRawExpressionEditor
-                field={field}
-                autoFocus={autoFocus}
             />
         );
     } else if (field.type === "VIEW") {
