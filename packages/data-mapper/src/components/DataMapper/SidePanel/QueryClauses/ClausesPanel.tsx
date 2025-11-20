@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Button, Codicon, SidePanel, SidePanelBody, SidePanelTitleContainer, ThemeColors } from "@wso2/ui-toolkit";
 import { useDMQueryClausesPanelStore } from "../../../../store/store";
@@ -35,6 +35,7 @@ export interface ClausesPanelProps {
 
 export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
+    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
     const { query, targetField, addClauses, deleteClause, generateForm } = props;
 
     const [adding, setAdding] = React.useState<number>();
@@ -67,11 +68,20 @@ export function ClausesPanel(props: ClausesPanelProps) {
         setEditing(undefined);
     }
 
+    useEffect(() => {
+        if (clauseToAdd) {
+            setAdding(clauses.length - 1);
+        }
+        return () => {
+            setClauseToAdd(undefined);
+        }
+    }, [clauseToAdd, clauses.length, setClauseToAdd, setAdding]);
+
     return (
         <SidePanel
             isOpen={isQueryClausesPanelOpen}
             alignment="right"
-            width={312}
+            width={400}
             overlay={false}
             sx={{
                 fontFamily: "GilmerRegular",
