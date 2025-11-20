@@ -330,10 +330,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
+            const startLine = props.targetLineRange?.startLine;
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
                 props.value,
                 props.fileName,
-                props.targetLineRange?.startLine
+                startLine !== undefined ? startLine : undefined
             );
             setIsTokenUpdateScheduled(false);
             const effects = tokenStream ? [tokensChangeEffect.of({
