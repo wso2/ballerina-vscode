@@ -21,12 +21,9 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperLinkModel } from "../../Link";
 import { InputOutputPortModel, IntermediatePortModel } from "../../Port";
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
-import { ArrayOutputNode } from "../ArrayOutput";
-import { ObjectOutputNode } from "../ObjectOutput";
 import { findInputNode } from "../../utils/node-utils";
-import { getInputPort, getOutputPort, getTargetPortPrefix } from "../../utils/port-utils";
+import { getInputPort, getTargetPortPrefix } from "../../utils/port-utils";
 import { OFFSETS } from "../../utils/constants";
-import { removeMapping } from "../../utils/modification-utils";
 import { QueryOutputNode } from "../QueryOutput";
 import { useDMSearchStore } from "../../../../store/store";
 
@@ -87,7 +84,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                     this.sourcePorts.push(inputPort);
                 }
             }
-        })
+        });
 
         const outputField = this.query.output.split(".").pop();
         const matchedSearch = outputSearch === "" || outputField.toLowerCase().includes(outputSearch.toLowerCase());
@@ -101,7 +98,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                     this.targetMappedPort = node.getPort(`${targetPortPrefix}.${this.query.output}.#.IN`) as InputOutputPortModel;
 
                     if (prevSourcePorts.length !== this.sourcePorts.length ||
-                        prevSourcePorts.map(port => port.getID()).join('') !== this.sourcePorts.map(port => port.getID()).join('')) {
+                        !prevSourcePorts.every((port, idx) => port.getID() === this.sourcePorts[idx]?.getID())) {
                         this.shouldInitLinks = true;
                     }
                 }
@@ -135,7 +132,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                         }
                     },
                 })
-                this.getModel().addAll(lm as any);
+                this.getModel().addAll(lm);
             }
         })
 
@@ -163,7 +160,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                 const fieldFQN = this.targetMappedPort.attributes.fieldFQN;
                 this.label = fieldFQN ? this.targetMappedPort.attributes.fieldFQN.split('.').pop() : '';
             }
-            this.getModel().addAll(lm as any);
+            this.getModel().addAll(lm);
         }
 
         this.shouldInitLinks = false;

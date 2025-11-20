@@ -51,12 +51,6 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
         setExprBarFocusedPort(targetPort);
     };
 
-    const loadingScreen = (
-        <div className={classnames(classes.element, classes.loadingContainer)}>
-            <ProgressRing sx={{ height: '16px', width: '16px' }} />
-        </div>
-    );
-
     return (
             <div className={classes.root} data-testid={`clause-connector-node-${node?.value}`}>
                 <div className={classes.header}>
