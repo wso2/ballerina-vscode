@@ -34,8 +34,6 @@ export type CursorInfo = {
 
 export type TokenType = 'variable' | 'property' | 'parameter';
 
-export const ProgrammerticSelectionChange = Annotation.define<boolean>();
-
 export const SyncDocValueWithPropValue = Annotation.define<boolean>();
 
 
@@ -296,10 +294,6 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
         if (!update.selectionSet) return;
         if (update.docChanged) return;
         if (!update.view.hasFocus) return;
-
-        if (update.transactions.some(tr => tr.annotation(ProgrammerticSelectionChange))) {
-            return;
-        }
 
         const cursorPosition = update.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPosition.to);
