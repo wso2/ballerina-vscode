@@ -297,10 +297,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-                viewRef.current?.dispatch({
-                    selection: { anchor: 0 },
-                    annotations: ProgrammerticSelectionChange.of(true)
-                });
                 viewRef.current?.dom.blur();
             }
         };
