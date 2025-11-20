@@ -19,6 +19,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Uri } from 'vscode';
+import { StateMachine } from "../../../../stateMachine";
 
 // ============================================================================
 // Types & Interfaces
@@ -122,6 +124,36 @@ function validateLineRange(
 // ============================================================================
 // Utility Functions
 // ============================================================================
+
+/**
+ * Sends didChange notification to Language Server for a modified file
+ * @param tempProjectPath The root path of the temporary project
+ * @param filePath The relative file path that was modified
+ */
+function notifyLanguageServer(tempProjectPath: string, filePath: string): void {
+  try {
+    const fullPath = path.join(tempProjectPath, filePath);
+    if (!fs.existsSync(fullPath)) {
+      console.warn(`[TextEditorTool] File does not exist, skipping didChange: ${fullPath}`);
+      return;
+    }
+
+    const fileContent = fs.readFileSync(fullPath, 'utf-8');
+    const fileUri = Uri.file(fullPath).toString();
+    StateMachine.langClient().didOpen({
+        textDocument: {
+            uri: fileUri,
+            languageId: 'ballerina',
+            version: 1,
+            text: fileContent
+        }
+    });
+
+    console.log(`[TextEditorTool] Sent didChange notification for: ${filePath}`);
+  } catch (error) {
+    console.error(`[TextEditorTool] Failed to send didChange notification for ${filePath}:`, error);
+  }
+}
 
 function findFileIndex(files: SourceFile[], filePath: string): number {
   return files.findIndex(f => f.filePath === filePath);
@@ -234,6 +266,9 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
       insertIntoUpdateFileNames(modifiedFiles, file_path);
     }
 
+    // Notify Language Server of the change
+    notifyLanguageServer(tempProjectPath, file_path);
+
     const lineCount = content.split('\n').length;
 
     console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines to temp project.`);
@@ -331,6 +366,9 @@ export function createEditExecute(tempProjectPath: string, modifiedFiles?: strin
     if (modifiedFiles) {
       insertIntoUpdateFileNames(modifiedFiles, file_path);
     }
+
+    // Notify Language Server of the change
+    notifyLanguageServer(tempProjectPath, file_path);
 
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
@@ -443,6 +481,9 @@ export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: 
     if (modifiedFiles) {
       insertIntoUpdateFileNames(modifiedFiles, file_path);
     }
+
+    // Notify Language Server of the change
+    notifyLanguageServer(tempProjectPath, file_path);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     return {

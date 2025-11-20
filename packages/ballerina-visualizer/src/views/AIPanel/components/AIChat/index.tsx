@@ -198,6 +198,7 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
+    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(true);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -317,6 +318,9 @@ const AIChat: React.FC = () => {
                 const context = await rpcClient.getAIChatContext();
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
+                }
+                if (context && context.isPlanMode !== undefined) {
+                    setIsPlanModeEnabled(context.isPlanMode);
                 }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
@@ -1395,6 +1399,16 @@ const AIChat: React.FC = () => {
         }
     };
 
+    const handleTogglePlanMode = () => {
+        const newValue = !isPlanModeEnabled;
+        setIsPlanModeEnabled(newValue);
+        if (newValue) {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_PLAN_MODE);
+        } else {
+            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_PLAN_MODE);
+        }
+    };
+
     const questionMessages = messages.filter((message) => message.type === "question");
     if (questionMessages.length > 0) {
         localStorage.setItem(
@@ -1658,6 +1672,14 @@ const AIChat: React.FC = () => {
                         </Badge>
                         <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
+                            <Button
+                                appearance="icon"
+                                onClick={handleTogglePlanMode}
+                                tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
+                            >
+                                <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
+                                &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
+                            </Button>
                             <Button
                                 appearance="icon"
                                 onClick={handleToggleAutoApprove}

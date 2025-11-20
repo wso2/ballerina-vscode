@@ -389,6 +389,7 @@ export interface GenerateAgentCodeRequest {
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
     messageId: string;
+    isPlanMode: boolean;
 }
 
 export interface SourceFiles {

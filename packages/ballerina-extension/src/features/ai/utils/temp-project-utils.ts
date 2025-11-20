@@ -134,7 +134,8 @@ export async function getTempProject(projectSource: ProjectSource, hasHistory: b
 
     const projectRoot = workspace.workspaceFolders[0].uri.fsPath;
     const projectHash = generateProjectHash();
-    const tempDir = path.join(os.tmpdir(), `bal-proj-${projectHash}`);
+    const randomNum = Math.floor(Math.random() * 101);
+    const tempDir = path.join(os.tmpdir(), `bal-proj-${projectHash}-${randomNum}`);
 
     // Check if temp project already exists
     if (fs.existsSync(tempDir)) {

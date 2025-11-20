@@ -109,6 +109,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         projectId: undefined,
         currentApproval: undefined,
         autoApproveEnabled: false,
+        isPlanMode: true,
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_PROMPT]: {
@@ -137,6 +138,16 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         [AIChatMachineEventType.DISABLE_AUTO_APPROVE]: {
             actions: assign({
                 autoApproveEnabled: (_ctx) => false,
+            }),
+        },
+        [AIChatMachineEventType.ENABLE_PLAN_MODE]: {
+            actions: assign({
+                isPlanMode: (_ctx) => true,
+            }),
+        },
+        [AIChatMachineEventType.DISABLE_PLAN_MODE]: {
+            actions: assign({
+                isPlanMode: (_ctx) => false,
             }),
         },
         [AIChatMachineEventType.RESET]: {
@@ -470,6 +481,7 @@ const startGenerationService = async (context: AIChatMachineContext): Promise<vo
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
         messageId: messageId,
+        isPlanMode: context.isPlanMode ?? true,
     };
 
     generateDesign(requestBody).catch(error => {
