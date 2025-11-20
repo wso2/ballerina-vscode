@@ -116,7 +116,9 @@ import {
     RecordsInWorkspaceMentions,
     BuildMode,
     GeneratedClientSaveResponse,
-    AddProjectToWorkspaceRequest
+    AddProjectToWorkspaceRequest,
+    DeleteProjectRequest,
+    OpenReadmeRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -135,6 +137,7 @@ export interface BIDiagramAPI {
     getNodeTemplate: (params: BINodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
     createProject: (params: ProjectRequest) => void;
+    deleteProject: (params: DeleteProjectRequest) => void;
     addProjectToWorkspace: (params: AddProjectToWorkspaceRequest) => void;
     getWorkspaces: () => Promise<WorkspacesResponse>;
     getProjectStructure: () => Promise<ProjectStructureResponse>;
@@ -150,8 +153,8 @@ export interface BIDiagramAPI {
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
     getConfigVariableNodeTemplate: (params: GetConfigVariableNodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getModuleNodes: () => Promise<BIModuleNodesResponse>;
-    getReadmeContent: () => Promise<ReadmeContentResponse>;
-    openReadme: () => void;
+    getReadmeContent: (params: ReadmeContentRequest) => Promise<ReadmeContentResponse>;
+    openReadme: (params: OpenReadmeRequest) => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
     openAIChat: (params: AIChatRequest) => void;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;

@@ -64,6 +64,7 @@ import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import { getHelperPaneNew } from "../../HelperPaneNew";
+import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
@@ -169,6 +170,17 @@ export function FormGeneratorNew(props: FormProps) {
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
     const { addModal, closeModal, popModal } = useModalStack();
+
+    // State to manage record config page modal
+    const [recordConfigPageState, setRecordConfigPageState] = useState<{
+        isOpen: boolean;
+        fieldKey?: string;
+        currentValue?: string;
+        recordTypeField?: RecordTypeField;
+        onChangeCallback?: (value: string) => void;
+    }>({
+        isOpen: false
+    });
 
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -394,11 +406,11 @@ export function FormGeneratorNew(props: FormProps) {
             });
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -862,6 +874,22 @@ export function FormGeneratorNew(props: FormProps) {
         })
     }
 
+    const openRecordConfigPage = (fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
+        setRecordConfigPageState({
+            isOpen: true,
+            fieldKey,
+            currentValue,
+            recordTypeField,
+            onChangeCallback
+        });
+    };
+
+    const closeRecordConfigPage = () => {
+        setRecordConfigPageState({
+            isOpen: false
+        });
+    };
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -869,6 +897,7 @@ export function FormGeneratorNew(props: FormProps) {
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
+            fileName: fileName,
             referenceTypes: types,
             rpcManager: {
                 getExpressionTokens: getExpressionTokens
@@ -880,6 +909,7 @@ export function FormGeneratorNew(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
+            onOpenRecordConfigPage: openRecordConfigPage,
             helperPaneOrigin: "vertical",
             helperPaneHeight: "default",
         } as FormExpressionEditorProps;
@@ -890,9 +920,13 @@ export function FormGeneratorNew(props: FormProps) {
         extractArgsFromFunction,
         handleGetVisibleTypes,
         handleGetHelperPane,
+        handleGetTypeHelper,
+        handleExpressionFormDiagnostics,
         handleCompletionItemSelect,
         handleExpressionEditorBlur,
-        handleExpressionEditorCancel
+        handleExpressionEditorCancel,
+        openRecordConfigPage,
+        types,
     ]);
 
     const handleSubmit = (values: FormValues) => {
@@ -975,6 +1009,44 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            {recordConfigPageState.isOpen &&
+                recordConfigPageState.fieldKey &&
+                recordConfigPageState.recordTypeField &&
+                recordConfigPageState.onChangeCallback && (
+                    <DynamicModal
+                        width={800}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Record Configuration"
+                        openState={recordConfigPageState.isOpen}
+                        setOpenState={(isOpen: boolean) => {
+                            if (!isOpen) {
+                                closeRecordConfigPage();
+                            }
+                        }}
+                    >
+                        <ConfigureRecordPage
+                            fileName={fileName}
+                            targetLineRange={targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined}
+                            onChange={(value: string, isRecordConfigureChange: boolean) => {
+                                recordConfigPageState.onChangeCallback!(value);
+                            }}
+                            currentValue={recordConfigPageState.currentValue || ""}
+                            recordTypeField={recordConfigPageState.recordTypeField}
+                            onClose={closeRecordConfigPage}
+                            getHelperPane={handleGetHelperPane}
+                            field={fieldsValues.find(f => f.key === recordConfigPageState.fieldKey)}
+                            triggerCharacters={TRIGGER_CHARACTERS}
+                            formContext={{
+                                expressionEditor: expressionEditor,
+                                popupManager: popupManager,
+                                nodeInfo: {
+                                    kind: selectedNode || "EXPRESSION"
+                                }
+                            }}
+                        />
+                    </DynamicModal>
+                )}
         </EditorContext.Provider>
     );
 }

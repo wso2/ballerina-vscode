@@ -273,8 +273,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         if (!projectStructure) {
             return;
         }
-        const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
-        const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
+
+        const project = projectStructure.projects.find(project => project.projectPath === StateMachine.context()?.projectPath);
+        if (!project) { return; }
+
+        const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
+        const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
 
         let scopes: DevantScopes[] = [];
         if (services?.length > 0) {

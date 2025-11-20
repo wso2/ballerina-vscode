@@ -25,7 +25,7 @@ import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
-import { CompressButton } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 interface ExpandedPromptEditorProps {
@@ -60,7 +60,7 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,7 +83,7 @@ const ModalBox = styled.div`
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-    z-index: 30001;
+    z-index: 2001;
     resize: both;
 `;
 
@@ -98,11 +98,40 @@ const ModalHeaderSection = styled.header`
 const ModalContent = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 18px 16px;
+    padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
 `;
 
+const MinimizeButton = styled.div`
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 2px;
+
+    &:hover {
+        opacity: 1;
+        background-color: var(--vscode-editor-inactiveSelectionBackground);
+    }
+
+    svg {
+        width: 16px;
+        height: auto;
+    }
+`;
+
+const TitleWrapper = styled.div`
+    margin: 12px 0;
+    
+    h3 {
+        margin: 0;
+    }
+`;
 
 /**
  * Map of mode components - add new modes here
@@ -184,15 +213,19 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             getHelperPane
         })
     };
+    // HACK: Must find a proper central way to manager popups
+    const targetEl = document.getElementById("visualizer-container");
 
-    return createPortal(
+    return targetEl ? createPortal(
         <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <Typography variant="h3">{field.label}</Typography>
-                    <div onClick={handleMinimize} title="Minimize" style={{ cursor: 'pointer' }}>
-                        <CompressButton />
-                    </div>
+                    <TitleWrapper>
+                        <Typography variant="h3">{field.label}</Typography>
+                    </TitleWrapper>
+                    <MinimizeButton onClick={handleMinimize} title="Minimize">
+                        <MinimizeIcon />
+                    </MinimizeButton>
                 </ModalHeaderSection>
                 <div style={{ padding: "0 16px" }}>
                     <Divider sx={{ margin: 0 }} />
@@ -202,6 +235,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 </ModalContent>
             </ModalBox>
         </ModalContainer>,
-        document.body
-    );
+        targetEl
+    ) : null;
 };

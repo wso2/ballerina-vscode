@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import styled from "@emotion/styled";
 import { ConfigVariable } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -25,6 +25,7 @@ import { AddForm } from "../AddConfigurableVariables";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { TitleBar } from "../../../../components/TitleBar";
 import ConfigurableItem from "../ConfigurableItem";
+import { RelativeLoader } from "../../../../components/RelativeLoader";
 
 const Container = styled.div`
     width: 100%;
@@ -77,9 +78,9 @@ const SearchContainer = styled.div`
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 
 export interface ConfigProps {
+    projectPath: string;
     fileName: string;
     org: string;
-    package: string;
     addNew?: boolean;
 }
 
@@ -116,11 +117,21 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [searchValue, setSearchValue] = React.useState<string>('');
     const [categoriesWithModules, setCategoriesWithModules] = useState<CategoryWithModules[]>([]);
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
-    const integrationCategory = `${props.org}/${props.package}`;
+    const integrationCategory = useRef<string>('');
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        getConfigVariables();
-    }, [props]);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getProjectStructure()
+            .then((res) => {
+                const projectInfo = res.projects.find(project => project.projectPath === props.projectPath);
+                integrationCategory.current = `${props.org}/${projectInfo.projectName}`;
+                setIsLoading(true);
+                getConfigVariables(true);
+            });
+
+    }, [props.projectPath]);
 
     useEffect(() => {
         if (categoriesWithModules.length > 0 && !selectedModule) {
@@ -265,7 +276,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             });
     };
 
-    const getConfigVariables = async () => {
+    const getConfigVariables = async (initialLoad: boolean = false) => {
 
         let data: ConfigVariablesState = {};
         let errorMsg: string = '';
@@ -278,13 +289,13 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             .then((variables) => {
                 data = (variables as any).configVariables;
                 errorMsg = (variables as any).errorMsg;
-            });
+            })
 
         setConfigVariables(data);
         setErrorMessage(errorMsg);
 
         // Only set initial selected module if none is selected
-        if (!selectedModule) {
+        if (!selectedModule || initialLoad) {
             // Extract and set the available categories with their modules
             const extractedCategories = Object.keys(data).map(category => ({
                 name: category,
@@ -299,13 +310,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 module: initialModule
             });
         }
+        setIsLoading(false);
     };
 
     const updateErrorMessage = (message: string) => {
         setErrorMessage(message);
     };
 
-    const categoryDisplay = selectedModule?.category === integrationCategory ? 'Integration' : selectedModule?.category;
+    const categoryDisplay = selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category;
     const title = selectedModule?.module ? `${categoryDisplay} : ${selectedModule?.module}` : categoryDisplay;
 
     let renderVariables: ConfigVariablesState = configVariables;
@@ -315,7 +327,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath} />
             <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
                 <div style={{ display: "flex", gap: '12px', alignItems: 'center' }}>
                     {errorMessage &&
@@ -354,12 +366,13 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
-                        <SplitView defaultWidths={[20, 80]}>
+                        {isLoading && <RelativeLoader message="Loading configurable variables..." />}
+                        {!isLoading && <SplitView defaultWidths={[20, 80]}>
                             {/* Left side tree view */}
                             <div id={`package-treeview`} style={{ padding: "10px 0 50px 0" }}>
                                 {/* Display integration category first */}
                                 {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
-                                    .filter(category => category.name === integrationCategory)
+                                    .filter(category => category.name === integrationCategory.current)
                                     .map((category, index) => (
                                         <TreeView
                                             key={category.name}
@@ -468,7 +481,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
 
                                 {/* Group all other categories under "Imported libraries" */}
                                 {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
-                                    .filter(category => category.name !== integrationCategory).length > 0 && (
+                                    .filter(category => category.name !== integrationCategory.current).length > 0 && (
                                         <TreeView
                                             rootTreeView
                                             id="imported-libraries"
@@ -493,7 +506,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                         >
                                             {/* Map all non-integration categories */}
                                             {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
-                                                .filter(category => category.name !== integrationCategory)
+                                                .filter(category => category.name !== integrationCategory.current)
                                                 .map((category, index) => (
                                                     <TreeViewItem
                                                         key={category.name}
@@ -599,7 +612,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         {/* Only show Add Config button at the top when the module has configurations */}
                                                         {selectedModule &&
                                                             renderVariables[selectedModule?.category]?.[selectedModule?.module]?.length > 0 &&
-                                                            selectedModule.category === integrationCategory && (
+                                                            selectedModule.category === integrationCategory.current && (
                                                                 <Button
                                                                     sx={{ display: 'flex', justifySelf: 'flex-end' }}
                                                                     appearance="primary"
@@ -624,7 +637,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                 <ConfigurableItem
                                                                                     key={`${selectedModule.category}-${selectedModule.module}-${index}`}
                                                                                     variable={variable}
-                                                                                    integrationCategory={integrationCategory}
+                                                                                    integrationCategory={integrationCategory.current}
                                                                                     packageName={selectedModule.category}
                                                                                     moduleName={selectedModule.module}
                                                                                     index={index}
@@ -669,7 +682,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                     }
                                 </>
                             </div>
-                        </SplitView>
+                        </SplitView>}
                     </div>
                 </div>
             </ViewContent>
