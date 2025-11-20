@@ -95,8 +95,8 @@ export function activateSubscriptions() {
                     // Initialize project structure if not already set by finding and loading the Ballerina project root
                     // Can happen when the user opens a directory containing multiple Ballerina projects
                     if (projectRoot) {
-                        // TODO: Need to create the project structure for the workspace
-                        await StateMachine.updateProjectRoot(projectRoot);
+                        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: projectRoot });
+                        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
                     }
                 }
                 

@@ -20,7 +20,8 @@ import {
     Type,
     dependencyPullProgress,
     BI_COMMANDS,
-    NodePosition
+    NodePosition,
+    ProjectInfo
 } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
@@ -107,13 +108,14 @@ const stateMachine = createMachine<MachineContext>(
                     }
                 ]
             },
-            UPDATE_PROJECT_ROOT: {
+            UPDATE_PROJECT_ROOT_AND_INFO: {
                 actions: [
                     assign({
-                        projectPath: (context, event) => event.projectPath
+                        projectPath: (context, event) => event.projectPath,
+                        projectInfo: (context, event) => event.projectInfo
                     }),
                     async (context, event) => {
-                        await buildProjectsStructure(context.projectInfo, StateMachine.langClient(), true);
+                        await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
                         notifyCurrentWebview();
                         notifyTreeView(event.projectPath, context.documentUri, context.position, context.view);
                         // Resolve the next pending promise waiting for project root update completion
@@ -468,10 +470,15 @@ const stateMachine = createMachine<MachineContext>(
         fetchProjectInfo: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
-                    const projectInfo = await context.langClient.getProjectInfo({
-                        projectPath: context.workspacePath || context.projectPath
-                    });
-                    resolve({ projectInfo });
+                    const projectPath = context.workspacePath || context.projectPath;
+                    if (!projectPath) {
+                        resolve({ projectInfo: undefined });
+                    } else {
+                        const projectInfo = await context.langClient.getProjectInfo({
+                            projectPath: context.workspacePath || context.projectPath
+                        });
+                        resolve({ projectInfo });
+                    }
                 } catch (error) {
                     throw new Error("Error occurred while fetching project info.", error);
                 }
@@ -799,10 +806,10 @@ export const StateMachine = {
     },
     sendEvent: (eventType: EVENT_TYPE) => { stateService.send({ type: eventType }); },
     updateProjectStructure: (payload: ProjectStructureResponse) => { stateService.send({ type: "UPDATE_PROJECT_STRUCTURE", payload }); },
-    updateProjectRoot: (projectPath: string): Promise<void> => {
+    updateProjectRootAndInfo: (projectPath: string, projectInfo: ProjectInfo): Promise<void> => {
         return new Promise<void>((resolve) => {
             pendingProjectRootUpdateResolvers.push(resolve);
-            stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
+            stateService.send({ type: "UPDATE_PROJECT_ROOT_AND_INFO", projectPath, projectInfo });
         });
     },
     refreshProjectInfo: () => {
