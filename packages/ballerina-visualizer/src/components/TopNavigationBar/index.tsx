@@ -157,7 +157,8 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
         "data mapper",
         "connection",
         "add project",
-        "bi add project skip"
+        "bi add project skip",
+        "welcome"
     ];
 
     if (workspaceType?.type !== "BALLERINA_WORKSPACE") {
