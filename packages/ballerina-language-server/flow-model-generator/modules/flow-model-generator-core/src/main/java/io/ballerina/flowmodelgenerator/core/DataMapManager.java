@@ -301,10 +301,8 @@ public class DataMapManager {
                         parentKind = parent.kind();
                     }
                     inputPorts.add(mappingPort);
-                    itemType = memberTypeSymbol.getName().isPresent() ? memberTypeSymbol.getName().get() :
-                            CommonUtils.getTypeSignature(
-                                    memberTypeSymbol, ModuleInfo.from(document.module().descriptor())
-                            );
+                    itemType = CommonUtils.getTypeSignature(memberTypeSymbol,
+                            ModuleInfo.from(document.module().descriptor()));
                 }
             }
 
