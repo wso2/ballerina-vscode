@@ -392,6 +392,8 @@ export enum AIChatMachineEventType {
     APPROVE_TASK = 'APPROVE_TASK',
     ENABLE_AUTO_APPROVE = 'ENABLE_AUTO_APPROVE',
     DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
+    ENABLE_PLAN_MODE = 'ENABLE_PLAN_MODE',
+    DISABLE_PLAN_MODE = 'DISABLE_PLAN_MODE',
     REJECT_TASK = 'REJECT_TASK',
     RESTORE_STATE = 'RESTORE_STATE',
     ERROR = 'ERROR',
@@ -459,6 +461,7 @@ export interface AIChatMachineContext {
     projectId?: string;
     currentApproval?: UserApproval;
     autoApproveEnabled?: boolean;
+    isPlanMode?: boolean;
 }
 
 export type AIChatMachineSendableEvent =
@@ -474,6 +477,8 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
     | { type: AIChatMachineEventType.ENABLE_AUTO_APPROVE }
     | { type: AIChatMachineEventType.DISABLE_AUTO_APPROVE }
+    | { type: AIChatMachineEventType.ENABLE_PLAN_MODE }
+    | { type: AIChatMachineEventType.DISABLE_PLAN_MODE }
     | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
