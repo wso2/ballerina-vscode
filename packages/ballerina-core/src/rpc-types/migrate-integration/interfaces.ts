@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { ProjectMigrationResult } from "../../interfaces/extended-lang-client";
 import { ProjectRequest } from "../bi-diagram/interfaces";
 
 export interface MigrationTool {
@@ -59,6 +60,9 @@ export interface OpenMigrationReportRequest {
 export interface SaveMigrationReportRequest {
     reportContent: string;
     defaultFileName: string;
+    projectReports?: {
+        [projectName: string]: string;
+    };
 }
 
 export interface MigrateRequest {
@@ -66,4 +70,13 @@ export interface MigrateRequest {
     textEdits: {
         [key: string]: string;
     };
+    projects?: ProjectMigrationResult[];
+}
+
+export interface OpenSubProjectReportRequest {
+    projectName: string;
+}
+
+export interface StoreSubProjectReportsRequest {
+    reports: { [projectName: string]: string };
 }

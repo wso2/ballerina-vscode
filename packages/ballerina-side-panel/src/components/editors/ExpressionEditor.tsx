@@ -330,6 +330,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         onCancel,
         onRemove,
         handleOnFieldFocus,
+        onOpenRecordConfigPage,
         targetLineRange,
         fileName,
         helperPaneHeight,
@@ -342,7 +343,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
+    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
@@ -400,6 +401,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }, [fieldValue, targetLineRange]);
 
     useEffect(() => {
+        // If recordTypeField is present, always use GUIDED mode
+        if (recordTypeField) {
+            setInputMode(InputMode.GUIDED);
+            return;
+        }
+        
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
         if (isModeSwitcherRestricted()) {
             setInputMode(InputMode.EXP);
@@ -421,10 +428,26 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         else {
             setInputMode(newInputMode);
         }
-    }, [field?.valueTypeConstraint]);
+    }, [field?.valueTypeConstraint, recordTypeField]);
 
-    const handleFocus = async () => {
+    const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
+        
+        // If in guided mode with recordTypeField, open ConfigureRecordPage directly
+        if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
+            const currentValue = watch(key) || '';
+            // Create onChange callback that updates the form value
+            const onChangeCallback = (value: string) => {
+                if (controllerOnChange) {
+                    controllerOnChange(value);
+                } else {
+                    setValue(key, value);
+                }
+            };
+            onOpenRecordConfigPage(key, currentValue, recordTypeField, onChangeCallback);
+            return;
+        }
+        
         // Trigger actions on focus
         await onFocus?.();
         handleOnFieldFocus?.(key);
@@ -524,8 +547,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     };
 
-    // Only allow opening expanded mode for specific fields
-    const onOpenExpandedMode = (!props.isInExpandedMode && ["query", "instructions", "role"].includes(field.key))
+    // Only allow opening expanded mode for specific fields or expression mode
+    const onOpenExpandedMode = (!props.isInExpandedMode &&
+        (["query", "instructions", "role"].includes(field.key) || inputMode === InputMode.EXP))
         ? handleOpenExpandedMode
         : undefined;
 
@@ -544,6 +568,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     };
 
     const isModeSwitcherAvailable = () => {
+        if (recordTypeField) return true;
         if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
         if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
@@ -584,10 +609,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 {isModeSwitcherAvailable() && (
                                     <ModeSwitcher
                                         value={inputMode}
+                                        isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
                                         valueTypeConstraint={field.valueTypeConstraint}
-                                        />
-                                    )}
+                                    />
+                                )}
                             </S.FieldInfoSection>
                         </div>
                     </S.Header>
@@ -605,7 +631,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 completions={completions}
                                 fileName={effectiveFileName}
                                 targetLineRange={effectiveTargetLineRange}
-                                autoFocus={autoFocus}
+                                autoFocus={recordTypeField ? false : autoFocus}
                                 sanitizedExpression={sanitizedExpression}
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
@@ -651,7 +677,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 extractArgsFromFunction={handleExtractArgsFromFunction}
                                 onCompletionSelect={handleCompletionSelect}
                                 onFocus={async () => {
-                                    handleFocus();
+                                    handleFocus(onChange);
                                 }}
                                 onBlur={handleBlur}
                                 onSave={handleSave}
@@ -668,13 +694,69 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 anchorRef={anchorRef}
                                 onToggleHelperPane={toggleHelperPaneState}
                                 onOpenExpandedMode={onOpenExpandedMode}
-                                isInExpandedMode={props.isInExpandedMode}
+                                isInExpandedMode={isExpandedModalOpen}
                             />
                             {error ?
                                 <ErrorBanner errorMsg={error.message.toString()} /> :
                                 formDiagnostics && formDiagnostics.length > 0 &&
                                 <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
                             }
+                            {onOpenExpandedMode && (
+                                <ExpandedEditor
+                                    isOpen={isExpandedModalOpen}
+                                    field={field}
+                                    value={watch(key)}
+                                    onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+                                        if (updatedValue === value) {
+                                            return;
+                                        }
+
+                                        // clear field diagnostics
+                                        setFormDiagnostics([]);
+                                        const rawValue = rawExpression ? rawExpression(updatedValue) : updatedValue;
+
+                                        onChange(rawValue);
+                                        if (getExpressionEditorDiagnostics && inputMode === InputMode.EXP) {
+                                            getExpressionEditorDiagnostics(
+                                                (required ?? !field.optional) || rawValue !== '',
+                                                rawValue,
+                                                key,
+                                                getPropertyFromFormField(field)
+                                            );
+                                        }
+
+                                        // Check if the current character is a trigger character
+                                        const triggerCharacter =
+                                            updatedCursorPosition > 0
+                                                ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
+                                                : undefined;
+                                        if (triggerCharacter) {
+                                            await retrieveCompletions(
+                                                rawValue,
+                                                getPropertyFromFormField(field),
+                                                updatedCursorPosition,
+                                                triggerCharacter
+                                            );
+                                        } else {
+                                            await retrieveCompletions(
+                                                rawValue,
+                                                getPropertyFromFormField(field),
+                                                updatedCursorPosition
+                                            );
+                                        }
+                                    }}
+                                    onClose={() => {
+                                        setIsExpandedModalOpen(false)
+                                    }}
+                                    onSave={handleSaveExpandedMode}
+                                    mode={inputMode === InputMode.EXP ? "expression" : undefined}
+                                    completions={completions}
+                                    fileName={effectiveFileName}
+                                    targetLineRange={effectiveTargetLineRange}
+                                    extractArgsFromFunction={handleExtractArgsFromFunction}
+                                    getHelperPane={handleGetHelperPane}
+                                />
+                            )}
                         </div>
                     )}
                 />
@@ -684,15 +766,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     isOpen={showModeSwitchWarning}
                     onContinue={handleModeSwitchWarningContinue}
                     onCancel={handleModeSwitchWarningCancel}
-                />
-            )}
-            {onOpenExpandedMode && (
-                <ExpandedEditor
-                    isOpen={isExpandedModalOpen}
-                    field={field}
-                    value={watch(key)}
-                    onClose={() => setIsExpandedModalOpen(false)}
-                    onSave={handleSaveExpandedMode}
                 />
             )}
         </FieldProvider>
