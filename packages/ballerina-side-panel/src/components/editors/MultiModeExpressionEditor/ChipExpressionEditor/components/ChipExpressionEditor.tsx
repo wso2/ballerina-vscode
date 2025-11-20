@@ -35,7 +35,6 @@ import {
     CursorInfo,
     buildOnFocusOutListner,
     buildOnSelectionChange,
-    ProgrammerticSelectionChange,
     SyncDocValueWithPropValue
 } from "../CodeUtils";
 import { history } from "@codemirror/commands";
