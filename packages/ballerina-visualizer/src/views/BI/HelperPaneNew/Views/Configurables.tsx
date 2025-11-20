@@ -146,6 +146,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         closeModal(POPUP_IDS.CONFIGURABLES);
         //TODO: Need to disable the form before saving and move form close to finally block
         setIsSaving(true);
+        node.properties.defaultValue.modified = true;
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: Utils.joinPath(URI.file(projectPathUri), 'config.bal').fsPath,
             configVariable: node,
