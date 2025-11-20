@@ -28,9 +28,9 @@ import {
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
-import { ChipExpressionBaseComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionBaseComponent';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
+import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -41,6 +41,7 @@ export interface ExpressionField {
     completions: CompletionItem[];
     autoFocus?: boolean;
     sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
@@ -122,10 +123,11 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     anchorRef,
     onToggleHelperPane,
     sanitizedExpression,
+    rawExpression,
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    if (inputMode === InputMode.TEXT) {
+    if (inputMode === InputMode.TEXT || inputMode === InputMode.GUIDED) {
         return (
             <TextModeEditor
                 exprRef={exprRef}
@@ -150,11 +152,14 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     }
 
     return (
-        <ChipExpressionBaseComponent
+        <ChipExpressionEditorComponent
             getHelperPane={getHelperPane}
+            isExpandedVersion={false}
             completions={completions}
             onChange={onChange}
             value={value}
+            sanitizedExpression={sanitizedExpression}
+            rawExpression={rawExpression}
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}
