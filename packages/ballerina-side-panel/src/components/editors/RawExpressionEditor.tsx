@@ -64,7 +64,7 @@ export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEdi
             return value;
         }
         const { prefix, suffix } = templateConfig;
-        if (!value.startsWith(prefix) || !value.endsWith(suffix)) {
+        if (!value.startsWith(prefix) && !value.endsWith(suffix)) {
             return `${prefix}${value}${suffix}`;
         }
         return value;
