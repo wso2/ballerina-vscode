@@ -771,7 +771,8 @@
             },
             {
                 "view": "testing",
-                "contents": "[Add Unit Test](command:BI.test.add.function)"
+                "contents": "[Add Unit Test](command:BI.test.add.function)",
+                "when": "isBIProject || isBallerinaProject"
             }
         ],
         "viewsContainers": {
@@ -815,7 +816,7 @@
                 },
                 {
                     "command": "BI.test.add.function",
-                    "when": "view == workbench.view.testing",
+                    "when": "(isBIProject || isBallerinaProject) && view == workbench.view.testing",
                     "group": "navigation"
                 },
                 {
