@@ -1020,18 +1020,27 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
     }
 }
 
-function notifyTreeView(
+async function notifyTreeView(
     projectPath?: string,
     documentUri?: string,
     position?: NodePosition,
     view?: MACHINE_VIEW
 ) {
-    commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
-        projectPath,
-        documentUri,
-        position,
-        view
-    });
+    try {
+        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
+        if (biExtension && !biExtension.isActive) {
+            return;
+        }
+        
+        await commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
+            projectPath,
+            documentUri,
+            position,
+            view
+        });
+    } catch (error) {
+        console.error('Error notifying tree view:', error);
+    }
 }
 
 function setBIContext(isBI: boolean) {
