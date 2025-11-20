@@ -104,7 +104,7 @@ export const addConnection = async (
         tokenClientSecretVarName?: string;
     }
 ): Promise<{ connName: string; connFileUri: Uri }> => {
-    const packageName = StateMachine.context().package;
+    const packageName = StateMachine.context().projectInfo?.name;
     const connectionBalFile = path.join(StateMachine.context().projectPath, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
     if (!fs.existsSync(connectionBalFile)) {
