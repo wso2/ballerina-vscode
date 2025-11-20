@@ -20,7 +20,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as yaml from "js-yaml";
 import { z } from "zod";
-import { workspace } from "vscode";
 import {
     SpecFetcherInput,
     SpecFetcherResult,
@@ -43,7 +42,7 @@ const SpecFetcherInputSchema = z.object({
     serviceDescription: z.string().optional().describe("Optional description of what the service is for"),
 });
 
-export function createConnectorGeneratorTool(eventHandler?: CopilotEventHandler, projectName?: string) {
+export function createConnectorGeneratorTool(eventHandler?: CopilotEventHandler, tempProjectPath?: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
         description: `Generates Ballerina connector modules from OpenAPI specifications for services not available in LibraryProviderTool.
 
@@ -58,18 +57,20 @@ The tool will:
 3. Save the spec to resources/specs/ directory
 4. Generate connector files in generated/moduleName submodule
 
-Returns:
+Returns complete connector information (DO NOT read files, use the returned content directly):
 - moduleName: Name of the generated submodule
 - importStatement: Import statement to use in your code (e.g., "import project.moduleName")
-- generatedFiles: Array of generated .bal files with their paths and content
+- generatedFiles: Array with path and COMPLETE CONTENT of each generated .bal file
+  * Each file object contains: { path: "relative/path/to/file.bal", content: "full file content" }
+  * The content field contains the entire generated code - use it directly without reading files
 
 # Example
 **Query**: Integrate with Acme Corp's custom REST API for order management.
 **Tool Call**: Call with serviceName: "Acme Corp API", serviceDescription: "Order management REST API"
-User provides OpenAPI spec → Connector generated in generated/acme_corp_api → Use: import project.acme_corp_api`,
+**Result**: Returns importStatement and generatedFiles with complete content → Use importStatement in your code`,
         inputSchema: SpecFetcherInputSchema,
         execute: async (input: SpecFetcherInput): Promise<SpecFetcherResult> => {
-            return await ConnectorGeneratorTool(input, eventHandler, projectName);
+            return await ConnectorGeneratorTool(input, eventHandler, tempProjectPath, projectName, modifiedFiles);
         },
     });
 }
@@ -77,13 +78,23 @@ User provides OpenAPI spec → Connector generated in generated/acme_corp_api �
 export async function ConnectorGeneratorTool(
     input: SpecFetcherInput,
     eventHandler?: CopilotEventHandler,
-    projectName?: string
+    tempProjectPath?: string,
+    projectName?: string,
+    modifiedFiles?: string[]
 ): Promise<SpecFetcherResult> {
     try {
         if (!eventHandler) {
             return createErrorResult(
                 "INVALID_INPUT",
                 "Event handler is required for spec fetcher tool",
+                input.serviceName
+            );
+        }
+
+        if (!tempProjectPath) {
+            return createErrorResult(
+                "INVALID_INPUT",
+                "tempProjectPath is required for ConnectorGeneratorTool",
                 input.serviceName
             );
         }
@@ -97,20 +108,23 @@ export async function ConnectorGeneratorTool(
 
         const { rawSpec, parsedSpec, originalContent, format } = parseAndValidateSpec(userInput.spec);
 
-        const { workspacePath, specFilePath, sanitizedServiceName } = await saveSpecToWorkspace(
+        const { specFilePath, sanitizedServiceName } = await saveSpecToWorkspace(
             originalContent,
             format,
             rawSpec,
-            input.serviceName
+            input.serviceName,
+            tempProjectPath,
+            modifiedFiles
         );
 
         sendGeneratingNotification(requestId, input.serviceName, parsedSpec, eventHandler);
 
         const { moduleName, importStatement, generatedFiles } = await generateConnector(
             specFilePath,
-            workspacePath,
+            tempProjectPath,
             sanitizedServiceName,
-            projectName
+            projectName,
+            modifiedFiles
         );
 
         return handleSuccess(
@@ -193,16 +207,12 @@ async function saveSpecToWorkspace(
     originalContent: string,
     format: "json" | "yaml",
     rawSpec: any,
-    serviceName: string
-): Promise<{ workspacePath: string; specFilePath: string; sanitizedServiceName: string }> {
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-        throw new Error("No workspace folder open");
-    }
-    const workspacePath = workspaceFolders[0].uri.fsPath;
-
+    serviceName: string,
+    tempProjectPath: string,
+    modifiedFiles?: string[]
+): Promise<{ specFilePath: string; sanitizedServiceName: string }> {
     const sanitizedServiceName = serviceName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    const specsDir = path.join(workspacePath, "resources", "specs");
+    const specsDir = path.join(tempProjectPath, "resources", "specs");
     const fileExtension = format === "yaml" ? "yaml" : "json";
     const specFilePath = path.join(specsDir, `${sanitizedServiceName}.${fileExtension}`);
 
@@ -213,7 +223,12 @@ async function saveSpecToWorkspace(
     const contentToSave = format === "yaml" ? originalContent : JSON.stringify(rawSpec, null, 2);
     fs.writeFileSync(specFilePath, contentToSave, "utf-8");
 
-    return { workspacePath, specFilePath, sanitizedServiceName };
+    if (modifiedFiles) {
+        const relativeSpecPath = path.relative(tempProjectPath, specFilePath);
+        modifiedFiles.push(relativeSpecPath);
+    }
+
+    return { specFilePath, sanitizedServiceName };
 }
 
 function sendGeneratingNotification(
@@ -241,16 +256,17 @@ function sendGeneratingNotification(
 
 async function generateConnector(
     specFilePath: string,
-    workspacePath: string,
+    tempProjectPath: string,
     moduleName: string,
-    projectName?: string
+    projectName?: string,
+    modifiedFiles?: string[]
 ): Promise<{ moduleName: string; importStatement: string; generatedFiles: Array<{ path: string; content: string }> }> {
     const importStatement = `import ${projectName || "project"}.${moduleName}`;
     const generatedFiles: Array<{ path: string; content: string }> = [];
 
     const response = await langClient.openApiGenerateClient({
         openApiContractPath: specFilePath,
-        projectPath: workspacePath,
+        projectPath: tempProjectPath,
         module: moduleName,
     });
 
@@ -263,12 +279,19 @@ async function generateConnector(
     for (const [filePath, edits] of textEditsMap.entries()) {
         await applyTextEdits(filePath, edits);
 
+        const relativePath = path.relative(tempProjectPath, filePath);
+
+        // Add .bal files to generatedFiles for agent visibility
         if (filePath.endsWith(".bal") && edits.length > 0) {
-            const relativePath = path.relative(workspacePath, filePath);
             generatedFiles.push({
                 path: relativePath,
                 content: edits[0].newText,
             });
+        }
+
+        // Track all generated files (including Ballerina.toml) for integration
+        if (modifiedFiles) {
+            modifiedFiles.push(relativePath);
         }
     }
 
