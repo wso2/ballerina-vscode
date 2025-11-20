@@ -38,3 +38,6 @@ export const ARROW_LEFT_MARKER = '#$ARROWLEFT';
 export const FOCUS_MARKER = '#$FOCUS';
 export const COMPLETIONS_MARKER = '#$COMPLETIONS';
 export const HELPER_MARKER = '#$HELPER';
+
+// Helper pane dimensions
+export const HELPER_PANE_WIDTH = 300;

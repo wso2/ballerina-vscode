@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { EditorView } from "@codemirror/view";
+import { EditorView as CodeMirrorView } from "@codemirror/view";
+import { EditorView as ProseMirrorView } from "prosemirror-view";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
-import { TemplateMarkdownToolbar } from "../controls/TemplateMarkdownToolbar";
-import { MarkdownPreview } from "../controls/MarkdownPreview";
-import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
-import { useFormContext } from "../../../../context/form";
+import { RichTextTemplateEditor } from "../../MultiModeExpressionEditor/RichTextTemplateEditor/RichTextTemplateEditor";
+import { RichTemplateMarkdownToolbar } from "../controls/RichTemplateMarkdownToolbar";
+import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolbar";
 import { ErrorBanner } from "@wso2/ui-toolkit";
 import { RawTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 
@@ -34,7 +34,7 @@ const ExpressionContainer = styled.div`
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: hidden; 
 `;
 
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
@@ -47,65 +47,25 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     extractArgsFromFunction,
     getHelperPane,
     rawExpression,
-    isPreviewMode = false,
-    onTogglePreview,
     error,
-    formDiagnostics
+    formDiagnostics,
+    inputMode
 }) => {
-    const [transformedContent, setTransformedContent] = useState<string>("");
-    const [editorView, setEditorView] = useState<EditorView | null>(null);
+    const [isSourceView, setIsSourceView] = useState<boolean>(false);
+    const [codeMirrorView, setCodeMirrorView] = useState<CodeMirrorView | null>(null);
+    const [proseMirrorView, setProseMirrorView] = useState<ProseMirrorView | null>(null);
     const [helperPaneToggle, setHelperPaneToggle] = useState<{
         ref: React.RefObject<HTMLButtonElement>;
         isOpen: boolean;
         onClick: () => void;
     } | null>(null);
-    const toolbarRef = useRef<HTMLDivElement>(null);
-    const { expressionEditor } = useFormContext();
-    const expressionEditorRpcManager = expressionEditor?.rpcManager;
+    const richToolbarRef = useRef<HTMLDivElement>(null);
+    const rawToolbarRef = useRef<HTMLDivElement>(null);
 
     // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
         onChange(updatedValue, updatedCursorPosition);
     };
-
-    // Transform expression to markdown when entering preview mode
-    useEffect(() => {
-        const transformContent = async () => {
-            if (isPreviewMode && value && expressionEditorRpcManager) {
-                try {
-                    // Fetch token stream from language server
-                    const startLine = targetLineRange?.startLine;
-                    const tokenStream = await expressionEditorRpcManager.getExpressionTokens(
-                        value,
-                        fileName,
-                        startLine !== undefined ? startLine : undefined
-                    );
-
-                    // Get sanitized value for display
-                    const displayValue = sanitizedExpression ? sanitizedExpression(value) : value;
-
-                    if (tokenStream && tokenStream.length > 0) {
-                        // Transform expression with tokens to markdown with chip tags
-                        const markdown = transformExpressionToMarkdown(displayValue, tokenStream);
-                        setTransformedContent(markdown);
-                    } else {
-                        // No tokens, use sanitized value as-is
-                        setTransformedContent(displayValue);
-                    }
-                } catch (error) {
-                    console.error('Error transforming expression to markdown:', error);
-                    // Fallback to sanitized value on error
-                    const displayValue = sanitizedExpression ? sanitizedExpression(value) : value;
-                    setTransformedContent(displayValue);
-                }
-            }
-        };
-
-        transformContent();
-    }, [isPreviewMode, value, fileName, targetLineRange?.startLine, expressionEditorRpcManager, sanitizedExpression]);
-
-    // Only show toolbar and preview if preview props are provided
-    const hasPreviewSupport = onTogglePreview !== undefined;
 
     const handleHelperPaneStateChange = (state: {
         isOpen: boolean;
@@ -119,20 +79,30 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
         });
     };
 
+    const handleToggleView = () => {
+        setIsSourceView(!isSourceView);
+    };
+
     return (
         <>
-            {hasPreviewSupport && (
-                <TemplateMarkdownToolbar
-                    ref={toolbarRef}
-                    editorView={editorView}
-                    isPreviewMode={isPreviewMode}
-                    onTogglePreview={() => onTogglePreview(!isPreviewMode)}
+            {isSourceView ? (
+                <RawTemplateMarkdownToolbar
+                    ref={rawToolbarRef}
+                    editorView={codeMirrorView}
+                    isSourceView={isSourceView}
+                    onToggleView={handleToggleView}
+                    helperPaneToggle={helperPaneToggle || undefined}
+                />
+            ) : (
+                <RichTemplateMarkdownToolbar
+                    ref={richToolbarRef}
+                    editorView={proseMirrorView}
+                    isSourceView={isSourceView}
+                    onToggleView={handleToggleView}
                     helperPaneToggle={helperPaneToggle || undefined}
                 />
             )}
-            {isPreviewMode ? (
-                <MarkdownPreview content={transformedContent} />
-            ) : (
+            {isSourceView ? (
                 <ExpressionContainer>
                     <ChipExpressionEditorComponent
                         value={value}
@@ -148,13 +118,31 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                         isExpandedVersion={true}
                         showHelperPaneToggle={false}
                         onHelperPaneStateChange={handleHelperPaneStateChange}
-                        onEditorViewReady={setEditorView}
-                        toolbarRef={toolbarRef}
+                        onEditorViewReady={setCodeMirrorView}
+                        toolbarRef={rawToolbarRef}
                         enableListContinuation={true}
                         configuration={new RawTemplateEditorConfig()}
+                        inputMode={inputMode}
                     />
                 </ExpressionContainer>
-            )}
+            ) : (
+                <ExpressionContainer>
+                    <RichTextTemplateEditor
+                        value={value}
+                        onChange={handleChange}
+                        completions={completions}
+                        fileName={fileName}
+                        targetLineRange={targetLineRange}
+                        sanitizedExpression={sanitizedExpression}
+                        rawExpression={rawExpression}
+                        extractArgsFromFunction={extractArgsFromFunction}
+                        getHelperPane={getHelperPane}
+                        onEditorViewReady={setProseMirrorView}
+                        onHelperPaneStateChange={handleHelperPaneStateChange}
+                    />
+                </ExpressionContainer>
+            )
+            }
             {error ?
                 <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
                 formDiagnostics && formDiagnostics.length > 0 &&

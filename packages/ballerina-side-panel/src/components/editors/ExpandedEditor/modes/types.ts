@@ -21,6 +21,7 @@ import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { DiagnosticMessage } from "@wso2/ballerina-core";
 import { FieldError } from "react-hook-form";
+import { InputMode } from "../..";
 
 /**
  * Base props that all editor mode components must implement
@@ -78,6 +79,8 @@ export interface EditorModeExpressionProps extends EditorModeProps {
     error?: FieldError;
     /** Form diagnostics messages */
     formDiagnostics?: DiagnosticMessage[];
+    /** Input mode */
+    inputMode?: InputMode;
 }
 
 /**
