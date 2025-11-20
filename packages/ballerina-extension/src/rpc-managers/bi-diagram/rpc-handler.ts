@@ -47,6 +47,8 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteProject,
+    DeleteProjectRequest,
     deleteType,
     DeleteTypeRequest,
     EndOfFileRequest,
@@ -145,7 +147,8 @@ import {
     getExpressionTokens,
     ExpressionTokensRequest,
     addProjectToWorkspace,
-    AddProjectToWorkspaceRequest
+    AddProjectToWorkspaceRequest,
+    OpenReadmeRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -167,6 +170,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
     messenger.onNotification(createProject, (args: ProjectRequest) => rpcManger.createProject(args));
+    messenger.onNotification(deleteProject, (args: DeleteProjectRequest) => rpcManger.deleteProject(args));
     messenger.onNotification(addProjectToWorkspace, (args: AddProjectToWorkspaceRequest) => rpcManger.addProjectToWorkspace(args));
     messenger.onRequest(getWorkspaces, () => rpcManger.getWorkspaces());
     messenger.onRequest(getProjectStructure, () => rpcManger.getProjectStructure());
@@ -183,8 +187,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getConfigVariableNodeTemplate, (args: GetConfigVariableNodeTemplateRequest) => rpcManger.getConfigVariableNodeTemplate(args));
     messenger.onRequest(openConfigToml, (args: OpenConfigTomlRequest) => rpcManger.openConfigToml(args));
     messenger.onRequest(getModuleNodes, () => rpcManger.getModuleNodes());
-    messenger.onRequest(getReadmeContent, () => rpcManger.getReadmeContent());
-    messenger.onNotification(openReadme, () => rpcManger.openReadme());
+    messenger.onRequest(getReadmeContent, (args: ReadmeContentRequest) => rpcManger.getReadmeContent(args));
+    messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));
     messenger.onRequest(renameIdentifier, (args: RenameIdentifierRequest) => rpcManger.renameIdentifier(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));

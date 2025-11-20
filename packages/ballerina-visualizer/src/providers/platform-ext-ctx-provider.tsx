@@ -67,8 +67,11 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         select: (projectStructure) => {
             if (!projectStructure) return false;
 
-            const services = projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
-            const automation = projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] ?? [];
+            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            if (!project) return false;
+
+            const services = project.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
+            const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION] ?? [];
 
             const hasAutomation = automation.length > 0;
             const hasServiceScopes = services

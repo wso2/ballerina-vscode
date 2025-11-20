@@ -37,7 +37,7 @@ export interface DataMapperProps {
 export function DataMapper(props: DataMapperProps) {
     return (
         <>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath}/>
             <ErrorBoundary errorMsg="Error while loading the Data Mapper">
                 <DataMapperView {...props} />
             </ErrorBoundary>

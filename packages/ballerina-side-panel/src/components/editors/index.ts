@@ -26,4 +26,5 @@ export * from "./MapEditor";
 export * from "./FileSelect";
 export * from "./FormMapEditor";
 export * from "./FieldContext";
+export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 export { getPropertyFromFormField } from "./utils";
