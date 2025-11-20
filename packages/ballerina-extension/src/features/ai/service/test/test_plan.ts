@@ -22,6 +22,8 @@ import { generateTest, getDiagnostics } from "../../testGenerator";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getCurrentProjectRoot } from "../../../../utils/project-utils";
+import { StateMachine } from "../../../../stateMachine";
+import * as path from "path";
 
 export interface TestPlanResponse {
     testPlan: string;
@@ -176,6 +178,20 @@ export async function generateTestPlanCore(
                         eventHandler({ type: "error", content: getErrorMessage(error) });
                         return;
                     }
+
+                    // Compute workspace-relative paths for test files
+                    const context = StateMachine.context();
+                    const workspacePath = context.workspacePath;
+                    let testPath = "tests/test.bal";
+                    let configPath = "tests/Config.toml";
+
+                    if (workspacePath) {
+                        // Workspace project: include package path prefix (e.g., "foo/tests/test.bal")
+                        const relativeProjectPath = path.relative(workspacePath, projectPath);
+                        testPath = path.join(relativeProjectPath, "tests/test.bal");
+                        configPath = path.join(relativeProjectPath, "tests/Config.toml");
+                    }
+
                     const testResp = await generateTest(projectPath, {
                         targetType: TestGenerationTarget.Service,
                         targetIdentifier: target,
@@ -209,12 +225,12 @@ export async function generateTestPlanCore(
                     });
                     eventHandler({
                         type: "content_block",
-                        content: `\n\n<code filename="tests/test.bal" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>`,
+                        content: `\n\n<code filename="${testPath}" type="test">\n\`\`\`ballerina\n${testCode}\n\`\`\`\n</code>`,
                     });
                     if (testConfig) {
                         eventHandler({
                             type: "content_block",
-                            content: `\n\n<code filename="tests/Config.toml" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`,
+                            content: `\n\n<code filename="${configPath}" type="test">\n\`\`\`ballerina\n${testConfig}\n\`\`\`\n</code>`,
                         });
                     }
                     eventHandler({ type: "stop", command: Command.Tests });

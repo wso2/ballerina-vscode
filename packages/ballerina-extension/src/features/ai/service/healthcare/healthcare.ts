@@ -17,7 +17,7 @@
 import { ModelMessage, generateObject, streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU, ANTHROPIC_SONNET_4, getProviderCacheControl } from "../connection";
 import { GenerationType, getRelevantLibrariesAndFunctions } from "../libs/libs";
-import { getRewrittenPrompt, populateHistory, transformProjectSource, getErrorMessage } from "../utils";
+import { getRewrittenPrompt, populateHistory, flattenProjectToFiles, getErrorMessage, buildPackageContext, formatFileUploadContents } from "../utils";
 import { libraryContains } from "../libs/funcs";
 import { LANGLIBS } from "../libs/langlibs";
 import {
@@ -33,7 +33,7 @@ import {
     FileAttatchment,
     GenerateCodeRequest,
     ProjectSource,
-    SourceFiles,
+    SourceFile,
     OperationType,
     Command
 } from "@wso2/ballerina-core";
@@ -48,10 +48,10 @@ export async function generateHealthcareCodeCore(
     params: GenerateCodeRequest,
     eventHandler: CopilotEventHandler
 ): Promise<void> {
-    const project: ProjectSource = await getProjectSource(params.operationType);
-    const packageName = project.projectName;
-    const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    const prompt = getRewrittenPrompt(params, sourceFiles);
+    const projects: ProjectSource[] = await getProjectSource(params.operationType);
+    const activeProject = projects.find(p => p.isActive) || projects[0];
+    const packageName = activeProject.projectName;
+    const prompt = getRewrittenPrompt(params, projects);
     const relevantTrimmedFuncs: Library[] = (
         await getRelevantLibrariesAndFunctions({ query: prompt }, GenerationType.HEALTHCARE_GENERATION)
     ).libraries;
@@ -62,7 +62,7 @@ export async function generateHealthcareCodeCore(
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(relevantTrimmedFuncs, sourceFiles),
+            content: getSystemPromptPrefix(relevantTrimmedFuncs),
         },
         {
             role: "system",
@@ -72,7 +72,7 @@ export async function generateHealthcareCodeCore(
         ...historyMessages,
         {
             role: "user",
-            content: getUserPrompt(prompt, sourceFiles, params.fileAttachmentContents, packageName, params.operationType),
+            content: getUserPrompt(prompt, projects, params.fileAttachmentContents, packageName, params.operationType),
             providerOptions: cacheOptions,
         },
     ];
@@ -126,7 +126,7 @@ export async function generateHealthcareCode(params: GenerateCodeRequest): Promi
     }
 }
 
-export function getSystemPromptPrefix(apidocs: Library[], sourceFiles: SourceFiles[]): string {
+export function getSystemPromptPrefix(apidocs: Library[]): string {
     return `You are an expert assistant who specializes in writing Ballerina code for healthcare integrations. Your goal is to ONLY answer Ballerina related queries. You should always answer with accurate and functional Ballerina code that addresses the specified query while adhering to the constraints of the given API documentation.
 
 You will be provided with following inputs:
@@ -256,22 +256,13 @@ Example Codeblock segments:
 
 function getUserPrompt(
     usecase: string,
-    existingCode: SourceFiles[],
+    projects: ProjectSource[],
     fileUploadContents: FileAttatchment[],
     packageName: string,
     op: OperationType
 ): string {
-    let fileInstructions = "";
-    if (fileUploadContents.length > 0) {
-        fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as addtional information for the query.
-
-${fileUploadContents
-                .map(
-                    (file) => `File Name: ${file.fileName}
-Content: ${file.content}`
-                )
-                .join("\n")}`;
-    }
+    const fileInstructions = formatFileUploadContents(fileUploadContents);
+    const packageContext = buildPackageContext(projects, packageName);
 
     return `QUERY: The query you need to answer using the provided api documentation.
 <query>
@@ -280,10 +271,10 @@ ${usecase}
 
 Existing Code: Users existing code.
 <existing_code>
-${stringifyExistingCode(existingCode, op)}
+${stringifyExistingCode(projects, op)}
 </existing_code>
 
-Current Package name: ${packageName}
+${packageContext}
 
 ${fileInstructions}
 

@@ -20,7 +20,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { Button, TextField, Typography, ProgressRing, Codicon } from '@wso2/ui-toolkit';
 import { TypeHelperCategory, TypeHelperItem } from '../../TypeHelper';
-import { Type } from '@wso2/ballerina-core';
+import { Type, AddImportItemResponse, Imports } from '@wso2/ballerina-core';
 import { ContentBody, StickyFooterContainer, FloatingFooter } from './ContextTypeEditor';
 
 
@@ -135,7 +135,7 @@ interface BrowseTypesTabProps {
     loading?: boolean;
     onSearchTypeHelper: (searchText: string, isType?: boolean) => void;
     onTypeItemClick: (item: TypeHelperItem) => Promise<any>;
-    onTypeSelect: (type: Type) => void;
+    onTypeSelect: (type: Type, imports?: Imports) => void;
     simpleType?: string;
 }
 
@@ -188,14 +188,18 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
 
         setIsSelecting(true);
         try {
-            const response = await onTypeItemClick(selectedType);
+            const response = await onTypeItemClick(selectedType) as AddImportItemResponse;
+
+            // Use template from response which includes module prefix for imported types
+            // For non-imported types, template will be the same as the type name
+            const typeName = response?.template || selectedType.name;
 
             // Create a Type object from the selected item
             const type: Type = {
-                name: selectedType.name,
+                name: typeName,
                 editable: false,
                 metadata: {
-                    label: selectedType.name,
+                    label: typeName,
                     description: selectedType.labelDetails?.description || '',
                 },
                 codedata: selectedType.codedata as any,
@@ -204,7 +208,15 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                 includes: []
             };
 
-            onTypeSelect(type);
+            // If this is an imported type, update imports before saving
+            if (response?.prefix && response?.moduleId) {
+                const importStatement: Imports = {
+                    [response.prefix]: response.moduleId
+                };
+                onTypeSelect(type, importStatement);
+            } else {
+                onTypeSelect(type);
+            }
         } catch (error) {
             console.error('Error selecting type:', error);
         } finally {
