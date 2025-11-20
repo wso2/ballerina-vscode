@@ -73,10 +73,11 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
             if (isPreviewMode && value && expressionEditorRpcManager) {
                 try {
                     // Fetch token stream from language server
+                    const startLine = targetLineRange?.startLine;
                     const tokenStream = await expressionEditorRpcManager.getExpressionTokens(
                         value,
                         fileName,
-                        targetLineRange?.startLine
+                        startLine !== undefined ? startLine : undefined
                     );
 
                     // Get sanitized value for display
