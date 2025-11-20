@@ -38,7 +38,6 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
-import { getIntegrationTypes } from "./utils";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 
@@ -446,19 +445,17 @@ function DeploymentOptions({
                         isDeployed ? (
                             <DevantHeaderWrap>
                                 <span>Deployed in Devant</span>
-                                {platformExtState.isLoggedIn && (
-                                    <Button
-                                        appearance="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            rpcClient.getCommonRpcClient().executeCommand({
-                                                commands: [PlatformExtCommandIds.RefreshDirectoryContext],
-                                            });
-                                        }}
-                                    >
-                                        <Codicon name="refresh" />
-                                    </Button>
-                                )}
+                                <Button
+                                    appearance="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        rpcClient.getCommonRpcClient().executeCommand({
+                                            commands: [PlatformExtCommandIds.RefreshDirectoryContext],
+                                        });
+                                    }}
+                                >
+                                    <Codicon name="refresh" />
+                                </Button>
                             </DevantHeaderWrap>
                         ) : (
                             "Deploy to Devant"
@@ -604,10 +601,6 @@ export function PackageOverview(props: PackageOverviewProps) {
             setShowAlert(status);
         });
     }, [projectPath]);
-
-    const deployableIntegrationTypes = useMemo(() => {
-        return getIntegrationTypes(projectStructure);
-    }, [projectStructure]);
 
     const projectName = useMemo(() => {
         return projectStructure?.projectTitle || projectStructure?.projectName;
