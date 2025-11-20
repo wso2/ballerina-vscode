@@ -94,7 +94,8 @@ export const SwitchWrapper = styled.div`
   position: relative;
   display: inline-flex;
   align-items: center;
-  width: 112px;
+  min-width: 112px;
+  width: max-content;
   height: 24px;
   margin-top: 2px;
 `;

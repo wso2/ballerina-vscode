@@ -20,6 +20,7 @@ import { RefObject } from "react";
 import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports, ConfigProperties } from "@wso2/ballerina-core";
 import { ParamConfig } from "../ParamManager/ParamManager";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, HelperPaneOrigin, OptionProps } from "@wso2/ui-toolkit";
+import { InputMode } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/types";
 
 export type FormValues = {
     [key: string]: any;
@@ -184,7 +185,8 @@ type FormHelperPaneConditionalProps = {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string | string[]
+        valueTypeConstraint?: string | string[],
+        inputMode?: InputMode
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;

@@ -25,8 +25,12 @@ import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
+import { TemplateMode } from "./modes/TemplateMode";
 import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
+import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { FieldError } from "react-hook-form";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -41,6 +45,8 @@ interface ExpandedPromptEditorProps {
     completions?: CompletionItem[];
     fileName?: string;
     targetLineRange?: LineRange;
+    sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -52,6 +58,9 @@ interface ExpandedPromptEditorProps {
         onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
+    // Error diagnostics props
+    error?: FieldError;
+    formDiagnostics?: DiagnosticMessage[];
 }
 
 const ModalContainer = styled.div`
@@ -97,7 +106,7 @@ const ModalHeaderSection = styled.header`
 
 const ModalContent = styled.div`
     flex: 1;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
@@ -139,7 +148,8 @@ const TitleWrapper = styled.div`
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     text: TextMode,
     prompt: PromptMode,
-    expression: ExpressionMode
+    expression: ExpressionMode,
+    template: TemplateMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -153,8 +163,12 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     completions,
     fileName,
     targetLineRange,
+    sanitizedExpression,
+    rawExpression,
     extractArgsFromFunction,
-    getHelperPane
+    getHelperPane,
+    error,
+    formDiagnostics
 }) => {
     const promptFields = ["query", "instructions", "role"];
 
@@ -163,9 +177,13 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         promptFields.includes(field.key) ? "prompt" : "text"
     );
 
-    const [mode] = useState<EditorMode>(defaultMode);
+    const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
+
+    useEffect(() => {
+        setMode(defaultMode);
+    }, [defaultMode]);
 
     useEffect(() => {
         if (mode === "text") {
@@ -202,15 +220,33 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
-            onTogglePreview: () => setShowPreview(!showPreview)
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
         }),
         // Props for expression mode
         ...(mode === "expression" && {
             completions,
             fileName,
             targetLineRange,
+            sanitizedExpression,
+            rawExpression,
             extractArgsFromFunction,
-            getHelperPane
+            getHelperPane,
+            error,
+            formDiagnostics
+        }),
+        // Props for template mode
+        ...(mode === "template" && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            isPreviewMode: showPreview,
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled),
+            error,
+            formDiagnostics
         })
     };
     // HACK: Must find a proper central way to manager popups
