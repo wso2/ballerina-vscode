@@ -26,7 +26,6 @@
     "activationEvents": [
         "onStartupFinished",
         "onLanguage:ballerina",
-        "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
         "onNotebook:ballerina-notebook",
         "onUri"
@@ -348,11 +347,6 @@
             }
         ],
         "commands": [
-            {
-                "command": "ballerina.showExamples",
-                "title": "Show Examples",
-                "category": "Ballerina"
-            },
             {
                 "command": "ballerina.project.build",
                 "title": "Build",
