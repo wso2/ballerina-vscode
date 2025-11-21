@@ -474,9 +474,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!projectPath) {
                         resolve({ projectInfo: undefined });
                     } else {
-                        const projectInfo = await context.langClient.getProjectInfo({
-                            projectPath: context.workspacePath || context.projectPath
-                        });
+                        const projectInfo = await context.langClient.getProjectInfo({ projectPath });
                         resolve({ projectInfo });
                     }
                 } catch (error) {

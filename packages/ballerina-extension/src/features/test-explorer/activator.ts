@@ -33,12 +33,12 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
 
     const workspaceRoot = getWorkspaceRoot();
 
-    const isBallerinaWorkspace = checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
+    const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
     const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));
     const currentProject = !isBallerinaWorkspace && !isBallerinaProject && await getCurrentBallerinaProject();
     const isSingleFile = currentProject && currentProject.kind === PROJECT_TYPE.SINGLE_FILE;
 
-    if (!isBallerinaWorkspace || !isBallerinaProject || !isSingleFile) {
+    if (!isBallerinaWorkspace && !isBallerinaProject && !isSingleFile) {
         return;
     }
 
