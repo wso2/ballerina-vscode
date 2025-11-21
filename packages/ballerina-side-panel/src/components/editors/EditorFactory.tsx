@@ -24,7 +24,7 @@ import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
 import { TextEditor } from "./TextEditor";
 import { TypeEditor } from "./TypeEditor";
-import { ContextAwareExpressionEditor } from "./ExpressionEditor";
+import { ContextAwareExpressionEditor, DataMapperJoinClauseRhsEditor } from "./ExpressionEditor";
 import { ParamManagerEditor } from "../ParamManager/ParamManager";
 import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
@@ -216,6 +216,19 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return (
             <CheckBoxConditionalEditor
                 field={field}
+            />
+        );
+    } else if (field.type === "DM_JOIN_CLAUSE_RHS_EXPRESSION") {
+        // Expression field for Data Mapper join on condition RHS
+        return (
+            <DataMapperJoinClauseRhsEditor
+                field={field}
+                openSubPanel={openSubPanel}
+                subPanelView={subPanelView}
+                handleOnFieldFocus={handleOnFieldFocus}
+                onBlur={onBlur}
+                autoFocus={autoFocus}
+                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
     } else {

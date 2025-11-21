@@ -284,8 +284,8 @@ export function DataMapperView(props: DataMapperProps) {
                 fileName={filePath}
                 preserveFieldOrder={true}
                 helperPaneSide="left"
+                isDataMapperEditor={true}
                 {...formProps}
-                targetLineRange={viewState.codedata.lineRange}
             />
         )
     }
@@ -357,6 +357,20 @@ export function DataMapperView(props: DataMapperProps) {
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
+        }
+    }
+
+    const getClausePosition = async (targetField: string, index: number) => {
+        try {
+            const { position } = await rpcClient.getDataMapperRpcClient().getClausePosition({
+                filePath,
+                codedata: viewState.codedata,
+                targetField: targetField,
+                index: index
+            });
+            return position;
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -492,13 +506,12 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToSource = async (outputId: string, viewId: string) => {
-        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+        const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
-            propertyKey: "expression", // TODO: Remove this once the API is updated
             targetField: viewId,
             fieldId: outputId,
-        })
+        });
         if (property.codedata) {
             const position: NodePosition = {
                 startLine: property.codedata.lineRange?.startLine?.line,
@@ -593,9 +606,7 @@ export function DataMapperView(props: DataMapperProps) {
                 const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
                     filePath,
                     codedata: viewState.codedata,
-                    propertyKey: "expression", // TODO: Remove this once the API is updated
-                    targetField: viewId,
-                    fieldId: outputId,
+                    targetField: viewId
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
                 const startLine = updateLineRange(property.codedata.lineRange, expressionOffsetRef.current).startLine;
@@ -689,6 +700,7 @@ export function DataMapperView(props: DataMapperProps) {
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
                             deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}

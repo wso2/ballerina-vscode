@@ -17,22 +17,26 @@
  */
 
 import React from "react";
-import { EditorContainer } from "./styles";
-import { Divider, Dropdown, OptionProps, Typography } from "@wso2/ui-toolkit";
-import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps } from "@wso2/ballerina-core";
+import { EditorContainer, ProgressRingWrapper } from "./styles";
+import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
+import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
 import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ClauseEditorProps {
+    index: number;
+    targetField: string;
     clause?: IntermediateClause;
     onSubmitText?: string;
     isSaving: boolean;
     onSubmit: (clause: IntermediateClause) => void;
     onCancel: () => void;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseEditor(props: ClauseEditorProps) {
-    const { clause, onSubmitText, isSaving, onSubmit, onCancel, generateForm } = props;
+    const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
@@ -110,7 +114,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const rhsExpressionField: DMFormField = {
         key: "rhsExpression",
         label: "RHS Expression",
-        type: "EXPRESSION",
+        type: "DM_JOIN_CLAUSE_RHS_EXPRESSION",
         optional: false,
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
@@ -152,8 +156,17 @@ export function ClauseEditor(props: ClauseEditorProps) {
         }
     }
 
+    const { 
+        data: clausePosition, 
+        isFetching: isFetchingTargetLineRange
+    } = useQuery({
+        queryKey: ['getClausePosition', targetField, index],
+        queryFn: async () => await getClausePosition(targetField, index),
+        networkMode: 'always'
+    });
+
     const formProps: DMFormProps = {
-        targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+        targetLineRange: { startLine: clausePosition, endLine: clausePosition },
         fields: generateFields(),
         submitText: onSubmitText || "Add",
         cancelText: "Cancel",
@@ -179,7 +192,12 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 value={clauseType}
             />
 
-            {generateForm(formProps)}
+            {isFetchingTargetLineRange ?
+                <ProgressRingWrapper>
+                    <ProgressRing sx={{ height: "20px", width: "20px" }} />
+                </ProgressRingWrapper> :
+                generateForm(formProps)
+            }
             
         </EditorContainer >
     );
