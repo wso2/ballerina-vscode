@@ -26,7 +26,6 @@
     "activationEvents": [
         "onStartupFinished",
         "onLanguage:ballerina",
-        "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
         "onNotebook:ballerina-notebook",
         "onUri"
@@ -348,11 +347,6 @@
             }
         ],
         "commands": [
-            {
-                "command": "ballerina.showExamples",
-                "title": "Show Examples",
-                "category": "Ballerina"
-            },
             {
                 "command": "ballerina.project.build",
                 "title": "Build",
@@ -1186,6 +1180,7 @@
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
         "download-ls": "node scripts/download-ls.js",
+        "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
