@@ -18,6 +18,7 @@
 import { create } from "zustand";
 
 import { InputOutputPortModel } from "../components/Diagram/Port";
+import { IntermediateClause } from "@wso2/ballerina-core";
 
 interface SubMappingConfig {
     isSMConfigPanelOpen: boolean;
@@ -162,13 +163,18 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
 export interface DataMapperQueryClausesPanelState {
     isQueryClausesPanelOpen: boolean;
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => void;
+    clauseToAdd: IntermediateClause;
+    setClauseToAdd: (clauseToAdd: IntermediateClause) => void;
     resetQueryClausesPanelStore: () => void;
 }
 
 export const useDMQueryClausesPanelStore = create<DataMapperQueryClausesPanelState>((set) => ({
     isQueryClausesPanelOpen: false,
+    clauseToAdd: undefined,
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => set({ isQueryClausesPanelOpen }),
+    setClauseToAdd: (clauseToAdd: IntermediateClause) => set({ clauseToAdd }),
     resetQueryClausesPanelStore: () => set({
-        isQueryClausesPanelOpen: false
+        isQueryClausesPanelOpen: false,
+        clauseToAdd: undefined
     })
 }));
