@@ -81,6 +81,14 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         setMenuAnchorEl(null);
     };
 
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
         { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) },
@@ -101,7 +109,12 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                    <MenuButton 
+                        appearance="icon" 
+                        onClick={handleOnMenuClick}
+                        onMouseDown={handleMenuMouseDown}
+                        onMouseUp={handleMenuMouseUp}
+                    >
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>
