@@ -28,6 +28,10 @@ export function getTypeName(fieldType: IOType): string {
 	} 
 
     let typeName = fieldType?.typeName || fieldType.kind;
+
+    if (fieldType.isSeq) {
+        return `...${typeName}`;
+    }
     
 	return typeName;
 }
