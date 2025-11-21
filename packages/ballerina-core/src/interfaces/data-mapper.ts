@@ -268,7 +268,6 @@ export interface DMFormField {
     valueTypeConstraint: string;
     enabled: boolean;
     items?: string[];
-    codedata?: { [key: string]: any };
 }
 
 export interface DMFormFieldValues {

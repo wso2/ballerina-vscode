@@ -31,7 +31,12 @@ const ActionButton = styled(Button)`
     gap: 4px;
 `;
 
-export function ERDiagram() {
+export interface ERDiagramProps {
+    projectPath: string;
+}
+
+export function ERDiagram(props: ERDiagramProps) {
+    const { projectPath } = props;
     const { rpcClient } = useRpcContext();
     const persistDiagramRPCClient = rpcClient.getPersistDiagramRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
@@ -62,7 +67,7 @@ export function ERDiagram() {
     
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar
                 title="Entity Relationship Diagram"
                 actions={
