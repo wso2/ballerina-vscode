@@ -381,24 +381,13 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 	}
 
 	private async createInputPortsForArrayField(attributes: InputPortAttributes, isHidden: boolean): Promise<number> {
-		const memberField = this.resolveArrayMemberField(attributes);
+		const memberField = attributes.field?.member;
 		return await this.addPortsForInputField({
 			...attributes,
 			hidden: isHidden,
 			field: memberField,
 			isOptional: memberField?.optional || attributes.isOptional
 		});
-	}
-
-	private resolveArrayMemberField(attributes: InputPortAttributes): IOType | undefined {
-		const focusedMemberId = attributes.field?.focusedMemberId;
-		if (focusedMemberId) {
-			const focusedMemberField = this.context.model.inputs.find(input => input.id === focusedMemberId);
-			if (focusedMemberField) {
-				return focusedMemberField;
-			}
-		}
-		return attributes.field?.member;
 	}
 
 	private async processRecordField(attributes: OutputPortAttributes) {
