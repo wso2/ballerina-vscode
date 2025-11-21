@@ -343,7 +343,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
+    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.RECORD : InputMode.EXP);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
@@ -403,7 +403,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     useEffect(() => {
         // If recordTypeField is present, always use GUIDED mode
         if (recordTypeField) {
-            setInputMode(InputMode.GUIDED);
+            setInputMode(InputMode.RECORD);
             return;
         }
         
@@ -434,7 +434,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         setFocused(true);
         
         // If in guided mode with recordTypeField, open ConfigureRecordPage directly
-        if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
+        if (inputMode === InputMode.RECORD && recordTypeField && onOpenRecordConfigPage) {
             const currentValue = watch(key) || '';
             // Create onChange callback that updates the form value
             const onChangeCallback = (value: string) => {
