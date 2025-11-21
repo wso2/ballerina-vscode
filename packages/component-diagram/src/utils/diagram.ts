@@ -113,7 +113,7 @@ export function autoDistribute(engine: DiagramEngine) {
 
         // Position unconnected listeners below, with spacing
         unconnectedListeners.forEach((listenerNode, index) => {
-            const yPosition = maxY + NODE_GAP_Y/2+ (index * (LISTENER_NODE_HEIGHT + NODE_GAP_Y/2));
+            const yPosition = maxY + NODE_GAP_Y/2 + (index * (LISTENER_NODE_HEIGHT + NODE_GAP_Y/2));
             listenerNode.setPosition(listenerX, yPosition);
         });
     }
