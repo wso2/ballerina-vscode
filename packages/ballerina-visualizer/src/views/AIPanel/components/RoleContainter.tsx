@@ -48,9 +48,10 @@ interface RoleContainerProps {
     title: string;
     showPreview: boolean;
     isLoading: boolean;
+    checkpointButton?: React.ReactNode;
 }
 
-const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview, isLoading }) => {
+const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview, isLoading, checkpointButton }) => {
     const [generatingText, setGeneratingText] = useState("Generating.");
 
     useEffect(() => {
@@ -67,7 +68,7 @@ const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview,
     }, [isLoading]);
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", gap: "6px" }}>
+        <div style={{ display: "flex", flexDirection: "row", gap: "6px", alignItems: "center" }}>
             <Icon
                 name={icon}
                 sx={{ width: 24, height: 24 }}
@@ -76,6 +77,7 @@ const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview,
             <h3 style={{ margin: 0 }}>{title}</h3>
             {showPreview && <PreviewContainer>Preview</PreviewContainer>}
             {isLoading && <span style={{ color: "var(--vscode-input-placeholderForeground)" }}>{generatingText}</span>}
+            {checkpointButton && <div style={{ marginLeft: "auto" }}>{checkpointButton}</div>}
         </div>
     );
 };
