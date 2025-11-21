@@ -92,7 +92,7 @@ export function activateSubscriptions() {
                         );
                         return;
                     }
-                    const documentUri = documentPath || vscode.window.activeTextEditor?.document.uri.fsPath
+                    const documentUri = documentPath || vscode.window.activeTextEditor?.document.uri.fsPath;
                     openView(
                         EVENT_TYPE.OPEN_VIEW,
                         {
