@@ -41,7 +41,6 @@ export default function UnionType(props: TypeProps) {
     const [selectedMemberType, setSelectedMemberType] = useState(getUnionParamName(initSelectedMember));
     const [parameter, setParameter] = useState<TypeField>(initSelectedMember);
     const isInitialized = useRef(false);
-    const pendingOnChangeRef = useRef(false);
 
     // Synchronously initialize union member selection when param becomes selected
     // This ensures member is selected before any onChange is triggered
@@ -96,15 +95,7 @@ export default function UnionType(props: TypeProps) {
 
         // If union param is selected (or required), ensure a member is selected
         if (paramSelected && param.members && param.members.length > 0) {
-            const initialized = initializeUnionMember();
-            
-            // If we just initialized and there's a pending onChange, trigger it
-            if (initialized && pendingOnChangeRef.current) {
-                pendingOnChangeRef.current = false;
-                setTimeout(() => {
-                    onChange();
-                }, 0);
-            }
+            initializeUnionMember();
         }
     }, []);
 
