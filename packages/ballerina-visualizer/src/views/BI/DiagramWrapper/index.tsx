@@ -430,7 +430,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             {loadingDiagram ? (
                 <TitleBarSkeleton />
             ) : (

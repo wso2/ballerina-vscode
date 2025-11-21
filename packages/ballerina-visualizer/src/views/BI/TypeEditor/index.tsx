@@ -18,7 +18,7 @@
 
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { LineRange, PayloadContext, Type } from '@wso2/ballerina-core';
+import { Imports, LineRange, PayloadContext, Type } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
@@ -48,7 +48,7 @@ type FormTypeEditorProps = {
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: (typeName?: string) => void;
-    onSaveType: (type: Type | string) => void
+    onSaveType: (type: Type | string, imports?: Imports) => void
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
     isContextTypeForm?: boolean;
