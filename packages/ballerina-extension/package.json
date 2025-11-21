@@ -233,6 +233,33 @@
                         "Trace request/response messages only",
                         "Trace request/response messages with parameters and content"
                     ]
+                },
+                "ballerina.copilot.checkpoints.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable checkpoint mechanism for copilot chat to restore previous states."
+                },
+                "ballerina.copilot.checkpoints.maxCount": {
+                    "type": "number",
+                    "default": 20,
+                    "description": "Maximum number of checkpoints to keep."
+                },
+                "ballerina.copilot.checkpoints.ignorePatterns": {
+                    "type": "array",
+                    "default": [
+                        ".git/**",
+                        "target/**",
+                        "build/**",
+                        "dist/**",
+                        ".vscode/**",
+                        "*.log"
+                    ],
+                    "description": "File patterns to ignore when creating checkpoints."
+                },
+                "ballerina.copilot.checkpoints.maxSnapshotSize": {
+                    "type": "number",
+                    "default": 52428800,
+                    "description": "Maximum snapshot size in bytes (default: 50MB)."
                 }
             }
         },
