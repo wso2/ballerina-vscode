@@ -80,13 +80,27 @@ export function activateSubscriptions() {
                 const projectRoot = await findBallerinaPackageRoot(documentPath);
 
                 const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-                if (isBallerinaWorkspace && pathOrItem instanceof vscode.TreeItem) {
+                if (isBallerinaWorkspace) {
+                    if (pathOrItem instanceof vscode.TreeItem) {
+                        openView(
+                            EVENT_TYPE.OPEN_VIEW,
+                            {
+                                projectPath: pathOrItem.resourceUri?.fsPath,
+                                view: MACHINE_VIEW.PackageOverview
+                            },
+                            true
+                        );
+                        return;
+                    }
+                    const documentUri = documentPath || vscode.window.activeTextEditor?.document.uri.fsPath
                     openView(
                         EVENT_TYPE.OPEN_VIEW,
                         {
-                            projectPath: pathOrItem.resourceUri?.fsPath,
-                            view: MACHINE_VIEW.PackageOverview
+                            projectPath: projectRoot,
+                            documentUri: documentUri,
+                            position: nodePosition
                         },
+                        true
                     );
                     return;
                 }
