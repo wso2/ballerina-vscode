@@ -100,7 +100,18 @@ export function activate(context: BallerinaExtension) {
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
-        prepareAndGenerateConfig(context, StateMachine.context().projectPath, false, true);
+        const stateMachineContext = StateMachine.context();
+        const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
+
+        const isAtWorkspaceLevel = 
+            workspacePath && 
+            (view === MACHINE_VIEW.WorkspaceOverview || !projectPath);
+        
+        if (isAtWorkspaceLevel && projectInfo?.children.length === 0) {
+            window.showErrorMessage("No packages found in the workspace.");
+            return;
+        }
+        prepareAndGenerateConfig(context, projectPath, false, true, true, isAtWorkspaceLevel);
     });
 
     commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
