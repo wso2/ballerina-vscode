@@ -47,7 +47,6 @@ export type CursorInfo = {
     position: SelectionRange;
 }
 
-export type TokenType = 'variable' | 'property' | 'parameter';
 export const ProgrammerticSelectionChange = Annotation.define<boolean>();
 
 export const SyncDocValueWithPropValue = Annotation.define<boolean>();
