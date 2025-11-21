@@ -19,13 +19,14 @@
 import { ActionButtons, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import { BodyText } from "../../styles";
+import { ProjectFormData, ProjectFormFields } from "../ProjectForm/ProjectFormFields";
+import { isFormValid } from "../ProjectForm/utils";
+import { MultiProjectFormData, MultiProjectFormFields } from "./components/MultiProjectFormFields";
 import { ButtonWrapper } from "./styles";
 import { ConfigureProjectFormProps } from "./types";
-import { ProjectFormFields, ProjectFormData } from "../ProjectForm/ProjectFormFields";
-import { isFormValid } from "../ProjectForm/utils";
 
-export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormProps) {
-    const [formData, setFormData] = useState<ProjectFormData>({
+export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: ConfigureProjectFormProps) {
+    const [singleProjectData, setSingleProjectData] = useState<ProjectFormData>({
         integrationName: "",
         packageName: "",
         path: "",
@@ -36,47 +37,108 @@ export function ConfigureProjectForm({ onNext, onBack }: ConfigureProjectFormPro
         version: "",
     });
 
-    const handleFormDataChange = (data: Partial<ProjectFormData>) => {
-        setFormData(prev => ({ ...prev, ...data }));
+    const [multiProjectData, setMultiProjectData] = useState<MultiProjectFormData>({
+        rootFolderName: "",
+        path: "",
+        createDirectory: true,
+    });
+
+    const handleSingleProjectFormChange = (data: Partial<ProjectFormData>) => {
+        setSingleProjectData(prev => ({ ...prev, ...data }));
     };
 
-    const handleCreateProject = () => {
+    const handleMultiProjectFormChange = (data: Partial<MultiProjectFormData>) => {
+        setMultiProjectData(prev => ({ ...prev, ...data }));
+    };
+
+    const handleCreateSingleProject = () => {
         onNext({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            projectPath: formData.path,
-            createDirectory: formData.createDirectory,
-            createAsWorkspace: formData.createAsWorkspace,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
+            projectName: singleProjectData.integrationName,
+            packageName: singleProjectData.packageName,
+            projectPath: singleProjectData.path,
+            createDirectory: singleProjectData.createDirectory,
+            createAsWorkspace: singleProjectData.createAsWorkspace,
+            workspaceName: singleProjectData.workspaceName,
+            orgName: singleProjectData.orgName || undefined,
+            version: singleProjectData.version || undefined,
         });
+    };
+
+    const handleCreateMultiProject = () => {
+        onNext({
+            projectName: multiProjectData.rootFolderName,
+            packageName: multiProjectData.rootFolderName,
+            projectPath: multiProjectData.path,
+            createDirectory: multiProjectData.createDirectory,
+            createAsWorkspace: false,
+        });
+    };
+
+    const isMultiProjectFormValid = () => {
+        // Path is always required
+        if (!multiProjectData.path.trim()) {
+            return false;
+        }
+        // Folder name is only required if creating a new directory
+        if (multiProjectData.createDirectory && !multiProjectData.rootFolderName.trim()) {
+            return false;
+        }
+        return true;
     };
 
     return (
         <>
-            <Typography variant="h2">Configure Your Integration Project</Typography>
-            <BodyText>Please provide the necessary details to create your integration project.</BodyText>
-            
-            <ProjectFormFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-            />
+            {isMultiProject ? (
+                <>
+                    <Typography variant="h2">Configure Multi-Project Import</Typography>
+                    <BodyText>Select the location where you want to save the migrated packages.</BodyText>
 
-            <ButtonWrapper>
-                <ActionButtons
-                    primaryButton={{
-                        text: "Create and Open Project",
-                        onClick: handleCreateProject,
-                        disabled: !isFormValid(formData)
-                    }}
-                    secondaryButton={{
-                        text: "Back",
-                        onClick: onBack,
-                        disabled: false
-                    }}
-                />
-            </ButtonWrapper>
+                    <MultiProjectFormFields
+                        formData={multiProjectData}
+                        onFormDataChange={handleMultiProjectFormChange}
+                    />
+
+                    <ButtonWrapper>
+                        <ActionButtons
+                            primaryButton={{
+                                text: "Create and Open Project",
+                                onClick: handleCreateMultiProject,
+                                disabled: !isMultiProjectFormValid()
+                            }}
+                            secondaryButton={{
+                                text: "Back",
+                                onClick: onBack,
+                                disabled: false
+                            }}
+                        />
+                    </ButtonWrapper>
+                </>
+            ) : (
+                <>
+                    <Typography variant="h2">Configure Your Integration Project</Typography>
+                    <BodyText>Please provide the necessary details to create your integration project.</BodyText>
+
+                    <ProjectFormFields
+                        formData={singleProjectData}
+                        onFormDataChange={handleSingleProjectFormChange}
+                    />
+
+                    <ButtonWrapper>
+                        <ActionButtons
+                            primaryButton={{
+                                text: "Create and Open Project",
+                                onClick: handleCreateSingleProject,
+                                disabled: !isFormValid(singleProjectData)
+                            }}
+                            secondaryButton={{
+                                text: "Back",
+                                onClick: onBack,
+                                disabled: false
+                            }}
+                        />
+                    </ButtonWrapper>
+                </>
+            )}
         </>
     );
 }

@@ -31,12 +31,13 @@ import { ClockIcon, ListenIcon } from "../../../resources";
 import { useDiagramContext } from "../../DiagramContext";
 import { CDListener } from "@wso2/ballerina-core";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
+import { useClickWithDragTolerance } from "../../../hooks/useClickWithDragTolerance";
 
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
 };
-const Node = styled.div<NodeStyleProp>`
+const Node = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -44,14 +45,14 @@ const Node = styled.div<NodeStyleProp>`
     height: ${LISTENER_NODE_HEIGHT}px;
     width: ${LISTENER_NODE_WIDTH}px;
     color: ${ThemeColors.ON_SURFACE};
-    cursor: pointer;
 `;
 
-const Row = styled.div<NodeStyleProp>`
+const ClickableArea = styled.div`
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
 `;
 
 const Header = styled.div`
@@ -134,10 +135,11 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
-
     const handleOnClick = () => {
         onListenerSelect(model.node as CDListener);
     };
+
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
 
     const getNodeIcon = () => {
         if (model.node.type === AUTOMATION_LISTENER) {
@@ -181,13 +183,13 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     ];
 
     return (
-        <Node
-            hovered={isHovered}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={handleOnClick}
-        >
-            <Row hovered={isHovered}>
+        <Node>
+            <ClickableArea
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+            >
                 <Circle hovered={isHovered}>
                     <LeftPortWidget port={model.getPort("in")!} engine={engine} />
                     <Icon>{getNodeIcon()}</Icon>
@@ -201,7 +203,7 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
                     <Title hovered={isHovered}>{getNodeTitle()}</Title>
                     <Description>{getNodeDescription()}</Description>
                 </Header>
-            </Row>
+            </ClickableArea>
 
             <Popover
                 open={isMenuOpen}

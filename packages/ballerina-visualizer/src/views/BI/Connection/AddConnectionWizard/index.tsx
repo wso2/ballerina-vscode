@@ -113,6 +113,7 @@ enum SavingFormStatus {
 }
 
 interface AddConnectionWizardProps {
+    projectPath: string;
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
@@ -121,7 +122,7 @@ interface AddConnectionWizardProps {
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
+    const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
@@ -363,7 +364,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.Overview,
+                view: MACHINE_VIEW.PackageOverview,
             },
         });
     };
@@ -372,6 +373,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         <Container>
             {!isPopupScreen ? (
                 <ConnectorView
+                    projectPath={projectPath}
                     key={connectorsViewKey}
                     fileName={fileName}
                     targetLinePosition={target}
@@ -388,6 +390,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         />
                         <PopupContainer>
                             <ConnectorView
+                                projectPath={projectPath}
                                 key={connectorsViewKey}
                                 fileName={fileName}
                                 targetLinePosition={target}
@@ -421,9 +424,9 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                 )}
                                 {pullingStatus === PullingStatus.PULLING && (
                                     <StatusCard>
-                                        <DownloadIcon color={ThemeColors.ON_SURFACE} />
+                                        <DownloadIcon color="var(--vscode-progressBar-background)" />
                                         <StatusText variant="body2">
-                                            Please wait while the connector package is being pulled...
+                                            Please wait while the connector is being pulled.
                                         </StatusText>
                                     </StatusCard>
                                 )}
@@ -438,7 +441,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                                 height: "28px",
                                             }}
                                         />
-                                        <StatusText variant="body2">Connector package pulled successfully.</StatusText>
+                                        <StatusText variant="body2">Connector pulled successfully.</StatusText>
                                     </StatusCard>
                                 )}
                                 {pullingStatus === PullingStatus.ERROR && (
@@ -453,7 +456,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                             }}
                                         />
                                         <StatusText variant="body2">
-                                            Failed to pull the connector package. Please try again.
+                                            Failed to pull the connector. Please try again.
                                         </StatusText>
                                     </StatusCard>
                                 )}

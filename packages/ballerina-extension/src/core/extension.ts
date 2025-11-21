@@ -43,7 +43,8 @@ import {
     isSupportedVersion,
     VERSION,
     isSupportedSLVersion,
-    createVersionNumber
+    createVersionNumber,
+    checkIsBallerinaWorkspace
 } from '../utils';
 import { AssertionError } from "assert";
 import {
@@ -457,7 +458,23 @@ export class BallerinaExtension {
                 try {
                     this.biSupported = isSupportedSLVersion(this, createVersionNumber(2201, 12, 3)); // Minimum supported version for BI: 2201.12.3
                     this.isNPSupported = isSupportedSLVersion(this, createVersionNumber(2201, 13, 0)) && this.enabledExperimentalFeatures(); // Minimum supported requirements for NP: 2201.13.0
+
                     this.isWorkspaceSupported = isSupportedSLVersion(this, createVersionNumber(2201, 13, 0)); // Minimum supported requirements for Workspace: 2201.13.0
+                    const workspaceFolders = workspace.workspaceFolders;
+
+                    if (workspaceFolders && workspaceFolders.length === 1) {
+                        const isBalWorkspace = await checkIsBallerinaWorkspace(workspaceFolders[0].uri);
+                        if (isBalWorkspace && !this.isWorkspaceSupported) {
+                            window.showInformationMessage(
+                                'Your current ballerina distribution is not supported for workspaces. Please update to version 2201.13.0 or above to use workspaces. You will need to reload VS Code after updating.',
+                                'Update'
+                            ).then(selection => {
+                                if (selection === 'Update') {
+                                    commands.executeCommand('ballerina.update-ballerina-visually');
+                                }
+                            });
+                        }
+                    }
                     debug(`[INIT] Feature support calculated - BI: ${this.biSupported}, NP: ${this.isNPSupported}, Workspace: ${this.isWorkspaceSupported}`);
                 } catch (error) {
                     debug(`[INIT] Error calculating feature support: ${error}`);
