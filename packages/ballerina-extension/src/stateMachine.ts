@@ -1027,7 +1027,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
     }
 }
 
-async function notifyTreeView(
+function notifyTreeView(
     projectPath?: string,
     documentUri?: string,
     position?: NodePosition,
@@ -1039,7 +1039,7 @@ async function notifyTreeView(
             return;
         }
         
-        await commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
+        commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
             projectPath,
             documentUri,
             position,
