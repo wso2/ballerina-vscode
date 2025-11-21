@@ -19,12 +19,14 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Divider, Typography } from "@wso2/ui-toolkit";
-import { FormField } from "../../Form/types";
+import { ThemeColors, Divider, Typography, CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { FormField, HelperpaneOnChangeOptions } from "../../Form/types";
 import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
-import { CompressButton } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { ExpressionMode } from "./modes/ExpressionMode";
+import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -32,6 +34,24 @@ interface ExpandedPromptEditorProps {
     value: string;
     onClose: () => void;
     onSave: (value: string) => void;
+    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    // Optional mode override (if not provided, will be auto-detected)
+    mode?: EditorMode;
+    // Expression mode specific props
+    completions?: CompletionItem[];
+    fileName?: string;
+    targetLineRange?: LineRange;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
 }
 
 const ModalContainer = styled.div`
@@ -40,7 +60,7 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -63,7 +83,7 @@ const ModalBox = styled.div`
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-    z-index: 30001;
+    z-index: 2001;
     resize: both;
 `;
 
@@ -78,18 +98,48 @@ const ModalHeaderSection = styled.header`
 const ModalContent = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 18px 16px;
+    padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
 `;
 
+const MinimizeButton = styled.div`
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 2px;
+
+    &:hover {
+        opacity: 1;
+        background-color: var(--vscode-editor-inactiveSelectionBackground);
+    }
+
+    svg {
+        width: 16px;
+        height: auto;
+    }
+`;
+
+const TitleWrapper = styled.div`
+    margin: 12px 0;
+    
+    h3 {
+        margin: 0;
+    }
+`;
 
 /**
  * Map of mode components - add new modes here
  */
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     text: TextMode,
-    prompt: PromptMode
+    prompt: PromptMode,
+    expression: ExpressionMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -97,18 +147,25 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     field,
     value,
     onClose,
+    onChange,
     onSave,
+    mode: propMode,
+    completions,
+    fileName,
+    targetLineRange,
+    extractArgsFromFunction,
+    getHelperPane
 }) => {
-    const [editedValue, setEditedValue] = useState(value);
     const promptFields = ["query", "instructions", "role"];
-    const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
+
+    // Determine mode - use prop if provided, otherwise auto-detect
+    const defaultMode: EditorMode = propMode ?? (
+        promptFields.includes(field.key) ? "prompt" : "text"
+    );
+
     const [mode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
-
-    useEffect(() => {
-        setEditedValue(value);
-    }, [value, isOpen]);
 
     useEffect(() => {
         if (mode === "text") {
@@ -117,7 +174,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     }, [mode]);
 
     const handleMinimize = () => {
-        onSave(editedValue);
         onClose();
     };
 
@@ -140,24 +196,36 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     // Prepare props for the mode component
     const modeProps = {
-        value: editedValue,
-        onChange: setEditedValue,
+        value: value,
+        onChange: onChange,
         field,
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
             onTogglePreview: () => setShowPreview(!showPreview)
+        }),
+        // Props for expression mode
+        ...(mode === "expression" && {
+            completions,
+            fileName,
+            targetLineRange,
+            extractArgsFromFunction,
+            getHelperPane
         })
     };
+    // HACK: Must find a proper central way to manager popups
+    const targetEl = document.getElementById("visualizer-container");
 
-    return createPortal(
+    return targetEl ? createPortal(
         <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <Typography variant="h3">{field.label}</Typography>
-                    <div onClick={handleMinimize} title="Minimize" style={{ cursor: 'pointer' }}>
-                        <CompressButton />
-                    </div>
+                    <TitleWrapper>
+                        <Typography variant="h3">{field.label}</Typography>
+                    </TitleWrapper>
+                    <MinimizeButton onClick={handleMinimize} title="Minimize">
+                        <MinimizeIcon />
+                    </MinimizeButton>
                 </ModalHeaderSection>
                 <div style={{ padding: "0 16px" }}>
                     <Divider sx={{ margin: 0 }} />
@@ -167,6 +235,6 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 </ModalContent>
             </ModalBox>
         </ModalContainer>,
-        document.body
-    );
+        targetEl
+    ) : null;
 };

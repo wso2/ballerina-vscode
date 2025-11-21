@@ -46,11 +46,12 @@ export const BI_COMMANDS = {
     VIEW_CONFIGURATION: 'BI.project-explorer.view-configuration',
     ADD_PROJECT: 'BI.project-explorer.add',
     SHOW_OVERVIEW: 'BI.project-explorer.overview',
-    SWITCH_PROJECT: 'BI.project-explorer.switch-project',
     ADD_DATA_MAPPER: 'BI.project-explorer.add-data-mapper',
     BI_EDIT_TEST_FUNCTION: 'BI.test.edit.function',
     BI_ADD_TEST_FUNCTION: 'BI.test.add.function',
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
+    ADD_INTEGRATION: 'BI.project-explorer.add-integration',
+    NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify',
 };

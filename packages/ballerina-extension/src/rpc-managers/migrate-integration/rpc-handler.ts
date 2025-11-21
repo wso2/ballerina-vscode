@@ -26,19 +26,25 @@ import {
     MigrationToolPullRequest,
     openMigrationReport,
     OpenMigrationReportRequest,
+    openSubProjectReport,
+    OpenSubProjectReportRequest,
     pullMigrationTool,
     saveMigrationReport,
-    SaveMigrationReportRequest
+    SaveMigrationReportRequest,
+    storeSubProjectReports,
+    StoreSubProjectReportsRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
-    const rpcManger = new MigrateIntegrationRpcManager();
+    const rpcManger = MigrateIntegrationRpcManager.getInstance();
     messenger.onRequest(getMigrationTools, () => rpcManger.getMigrationTools());
     messenger.onNotification(pullMigrationTool, (args: MigrationToolPullRequest) => rpcManger.pullMigrationTool(args));
     messenger.onRequest(importIntegration, (args: ImportIntegrationRPCRequest) => rpcManger.importIntegration(args));
     messenger.onNotification(openMigrationReport, (args: OpenMigrationReportRequest) => rpcManger.openMigrationReport(args));
+    messenger.onNotification(openSubProjectReport, (args: OpenSubProjectReportRequest) => rpcManger.openSubProjectReport(args));
+    messenger.onNotification(storeSubProjectReports, (args: StoreSubProjectReportsRequest) => rpcManger.storeSubProjectReports(args));
     messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
 }

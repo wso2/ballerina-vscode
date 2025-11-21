@@ -18,11 +18,12 @@
 
 import React, { useState } from "react";
 import { CDService } from "@wso2/ballerina-core";
-import { Button, Item, Menu, MenuItem, Popover, Icon } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem, Popover, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { BaseNodeWidgetProps, EntryNodeModel } from "../EntryNodeModel";
+import { useClickWithDragTolerance } from "../../../../hooks/useClickWithDragTolerance";
 import {
     Node,
     Box,
@@ -69,6 +70,8 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         }
     };
 
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
+
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         event.stopPropagation();
         setMenuAnchorEl(event.currentTarget);
@@ -76,6 +79,14 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+    };
+
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
     };
 
     const menuItems: Item[] = [
@@ -90,14 +101,20 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                 <ServiceBox
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    onClick={handleOnClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                 >
                     <IconWrapper><Icon name="bi-ai-agent" /></IconWrapper>
                     <Header hovered={isHovered}>
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                    <MenuButton 
+                        appearance="icon" 
+                        onClick={handleOnMenuClick}
+                        onMouseDown={handleMenuMouseDown}
+                        onMouseUp={handleMenuMouseUp}
+                    >
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>

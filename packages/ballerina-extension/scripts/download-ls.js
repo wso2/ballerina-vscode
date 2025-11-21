@@ -10,6 +10,7 @@ const GITHUB_REPO_URL = 'https://api.github.com/repos/ballerina-platform/balleri
 
 const args = process.argv.slice(2);
 const usePrerelease = args.includes('--prerelease') || process.env.isPreRelease === 'true';
+const forceReplace = args.includes('--replace');
 
 function checkExistingJar() {
     try {
@@ -177,11 +178,16 @@ async function getLatestRelease(usePrerelease) {
 
 async function main() {
     try {
-        if (checkExistingJar()) {
+        if (!forceReplace && checkExistingJar()) {
             process.exit(0);
         }
 
-        console.log(`Downloading Ballerina language server${usePrerelease ? ' (prerelease)' : ''}...`);
+        console.log(`Downloading Ballerina language server${usePrerelease ? ' (prerelease)' : ''}${forceReplace ? ' (force replace)' : ''}...`);
+
+        if (forceReplace && fs.existsSync(LS_DIR)) {
+            console.log('Force replace enabled: clearing existing language server directory...');
+            fs.rmSync(LS_DIR, { recursive: true, force: true });
+        }
 
         if (!fs.existsSync(LS_DIR)) {
             fs.mkdirSync(LS_DIR, { recursive: true });

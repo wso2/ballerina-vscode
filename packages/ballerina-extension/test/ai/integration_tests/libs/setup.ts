@@ -35,8 +35,7 @@ const PATHS = {
 
 const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
-    OPEN: "vscode.open",
-    SHOW_EXAMPLES: "ballerina.showExamples",
+    OPEN: "vscode.open"
 };
 
 /**
@@ -58,21 +57,6 @@ export async function setupTestEnvironment(): Promise<void> {
     // Note: Workspace is already opened by VS Code via launch.json args
     // Wait for workspace to settle and extension to activate
     await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
-
-    // Force extension activation by opening a Ballerina file
-    try {
-        const PROJECT_ROOT = path.resolve(__dirname, PATHS.PROJECT_ROOT_RELATIVE);
-        const testBalFile = Uri.file(path.join(PROJECT_ROOT, "main.bal"));
-        await commands.executeCommand(VSCODE_COMMANDS.OPEN, testBalFile);
-        await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPEN_DELAY));
-    } catch (error) {
-        // Fallback: try to execute a ballerina command to force activation
-        try {
-            await commands.executeCommand(VSCODE_COMMANDS.SHOW_EXAMPLES);
-        } catch (cmdError) {
-            // Extension might still be loading
-        }
-    }
 
     // Wait for extension to activate (it activates onStartupFinished)
     // Give it sufficient time to load language server and initialize
