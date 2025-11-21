@@ -467,7 +467,8 @@ export function expandDMModel(
         query: model.query,
         source: "",
         rootViewId,
-        triggerRefresh: model.triggerRefresh
+        triggerRefresh: model.triggerRefresh,
+        focusInputRootMap: model.focusInputRootMap
     };
 }
 
@@ -485,13 +486,18 @@ function processInputRoots(model: DMModel): IOType[] {
             inputs.push(input);
         }
     }
+
+    model.focusInputRootMap = {};
     const preProcessedModel: DMModel = {
         ...model,
         inputs,
         focusInputs
     };
 
-    return inputs.map(input => processIORoot(input, preProcessedModel));
+    return inputs.map(input => {
+        preProcessedModel.traversingRoot = input.name;
+        return processIORoot(input, preProcessedModel);
+    });
 }
 
 /**
@@ -599,6 +605,10 @@ function processArray(
             parentId = member.name;
             fieldId = member.name;
             isFocused = true;
+
+            if (model.traversingRoot){
+                model.focusInputRootMap[parentId] = model.traversingRoot;
+            }
         }
     }
 

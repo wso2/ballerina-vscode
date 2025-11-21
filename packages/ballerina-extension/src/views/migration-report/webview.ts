@@ -19,6 +19,7 @@
 import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import path from "path";
+import { MigrateIntegrationRpcManager } from "../../rpc-managers/migrate-integration/rpc-manager";
 
 export class MigrationReportWebview {
     public static currentPanel: MigrationReportWebview | undefined;
@@ -29,31 +30,75 @@ export class MigrationReportWebview {
         this._panel = panel;
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
-        const htmlWithStyleRemoval = reportContent.replace(
+        // Get the singleton RPC manager
+        const rpcManager = MigrateIntegrationRpcManager.getInstance();
+
+        // Set up message listener to handle clicks from webview
+        this._panel.webview.onDidReceiveMessage(
+            message => {
+                if (message.type === 'openSubProjectReport') {
+                    // Forward the message to the RPC manager
+                    rpcManager.openSubProjectReport({
+                        projectName: message.projectName
+                    }).catch(error => {
+                        console.error("Failed to open sub-project report:", error);
+                    });
+                }
+            },
+            null,
+            this._disposables
+        );
+
+        const htmlWithScripts = reportContent.replace(
             "</head>",
             `<script>
+                const vscode = acquireVsCodeApi();
                 document.addEventListener('DOMContentLoaded', function() {
                     const defaultStyles = document.getElementById('_defaultStyles');
                     if (defaultStyles) {
                         defaultStyles.remove();
                     }
+
+                    // Handle project report links in aggregate reports
+                    const projectLinks = document.querySelectorAll('a.project-link');
+                    projectLinks.forEach(link => {
+                        link.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
+                            const projectName = this.id || this.textContent.trim();
+
+                            // Validate project name to prevent XSS - allow only alphanumeric, hyphen, underscore
+                            if (/^[a-zA-Z0-9_\-]+$/.test(projectName) && projectName.length > 0) {
+                                // Send message to extension via VS Code webview API
+                                vscode.postMessage({
+                                    type: 'openSubProjectReport',
+                                    projectName: projectName
+                                });
+                            } else {
+                                console.error('Invalid project name format:', projectName);
+                            }
+                        });
+                    });
                 });
             </script></head>`
         );
 
-        this._panel.webview.html = htmlWithStyleRemoval;
+        this._panel.webview.html = htmlWithScripts;
     }
 
     public static createOrShow(fileName: string, reportContent: string): void {
-        if (MigrationReportWebview.currentPanel) {
+        // For the aggregate report (default name), reuse the panel if it exists
+        const isAggregateReport = fileName === "migration-report.html";
+
+        if (isAggregateReport && MigrationReportWebview.currentPanel) {
             MigrationReportWebview.currentPanel._panel.reveal(ViewColumn.Active);
             MigrationReportWebview.currentPanel.updateContent(reportContent);
             return;
         }
 
         const panel = window.createWebviewPanel(
-            "migrationReport",
-            `Migration Report`,
+            isAggregateReport ? "migrationReport" : `migrationReport-${Date.now()}`,
+            isAggregateReport ? `Migration Report` : `Migration Report - ${fileName}`,
             ViewColumn.Active,
             {
                 enableScripts: true,
@@ -66,23 +111,50 @@ export class MigrationReportWebview {
             dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "dark-icon.svg")),
         };
 
-        MigrationReportWebview.currentPanel = new MigrationReportWebview(panel, reportContent);
+        const webview = new MigrationReportWebview(panel, reportContent);
+
+        // Only set as currentPanel if it's the aggregate report
+        if (isAggregateReport) {
+            MigrationReportWebview.currentPanel = webview;
+        }
     }
 
     private updateContent(reportContent: string): void {
-        const htmlWithStyleRemoval = reportContent.replace(
+        const htmlWithScripts = reportContent.replace(
             "</head>",
             `<script>
+                const vscode = acquireVsCodeApi();
                 document.addEventListener('DOMContentLoaded', function() {
                     const defaultStyles = document.getElementById('_defaultStyles');
                     if (defaultStyles) {
                         defaultStyles.remove();
                     }
+
+                    // Handle project report links in aggregate reports
+                    const projectLinks = document.querySelectorAll('a.project-link');
+                    projectLinks.forEach(link => {
+                        link.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            // Extract project name from id attribute (e.g., "narvareapi_ballerina" -> "narvareapi")
+                            const projectName = this.id || this.textContent.trim();
+
+                            // Validate project name to prevent XSS - allow only alphanumeric, hyphen, underscore
+                            if (/^[a-zA-Z0-9_\-]+$/.test(projectName) && projectName.length > 0) {
+                                // Send message to extension via VS Code webview API
+                                vscode.postMessage({
+                                    type: 'openSubProjectReport',
+                                    projectName: projectName
+                                });
+                            } else {
+                                console.error('Invalid project name format:', projectName);
+                            }
+                        });
+                    });
                 });
             </script></head>`
         );
 
-        this._panel.webview.html = htmlWithStyleRemoval;
+        this._panel.webview.html = htmlWithScripts;
     }
 
     public dispose(): void {
