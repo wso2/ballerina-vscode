@@ -47,6 +47,29 @@ const CODEBASE_STRUCTURE_IGNORE_FILES = [
 ];
 
 /**
+ * Files that require path sanitization (temp paths replaced with workspace paths)
+ */
+const FILES_REQUIRING_PATH_SANITIZATION = [
+    'Ballerina.toml'
+];
+
+/**
+ * Sanitizes temp directory paths in file content by replacing them with workspace paths
+ * @param content File content that may contain temp directory paths
+ * @param tempPath Temporary project path to be replaced
+ * @param workspacePath Workspace path to replace with
+ * @returns Sanitized content with workspace paths
+ */
+function sanitizeTempPaths(content: string, tempPath: string, workspacePath: string): string {
+    // Normalize paths to forward slashes for consistent replacement
+    const normalizedTempPath = tempPath.replace(/\\/g, '/');
+    const normalizedWorkspacePath = workspacePath.replace(/\\/g, '/');
+
+    // Replace all occurrences of temp path with workspace path
+    return content.replace(new RegExp(normalizedTempPath, 'g'), normalizedWorkspacePath);
+}
+
+/**
  * Integrates code from temp directory to workspace
  * @param tempProjectPath Path to the temporary project directory
  * @param modifiedFiles Set of file paths that were actually modified during the sessionDependencies.toml
@@ -76,7 +99,15 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
             const fullPath = path.join(tempProjectPath, relativePath);
 
             if (fs.existsSync(fullPath)) {
-                const content = fs.readFileSync(fullPath, 'utf-8');
+                let content = fs.readFileSync(fullPath, 'utf-8');
+
+                // Check if this file requires path sanitization
+                const fileName = path.basename(relativePath);
+                if (FILES_REQUIRING_PATH_SANITIZATION.includes(fileName)) {
+                    content = sanitizeTempPaths(content, tempProjectPath, workspaceFolderPath);
+                    console.log(`[Design Integration] Sanitized temp paths in: ${relativePath}`);
+                }
+
                 fileChanges.push({
                     filePath: relativePath,
                     content: content
