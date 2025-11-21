@@ -22,7 +22,7 @@ import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
 import styled from "@emotion/styled";
 import { FloatingToggleButton } from "../ChipExpressionEditor/components/FloatingToggleButton";
-import { ExpandButton } from "../ChipExpressionEditor/components/FloatingButtonIcons";
+import { ExpandIcon } from "../ChipExpressionEditor/components/FloatingButtonIcons";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -87,9 +87,9 @@ export const TextModeEditor: React.FC<TextModeEditorProps> = ({
                 placeholder={placeholder}
             />
             {onOpenExpandedMode && !isInExpandedMode && (
-                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
                     <FloatingToggleButton onClick={onOpenExpandedMode} title="Expand Editor">
-                        <ExpandButton />
+                        <ExpandIcon />
                     </FloatingToggleButton>
                 </div>
             )}

@@ -20,7 +20,7 @@ import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
-import { Type } from "./interfaces/extended-lang-client";
+import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
 
@@ -63,7 +63,8 @@ export enum SCOPE {
 export type VoidCommands = "OPEN_LOW_CODE" | "OPEN_PROJECT" | "CREATE_PROJECT";
 
 export enum MACHINE_VIEW {
-    Overview = "Overview",
+    PackageOverview = "Overview",
+    WorkspaceOverview = "Workspace Overview",
     BallerinaUpdateView = "Ballerina Update View",
     SequenceDiagram = "Sequence Diagram",
     ServiceDesigner = "Service Designer",
@@ -77,6 +78,7 @@ export enum MACHINE_VIEW {
     BIWelcome = "BI Welcome",
     BIProjectForm = "BI Project SKIP",
     BIImportIntegration = "BI Import Integration SKIP",
+    BIAddProjectForm = "BI Add Project SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
     AddCustomConnector = "Add Custom Connector",
@@ -120,7 +122,9 @@ export type FocusFlowDiagramView = typeof FOCUS_FLOW_DIAGRAM_VIEW[keyof typeof F
 export interface VisualizerLocation {
     view?: MACHINE_VIEW | null;
     documentUri?: string;
-    projectUri?: string;
+    projectPath?: string;
+    workspacePath?: string;
+    projectInfo?: ProjectInfo;
     identifier?: string;
     parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
@@ -277,9 +281,11 @@ export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
+export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
+export const dependencyPullProgress: NotificationType<string> = { method: 'dependencyPullProgress' };
 
 // Artifact updated request and notification
 export const onArtifactUpdatedNotification: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onArtifactUpdatedNotification' };

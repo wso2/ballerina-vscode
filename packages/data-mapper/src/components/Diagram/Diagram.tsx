@@ -36,7 +36,7 @@ import { DataMapperCanvasContainerWidget } from './Canvas/DataMapperCanvasContai
 import { DataMapperCanvasWidget } from './Canvas/DataMapperCanvasWidget';
 import { DefaultState as LinkState } from './LinkState/DefaultState';
 import { DataMapperNodeModel } from './Node/commons/DataMapperNode';
-import { LinkConnectorNode, QueryExprConnectorNode } from './Node';
+import { ClauseConnectorNode, LinkConnectorNode, QueryExprConnectorNode } from './Node';
 import { OverlayLayerFactory } from './OverlayLayer/OverlayLayerFactory';
 import { OverriddenLinkLayerFactory } from './OverriddenLinkLayer/LinkLayerFactory';
 import { useDiagramModel, useFocusLinkedNodes, useRepositionedNodes } from './hooks';
@@ -87,6 +87,7 @@ function initDiagramEngine() {
 	engine.getNodeFactories().registerFactory(new Nodes.QueryOutputNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.LinkConnectorNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.QueryExprConnectorNodeFactory());
+	engine.getNodeFactories().registerFactory(new Nodes.ClauseConnectorNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.DataImportNodeFactory());
 	engine.getNodeFactories().registerFactory(new Nodes.EmptyInputsNodeFactory());
 
@@ -157,10 +158,10 @@ function DataMapperDiagram(props: DataMapperDiagramProps): React.ReactElement {
 		if (!isFetching && engine.getModel()) {
 			const modelNodes = engine.getModel().getNodes();
 			const nodesToUpdate = modelNodes.filter(node => 
-				node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode
+				node instanceof LinkConnectorNode || node instanceof QueryExprConnectorNode || node instanceof ClauseConnectorNode
 			);
 
-			nodesToUpdate.forEach((node: LinkConnectorNode | QueryExprConnectorNode) => {
+			nodesToUpdate.forEach((node: LinkConnectorNode | QueryExprConnectorNode | ClauseConnectorNode) => {
 				const targetPortPosition = node.targetMappedPort?.getPosition();
 				if (targetPortPosition) {
 					node.setPosition(targetPortPosition.x - 155, targetPortPosition.y - 6.5);

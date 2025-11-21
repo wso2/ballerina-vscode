@@ -22,7 +22,6 @@ import { LangClientRpcClient } from "@wso2/ballerina-rpc-client";
 import { DiagnosticData, DiagnosticsResponse } from "@wso2/ballerina-core";
 import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 import * as monaco from "monaco-editor";
-import { VERSION } from "../../../types";
 
 export const FILE_SCHEME = "file://";
 export const EXPR_SCHEME = "expr://";
@@ -107,23 +106,6 @@ async function sendDidChange(docUri: string, content: string, langServerRpcClien
             version: 1,
         },
     });
-}
-
-export function isSupportedSLVersion(balVersion: string, minSupportedVersion: number) {
-    const ballerinaVersion: string = balVersion.toLocaleLowerCase();
-    const isGA: boolean =
-        !ballerinaVersion.includes(VERSION.ALPHA) &&
-        !ballerinaVersion.includes(VERSION.BETA) &&
-        !ballerinaVersion.includes(VERSION.PREVIEW);
-
-    const regex = /(\d+)\.(\d+)\.(\d+)/;
-    const match = ballerinaVersion.match(regex);
-    const currentVersionNumber = match ? Number(match.slice(1).join("")) : 0;
-
-    if (minSupportedVersion <= currentVersionNumber && isGA) {
-        return true;
-    }
-    return false;
 }
 
 export function getTooltipIconComponent(title: string): React.ReactNode {

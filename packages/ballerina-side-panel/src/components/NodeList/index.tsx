@@ -36,7 +36,7 @@ import { GroupListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
-import { getCategoryConfig, shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, CategoryAction } from "./categoryConfig";
+import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -54,6 +54,7 @@ namespace S {
     export const PanelBody = styled(SidePanelBody)`
         height: calc(100vh - 100px);
         padding-top: 0;
+        overflow-y: auto;
     `;
 
     export const StyledSearchInput = styled(SearchBox)`
@@ -237,6 +238,7 @@ namespace S {
         }
     `;
 
+
     export const AdvancedSubTitle = styled.div`
         font-size: 12px;
         opacity: 0.7;
@@ -259,6 +261,18 @@ namespace S {
         &:hover {
             background-color: ${ThemeColors.PRIMARY_CONTAINER};
         }
+    `;
+
+    export const CategoryHeaderFixed = styled.div<{ fullWidth?: boolean }>`
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: -webkit-fill-available;
+        padding: 12px;
+        cursor: default;
+        border-radius: 5px;
+        margin: ${({ fullWidth }) => fullWidth ? '0 -12px' : '0'};
     `;
 
     export const CategoryCard = styled.div<{ hasBackground?: boolean }>`
@@ -589,9 +603,17 @@ export function NodeList(props: NodeListProps) {
                             <S.CategoryCard hasBackground={config.hasBackground && !isSubCategory}>
                                 <S.CategoryRow showBorder={false}>
                                     {!isSubCategory ? (
-                                        <S.CategoryHeader fullWidth={config.hasBackground && !isSubCategory} onClick={() => toggleCategory(group.title)}>
-                                            <S.Row style={{ margin: 0, cursor: 'pointer' }}>
-                                                <S.Title>{group.title}</S.Title>
+                                        (() => {
+                                            const isFixed = isCategoryFixed(group.title);
+                                            const HeaderComponent = isFixed ? S.CategoryHeaderFixed : S.CategoryHeader;
+                                            const headerProps = isFixed ? 
+                                                { fullWidth: config.hasBackground && !isSubCategory } : 
+                                                { fullWidth: config.hasBackground && !isSubCategory, onClick: () => toggleCategory(group.title) };
+                                            
+                                            return (
+                                                <HeaderComponent {...headerProps}>
+                                                    <S.Row style={{ margin: 0, cursor: isFixed ? 'default' : 'pointer' }}>
+                                                        <S.Title>{group.title}</S.Title>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     {categoryActions.map((action, actionIndex) => {
                                                         const handlers = {
@@ -622,14 +644,18 @@ export function NodeList(props: NodeListProps) {
                                                             </Tooltip>
                                                         );
                                                     })}
-                                                    <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
-                                                        <S.ChevronIcon isExpanded={isCategoryExpanded}>
-                                                            <Codicon name="chevron-right" />
-                                                        </S.ChevronIcon>
-                                                    </Tooltip>
+                                                    {!isFixed && (
+                                                        <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
+                                                            <S.ChevronIcon isExpanded={isCategoryExpanded}>
+                                                                <Codicon name="chevron-right" />
+                                                            </S.ChevronIcon>
+                                                        </Tooltip>
+                                                    )}
                                                 </div>
                                             </S.Row>
-                                        </S.CategoryHeader>
+                                        </HeaderComponent>
+                                            );
+                                        })()
                                     ) : (
                                         <S.Row>
                                             <Tooltip content={group.description}>
@@ -637,7 +663,7 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {isCategoryExpanded && (
+                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
                                             {(!group.items || group.items.length === 0) &&
                                                 !searchText &&

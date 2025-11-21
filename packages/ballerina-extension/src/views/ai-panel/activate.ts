@@ -17,20 +17,54 @@
  */
 
 import * as vscode from 'vscode';
-import { AIPanelPrompt, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { AIPanelPrompt, EVENT_TYPE, MACHINE_VIEW, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { closeAIWebview, openAIWebview } from './aiMachine';
 import { BallerinaExtension } from '../../core';
 import { notifyAiWebview } from '../../RPCLayer';
+import { openView, StateMachine } from '../../stateMachine';
 
 export function activateAiPanel(ballerinaExtInstance: BallerinaExtension) {
     ballerinaExtInstance.context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_AI_PANEL, (defaultPrompt?: AIPanelPrompt) => {
-            if (defaultPrompt instanceof vscode.Uri) {
-                // Passed directly from vscode side
-                openAIWebview(null);
-            } else {
-                openAIWebview(defaultPrompt);
+        vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_AI_PANEL, async (defaultPrompt?: AIPanelPrompt) => {
+            const context = StateMachine.context();
+            const { workspacePath, view, projectPath, projectInfo } = context;
+
+            // Determine if package selection is required
+            const requiresPackageSelection = 
+                workspacePath && 
+                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath);
+
+            if (requiresPackageSelection) {
+                const availablePackages = projectInfo?.children.map((child) => child.projectPath) ?? [];
+                
+                // No packages available, open webview with no context
+                if (availablePackages.length === 0) {
+                    openAIWebview(null);
+                    return;
+                }
+
+                try {
+                    const selectedPackage = await vscode.window.showQuickPick(availablePackages, {
+                        placeHolder: "Select a package to open AI panel",
+                        ignoreFocusOut: false
+                    });
+
+                    // User cancelled selection
+                    if (!selectedPackage) {
+                        return;
+                    }
+
+                    // StateMachine.updateProjectRoot(selectedPackage);
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview, projectPath: selectedPackage });
+                } catch (error) {
+                    console.error("Error selecting package:", error);
+                    return;
+                }
             }
+
+            // Open webview with appropriate prompt
+            const prompt = defaultPrompt instanceof vscode.Uri ? null : defaultPrompt;
+            openAIWebview(prompt);
         })
     );
     ballerinaExtInstance.context.subscriptions.push(

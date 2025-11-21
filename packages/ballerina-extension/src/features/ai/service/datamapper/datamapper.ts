@@ -29,11 +29,10 @@ import { getDataMappingPrompt } from "./dataMappingPrompt";
 import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { getErrorMessage } from "../utils";
-import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, extractRecordTypes, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
+import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, createTempBallerinaDir, createTempFileAndGenerateMetadata, getFunctionDefinitionFromSyntaxTree, getUniqueFunctionFilePaths, prepareMappingContext, generateInlineMappingsSource, generateTypesFromContext, repairCodeAndGetUpdatedContent, extractImports, generateDataMapperModel, determineCustomFunctionsPath, generateMappings, getCustomFunctionsContent } from "../../dataMapping";
 import { BiDiagramRpcManager, getBallerinaFiles } from "../../../../../src/rpc-managers/bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../../../../src/utils/source-utils";
-import { getBallerinaProjectRoot } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
-import { StateMachine } from "../../../../../src/stateMachine";
+import { StateMachine } from "../../../../stateMachine";
 import { extractVariableDefinitionSource, getHasStopped, setHasStopped } from "../../../../../src/rpc-managers/data-mapper/utils";
 import { commands, Uri, window } from "vscode";
 import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
@@ -62,6 +61,7 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const mappingsModel = dataMapperModelResponse.mappingsModel as DMModel;
             const existingMappings = mappingsModel.mappings;
             const userProvidedMappingHints = mappingsModel.mapping_fields || {};
+            const existingSubMappings = mappingsModel.subMappings as Mapping[] || [];
 
             if (!mappingsModel.inputs || !mappingsModel.output) {
                 throw new Error("Mappings model must contain both inputs and output fields");
@@ -77,7 +77,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
             const aiGeneratedMappings = await generateAIMappings(
                 dataModelStructure,
                 existingMappings,
-                userProvidedMappingHints
+                userProvidedMappingHints,
+                existingSubMappings
             );
 
             if (Object.keys(aiGeneratedMappings).length === 0) {
@@ -99,7 +100,8 @@ async function generateAIPoweredDataMappings(dataMapperModelResponse: DataMapper
 async function generateAIMappings(
     dataModelStructure: DataModelStructure,
     existingUserMappings: Mapping[],
-    userProvidedMappingHints: { [key: string]: MappingFields }
+    userProvidedMappingHints: { [key: string]: MappingFields },
+    existingSubMappings: Mapping[]
 ): Promise<Mapping[]> {
     if (!dataModelStructure.inputs || !dataModelStructure.output) {
         throw new Error("Data model structure must contain inputs and output");
@@ -109,7 +111,8 @@ async function generateAIMappings(
     const aiPrompt = getDataMappingPrompt(
         JSON.stringify(dataModelStructure),
         JSON.stringify(existingUserMappings || []),
-        JSON.stringify(userProvidedMappingHints || {})
+        JSON.stringify(userProvidedMappingHints || {}),
+        JSON.stringify(existingSubMappings || [])
     );
 
     const chatMessages: ModelMessage[] = [
@@ -257,7 +260,7 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     const biDiagramRpcManager = new BiDiagramRpcManager();
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectPath;
 
     const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -338,15 +341,24 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
 
-    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits });
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await updateSourceCode({ textEdits: sourceCodeResponse.textEdits, skipPayloadCheck: true });
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string;
     let customFunctionsFileName: string;
-    
+
     if (allMappingsRequest.customFunctionsFilePath) {
-        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
-        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
+        customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
+
+        // For workspace projects, make path relative to workspace root
+        const workspacePath = context.workspacePath;
+        if (workspacePath) {
+            customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
+        } else {
+            // Normal project: use relative path from project root
+            customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+        }
     }
 
     // Check if mappings file and custom functions file are the same
@@ -392,7 +404,15 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     );
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    let targetFilePath = path.join(projectRoot, mappingContext.filePath);
+    // For workspace projects, compute relative file path from workspace root
+    const workspacePath = context.workspacePath;
+    let targetFilePath = mappingContext.filePath;
+
+    if (workspacePath) {
+        // Workspace project: need to include package path prefix (e.g., "foo/mappings.bal")
+        const absoluteFilePath = path.join(projectRoot, mappingContext.filePath);
+        targetFilePath = path.relative(workspacePath, absoluteFilePath);
+    }
 
     const generatedSourceFiles = buildMappingFileArray(
         targetFilePath,
@@ -413,12 +433,12 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     if (isSameFile) {
         const mergedContent = `${generatedFunctionDefinition.source}\n${customContent}`;
-        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
     } else {
-        assistantResponse += `<code filename="${mappingContext.filePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
 
         if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
         }
     }
 
@@ -440,9 +460,9 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
 }
 
 async function collectAllImportsFromProject(): Promise<ProjectImports> {
-    const projectUri = StateMachine.context().projectUri;
+    const projectPath = StateMachine.context().projectPath;
 
-    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectUri).fsPath);
+    const ballerinaSourceFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
 
     const importStatements: ImportStatements[] = [];
 
@@ -454,7 +474,7 @@ async function collectAllImportsFromProject(): Promise<ProjectImports> {
     }
 
     return {
-        projectPath: projectUri,
+        projectPath: projectPath,
         imports: importStatements,
     };
 }
@@ -637,20 +657,29 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = await getBallerinaProjectRoot();
+    const projectRoot = context.projectPath;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context);
 
-    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits });
+    await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     let customFunctionsTargetPath: string | undefined;
     let customFunctionsFileName: string | undefined;
-    
+
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
-        customFunctionsTargetPath = determineCustomFunctionsPath(projectRoot, targetFileName);
-        customFunctionsFileName = path.basename(customFunctionsTargetPath);
+        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, targetFileName);
+        customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
+
+        // For workspace projects, make path relative to workspace root
+        const workspacePath = context.workspacePath;
+        if (workspacePath) {
+            customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
+        } else {
+            // Normal project: use relative path from project root
+            customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+        }
     }
 
     // Check if mappings file and custom functions file are the same
@@ -688,8 +717,17 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         }, langClient, projectRoot);
     }
 
+    // For workspace projects, compute relative file path from workspace root
+    let targetFilePath = path.relative(projectRoot, context.documentUri);
+    const workspacePath = context.workspacePath;
+
+    if (workspacePath) {
+        // Workspace project: make path relative to workspace root (e.g., "foo/mappings.bal")
+        targetFilePath = path.relative(workspacePath, context.documentUri);
+    }
+
     const generatedSourceFiles = buildMappingFileArray(
-        context.documentUri,
+        targetFilePath,
         codeRepairResult.finalContent,
         customFunctionsTargetPath,
         codeRepairResult.customFunctionsContent,
@@ -715,12 +753,12 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     if (isSameFile) {
         const mergedCodeDisplay = customContent ? `${codeToDisplay}\n${customContent}` : codeToDisplay;
-        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
     } else {
-        assistantResponse += `<code filename="${targetFileName}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
+        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
 
         if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
         }
     }
 
@@ -761,24 +799,20 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
 
     try {
         const biDiagramRpcManager = new BiDiagramRpcManager();
+        const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
 
-        // Generate types from context
-        const { typesCode, filePath, recordMap } = await generateTypesFromContext(
+        // Generate types from context with validation
+        const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
-            projectComponents
+            projectComponents,
+            langClient
         );
 
-        const extractedNewRecords = extractRecordTypes(typesCode);
-        for (const newRecord of extractedNewRecords) {
-            if (recordMap.has(newRecord.name)) {
-                throw new Error(`Record "${newRecord.name}" already exists in the workspace.`);
-            }
-        }
-
         // Build assistant response
-        const sourceAttachmentName = typeCreationRequest.attachments?.[0]?.name || "attachment";
-        assistantResponse = `Record types generated from the ${sourceAttachmentName} file shown below.\n`;
+        const sourceAttachmentNames = typeCreationRequest.attachments?.map(a => a.name).join(", ") || "attachment";
+        const fileText = typeCreationRequest.attachments?.length === 1 ? "file" : "files";
+        assistantResponse = `Record types generated from the ${sourceAttachmentNames} ${fileText} shown below.\n`;
         assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
 
         // Send assistant response through event handler

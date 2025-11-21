@@ -27,8 +27,8 @@ import ListenerConfigForm from "./Forms/ListenerConfigForm";
 import { ServiceEditView } from "./ServiceEditView";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
-import DynamicModal from "../../../components/Modal";
 import { getReadableListenerName } from "./utils";
+import { POPUP_IDS, useModalStack } from "../../../Context";
 
 const Container = styled.div`
     width: 100%;
@@ -163,6 +163,7 @@ namespace S {
 const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 
 export interface ServiceConfigureProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
     listenerName?: string;
@@ -199,14 +200,15 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
     const [listeners, setListeners] = useState<ProjectStructureArtifactResponse[]>([]);
 
-    const [showAttachListenerModal, setShowAttachListenerModal] = useState<boolean>(false);
-
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
     const [changeMap, setChangeMap] = useState<{ [key: string]: ChangeMap }>({});
+
+    const { addModal, closeModal } = useModalStack()
+
     // Helper function to create key from filePath and position
     const getChangeKey = (filePath: string, position: NodePosition) => {
         return `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
@@ -454,11 +456,11 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     }
 
     const setServiceListeners = (service: ServiceModel) => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (service?.properties?.listener) {
                     const listenerProperty = service.properties.listener.properties;
                     const listenersToSet: ProjectStructureArtifactResponse[] = [];
@@ -485,8 +487,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     setListeners(listenersToSet);
                 }
             });
+        });
     };
-
 
     const handleOnAttachListener = async (listenerName: string) => {
         if (serviceModel.properties['listener'].value && serviceModel.properties['listener'].values.length === 0) {
@@ -496,7 +498,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
         await fetchService(updatedArtifact.position);
-        setShowAttachListenerModal(false);
+        closeModal(POPUP_IDS.ATTACH_LISTENER);
         setChangeMap({});
     }
 
@@ -558,7 +560,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath} />
             {!serviceModel && (
                 <LoadingContainer>
                     <LoadingRing message="Loading service..." />
@@ -738,26 +740,16 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                 {/* Add a button to attach a new listener and when clicked, open a new modal to select a listener if multiple listener are allowed */}
                                                                 {listenerType === "MULTIPLE" && (
                                                                     <LinkButton sx={{ marginTop: '10px', marginLeft: '18px' }} onClick={() => {
-                                                                        setShowAttachListenerModal(true);
+                                                                        addModal(
+                                                                            <AttachListenerModal
+                                                                                filePath={props.filePath}
+                                                                                moduleName={serviceModel.moduleName}
+                                                                                onAttachListener={handleOnAttachListener}
+                                                                                attachedListeners={listeners.map(listener => listener.name)}
+                                                                            />
+                                                                            , POPUP_IDS.ATTACH_LISTENER, "Attach Listener", 600, 500);
                                                                     }}> <Codicon name="add" /> Attach Listener</LinkButton>
                                                                 )}
-
-                                                                <DynamicModal
-                                                                    key="attach-listener-modal"
-                                                                    title="Attach Listener"
-                                                                    anchorRef={undefined}
-                                                                    width={420}
-                                                                    height={450}
-                                                                    openState={showAttachListenerModal}
-                                                                    setOpenState={setShowAttachListenerModal}
-                                                                >
-                                                                    <AttachListenerModal
-                                                                        filePath={props.filePath}
-                                                                        moduleName={serviceModel.moduleName}
-                                                                        onAttachListener={handleOnAttachListener}
-                                                                        attachedListeners={listeners.map(listener => listener.name)}
-                                                                    />
-                                                                </DynamicModal>
                                                             </div>
                                                         )}
                                                     </>
@@ -986,7 +978,7 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                         </S.Grid>
                     )}
                 </S.TabContainer>
-                <S.TabContainer id="new" data-testid="new-tab">
+                <S.TabContainer id="new" data-testid="new-tab" style={{ overflow: 'auto' }}>
                     {isLoading && (
                         <S.LoadingContainer>
                             <ProgressRing />

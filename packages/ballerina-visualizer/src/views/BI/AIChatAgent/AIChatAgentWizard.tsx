@@ -136,7 +136,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
             const visualizerLocation = await rpcClient.getVisualizerLocation();
-            projectPath.current = visualizerLocation.projectUri;
+            projectPath.current = visualizerLocation.projectPath;
 
             // hack: fetching from Central to build module dependency map in LS may take time
             progressTimeoutRef.current = setTimeout(() => {
@@ -170,6 +170,68 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const modelVarName = `${agentName}` + MODEL;
             modelNodeTemplate.properties.variable.value = modelVarName;
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
+
+            // hack: Generate agent at module level for Ballerina versions under 2201.13.0
+            let ballerinaVersion: string | undefined;
+            try {
+                const versionResponse = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
+                ballerinaVersion = versionResponse?.version;
+            } catch (error) {
+                console.warn("Unable to resolve Ballerina version; falling back to legacy agent generation.", error);
+            }
+
+            // Execute for versions under 2201.13.0, or if version cannot be determined (safety fallback)
+            const executeForLegacyVersion = !ballerinaVersion || (() => {
+                const parts = ballerinaVersion.split('.');
+                if (parts.length < 2) {
+                    return true; // Can't parse properly, execute for safety
+                }
+                const majorVersion = parseInt(parts[0], 10);
+                const minorVersion = parseInt(parts[1], 10);
+                if (isNaN(majorVersion) || isNaN(minorVersion)) {
+                    return true; // Can't parse version numbers, execute for safety
+                }
+                // Only versions < 2201.13 are legacy
+                if (majorVersion < 2201) {
+                    return true;
+                }
+                if (majorVersion > 2201) {
+                    return false;
+                }
+                return minorVersion < 13;
+            })();
+
+            if (executeForLegacyVersion) {
+                // Search for agent node in the current file
+                const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                    filePath: projectPath.current,
+                    queryMap: { orgName: aiModuleOrg.current },
+                    searchKind: "AGENT"
+                });
+
+                // Validate search response structure
+                if (!agentSearchResponse?.categories?.[0]?.items?.[0]) {
+                    throw new Error('No agent node found in search response');
+                }
+
+                const agentNode = agentSearchResponse.categories[0].items[0] as AvailableNode;
+                console.log(">>> agentNode", agentNode);
+
+                // Generate template from agent node
+                const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
+
+                // save the agent node
+                const systemPromptValue = `{role: string \`\`, instructions: string \`\`}`;
+                const agentVarName = `${agentName}Agent`;
+                agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
+                agentNodeTemplate.properties.model.value = modelVarName;
+                agentNodeTemplate.properties.tools.value = [];
+                agentNodeTemplate.properties.variable.value = agentVarName;
+
+                await rpcClient
+                    .getBIDiagramRpcClient()
+                    .getSourceCode({ filePath: projectPath.current, flowNode: agentNodeTemplate });
+            }
 
             setCurrentStep(3);
 
@@ -237,7 +299,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath.current} />
             <TitleBar
                 title="AI Chat Agent"
                 subtitle="Create a chattable AI agent using an LLM, prompts and tools."

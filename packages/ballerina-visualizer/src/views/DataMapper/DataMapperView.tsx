@@ -67,7 +67,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
+    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -478,7 +478,7 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToFunction = async (functionRange: LineRange) => {
-        const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath(functionRange.fileName);
+        const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
         const position: NodePosition = {
             startLine: functionRange.startLine.line,
             startColumn: functionRange.startLine.offset,
@@ -667,7 +667,7 @@ export function DataMapperView(props: DataMapperProps) {
                 <>
                     {reusable && (!hasInputs || !hasOutputs) ? (
                         <FunctionForm
-                            projectPath={projectUri}
+                            projectPath={projectPath}
                             filePath={filePath}
                             functionName={modelState.model.output.name}
                             isDataMapper={true}
@@ -714,7 +714,7 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.name),
+    inputs: [...model.inputs.map(i => i.name), ...(model.query?.inputs || [])],
     output: model.output.name,
     subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''

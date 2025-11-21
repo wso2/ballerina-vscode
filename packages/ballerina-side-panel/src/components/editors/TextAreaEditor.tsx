@@ -24,7 +24,7 @@ import { S } from "./ExpressionEditor";
 import { Controller } from "react-hook-form";
 import { ExpandedEditor } from "./ExpandedEditor";
 import styled from "@emotion/styled";
-import { ExpandButton } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { ExpandIcon } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { FloatingToggleButton } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingToggleButton";
 
 interface TextAreaEditorProps {
@@ -104,22 +104,23 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 onChange={onChange}
                                 growRange={{ start: 4, offset: 12 }}
                             />
-                            <div id="textarea-editor-expand" style={{ position: 'absolute', bottom: '7px', right: '8px' }}>
+                            <div id="textarea-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
                                 <FloatingToggleButton onClick={handleOpenExpandedMode} title="Expand Editor">
-                                    <ExpandButton />
+                                    <ExpandIcon />
                                 </FloatingToggleButton>
                             </div>
+                            <ExpandedEditor
+                                isOpen={isExpandedModalOpen}
+                                field={field}
+                                value={watch(field.key)}
+                                onClose={() => setIsExpandedModalOpen(false)}
+                                onSave={handleSaveExpandedMode} 
+                                onChange={onChange}
+                            />
                         </TextAreaContainer>
                     )}
                 />
             </S.Container>
-            <ExpandedEditor
-                isOpen={isExpandedModalOpen}
-                field={field}
-                value={watch(field.key)}
-                onClose={() => setIsExpandedModalOpen(false)}
-                onSave={handleSaveExpandedMode}
-            />
         </>
     );
 }

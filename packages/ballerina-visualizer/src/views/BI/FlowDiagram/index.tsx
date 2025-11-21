@@ -46,6 +46,7 @@ import {
     SearchKind,
     DataMapperDisplayMode,
     CodeData,
+    JoinProjectPathRequest,
 } from "@wso2/ballerina-core";
 
 import {
@@ -898,29 +899,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        const currentArtifact = await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
-        if (currentArtifact) {
-            console.log(">>> currentArtifact", currentArtifact);
-            if (isCreatingNewModelProvider.current) {
-                isCreatingNewModelProvider.current = false;
-                await handleModelProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorStore.current) {
-                isCreatingNewVectorStore.current = false;
-                await handleVectorStoreAdded();
-                return;
-            }
-            if (isCreatingNewEmbeddingProvider.current) {
-                isCreatingNewEmbeddingProvider.current = false;
-                await handleEmbeddingProviderAdded();
-                return;
-            }
-            if (isCreatingNewVectorKnowledgeBase.current) {
-                isCreatingNewVectorKnowledgeBase.current = false;
-                await handleVectorKnowledgeBaseAdded();
-                return;
-            }
+        await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
+
+        if (isCreatingNewModelProvider.current) {
+            isCreatingNewModelProvider.current = false;
+            await handleModelProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorStore.current) {
+            isCreatingNewVectorStore.current = false;
+            await handleVectorStoreAdded();
+            return;
+        }
+        if (isCreatingNewEmbeddingProvider.current) {
+            isCreatingNewEmbeddingProvider.current = false;
+            await handleEmbeddingProviderAdded();
+            return;
+        }
+        if (isCreatingNewVectorKnowledgeBase.current) {
+            isCreatingNewVectorKnowledgeBase.current = false;
+            await handleVectorKnowledgeBaseAdded();
+            return;
         }
         if (isCreatingNewDataLoader.current) {
             isCreatingNewDataLoader.current = false;
@@ -1810,11 +1809,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         suggestedText.current = undefined;
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition, identifier?: string) => {
+    const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
-            identifier: identifier,
+            documentUri: location.documentUri,
+            position: location.position,
+            identifier: location.identifier,
+            projectPath: location.projectPath || undefined,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -1867,7 +1867,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         if (agentMemoryValue) {
             const fileName = agentNode.codedata?.lineRange?.fileName;
             if (fileName) {
-                const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+                const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
                 const startLine = agentNode.codedata?.lineRange?.startLine;
                 const linePosition = startLine
                     ? {
@@ -1918,7 +1918,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 if (memoryVar) {
                     const memoryNode = await findFlowNodeByModuleVarName(memoryVar, rpcClient);
                     if (memoryNode) {
-                        const memoryFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(memoryNode.codedata.lineRange.fileName);
+                        const memoryFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [memoryNode.codedata.lineRange.fileName] })).filePath;
                         await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
                             filePath: memoryFilePath,
                             flowNode: memoryNode,
@@ -1929,7 +1929,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
             // Remove memory manager from agent node
             agentNode.properties.memory.value = "()";
-            const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentNode.codedata.lineRange.fileName);
+            const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentNode.codedata.lineRange.fileName] })).filePath;
             await rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({ filePath: agentFilePath, flowNode: agentNode });
@@ -2076,9 +2076,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         // Delete the MCP variable node
-        const mcpVariableFilePath = await rpcClient
+        const mcpVariableFilePath = (await rpcClient
             .getVisualizerRpcClient()
-            .joinProjectPath(mcpVariable.codedata.lineRange.fileName);
+            .joinProjectPath({ segments: [mcpVariable.codedata.lineRange.fileName] })).filePath;
 
         await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
             filePath: mcpVariableFilePath,
@@ -2098,9 +2098,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
 
-        const classFilePath = await rpcClient
+        const classFilePath = (await rpcClient
             .getVisualizerRpcClient()
-            .joinProjectPath(classLineRange.fileName);
+            .joinProjectPath({ segments: [classLineRange.fileName] })).filePath;
 
         await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
             filePath: classFilePath,
@@ -2121,9 +2121,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         try {
             const agentNode = await findAgentNodeFromAgentCallNode(node, rpcClient);
-            const agentFilePath = await rpcClient
+            const agentFilePath = (await rpcClient
                 .getVisualizerRpcClient()
-                .joinProjectPath(agentNode.codedata.lineRange.fileName);
+                .joinProjectPath({ segments: [agentNode.codedata.lineRange.fileName] })).filePath;
 
             // Remove the tool from the agent node
             const updatedAgentNode = await removeToolFromAgentNode(agentNode, tool.name);
@@ -2171,11 +2171,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(false);
-        handleOpenView(agentFilePath, {
-            startLine: functionInfo.startLine,
-            startColumn: functionInfo.startColumn,
-            endLine: functionInfo.endLine,
-            endColumn: functionInfo.endColumn,
+        handleOpenView({
+            documentUri: agentFilePath,
+            position: {
+                startLine: functionInfo.startLine,
+                startColumn: functionInfo.startColumn,
+                endLine: functionInfo.endLine,
+                endColumn: functionInfo.endColumn,
+            }
         });
     };
 
@@ -2187,8 +2190,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSidePanelView(targetPanel);
     };
 
-    const handleGetProjectPath = async (segments: string | string[]) => {
-        return rpcClient.getVisualizerRpcClient().joinProjectPath(segments);
+    const handleGetProjectPath = async (props: JoinProjectPathRequest) => {
+        return rpcClient.getVisualizerRpcClient().joinProjectPath(props);
     };
 
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;

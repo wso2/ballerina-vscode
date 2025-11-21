@@ -48,6 +48,7 @@ import {
     Type,
     VisualizableField,
     NodeProperties,
+    VisualizerLocation,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -323,7 +324,7 @@ export interface FormProps {
     onFormValidation?: (data: FormValues, dirtyFields?: any) => Promise<boolean>;
     isSaving?: boolean;
     openRecordEditor?: (isOpen: boolean, fields: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
-    openView?: (filePath: string, position: NodePosition) => void;
+    openView?: (location: VisualizerLocation) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     subPanelView?: SubPanelView;
     onCancelForm?: () => void;
@@ -421,7 +422,7 @@ export const Form = forwardRef((props: FormProps) => {
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
-    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Optional Configurations");
+    const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Advanced Configurations");
 
     const markdownRef = useRef<HTMLDivElement>(null);
 
@@ -493,7 +494,7 @@ export const Form = forwardRef((props: FormProps) => {
             reset(defaultValues);
 
             if (changeOptionalFieldTitle) {
-                setOptionalFieldsTitle("Optional Listener Configurations");
+                setOptionalFieldsTitle("Advanced Configurations");
             }
         }
     }, [formFields, reset]);
@@ -613,11 +614,16 @@ export const Form = forwardRef((props: FormProps) => {
         },
         targetLineRange,
         fileName,
-        popupManager: popupManager
+        popupManager: popupManager,
+        nodeInfo: {
+            kind: selectedNode,
+        }
     };
 
     // Find the first editable field
-    const firstEditableFieldIndex = formFields.findIndex((field) => field.editable !== false);
+    const firstEditableFieldIndex = formFields.findIndex(
+        (field) => field.editable !== false && (field.value == null || field.value === '')
+    );
 
     const isValid = useMemo(() => {
         let hasDiagnostics: boolean = false;

@@ -19,13 +19,18 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { ThemeColors, Codicon, Divider, Button, Typography } from "@wso2/ui-toolkit";
-import { FormField } from "../../Form/types";
-import { S } from "../ExpressionEditor";
-import ReactMarkdown from "react-markdown";
+import { ThemeColors, Divider, Typography, CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { FormField, HelperpaneOnChangeOptions } from "../../Form/types";
 import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
+import { ExpressionMode } from "./modes/ExpressionMode";
+import { TemplateMode } from "./modes/TemplateMode";
+import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
+import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
+import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { FieldError } from "react-hook-form";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -33,6 +38,29 @@ interface ExpandedPromptEditorProps {
     value: string;
     onClose: () => void;
     onSave: (value: string) => void;
+    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    // Optional mode override (if not provided, will be auto-detected)
+    mode?: EditorMode;
+    // Expression mode specific props
+    completions?: CompletionItem[];
+    fileName?: string;
+    targetLineRange?: LineRange;
+    sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
+    // Error diagnostics props
+    error?: FieldError;
+    formDiagnostics?: DiagnosticMessage[];
 }
 
 const ModalContainer = styled.div`
@@ -41,7 +69,7 @@ const ModalContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 30000;
+    z-index: 2001;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,17 +78,22 @@ const ModalContainer = styled.div`
 `;
 
 const ModalBox = styled.div`
-    width: 800px;
+    width: 1000px;
+    max-width: 95vw;
+    min-width: 800px;
+    height: 80vh;
     max-height: 90vh;
+    min-height: 600px;
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     padding: 8px 8px;
     border-radius: 3px;
     background-color: ${ThemeColors.SURFACE_DIM};
     box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-    z-index: 30001;
+    z-index: 2001;
+    resize: both;
 `;
 
 const ModalHeaderSection = styled.header`
@@ -73,17 +106,40 @@ const ModalHeaderSection = styled.header`
 
 const ModalContent = styled.div`
     flex: 1;
-    overflow-y: auto;
-    padding: 18px 16px;
+    overflow-y: hidden;
+    padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
 `;
 
-const ButtonContainer = styled.div`
+const MinimizeButton = styled.div`
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 0 16px 8px 16px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    border-radius: 2px;
+
+    &:hover {
+        opacity: 1;
+        background-color: var(--vscode-editor-inactiveSelectionBackground);
+    }
+
+    svg {
+        width: 16px;
+        height: auto;
+    }
+`;
+
+const TitleWrapper = styled.div`
+    margin: 12px 0;
+    
+    h3 {
+        margin: 0;
+    }
 `;
 
 /**
@@ -91,7 +147,9 @@ const ButtonContainer = styled.div`
  */
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     text: TextMode,
-    prompt: PromptMode
+    prompt: PromptMode,
+    expression: ExpressionMode,
+    template: TemplateMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -99,17 +157,33 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     field,
     value,
     onClose,
+    onChange,
     onSave,
+    mode: propMode,
+    completions,
+    fileName,
+    targetLineRange,
+    sanitizedExpression,
+    rawExpression,
+    extractArgsFromFunction,
+    getHelperPane,
+    error,
+    formDiagnostics
 }) => {
-    const [editedValue, setEditedValue] = useState(value);
     const promptFields = ["query", "instructions", "role"];
-    const defaultMode: EditorMode = promptFields.includes(field.key) ? "prompt" : "text";
-    const [mode] = useState<EditorMode>(defaultMode);
+
+    // Determine mode - use prop if provided, otherwise auto-detect
+    const defaultMode: EditorMode = propMode ?? (
+        promptFields.includes(field.key) ? "prompt" : "text"
+    );
+
+    const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [showPreview, setShowPreview] = useState(false);
+    const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
-        setEditedValue(value);
-    }, [value, isOpen]);
+        setMode(defaultMode);
+    }, [defaultMode]);
 
     useEffect(() => {
         if (mode === "text") {
@@ -117,14 +191,20 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         }
     }, [mode]);
 
-    const handleSave = () => {
-        onSave(editedValue);
+    const handleMinimize = () => {
         onClose();
     };
 
-    const handleCancel = () => {
-        setEditedValue(value);
-        onClose();
+    const handleBackdropMouseDown = (e: React.MouseEvent) => {
+        setMouseDownTarget(e.target);
+    };
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        // Only close if both mousedown and click happened on the backdrop
+        if (e.target === e.currentTarget && mouseDownTarget === e.currentTarget) {
+            handleMinimize();
+        }
+        setMouseDownTarget(null);
     };
 
     if (!isOpen) return null;
@@ -134,24 +214,54 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     // Prepare props for the mode component
     const modeProps = {
-        value: editedValue,
-        onChange: setEditedValue,
+        value: value,
+        onChange: onChange,
         field,
         // Props for modes with preview support
         ...(mode === "prompt" && {
             isPreviewMode: showPreview,
-            onTogglePreview: () => setShowPreview(!showPreview)
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
+        }),
+        // Props for expression mode
+        ...(mode === "expression" && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            error,
+            formDiagnostics
+        }),
+        // Props for template mode
+        ...(mode === "template" && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            isPreviewMode: showPreview,
+            onTogglePreview: (enabled: boolean) => setShowPreview(enabled),
+            error,
+            formDiagnostics
         })
     };
+    // HACK: Must find a proper central way to manager popups
+    const targetEl = document.getElementById("visualizer-container");
 
-    return createPortal(
-        <ModalContainer>
+    return targetEl ? createPortal(
+        <ModalContainer onMouseDown={handleBackdropMouseDown} onClick={handleBackdropClick}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
                 <ModalHeaderSection>
-                    <Typography variant="h3">{field.label}</Typography>
-                    <div onClick={handleCancel} style={{ cursor: 'pointer' }}>
-                        <Codicon name="close" />
-                    </div>
+                    <TitleWrapper>
+                        <Typography variant="h3">{field.label}</Typography>
+                    </TitleWrapper>
+                    <MinimizeButton onClick={handleMinimize} title="Minimize">
+                        <MinimizeIcon />
+                    </MinimizeButton>
                 </ModalHeaderSection>
                 <div style={{ padding: "0 16px" }}>
                     <Divider sx={{ margin: 0 }} />
@@ -159,16 +269,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 <ModalContent>
                     <ModeComponent {...modeProps} />
                 </ModalContent>
-                <ButtonContainer>
-                    <Button appearance="secondary" onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                    <Button appearance="primary" onClick={handleSave}>
-                        Save
-                    </Button>
-                </ButtonContainer>
             </ModalBox>
         </ModalContainer>,
-        document.body
-    );
+        targetEl
+    ) : null;
 };

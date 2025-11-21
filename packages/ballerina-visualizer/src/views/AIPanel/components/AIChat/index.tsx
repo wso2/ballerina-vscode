@@ -33,7 +33,6 @@ import {
     TestPlanGenerationRequest,
     TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
-    SourceFiles,
     ChatEntry,
     OperationType,
     GENERATE_TEST_AGAINST_THE_REQUIREMENT,
@@ -196,7 +195,7 @@ const AIChat: React.FC = () => {
     async function fetchBackendUrl() {
         try {
             backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
+            chatLocation = (await rpcClient.getVisualizerLocation()).projectPath ;
             setIsReqFileExists(
                 chatLocation != null &&
                 chatLocation != undefined &&
@@ -817,7 +816,7 @@ const AIChat: React.FC = () => {
                 if (command === "ai_map") {
                     const matchingFile = filePaths?.find(file => {
                         const filePathName = file.filePath.split('/').pop();
-                        return filePathName === filePath;
+                        return filePathName === filePath.split('/').pop();
                     });
                     segmentText = matchingFile.content
                 } else if (command === "test" || command === "type_creator") {
@@ -1316,7 +1315,8 @@ const AIChat: React.FC = () => {
 
         await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
             diagnostics: currentDiagnostics,
-            assistantResponse: messages[messages.length - 1].content,
+            assistantResponse: messages[messages.length - 1].content, // XML format with code blocks
+            updatedFileNames: [], // Will be determined from parsed XML
             previousMessages: messagesRef.current,
         });
     };
@@ -1714,20 +1714,6 @@ export function parseSSEEvent(chunk: string): SSEEvent {
     }
 }
 
-export function getProjectFromResponse(req: string): ProjectSource {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(req)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({ filePath, content: fileContent });
-    }
-
-    return { sourceFiles, projectName: "" };
-}
-
 export enum SegmentType {
     Code = "Code",
     Text = "Text",
@@ -1942,34 +1928,6 @@ function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_REQUIREMENT) &&
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED)
         );
-}
-
-function transformProjectSource(project: ProjectSource): SourceFiles[] {
-    const sourceFiles: SourceFiles[] = [];
-    project.sourceFiles.forEach((file) => {
-        sourceFiles.push({
-            filePath: file.filePath,
-            content: file.content,
-        });
-    });
-    project.projectModules?.forEach((module) => {
-        let basePath = "";
-        if (!module.isGenerated) {
-            basePath += "modules/";
-        } else {
-            basePath += "generated/";
-        }
-
-        basePath += module.moduleName + "/";
-        // const path =
-        module.sourceFiles.forEach((file) => {
-            sourceFiles.push({
-                filePath: basePath + file.filePath,
-                content: file.content,
-            });
-        });
-    });
-    return sourceFiles;
 }
 
 function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {

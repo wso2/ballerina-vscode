@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import React from "react";
 import styled from "@emotion/styled";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { Typography } from "@wso2/ui-toolkit";

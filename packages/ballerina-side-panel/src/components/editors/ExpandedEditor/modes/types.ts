@@ -16,7 +16,11 @@
  * under the License.
  */
 
-import { FormField } from "../../../Form/types";
+import { FormField, HelperpaneOnChangeOptions } from "../../../Form/types";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
+import { FieldError } from "react-hook-form";
 
 /**
  * Base props that all editor mode components must implement
@@ -25,7 +29,7 @@ export interface EditorModeProps {
     /** Current value of the editor */
     value: string;
     /** Callback when value changes */
-    onChange: (value: string) => void;
+    onChange: (value: string, updatedCursorPosition: number) => void;
     /** Field metadata (for accessing field properties if needed) */
     field: FormField;
 }
@@ -41,14 +45,42 @@ export interface EditorModeWithPreviewProps extends EditorModeProps {
 }
 
 /**
- * Mode type identifier
+ * Extended props for expression mode with completions and helper pane support
  */
-export type EditorMode = "text" | "prompt";
+export interface EditorModeExpressionProps extends EditorModeProps {
+    /** Completion items for autocomplete */
+    completions?: CompletionItem[];
+    /** File name for context */
+    fileName?: string;
+    /** Target line range for context */
+    targetLineRange?: LineRange;
+    /** Optional function to sanitize expression for display (e.g., remove backticks) */
+    sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
+    /** Function to extract arguments from function calls */
+    extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>;
+    /** Helper pane renderer function */
+    getHelperPane?: (
+        value: string,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+        helperPaneHeight: HelperPaneHeight
+    ) => React.ReactNode;
+    /** Whether preview mode is active */
+    isPreviewMode?: boolean;
+    /** Callback to toggle preview mode */
+    onTogglePreview?: (enabled: boolean) => void;
+    /** Form validation error */
+    error?: FieldError;
+    /** Form diagnostics messages */
+    formDiagnostics?: DiagnosticMessage[];
+}
 
 /**
- * Map of mode identifiers to their display labels
+ * Mode type identifier
  */
-export const MODE_LABELS: Record<EditorMode, string> = {
-    text: "Text",
-    prompt: "Prompt"
-};
+export type EditorMode = "text" | "prompt" | "expression" | "template";

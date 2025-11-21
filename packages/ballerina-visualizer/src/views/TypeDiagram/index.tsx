@@ -37,8 +37,8 @@ export const Title: React.FC<any> = styled.div`
 
 interface TypeDiagramProps {
     selectedTypeId?: string;
-    projectUri?: string;
     addType?: boolean;
+    projectPath?: string;
 }
 
 interface TypeEditorState {
@@ -51,7 +51,7 @@ interface TypeEditorState {
 const MAX_TYPES_FOR_FULL_VIEW = 80;
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { selectedTypeId, projectUri, addType } = props;
+    const { selectedTypeId, addType, projectPath } = props;
     const { rpcClient } = useRpcContext();
     const commonRpcClient = rpcClient.getCommonRpcClient();
     const [visualizerLocation, setVisualizerLocation] = React.useState<VisualizerLocation>();
@@ -152,7 +152,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
                 setVisualizerLocation(value);
             });
         }
-    }, [rpcClient, projectUri]);
+    }, [rpcClient, projectPath]);
 
     useEffect(() => {
         setIsModelLoaded(false);
@@ -473,7 +473,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
     return (
         <>
             <View>
-                <TopNavigationBar />
+                <TopNavigationBar projectPath={projectPath} />
                 {!focusedNodeId && (
                     <TitleBar
                         title="Types"
