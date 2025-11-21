@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ExpandedDMModel, IOType, Mapping } from "@wso2/ballerina-core";
+import { ExpandedDMModel, IOType, Mapping, Query } from "@wso2/ballerina-core";
 import { BaseVisitor } from "../visitors/BaseVisitor";
 
 export function traverseNode(model: ExpandedDMModel, visitor: BaseVisitor) {
@@ -41,6 +41,11 @@ export function traverseNode(model: ExpandedDMModel, visitor: BaseVisitor) {
         for (const subMapping of model.subMappings) {
             traverseSubMappingType(subMapping as IOType, model, visitor);
         }
+    }
+
+    // Visit query
+    if (model.query) {
+        traverseQuery(model.query, model, visitor);
     }
 
     visitor.endVisit?.(model);
@@ -75,4 +80,9 @@ function traverseMappings(mappings: Mapping[], parentMapping: Mapping, parentMod
 
         visitor.endVisitMapping?.(mapping, parentMapping, parentModel);
     }
+}
+
+function traverseQuery(query: Query, parent: ExpandedDMModel, visitor: BaseVisitor) {
+    visitor.beginVisitQuery?.(query, parent);
+    visitor.endVisitQuery?.(query, parent);
 }
