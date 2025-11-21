@@ -34,11 +34,13 @@ import {
     IORoot,
     ExpandModelOptions,
     ExpandedDMModel,
-    MACHINE_VIEW
+    MACHINE_VIEW,
+    IntermediateClauseType
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
 import { VariableFindingVisitor } from "./VariableFindingVisitor";
+import { is } from "zod/v4/locales";
 
 const MAX_NESTED_DEPTH = 4;
 
@@ -598,6 +600,9 @@ function processArray(
     let fieldId = generateFieldId(parentId, member.name);
 
     let isFocused = false;
+    let isGroupByIdUpdated = false;
+    const prevGroupById = model.groupById;
+
     if (model.focusInputs) {
         const focusMember = model.focusInputs[parentId];
         if (focusMember) {
@@ -606,6 +611,14 @@ function processArray(
             fieldId = member.name;
             isFocused = true;
             model.focusInputRootMap[fieldId] = model.traversingRoot;
+
+            if(member.isSeq && model.query!.fromClause.properties.name === fieldId){
+                const groupByClause = model.query!.intermediateClauses?.find(clause => clause.type === IntermediateClauseType.GROUP_BY);
+                if(groupByClause){
+                    model.groupById = groupByClause.properties.name;
+                    isGroupByIdUpdated = true;
+                }
+            }
         }
     }
 
@@ -621,6 +634,10 @@ function processArray(
     };
 
     const typeSpecificProps = processTypeKind(member, parentId, model, visitedRefs);
+
+    if(isGroupByIdUpdated){
+        model.groupById = prevGroupById;
+    }
 
     return {
         ...ioType,
@@ -718,6 +735,7 @@ function processTypeFields(
         let fieldId = generateFieldId(parentId, field.name!);
 
         let isFocused = false;
+        let isSeq = !!model.groupById;
         if (model.focusInputs) {
             const focusMember = model.focusInputs[fieldId];
             if (focusMember) {
@@ -725,6 +743,9 @@ function processTypeFields(
                 fieldId = field.name;
                 isFocused = true;
                 model.focusInputRootMap[fieldId] = model.traversingRoot;
+                if (fieldId === model.groupById){
+                    isSeq = false;
+                }
             }
         }
 
@@ -735,6 +756,7 @@ function processTypeFields(
             typeName: field.typeName,
             kind: field.kind,
             ...(isFocused && { isFocused }),
+            ...(isSeq && { isSeq }),
             ...(field.optional !== undefined && { optional: field.optional }),
             ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
