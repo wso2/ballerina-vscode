@@ -406,11 +406,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         rpcClient.getBIDiagramRpcClient().removeBreakpointFromSource(request);
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
+            projectPath: location.projectPath || undefined,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
