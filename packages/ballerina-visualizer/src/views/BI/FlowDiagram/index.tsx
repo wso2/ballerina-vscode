@@ -490,6 +490,17 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     .then((model) => {
                         console.log(">>> BIFlowDiagram getFlowModel", model);
                         if (model?.flowModel) {
+                            const currentSelectedNode = selectedNodeRef.current;
+                            if (
+                                currentSelectedNode &&
+                                typeof currentSelectedNode?.properties?.variable?.value === "string"
+                            ) {
+                                const updatedSelectedNode = searchNodesByName(model.flowModel.nodes, currentSelectedNode?.properties?.variable?.value);
+                                if (updatedSelectedNode) {
+                                    selectedNodeRef.current = updatedSelectedNode;
+                                    setSelectedNodeId(updatedSelectedNode.id);
+                                }
+                            }
                             updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
                             const parentMetadata = model.flowModel.nodes.find(
@@ -510,6 +521,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     startLine: newNode.codedata.lineRange.endLine,
                                     endLine: newNode.codedata.lineRange.endLine
                                 })
+                                shouldUpdateLineRangeRef.current = false;
                             }
                         }
                     })
@@ -640,6 +652,33 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                 }
             }
+        }
+        return undefined;
+    };
+
+    const flattenNodes = (nodes: FlowNode[]): FlowNode[] => {
+        const result: FlowNode[] = [];
+        const traverse = (nodeList: FlowNode[]) => {
+            for (const node of nodeList) {
+                result.push(node);
+                if (node.branches && node.branches.length > 0) {
+                    for (const branch of node.branches) {
+                        if (branch.children && branch.children.length > 0) {
+                            traverse(branch.children);
+                        }
+                    }
+                }
+            }
+        };
+        traverse(nodes);
+        return result;
+    };
+
+    const getNodeBefore = (targetNode: FlowNode, nodes: FlowNode[]): FlowNode | undefined => {
+        const flattened = flattenNodes(nodes);
+        const index = flattened.findIndex(node => node.id === targetNode.id);
+        if (index > 0) {
+            return flattened[index - 1];
         }
         return undefined;
     };
@@ -1212,6 +1251,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 && options?.updateLineRange === undefined
                 && options?.postUpdateCallBack === undefined
             );
+
+        if (options?.updateLineRange && selectedNodeRef.current) {
+            const nodeBefore = getNodeBefore(selectedNodeRef.current, model.nodes);
+            let targetLine = { ...selectedNodeRef.current.codedata.lineRange.startLine, offset: selectedNodeRef.current.codedata.lineRange.startLine.offset - 1 };
+            if (nodeBefore && nodeBefore.codedata.lineRange.endLine.line < targetLine.line) {
+                targetLine = nodeBefore.codedata.lineRange.endLine;
+            }
+            updatedNode.codedata.lineRange.startLine = targetLine;
+            updatedNode.codedata.lineRange.endLine = targetLine;
+        }
 
         if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
             rpcClient
