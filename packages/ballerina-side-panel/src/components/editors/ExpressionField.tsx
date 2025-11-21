@@ -125,7 +125,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    if (inputMode === InputMode.TEXT || inputMode === InputMode.GUIDED) {
+    if (inputMode === InputMode.TEXT || inputMode === InputMode.RECORD) {
         return (
             <TextModeEditor
                 exprRef={exprRef}
