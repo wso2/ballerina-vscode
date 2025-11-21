@@ -17,7 +17,7 @@
  */
 export interface View {
     label: string;
-    sourceField?: string;
+    sourceFields?: string[];
     targetField: string;
     subMappingInfo?: SubMappingInfo;
 }

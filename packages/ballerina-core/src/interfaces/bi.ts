@@ -256,21 +256,49 @@ export enum FUNCTION_TYPE {
     ALL = "all",
 }
 
-export interface ProjectStructureResponse {
+/**
+ * Represents the directory structure of artifacts in a project.
+ */
+export type ProjectDirectoryMap = {
+    [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
+};
+
+/**
+ * Represents a single project's structure with its artifacts organized by directory type.
+ */
+export interface ProjectStructure {
     projectName: string;
-    directoryMap: {
-        [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
-    };
+    projectPath?: string;
+    projectTitle?: string;
+    directoryMap: ProjectDirectoryMap;
+}
+
+/**
+ * Unified response structure for both single projects and multi-project workspaces.
+ * 
+ * For single project:
+ * - workspaceName: undefined
+ * - projects: array with single project
+ * 
+ * For workspace with multiple projects:
+ * - workspaceName: name of the workspace
+ * - projects: array with multiple projects
+ */
+export interface ProjectStructureResponse {
+    workspaceName?: string;
+    workspaceTitle?: string;
+    workspacePath?: string;
+    projects: ProjectStructure[];
 }
 
 export interface ProjectStructureArtifactResponse {

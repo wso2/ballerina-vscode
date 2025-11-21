@@ -49,7 +49,7 @@ export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: N
 
 export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
     // Create the agent file path
-    const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
+    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
     return agentFilePath;
 };
 
@@ -145,7 +145,7 @@ export const findAgentNodeFromAgentCallNode = async (agentCallNode: FlowNode, rp
         return null;
     }
 
-    const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+    const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
 
     // Extract line position for search context
     const startLine = agentCallNode.codedata?.lineRange?.startLine;
@@ -426,7 +426,7 @@ export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: Baller
 
     // get file path
     const agentFileName = agentNode.codedata.lineRange.fileName;
-    const agentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(agentFileName);
+    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentFileName] })).filePath;
 
     // delete the agent node
     await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
@@ -466,7 +466,7 @@ export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: Baller
 
     // get file path
     const modelFileName = modelNode.codedata?.lineRange?.fileName;
-    const modelFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(modelFileName);
+    const modelFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [modelFileName] })).filePath;
 
     // delete the model node
     await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
@@ -537,7 +537,7 @@ export const getEndOfFileLineRange = async (
 ): Promise<LineRange> => {
     try {
         // Get the full file path by joining with project path
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
 
         // Get the end of file position using the BIDiagram RPC client
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
