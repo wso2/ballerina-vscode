@@ -18,8 +18,9 @@
 
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
-import { isSupportedSLVersion, isWindows } from "../../../utils";
+import { isSupportedSLVersion, isWindows, createVersionNumber } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
+import { TracerMachine } from "../../../features/tracing";
 
 
 export const PALETTE_COMMANDS = {
@@ -81,16 +82,16 @@ export enum MESSAGES {
     NOT_SUPPORT = "Ballerina version is not supported by the VSCode plugin.",
     MODULE_NAME = "Enter module name.",
     SELECT_OPTION = "Select a build option.",
-    NOT_IN_PROJECT = "Current file does not belong to a ballerina project.",
+    NOT_IN_PROJECT = "Current file does not belong to a Ballerina project.",
     INVALID_PACK = "Only a Ballerina package can be packed.",
     INVALID_JSON = "Invalid JSON String",
     INVALID_JSON_RESPONSE = "JSON response is invalid.",
     INVALID_XML = "Invalid XML String",
-    INVALID_XML_RESPONSE = "XML response is invalid."
+    INVALID_XML_RESPONSE = "XML response is invalid.",
+    NO_PROJECT_FOUND = "No Ballerina project found."
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';
-export const BAL_TOML = "Ballerina.toml";
 const TERMINAL_NAME = 'Terminal';
 const BAL_CONFIG_FILES = 'BAL_CONFIG_FILES';
 
@@ -98,11 +99,13 @@ let terminal: Terminal;
 
 export function runCommand(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     ...args: string[]) {
+    TracerMachine.startServer();
     runCommandWithConf(file, executor, cmd, '', ...args);
 }
 
 export function runCommandWithConf(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     confPath: string, ...args: string[]) {
+    TracerMachine.startServer();
     if (terminal) {
         terminal.dispose();
     }
@@ -195,7 +198,7 @@ export function createTerminal(path: string, env?: { [key: string]: string }): v
 }
 
 export function getRunCommand(): BALLERINA_COMMANDS {
-    if (isSupportedSLVersion(extension.ballerinaExtInstance, 2201130) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+    if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
         return BALLERINA_COMMANDS.RUN_WITH_EXPERIMENTAL;
     } else if (extension.ballerinaExtInstance.enabledLiveReload()) {
         return BALLERINA_COMMANDS.RUN_WITH_WATCH;

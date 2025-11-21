@@ -20,6 +20,7 @@ import { RefObject } from "react";
 import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePosition, LineRange, ExpressionProperty, Metadata, RecordTypeField, Imports, ConfigProperties } from "@wso2/ballerina-core";
 import { ParamConfig } from "../ParamManager/ParamManager";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, HelperPaneOrigin, OptionProps } from "@wso2/ui-toolkit";
+import { InputMode } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/types";
 
 export type FormValues = {
     [key: string]: any;
@@ -89,6 +90,12 @@ export type HelperPaneCompletionItem = {
 export type HelperPaneCompletionCategory = {
     label: string;
     items: HelperPaneCompletionItem[];
+}
+
+
+export type HelperpaneOnChangeOptions = {
+    closeHelperPane?: boolean;
+    replaceFullText?: boolean;
 }
 
 export type HelperPaneVariableInfo = {
@@ -173,12 +180,13 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, closeHelperPane: boolean) => void,
+        onChange: (value: string,  options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string | string[]
+        valueTypeConstraint?: string | string[],
+        inputMode?: InputMode
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;
     helperPaneHeight: HelperPaneHeight;
@@ -212,6 +220,7 @@ type FormExpressionEditorBaseProps = {
     onSave?: (value: string) => void | Promise<void>;
     onRemove?: () => void;
     onSaveConfigurables?: (values: any) => void;
+    onOpenRecordConfigPage?: (fieldKey: string, currentValue: string, recordTypeField: any, onChange: (value: string) => void) => void;
 }
 
 type ExpressionEditorRPCManager = {

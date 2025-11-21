@@ -47,6 +47,7 @@ export const useDiagramModel = (
     const { model } = context ?? {};
     const mappings = model?.mappings.map(mapping => mapping.output + ':' + mapping.expression).toString();
     const subMappings = model?.subMappings?.map(mapping => (mapping as IOType).id).toString();
+    const queryIOs = model?.query ? model.query.inputs.toString() + ':' + model.query.output : '';
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();
@@ -99,7 +100,8 @@ export const useDiagramModel = (
             inputSearch,
             outputSearch,
             mappings,
-            subMappings
+            subMappings,
+            queryIOs
         ],
         queryFn: genModel,
         networkMode: 'always',

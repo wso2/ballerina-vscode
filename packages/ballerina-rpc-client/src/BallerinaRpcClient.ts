@@ -51,7 +51,10 @@ import {
     currentThemeChanged,
     ChatNotify,
     onChatNotify,
-    AIMachineSendableEvent
+    AIMachineSendableEvent,
+    dependencyPullProgress,
+    ProjectMigrationResult,
+    onMigratedProject
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -235,6 +238,14 @@ export class BallerinaRpcClient {
 
     onMigrationToolStateChanged(callback: (state: string) => void) {
         this.messenger.onNotification(onMigrationToolStateChanged, callback);
+    }
+
+    onDependencyPullProgress(callback: (message: string) => void) {
+        this.messenger.onNotification(dependencyPullProgress, callback);
+    }
+
+    onMigratedProject(callback: (result: ProjectMigrationResult) => void) {
+        this.messenger.onNotification(onMigratedProject, callback);
     }
 
     getPopupVisualizerState(): Promise<PopupVisualizerLocation> {

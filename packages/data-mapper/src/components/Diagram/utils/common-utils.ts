@@ -31,7 +31,6 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode,
     QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
@@ -77,7 +76,6 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        
         const targetNode = targetPort.getNode();
         if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
             return MappingType.ArrayToSingletonAggregate;
@@ -103,8 +101,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
-            if (dimDelta == 0) return MappingType.ArrayToArray;
-            if (dimDelta > 0) return MappingType.ArrayToSingleton;
+            if (dimDelta == 0) {
+                if(targetPort.attributes.portName.endsWith(".#")) {
+                    return MappingType.ArrayJoin;
+                }
+                return MappingType.ArrayToArray;
+            }
+            if (dimDelta > 0) {
+                return MappingType.ArrayToSingleton;
+            }
         }
 
         if ((sourceField.kind !== targetField.kind ||
@@ -218,7 +223,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, inputId: string, outputId: string, viewId: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputIds: string[], outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -242,7 +247,7 @@ export function expandArrayFn(context: IDataMapperContext, inputId: string, outp
     // Create base view properties
     const baseView: View = {
         label: label,
-        sourceField: inputId,
+        sourceFields: inputIds,
         targetField: targetField
     };
 

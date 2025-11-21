@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DownloadProgress, ImportIntegrationResponse, MigrationTool, ProjectRequest } from "@wso2/ballerina-core";
+import { DownloadProgress, ImportIntegrationResponse, MigrationTool, ProjectMigrationResult, ProjectRequest } from "@wso2/ballerina-core";
 
 export interface FinalIntegrationParams {
     importSourcePath: string;
@@ -31,6 +31,7 @@ export enum CoverageLevel {
 }
 
 export interface CoverageOverview {
+    projects?: number;
     unitName: string;
     coveragePercentage: number;
     coverageLevel: CoverageLevel;
@@ -66,11 +67,14 @@ export interface MigrationProgressProps {
     migrationCompleted: boolean;
     migrationSuccessful: boolean;
     migrationResponse: ImportIntegrationResponse | null;
+    projects: ProjectMigrationResult[];
+    isMultiProject: boolean;
     onNext: () => void;
     onBack: () => void;
 }
 
 export interface ConfigureProjectFormProps {
+    isMultiProject: boolean;
     onNext: (project: ProjectRequest) => void;
     onBack: () => void;
 }

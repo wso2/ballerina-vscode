@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.4.2",
+    "version": "5.6.1",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -681,18 +681,12 @@
                 "category": "BI"
             },
             {
-                "command": "BI.project-explorer.switch-project",
-                "title": "Switch Project",
-                "icon": "$(distro-switch-project)",
-                "group": "navigation",
-                "category": "BI"
-            },
-            {
                 "command": "BI.project-explorer.add",
-                "title": "Add Construct",
+                "title": "Add Project",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "BI",
+                "when": "ballerina.bi.workspaceSupported"
             },
             {
                 "command": "BI.project-explorer.overview",
@@ -719,9 +713,42 @@
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
                 "category": "BI"
+            },
+            {
+                "command": "ballerina.showTraceWindow",
+                "title": "Show Traces",
+                "icon": "$(list-tree)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.enableTracing",
+                "title": "Enable Tracing (Experimental)",
+                "category": "Ballerina"
+            },
+            {
+                "command": "ballerina.disableTracing",
+                "title": "Disable Tracing (Experimental)",
+                "category": "Ballerina",
+                "icon": "$(circle-slash)"
+            },
+            {
+                "command": "ballerina.clearTraces",
+                "title": "Clear Traces (Experimental)",
+                "category": "Ballerina",
+                "icon": "$(clear-all)",
+                "hidden": true
             }
         ],
         "views": {
+            "ballerina-traceView": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Tracing",
+                    "name": "Tracing",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                }
+            ],
             "notebook-variables": [
                 {
                     "type": "webview",
@@ -733,12 +760,28 @@
         },
         "viewsWelcome": [
             {
+                "view": "ballerina-traceView",
+                "contents": "Tracing is disabled. Enable tracing to view traces from your Ballerina program.\n[Enable Tracing](command:ballerina.enableTracing)",
+                "when": "!ballerina.tracingEnabled"
+            },
+            {
+                "view": "ballerina-traceView",
+                "contents": "No traces collected yet. Run your Ballerina program to see traces here.",
+                "when": "ballerina.tracingEnabled && ballerina.tracesEmpty"
+            },
+            {
                 "view": "testing",
                 "contents": "[Add Unit Test](command:BI.test.add.function)"
             }
         ],
         "viewsContainers": {
             "panel": [
+                {
+                    "id": "ballerina-traceView",
+                    "title": "Traces",
+                    "icon": "$(list-tree)",
+                    "when": "ballerina.tracingEnabled"
+                },
                 {
                     "id": "notebook-variables",
                     "title": "Ballerina Notebook",
@@ -774,6 +817,18 @@
                     "command": "BI.test.add.function",
                     "when": "view == workbench.view.testing",
                     "group": "navigation"
+                },
+                {
+                    "command": "ballerina.disableTracing",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled",
+                    "group": "navigation",
+                    "title": "Disable Tracing"
+                },
+                {
+                    "command": "ballerina.clearTraces",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
+                    "group": "navigation",
+                    "title": "Clear Traces"
                 }
             ],
             "editor/title": [
@@ -966,21 +1021,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f199"
+                    "fontCharacter": "\\f16e"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f20f"
+                    "fontCharacter": "\\f11a"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f194"
+                    "fontCharacter": "\\f171"
                 }
             },
             "distro-source-view": {
@@ -994,7 +1049,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1ea"
+                    "fontCharacter": "\\f133"
                 }
             },
             "distro-cached-rounded": {
@@ -1134,16 +1189,17 @@
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
         "@ai-sdk/amazon-bedrock": "^3.0.25",
         "@ai-sdk/anthropic": "^2.0.20",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
-        "@vscode/vsce": "^2.22.0",
+        "@vscode/vsce": "^3.7.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
+        "@wso2/trace-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
@@ -1152,7 +1208,7 @@
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
         "file-uri-to-path": "^2.0.0",
-        "glob": "^7.2.3",
+        "glob": "^11.1.0",
         "handlebars": "~4.7.8",
         "jwt-decode": "^4.0.0",
         "lodash": "^4.17.21",
@@ -1175,7 +1231,8 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "zod": "^4.1.8"
+        "zod": "^4.1.8",
+        "protobufjs": "^7.2.5"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
@@ -1193,7 +1250,7 @@
         "decache": "^4.6.2",
         "express": "^4.18.2",
         "istanbul": "^0.4.5",
-        "js-yaml": "^4.1.0",
+        "js-yaml": "^4.1.1",
         "jwt-decode": "^3.1.2",
         "keytar": "^7.9.0",
         "kill-port": "2.0.1",
@@ -1211,7 +1268,6 @@
         "vscode-messenger": "^0.4.4",
         "webpack": "^5.89.0",
         "webpack-cli": "^6.0.1",
-        "webpack-merge-and-include-globally": "^2.3.4",
         "yarn": "^1.22.19"
     },
     "extensionPack": [

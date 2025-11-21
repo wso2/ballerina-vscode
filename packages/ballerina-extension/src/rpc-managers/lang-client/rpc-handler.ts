@@ -45,6 +45,7 @@ import {
     didOpen,
     getBallerinaProjectComponents,
     getBallerinaVersion,
+    isSupportedSLVersion,
     getCompletion,
     getDefinitionPosition,
     getDiagnostics,
@@ -66,7 +67,8 @@ import {
     getTypesFromFnDefinition,
     rename,
     stModify,
-    updateFileContent
+    updateFileContent,
+    SemanticVersion
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { LangClientRpcManager } from "./rpc-manager";
@@ -78,6 +80,7 @@ export function registerLangClientRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getSTByRange, (args: BallerinaSTParams) => rpcManger.getSTByRange(args));
     messenger.onRequest(getBallerinaProjectComponents, (args: BallerinaPackagesParams) => rpcManger.getBallerinaProjectComponents(args));
     messenger.onRequest(getBallerinaVersion, () => rpcManger.getBallerinaVersion());
+    messenger.onRequest(isSupportedSLVersion, (args: SemanticVersion) => rpcManger.isSupportedSLVersion(args));
     messenger.onRequest(getCompletion, (args: CompletionRequest) => rpcManger.getCompletion(args));
     messenger.onRequest(getDiagnostics, (args: SyntaxTreeParams) => rpcManger.getDiagnostics(args));
     messenger.onRequest(getProjectDiagnostics, (args: ProjectDiagnosticsRequest) => rpcManger.getProjectDiagnostics(args));

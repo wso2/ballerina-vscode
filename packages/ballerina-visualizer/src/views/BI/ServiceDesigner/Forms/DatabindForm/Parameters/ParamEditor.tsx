@@ -46,8 +46,8 @@ export function ParamEditor(props: ParamProps) {
     };
 
     useEffect(() => {
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+            setFilePath(response.filePath);
         });
         updateFormFields();
     }, []);
@@ -111,7 +111,7 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Schema Configuration</Typography>
+            <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Configuration</Typography>
             <Divider />
             {filePath && targetLineRange && (
                 <FormGeneratorNew

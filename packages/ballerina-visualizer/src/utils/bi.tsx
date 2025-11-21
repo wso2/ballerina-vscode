@@ -55,7 +55,8 @@ import {
     CompletionInsertText,
     SubPanel,
     SubPanelView,
-    NodeMetadata
+    NodeMetadata,
+    Type,
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -744,6 +745,26 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
         insertText: type.insertText,
         labelDetails: type.labelDetails,
     }));
+}
+
+export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
+    const label = type?.name ?? "";
+    const value = label; 
+    const kind = "struct";
+    const description = type?.metadata?.description;
+    const labelDetails = (() => {
+        const descriptionText = "Record";
+        return descriptionText ? { description: descriptionText } : undefined;
+    })();
+
+    return {
+        label,
+        value,
+        kind,
+        description,
+        labelDetails,
+        sortText: label?.toLowerCase?.() || label,
+    };
 }
 
 export const clearDiagramZoomAndPosition = () => {

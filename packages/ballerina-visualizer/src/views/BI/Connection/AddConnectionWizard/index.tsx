@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
+    DataMapperDisplayMode,
     DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
@@ -42,6 +43,7 @@ import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
+import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
     width: 100%;
@@ -111,6 +113,7 @@ enum SavingFormStatus {
 }
 
 interface AddConnectionWizardProps {
+    projectPath: string;
     fileName: string; // file path of `connection.bal`
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
@@ -119,7 +122,7 @@ interface AddConnectionWizardProps {
 }
 
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
-    const { fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
+    const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
@@ -232,12 +235,12 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         setCurrentStep(WizardStep.GENERATE_CONNECTOR);
     };
 
-    const handleOnFormSubmit = async (node: FlowNode) => {
+    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedNodeRef.current) {
             setSavingFormStatus(SavingFormStatus.SAVING);
             const visualizerLocation = await rpcClient.getVisualizerLocation();
-            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectUri;
+            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
 
             if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
                 connectionsFilePath += "/main.bal";
@@ -258,15 +261,28 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 };
             }
 
+            // Check if the node is a connector
+            // otherwise, this is a new variable creation or something else 
+            // triggered by the helper pane
+            const isConnector = node.codedata.node === "NEW_CONNECTION";
+
             rpcClient
                 .getBIDiagramRpcClient()
                 .getSourceCode({
                     filePath: connectionsFilePath,
                     flowNode: node,
-                    isConnector: true,
+                    isConnector: isConnector,
                 })
                 .then((response) => {
                     console.log(">>> Updated source code", response);
+                    if (!isConnector) {
+                        setSavingFormStatus(SavingFormStatus.SUCCESS);
+                        selectedNodeRef.current = undefined;
+                        if (options?.postUpdateCallBack) {
+                            options.postUpdateCallBack();
+                        }
+                        return;
+                    };
                     if (response.artifacts.length > 0) {
                         // clear memory
                         selectedNodeRef.current = undefined;
@@ -295,12 +311,12 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 prevFields.map((field) =>
                     field.key === "module"
                         ? {
-                              ...field,
-                              diagnostics: [
-                                  ...field.diagnostics,
-                                  { message: response.errorMessage, severity: "ERROR" },
-                              ],
-                          }
+                            ...field,
+                            diagnostics: [
+                                ...field.diagnostics,
+                                { message: response.errorMessage, severity: "ERROR" },
+                            ],
+                        }
                         : field
                 )
             );
@@ -348,7 +364,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.Overview,
+                view: MACHINE_VIEW.PackageOverview,
             },
         });
     };
@@ -357,6 +373,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         <Container>
             {!isPopupScreen ? (
                 <ConnectorView
+                    projectPath={projectPath}
                     key={connectorsViewKey}
                     fileName={fileName}
                     targetLinePosition={target}
@@ -373,6 +390,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         />
                         <PopupContainer>
                             <ConnectorView
+                                projectPath={projectPath}
                                 key={connectorsViewKey}
                                 fileName={fileName}
                                 targetLinePosition={target}
@@ -406,9 +424,9 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                 )}
                                 {pullingStatus === PullingStatus.PULLING && (
                                     <StatusCard>
-                                        <DownloadIcon color={ThemeColors.ON_SURFACE} />
+                                        <DownloadIcon color="var(--vscode-progressBar-background)" />
                                         <StatusText variant="body2">
-                                            Please wait while the connector package is being pulled...
+                                            Please wait while the connector is being pulled.
                                         </StatusText>
                                     </StatusCard>
                                 )}
@@ -423,7 +441,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                                 height: "28px",
                                             }}
                                         />
-                                        <StatusText variant="body2">Connector package pulled successfully.</StatusText>
+                                        <StatusText variant="body2">Connector pulled successfully.</StatusText>
                                     </StatusCard>
                                 )}
                                 {pullingStatus === PullingStatus.ERROR && (
@@ -438,7 +456,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                             }}
                                         />
                                         <StatusText variant="body2">
-                                            Failed to pull the connector package. Please try again.
+                                            Failed to pull the connector. Please try again.
                                         </StatusText>
                                     </StatusCard>
                                 )}

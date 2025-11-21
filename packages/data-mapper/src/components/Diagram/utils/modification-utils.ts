@@ -22,9 +22,10 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { expandArrayFn, getValueType } from "./common-utils";
-import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { FnMetadata, FnParams, FnReturnType, IntermediateClauseType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
+import { useDMQueryClausesPanelStore } from "../../../store/store";
 
 export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
 	const sourcePort = link.getSourcePort();
@@ -172,8 +173,34 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 
 	await context.convertToQuery(mapping, clauseType, viewId, name);
 
-	expandArrayFn(context, input, output, viewId);
+	expandArrayFn(context, [input], output, viewId);
 }
+
+export function mapWithJoin(link: DataMapperLinkModel) {
+
+	const sourcePort = link.getSourcePort();
+	if (!sourcePort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+	const { setClauseToAdd, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
+
+	setClauseToAdd({
+		type: IntermediateClauseType.JOIN,
+		properties: {
+			name: sourcePortModel.attributes.field.name + "Item",
+			type: "var",
+			expression: sourcePortModel.attributes.fieldFQN,
+			isOuter: false,
+			lhsExpression: "",
+			rhsExpression: "",
+		}
+	});
+	setIsQueryClausesPanelOpen(true);
+}
+
 
 export function buildInputAccessExpr(fieldFqn: string): string {
     // Regular expression to match either quoted strings or non-quoted strings with dots
