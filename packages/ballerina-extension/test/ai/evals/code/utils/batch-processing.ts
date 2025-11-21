@@ -102,18 +102,4 @@ async function setupTestEnvironmentForBatch(projectPath: string): Promise<void> 
     
     // Give VSCode time to detect the workspace and trigger activation
     await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
-    
-    // Force extension activation by opening a Ballerina file
-    try {
-        const testBalFile = Uri.file(path.join(projectPath, FILES.MAIN_BAL));
-        await commands.executeCommand(VSCODE_COMMANDS.OPEN, testBalFile);
-        await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPEN_DELAY));
-    } catch (error) {
-        // Fallback: try to execute a ballerina command to force activation
-        try {
-            await commands.executeCommand(VSCODE_COMMANDS.SHOW_EXAMPLES);
-        } catch (cmdError) {
-            // Extension might still be loading
-        }
-    }
 }

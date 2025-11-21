@@ -52,6 +52,7 @@ export function AddForm(props: ConfigFormProps) {
 
     const handleSave = async (node: FlowNode) => {
         setIsSaving(true);
+        node.properties.defaultValue.modified = true;
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: props.filename,
             configVariable: node,

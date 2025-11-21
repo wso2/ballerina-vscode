@@ -78,6 +78,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -104,7 +105,12 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
     };
 
     const handleShowOptionalConfigurations = () => {
-        setShowOptionalConfigurations(true);
+        rpcClient.getLangClientRpcClient().isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 }).then((res) => {
+            if (res) {
+                setIsWorkspaceSupported(res);
+            }
+            setShowOptionalConfigurations(true);
+        });
     };
 
     const handleHideOptionalConfigurations = () => {
@@ -193,27 +199,29 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
             {showOptionalConfigurations && (
                 <OptionalConfigContent>
-                    <FieldGroup>
-                        <CheckboxContainer>
-                            <CheckBox
-                                label="Create as workspace"
-                                checked={formData.createAsWorkspace}
-                                onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
-                            />
-                            <Description>
-                                Include this integration in a new workspace for multi-project management.
-                            </Description>
-                        </CheckboxContainer>
-                        {formData.createAsWorkspace && (
-                            <TextField
-                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                value={formData.workspaceName}
-                                label="Workspace Name"
-                                placeholder="Enter workspace name"
-                                required={true}
-                            />
-                        )}
-                    </FieldGroup>
+                    {isWorkspaceSupported && (
+                        <FieldGroup>
+                            <CheckboxContainer>
+                                <CheckBox
+                                    label="Create as workspace"
+                                    checked={formData.createAsWorkspace}
+                                    onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
+                                />
+                                <Description>
+                                    Include this integration in a new workspace for multi-project management.
+                                </Description>
+                            </CheckboxContainer>
+                            {formData.createAsWorkspace && (
+                                <TextField
+                                    onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                    value={formData.workspaceName}
+                                    label="Workspace Name"
+                                    placeholder="Enter workspace name"
+                                    required={true}
+                                />
+                            )}
+                        </FieldGroup>
+                    )}
                     <FieldGroup>
                         <TextField
                             onTextChange={(value) => onFormDataChange({ orgName: value })}

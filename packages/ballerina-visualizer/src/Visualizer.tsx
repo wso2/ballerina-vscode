@@ -21,29 +21,26 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIMachineStateValue, MachineStateValue } from "@wso2/ballerina-core";
 import MainPanel from "./MainPanel";
 import styled from '@emotion/styled';
-import { LoadingRing } from "./components/Loader";
 import AIPanel from "./views/AIPanel/AIPanel";
 import { AgentChat } from "./views/AgentChatPanel/AgentChat";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
+import { DownloadIcon } from "./components/DownloadIcon";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 const ProgressRing = styled(VSCodeProgressRing)`
-    height: 50px;
-    width: 50px;
-    margin: 1.5rem;
+    height: 36px;
+    width: 36px;
 `;
 
 const LoadingContent = styled.div`
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-    height: 100%;
+    height: 100vh;
     width: 100%;
-    padding-top: 30vh;
     text-align: center;
-    max-width: 500px;
-    margin: 0 auto;
     animation: fadeIn 1s ease-in-out;
 `;
 
@@ -52,6 +49,7 @@ const LoadingTitle = styled.h1`
     font-size: 1.5em;
     font-weight: 400;
     margin: 0;
+    margin-top: 1.5rem;
     letter-spacing: -0.02em;
     line-height: normal;
 `;
@@ -64,7 +62,7 @@ const LoadingSubtitle = styled.p`
 `;
 
 const LoadingText = styled.div`
-    color: var(--vscode-foreground);
+    color: ${ThemeColors.PRIMARY};
     font-size: 13px;
     font-weight: 500;
 `;
@@ -159,7 +157,7 @@ const LanguageServerLoadingView = () => {
                     Activating Language Server
                 </LoadingTitle>
                 <LoadingSubtitle>
-                    Preparing your Ballerina development environment
+                    Preparing your Ballerina development environment.
                 </LoadingSubtitle>
                 <LoadingText>
                     <span className="loading-dots">Initializing</span>
@@ -170,6 +168,15 @@ const LanguageServerLoadingView = () => {
 };
 
 const PullingDependenciesView = () => {
+    const { rpcClient } = useRpcContext();
+    const [currentModule, setCurrentModule] = React.useState<string>('Compiling project...');
+
+    React.useEffect(() => {
+        rpcClient?.onDependencyPullProgress((message: string) => {
+            setCurrentModule(message);
+        });
+    }, [rpcClient]);
+
     return (
         <div style={{
             backgroundColor: 'var(--vscode-editor-background)',
@@ -180,16 +187,15 @@ const PullingDependenciesView = () => {
         }}>
             <Global styles={globalStyles} />
             <LoadingContent>
-                <ProgressRing />
+                <DownloadIcon color="var(--vscode-progressBar-background)" sx={{ width: '36px', height: '36px' }} />
                 <LoadingTitle>
                     Pulling Dependencies
                 </LoadingTitle>
                 <LoadingSubtitle>
-                    Fetching required modules for your project.<br />
-                    Please wait, this might take some time.
+                    Please wait while your project dependencies are being pulled.
                 </LoadingSubtitle>
                 <LoadingText>
-                    <span className="loading-dots">Pulling</span>
+                    {currentModule}
                 </LoadingText>
             </LoadingContent>
         </div>
