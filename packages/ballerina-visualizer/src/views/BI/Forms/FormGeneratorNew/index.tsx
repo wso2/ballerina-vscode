@@ -34,7 +34,9 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    NodeProperties
+    NodeProperties,
+    ExpressionCompletionsRequest,
+    ExpressionCompletionsResponse
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -89,6 +91,7 @@ interface FormProps {
     onCancel?: () => void;
     editForm?: boolean;
     isGraphqlEditor?: boolean;
+    isDataMapperEditor?: boolean;
     onSubmit: (data: FormValues, formImports?: FormImports, importsCodedata?: CodeData) => void;
     isSaving?: boolean;
     isActiveSubPanel?: boolean;
@@ -127,6 +130,7 @@ export function FormGeneratorNew(props: FormProps) {
         onSubmit,
         isSaving,
         isGraphqlEditor,
+        isDataMapperEditor,
         openSubPanel,
         updatedExpressionField,
         resetUpdatedExpressionField,
@@ -450,7 +454,7 @@ export function FormGeneratorNew(props: FormProps) {
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
                     const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
-                    let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                    const completionRequest: ExpressionCompletionsRequest = {
                         filePath: fileName,
                         context: {
                             expression: value,
@@ -464,7 +468,14 @@ export function FormGeneratorNew(props: FormProps) {
                             triggerKind: triggerCharacter ? 2 : 1,
                             triggerCharacter: triggerCharacter as TriggerCharacter
                         }
-                    });
+                    };
+                    
+                    let completions: ExpressionCompletionsResponse;
+                    if (!isDataMapperEditor) {
+                        completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions(completionRequest);
+                    } else {
+                        completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions(completionRequest);
+                    }
 
                     // Convert completions to the ExpressionEditor format
                     let convertedCompletions: CompletionItem[] = [];
