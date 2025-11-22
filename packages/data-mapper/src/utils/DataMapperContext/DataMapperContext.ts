@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType, IntermediateClause } from "@wso2/ballerina-core";
 import { View } from "../../components/DataMapper/Views/DataMapperView";
 
 export interface IDataMapperContext {
@@ -30,6 +30,7 @@ export interface IDataMapperContext {
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
+    mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
 }
@@ -48,6 +49,7 @@ export class DataMapperContext implements IDataMapperContext {
         public deleteSubMapping: (index: number, viewId: string) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
+        public mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,
         public enrichChildFields: (parentField: IOType) => Promise<void>
     ){}
