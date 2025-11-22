@@ -44,7 +44,8 @@ import {
     VisualizerLocation,
     DeleteClauseRequest,
     IORoot,
-    IntermediateClauseType
+    IntermediateClauseType,
+    TriggerKind
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -541,11 +542,39 @@ export function DataMapperView(props: DataMapperProps) {
         parentField.isDeepNested = false;
     }
 
+    const genUniqueName = async (name: string, viewId: string): Promise<string> => {
+        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+            filePath,
+            codedata: viewState.codedata,
+            targetField: viewId
+        })
+        // TODO: need to handle undfined property case
+        const completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
+            filePath,
+            context: {
+                expression: "",
+                startLine: property.codedata.lineRange.startLine,
+                lineOffset: 0,
+                offset: 0,
+                codedata: viewState.codedata,
+                property: property
+            },
+            completionContext: {
+                triggerKind: TriggerKind.INVOKED
+            }
+        });
 
+        let i = 2;
+        while (completions.some(c => c.insertText === name)) {
+            name = name + (i++);
+        }
+
+        return name;
+    };
 
     const onDMClose = () => {
         onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
-    }
+    };
 
     const onDMRefresh = async () => {
         try {
@@ -574,7 +603,7 @@ export function DataMapperView(props: DataMapperProps) {
         };
 
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
-    }
+    };
 
 
     useEffect(() => {
@@ -622,7 +651,7 @@ export function DataMapperView(props: DataMapperProps) {
                         property: property
                     },
                     completionContext: {
-                        triggerKind: triggerCharacter ? 2 : 1,
+                        triggerKind: triggerCharacter ? TriggerKind.TRIGGER_CHARACTER : TriggerKind.INVOKED,
                         triggerCharacter: triggerCharacter as TriggerCharacter
                     }
                 });
@@ -709,6 +738,7 @@ export function DataMapperView(props: DataMapperProps) {
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
+                            genUniqueName={genUniqueName}
                             undoRedoGroup={undoRedoGroup}
                             expressionBar={{
                                 completions: filteredCompletions,

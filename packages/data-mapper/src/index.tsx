@@ -82,6 +82,7 @@ export interface DataMapperEditorProps {
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
     generateForm: (formProps: DMFormProps) => JSX.Element;
+    genUniqueName: (name: string, viewId: string) => Promise<string>;
     undoRedoGroup: () => JSX.Element;
 }
 

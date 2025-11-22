@@ -205,7 +205,7 @@ export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDat
 		const clause = {
 			type: IntermediateClauseType.LET,
 			properties: {
-				name: sourcePortModel.attributes.field.name,
+				name: await context.genUniqueName(sourcePortModel.attributes.field.name, viewId),
 				type: "var",
 				expression: sourcePortModel.attributes.fieldFQN,
 			}
