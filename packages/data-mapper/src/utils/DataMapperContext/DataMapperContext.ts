@@ -31,7 +31,6 @@ export interface IDataMapperContext {
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
-    mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
 }
@@ -51,7 +50,6 @@ export class DataMapperContext implements IDataMapperContext {
         public addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
-        public mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,
         public enrichChildFields: (parentField: IOType) => Promise<void>
     ){}
