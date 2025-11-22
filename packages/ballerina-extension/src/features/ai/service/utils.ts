@@ -268,6 +268,10 @@ export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void 
     sendAIPanelNotification(msg);
 }
 
+export function sendConnectorGenerationNotification(event: ChatNotify & { type: "connector_generation_notification" }): void {
+    sendAIPanelNotification(event);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }

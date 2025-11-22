@@ -56,6 +56,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
+import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import RoleContainer from "../RoleContainter";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
@@ -549,6 +550,47 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "generated_sources") {
             setCurrentFileArray(response.fileArray);
+        } else if (type === "connector_generation_notification") {
+            const connectorNotification = response as any;
+            const connectorJson = JSON.stringify({
+                requestId: connectorNotification.requestId,
+                stage: connectorNotification.stage,
+                serviceName: connectorNotification.serviceName,
+                serviceDescription: connectorNotification.serviceDescription,
+                spec: connectorNotification.spec,
+                connector: connectorNotification.connector,
+                error: connectorNotification.error,
+                message: connectorNotification.message,
+                inputMethod: connectorNotification.inputMethod,
+                sourceIdentifier: connectorNotification.sourceIdentifier
+            });
+
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    const lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                    const escapeRegex = (str: string): string => {
+                        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+
+                    const searchPattern = `<connectorgenerator>{"requestId":"${connectorNotification.requestId}"`;
+
+                    if (lastMessageContent.includes(searchPattern)) {
+                        const replacePattern = new RegExp(
+                            `<connectorgenerator>[^<]*${escapeRegex(connectorNotification.requestId)}[^<]*</connectorgenerator>`,
+                            's'
+                        );
+                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                            replacePattern,
+                            `<connectorgenerator>${connectorJson}</connectorgenerator>`
+                        );
+                    } else {
+                        newMessages[newMessages.length - 1].content += `\n\n<connectorgenerator>${connectorJson}</connectorgenerator>`;
+                    }
+                }
+                return newMessages;
+            });
         } else if (type === "diagnostics") {
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
@@ -1815,6 +1857,13 @@ const AIChat: React.FC = () => {
                                                     isLoading={isLoading && isLastMessage}
                                                 />
                                             );
+                                        } else if (segment.type === SegmentType.SpecFetcher) {
+                                            return (
+                                                <ConnectorGeneratorSegment
+                                                    data={segment.specData}
+                                                    rpcClient={rpcClient}
+                                                />
+                                            );
                                         } else if (segment.type === SegmentType.Attachment) {
                                             return (
                                                 <AttachmentsContainer>
@@ -2113,6 +2162,7 @@ export enum SegmentType {
     References = "References",
     TestScenario = "TestScenario",
     Button = "Button",
+    SpecFetcher = "SpecFetcher",
 }
 
 interface Segment {
@@ -2183,7 +2233,7 @@ export function splitContent(content: string): Segment[] {
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
     let match;
     let lastIndex = 0;
 
@@ -2308,6 +2358,23 @@ export function splitContent(content: string): Segment[] {
                 text: match[13].trim(),
                 loading: false,
             });
+        } else if (match[14]) {
+            // <connectorgenerator> block matched
+            const connectorData = match[14];
+
+            updateLastProgressSegmentLoading();
+            try {
+                const parsedData = JSON.parse(connectorData);
+                segments.push({
+                    type: SegmentType.SpecFetcher,
+                    loading: false,
+                    text: "",
+                    specData: parsedData
+                });
+            } catch (error) {
+                // If parsing fails, show as text
+                console.error("Failed to parse connector generator data:", error);
+            }
         }
 
         // Update lastIndex to the end of the current match

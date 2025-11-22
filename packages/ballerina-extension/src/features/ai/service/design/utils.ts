@@ -19,6 +19,8 @@ import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
+import type { TextEdit } from 'vscode-languageserver-protocol';
 
 /**
  * File extensions to include in codebase structure
@@ -43,6 +45,29 @@ const CODEBASE_STRUCTURE_IGNORE_FILES = [
     'Config.toml',
     'Dependencies.toml'
 ];
+
+/**
+ * Files that require path sanitization (temp paths replaced with workspace paths)
+ */
+const FILES_REQUIRING_PATH_SANITIZATION = [
+    'Ballerina.toml'
+];
+
+/**
+ * Sanitizes temp directory paths in file content by replacing them with workspace paths
+ * @param content File content that may contain temp directory paths
+ * @param tempPath Temporary project path to be replaced
+ * @param workspacePath Workspace path to replace with
+ * @returns Sanitized content with workspace paths
+ */
+function sanitizeTempPaths(content: string, tempPath: string, workspacePath: string): string {
+    // Normalize paths to forward slashes for consistent replacement
+    const normalizedTempPath = tempPath.replace(/\\/g, '/');
+    const normalizedWorkspacePath = workspacePath.replace(/\\/g, '/');
+
+    // Replace all occurrences of temp path with workspace path
+    return content.replace(new RegExp(normalizedTempPath, 'g'), normalizedWorkspacePath);
+}
 
 /**
  * Integrates code from temp directory to workspace
@@ -74,7 +99,15 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
             const fullPath = path.join(tempProjectPath, relativePath);
 
             if (fs.existsSync(fullPath)) {
-                const content = fs.readFileSync(fullPath, 'utf-8');
+                let content = fs.readFileSync(fullPath, 'utf-8');
+
+                // Check if this file requires path sanitization
+                const fileName = path.basename(relativePath);
+                if (FILES_REQUIRING_PATH_SANITIZATION.includes(fileName)) {
+                    content = sanitizeTempPaths(content, tempProjectPath, workspaceFolderPath);
+                    console.log(`[Design Integration] Sanitized temp paths in: ${relativePath}`);
+                }
+
                 fileChanges.push({
                     filePath: relativePath,
                     content: content
@@ -125,9 +158,10 @@ ${sourceFile.content}
  * Formats complete codebase structure into XML for Claude
  * Used when starting a new session without history
  * @param tempProjectPath Path to the temporary project directory
+ * @param packageName Name of the Ballerina package
  * @returns Formatted XML string with codebase structure
  */
-export function formatCodebaseStructure(tempProjectPath: string): string {
+export function formatCodebaseStructure(tempProjectPath: string, packageName: string): string {
     const allFiles: string[] = [];
 
     function collectFiles(dir: string, basePath: string = '') {
@@ -157,11 +191,47 @@ export function formatCodebaseStructure(tempProjectPath: string): string {
     collectFiles(tempProjectPath);
 
     let text = '<codebase_structure>\n';
-    text += 'This is the complete structure of the codebase you are working with. ';
+    text += `This is the complete structure of the codebase you are working with (Package: ${packageName}). `;
     text += 'You do not need to acknowledge or list these files in your response. ';
     text += 'This information is provided for your awareness only.\n\n';
     text += '<files>\n' + allFiles.join('\n') + '\n</files>\n';
     text += '</codebase_structure>';
 
     return text;
+}
+
+/**
+ * Applies LSP text edits to create or modify a file
+ * @param filePath Absolute path to the file
+ * @param textEdits Array of LSP TextEdit objects
+ */
+export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): Promise<void> {
+    const workspaceEdit = new vscode.WorkspaceEdit();
+    const fileUri = vscode.Uri.file(filePath);
+    const dirPath = path.dirname(filePath);
+    const dirUri = vscode.Uri.file(dirPath);
+
+    try {
+        await vscode.workspace.fs.createDirectory(dirUri);
+        workspaceEdit.createFile(fileUri, { ignoreIfExists: true });
+    } catch (error) {
+        console.error(`[applyTextEdits] Error creating file or directory:`, error);
+    }
+
+    for (const edit of textEdits) {
+        const range = new vscode.Range(
+            edit.range.start.line,
+            edit.range.start.character,
+            edit.range.end.line,
+            edit.range.end.character
+        );
+        workspaceEdit.replace(fileUri, range, edit.newText);
+    }
+
+    try {
+        await vscode.workspace.applyEdit(workspaceEdit);
+    } catch (error) {
+        console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
+        throw error;
+    }
 }

@@ -31,6 +31,7 @@ import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 import { getTempProject, FileModificationInfo } from "../../utils/temp-project-utils";
 import { formatCodebaseStructure, integrateCodeToWorkspace } from "./utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
+import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { LangfuseExporter } from 'langfuse-vercel';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
@@ -61,7 +62,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, isPlanModeEnabled);
+    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName, isPlanModeEnabled);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
@@ -84,6 +85,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, project.projectName, modifiedFiles),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
@@ -129,8 +131,19 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                 if (toolName === "LibraryProviderTool") {
                     selectedLibraries = (part.input as any)?.libraryNames || [];
                     eventHandler({ type: "tool_call", toolName });
-                } else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
-                    // File tool calls are handled but we don't need additional processing here
+
+                } else if (
+                    [
+                        FILE_WRITE_TOOL_NAME,
+                        FILE_SINGLE_EDIT_TOOL_NAME,
+                        FILE_BATCH_EDIT_TOOL_NAME,
+                        FILE_READ_TOOL_NAME,
+                    ].includes(toolName)
+                ) {
+                    const input = part.input as any;
+                    if (input && input.file_path) {
+                        let fileName = input.file_path;
+                    }
                 } else {
                     eventHandler({ type: "tool_call", toolName });
                 }
@@ -156,8 +169,15 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
                     eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
-                }
-                else if ([FILE_WRITE_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME].includes(toolName)) {
+
+                } else if (
+                    [
+                        FILE_WRITE_TOOL_NAME,
+                        FILE_SINGLE_EDIT_TOOL_NAME,
+                        FILE_BATCH_EDIT_TOOL_NAME,
+                        FILE_READ_TOOL_NAME,
+                    ].includes(toolName)
+                ) {
                 } else {
                     eventHandler({ type: "tool_result", toolName });
                 }
@@ -167,6 +187,10 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                 const error = part.error;
                 console.error("[Design] Error:", error);
                 eventHandler({ type: "error", content: getErrorMessage(error) });
+                break;
+            }
+            case "text-start": {
+                eventHandler({ type: "content_block", content: " \n" });
                 break;
             }
             case "abort": {
@@ -227,7 +251,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 await langfuseExporter.forceFlush();
                 break;
             }
-            }
+        }
         }
 }
 
@@ -314,37 +338,3 @@ function saveToolResult(
         }]
     });
 }
-
-/**
- * Formats file modifications into XML structure for Claude
- * TODO: This function is currently not used. Can be removed if workspace modification
- * tracking is not needed in the future.
- */
-function formatModifications(modifications: FileModificationInfo[]): string {
-    if (modifications.length === 0) {
-        return '';
-    }
-
-    const modifiedFiles = modifications.filter(m => m.type === 'modified').map(m => m.filePath);
-    const newFiles = modifications.filter(m => m.type === 'new').map(m => m.filePath);
-    const deletedFiles = modifications.filter(m => m.type === 'deleted').map(m => m.filePath);
-
-    let text = '<workspace_changes>\n';
-    text += 'The following changes were detected in the workspace since the last session. ';
-    text += 'You do not need to acknowledge or repeat these changes in your response. ';
-    text += 'This information is provided for your awareness only.\n\n';
-
-    if (modifiedFiles.length > 0) {
-        text += '<modified_files>\n' + modifiedFiles.join('\n') + '\n</modified_files>\n\n';
-    }
-    if (newFiles.length > 0) {
-        text += '<new_files>\n' + newFiles.join('\n') + '\n</new_files>\n\n';
-    }
-    if (deletedFiles.length > 0) {
-        text += '<deleted_files>\n' + deletedFiles.join('\n') + '\n</deleted_files>\n\n';
-    }
-
-    text += '</workspace_changes>';
-    return text;
-}
-

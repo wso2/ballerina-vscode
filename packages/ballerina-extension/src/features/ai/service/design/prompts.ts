@@ -2,6 +2,7 @@ import { DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
 import { LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { TASK_WRITE_TOOL_NAME } from "../libs/task_write_tool";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+import { CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { formatCodebaseStructure } from "./utils";
 
 /**
@@ -68,8 +69,11 @@ This plan will be visible to the user and the execution will be guided on the ta
 5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
+   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
    - Implement the task completely (write the Ballerina code)
+   - When implementing external API integrations:
+     - First check ${LIBRARY_PROVIDER_TOOL} for known services (Stripe, GitHub, etc.)
+     - If NOT available, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
    - Before marking the task as completed, use the ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. Introduce a a new subtask if needed to fix errors.
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - The tool will wait for TASK COMPLETION APPROVAL from the user
@@ -114,6 +118,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 
+### Local Connectors
+- If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
@@ -136,8 +142,14 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - Mention types EXPLICITLY in variable declarations and foreach statements.
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-## File modifications
-- You must apply changes to the existing source code using the provided ${[FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME].join(", ")} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+### File modifications
+- You must apply changes to the existing source code using the provided ${[
+        FILE_BATCH_EDIT_TOOL_NAME,
+        FILE_SINGLE_EDIT_TOOL_NAME,
+        FILE_WRITE_TOOL_NAME,
+    ].join(
+        ", "
+    )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do not modify documentation such as .md files unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
@@ -150,15 +162,16 @@ When generating Ballerina code strictly follow these syntax and structure guidel
  * @param usecase User's query/requirement
  * @param hasHistory Whether chat history exists
  * @param tempProjectPath Path to temp project (used when hasHistory is false)
+ * @param packageName Name of the Ballerina package
  * @param isPlanModeEnabled Whether plan mode is enabled
  */
-export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, isPlanModeEnabled: boolean) {
+export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean) {
     const content = [];
 
     if (!hasHistory) {
         content.push({
             type: 'text' as const,
-            text: formatCodebaseStructure(tempProjectPath)
+            text: formatCodebaseStructure(tempProjectPath, packageName)
         });
     }
 
