@@ -28,6 +28,7 @@ export interface IDataMapperContext {
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>;
@@ -47,6 +48,7 @@ export class DataMapperContext implements IDataMapperContext {
         public convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>,
         public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>,
         public deleteSubMapping: (index: number, viewId: string) => Promise<void>,
+        public addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapSeq: (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => Promise<void>,

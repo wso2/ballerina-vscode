@@ -237,6 +237,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
+                addClauses,
                 mapWithCustomFn,
                 mapWithTransformFn,
                 mapSeq,
