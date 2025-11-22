@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { createNewMapping, mapSeqToPrimitive, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -133,6 +133,14 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const onClickMapWithAggregateFn = async (fn: string) => {
             await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
         }
+
+        const onClickMapSeqToArray = async () => {
+            await createNewMapping(link, (expr: string) => `${expr}${genArrayElementAccessSuffix(link)}`);
+        }
+
+        const onClickMapSeqToPrimitive = async (fn: string) => {
+            await mapSeqToPrimitive(link, context, (expr: string) => `${fn}(${expr})`);
+        }
     
         const getItemElement = (id: string, label: string) => {
             return (
@@ -167,7 +175,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             }
         ];
     
-        const genAggregateItems = () => {
+        const genAggregateItems = (onClick: (fn: string) => Promise<void>) => {
             const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
             const aggregateFnsString = ["string:'join"];
             const aggregateFnsCommon = ["first", "last"];
@@ -182,7 +190,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
                 id: `a2s-collect-${fn}`,
                 label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
-                onClick: wrapWithProgress(async () => await onClickMapWithAggregateFn(fn))
+                onClick: wrapWithProgress(async () => await onClick(fn))
             }));
             return a2sAggregateItems;
         };
@@ -219,7 +227,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 case MappingType.ArrayToSingleton:
                     return genArrayToSingletonItems();
                 case MappingType.ArrayToSingletonAggregate:
-                    return genAggregateItems();
+                    return genAggregateItems(onClickMapWithAggregateFn);
+                case MappingType.SeqToPrimitive:
+                    return genAggregateItems(onClickMapSeqToPrimitive)
                 default:
                     return defaultMenuItems;
             }
@@ -227,7 +237,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     
         const menuItems = genMenuItems();
     
-        if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
+        if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
+            pendingMappingType !== MappingType.SeqToPrimitive &&
+            pendingMappingType !== MappingType.SeqToArray) {
             menuItems.push({
                 id: "a2a-a2s-custom-func",
                 label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
