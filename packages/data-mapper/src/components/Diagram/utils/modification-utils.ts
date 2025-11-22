@@ -176,6 +176,36 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	expandArrayFn(context, [input], output, viewId);
 }
 
+
+export async function mapSeqToArray(link: DataMapperLinkModel, context: IDataMapperContext){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+}
+
+export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDataMapperContext, modifier?: (expr: string) => string){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+	if (!sourcePortModel.attributes.field.isFocused){
+		// need to handle add a let clause
+	}
+
+	await createNewMapping(link, modifier);
+
+	
+}
+
 export function mapWithJoin(link: DataMapperLinkModel) {
 
 	const sourcePort = link.getSourcePort();
@@ -200,7 +230,6 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 	});
 	setIsQueryClausesPanelOpen(true);
 }
-
 
 export function buildInputAccessExpr(fieldFqn: string): string {
     // Regular expression to match either quoted strings or non-quoted strings with dots

@@ -95,6 +95,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         if (sourceField.kind === TypeKind.Union || targetField.kind === TypeKind.Union) {
             return MappingType.ContainsUnions;
         }
+
+        if (sourceField.isSeq) {
+            if (isPrimitive(targetField.kind)){
+                return MappingType.SeqToPrimitive;
+            }
+            if (targetField.kind === TypeKind.Array) {
+                return MappingType.SeqToArray;
+            }
+        }
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
