@@ -197,21 +197,10 @@ export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDat
 
 	const sourcePortModel = sourcePort as InputOutputPortModel;
 
-	if (sourcePortModel.attributes.field.isFocused){
-		await createNewMapping(link, modifier);
-	} else {
-		const sourcePortModel = sourcePort as InputOutputPortModel;
-		const outputPortModel = targetPort as InputOutputPortModel;
+	if (!sourcePortModel.attributes.field.isFocused){
 
-		const input = sourcePortModel.attributes.fieldFQN;
-		const output = outputPortModel.attributes.fieldFQN;
 		const lastView = context.views[context.views.length - 1];
 		const viewId = lastView.targetField;
-
-		const mapping: Mapping = {
-			output: output,
-			expression: modifier(sourcePortModel.attributes.field.name)
-		};
 
 		const clause = {
 			type: IntermediateClauseType.LET,
@@ -222,11 +211,15 @@ export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDat
 			}
 		}
 		
-		await context.mapSeq(clause, -1, mapping, viewId);
+		await context.addClauses(clause, viewId, true, -1);
+
+		sourcePortModel.attributes.fieldFQN = clause.properties.name;
+		sourcePortModel.attributes.optionalOmittedFieldFQN = clause.properties.name;
+
 	}
 
+	await createNewMapping(link, modifier);
 
-	
 }
 
 export function mapWithJoin(link: DataMapperLinkModel) {
