@@ -648,6 +648,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         label: member.type,
                                         value: member.type
                                     }))}
+                                    sx={{ width: '100%' }}
+                                    containerSx={{ width: '100%' }}
                                     onValueChange={(value) => handleMemberChange(value)}
                                 />
                             </LabelContainer>
