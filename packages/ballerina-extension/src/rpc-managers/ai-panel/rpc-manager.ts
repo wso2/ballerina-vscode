@@ -70,7 +70,6 @@ import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
-import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../../src/features/ai/constants";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { generateContextTypes, generateInlineMappingCode, generateMappingCode, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";

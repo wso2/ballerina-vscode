@@ -174,6 +174,7 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
+import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -1052,13 +1053,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     openAIChat(params: AIChatRequest): void {
         if (params.readme) {
-            commands.executeCommand("ballerina.open.ai.panel", {
+            openAIPanelWithPrompt({
                 type: 'command-template',
                 command: Command.Code,
                 templateId: TemplateId.GenerateFromReadme,
             });
+        } else if (params.planMode) {
+            openAIPanelWithPrompt({
+                type: 'text',
+                text: '',
+                planMode: true,
+            });
         } else {
-            commands.executeCommand("ballerina.open.ai.panel");
+            openAIPanelWithPrompt(undefined);
         }
     }
 
