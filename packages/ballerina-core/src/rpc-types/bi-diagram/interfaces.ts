@@ -141,8 +141,8 @@ export interface CurrentBreakpointsResponse {
 }
 
 export interface AIChatRequest {
-    scafold: boolean;
     readme: boolean;
+    planMode: boolean;
 }
 
 export interface ImportStatements {

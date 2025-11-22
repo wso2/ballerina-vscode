@@ -41,6 +41,7 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
+import { openAIPanelWithPromptRpc } from "../../../utils/commands";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -668,15 +669,15 @@ export function Overview(props: ComponentDiagramProps) {
 
     const handleGenerate = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: false,
+            planMode: true,
         });
     };
 
     const handleGenerateWithReadme = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: true,
+            planMode: true,
         });
     };
 
@@ -722,7 +723,7 @@ export function Overview(props: ComponentDiagramProps) {
     };
 
     async function handleSettings() {
-        rpcClient.getCommonRpcClient().executeCommand({ commands: [SHARED_COMMANDS.OPEN_AI_PANEL] });
+        openAIPanelWithPromptRpc(rpcClient.getCommonRpcClient());
     }
 
     async function handleClose() {

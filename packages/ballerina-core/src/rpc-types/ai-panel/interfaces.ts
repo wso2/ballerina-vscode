@@ -27,8 +27,8 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, Proje
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any>}
+    | { type: 'text'; text: string; planMode: boolean }
     | undefined;
 
 export interface AIMachineSnapshot {

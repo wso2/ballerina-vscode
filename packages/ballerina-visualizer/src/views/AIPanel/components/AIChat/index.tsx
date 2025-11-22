@@ -199,7 +199,7 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
-    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(true);
+    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -237,6 +237,9 @@ const AIChat: React.FC = () => {
             .then((defaultPrompt: AIPanelPrompt) => {
                 if (defaultPrompt) {
                     aiChatInputRef.current?.setInputContent(defaultPrompt);
+                    if (defaultPrompt.type === 'text') {
+                        setIsPlanModeEnabled(defaultPrompt.planMode);
+                    }
                 }
             });
     }, []);
@@ -319,9 +322,6 @@ const AIChat: React.FC = () => {
                 const context = await rpcClient.getAIChatContext();
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
-                }
-                if (context && context.isPlanMode !== undefined) {
-                    setIsPlanModeEnabled(context.isPlanMode);
                 }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
