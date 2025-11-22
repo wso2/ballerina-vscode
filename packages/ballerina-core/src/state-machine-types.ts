@@ -204,7 +204,8 @@ export type ChatNotify =
     | EvalsToolResult
     | UsageMetricsEvent
     | TaskApprovalRequest
-    | GeneratedSourcesEvent;
+    | GeneratedSourcesEvent
+    | ConnectorGenerationNotification;
 
 export interface ChatStart {
     type: "start";
@@ -295,6 +296,31 @@ export interface GeneratedSourcesEvent {
     fileArray: SourceFile[];
 }
 
+export interface ConnectorGenerationNotification {
+    type: "connector_generation_notification";
+    requestId: string;
+    stage: "requesting_input" | "input_received" | "generating" | "generated" | "skipped" | "error";
+    serviceName?: string;
+    serviceDescription?: string;
+    spec?: {
+        version: string;
+        title: string;
+        description?: string;
+        baseUrl?: string;
+        endpointCount: number;
+        methods: string[];
+    };
+    connector?: {
+        moduleName: string;
+        importStatement: string;
+    };
+    error?: {
+        message: string;
+        code: string;
+    };
+    message: string;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
@@ -374,6 +400,7 @@ export type AIChatMachineStateValue =
     | 'TaskReview'
     | 'ApprovedTask'
     | 'RejectedTask'
+    | 'WaitingForConnectorSpec'
     | 'Completed'
     | 'PartiallyCompleted'
     | 'Error';
@@ -398,6 +425,9 @@ export enum AIChatMachineEventType {
     RESTORE_STATE = 'RESTORE_STATE',
     ERROR = 'ERROR',
     RETRY = 'RETRY',
+    CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
+    PROVIDE_CONNECTOR_SPEC = 'PROVIDE_CONNECTOR_SPEC',
+    SKIP_CONNECTOR_GENERATION = 'SKIP_CONNECTOR_GENERATION',
 }
 
 export interface ChatMessage {
@@ -462,6 +492,14 @@ export interface AIChatMachineContext {
     currentApproval?: UserApproval;
     autoApproveEnabled?: boolean;
     isPlanMode?: boolean;
+    currentSpec?: {
+        requestId: string;
+        spec?: any;
+        provided?: boolean;
+        skipped?: boolean;
+        comment?: string;
+    };
+    previousState?: AIChatMachineStateValue;
 }
 
 export type AIChatMachineSendableEvent =
@@ -483,7 +521,10 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
     | { type: AIChatMachineEventType.ERROR; payload: { message: string } }
-    | { type: AIChatMachineEventType.RETRY };
+    | { type: AIChatMachineEventType.RETRY }
+    | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
+    | { type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC; payload: { requestId: string; spec: any; inputMethod: 'file' | 'paste' | 'url'; sourceIdentifier?: string } }
+    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } };
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
@@ -551,3 +592,14 @@ export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { m
 export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
 export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
 export const getAIChatUIHistory: RequestType<void, UIChatHistoryMessage[]> = { method: 'getAIChatUIHistory' };
+
+// Connector Generator RPC methods
+export interface ConnectorGeneratorResponsePayload {
+    requestId: string;
+    action: 'provide' | 'skip';
+    spec?: any;
+    inputMethod?: 'file' | 'paste' | 'url';
+    sourceIdentifier?: string;
+    comment?: string;
+}
+export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };
