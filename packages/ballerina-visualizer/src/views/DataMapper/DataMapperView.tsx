@@ -492,44 +492,6 @@ export function DataMapperView(props: DataMapperProps) {
             setIsFileUpdateError(true);
         }
     };
-    const mapSeq = async (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => {
-        try {
-
-            const addClausesRequest: AddClausesRequest = {
-                filePath,
-                codedata: {
-                    ...viewState.codedata,
-                    isNew: true
-                },
-                index: clauseIndex,
-                clause,
-                targetField: viewId,
-                varName: name,
-                subMappingName: viewState.subMappingName
-            };
-            console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
-
-            const resp = await rpcClient
-                .getDataMapperRpcClient()
-                .addClauses(addClausesRequest);
-            console.log(">>> [Data Mapper] addClauses response:", resp);
-
-            const respGetSource = await rpcClient
-                .getDataMapperRpcClient()
-                .getDataMapperSource({
-                    filePath,
-                    codedata: viewState.codedata,
-                    varName: name,
-                    targetField: viewId,
-                    mapping,
-                    subMappingName: viewState.subMappingName
-                });
-            console.log(">>> [Data Mapper] mapSeq response:", respGetSource);
-        } catch (error) {
-            console.error(error);
-            setIsFileUpdateError(true);
-        }
-    };
 
     const goToFunction = async (functionRange: LineRange) => {
         const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
@@ -745,7 +707,6 @@ export function DataMapperView(props: DataMapperProps) {
                             deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
-                            mapSeq={mapSeq}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             undoRedoGroup={undoRedoGroup}
