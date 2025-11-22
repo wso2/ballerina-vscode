@@ -43,7 +43,8 @@ import {
     MACHINE_VIEW,
     VisualizerLocation,
     DeleteClauseRequest,
-    IORoot
+    IORoot,
+    IntermediateClauseType
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -491,6 +492,44 @@ export function DataMapperView(props: DataMapperProps) {
             setIsFileUpdateError(true);
         }
     };
+    const mapSeq = async (clause: IntermediateClause, clauseIndex: number, mapping: Mapping, viewId: string) => {
+        try {
+
+            const addClausesRequest: AddClausesRequest = {
+                filePath,
+                codedata: {
+                    ...viewState.codedata,
+                    isNew: true
+                },
+                index: clauseIndex,
+                clause,
+                targetField: viewId,
+                varName: name,
+                subMappingName: viewState.subMappingName
+            };
+            console.log(">>> [Data Mapper] addClauses request:", addClausesRequest);
+
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .addClauses(addClausesRequest);
+            console.log(">>> [Data Mapper] addClauses response:", resp);
+
+            const respGetSource = await rpcClient
+                .getDataMapperRpcClient()
+                .getDataMapperSource({
+                    filePath,
+                    codedata: viewState.codedata,
+                    varName: name,
+                    targetField: viewId,
+                    mapping,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] mapSeq response:", respGetSource);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
 
     const goToFunction = async (functionRange: LineRange) => {
         const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
@@ -706,6 +745,7 @@ export function DataMapperView(props: DataMapperProps) {
                             deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
+                            mapSeq={mapSeq}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             undoRedoGroup={undoRedoGroup}
@@ -727,7 +767,13 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: [...model.inputs.map(i => i.name), ...(model.query?.inputs || [])],
+    inputs: [...model.inputs.map(i => i.name),
+    ...(model.query?.inputs || []),
+    ...(model.query?.intermediateClauses
+        ?.filter((clause) => clause.type === IntermediateClauseType.LET)
+        .map(clause => `${clause.properties.type} ${clause.properties.name} ${clause.properties.expression}`)
+        || [])
+    ],
     output: model.output.name,
     subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''

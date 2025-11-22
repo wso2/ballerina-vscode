@@ -142,6 +142,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
+        mapSeq,
         goToFunction,
         enrichChildFields,
         undoRedoGroup
@@ -238,6 +239,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 deleteSubMapping,
                 mapWithCustomFn,
                 mapWithTransformFn,
+                mapSeq,
                 goToFunction,
                 enrichChildFields
             );

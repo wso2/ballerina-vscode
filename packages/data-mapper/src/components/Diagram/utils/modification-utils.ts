@@ -188,7 +188,7 @@ export async function mapSeqToArray(link: DataMapperLinkModel, context: IDataMap
 
 }
 
-export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDataMapperContext, modifier?: (expr: string) => string){
+export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDataMapperContext, modifier: (expr: string) => string){
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -197,11 +197,34 @@ export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDat
 
 	const sourcePortModel = sourcePort as InputOutputPortModel;
 
-	if (!sourcePortModel.attributes.field.isFocused){
-		// need to handle add a let clause
+	if (sourcePortModel.attributes.field.isFocused){
+		await createNewMapping(link, modifier);
+	} else {
+		const sourcePortModel = sourcePort as InputOutputPortModel;
+		const outputPortModel = targetPort as InputOutputPortModel;
+
+		const input = sourcePortModel.attributes.fieldFQN;
+		const output = outputPortModel.attributes.fieldFQN;
+		const lastView = context.views[context.views.length - 1];
+		const viewId = lastView.targetField;
+
+		const mapping: Mapping = {
+			output: output,
+			expression: modifier(sourcePortModel.attributes.field.name)
+		};
+
+		const clause = {
+			type: IntermediateClauseType.LET,
+			properties: {
+				name: sourcePortModel.attributes.field.name,
+				type: "var",
+				expression: sourcePortModel.attributes.fieldFQN,
+			}
+		}
+		
+		await context.mapSeq(clause, -1, mapping, viewId);
 	}
 
-	await createNewMapping(link, modifier);
 
 	
 }
