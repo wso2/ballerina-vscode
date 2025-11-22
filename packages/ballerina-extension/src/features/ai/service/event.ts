@@ -15,7 +15,7 @@
 // under the License.
 
 import { ChatNotify, Command } from "@wso2/ballerina-core";
-import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification, sendTaskApprovalRequestNotification, sendAbortNotification, sendSaveChatNotification, sendGeneratedSourcesNotification } from "./utils";
+import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification, sendTaskApprovalRequestNotification, sendAbortNotification, sendSaveChatNotification, sendGeneratedSourcesNotification, sendConnectorGenerationNotification } from "./utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
@@ -74,6 +74,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "generated_sources":
                 sendGeneratedSourcesNotification(event.fileArray);
+                break;
+            case "connector_generation_notification":
+                sendConnectorGenerationNotification(event);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

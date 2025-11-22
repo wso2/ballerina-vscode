@@ -197,9 +197,15 @@ export const NATURAL_PROGRAMMING_TEMPLATES: TemplateDefinition[] = [
 export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
         type: "command-template",
-        command: Command.Code,
+        command: Command.Design,
         templateId: TemplateId.Wildcard,
         text: "write a hello world http service",
+    },
+    {
+        type: "command-template",
+        command: Command.Design,
+        templateId: TemplateId.Wildcard,
+        text: "I need to build a pet store application that manages pets, store orders, and users. Can you help me integrate with the Petstore API?",
     },
     {
         type: "command-template",
