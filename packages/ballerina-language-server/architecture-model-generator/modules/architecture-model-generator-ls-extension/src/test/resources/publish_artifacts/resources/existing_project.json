@@ -40,24 +40,6 @@
           "scope": "Global",
           "children": {}
         },
-        "_telegramAgentModel": {
-          "id": "_telegramAgentModel",
-          "location": {
-            "fileName": "agents.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 87
-            }
-          },
-          "type": "VARIABLE",
-          "name": "_telegramAgentModel",
-          "scope": "Global",
-          "children": {}
-        },
         "orders": {
           "id": "orders",
           "location": {
@@ -93,6 +75,24 @@
           "name": "orderCounter",
           "scope": "Global",
           "children": {}
+        },
+        "_telegramAgentModel": {
+          "id": "_telegramAgentModel",
+          "location": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 87
+            }
+          },
+          "type": "VARIABLE",
+          "name": "_telegramAgentModel",
+          "scope": "Global",
+          "children": {}
         }
       }
     },
@@ -114,7 +114,7 @@
           "type": "CONNECTION",
           "name": "httpEp",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png",
           "module": "http",
           "children": {}
         }
@@ -220,7 +220,7 @@
           "type": "LISTENER",
           "name": "httpListener",
           "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png",
           "module": "http",
           "children": {}
         }
@@ -440,6 +440,79 @@
         }
       }
     },
+    "Entry Points": {
+      "additions": {
+        "-611373993": {
+          "id": "-611373993",
+          "location": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 36,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 69,
+              "offset": 1
+            }
+          },
+          "type": "SERVICE",
+          "name": "HTTP Service - /restaurant",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png",
+          "module": "http",
+          "children": {
+            "post#orders": {
+              "id": "post#orders",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 46,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 68,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "orders",
+              "accessor": "post",
+              "scope": "Global",
+              "children": {}
+            },
+            "get#items": {
+              "id": "get#items",
+              "location": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 38,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 44,
+                  "offset": 5
+                }
+              },
+              "type": "RESOURCE",
+              "name": "items",
+              "accessor": "get",
+              "scope": "Global",
+              "children": {}
+            }
+          }
+        }
+      },
+      "deletions": {
+        "-611392686": {
+          "id": "-611392686",
+          "children": {}
+        },
+        "-611384068": {
+          "id": "-611384068",
+          "children": {}
+        }
+      }
+    },
     "Configurations": {
       "additions": {
         "telegramToken": {
@@ -494,79 +567,6 @@
           "type": "CONFIGURABLE",
           "name": "telegramChatId",
           "scope": "Global",
-          "children": {}
-        }
-      }
-    },
-    "Entry Points": {
-      "additions": {
-        "-611373993": {
-          "id": "-611373993",
-          "location": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 36,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 69,
-              "offset": 1
-            }
-          },
-          "type": "SERVICE",
-          "name": "HTTP Service - /restaurant",
-          "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png",
-          "module": "http",
-          "children": {
-            "post#orders": {
-              "id": "post#orders",
-              "location": {
-                "fileName": "main.bal",
-                "startLine": {
-                  "line": 46,
-                  "offset": 4
-                },
-                "endLine": {
-                  "line": 68,
-                  "offset": 5
-                }
-              },
-              "type": "RESOURCE",
-              "name": "orders",
-              "accessor": "post",
-              "scope": "Global",
-              "children": {}
-            },
-            "get#items": {
-              "id": "get#items",
-              "location": {
-                "fileName": "main.bal",
-                "startLine": {
-                  "line": 38,
-                  "offset": 4
-                },
-                "endLine": {
-                  "line": 44,
-                  "offset": 5
-                }
-              },
-              "type": "RESOURCE",
-              "name": "items",
-              "accessor": "get",
-              "scope": "Global",
-              "children": {}
-            }
-          }
-        }
-      },
-      "deletions": {
-        "-611392686": {
-          "id": "-611392686",
-          "children": {}
-        },
-        "-611384068": {
-          "id": "-611384068",
           "children": {}
         }
       }
