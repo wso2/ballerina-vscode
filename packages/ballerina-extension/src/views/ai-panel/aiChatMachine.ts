@@ -121,6 +121,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 currentPlan: (_ctx) => undefined,
                 currentTaskIndex: (_ctx) => -1,
                 errorMessage: (_ctx) => undefined,
+                isPlanMode: (_ctx, event) => event.payload.isPlanMode,
             }),
         },
         [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
@@ -139,16 +140,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         [AIChatMachineEventType.DISABLE_AUTO_APPROVE]: {
             actions: assign({
                 autoApproveEnabled: (_ctx) => false,
-            }),
-        },
-        [AIChatMachineEventType.ENABLE_PLAN_MODE]: {
-            actions: assign({
-                isPlanMode: (_ctx) => true,
-            }),
-        },
-        [AIChatMachineEventType.DISABLE_PLAN_MODE]: {
-            actions: assign({
-                isPlanMode: (_ctx) => false,
             }),
         },
         [AIChatMachineEventType.RESET]: {
