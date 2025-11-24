@@ -15,6 +15,10 @@
  */
 package org.ballerinalang.langserver.completions.util;
 
+import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.Minutiae;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -25,6 +29,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompletionContext;
 import org.ballerinalang.langserver.commons.completion.LSCompletionException;
@@ -46,6 +51,11 @@ import java.util.Optional;
  * Common utility methods for the completion operation.
  */
 public final class CompletionUtil {
+
+    private static final String CONFIGURABLE_CATEGORY = "Configurable";
+    private static final String LISTENER_CATEGORY = "Listener";
+    private static final String CLIENT_CATEGORY = "Client";
+    private static final String RECORD_CATEGORY = "Record";
 
     private CompletionUtil() {
     }
@@ -170,5 +180,39 @@ public final class CompletionUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Get the category description for a symbol based on its type and qualifiers.
+     * This method is shared between field and variable completion items.
+     *
+     * @param typeDescriptor type descriptor of the symbol
+     * @param qualifiers     qualifiers of the symbol
+     * @return {@link Optional} containing the category description if applicable
+     */
+    public static Optional<String> getCategoryDescription(TypeSymbol typeDescriptor, List<Qualifier> qualifiers) {
+        // Check qualifiers first
+        if (qualifiers.contains(Qualifier.CONFIGURABLE)) {
+            return Optional.of(CONFIGURABLE_CATEGORY);
+        }
+        if (qualifiers.contains(Qualifier.LISTENER)) {
+            return Optional.of(LISTENER_CATEGORY);
+        }
+
+        // Check type using getRawType to unwrap references and intersections
+        TypeSymbol rawType = CommonUtil.getRawType(typeDescriptor);
+
+        // Check for Client class
+        if (rawType instanceof ClassSymbol classSymbol
+                && classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+            return Optional.of(CLIENT_CATEGORY);
+        }
+
+        // Check for Record type
+        if (rawType.typeKind() == TypeDescKind.RECORD) {
+            return Optional.of(RECORD_CATEGORY);
+        }
+
+        return Optional.empty();
     }
 }
