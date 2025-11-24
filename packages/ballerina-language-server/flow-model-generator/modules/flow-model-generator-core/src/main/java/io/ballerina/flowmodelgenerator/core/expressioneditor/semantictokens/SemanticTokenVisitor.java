@@ -55,6 +55,8 @@ public class SemanticTokenVisitor extends NodeVisitor {
     private final Set<Long> seenPositions;
     private final Set<String> validSymbolNames;
 
+    private static final String BALLERINA_AI_MODULE_PREFIX = "ai";
+
     public SemanticTokenVisitor(Set<String> validSymbolNames) {
         this.semanticTokens = new ArrayList<>();
         this.seenPositions = new HashSet<>();
@@ -195,7 +197,7 @@ public class SemanticTokenVisitor extends NodeVisitor {
         //  the ai prefix only.
         boolean isAiTypeCast = typeCastExpressionNode.typeCastParam().type().map(typeNode -> {
             if (typeNode instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
-                return qualifiedNameReferenceNode.modulePrefix().text().equals("ai");
+                return qualifiedNameReferenceNode.modulePrefix().text().equals(BALLERINA_AI_MODULE_PREFIX);
             }
             return false;
         }).orElse(false);
