@@ -1,0 +1,40 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 18,
+        "offset": 35
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "userInfo",
+  "property": {
+    "valueType": "EXPRESSION",
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "variable1.bal",
+        "startLine": {
+          "line": 18,
+          "offset": 32
+        },
+        "endLine": {
+          "line": 18,
+          "offset": 34
+        }
+      }
+    }
+  }
+}

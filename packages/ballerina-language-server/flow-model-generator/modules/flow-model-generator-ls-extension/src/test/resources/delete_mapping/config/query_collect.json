@@ -1,0 +1,48 @@
+{
+  "source": "query_collect.bal",
+  "description": "Delete mapping with query collect expression",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query_collect.bal",
+      "startLine": {
+        "line": 5,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 8,
+        "offset": 10
+      }
+    },
+    "sourceCode": "InArrType output = {\n            p2: from var input2Item in input2\n                collect sum(input2Item)\n        };"
+  },
+  "mapping": {
+    "output": "p2",
+    "inputs": [
+      "input2Item"
+    ],
+    "expression": "sum(input2Item)\n",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": true
+  },
+  "targetField": "output.p2",
+  "output": {
+    "query_collect.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 12
+          },
+          "end": {
+            "line": 7,
+            "character": 39
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

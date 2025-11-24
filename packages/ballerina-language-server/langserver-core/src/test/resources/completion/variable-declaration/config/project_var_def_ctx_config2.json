@@ -477,7 +477,8 @@
     {
       "label": "person",
       "labelDetails": {
-        "detail": " models:Person"
+        "detail": " models:Person",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "models:Person",

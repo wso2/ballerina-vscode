@@ -59,14 +59,13 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
 
         DataMapperFieldPositionRequest request =
                 new DataMapperFieldPositionRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(),
+                        testConfig.codedata(), testConfig.targetField(),
                         testConfig.fieldId());
         JsonElement property = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("property");
 
         if (!property.equals(testConfig.property())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.propertyKey(), testConfig.targetField(), testConfig.fieldId(),
-                    property);
+                    testConfig.codedata(), testConfig.targetField(), testConfig.fieldId(), property);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -98,13 +97,12 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
      * @param source      The source file name
      * @param description The description of the test
      * @param codedata    Details of the node
-     * @param propertyKey The property key
      * @param targetField The target field to add the element
      * @param fieldId     The field ID to identify the specific field to get the position
      * @param property    Type property of the type of field ID
      */
-    private record TestConfig(String source, String description, JsonElement codedata, String propertyKey,
-                              String targetField, String fieldId, JsonElement property) {
+    private record TestConfig(String source, String description, JsonElement codedata, String targetField,
+                              String fieldId, JsonElement property) {
 
         public String description() {
             return description == null ? "" : description;

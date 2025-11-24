@@ -43,6 +43,9 @@
   "completions": [
     {
       "label": "name",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -51,6 +54,9 @@
     },
     {
       "label": "email",
+      "labelDetails": {
+        "detail": " string"
+      },
       "kind": "Field",
       "detail": "string",
       "sortText": "AA",
@@ -59,6 +65,10 @@
     },
     {
       "label": "address",
+      "labelDetails": {
+        "detail": " Address",
+        "description": "Record"
+      },
       "kind": "Field",
       "detail": "Address",
       "sortText": "CA",

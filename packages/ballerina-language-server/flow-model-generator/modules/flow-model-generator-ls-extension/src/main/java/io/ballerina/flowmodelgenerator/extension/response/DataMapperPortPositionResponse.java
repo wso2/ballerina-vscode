@@ -25,9 +25,11 @@ import com.google.gson.JsonElement;
  *
  * @since 1.0.0
  */
-public class DataMapperFieldPositionResponse extends AbstractFlowModelResponse {
+public class DataMapperPortPositionResponse extends AbstractFlowModelResponse {
 
     private JsonElement property;
+    private int line;
+    private int offset;
 
     public void setProperty(JsonElement property) {
         this.property = property;
@@ -35,5 +37,21 @@ public class DataMapperFieldPositionResponse extends AbstractFlowModelResponse {
 
     public JsonElement getProperty() {
         return this.property;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setLine(int line) {
+        this.line = line;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 }

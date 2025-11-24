@@ -51,6 +51,8 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.GroupByClauseNode;
+import io.ballerina.compiler.syntax.tree.GroupingKeyVarDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
 import io.ballerina.compiler.syntax.tree.IntermediateClauseNode;
@@ -111,7 +113,9 @@ import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefEnumType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefMapType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefRecordType;
+import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefStreamType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefTupleType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefType;
 import org.ballerinalang.diagramutil.connector.models.connector.reftypes.RefUnionType;
@@ -148,6 +152,7 @@ public class DataMapManager {
     public static final String LIMIT = "limit";
     public static final String LET = "let";
     public static final String ORDER_BY = "order-by";
+    public static final String GROUP_BY = "group-by";
     public static final String ITEM = "Item";
     public static final String INT = "int";
     public static final String FLOAT = "float";
@@ -450,18 +455,23 @@ public class DataMapManager {
             return null;
         }
 
-        ExpressionNode initializer = getMappingExpr(parentNode);
-        if (initializer == null) {
+        ExpressionNode expr = getMappingExpr(parentNode);
+        if (expr == null) {
             return new TargetNode(typeSymbol, name, null);
         }
 
         if (targetField == null) {
-            return new TargetNode(typeSymbol, name, new MatchingNode(initializer, null, null));
+            return new TargetNode(typeSymbol, name, new MatchingNode(expr, null, null));
         }
 
         String[] fieldSplits = targetField.split(DOT);
         int idx = 1;
-        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+
+        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
+            expr = ((LetExpressionNode) expr).expression();
+        }
+
+        if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
             if (fieldSplits.length >= 2 && fieldSplits[1].equals(ZERO)) {
                 idx = 2;
             }
@@ -489,10 +499,6 @@ public class DataMapManager {
             }
         }
 
-        ExpressionNode expr = initializer;
-        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
-            expr = ((LetExpressionNode) expr).expression();
-        }
         MatchingNode matchingNode = getTargetMappingExpr(expr, targetField);
         if (matchingNode == null) {
             return null;
@@ -989,6 +995,8 @@ public class DataMapManager {
             case "enum" -> handleEnumType(id, name, typeName, type, visitedTypes, references);
             case "union" -> handleUnionType(id, name, typeName, type, visitedTypes, references);
             case "tuple" -> handleTupleType(id, name, typeName, type, visitedTypes, references);
+            case "map" -> handleMapType(id, name, type, visitedTypes, references);
+            case "stream" -> handleStreamType(id, name, type, visitedTypes, references);
             default -> {
                 if (type.hashCode != null && !type.hashCode.isEmpty()) {
                     throw new IllegalStateException("Unexpected type with hashCode: " + type.typeName);
@@ -1034,6 +1042,27 @@ public class DataMapManager {
 
         processDependentTypes(id, arrayType.dependentTypes, visitedTypes, references);
         return arrayPort;
+    }
+
+    private MappingPort handleMapType(String id, String name, RefType type,
+                                       Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefMapType mapType)) {
+            return new MappingMapPort(id, name, "map", "map", type.key);
+        }
+
+        String valueName = getItemName(name);
+        MappingPort valuePort = getRefMappingPort(id, valueName, mapType.valueType, visitedTypes, references);
+        if (valuePort.displayName == null) {
+            valuePort.displayName = valueName;
+        }
+
+        String mapTypeName = buildMapTypeName(valuePort, type);
+        MappingMapPort mapPort = new MappingMapPort(id, name, mapTypeName, "map", type.hashCode);
+        mapPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+        mapPort.setValue(valuePort);
+        processDependentTypes(id, mapType.dependentTypes, visitedTypes, references);
+
+        return mapPort;
     }
 
     private MappingPort handleEnumType(String id, String name, String typeName, RefType type,
@@ -1137,6 +1166,87 @@ public class DataMapManager {
             arrayTypeName = type.moduleInfo.modulePrefix + ":" + arrayTypeName;
         }
         return arrayTypeName;
+    }
+
+    private String buildMapTypeName(MappingPort valuePort, RefType type) {
+        if (valuePort == null) {
+            return "map<any>";
+        }
+
+        String valueTypeName = valuePort.typeName;
+        boolean isUnionValue = valuePort.kind.endsWith("union");
+        if (isUnionValue) {
+            valueTypeName = "(" + valueTypeName + ")";
+        }
+
+        String mapTypeName = "map<" + valueTypeName + ">";
+        if (isExternalType(type) && !isUnionValue && valuePort.typeInfo == null) {
+            mapTypeName = type.moduleInfo.modulePrefix + ":" + mapTypeName;
+        }
+        return mapTypeName;
+    }
+
+    private MappingPort handleStreamType(String id, String name, RefType type,
+                                          Map<String, Type> visitedTypes, Map<String, MappingPort> references) {
+        if (!(type instanceof RefStreamType streamType)) {
+            return new MappingStreamPort(id, name, "stream", "stream", type.key);
+        }
+
+        String valueName = getItemName(name);
+        MappingPort valuePort = getRefMappingPort(id, valueName, streamType.valueType, visitedTypes, references);
+        if (valuePort.displayName == null) {
+            valuePort.displayName = valueName;
+        }
+
+        MappingPort completionPort = null;
+        if (streamType.completionType != null) {
+            String completionName = name + "Completion";
+            completionPort = getRefMappingPort(id, completionName, streamType.completionType, visitedTypes, references);
+            if (completionPort.displayName == null) {
+                completionPort.displayName = completionName;
+            }
+        }
+
+        String streamTypeName = buildStreamTypeName(valuePort, completionPort, type);
+        MappingStreamPort streamPort = new MappingStreamPort(id, name, streamTypeName, "stream", type.hashCode);
+        streamPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
+        streamPort.setValue(valuePort);
+        if (completionPort != null) {
+            streamPort.setCompletion(completionPort);
+        }
+        processDependentTypes(id, streamType.dependentTypes, visitedTypes, references);
+
+        return streamPort;
+    }
+
+    private String buildStreamTypeName(MappingPort valuePort, MappingPort completionPort, RefType type) {
+        if (valuePort == null) {
+            return "stream<any>";
+        }
+
+        String valueTypeName = valuePort.typeName;
+        boolean isUnionValue = valuePort.kind.endsWith("union");
+        if (isUnionValue) {
+            valueTypeName = "(" + valueTypeName + ")";
+        }
+
+        String streamTypeName;
+        if (completionPort != null && !"()".equals(completionPort.typeName) &&
+                !"nil".equals(completionPort.typeName)) {
+            String completionTypeName = completionPort.typeName;
+            boolean isUnionCompletion = completionPort.kind.endsWith("union");
+            if (isUnionCompletion) {
+                completionTypeName = "(" + completionTypeName + ")";
+            }
+            streamTypeName = "stream<" + valueTypeName + ", " + completionTypeName + ">";
+        } else {
+            streamTypeName = "stream<" + valueTypeName + ">";
+        }
+
+        if (isExternalType(type) && !isUnionValue && valuePort.typeInfo == null) {
+            streamTypeName = type.moduleInfo.modulePrefix + ":" + streamTypeName;
+        }
+        return streamTypeName;
     }
 
     private void processRecordFields(MappingRecordPort recordPort, RefRecordType recordType,
@@ -1491,6 +1601,9 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
                         }
                     }
+                } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
+                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx,
+                            textEdits, targetSymbol);
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
@@ -1512,6 +1625,16 @@ public class DataMapManager {
                             names, idx + 1, textEdits, targetSymbol);
                 }
             }
+        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
+            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+            ClauseNode clauseNode = queryExpr.resultClause();
+            ExpressionNode resultExpr;
+            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                resultExpr = ((SelectClauseNode) clauseNode).expression();
+            } else {
+                resultExpr = ((CollectClauseNode) clauseNode).expression();
+            }
+            genDeleteMappingSource(semanticModel, resultExpr, names, idx, textEdits, targetSymbol);
         }
     }
 
@@ -1548,7 +1671,7 @@ public class DataMapManager {
         }
     }
 
-    public JsonElement addClauses(Path filePath, JsonElement cd, JsonElement cl, int index, String targetField) {
+    public JsonElement addClause(Path filePath, JsonElement cd, JsonElement cl, int index, String targetField) {
         Clause clause = gson.fromJson(cl, Clause.class);
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -1636,6 +1759,13 @@ public class DataMapManager {
                     orderBy += " " + properties.order();
                 }
                 return orderBy;
+            }
+            case GROUP_BY: {
+                if (properties.name() != null && properties.type() != null) {
+                    return "group by " + properties.type() + " " + properties.name() +
+                            " = " + properties.expression();
+                }
+                return "group by " + properties.expression();
             }
             case "let": {
                 return "let " + properties.type() + " " + properties.name() +
@@ -1751,9 +1881,23 @@ public class DataMapManager {
             semanticModel = optSemanticModel.get();
         }
 
-        String[] typeParts = codedata.symbol().split("\\[", 2);
+        String symbolStr = codedata.symbol();
+        if (symbolStr.startsWith("[") && symbolStr.contains(",")) {
+            return gson.toJsonTree(new DataMapCapability(true, "[]"));
+        }
+
+        String[] typeParts = symbolStr.split("\\[", 2);
         String type = typeParts[0];
         boolean isArray = (typeParts.length > 1 ? "[" + typeParts[1] : "").startsWith("[");
+        boolean isMapType = type.startsWith("map<") && type.endsWith(">");
+
+        if (isMapType) {
+            if (isArray) {
+                return gson.toJsonTree(new DataMapCapability(true, "[]"));
+            }
+            return gson.toJsonTree(new DataMapCapability(true, "{}"));
+        }
+
         DataMapCapability dataMapCapability = getDataMapperCapabilityForPrimitiveTypes(type, isArray);
         if (dataMapCapability != null) {
             return gson.toJsonTree(dataMapCapability);
@@ -1786,7 +1930,14 @@ public class DataMapManager {
         TypeSymbol typeSymbol = typeDefSymbol.typeDescriptor();
         TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
         TypeDescKind kind = rawTypeSymbol.typeKind();
-        if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+        if (kind == TypeDescKind.TUPLE) {
+            return new DataMapCapability(true, "[]");
+        } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
+            if (isArray) {
+                return new DataMapCapability(true, "[]");
+            }
+            return new DataMapCapability(true, "{}");
+        } else if (kind == TypeDescKind.MAP) {
             if (isArray) {
                 return new DataMapCapability(true, "[]");
             }
@@ -1939,7 +2090,6 @@ public class DataMapManager {
                                         String fieldId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
         if (targetNode == null) {
             return null;
@@ -1955,6 +2105,65 @@ public class DataMapManager {
             dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();
         }
         return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
+    public JsonElement getTargetFieldPosition(SemanticModel semanticModel, JsonElement cd, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        MatchingNode matchingNode = targetNode.matchingNode();
+        LineRange lineRange;
+        if (matchingNode.queryExpr() == null) {
+            lineRange = matchingNode.expr().lineRange();
+        } else {
+            lineRange = resultClausePosition(matchingNode.expr());
+        }
+
+        Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
+        dataMapManagerBuilder = dataMapManagerBuilder
+                .type(Property.ValueType.EXPRESSION)
+                .codedata()
+                    .lineRange(lineRange)
+                .stepOut();
+        return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
+    public JsonElement getClausePosition(SemanticModel semanticModel, JsonElement cd, String targetField, int index) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        MatchingNode matchingNode = targetNode.matchingNode();
+        if (matchingNode == null) {
+            return null;
+        }
+
+        QueryExpressionNode queryExprNode = matchingNode.queryExpr();
+        if (queryExprNode == null) {
+            return null;
+        }
+
+        NodeList<IntermediateClauseNode> intermediateClauses = queryExprNode.queryPipeline().intermediateClauses();
+        if (index < 0) {
+            if (intermediateClauses.isEmpty()) {
+                return gson.toJsonTree(queryExprNode.resultClause().lineRange().startLine());
+            } else {
+                return gson.toJsonTree(intermediateClauses.get(0).lineRange().startLine());
+            }
+        } else if (index >= intermediateClauses.size()) {
+            return gson.toJsonTree(queryExprNode.resultClause().lineRange().startLine());
+        } else {
+            return gson.toJsonTree(intermediateClauses.get(index).lineRange().startLine());
+        }
     }
 
     public JsonElement subMapping(JsonElement cd, String view) {
@@ -2019,7 +2228,7 @@ public class DataMapManager {
                     if (funcDefNode.functionName().text().equals(name)) {
                         return gson.toJsonTree(new Codedata.Builder<>(null)
                                 .lineRange(stNode.lineRange())
-                                .node(NodeKind.VARIABLE)
+                                .node(NodeKind.DATA_MAPPER)
                                 .build());
                     }
                 }
@@ -2097,6 +2306,25 @@ public class DataMapManager {
                             onClauseNode.lhsExpression().toSourceCode().trim(),
                             onClauseNode.rhsExpression().toSourceCode().trim(),
                             joinClauseNode.outerKeyword().isPresent())));
+                }
+                case GROUP_BY_CLAUSE -> {
+                    GroupByClauseNode groupByClause = (GroupByClauseNode) intermediateClause;
+                    SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
+                    if (!groupingKeys.isEmpty()) {
+                        Node groupingKey = groupingKeys.get(0);
+                        if (groupingKey.kind() == SyntaxKind.GROUPING_KEY_VAR_DECLARATION) {
+                            GroupingKeyVarDeclarationNode varDecl = (GroupingKeyVarDeclarationNode) groupingKey;
+                            intermediateClauses.add(new Clause(GROUP_BY,
+                                    new Properties(varDecl.simpleBindingPattern().toSourceCode().trim(),
+                                            varDecl.typeDescriptor().toSourceCode().trim(),
+                                            varDecl.expression().toSourceCode().trim(),
+                                            null, null, null, false)));
+                        } else {
+                            intermediateClauses.add(new Clause(GROUP_BY,
+                                    new Properties(null, null, groupingKey.toSourceCode().trim(),
+                                            null, null, null, false)));
+                        }
+                    }
                 }
                 default -> {
                 }
@@ -2241,6 +2469,17 @@ public class DataMapManager {
         } else {
             return expr.lineRange();
         }
+    }
+
+    private LineRange resultClausePosition(ExpressionNode expressionNode) {
+        Node node = expressionNode.parent();
+        while (node != null) {
+            if (node.kind() == SyntaxKind.SELECT_CLAUSE || node.kind() == SyntaxKind.COLLECT_CLAUSE) {
+                return node.lineRange();
+            }
+            node = node.parent();
+        }
+        throw new IllegalStateException("Result clause not found for the expression node");
     }
 
     private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,
@@ -2668,6 +2907,55 @@ public class DataMapManager {
 
         MappingPort getMember() {
             return this.member;
+        }
+    }
+
+    private static class MappingMapPort extends MappingPort {
+        MappingPort value;
+
+        MappingMapPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingMapPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+
+        void setValue(MappingPort value) {
+            this.value = value;
+        }
+
+        MappingPort getValue() {
+            return this.value;
+        }
+    }
+
+    private static class MappingStreamPort extends MappingPort {
+        MappingPort value;
+        MappingPort completion;
+
+        MappingStreamPort(String name, String displayName, String typeName, String kind, Boolean optional) {
+            super(name, displayName, typeName, kind, optional);
+        }
+
+        MappingStreamPort(String name, String displayName, String typeName, String kind, String reference) {
+            super(name, displayName, typeName, kind, reference);
+        }
+
+        void setValue(MappingPort value) {
+            this.value = value;
+        }
+
+        MappingPort getValue() {
+            return this.value;
+        }
+
+        void setCompletion(MappingPort completion) {
+            this.completion = completion;
+        }
+
+        MappingPort getCompletion() {
+            return this.completion;
         }
     }
 

@@ -8,6 +8,7 @@
       "offset": 4
     },
     "offset": 1,
+    "lineOffset": 0,
     "codedata": {
       "node": "VARIABLE",
       "lineRange": {
@@ -69,6 +70,9 @@
     },
     {
       "label": "country",
+      "labelDetails": {
+        "detail": " Location.country"
+      },
       "kind": "Field",
       "detail": "Location.country",
       "sortText": "K",
@@ -77,6 +81,9 @@
     },
     {
       "label": "city",
+      "labelDetails": {
+        "detail": " Location.city"
+      },
       "kind": "Field",
       "detail": "Location.city",
       "sortText": "K",

@@ -435,7 +435,8 @@
     {
       "label": "fromCurrency",
       "labelDetails": {
-        "detail": " Currency"
+        "detail": " Currency",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Currency",

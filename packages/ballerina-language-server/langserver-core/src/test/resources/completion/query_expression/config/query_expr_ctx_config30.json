@@ -566,7 +566,8 @@
     {
       "label": "c",
       "labelDetails": {
-        "detail": " Customer"
+        "detail": " Customer",
+        "description": "Record"
       },
       "kind": "Variable",
       "detail": "Customer",

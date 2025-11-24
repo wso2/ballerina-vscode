@@ -1,0 +1,20 @@
+{
+  "source": "variable5.bal",
+  "description": "Test tuple type visualization",
+  "codedata": {
+    "node": "TYPEDESC",
+    "org": "",
+    "module": "",
+    "packageName": "",
+    "symbol": "Coordinates",
+    "version": ""
+  },
+  "position": {
+    "line": 14,
+    "offset": 12
+  },
+  "visualizableProperties": {
+    "isDataMapped": true,
+    "defaultValue": "[]"
+  }
+}
