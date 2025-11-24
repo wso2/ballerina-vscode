@@ -1,0 +1,14 @@
+{
+  "description": "A mapping constructor with a type cast",
+  "filePath": "main.bal",
+  "expression": "<http:Ok>{\n        body: {\n            mediaType: \"application/json\",\n            message: val\n        }",
+  "expectedTokens": [
+    {
+      "line": 3,
+      "col": 21,
+      "length": 3,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}
