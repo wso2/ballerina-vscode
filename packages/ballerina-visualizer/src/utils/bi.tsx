@@ -157,7 +157,7 @@ export function enrichCategoryWithDevant(
                 });
                 if (matchingConn) {
                     const matchingDevantConn = connections?.find(
-                        (conn) => conn.name === matchingConn?.remoteConnection
+                        (conn) => conn.name === matchingConn?.remoteId
                     );
                     if (matchingDevantConn) {
                         usedConnIds.push(matchingDevantConn.groupUuid);

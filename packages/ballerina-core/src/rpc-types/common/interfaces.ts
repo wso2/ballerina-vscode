@@ -118,7 +118,7 @@ export interface PackageTomlValues {
             id: string;
             targetModule: string;
             filePath: string;
-            remoteConnection?: string;
+            remoteId?: string;
         }[];
     }
 }

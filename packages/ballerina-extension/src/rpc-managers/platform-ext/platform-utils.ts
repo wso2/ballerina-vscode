@@ -332,7 +332,7 @@ export const initializeDevantConnection = async (params: {
             ...tomlValues?.tool,
             openapi: tomlValues.tool?.openapi?.map((item) => {
                 if (item.id === moduleName) {
-                    return { ...item, remoteConnection: params?.name, filePath: `.choreo/${moduleName}-spec.yaml` };
+                    return { ...item, remoteId: params?.name, filePath: `.choreo/${moduleName}-spec.yaml` };
                 }
                 return item;
             }),
