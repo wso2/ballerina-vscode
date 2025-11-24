@@ -14,7 +14,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 
@@ -36,11 +36,11 @@ export const PreviewContainerDefault = styled.div`
 export const PreviewContainer = styled.div`
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
-    font-size: 0.8em; 
-    padding: 2px 5px; 
-    border-radius: 3px; 
-    display: inline-block; 
-    margin-left: 2px; 
+    font-size: 0.8em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-left: 2px;
 `;
 
 interface RoleContainerProps {
@@ -75,7 +75,7 @@ const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview,
                 iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)", cursor: "default" }}
             />
             <h3 style={{ margin: 0 }}>{title}</h3>
-            {showPreview && <PreviewContainer>Preview</PreviewContainer>}
+            {showPreview && <PreviewContainer>Experimental</PreviewContainer>}
             {isLoading && <span style={{ color: "var(--vscode-input-placeholderForeground)" }}>{generatingText}</span>}
             {checkpointButton && <div style={{ marginLeft: "auto" }}>{checkpointButton}</div>}
         </div>
