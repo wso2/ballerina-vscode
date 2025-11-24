@@ -103,7 +103,7 @@ interface NavigationStackItem {
 
 export type FormSubmitOptions = {
     closeSidePanel?: boolean;
-    updateLineRange?: boolean;
+    isChangeFromHelperPane?: boolean;
     postUpdateCallBack?: () => void;
 };
 
@@ -169,6 +169,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     }, [breakpointState]);
 
     useEffect(() => {
+        rpcClient.onProjectContentUpdated(() => {
+            debouncedGetFlowModel();
+        })
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
             if (parent.dataMapperMetadata) {
                 // Skip if the parent is a data mapper popup
@@ -506,7 +509,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             const parentMetadata = model.flowModel.nodes.find(
                                 (node) => node.codedata.node === "EVENT_START"
                             )?.metadata.data as ParentMetadata | undefined;
-
+                            if (shouldUpdateLineRangeRef.current) {
+                                const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
+                                    ? updatedNodeRef.current.properties.variable.value
+                                    : "";
+                                const newNode = searchNodesByName(model.flowModel.nodes, varName)
+                                changeTargetRange({
+                                    startLine: newNode.codedata.lineRange.endLine,
+                                    endLine: newNode.codedata.lineRange.endLine
+                                })
+                            }
                             // Get visualizer location and pass position to onReady
                             rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                 console.log(">>> Visualizer location", location?.position);
@@ -1237,12 +1249,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         const noFormSubmitOptions = !options ||
             (
                 options?.closeSidePanel === undefined
-                && options?.updateLineRange === undefined
+                && options?.isChangeFromHelperPane === undefined
                 && options?.postUpdateCallBack === undefined
             );
 
         if (
-            options?.updateLineRange &&
+            options?.isChangeFromHelperPane &&
             !selectedNodeRef.current?.codedata?.isNew
         ) {
             const nodeBefore = getNodeBefore(selectedNodeRef.current, model.nodes);
@@ -1266,7 +1278,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         if (options?.postUpdateCallBack) {
                             options.postUpdateCallBack();
                         }
-                        shouldUpdateLineRangeRef.current = options?.updateLineRange;
+                        shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                         updatedNodeRef.current = updatedNode;
                         rpcClient.getVisualizerRpcClient().openView({
                             type: EVENT_TYPE.OPEN_VIEW,
@@ -1303,6 +1315,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 filePath: model.fileName,
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
+                isHelperPaneChange: options?.isChangeFromHelperPane,
             })
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
@@ -1321,8 +1334,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     if (options?.postUpdateCallBack) {
                         options.postUpdateCallBack();
                     }
-                    shouldUpdateLineRangeRef.current = options?.updateLineRange;
-                    if (options?.updateLineRange) {
+                    shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
+                    if (options?.isChangeFromHelperPane) {
                         const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel()
                         let newTargetLineRange = targetLineRange;
                         if (!selectedNodeRef.current?.codedata?.isNew) {
