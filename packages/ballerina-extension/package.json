@@ -297,6 +297,9 @@
                                 ],
                                 "default": "integrated",
                                 "description": "Indicates the terminal kind to launch the debugging process in."
+                            },
+                            "choreoConnect":{
+                                "description": "Connect with Choreo/Devant when launching the app"
                             }
                         }
                     },

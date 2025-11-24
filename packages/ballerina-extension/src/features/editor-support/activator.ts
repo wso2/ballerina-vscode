@@ -25,7 +25,6 @@ import { INTERNAL_DEBUG_COMMAND, clearTerminal, FOCUS_DEBUG_CONSOLE_COMMAND, SOU
 import { sendTelemetryEvent, TM_EVENT_SOURCE_DEBUG_CODELENS, CMP_EXECUTOR_CODELENS, TM_EVENT_TEST_DEBUG_CODELENS } from "../telemetry";
 import { constructDebugConfig } from "../debugger";
 import { StringSplitFeature, StringSplitter } from "./split-provider";
-import { PlatformExtRpcManager } from "../../rpc-managers/platform-ext/rpc-manager";
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
     if (!ballerinaExtInstance.context || !ballerinaExtInstance.langClient) {
@@ -77,8 +76,6 @@ export async function startDebugging(uri: Uri, testDebug: boolean = false, sugge
     const debugConfig: DebugConfiguration = await constructDebugConfig(uri, testDebug);
     debugConfig.suggestTryit = suggestTryit;
     debugConfig.noDebug = noDebugMode;
-
-    await new PlatformExtRpcManager().setupDevantProxyForDebugging(debugConfig);
 
     return debug.startDebugging(workspaceFolder, debugConfig);
 }
