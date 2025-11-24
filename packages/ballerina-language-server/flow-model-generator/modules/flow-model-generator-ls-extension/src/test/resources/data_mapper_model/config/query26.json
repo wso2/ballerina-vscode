@@ -1,0 +1,142 @@
+{
+  "source": "proj2/main.bal",
+  "description": "Query with group by using direct field reference",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "proj2/main.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 10
+      }
+    },
+    "sourceCode": "Array meanQuantity = {\n            values: from var salesItem in sales\n                let var quantity = salesItem.quantity\n                group by var item = salesItem.item\n                select sum(quantity)\n        };"
+  },
+  "position": {
+    "line": 18,
+    "offset": 8
+  },
+  "targetField": "meanQuantity.values",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "sales",
+          "displayName": "<salesItem>",
+          "typeName": "Sale",
+          "kind": "record",
+          "ref": "1120091376"
+        },
+        "name": "sales",
+        "displayName": "sales",
+        "typeName": "Sale[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "-1728427723"
+      },
+      {
+        "fields": [],
+        "name": "salesItem",
+        "displayName": "salesItem",
+        "typeName": "Sale",
+        "kind": "record",
+        "focusExpression": "sales",
+        "ref": "1120091376"
+      }
+    ],
+    "output": {
+      "member": {
+        "name": "values",
+        "displayName": "<valuesItem>",
+        "typeName": "int",
+        "kind": "int"
+      },
+      "name": "values",
+      "displayName": "values",
+      "typeName": "int[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "values",
+        "inputs": [
+          "quantity"
+        ],
+        "expression": "sum(quantity)\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": true
+      }
+    ],
+    "query": {
+      "output": "values",
+      "inputs": [
+        "sales"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "salesItem",
+          "type": "Sale",
+          "expression": "sales",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [
+        {
+          "type": "let",
+          "properties": {
+            "name": "quantity",
+            "type": "var",
+            "expression": "salesItem.quantity",
+            "isOuter": false
+          }
+        },
+        {
+          "type": "group-by",
+          "properties": {
+            "name": "item",
+            "type": "var",
+            "expression": "salesItem.item",
+            "isOuter": false
+          }
+        }
+      ],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "sum(quantity)",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "1120091376": {
+        "fields": [
+          {
+            "name": "item",
+            "displayName": "item",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "quantity",
+            "displayName": "quantity",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Sale",
+        "kind": "record"
+      }
+    }
+  }
+}
