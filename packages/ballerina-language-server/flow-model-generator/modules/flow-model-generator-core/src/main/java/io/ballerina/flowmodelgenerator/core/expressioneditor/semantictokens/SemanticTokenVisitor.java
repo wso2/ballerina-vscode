@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.OptionalFieldAccessExpressionNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -188,6 +189,21 @@ public class SemanticTokenVisitor extends NodeVisitor {
 
     @Override
     public void visit(TypeCastExpressionNode typeCastExpressionNode) {
+        // TODO: The extension currently manages the type cast node as described in the referenced issue:
+        //  https://github.com/wso2/product-ballerina-integrator/issues/1656. However, it lacks a mechanism to handle
+        //  HTTP type‑casted records, so as a hack, this implementation is currently restricted to type casts with
+        //  the ai prefix only.
+        boolean isAiTypeCast = typeCastExpressionNode.typeCastParam().type().map(typeNode -> {
+            if (typeNode instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
+                return qualifiedNameReferenceNode.modulePrefix().text().equals("ai");
+            }
+            return false;
+        }).orElse(false);
+        if (!isAiTypeCast) {
+            typeCastExpressionNode.expression().accept(this);
+            return;
+        }
+
         // Mark the entire type cast (<Type>) as TYPE_CAST token
         LinePosition linePosition = typeCastExpressionNode.ltToken().lineRange().startLine();
         int startLine = linePosition.line();
