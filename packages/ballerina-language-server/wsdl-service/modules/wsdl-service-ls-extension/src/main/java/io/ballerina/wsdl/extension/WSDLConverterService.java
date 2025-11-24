@@ -50,10 +50,10 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
     }
 
     /**
-     * Generate Ballerina types from a WSDL file and append them to the specified file.
+     * Generate Ballerina types and client from a WSDL file in a generated module folder.
      *
-     * @param request The WSDL converter request containing the WSDL content and project filepath information
-     * @return CompletableFuture containing the response with text edits or error information
+     * @param request The WSDL converter request containing the WSDL content, project path, port name, and module name
+     * @return CompletableFuture containing the response with source (text edits map) or error information
      */
     @JsonRequest
     public CompletableFuture<WSDLConverterResponse> generateTypesFromWSDL(WSDLConverterRequest request) {
@@ -61,34 +61,18 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
             WSDLConverterResponse response = new WSDLConverterResponse();
             try {
                 this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
-                if (request.getWsdlContent() == null || request.getWsdlContent().isEmpty()) {
-                    response.setError("WSDL content cannot be null or empty");
-                    return response;
-                }
-
-                if (request.getProjectPath() == null || request.getProjectPath().isEmpty()) {
-                    response.setError("Project path cannot be null or empty");
-                    return response;
-                }
-
-                Path projectPath = Path.of(request.getProjectPath());
                 WSDLTypeGenerator generator = new WSDLTypeGenerator(
                         request.getWsdlContent(),
-                        projectPath,
-                        workspaceManager,
-                        request.getPortName() != null ? request.getPortName() : ""
+                        Path.of(request.getProjectPath()),
+                        request.getPortName() != null ? request.getPortName() : "",
+                        request.getOperations()
                 );
 
-                JsonElement textEdits = generator.generateTypes();
-                response.setTextEdits(textEdits);
-                response.setError(null);
+                JsonElement source = generator.generateTypes(request.getModule());
+                response.setSource(source);
 
-            } catch (WSDLTypeGenerator.WSDLGenerationException e) {
-                response.setError(e.getMessage());
-            } catch (Exception e) {
-                String errorMessage = "An unexpected error occurred while generating types from WSDL: " +
-                        e.getMessage();
-                response.setError(errorMessage);
+            } catch (Throwable e) {
+                response.setError(e);
             }
 
             return response;

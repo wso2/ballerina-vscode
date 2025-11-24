@@ -20,31 +20,39 @@ package io.ballerina.wsdl.extension;
 
 import com.google.gson.JsonElement;
 
+import java.util.Arrays;
+
 /**
- * Represents the response for WSDL to Ballerina type generation.
+ * Represents the response for WSDL to Ballerina client and type generation.
  *
  * @since 1.4.0
  */
 public class WSDLConverterResponse {
-    private JsonElement textEdits;
-    private String error;
+    private JsonElement source;
+    private String errorMsg;
+    private String stacktrace;
 
     public WSDLConverterResponse() {
     }
 
-    public JsonElement getTextEdits() {
-        return textEdits;
+    public JsonElement getSource() {
+        return source;
     }
 
-    public void setTextEdits(JsonElement textEdits) {
-        this.textEdits = textEdits;
+    public void setSource(JsonElement source) {
+        this.source = source;
     }
 
-    public String getError() {
-        return error;
+    public String getErrorMsg() {
+        return errorMsg;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public String getStacktrace() {
+        return stacktrace;
+    }
+
+    public void setError(Throwable e) {
+        this.errorMsg = e.getLocalizedMessage();
+        this.stacktrace = Arrays.toString(e.getStackTrace());
     }
 }
