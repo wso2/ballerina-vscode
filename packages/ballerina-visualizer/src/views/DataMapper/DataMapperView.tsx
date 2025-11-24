@@ -565,11 +565,12 @@ export function DataMapperView(props: DataMapperProps) {
         });
 
         let i = 2;
-        while (completions.some(c => c.insertText === name)) {
-            name = name + (i++);
+        let uniqueName = name;
+        while (completions.some(c => c.insertText === uniqueName)) {
+            uniqueName = name + (i++);
         }
 
-        return name;
+        return uniqueName;
     };
 
     const onDMClose = () => {
