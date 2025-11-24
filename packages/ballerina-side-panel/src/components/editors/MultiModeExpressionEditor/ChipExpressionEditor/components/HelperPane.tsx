@@ -39,10 +39,6 @@ export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((pro
             ref={ref}
             top={props.top}
             left={props.left}
-            onMouseDown={e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }}
         >
             {props.getHelperPane(
                 props.value,
