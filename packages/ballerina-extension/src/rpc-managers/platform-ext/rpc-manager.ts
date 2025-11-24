@@ -352,7 +352,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     async setupDevantProxyForDebugging(debugConfig: vscode.DebugConfiguration): Promise<void> {
-        const devantProxyResp = await this.startProxyServer();
+        // check if choreoConnect is provided as param, if so use pass those as param
+        const devantProxyResp = await this.startProxyServer(debugConfig);
+
 
         if (devantProxyResp.proxyServerPort) {
             debugConfig.env = { ...(debugConfig.env || {}), ...devantProxyResp.envVars };
@@ -373,7 +375,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async startProxyServer(): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
+    async startProxyServer(debugConfig: vscode.DebugConfiguration): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
         // todo: need to take in params from config
         try {
             const platformExt = await this.getPlatformExt();
@@ -394,6 +396,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 requiresProxy = true;
             }
             if (
+                debugConfig.request === "launch" &&
                 platformExtStore.getState().state?.isLoggedIn &&
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
@@ -409,8 +412,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     () =>
                         platformExt?.startProxyServer({
                             orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                            project: platformExtStore.getState().state?.selectedContext?.project?.id,
-                            component: platformExtStore.getState().state?.selectedComponent?.metadata?.id || "",
+                            project: debugConfig?.choreoConnect?.project || platformExtStore.getState().state?.selectedContext?.project?.id,
+                            component: debugConfig?.choreoConnect?.component || platformExtStore.getState().state?.selectedComponent?.metadata?.id || "",
+                            env: debugConfig?.choreoConnect?.env || "",
+                            skipConnection: debugConfig?.choreoConnect?.skipConnection || [],
                         })
                 );
                 return { ...resp, requiresProxy };
