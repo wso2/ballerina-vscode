@@ -159,8 +159,8 @@ const restoreCheckpointAction = (context: AIChatMachineContext, event: any) => {
 
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
     /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AwtmLQVAArqr4DEEA9vjB0CAN34BrYeWa0wnbgG0ADAF1EoAA79YuGrkEaQAD0QBmACxm6ZgJzKAbACZbTpwEYnZ97YA0IAE9EAHZg9zoADk8HZQBWW2DHC1iLAF9U-zRMHAJiUgpqeiYWfXwOLl4cbH5sOk0uGgAzGoBbOhkS+QqVdSQQbV19Qz7TBEtrO0cXN09vP0DECIdYuidl4KcLdwdgiPtY9MyMLDxCEjIqWjoAVU0IVjKFXgEhEXxxKToAVzu5J56jAM9AZ8EZRuMbPZnK4PF4fP4gghYhELHQoWYHLZYsEHO5YrEzIcQFkTrlzgUrrd7qVytweFUanUGs1sG0ftSuko1ICdMDhqBwVZIVMYbN4QsEDsIjZ4hYIqFgpZlMo0hlicccmd8pd6ABRYxgchfGkAFVQsAkfEEwjEkmEYANRpoYDNFoBfSBQ1BI3MQsm0JmcPmiKidAstgjtnD9lcZkcRJJmryF0KdH1huNbFdloZtXqtBZbQdGed2fdWl5XrBvomUOmsLmCMQ7mCqKx3nc3giUQcUWCCY1p2TFPoADECGAaF98FnzZaXjb3na6I0J1OhGXuR7KyDq2M-XXRUGm2NcZF4pYsRE1sjVUdskPyTq6OOhOvZxb6dhqnnma0V2u04unO5b9Du-ImDWwoBg24qIms0oWFM3hmBEKSdoSRL4PwEBwEYiaPtqhQ8oMu4+ggRBmNYiSxEkeLuHsSGxCeRArJGEZOPKtF2O4cQDg+ZJEVcACSEBYCRfLegKzadqsDHBLE7jbE42JKSe4ZOHQnacS416Yg4yQHGqBGCSmVzFA8tJSWBpEQaM7ioi44ZmLeURxFiJ44ppyqxF4yhLDETitvxpJamZ9BPAASmAoi4GAADuElVuR6E2FYOIRGYwRQnBiDxIhDjOIqqH2N2d7qgJYUjjcvw0k8SVkdJSK2GiUwWBYQVbBsYQnvEwR0A4ZhOT52L4u4IVJk+qbpk6H4SA1dmIMkdAEvszgMVGjhmCeaErfl14ooNPhWBNhHhXQACC8WkDS1ywDgF3kMlFa2dZoypeMGVZTlwbNteYbZb2sp2IN+KnaZ1WvpO05zQtb1LU4J6ceE2kKVlWy8di4NVc+ACKXxwF6bB3TgcN7iiNhDcoazZT4g2OCeqEOANQ1LCDth7INmH3qFw7Pgw-AtPUk6QGT5EU1RTjUzsth03GDg7fYdDKDxHVxoqnZGTzk1CXq341GLTUfelvbfY4uUIIk-XIjEVEdTe8bpKkQA */
-    id: 'ballerina-ai-chat',
-    initial: 'Idle',
+    id: "ballerina-ai-chat",
+    initial: "Idle",
     predictableActionArguments: true,
     context: {
         chatHistory: [],
@@ -178,16 +178,13 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_PROMPT]: {
-            target: 'Initiating',
+            target: "Initiating",
             actions: [
                 assign({
-                    chatHistory: (ctx, event) =>
-                        addUserMessage(ctx.chatHistory, event.payload.prompt),
-                    currentPlan: (_ctx) => undefined,
-                    currentTaskIndex: (_ctx) => -1,
+                    chatHistory: (ctx, event) => addUserMessage(ctx.chatHistory, event.payload.prompt),
                     errorMessage: (_ctx) => undefined,
                 }),
-                'captureCheckpoint',
+                "captureCheckpoint",
             ],
         },
         [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
@@ -209,9 +206,9 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             }),
         },
         [AIChatMachineEventType.RESET]: {
-            target: 'Idle',
+            target: "Idle",
             actions: [
-                'clearChatState',
+                "clearChatState",
                 assign({
                     chatHistory: (_ctx) => [],
                     currentPlan: (_ctx) => undefined,
@@ -224,7 +221,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             ],
         },
         [AIChatMachineEventType.RESTORE_STATE]: {
-            target: 'Idle',
+            target: "Idle",
             actions: assign({
                 chatHistory: (_ctx, event) => event.payload.state.chatHistory,
                 currentPlan: (_ctx, event) => event.payload.state.currentPlan,
@@ -235,17 +232,17 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             }),
         },
         [AIChatMachineEventType.RESTORE_CHECKPOINT]: {
-            target: 'Idle',
-            actions: ['restoreCheckpoint'],
+            target: "Idle",
+            actions: ["restoreCheckpoint"],
         },
         [AIChatMachineEventType.ERROR]: {
-            target: 'Error',
+            target: "Error",
             actions: assign({
                 errorMessage: (_ctx, event) => event.payload.message,
             }),
         },
         [AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED]: {
-            target: 'WaitingForConnectorSpec',
+            target: "WaitingForConnectorSpec",
             actions: assign({
                 previousState: (ctx, event, meta) => {
                     if (event.payload.fromState) {
@@ -255,13 +252,28 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     if (currentState) {
                         return currentState;
                     }
-                    return ctx.previousState || 'GeneratingPlan';
+                    return ctx.previousState || "GeneratingPlan";
                 },
                 currentSpec: (_ctx, event) => ({
                     requestId: event.payload.requestId,
                 }),
             }),
         },
+        [AIChatMachineEventType.FINISH_EXECUTION]: [
+            {
+                cond: (ctx) => {
+                    if (!ctx.currentPlan) {
+                        return false;
+                    }
+                    const pendingTasks = ctx.currentPlan.tasks.filter((task) => task.status === TaskStatus.PENDING);
+                    return pendingTasks.length > 0;
+                },
+                target: "PartiallyCompleted",
+            },
+            {
+                target: "Completed",
+            },
+        ],
     },
     states: {
         Idle: {
@@ -272,22 +284,22 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         },
         //TODO : Optional state we can remove if not needed. its just to show that generation is starting.
         Initiating: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             invoke: {
-                id: 'startGeneration',
-                src: 'startGeneration',
+                id: "startGeneration",
+                src: "startGeneration",
             },
             on: {
                 [AIChatMachineEventType.PLANNING_STARTED]: {
-                    target: 'GeneratingPlan',
+                    target: "GeneratingPlan",
                 },
             },
         },
         GeneratingPlan: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.PLAN_GENERATED]: {
-                    target: 'PlanReview',
+                    target: "PlanReview",
                     actions: assign({
                         currentPlan: (_ctx, event) => event.payload.plan,
                     }),
@@ -295,50 +307,50 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         PlanReview: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.APPROVE_PLAN]: {
-                    target: 'ApprovedPlan',
+                    target: "ApprovedPlan",
                     actions: assign({
                         currentTaskIndex: (_ctx) => -1,
                     }),
                 },
                 [AIChatMachineEventType.REJECT_PLAN]: {
-                    target: 'GeneratingPlan',
+                    target: "GeneratingPlan",
                     actions: assign({
                         currentApproval: (_ctx, event) => ({
-                            comment: event.payload.comment
+                            comment: event.payload.comment,
                         }),
                     }),
                 },
             },
         },
         ApprovedPlan: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.START_TASK_EXECUTION]: {
-                    target: 'ExecutingTask',
+                    target: "ExecutingTask",
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
                     }),
                 },
                 [AIChatMachineEventType.PLANNING_STARTED]: {
-                    target: 'GeneratingPlan',
+                    target: "GeneratingPlan",
                 },
             },
         },
         ExecutingTask: {
             entry: [
-                'saveChatState',
+                "saveChatState",
                 assign({
                     currentPlan: (ctx) => {
-                        if (!ctx.currentPlan) { return ctx.currentPlan; }
+                        if (!ctx.currentPlan) {
+                            return ctx.currentPlan;
+                        }
                         return {
                             ...ctx.currentPlan,
                             tasks: ctx.currentPlan.tasks.map((task, index) =>
-                                index === ctx.currentTaskIndex
-                                    ? { ...task, status: TaskStatus.IN_PROGRESS }
-                                    : task
+                                index === ctx.currentTaskIndex ? { ...task, status: TaskStatus.IN_PROGRESS } : task
                             ),
                             updatedAt: Date.now(),
                         };
@@ -347,16 +359,16 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             ],
             on: {
                 [AIChatMachineEventType.TASK_COMPLETED]: {
-                    target: 'TaskReview',
+                    target: "TaskReview",
                     actions: assign({
                         currentPlan: (ctx) => {
-                            if (!ctx.currentPlan) { return ctx.currentPlan; }
+                            if (!ctx.currentPlan) {
+                                return ctx.currentPlan;
+                            }
                             return {
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
-                                    index === ctx.currentTaskIndex
-                                        ? { ...task, status: TaskStatus.REVIEW }
-                                        : task
+                                    index === ctx.currentTaskIndex ? { ...task, status: TaskStatus.REVIEW } : task
                                 ),
                                 updatedAt: Date.now(),
                             };
@@ -366,10 +378,10 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         TaskReview: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.APPROVE_TASK]: {
-                    target: 'ApprovedTask',
+                    target: "ApprovedTask",
                     actions: assign({
                         currentTaskIndex: (ctx, event) => {
                             // If lastApprovedTaskIndex is provided, use it to set the current index
@@ -380,11 +392,14 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             return ctx.currentTaskIndex;
                         },
                         currentPlan: (ctx, event) => {
-                            if (!ctx.currentPlan) { return ctx.currentPlan; }
+                            if (!ctx.currentPlan) {
+                                return ctx.currentPlan;
+                            }
 
-                            const lastApprovedIndex = event.payload?.lastApprovedTaskIndex !== undefined
-                                ? event.payload.lastApprovedTaskIndex
-                                : ctx.currentTaskIndex;
+                            const lastApprovedIndex =
+                                event.payload?.lastApprovedTaskIndex !== undefined
+                                    ? event.payload.lastApprovedTaskIndex
+                                    : ctx.currentTaskIndex;
 
                             return {
                                 ...ctx.currentPlan,
@@ -400,20 +415,20 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     }),
                 },
                 [AIChatMachineEventType.REJECT_TASK]: {
-                    target: 'RejectedTask',
+                    target: "RejectedTask",
                     actions: assign({
                         currentApproval: (_ctx, event) => ({
-                            comment: event.payload.comment
+                            comment: event.payload.comment,
                         }),
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex - 1,
                         currentPlan: (ctx) => {
-                            if (!ctx.currentPlan) { return ctx.currentPlan; }
+                            if (!ctx.currentPlan) {
+                                return ctx.currentPlan;
+                            }
                             return {
                                 ...ctx.currentPlan,
                                 tasks: ctx.currentPlan.tasks.map((task, index) =>
-                                    index === ctx.currentTaskIndex
-                                        ? { ...task, status: TaskStatus.COMPLETED }
-                                        : task
+                                    index === ctx.currentTaskIndex ? { ...task, status: TaskStatus.COMPLETED } : task
                                 ),
                                 updatedAt: Date.now(),
                             };
@@ -423,50 +438,34 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         ApprovedTask: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.START_TASK_EXECUTION]: [
                     {
                         cond: (ctx) =>
-                            ctx.currentPlan !== undefined &&
-                            ctx.currentTaskIndex < ctx.currentPlan.tasks.length - 1,
-                        target: 'ExecutingTask',
+                            ctx.currentPlan !== undefined && ctx.currentTaskIndex < ctx.currentPlan.tasks.length - 1,
+                        target: "ExecutingTask",
                         actions: assign({
                             currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
                         }),
                     },
                     {
-                        target: 'Completed',
-                    },
-                ],
-                [AIChatMachineEventType.FINISH_EXECUTION]: [
-                    {
-                        cond: (ctx) => {
-                            if (!ctx.currentPlan) { return false; }
-                            const pendingTasks = ctx.currentPlan.tasks.filter(
-                                (task) => task.status === TaskStatus.PENDING
-                            );
-                            return pendingTasks.length > 0;
-                        },
-                        target: 'PartiallyCompleted',
-                    },
-                    {
-                        target: 'Completed',
+                        target: "Completed",
                     },
                 ],
             },
         },
         RejectedTask: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.START_TASK_EXECUTION]: {
-                    target: 'ExecutingTask',
+                    target: "ExecutingTask",
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
                     }),
                 },
                 [AIChatMachineEventType.PLAN_GENERATED]: {
-                    target: 'PlanReview',
+                    target: "PlanReview",
                     actions: assign({
                         currentPlan: (_ctx, event) => event.payload.plan,
                     }),
@@ -474,13 +473,13 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Completed: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
         },
         PartiallyCompleted: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.START_TASK_EXECUTION]: {
-                    target: 'ExecutingTask',
+                    target: "ExecutingTask",
                     actions: assign({
                         currentTaskIndex: (ctx) => ctx.currentTaskIndex + 1,
                     }),
@@ -488,14 +487,14 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         WaitingForConnectorSpec: {
-            entry: 'saveChatState',
+            entry: "saveChatState",
             on: {
                 [AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC]: [
                     {
-                        target: 'GeneratingPlan',
+                        target: "GeneratingPlan",
                         cond: (ctx) => {
-                            console.log('[State Machine] PROVIDE_CONNECTOR_SPEC: previousState =', ctx.previousState);
-                            return ctx.previousState === 'GeneratingPlan';
+                            console.log("[State Machine] PROVIDE_CONNECTOR_SPEC: previousState =", ctx.previousState);
+                            return ctx.previousState === "GeneratingPlan";
                         },
                         actions: assign({
                             currentSpec: (ctx, event) => ({
@@ -507,8 +506,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         }),
                     },
                     {
-                        target: 'Initiating',
-                        cond: (ctx) => ctx.previousState === 'Initiating',
+                        target: "Initiating",
+                        cond: (ctx) => ctx.previousState === "Initiating",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
                                 ...ctx.currentSpec,
@@ -519,7 +518,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         }),
                     },
                     {
-                        target: 'ExecutingTask',
+                        target: "ExecutingTask",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
                                 ...ctx.currentSpec,
@@ -532,10 +531,13 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 ],
                 [AIChatMachineEventType.SKIP_CONNECTOR_GENERATION]: [
                     {
-                        target: 'GeneratingPlan',
+                        target: "GeneratingPlan",
                         cond: (ctx) => {
-                            console.log('[State Machine] SKIP_CONNECTOR_GENERATION: previousState =', ctx.previousState);
-                            return ctx.previousState === 'GeneratingPlan';
+                            console.log(
+                                "[State Machine] SKIP_CONNECTOR_GENERATION: previousState =",
+                                ctx.previousState
+                            );
+                            return ctx.previousState === "GeneratingPlan";
                         },
                         actions: assign({
                             currentSpec: (ctx, event) => ({
@@ -547,8 +549,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         }),
                     },
                     {
-                        target: 'Initiating',
-                        cond: (ctx) => ctx.previousState === 'Initiating',
+                        target: "Initiating",
+                        cond: (ctx) => ctx.previousState === "Initiating",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
                                 ...ctx.currentSpec,
@@ -559,7 +561,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         }),
                     },
                     {
-                        target: 'ExecutingTask',
+                        target: "ExecutingTask",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
                                 ...ctx.currentSpec,
@@ -577,20 +579,20 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 [AIChatMachineEventType.RETRY]: [
                     {
                         cond: (ctx) => ctx.currentPlan !== undefined,
-                        target: 'PlanReview',
+                        target: "PlanReview",
                         actions: assign({
                             errorMessage: (_ctx) => undefined,
                         }),
                     },
                     {
-                        target: 'Idle',
+                        target: "Idle",
                         actions: assign({
                             errorMessage: (_ctx) => undefined,
                         }),
                     },
                 ],
                 [AIChatMachineEventType.RESET]: {
-                    target: 'Idle',
+                    target: "Idle",
                 },
             },
         },

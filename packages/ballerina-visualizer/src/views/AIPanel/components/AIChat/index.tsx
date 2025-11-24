@@ -1792,7 +1792,7 @@ const AIChat: React.FC = () => {
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            showPreview={false}
+                                            showPreview={true}
                                             isLoading={
                                                 isLoading && !isSuggestionLoading && index === otherMessages.length - 1
                                             }
