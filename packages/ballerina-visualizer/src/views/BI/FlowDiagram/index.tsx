@@ -1255,13 +1255,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         if (
             options?.isChangeFromHelperPane &&
-            !selectedNodeRef.current?.codedata?.isNew
+            selectedNodeRef.current?.codedata &&
+            !selectedNodeRef.current.codedata.isNew
         ) {
-            const nodeBefore = getNodeBefore(selectedNodeRef.current, model.nodes);
-            let targetLine = { ...selectedNodeRef.current.codedata.lineRange.startLine, offset: selectedNodeRef.current.codedata.lineRange.startLine.offset - 1 };
+            const baseStartLine = selectedNodeRef.current.codedata.lineRange.startLine;
+            const safeOffset = Math.max(0, baseStartLine.offset - 1);
+            let targetLine = { ...baseStartLine, offset: safeOffset };
+
+            const nodeBefore = model ? getNodeBefore(selectedNodeRef.current, model.nodes) : undefined;
             if (nodeBefore && nodeBefore.codedata.lineRange.endLine.line < targetLine.line) {
                 targetLine = nodeBefore.codedata.lineRange.endLine;
             }
+
             updatedNode.codedata.lineRange.startLine = targetLine;
             updatedNode.codedata.lineRange.endLine = targetLine;
         }
@@ -1336,19 +1341,39 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
-                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel()
+                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel();
+                        if (!updatedModel?.flowModel) {
+                            console.error(">>> Flow model missing after helper-pane update");
+                            return;
+                        }
+
                         let newTargetLineRange = targetLineRange;
                         if (!selectedNodeRef.current?.codedata?.isNew) {
-                            const updatedSelectedNode = searchNodesByName(updatedModel.flowModel.nodes, selectedNodeRef.current.properties.variable.value as string);
+                            const updatedSelectedNode = searchNodesByName(
+                                updatedModel.flowModel.nodes,
+                                selectedNodeRef.current.properties?.variable?.value as string
+                            );
+                            if (!updatedSelectedNode) {
+                                console.error(">>> Selected node not found in updated flow model");
+                                return;
+                            }
                             newTargetLineRange = updatedSelectedNode.codedata.lineRange;
-                        }
-                        else {
-                            const newNode = searchNodesByName(updatedModel.flowModel.nodes, updatedNode.properties.variable.value as string);
+                        } else {
+                            const newNode = searchNodesByName(
+                                updatedModel.flowModel.nodes,
+                                updatedNode.properties?.variable?.value as string
+                            );
+                            if (!newNode || !newTargetLineRange) {
+                                console.error(">>> New node or targetLineRange missing after helper-pane update");
+                                return;
+                            }
                             newTargetLineRange.startLine = newNode.codedata.lineRange.endLine;
                             newTargetLineRange.endLine = newNode.codedata.lineRange.endLine;
                         }
 
-                        changeTargetRange(newTargetLineRange)
+                        if (newTargetLineRange) {
+                            changeTargetRange(newTargetLineRange);
+                        }
                         shouldUpdateLineRangeRef.current = false;
                     }
                     updatedNodeRef.current = updatedNode;
