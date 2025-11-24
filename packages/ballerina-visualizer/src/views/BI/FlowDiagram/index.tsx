@@ -217,8 +217,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     },[projectToml?.values, platformExtState?.selectedContext, platformExtState?.connections, categories, importingConn])
 
     const { mutate: importConnection } = useMutation({
-        mutationFn: (data: ConnectionListItem) =>
-            platformRpcClient?.importDevantComponentConnection({ connectionListItem: data }),
+        mutationFn: async (data: ConnectionListItem) => {
+            const resp = await rpcClient.getCommonRpcClient().showInformationModal({
+                message: "By proceeding, a custom Ballerina connector will be generated from the openAPI specification of this API service",
+                items:["Proceed"]
+            })
+            if(resp === "Proceed"){
+                return platformRpcClient?.importDevantComponentConnection({ connectionListItem: data })
+            }
+        },
         onMutate: (data)=>setImportingConn(data),
         onSuccess: (data) => {
             projectToml?.refresh();
