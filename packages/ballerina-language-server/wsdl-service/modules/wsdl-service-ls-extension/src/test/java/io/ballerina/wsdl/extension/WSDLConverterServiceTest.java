@@ -131,7 +131,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "generateTypesFromWSDL";
+        return "genClient";
     }
 
     /**

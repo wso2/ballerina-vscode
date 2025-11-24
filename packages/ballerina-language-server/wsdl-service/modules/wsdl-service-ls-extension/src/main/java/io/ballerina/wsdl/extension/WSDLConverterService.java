@@ -56,7 +56,7 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
      * @return CompletableFuture containing the response with source (text edits map) or error information
      */
     @JsonRequest
-    public CompletableFuture<WSDLConverterResponse> generateTypesFromWSDL(WSDLConverterRequest request) {
+    public CompletableFuture<WSDLConverterResponse> genClient(WSDLConverterRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             WSDLConverterResponse response = new WSDLConverterResponse();
             try {
