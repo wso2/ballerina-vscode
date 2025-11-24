@@ -307,7 +307,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"hello\" + s",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -829,7 +829,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "value",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

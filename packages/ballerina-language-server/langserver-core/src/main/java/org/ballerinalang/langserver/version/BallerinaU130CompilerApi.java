@@ -143,4 +143,17 @@ public class BallerinaU130CompilerApi extends BallerinaU123CompilerApi {
         }
         return Optional.empty();
     }
+
+    @Override
+    public Optional<Project> updateWorkspaceToml(Project project, String content) {
+        if (project instanceof WorkspaceProject wsProject) {
+            Project updatedProject = wsProject.ballerinaToml()
+                    .modify()
+                    .withContent(content)
+                    .apply()
+                    .project();
+            return Optional.of(updatedProject);
+        }
+        return Optional.empty();
+    }
 }

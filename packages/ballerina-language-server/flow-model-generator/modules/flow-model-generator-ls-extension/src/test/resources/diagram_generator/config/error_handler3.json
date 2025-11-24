@@ -292,7 +292,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "res.toString()",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -392,7 +392,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "err.message()",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

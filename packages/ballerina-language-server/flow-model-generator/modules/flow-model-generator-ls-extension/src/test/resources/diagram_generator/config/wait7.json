@@ -211,7 +211,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "42",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -369,7 +369,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Hello\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -527,7 +527,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "true",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -780,7 +780,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "mapResult",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

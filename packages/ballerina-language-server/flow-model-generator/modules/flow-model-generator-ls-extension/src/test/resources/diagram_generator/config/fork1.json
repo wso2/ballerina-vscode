@@ -153,7 +153,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"A\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -252,7 +252,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"B\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -351,7 +351,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"C\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -604,7 +604,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "result",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

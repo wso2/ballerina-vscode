@@ -148,6 +148,11 @@ public class BallerinaBaseCompilerApi extends BallerinaCompilerApi {
         return Optional.empty();
     }
 
+    @Override
+    public Optional<Project> updateWorkspaceToml(Project project, String content) {
+        return Optional.empty();
+    }
+
     private Project createProject(Path filePath, BuildOptions buildOptions) {
         Pair<ProjectKind, Path> projectKindAndProjectRootPair = computeProjectKindAndProjectRoot(filePath);
         ProjectKind projectKind = projectKindAndProjectRootPair.getLeft();

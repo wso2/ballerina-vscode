@@ -509,7 +509,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "foodClient->post(\"/bananas\", \"banana\")",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

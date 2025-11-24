@@ -152,7 +152,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "mockFetch(\"http://a.com\", 2)",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -251,7 +251,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "mockFetch(\"http://b.com\", 1)",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -350,7 +350,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "mockFetch(\"http://c.com\", 3)",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -603,7 +603,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "result",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

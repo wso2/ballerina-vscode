@@ -1456,7 +1456,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Error occurred while creating admin client\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1780,7 +1780,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Response received from admin service: \" + response.toString()",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1840,7 +1840,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Error occurred while invoking admin service\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1899,7 +1899,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Error occurred while invoking food service\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -1958,7 +1958,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "finalMsg",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false
