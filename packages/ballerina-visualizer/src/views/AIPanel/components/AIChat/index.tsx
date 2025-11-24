@@ -1395,7 +1395,7 @@ const AIChat: React.FC = () => {
     async function processDesignGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_PROMPT,
-            payload: { prompt: useCase }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled }
         });
     }
 
@@ -1444,11 +1444,6 @@ const AIChat: React.FC = () => {
     const handleTogglePlanMode = () => {
         const newValue = !isPlanModeEnabled;
         setIsPlanModeEnabled(newValue);
-        if (newValue) {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_PLAN_MODE);
-        } else {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_PLAN_MODE);
-        }
     };
 
     const questionMessages = messages.filter((message) => message.type === "question");

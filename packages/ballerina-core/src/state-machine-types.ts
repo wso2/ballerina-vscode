@@ -419,8 +419,6 @@ export enum AIChatMachineEventType {
     APPROVE_TASK = 'APPROVE_TASK',
     ENABLE_AUTO_APPROVE = 'ENABLE_AUTO_APPROVE',
     DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
-    ENABLE_PLAN_MODE = 'ENABLE_PLAN_MODE',
-    DISABLE_PLAN_MODE = 'DISABLE_PLAN_MODE',
     REJECT_TASK = 'REJECT_TASK',
     RESTORE_STATE = 'RESTORE_STATE',
     ERROR = 'ERROR',
@@ -503,7 +501,7 @@ export interface AIChatMachineContext {
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string } }
+    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string; isPlanMode: boolean } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
@@ -515,8 +513,6 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
     | { type: AIChatMachineEventType.ENABLE_AUTO_APPROVE }
     | { type: AIChatMachineEventType.DISABLE_AUTO_APPROVE }
-    | { type: AIChatMachineEventType.ENABLE_PLAN_MODE }
-    | { type: AIChatMachineEventType.DISABLE_PLAN_MODE }
     | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
