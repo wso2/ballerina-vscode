@@ -64,7 +64,7 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
                 WSDLTypeGenerator generator = new WSDLTypeGenerator(
                         request.getWsdlContent(),
                         Path.of(request.getProjectPath()),
-                        request.getPortName() != null ? request.getPortName() : "",
+                        request.getPortName(),
                         request.getOperations()
                 );
 

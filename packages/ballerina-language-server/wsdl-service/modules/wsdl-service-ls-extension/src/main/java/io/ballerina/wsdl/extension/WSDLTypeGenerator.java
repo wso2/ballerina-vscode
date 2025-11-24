@@ -69,7 +69,7 @@ public class WSDLTypeGenerator {
     public WSDLTypeGenerator(String wsdlContent, Path projectPath, String portName, String[] operations) {
         this.wsdlContent = wsdlContent;
         this.projectPath = projectPath;
-        this.portName = portName;
+        this.portName = portName != null ? portName : "";
         this.operations = operations != null ? operations : new String[0];
         this.gson = new Gson();
     }
