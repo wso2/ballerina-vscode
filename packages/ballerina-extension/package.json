@@ -1225,8 +1225,8 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^3.0.25",
-        "@ai-sdk/anthropic": "^2.0.20",
+        "@ai-sdk/amazon-bedrock": "^3.0.57",
+        "@ai-sdk/anthropic": "^2.0.45",
         "@opentelemetry/auto-instrumentations-node": "^0.67.0",
         "@opentelemetry/sdk-node": "^0.208.0",
         "@types/lodash": "^4.14.200",
@@ -1238,7 +1238,7 @@
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/trace-visualizer": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^5.0.56",
+        "ai": "^5.0.101",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
