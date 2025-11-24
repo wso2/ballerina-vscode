@@ -166,7 +166,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     useEffect(() => {
         debouncedGetFlowModel();
-    }, [breakpointState, syntaxTree]);
+    }, [breakpointState]);
 
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
@@ -512,17 +512,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 console.log(">>> Visualizer location", location?.position);
                                 onReady(model.flowModel.fileName, parentMetadata, location?.position);
                             });
-                            if (shouldUpdateLineRangeRef.current) {
-                                const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
-                                    ? updatedNodeRef.current.properties.variable.value
-                                    : "";
-                                const newNode = searchNodesByName(model.flowModel.nodes, varName)
-                                changeTargetRange({
-                                    startLine: newNode.codedata.lineRange.endLine,
-                                    endLine: newNode.codedata.lineRange.endLine
-                                })
-                                shouldUpdateLineRangeRef.current = false;
-                            }
                         }
                     })
                     .finally(() => {
@@ -1252,7 +1241,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 && options?.postUpdateCallBack === undefined
             );
 
-        if (options?.updateLineRange && selectedNodeRef.current) {
+        if (
+            options?.updateLineRange &&
+            !selectedNodeRef.current?.codedata?.isNew
+        ) {
             const nodeBefore = getNodeBefore(selectedNodeRef.current, model.nodes);
             let targetLine = { ...selectedNodeRef.current.codedata.lineRange.startLine, offset: selectedNodeRef.current.codedata.lineRange.startLine.offset - 1 };
             if (nodeBefore && nodeBefore.codedata.lineRange.endLine.line < targetLine.line) {
@@ -1330,6 +1322,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         options.postUpdateCallBack();
                     }
                     shouldUpdateLineRangeRef.current = options?.updateLineRange;
+                    if (options?.updateLineRange) {
+                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel()
+                        let newTargetLineRange = targetLineRange;
+                        if (!selectedNodeRef.current?.codedata?.isNew) {
+                            const updatedSelectedNode = searchNodesByName(updatedModel.flowModel.nodes, selectedNodeRef.current.properties.variable.value as string);
+                            newTargetLineRange = updatedSelectedNode.codedata.lineRange;
+                        }
+                        else {
+                            const newNode = searchNodesByName(updatedModel.flowModel.nodes, updatedNode.properties.variable.value as string);
+                            newTargetLineRange.startLine = newNode.codedata.lineRange.endLine;
+                            newTargetLineRange.endLine = newNode.codedata.lineRange.endLine;
+                        }
+
+                        changeTargetRange(newTargetLineRange)
+                        shouldUpdateLineRangeRef.current = false;
+                    }
                     updatedNodeRef.current = updatedNode;
                 } else {
                     console.error(">>> Error updating source code", response);
