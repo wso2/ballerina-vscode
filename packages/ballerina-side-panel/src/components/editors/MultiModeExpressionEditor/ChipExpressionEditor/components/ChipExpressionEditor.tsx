@@ -18,7 +18,7 @@
 
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap, tooltips } from "@codemirror/view";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
 import {
     buildNeedTokenRefetchListner,
@@ -35,7 +35,6 @@ import {
     CursorInfo,
     buildOnFocusOutListner,
     buildOnSelectionChange,
-    ProgrammerticSelectionChange,
     SyncDocValueWithPropValue
 } from "../CodeUtils";
 import { mapSanitizedToRaw } from "../utils";
@@ -101,8 +100,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
-    const completionsRef = useRef(props.completions);
+    const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
+    const completionsFetchScheduledRef = useRef<boolean>(false);
     const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
     const { expressionEditor } = useFormContext();
@@ -113,6 +113,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     });
 
     const handleChangeListner = buildOnChangeListner((newValue, cursor) => {
+        completionsFetchScheduledRef.current = true;
         props.onChange(newValue, cursor.position.to);
         const textBeforeCursor = newValue.slice(0, cursor.position.to);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
@@ -141,7 +142,22 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         setIsTokenUpdateScheduled(true);
     });
 
-    const completionSource = buildCompletionSource(() => completionsRef.current);
+    const waitForStateChange = (): Promise<CompletionItem[]> => {
+        return new Promise((resolve) => {
+            const checkState = () => {
+                if (!completionsFetchScheduledRef.current) {
+                    resolve(completionsRef.current);
+                } else {
+                    requestAnimationFrame(checkState);
+                }
+            };
+            checkState();
+        });
+    };
+
+    const completionSource = useMemo(() => {
+        return buildCompletionSource(waitForStateChange);
+    }, [props.completions]);
 
     const helperPaneKeymap = buildHelperPaneKeymap(() => helperPaneState.isOpen, () => {
         setHelperPaneState(prev => ({ ...prev, isOpen: false }));
@@ -362,6 +378,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     // just don't touch this.
     useEffect(() => {
         completionsRef.current = props.completions;
+        completionsFetchScheduledRef.current = false;
     }, [props.completions]);
 
     // Trigger token update when sanitization mode changes
@@ -381,10 +398,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton && !isClickInsideToolbar) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-                viewRef.current?.dispatch({
-                    selection: { anchor: 0 },
-                    annotations: ProgrammerticSelectionChange.of(true)
-                });
                 viewRef.current?.dom.blur();
             }
         };

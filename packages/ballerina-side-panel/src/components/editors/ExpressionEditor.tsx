@@ -369,7 +369,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.GUIDED : InputMode.EXP);
+    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.RECORD : InputMode.EXP);
     const inputModeRef = useRef<InputMode>(inputMode);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
@@ -436,7 +436,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     useEffect(() => {
         // If recordTypeField is present, always use GUIDED mode
         if (recordTypeField) {
-            setInputMode(InputMode.GUIDED);
+            setInputMode(InputMode.RECORD);
             return;
         }
 
@@ -475,7 +475,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         setFocused(true);
 
         // If in guided mode with recordTypeField, open ConfigureRecordPage directly
-        if (inputMode === InputMode.GUIDED && recordTypeField && onOpenRecordConfigPage) {
+        if (inputMode === InputMode.RECORD && recordTypeField && onOpenRecordConfigPage) {
             const currentValue = watch(key) || '';
             // Create onChange callback that updates the form value
             const onChangeCallback = (value: string) => {
@@ -709,9 +709,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
-                                    if (updatedValue === value) {
-                                        return;
-                                    }
 
                                     // clear field diagnostics
                                     setFormDiagnostics([]);
@@ -782,9 +779,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     field={field}
                                     value={watch(key)}
                                     onChange={async (updatedValue: string, updatedCursorPosition: number) => {
-                                        if (updatedValue === value) {
-                                            return;
-                                        }
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
