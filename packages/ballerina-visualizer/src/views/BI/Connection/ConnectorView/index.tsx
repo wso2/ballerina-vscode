@@ -29,6 +29,7 @@ import { TitleBar } from "../../../../components/TitleBar";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorList } from "../DevantConnections/DevantConnectorList";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const ViewWrapper = styled.div<{ isHalfView?: boolean }>`
     display: flex;
@@ -121,6 +122,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         isPopupView
     } = props;
     const { rpcClient } = useRpcContext();
+    const { projectToml } = usePlatformExtContext();
 
     const [connectors, setConnectors] = useState<Category[]>([]);
     const [searchText, setSearchText] = useState<string>("");
@@ -215,6 +217,10 @@ export function ConnectorView(props: ConnectorViewProps) {
         }
     };
 
+    const isDevantConnector = (module: string) => {
+        return projectToml.values?.tool?.openapi?.some(item=>item.targetModule === module && item.remoteId)
+    }
+
     const filterItems = (items: Item[]): Item[] => {
         return items
             .map((item) => {
@@ -228,9 +234,10 @@ export function ConnectorView(props: ConnectorViewProps) {
                     const lowerCaseTitle = item.metadata.label.toLowerCase();
                     const lowerCaseDescription = item.metadata.description?.toLowerCase() || "";
                     const lowerCaseSearchText = searchText.toLowerCase();
-                    if (
-                        lowerCaseTitle.includes(lowerCaseSearchText) ||
-                        lowerCaseDescription.includes(lowerCaseSearchText)
+                     if (
+                        (lowerCaseTitle.includes(lowerCaseSearchText) ||
+                            lowerCaseDescription.includes(lowerCaseSearchText)) &&
+                        !isDevantConnector(item.codedata?.module)
                     ) {
                         return item;
                     }
