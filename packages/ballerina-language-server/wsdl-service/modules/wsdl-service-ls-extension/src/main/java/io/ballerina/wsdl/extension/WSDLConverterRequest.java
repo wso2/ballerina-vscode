@@ -30,9 +30,6 @@ public class WSDLConverterRequest {
     private String module;
     private String[] operations;
 
-    /**
-     * Default constructor for WSDLConverterRequest.
-     */
     public WSDLConverterRequest() {
     }
 

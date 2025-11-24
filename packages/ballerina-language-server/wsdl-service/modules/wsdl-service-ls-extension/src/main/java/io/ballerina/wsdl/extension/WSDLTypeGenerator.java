@@ -92,7 +92,6 @@ public class WSDLTypeGenerator {
             List<DiagnosticMessage> diagnosticMessages = new ArrayList<>();
 
             // Generate from WSDL - Pass empty string for outputDirectory as we'll handle file operations
-            // operations parameter allows filtering which operations to include (empty array = all operations)
             wsdlToBallerina.generateFromWSDL(wsdlResponse, wsdlDefinition, "",
                                             diagnosticMessages, operations, portName);
 
