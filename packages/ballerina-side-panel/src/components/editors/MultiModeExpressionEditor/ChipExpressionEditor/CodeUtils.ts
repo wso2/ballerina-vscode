@@ -93,7 +93,9 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             Object.assign(span.style, {
                 ...BASE_CHIP_STYLES,
                 background: colors.background,
-                border: `1px solid ${colors.border}`
+                border: `1px solid ${colors.border}`,
+                marginRight: "2px",
+                marginLeft: "2px",
             });
 
             // Create icon element for standard chip
