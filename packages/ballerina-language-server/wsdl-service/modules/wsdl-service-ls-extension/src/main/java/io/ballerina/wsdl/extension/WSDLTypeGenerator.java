@@ -84,6 +84,9 @@ public class WSDLTypeGenerator {
      * @throws Exception if an error occurs during type generation
      */
     public JsonElement generateTypes(String module) throws Exception {
+        if (module == null || module.isEmpty()) {
+            throw new WSDLGenerationException("Module name cannot be null or empty");
+        }
         WsdlToBallerinaResponse wsdlResponse;
         try {
             Definition wsdlDefinition = parseWSDLContent(wsdlContent);
@@ -130,8 +133,10 @@ public class WSDLTypeGenerator {
                 textEditsMap.put(outputPath.resolve(CLIENT_FILE_NAME), clientEdits);
             }
         }
-
-        ClientSource clientSourceResult = new ClientSource(false, textEditsMap);
+        if (textEditsMap.isEmpty()) {
+            throw new WSDLGenerationException("No types or client code were generated from the provided WSDL file");
+        }
+        ClientSource clientSourceResult = new ClientSource(textEditsMap);
         return gson.toJsonTree(clientSourceResult);
     }
 
@@ -153,10 +158,9 @@ public class WSDLTypeGenerator {
     /**
      * Record class to hold the client source generation result.
      *
-     * @param isModuleExists Boolean indicating if the module existed in Ballerina.toml before
      * @param textEditsMap   Map of file paths to text edits
      */
-    private record ClientSource(boolean isModuleExists, Map<Path, List<TextEdit>> textEditsMap) {
+    private record ClientSource(Map<Path, List<TextEdit>> textEditsMap) {
     }
 
     /**

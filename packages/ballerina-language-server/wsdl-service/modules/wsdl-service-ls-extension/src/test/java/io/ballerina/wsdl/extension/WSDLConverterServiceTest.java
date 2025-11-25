@@ -57,7 +57,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
                 testConfig.wsdlContent(),
                 sourceDir.resolve(testConfig.testProjectFolder).toAbsolutePath().toString(),
                 testConfig.portName(),
-                testConfig.module() != null ? testConfig.module() : "wsdl_client",
+                testConfig.module(),
                 testConfig.operations()
         );
 

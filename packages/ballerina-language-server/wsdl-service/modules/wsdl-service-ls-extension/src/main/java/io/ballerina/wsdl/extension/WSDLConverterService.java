@@ -72,10 +72,9 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
                 JsonElement source = generator.generateTypes(request.getModule());
                 response.setSource(source);
 
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 response.setError(e);
             }
-
             return response;
         });
     }
