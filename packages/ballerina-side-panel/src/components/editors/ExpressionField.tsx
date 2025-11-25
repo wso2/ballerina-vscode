@@ -41,6 +41,7 @@ export interface ExpressionField {
     completions: CompletionItem[];
     autoFocus?: boolean;
     sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
@@ -122,10 +123,11 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     anchorRef,
     onToggleHelperPane,
     sanitizedExpression,
+    rawExpression,
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    if (inputMode === InputMode.TEXT || inputMode === InputMode.GUIDED) {
+    if (inputMode === InputMode.TEXT || inputMode === InputMode.RECORD) {
         return (
             <TextModeEditor
                 exprRef={exprRef}
@@ -156,6 +158,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             completions={completions}
             onChange={onChange}
             value={value}
+            sanitizedExpression={sanitizedExpression}
+            rawExpression={rawExpression}
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}

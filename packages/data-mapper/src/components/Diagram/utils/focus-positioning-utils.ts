@@ -17,7 +17,7 @@
  */
 import { DiagramModel, NodeModel, PortModel } from "@projectstorm/react-diagrams";
 
-import { LinkConnectorNode, QueryExprConnectorNode } from "../Node";
+import { ClauseConnectorNode, LinkConnectorNode, QueryExprConnectorNode } from "../Node";
 import { isInputNode, isIntermediateNode, isOutputNode } from "../Actions/utils";
 import { 
 	animateNodesWithIndividualOffsets, 
@@ -157,7 +157,7 @@ export const resolveTargetNodeAndPort = (
 	let targetPort = targetNode?.getPort(targetPortId);
 
 	if (isIntermediateNode(targetNode)) {
-		const intermediateNode = targetNode as LinkConnectorNode | QueryExprConnectorNode;
+		const intermediateNode = targetNode as LinkConnectorNode | QueryExprConnectorNode | ClauseConnectorNode;
 		const intermediatePort = intermediateNode.targetMappedPort;
 
 		targetNode = intermediatePort?.getNode();

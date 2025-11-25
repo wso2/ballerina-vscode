@@ -20,7 +20,7 @@ import { IOType, Mapping } from "@wso2/ballerina-core";
 
 import { DataMapperLinkModel, MappingType } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
-import { createNewMapping } from "../../utils/modification-utils";
+import { createNewMapping, mapWithJoin } from "../../utils/modification-utils";
 import { getMappingType, isPendingMappingRequired } from "../../utils/common-utils";
 
 export interface InputOutputPortModelGenerics {
@@ -75,6 +75,9 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				const mappingType = getMappingType(sourcePort, targetPort);
 				if (isPendingMappingRequired(mappingType)) {
 					// Source update behavior is determined by the user when connecting arrays.
+					if (mappingType === MappingType.ArrayJoin) {
+						mapWithJoin(lm);
+					}
 					return;
 				}
 
