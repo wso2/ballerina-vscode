@@ -49,6 +49,7 @@ import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
 import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
+import { HELPER_PANE_WIDTH } from "../constants";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -245,11 +246,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         let top = buttonRect.bottom - editorRect.top;
         let left = buttonRect.left - editorRect.left;
 
-        // Add overflow correction for window boundaries
-        const HELPER_PANE_WIDTH = 300;
-        const viewportWidth = window.innerWidth;
-        const absoluteLeft = buttonRect.left;
-        const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+        // Add overflow correction for editor boundaries
+        const editorWidth = editorRect.width;
+        const relativeRight = left + HELPER_PANE_WIDTH;
+        const overflow = relativeRight - editorWidth;
 
         if (overflow > 0) {
             left -= overflow;
