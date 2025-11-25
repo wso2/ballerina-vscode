@@ -71,8 +71,8 @@ export function ParameterBranch(props: ParameterBranchProps) {
         setShowOptionalParams(!showOptionalParams);
     }
 
-    const shouldShowOptionalParamsDirectly = (optionalParams.length > 0 && depth === 1) || 
-                                             (requiredParams.length === 0 && optionalParams.length > 0 && depth < 3);
+    const shouldShowOptionalParamsDirectly = (optionalParams.length > 0 && depth === 1) ||
+        (requiredParams.length === 0 && optionalParams.length > 0 && depth < 3);
 
     return (
         <div data-testid="parameter-branch">
@@ -94,8 +94,8 @@ export function ParameterBranch(props: ParameterBranchProps) {
                                         },
                                     }}
                                 >
-                                    <Codicon 
-                                        name={showOptionalParams ? "chevron-down" : "chevron-right"} 
+                                    <Codicon
+                                        name={showOptionalParams ? "chevron-down" : "chevron-right"}
                                         iconSx={{ fontSize: '13px' }}
                                     />
                                 </Button>
@@ -104,7 +104,7 @@ export function ParameterBranch(props: ParameterBranchProps) {
                         </div>
                     )}
                     <div style={{ marginLeft: '15px' }}>
-                    {showOptionalParams && optionalParams.length > 0 && optionalParams}
+                        {showOptionalParams && optionalParams.length > 0 && optionalParams}
                     </div>
                 </>
             )}
