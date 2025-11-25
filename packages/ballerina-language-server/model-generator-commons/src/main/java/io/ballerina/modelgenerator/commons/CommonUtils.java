@@ -1167,4 +1167,18 @@ public class CommonUtils {
 
         return Optional.empty();
     }
+
+    /**
+     * Removes a leading single quote from the given identifier, if present.
+     *
+     * <p>
+     * TODO: The utility assumes that every leading `'` is an escaped identifier. This does not correctly handle
+     * inputs where `'` is part of the identifier, such as `\'value`.
+     *
+     * @param identifier the identifier to process
+     * @return the identifier without the leading single quote, or the original identifier if no leading quote exists
+     */
+    public static String removeQuotedIdentifier(String identifier) {
+        return identifier.startsWith("'") ? identifier.substring(1) : identifier;
+    }
 }
