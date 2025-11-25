@@ -762,7 +762,7 @@ const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => 
     inputs: [...model.inputs.map(i => i.name),
     ...(model.query?.inputs || []),
     ...(model.query?.intermediateClauses
-        ?.filter((clause) => clause.type === IntermediateClauseType.LET)
+        ?.filter((clause) => (clause.type === IntermediateClauseType.LET || clause.type === IntermediateClauseType.GROUP_BY))
         .map(clause => `${clause.properties.type} ${clause.properties.name} ${clause.properties.expression}`)
         || [])
     ],

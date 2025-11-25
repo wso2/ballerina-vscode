@@ -367,6 +367,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 deleteClause={deleteClause}
                                 getClausePosition={getClausePosition}
                                 generateForm={generateForm}
+                                genUniqueName={genUniqueName}
                             />
                         )}
                     </>
