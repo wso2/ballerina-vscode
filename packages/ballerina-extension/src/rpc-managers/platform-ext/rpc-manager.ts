@@ -22,6 +22,7 @@ import {
     PackageTomlValues,
     DIRECTORY_MAP,
     findDevantScopeByModule,
+    VisualizerLocation,
 } from "@wso2/ballerina-core";
 import { extensions, Uri, window } from "vscode";
 import * as vscode from "vscode";
@@ -48,6 +49,7 @@ import {
     CommandIds as PlatformExtCommandIds,
     DevantScopes,
     ICreateComponentCmdParams,
+    ComponentKind,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -87,36 +89,64 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         return platformExtAPI;
     }
 
-    public async initStateSubscription(messenger: Messenger) {
-        await platformExtStore.persist.rehydrate();
-
+    private async initAuthState() {
         const platformExt = await this.getPlatformExt();
-
         const isLoggedIn = platformExt.isLoggedIn();
-        const components = platformExt.getDirectoryComponents(StateMachine.context().projectPath);
         const selectedContext = platformExt.getSelectedContext();
-        const matchingComponent = components.find(
-            (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
-        );
-        const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
-        const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
+        platformExtStore.getState().setState({ isLoggedIn, selectedContext });
+
+        platformExt.subscribeIsLoggedIn((isLoggedIn) => {
+            platformExtStore.getState().setState({ isLoggedIn });
+        });
+
+        platformExt.subscribeContextState((selectedContext) => {
+            platformExtStore.getState().setState({ selectedContext });
+        });
+    }
+
+    private async initFileWatcher() {
+        const platformExt = await this.getPlatformExt();
+        const debouncedOnFilChange = debounce(async () => {
+            if (StateMachine.context().projectPath) {
+                const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
+                platformExtStore.getState().setState({ hasLocalChanges });
+            }
+        }, 1000);
+
+        if (vscode.workspace.workspaceFolders?.length > 0) {
+            const fileWatcher = vscode.workspace.createFileSystemWatcher(
+                new vscode.RelativePattern(vscode.workspace.workspaceFolders[0], "**/*")
+            );
+            fileWatcher.onDidCreate(debouncedOnFilChange);
+            fileWatcher.onDidChange(debouncedOnFilChange);
+            fileWatcher.onDidDelete(debouncedOnFilChange);
+        }
+    }
+
+    private async initProjectPathWatcher(context: VisualizerLocation) {
+        const platformExt = await this.getPlatformExt();
+        let components: ComponentKind[] = [];
+        let matchingComponent: ComponentKind;
+        let hasLocalChanges = false;
+        let hasProjectYaml = false;
+        if (context.projectPath) {
+            components = platformExt.getDirectoryComponents(context.projectPath);
+            matchingComponent = components.find(
+                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
+            );
+            hasLocalChanges = await platformExt.localRepoHasChanges(context.projectPath);
+            hasProjectYaml = hasContextYaml(context.projectPath);
+        }
 
         platformExtStore.getState().setState({
-            isLoggedIn,
             components,
-            selectedContext,
             selectedComponent: matchingComponent || components[0],
             hasLocalChanges,
             hasPossibleComponent: components.length > 0 || hasProjectYaml,
         });
 
-        await this.refreshConnectionList();
-
-        platformExt.subscribeIsLoggedIn((isLoggedIn) => {
-            platformExtStore.getState().setState({ isLoggedIn });
-        });
-        platformExt.subscribeDirComponents(StateMachine.context().projectPath, (components) => {
-            const hasProjectYaml = hasContextYaml(StateMachine.context().projectPath);
+        const unsubscribeDirCompWatcher = platformExt.subscribeDirComponents(context.projectPath, (components) => {
+            const hasProjectYaml = hasContextYaml(context.projectPath);
             const matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
             );
@@ -126,26 +156,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 hasPossibleComponent: components.length > 0 || hasProjectYaml,
             });
         });
-        platformExt.subscribeContextState((selectedContext) => {
-            platformExtStore.getState().setState({ selectedContext });
-        });
+        return unsubscribeDirCompWatcher;
+    }
 
-        const debouncedOnFilChange = debounce(async () => {
-            const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
-            platformExtStore.getState().setState({ hasLocalChanges });
-        }, 2000);
-
-        if(vscode.workspace.workspaceFolders?.length > 0){
-            const fileWatcher = vscode.workspace.createFileSystemWatcher(
-                new vscode.RelativePattern(StateMachine.context().projectPath || vscode.workspace.workspaceFolders[0], "**/*")  
-            );
-            fileWatcher.onDidCreate(debouncedOnFilChange);
-            fileWatcher.onDidChange(debouncedOnFilChange);
-            fileWatcher.onDidDelete(debouncedOnFilChange);
-        }
-
-        // todo: move devant related initializers here
-
+    private async initSelfStoreSubscription(messenger: Messenger) {
         const debouncedRefreshConnectionList = debounce(() => this.refreshConnectionList(), 500);
 
         platformExtStore.subscribe((state, prevState) => {
@@ -182,6 +196,27 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 debouncedRefreshConnectionList();
             }
         });
+    }
+
+    public async initStateSubscription(messenger: Messenger) {
+        await platformExtStore.persist.rehydrate();
+        await this.initAuthState();
+        let disposeProjectPathWatcher = await this.initProjectPathWatcher(StateMachine.context());
+        await this.initFileWatcher();
+        const debouncedInitProjectPathWatcher = debounce(
+            async (context: VisualizerLocation) => await this.initProjectPathWatcher(context),
+            250
+        );
+        StateMachine.service().subscribe(async (state) => {
+            if (disposeProjectPathWatcher) {
+                disposeProjectPathWatcher();
+            }
+
+            disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(state.context);
+        });
+
+        await this.refreshConnectionList();
+        await this.initSelfStoreSubscription(messenger);
     }
 
     // todo: check and delete unused rpc functions
@@ -276,8 +311,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return;
         }
 
-        const project = projectStructure.projects.find(project => project.projectPath === StateMachine.context()?.projectPath);
-        if (!project) { return; }
+        const project = projectStructure.projects.find(
+            (project) => project.projectPath === StateMachine.context()?.projectPath
+        );
+        if (!project) {
+            return;
+        }
 
         const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
         const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION];
@@ -357,7 +396,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         // check if choreoConnect is provided as param, if so use pass those as param
         const devantProxyResp = await this.startProxyServer(debugConfig);
 
-
         if (devantProxyResp.proxyServerPort) {
             debugConfig.env = { ...(debugConfig.env || {}), ...devantProxyResp.envVars };
             if (devantProxyResp.requiresProxy) {
@@ -377,7 +415,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async startProxyServer(debugConfig: vscode.DebugConfiguration): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
+    async startProxyServer(
+        debugConfig: vscode.DebugConfiguration
+    ): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
         // todo: need to take in params from config
         try {
             const platformExt = await this.getPlatformExt();
@@ -414,8 +454,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     () =>
                         platformExt?.startProxyServer({
                             orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                            project: debugConfig?.choreoConnect?.project || platformExtStore.getState().state?.selectedContext?.project?.id,
-                            component: debugConfig?.choreoConnect?.component || platformExtStore.getState().state?.selectedComponent?.metadata?.id || "",
+                            project:
+                                debugConfig?.choreoConnect?.project ||
+                                platformExtStore.getState().state?.selectedContext?.project?.id,
+                            component:
+                                debugConfig?.choreoConnect?.component ||
+                                platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
+                                "",
                             env: debugConfig?.choreoConnect?.env || "",
                             skipConnection: debugConfig?.choreoConnect?.skipConnection || [],
                         })
@@ -627,7 +672,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }));
             platformExtStore.getState().setState({ connections: connectionsUsed });
 
-            // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant 
+            // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant
             /*
             1. store connection with secret info in bal ext
             2. start proxy server. need to pass secure host list.
