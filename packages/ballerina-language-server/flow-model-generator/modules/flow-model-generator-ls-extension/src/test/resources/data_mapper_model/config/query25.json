@@ -46,14 +46,16 @@
         "typeName": "Sale",
         "kind": "record",
         "focusExpression": "sales",
-        "ref": "1373074483"
+        "ref": "1373074483",
+        "isSeq": true
       },
       {
         "name": "quantity",
         "displayName": "quantity",
         "typeName": "int",
         "kind": "int",
-        "focusExpression": "salesItem.quantity"
+        "focusExpression": "salesItem.quantity",
+        "isSeq": true
       },
       {
         "name": "item",
