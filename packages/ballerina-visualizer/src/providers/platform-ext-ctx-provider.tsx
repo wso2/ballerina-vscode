@@ -31,12 +31,14 @@ import React, { useContext, FC, ReactNode, useEffect, useMemo } from "react";
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
     projectPath: string;
+    workspacePath: string;
     projectToml?: { values: PackageTomlValues; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
     deployableArtifacts?: { exists: boolean, refetch: () => void }
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     projectPath: "",
+    workspacePath: "",
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -50,24 +52,26 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const { rpcClient } = useRpcContext();
     const platformRpcClient = rpcClient.getPlatformRpcClient();
 
-    const { data: projectPath = "" } = useQuery({
-        queryKey: ["project-path"],
+    const { data: visualizerLocation = { projectPath: "", workspacePath: "" } } = useQuery({
+        queryKey: ["project-paths"],
         queryFn: () => rpcClient.getVisualizerLocation(),
-        select: (data) => data?.projectPath,
+        select: (data) => ({ projectPath: data.projectPath, workspacePath: data.workspacePath}),
+        refetchOnWindowFocus: true,
     });
 
     const { data: projectToml, refetch: refetchToml } = useQuery({
-        queryKey: ["project-toml", projectPath],
+        queryKey: ["project-toml", visualizerLocation.projectPath],
         queryFn: () => rpcClient.getCommonRpcClient().getCurrentProjectTomlValues(),
+        refetchOnWindowFocus: true,
     });
 
     const { data: hasArtifacts, refetch: refetchHasArtifacts } = useQuery({
-        queryKey: ["has-artifacts", projectPath],
+        queryKey: ["has-artifacts", visualizerLocation.projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getProjectStructure(),
         select: (projectStructure) => {
             if (!projectStructure) return false;
 
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => project.projectPath === visualizerLocation.projectPath);
             if (!project) return false;
 
             const services = project.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
@@ -105,7 +109,8 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     connections: platformExtState?.isLoggedIn ? platformExtState.connections : [],
                 },
                 deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
-                projectPath,
+                workspacePath: visualizerLocation.workspacePath,
+                projectPath: visualizerLocation.projectPath,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },
             }}
