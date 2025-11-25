@@ -1,0 +1,66 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "REMOTE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "kafka",
+    "packageName": "kafka",
+    "object": "Consumer",
+    "symbol": "'commit",
+    "version": "4.6.2",
+    "parentSymbol": "kafkaConsumer",
+    "resourcePath": ""
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "'commit",
+      "description": "Commits the currently consumed offsets of the consumer.\n```ballerina\nkafka:Error? result = consumer->commit();\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "kafka",
+      "packageName": "kafka",
+      "object": "Consumer",
+      "symbol": "'commit",
+      "version": "4.6.2",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "kafka:Consumer",
+        "value": "kafkaConsumer",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}
