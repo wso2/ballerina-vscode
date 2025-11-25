@@ -421,6 +421,7 @@ export enum AIChatMachineEventType {
     DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
     REJECT_TASK = 'REJECT_TASK',
     RESTORE_STATE = 'RESTORE_STATE',
+    RESTORE_CHECKPOINT = 'RESTORE_CHECKPOINT',
     ERROR = 'ERROR',
     RETRY = 'RETRY',
     CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
@@ -434,6 +435,16 @@ export interface ChatMessage {
     uiResponse: string;
     modelMessages: any[];
     timestamp: number;
+    checkpointId?: string;
+}
+
+export interface Checkpoint {
+    id: string;
+    messageId: string;
+    timestamp: number;
+    workspaceSnapshot: { [filePath: string]: string };
+    fileList: string[];
+    snapshotSize: number;
 }
 
 /**
@@ -497,6 +508,7 @@ export interface AIChatMachineContext {
         comment?: string;
     };
     previousState?: AIChatMachineStateValue;
+    checkpoints?: Checkpoint[];
 }
 
 export type AIChatMachineSendableEvent =
@@ -515,6 +527,7 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
     | { type: AIChatMachineEventType.RESET }
     | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
+    | { type: AIChatMachineEventType.RESTORE_CHECKPOINT; payload: { checkpointId: string } }
     | { type: AIChatMachineEventType.ERROR; payload: { message: string } }
     | { type: AIChatMachineEventType.RETRY }
     | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
@@ -577,6 +590,8 @@ export enum ColorThemeKind {
 export interface UIChatHistoryMessage {
     role: "user" | "assistant";
     content: string;
+    checkpointId?: string;
+    messageId?: string;
 }
 
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
@@ -587,6 +602,12 @@ export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { m
 export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
 export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
 export const getAIChatUIHistory: RequestType<void, UIChatHistoryMessage[]> = { method: 'getAIChatUIHistory' };
+
+export interface CheckpointCapturedPayload {
+    messageId: string;
+    checkpointId: string;
+}
+export const checkpointCaptured: NotificationType<CheckpointCapturedPayload> = { method: 'checkpointCaptured' };
 
 // Connector Generator RPC methods
 export interface ConnectorGeneratorResponsePayload {

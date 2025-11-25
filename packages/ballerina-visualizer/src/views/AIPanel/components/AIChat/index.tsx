@@ -58,6 +58,7 @@ import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import RoleContainer from "../RoleContainter";
+import CheckpointButton from "../CheckpointButton";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
@@ -112,6 +113,8 @@ const convertToUIMessages = (messages: UIChatHistoryMessage[]) => {
             role: role,
             type: type,
             content: msg.content,
+            checkpointId: msg.checkpointId,
+            messageId: msg.messageId,
         };
     });
 };
@@ -180,7 +183,7 @@ const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AG
 
 const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
-    const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string }>>([]);
+    const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
@@ -269,6 +272,33 @@ const AIChat: React.FC = () => {
             console.error("Failed to fetch backend URL:", error);
         }
     }
+
+    const handleCheckpointRestore = async (checkpointId: string) => {
+        try {
+            await rpcClient.sendAIChatStateEvent({
+                type: AIChatMachineEventType.RESTORE_CHECKPOINT,
+                payload: { checkpointId }
+            });
+            const updatedMessages = await rpcClient.getAIChatUIHistory();
+            const uiMessages = convertToUIMessages(updatedMessages);
+            setMessages(uiMessages);
+
+            chatArray = chatArray.slice(0, updatedMessages.length);
+            localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
+
+            setIsLoading(false);
+            setIsCodeLoading(false);
+            setTestGenIntermediaryState(null);
+            setDocGenIntermediaryState(null);
+            setIsAddingToWorkspace(false);
+            setCurrentFileArray([]);
+            setLastQuestionIndex(-1);
+            setCurrentGeneratingPromptIndex(-1);
+        } catch (error) {
+            console.error("Failed to restore checkpoint:", error);
+        }
+    };
+
     useEffect(() => {
         fetchBackendUrl();
     }, []);
@@ -329,6 +359,23 @@ const AIChat: React.FC = () => {
 
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
+    });
+
+    rpcClient?.onCheckpointCaptured((payload: { messageId: string; checkpointId: string }) => {
+        setMessages((prevMessages) => {
+            const updatedMessages = [...prevMessages];
+            for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                if (updatedMessages[i].type === "user_message" && !updatedMessages[i].checkpointId) {
+                    updatedMessages[i] = {
+                        ...updatedMessages[i],
+                        checkpointId: payload.checkpointId,
+                        messageId: payload.messageId
+                    };
+                    break;
+                }
+            }
+            return updatedMessages;
+        });
     });
 
     rpcClient?.onChatNotify((response: ChatNotify) => {
@@ -1745,9 +1792,18 @@ const AIChat: React.FC = () => {
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            showPreview={false}
+                                            showPreview={true}
                                             isLoading={
                                                 isLoading && !isSuggestionLoading && index === otherMessages.length - 1
+                                            }
+                                            checkpointButton={
+                                                message.role === "User" && message.checkpointId ? (
+                                                    <CheckpointButton
+                                                        checkpointId={message.checkpointId}
+                                                        onRestore={handleCheckpointRestore}
+                                                        disabled={isLoading}
+                                                    />
+                                                ) : undefined
                                             }
                                         />
                                     )}
