@@ -500,14 +500,18 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
 };
 
 export const hasContextYaml = (projectPath: string): boolean => {
-    const repoRoot = getRepoRoot(projectPath);
-    if (repoRoot) {
-        const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-        if (fs.existsSync(contextYamlPath)) {
-            return true;
+    try {
+        const repoRoot = getRepoRoot(projectPath);
+        if (repoRoot) {
+            const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+            if (fs.existsSync(contextYamlPath)) {
+                return true;
+            }
         }
+        return false;
+    } catch {
+        return false;
     }
-    return false;
 };
 
 export function getRepoRoot(projectRoot: string): string | undefined {

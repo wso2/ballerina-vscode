@@ -135,12 +135,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             platformExtStore.getState().setState({ hasLocalChanges });
         }, 2000);
 
-        const fileWatcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(StateMachine.context().projectPath, "**/*")
-        );
-        fileWatcher.onDidCreate(debouncedOnFilChange);
-        fileWatcher.onDidChange(debouncedOnFilChange);
-        fileWatcher.onDidDelete(debouncedOnFilChange);
+        if(vscode.workspace.workspaceFolders?.length > 0){
+            const fileWatcher = vscode.workspace.createFileSystemWatcher(
+                new vscode.RelativePattern(StateMachine.context().projectPath || vscode.workspace.workspaceFolders[0], "**/*")  
+            );
+            fileWatcher.onDidCreate(debouncedOnFilChange);
+            fileWatcher.onDidChange(debouncedOnFilChange);
+            fileWatcher.onDidDelete(debouncedOnFilChange);
+        }
 
         // todo: move devant related initializers here
 
