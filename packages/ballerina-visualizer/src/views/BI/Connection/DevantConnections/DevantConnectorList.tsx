@@ -46,7 +46,7 @@ export const DevantConnectorList: FC<{
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
-    const { platformExtState, deployableArtifacts, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, deployableArtifacts, platformRpcClient, workspacePath, projectPath } = usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
 
     useEffect(() => {
@@ -136,7 +136,7 @@ export const DevantConnectorList: FC<{
                             rpcClient.getCommonRpcClient().executeCommand({
                                 commands: [
                                     PlatformExtCommandIds.CreateDirectoryContext,
-                                    { extName: "Devant", skipComponentExistCheck: true } as ICreateDirCtxCmdParams,
+                                    { extName: "Devant", skipComponentExistCheck: true, fsPath: workspacePath || projectPath } as ICreateDirCtxCmdParams,
                                 ],
                             })
                         }

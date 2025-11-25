@@ -170,7 +170,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, projectToml } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, projectToml, workspacePath } = usePlatformExtContext()
 
     const onLinkDevantProject = () => {
         if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
@@ -204,7 +204,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         rpcClient.getCommonRpcClient().executeCommand({
                             commands: [
                                 PlatformExtCommandIds.CreateDirectoryContext,
-                                { extName: "Devant", skipComponentExistCheck: true } as ICreateDirCtxCmdParams,
+                                { extName: "Devant", skipComponentExistCheck: true, fsPath: workspacePath || projectPath } as ICreateDirCtxCmdParams,
                             ],
                         });
                     }
