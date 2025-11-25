@@ -178,7 +178,7 @@ public class FunctionDataBuilder {
     }
 
     public FunctionDataBuilder name(String name) {
-        this.functionName = name;
+        this.functionName = CommonUtils.removeQuotedIdentifier(name);
         return this;
     }
 
@@ -270,7 +270,7 @@ public class FunctionDataBuilder {
             if (functionSymbol == null) {
                 throw new IllegalStateException("Function symbol must be provided if function name is not given");
             }
-            this.functionName = this.functionSymbol.getName()
+            this.functionName = this.functionSymbol.getName().map(CommonUtils::removeQuotedIdentifier)
                     .orElseThrow(() -> new IllegalStateException("Function name not found"));
         }
 
