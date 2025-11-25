@@ -32,7 +32,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     const isChecked = value === InputMode.EXP;
 
     const defaultMode = useMemo(
-        () => isRecordTypeField ? InputMode.GUIDED : getDefaultExpressionMode(valueTypeConstraint),
+        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(valueTypeConstraint),
         [valueTypeConstraint, isRecordTypeField]
     );
 

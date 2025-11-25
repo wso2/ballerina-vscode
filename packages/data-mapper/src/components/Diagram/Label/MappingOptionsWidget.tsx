@@ -28,6 +28,8 @@ import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { createNewMapping, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
+import { InputOutputPortModel } from '../Port';
+import { getGenericTypeKind, isNumericType, isPrimitive } from '../utils/type-utils';
 
 export const useStyles = () => ({
     arrayMappingMenu: css({
@@ -155,22 +157,6 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         }
     ];
 
-    const a2sMenuItems: Item[] = [
-        {
-            id: "a2s-direct",
-            label: getItemElement("a2s-direct", "Extract Single Element from Array"),
-            onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
-        }
-    ];
-
-    const aggregateFns = ["sum", "avg", "min", "max", "count"];
-
-    const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
-        id: `a2s-collect-${fn}`,
-        label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
-        onClick: wrapWithProgress(async () => await onClickMapWithAggregateFn(fn))
-    }));
-
     const defaultMenuItems: Item[] = [
         {
             id: "a2a-direct",
@@ -179,13 +165,65 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         }
     ];
 
-    const menuItems = pendingMappingType === MappingType.ArrayToArray
-        ? a2aMenuItems
-        : pendingMappingType === MappingType.ArrayToSingleton
-            ? a2sMenuItems
-            : pendingMappingType === MappingType.ArrayToSingletonAggregate
-                ? a2sAggregateItems
-                : defaultMenuItems;
+    const genAggregateItems = () => {
+        const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
+        const aggregateFnsString = ["string:'join"];
+        const aggregateFnsCommon = ["first", "last"];
+
+        const sourcePort = link.getSourcePort() as InputOutputPortModel;
+        const sourceType = sourcePort.attributes.field.kind;
+
+        const aggregateFns = [...(isNumericType(sourceType) ? aggregateFnsNumeric :
+            getGenericTypeKind(sourceType) === TypeKind.String ? aggregateFnsString :
+                []),
+        ...aggregateFnsCommon];
+        const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
+            id: `a2s-collect-${fn}`,
+            label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
+            onClick: wrapWithProgress(async () => await onClickMapWithAggregateFn(fn))
+        }));
+        return a2sAggregateItems;
+    };
+
+    const genArrayToSingletonItems = (): Item[] => {
+        const a2sMenuItems: Item[] = [
+            {
+                id: "a2s-index",
+                label: getItemElement("a2s-index", "Extract Single Element from Array"),
+                onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
+            }
+
+        ];
+        const sourcePort = link.getSourcePort() as InputOutputPortModel;
+        const targetPort = link.getTargetPort() as InputOutputPortModel;
+        const sourceMemberType = sourcePort.attributes.field.member?.kind;
+        const targetType = targetPort.attributes.field.kind;
+
+        if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
+            a2sMenuItems.push({
+                id: "a2s-aggregate",
+                label: getItemElement("a2s-aggregate", "Aggregate and map"),
+                onClick: wrapWithProgress(onClickAggregateArray)
+            });
+        }
+
+        return a2sMenuItems;
+    };
+
+    const genMenuItems = (): Item[] => {
+        switch (pendingMappingType) {
+            case MappingType.ArrayToArray:
+                return a2aMenuItems;
+            case MappingType.ArrayToSingleton:
+                return genArrayToSingletonItems();
+            case MappingType.ArrayToSingletonAggregate:
+                return genAggregateItems();
+            default:
+                return defaultMenuItems;
+        }
+    };
+
+    const menuItems = genMenuItems();
 
     if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
         menuItems.push({
@@ -201,6 +239,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             });
         }
     }
+
     return (
         <div className={classes.arrayMappingMenu}>
             <Menu sx={{...a2aMenuStyles, visibility: inProgress ? 'hidden' : 'visible'}}>

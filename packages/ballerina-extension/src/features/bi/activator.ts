@@ -207,6 +207,9 @@ export function activate(context: BallerinaExtension) {
 
 function openBallerinaTomlFile(context: BallerinaExtension) {
     const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
+    if (!projectPath) {
+        return;
+    }
     const ballerinaTomlFile = path.join(projectPath, "Ballerina.toml");
     try {
         const content = readFileSync(ballerinaTomlFile, "utf8");

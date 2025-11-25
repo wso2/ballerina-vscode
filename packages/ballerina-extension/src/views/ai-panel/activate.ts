@@ -54,7 +54,6 @@ export function activateAiPanel(ballerinaExtInstance: BallerinaExtension) {
                         return;
                     }
 
-                    // StateMachine.updateProjectRoot(selectedPackage);
                     openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview, projectPath: selectedPackage });
                 } catch (error) {
                     console.error("Error selecting package:", error);
