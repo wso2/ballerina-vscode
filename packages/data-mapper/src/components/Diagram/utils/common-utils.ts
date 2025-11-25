@@ -65,7 +65,7 @@ export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): 
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType !== MappingType.Default;
+    return mappingType !== MappingType.Default && mappingType !== MappingType.SeqToArray;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {

@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapSeqToPrimitive, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -134,14 +134,10 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
         }
 
-        const onClickMapSeqToArray = async () => {
-            await createNewMapping(link, (expr: string) => `${expr}${genArrayElementAccessSuffix(link)}`);
+        const onClickMapSeqToPrimitive = async (fn: string) => {
+            await mapSeqToX(link, context, (expr: string) => `${fn}(${expr})`);
         }
 
-        const onClickMapSeqToPrimitive = async (fn: string) => {
-            await mapSeqToPrimitive(link, context, (expr: string) => `${fn}(${expr})`);
-        }
-    
         const getItemElement = (id: string, label: string) => {
             return (
                 <div
@@ -229,7 +225,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 case MappingType.ArrayToSingletonAggregate:
                     return genAggregateItems(onClickMapWithAggregateFn);
                 case MappingType.SeqToPrimitive:
-                    return genAggregateItems(onClickMapSeqToPrimitive)
+                    return genAggregateItems(onClickMapSeqToPrimitive);
                 default:
                     return defaultMenuItems;
             }
