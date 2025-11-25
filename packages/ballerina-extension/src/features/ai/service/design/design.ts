@@ -137,13 +137,15 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                         FILE_WRITE_TOOL_NAME,
                         FILE_SINGLE_EDIT_TOOL_NAME,
                         FILE_BATCH_EDIT_TOOL_NAME,
-                        FILE_READ_TOOL_NAME,
                     ].includes(toolName)
                 ) {
                     const input = part.input as any;
-                    if (input && input.file_path) {
-                        let fileName = input.file_path;
-                    }
+                    const fileName = input?.file_path ? input.file_path.split('/').pop() : 'file';
+                    eventHandler({
+                        type: "tool_call",
+                        toolName,
+                        toolInput: { fileName }
+                    });
                 } else {
                     eventHandler({ type: "tool_call", toolName });
                 }
@@ -175,9 +177,30 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                         FILE_WRITE_TOOL_NAME,
                         FILE_SINGLE_EDIT_TOOL_NAME,
                         FILE_BATCH_EDIT_TOOL_NAME,
-                        FILE_READ_TOOL_NAME,
                     ].includes(toolName)
                 ) {
+                    // Extract action from result message for file_write
+                    let action = undefined;
+                    if (toolName === FILE_WRITE_TOOL_NAME && result) {
+                        const message = (result as any).message || '';
+                        if (message.includes('updated')) {
+                            action = 'updated';
+                        } else if (message.includes('created')) {
+                            action = 'created';
+                        }
+                    }
+
+                    eventHandler({
+                        type: "tool_result",
+                        toolName,
+                        toolOutput: { success: true, action }
+                    });
+                } else if (toolName === DIAGNOSTICS_TOOL_NAME) {
+                    eventHandler({
+                        type: "tool_result",
+                        toolName,
+                        toolOutput: result
+                    });
                 } else {
                     eventHandler({ type: "tool_result", toolName });
                 }
