@@ -80,13 +80,27 @@ export function activateSubscriptions() {
                 const projectRoot = await findBallerinaPackageRoot(documentPath);
 
                 const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-                if (isBallerinaWorkspace && pathOrItem instanceof vscode.TreeItem) {
+                if (isBallerinaWorkspace) {
+                    if (pathOrItem instanceof vscode.TreeItem) {
+                        openView(
+                            EVENT_TYPE.OPEN_VIEW,
+                            {
+                                projectPath: pathOrItem.resourceUri?.fsPath,
+                                view: MACHINE_VIEW.PackageOverview
+                            },
+                            true
+                        );
+                        return;
+                    }
+                    const documentUri = documentPath || vscode.window.activeTextEditor?.document.uri.fsPath;
                     openView(
                         EVENT_TYPE.OPEN_VIEW,
                         {
-                            projectPath: pathOrItem.resourceUri?.fsPath,
-                            view: MACHINE_VIEW.PackageOverview
+                            projectPath: projectRoot,
+                            documentUri: documentUri,
+                            position: nodePosition
                         },
+                        true
                     );
                     return;
                 }
@@ -95,8 +109,8 @@ export function activateSubscriptions() {
                     // Initialize project structure if not already set by finding and loading the Ballerina project root
                     // Can happen when the user opens a directory containing multiple Ballerina projects
                     if (projectRoot) {
-                        // TODO: Need to create the project structure for the workspace
-                        await StateMachine.updateProjectRoot(projectRoot);
+                        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: projectRoot });
+                        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
                     }
                 }
                 
