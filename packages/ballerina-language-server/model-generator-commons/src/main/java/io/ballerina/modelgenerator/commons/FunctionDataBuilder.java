@@ -178,7 +178,7 @@ public class FunctionDataBuilder {
     }
 
     public FunctionDataBuilder name(String name) {
-        this.functionName = CommonUtils.removeQuotedIdentifier(name);
+        this.functionName = name;
         return this;
     }
 
@@ -270,7 +270,7 @@ public class FunctionDataBuilder {
             if (functionSymbol == null) {
                 throw new IllegalStateException("Function symbol must be provided if function name is not given");
             }
-            this.functionName = this.functionSymbol.getName().map(CommonUtils::removeQuotedIdentifier)
+            this.functionName = this.functionSymbol.getName()
                     .orElseThrow(() -> new IllegalStateException("Function name not found"));
         }
 
@@ -414,7 +414,9 @@ public class FunctionDataBuilder {
                         initMethod.ifPresent(methodSymbol -> functionSymbol = methodSymbol);
                     } else {
                         // Fetch the respective method using the function name
-                        functionSymbol = parentSymbol.methods().get(functionName);
+                        // TODO: We are special-casing the scenario where the index is not used. We should generalize
+                        //  the implementation after properly handling lang-lib functions.
+                        functionSymbol = parentSymbol.methods().get(CommonUtils.removeQuotedIdentifier(functionName));
                     }
                     if (functionSymbol == null) {
                         throw new IllegalStateException("Function symbol not found");
