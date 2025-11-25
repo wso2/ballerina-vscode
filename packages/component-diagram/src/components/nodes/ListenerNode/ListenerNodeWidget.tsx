@@ -174,6 +174,14 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
         setMenuAnchorEl(null);
     };
 
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
 
@@ -196,7 +204,12 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
 
                     <RightPortWidget port={model.getPort("out")!} engine={engine} />
                 </Circle>
-                <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                <MenuButton 
+                    appearance="icon" 
+                    onClick={handleOnMenuClick}
+                    onMouseDown={handleMenuMouseDown}
+                    onMouseUp={handleMenuMouseUp}
+                >
                     <MoreVertIcon />
                 </MenuButton>
                 <Header>

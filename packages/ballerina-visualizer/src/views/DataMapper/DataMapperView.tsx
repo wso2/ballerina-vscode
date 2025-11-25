@@ -284,6 +284,7 @@ export function DataMapperView(props: DataMapperProps) {
                 fileName={filePath}
                 preserveFieldOrder={true}
                 helperPaneSide="left"
+                isDataMapperEditor={true}
                 {...formProps}
             />
         )
@@ -356,6 +357,20 @@ export function DataMapperView(props: DataMapperProps) {
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
+        }
+    }
+
+    const getClausePosition = async (targetField: string, index: number) => {
+        try {
+            const { position } = await rpcClient.getDataMapperRpcClient().getClausePosition({
+                filePath,
+                codedata: viewState.codedata,
+                targetField: targetField,
+                index: index
+            });
+            return position;
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -491,13 +506,12 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToSource = async (outputId: string, viewId: string) => {
-        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+        const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
-            propertyKey: "expression", // TODO: Remove this once the API is updated
             targetField: viewId,
             fieldId: outputId,
-        })
+        });
         if (property.codedata) {
             const position: NodePosition = {
                 startLine: property.codedata.lineRange?.startLine?.line,
@@ -592,13 +606,11 @@ export function DataMapperView(props: DataMapperProps) {
                 const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
                     filePath,
                     codedata: viewState.codedata,
-                    propertyKey: "expression", // TODO: Remove this once the API is updated
-                    targetField: viewId,
-                    fieldId: outputId,
+                    targetField: viewId
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
-                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
-                let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                const startLine = updateLineRange(property.codedata.lineRange, expressionOffsetRef.current).startLine;
+                let completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
                     filePath,
                     context: {
                         expression: value,
@@ -606,7 +618,7 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: { ...property, valueType: "DATA_MAPPING_EXPRESSION" }
+                        property: property
                     },
                     completionContext: {
                         triggerKind: triggerCharacter ? 2 : 1,
@@ -688,6 +700,7 @@ export function DataMapperView(props: DataMapperProps) {
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
                             deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}
@@ -714,7 +727,7 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.name),
+    inputs: [...model.inputs.map(i => i.name), ...(model.query?.inputs || [])],
     output: model.output.name,
     subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''

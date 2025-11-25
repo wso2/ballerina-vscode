@@ -25,4 +25,5 @@ export * from "./PrimitiveOutput";
 export * from "./QueryOutput";
 export * from "./LinkConnector";
 export * from "./QueryExprConnector";
+export * from "./ClauseConnector";
 export * from "./EmptyInputs";
