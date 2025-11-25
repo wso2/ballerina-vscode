@@ -316,6 +316,7 @@ async function handleTaskCompletion(
         const modifiedFilesSet = new Set(modifiedFiles);
         console.log(`[TaskWrite Tool] Integrating ${modifiedFilesSet.size} modified file(s)`);
         await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+        modifiedFiles.length = 0;
     }
 
     AIChatStateMachine.sendEvent({
