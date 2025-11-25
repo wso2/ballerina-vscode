@@ -188,7 +188,7 @@ export async function mapSeqToArray(link: DataMapperLinkModel, context: IDataMap
 
 }
 
-export async function mapSeqToPrimitive(link: DataMapperLinkModel, context: IDataMapperContext, modifier: (expr: string) => string){
+export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperContext, modifier: (expr: string) => string){
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
