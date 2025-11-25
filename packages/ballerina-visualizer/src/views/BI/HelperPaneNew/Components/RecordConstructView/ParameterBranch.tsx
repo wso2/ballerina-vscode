@@ -64,7 +64,7 @@ export function ParameterBranch(props: ParameterBranchProps) {
         }
     });
 
-    function toggleOptionalParams(e?: any) {
+    function toggleOptionalParams(e?: React.MouseEvent<HTMLDivElement>) {
         if (e) {
             e.stopPropagation();
         }
