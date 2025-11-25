@@ -77,11 +77,15 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const expressionField: DMFormField = {
         key: "expression",
-        label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" : "Expression",
+        label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" :
+            clauseType === IntermediateClauseType.GROUP_BY ? "Grouping Key" :
+                "Expression",
         type: "EXPRESSION",
         optional: false,
         editable: true,
-        documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" : "Enter the expression of the clause",
+        documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" :
+            clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
+                "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -130,12 +134,6 @@ export function ClauseEditor(props: ClauseEditorProps) {
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
         };
-        if (clauseType === IntermediateClauseType.JOIN) {
-            clause.properties.type = "var";
-            clause.properties.isOuter = false;
-        } else if (clauseType === IntermediateClauseType.GROUP_BY) {
-            clause.properties.type = "var";
-        }
         onSubmit(clause);
     }
 
@@ -155,7 +153,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             case IntermediateClauseType.JOIN:
                 return [expressionField, nameField, lhsExpressionField, rhsExpressionField];
             case IntermediateClauseType.GROUP_BY:
-                return [nameField, expressionField];
+                return [expressionField];
             default:
                 return [expressionField];
         }
