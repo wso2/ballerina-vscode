@@ -224,6 +224,7 @@ public class CodeAnalyzer extends NodeVisitor {
     public static final String MCP_TOOL_KIT = "McpToolKit";
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
+    private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
 
     // Metadata data keys
     private static final String KIND_KEY = "kind";
@@ -363,7 +364,7 @@ public class CodeAnalyzer extends NodeVisitor {
         NodeBuilder builder = startNode(NodeKind.RETURN, returnStatementNode);
         optExpr.ifPresent(expr -> builder
                 .metadata().description(String.format(ReturnBuilder.DESCRIPTION, expr)).stepOut()
-                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, false));
+                .properties().expressionOrAction(expr, ReturnBuilder.RETURN_EXPRESSION_DOC, true));
         nodeBuilder.returning();
         endNode(returnStatementNode);
     }
@@ -1820,12 +1821,8 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.METHOD_CALL, methodCallExpressionNode.parent());
         }
 
-        if (CommonUtils.isDefaultPackage(functionSymbol, moduleInfo)) {
-            functionSymbol.getLocation()
-                    .flatMap(location -> CommonUtil.findNode(functionSymbol,
-                            CommonUtils.getDocument(project, location).syntaxTree()))
-                    .ifPresent(node -> nodeBuilder.properties().view(node.lineRange()));
-        }
+        CommonUtils.getViewLineRange(functionSymbol, moduleInfo, project)
+                .ifPresent(lineRange -> nodeBuilder.properties().view(lineRange));
 
         FunctionDataBuilder functionDataBuilder =
                 new FunctionDataBuilder()
@@ -1866,7 +1863,13 @@ public class CodeAnalyzer extends NodeVisitor {
         NameReferenceNode nameReferenceNode = functionCallExpressionNode.functionName();
         String functionName = getIdentifierName(nameReferenceNode);
 
-        if (dataMappings.containsKey(functionName)) {
+        // TODO: Here we address the majority of cases by assuming that data mappings reside in `functions.bal`.
+        //  Ideally, there should be a path to determine whether a symbol is an expression-bodied function using the
+        //  semantic model.
+        if (dataMappings.containsKey(functionName) ||
+                functionSymbol.getLocation()
+                        .map(loc -> DATA_MAPPINGS_BAL.equals(loc.lineRange().fileName()))
+                        .orElse(false)) {
             startNode(NodeKind.DATA_MAPPER_CALL, functionCallExpressionNode.parent());
         } else if (isAgentClass(symbol.get())) {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
@@ -1876,12 +1879,8 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
 
-        if (CommonUtils.isDefaultPackage(functionSymbol, moduleInfo)) {
-            functionSymbol.getLocation()
-                    .flatMap(location -> CommonUtil.findNode(functionSymbol,
-                            CommonUtils.getDocument(project, location).syntaxTree()))
-                    .ifPresent(node -> nodeBuilder.properties().view(node.lineRange()));
-        }
+        CommonUtils.getViewLineRange(functionSymbol, moduleInfo, project)
+                .ifPresent(lineRange -> nodeBuilder.properties().view(lineRange));
 
         FunctionDataBuilder functionDataBuilder =
                 new FunctionDataBuilder()

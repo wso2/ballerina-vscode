@@ -684,7 +684,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "newData",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -757,7 +757,7 @@
                         "metadata": {
                           "label": "get",
                           "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
                         },
                         "codedata": {
                           "node": "REMOTE_ACTION_CALL",
@@ -766,7 +766,7 @@
                           "packageName": "http",
                           "object": "Client",
                           "symbol": "get",
-                          "version": "2.15.1",
+                          "version": "2.15.2",
                           "lineRange": {
                             "fileName": "main.bal",
                             "startLine": {
@@ -1570,7 +1570,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "newData",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1905,7 +1905,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "http:INTERNAL_SERVER_ERROR",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

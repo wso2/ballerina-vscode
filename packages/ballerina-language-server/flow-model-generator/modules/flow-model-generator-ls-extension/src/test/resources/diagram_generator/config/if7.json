@@ -134,7 +134,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"large\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -269,7 +269,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"medium\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -329,7 +329,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"small\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -394,7 +394,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"tiny\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

@@ -294,7 +294,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"bulk\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -477,7 +477,7 @@
                                     },
                                     "valueType": "ACTION_OR_EXPRESSION",
                                     "value": "\"large pack\"",
-                                    "optional": false,
+                                    "optional": true,
                                     "editable": true,
                                     "advanced": false,
                                     "hidden": false
@@ -577,7 +577,7 @@
                                     },
                                     "valueType": "ACTION_OR_EXPRESSION",
                                     "value": "\"medium pack\"",
-                                    "optional": false,
+                                    "optional": true,
                                     "editable": true,
                                     "advanced": false,
                                     "hidden": false
@@ -665,7 +665,7 @@
                                     },
                                     "valueType": "ACTION_OR_EXPRESSION",
                                     "value": "\"small pack\"",
-                                    "optional": false,
+                                    "optional": true,
                                     "editable": true,
                                     "advanced": false,
                                     "hidden": false
@@ -774,7 +774,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"individual\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -838,7 +838,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "\"invalid quantity\"",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

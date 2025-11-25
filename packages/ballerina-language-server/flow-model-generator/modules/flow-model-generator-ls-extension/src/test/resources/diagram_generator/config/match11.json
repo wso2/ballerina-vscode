@@ -261,7 +261,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "string `Order for ${quantity} peaches with ripeness ${ripeness}`",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -450,7 +450,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "string `Error processing peach order: ${e.message()}`",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

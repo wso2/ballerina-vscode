@@ -186,7 +186,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "0",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

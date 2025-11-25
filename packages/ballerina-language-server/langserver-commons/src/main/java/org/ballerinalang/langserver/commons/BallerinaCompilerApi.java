@@ -279,4 +279,14 @@ public abstract class BallerinaCompilerApi {
      * @return A collection of diagnostics.
      */
     public abstract Collection<Diagnostic> getDiagnostics(DiagnosticResult diagnosticResult);
+
+    /**
+     * Updates the workspace Ballerina.toml with new content and reloads all workspace packages.
+     *
+     * @param project The workspace project.
+     * @param content The new content for the workspace Ballerina.toml.
+     * @return An Optional containing the updated workspace project with all packages reloaded, or Optional.empty() if
+     * the operation is not supported or the project is not a workspace project.
+     */
+    public abstract Optional<Project> updateWorkspaceToml(Project project, String content);
 }

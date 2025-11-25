@@ -253,7 +253,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "e.message()",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

@@ -248,7 +248,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -257,7 +257,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.1",
+                  "version": "2.15.2",
                   "lineRange": {
                     "fileName": "while.bal",
                     "startLine": {
@@ -1456,7 +1456,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Error occurred while creating admin client\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1517,7 +1517,7 @@
                         "metadata": {
                           "label": "post",
                           "description": "Create a new resource or submit data to a resource for processing.\n",
-                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
                         },
                         "codedata": {
                           "node": "REMOTE_ACTION_CALL",
@@ -1526,7 +1526,7 @@
                           "packageName": "http",
                           "object": "Client",
                           "symbol": "post",
-                          "version": "2.15.1",
+                          "version": "2.15.2",
                           "lineRange": {
                             "fileName": "while.bal",
                             "startLine": {
@@ -1780,7 +1780,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Response received from admin service: \" + response.toString()",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1840,7 +1840,7 @@
                             },
                             "valueType": "ACTION_OR_EXPRESSION",
                             "value": "\"Error occurred while invoking admin service\"",
-                            "optional": false,
+                            "optional": true,
                             "editable": true,
                             "advanced": false,
                             "hidden": false
@@ -1899,7 +1899,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Error occurred while invoking food service\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -1958,7 +1958,7 @@
             },
             "valueType": "ACTION_OR_EXPRESSION",
             "value": "finalMsg",
-            "optional": false,
+            "optional": true,
             "editable": true,
             "advanced": false,
             "hidden": false

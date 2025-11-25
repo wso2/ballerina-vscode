@@ -46,7 +46,7 @@
         "metadata": {
           "label": "post",
           "description": "Create a new resource or submit data to a resource for processing.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -55,7 +55,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "post",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_post_node.bal",
             "startLine": {
@@ -272,7 +272,7 @@
         "metadata": {
           "label": "post",
           "description": "The client resource function to send HTTP POST requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -281,7 +281,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "post",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_post_node.bal",
             "startLine": {

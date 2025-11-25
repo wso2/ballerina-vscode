@@ -1,170 +1,109 @@
 {
-  "source": "query23.bal",
-  "description": "",
+  "source": "proj2/main.bal",
+  "description": "Query with group by using direct field reference",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "query23.bal",
+      "fileName": "proj2/main.bal",
       "startLine": {
-        "line": 21,
-        "offset": 4
+        "line": 18,
+        "offset": 8
       },
       "endLine": {
         "line": 23,
-        "offset": 59
+        "offset": 10
       }
     },
-    "sourceCode": ""
+    "sourceCode": "Array meanQuantity = {\n            values: from var salesItem in sales\n                let var quantity = salesItem.quantity\n                group by var item = salesItem.item\n                select sum(quantity)\n        };"
   },
   "position": {
-    "line": 21,
-    "offset": 4
+    "line": 18,
+    "offset": 8
   },
-  "propertyKey": "expression",
-  "targetField": "names.0",
+  "targetField": "meanQuantity.values",
   "model": {
     "inputs": [
       {
         "member": {
-          "member": {
-            "fields": [],
-            "name": "AAA",
-            "displayName": "<AAAItemItem>",
-            "typeName": "Elephant",
-            "kind": "record",
-            "ref": "-2143678211"
-          },
-          "name": "AAA",
-          "displayName": "<AAAItem>",
-          "typeName": "Elephant[]",
-          "kind": "array",
-          "ref": "115957393"
-        },
-        "name": "AAA",
-        "displayName": "AAA",
-        "typeName": "Elephant[][]",
-        "kind": "array",
-        "category": "variable",
-        "ref": "115957393"
-      },
-      {
-        "member": {
           "fields": [],
-          "name": "BBB",
-          "displayName": "<BBBItem>",
-          "typeName": "Elephant",
+          "name": "sales",
+          "displayName": "<salesItem>",
+          "typeName": "Sale",
           "kind": "record",
-          "ref": "-2143678211"
+          "ref": "1120091376"
         },
-        "name": "BBB",
-        "displayName": "BBB",
-        "typeName": "Elephant[]",
+        "name": "sales",
+        "displayName": "sales",
+        "typeName": "Sale[]",
         "kind": "array",
         "category": "variable",
-        "ref": "115957393"
-      },
-      {
-        "member": {
-          "fields": [],
-          "name": "CCC",
-          "displayName": "<CCCItem>",
-          "typeName": "Elephant",
-          "kind": "record",
-          "ref": "-2143678211"
-        },
-        "name": "CCC",
-        "displayName": "CCC",
-        "typeName": "Elephant[]",
-        "kind": "array",
-        "category": "variable",
-        "ref": "115957393"
-      },
-      {
-        "member": {
-          "fields": [],
-          "name": "names",
-          "displayName": "<namesItem>",
-          "typeName": "Names",
-          "kind": "record",
-          "ref": "-388980516"
-        },
-        "name": "names",
-        "displayName": "names",
-        "typeName": "Names[]",
-        "kind": "array",
-        "category": "variable",
-        "ref": "1544441335"
+        "ref": "-1728427723"
       },
       {
         "fields": [],
-        "name": "bbb",
-        "displayName": "bbb",
-        "typeName": "Elephant",
+        "name": "salesItem",
+        "displayName": "salesItem",
+        "typeName": "Sale",
         "kind": "record",
-        "focusExpression": "BBB",
-        "ref": "-2143678211"
-      },
-      {
-        "fields": [],
-        "name": "ccc",
-        "displayName": "ccc",
-        "typeName": "Elephant",
-        "kind": "record",
-        "focusExpression": "CCC",
-        "ref": "-2143678211"
+        "focusExpression": "sales",
+        "ref": "1120091376"
       }
     ],
     "output": {
       "member": {
-        "fields": [],
-        "name": "names",
-        "displayName": "<namesItem>",
-        "typeName": "Names",
-        "kind": "record",
-        "ref": "-388980516"
+        "name": "values",
+        "displayName": "<valuesItem>",
+        "typeName": "int",
+        "kind": "int"
       },
-      "name": "names",
-      "displayName": "names",
-      "typeName": "Names[]",
-      "kind": "array",
-      "ref": "1544441335"
+      "name": "values",
+      "displayName": "values",
+      "typeName": "int[]",
+      "kind": "array"
     },
     "mappings": [
       {
-        "output": "names.name",
+        "output": "values",
         "inputs": [
-          "bbb.name",
-          "ccc.name"
+          "quantity"
         ],
-        "expression": "bbb.name + ccc.name",
+        "expression": "sum(quantity)\n",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
-        "isFunctionCall": false
+        "isFunctionCall": true
       }
     ],
     "query": {
-      "output": "names",
+      "output": "values",
       "inputs": [
-        "BBB",
-        "CCC"
+        "sales"
       ],
       "fromClause": {
         "type": "from",
         "properties": {
-          "name": "bbb",
-          "type": "Elephant",
-          "expression": "BBB",
+          "name": "salesItem",
+          "type": "Sale",
+          "expression": "sales",
           "isOuter": false
         }
       },
       "intermediateClauses": [
         {
-          "type": "from",
+          "type": "let",
           "properties": {
-            "name": "ccc",
-            "type": "Elephant",
-            "expression": "CCC",
+            "name": "quantity",
+            "type": "var",
+            "expression": "salesItem.quantity",
+            "isOuter": false
+          }
+        },
+        {
+          "type": "group-by",
+          "properties": {
+            "name": "item",
+            "type": "var",
+            "expression": "salesItem.item",
             "isOuter": false
           }
         }
@@ -172,50 +111,30 @@
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "{name: bbb.name + ccc.name}",
+          "expression": "sum(quantity)",
           "isOuter": false
         }
       }
     },
     "refs": {
-      "-2143678211": {
+      "1120091376": {
         "fields": [
           {
-            "name": "name",
-            "displayName": "name",
+            "name": "item",
+            "displayName": "item",
             "typeName": "string",
             "kind": "string",
             "optional": false
           },
           {
-            "name": "age",
-            "displayName": "age",
+            "name": "quantity",
+            "displayName": "quantity",
             "typeName": "int",
             "kind": "int",
             "optional": false
-          },
-          {
-            "name": "cast",
-            "displayName": "cast",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
           }
         ],
-        "typeName": "Elephant",
-        "kind": "record"
-      },
-      "-388980516": {
-        "fields": [
-          {
-            "name": "name",
-            "displayName": "name",
-            "typeName": "string",
-            "kind": "string",
-            "optional": false
-          }
-        ],
-        "typeName": "Names",
+        "typeName": "Sale",
         "kind": "record"
       }
     }

@@ -147,7 +147,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Energetic and Euphoric\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -235,7 +235,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Light and Cheerful\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -325,7 +325,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Calm and Contemplative\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -415,7 +415,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "\"Neutral and Balanced\"",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

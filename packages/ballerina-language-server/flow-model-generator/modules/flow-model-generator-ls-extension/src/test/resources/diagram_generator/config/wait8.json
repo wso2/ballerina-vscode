@@ -155,7 +155,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "mockFetch(\"http://1.com\", 1)",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false
@@ -254,7 +254,7 @@
                     },
                     "valueType": "ACTION_OR_EXPRESSION",
                     "value": "mockFetch(\"http://2.com\", 2)",
-                    "optional": false,
+                    "optional": true,
                     "editable": true,
                     "advanced": false,
                     "hidden": false

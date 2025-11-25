@@ -47,7 +47,7 @@
         "typeMembers": [
           {
             "type": "ClientConfiguration",
-            "packageInfo": "ballerina:http:2.15.1",
+            "packageInfo": "ballerina:http:2.15.2",
             "packageName": "http",
             "kind": "RECORD_TYPE",
             "selected": false
