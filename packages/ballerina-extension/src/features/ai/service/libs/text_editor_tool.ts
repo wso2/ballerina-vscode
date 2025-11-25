@@ -240,8 +240,11 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
 
     const fullPath = path.join(tempProjectPath, file_path);
 
+    // Check if file exists (track for message generation)
+    const fileExists = fs.existsSync(fullPath);
+
     // Check if file exists with non-empty content
-    if (fs.existsSync(fullPath)) {
+    if (fileExists) {
       const existingContent = fs.readFileSync(fullPath, 'utf-8');
       if (existingContent.trim().length > 0) {
         console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
@@ -270,11 +273,12 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
     notifyLanguageServer(tempProjectPath, file_path);
 
     const lineCount = content.split('\n').length;
+    const action = fileExists ? 'updated' : 'created';
 
-    console.log(`[FileWriteTool] Successfully wrote file: ${file_path} with ${lineCount} lines to temp project.`);
+    console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
     return {
       success: true,
-      message: `Successfully created file '${file_path}' with ${lineCount} line(s).`
+      message: `Successfully ${action} file '${file_path}' with ${lineCount} line(s).`
     };
   };
 }
