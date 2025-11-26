@@ -50,6 +50,7 @@ import {
     DevantScopes,
     ICreateComponentCmdParams,
     ComponentKind,
+    ICmdParamsBase,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -396,7 +397,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         // check if choreoConnect is provided as param, if so use pass those as param
         const devantProxyResp = await this.startProxyServer(debugConfig);
 
-        if (devantProxyResp.proxyServerPort) {
+        if (devantProxyResp?.proxyServerPort) {
             debugConfig.env = { ...(debugConfig.env || {}), ...devantProxyResp.envVars };
             if (devantProxyResp.requiresProxy) {
                 (debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST = "127.0.0.1"),
@@ -437,6 +438,32 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             ) {
                 requiresProxy = true;
             }
+
+            if(debugConfig.request === "launch" && debugConfig?.choreoConnect){
+                if(!platformExtStore.getState().state?.isLoggedIn){
+                    window.showErrorMessage("You must log in before connecting to devant environment. Retry after logging in.", "Login").then((res) => {
+						if (res === "Login") {
+							vscode.commands.executeCommand(PlatformExtCommandIds.SignIn, { extName: 'Devant' } as ICmdParamsBase);
+						}
+					});
+                    return
+                }
+
+                if(!platformExtStore.getState().state?.selectedContext?.project){
+                    window
+						.showErrorMessage(
+							"Pease associate your directory with Devant project in order to connect to Devant while running or debugging",
+							"Manage Project",
+						)
+						.then((res) => {
+							if (res === "Manage Project") {
+								vscode.commands.executeCommand(PlatformExtCommandIds.ManageDirectoryContext, { extName: 'Devant' } as ICmdParamsBase);
+							}
+						});
+                    return
+                }
+            }
+
             if (
                 debugConfig.request === "launch" &&
                 platformExtStore.getState().state?.isLoggedIn &&
