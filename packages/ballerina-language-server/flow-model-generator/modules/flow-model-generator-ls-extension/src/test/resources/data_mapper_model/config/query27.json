@@ -1,0 +1,223 @@
+{
+  "source": "query23.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query23.bal",
+      "startLine": {
+        "line": 21,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 59
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 21,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "names.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "AAA",
+            "displayName": "<AAAItemItem>",
+            "typeName": "Elephant",
+            "kind": "record",
+            "ref": "-2143678211"
+          },
+          "name": "AAA",
+          "displayName": "<AAAItem>",
+          "typeName": "Elephant[]",
+          "kind": "array",
+          "ref": "115957393"
+        },
+        "name": "AAA",
+        "displayName": "AAA",
+        "typeName": "Elephant[][]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "115957393"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "BBB",
+          "displayName": "<BBBItem>",
+          "typeName": "Elephant",
+          "kind": "record",
+          "ref": "-2143678211"
+        },
+        "name": "BBB",
+        "displayName": "BBB",
+        "typeName": "Elephant[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "115957393"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "CCC",
+          "displayName": "<CCCItem>",
+          "typeName": "Elephant",
+          "kind": "record",
+          "ref": "-2143678211"
+        },
+        "name": "CCC",
+        "displayName": "CCC",
+        "typeName": "Elephant[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "115957393"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "names",
+          "displayName": "<namesItem>",
+          "typeName": "Names",
+          "kind": "record",
+          "ref": "-388980516"
+        },
+        "name": "names",
+        "displayName": "names",
+        "typeName": "Names[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "1544441335"
+      },
+      {
+        "fields": [],
+        "name": "bbb",
+        "displayName": "bbb",
+        "typeName": "Elephant",
+        "kind": "record",
+        "focusExpression": "BBB",
+        "ref": "-2143678211"
+      },
+      {
+        "fields": [],
+        "name": "ccc",
+        "displayName": "ccc",
+        "typeName": "Elephant",
+        "kind": "record",
+        "focusExpression": "CCC",
+        "ref": "-2143678211"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "names",
+        "displayName": "<namesItem>",
+        "typeName": "Names",
+        "kind": "record",
+        "ref": "-388980516"
+      },
+      "name": "names",
+      "displayName": "names",
+      "typeName": "Names[]",
+      "kind": "array",
+      "ref": "1544441335"
+    },
+    "mappings": [
+      {
+        "output": "names.name",
+        "inputs": [
+          "bbb.name",
+          "ccc.name"
+        ],
+        "expression": "bbb.name + ccc.name",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "names",
+      "inputs": [
+        "BBB",
+        "CCC"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "bbb",
+          "type": "Elephant",
+          "expression": "BBB",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [
+        {
+          "type": "from",
+          "properties": {
+            "name": "ccc",
+            "type": "Elephant",
+            "expression": "CCC",
+            "isOuter": false
+          }
+        }
+      ],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{name: bbb.name + ccc.name}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-2143678211": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "cast",
+            "displayName": "cast",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Elephant",
+        "kind": "record"
+      },
+      "-388980516": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Names",
+        "kind": "record"
+      }
+    }
+  }
+}
