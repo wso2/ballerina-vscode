@@ -31,9 +31,11 @@ import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/type
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
+import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/configurations/IConfiguration';
 
 export interface ExpressionField {
     inputMode: InputMode;
+    primaryMode: InputMode;
     name: string;
     value: string;
     fileName?: string;
@@ -94,8 +96,65 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
+export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    getHelperValue(value: string): string {
+        return `\$\{${value}\}`;
+    }
+    getSerializationPrefix() {
+        return "string `";
+    }
+    getSerializationSuffix() {
+        return "`";
+    }
+    serializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
+        }
+        return value;
+    }
+    deserializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value;
+        }
+        return `${prefix}${value}${suffix}`;
+    }
+}
+
+export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    getHelperValue(value: string): string {
+        return `\$\{${value}\}`;
+    }
+    getSerializationPrefix() {
+        return "`";
+    }
+    getSerializationSuffix() {
+        return "`";
+    }
+    serializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
+        }
+        return value;
+    }
+    deserializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value;
+        }
+        return `${prefix}${value}${suffix}`;
+    }
+}
+
 export const ExpressionField: React.FC<ExpressionField> = ({
     inputMode,
+    primaryMode,
     name,
     value,
     completions,
@@ -127,25 +186,73 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    if (inputMode === InputMode.TEXT || inputMode === InputMode.RECORD) {
+    class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+        getHelperValue(value: string): string {
+            if (primaryMode === InputMode.TEXT || primaryMode === InputMode.TEMPLATE) {
+                return `\$\{${value}\}`;
+            }
+            return value;
+        }
+    }
+    if (inputMode === InputMode.TEXT) {
         return (
             <TextModeEditor
-                exprRef={exprRef}
-                anchorRef={anchorRef}
-                name={name}
-                value={value}
-                autoFocus={autoFocus}
-                ariaLabel={ariaLabel}
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
                 onChange={onChange}
-                onFocus={onFocus}
-                onBlur={onBlur}
-                onSave={onSave}
-                onCancel={onCancel}
-                onRemove={onRemove}
-                growRange={growRange}
-                placeholder={placeholder}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
                 onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                configuration={new StringTemplateEditorConfig()}
+            />
+
+        );
+    }
+     if (inputMode === InputMode.TEMPLATE) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={new RawTemplateEditorConfig()}
+            />
+
+        );
+    }
+    if (inputMode === InputMode.RECORD) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={new ChipExpressionEditorConfig()}
             />
 
         );
@@ -166,6 +273,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
+            configuration={new ChipExpressionEditorConfig()}
         />
     );
 };

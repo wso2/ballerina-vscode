@@ -581,14 +581,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        // Auto-add quotes when switching from TEXT to EXP if not present
-        if (inputMode === InputMode.TEXT && value === InputMode.EXP) {
-            if (currentValue && typeof currentValue === 'string' &&
-                !currentValue.startsWith('"') && !currentValue.endsWith('"')) {
-                setValue(key, `"${currentValue}"`);
-            }
-        }
-
         setInputMode(value);
     };
 
@@ -698,14 +690,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                         <div>
                             <ExpressionField
                                 inputMode={inputMode}
+                                primaryMode={getInputModeFromTypes(field.valueTypeConstraint)}
                                 name={name}
                                 value={value}
                                 completions={completions}
                                 fileName={effectiveFileName}
                                 targetLineRange={effectiveTargetLineRange}
                                 autoFocus={recordTypeField ? false : autoFocus}
-                                sanitizedExpression={inputMode === InputMode.TEMPLATE ? sanitizedExpression : undefined}
-                                rawExpression={inputMode === InputMode.TEMPLATE ? rawExpression : undefined}
                                 ariaLabel={field.label}
                                 placeholder={placeholder}
                                 onChange={async (updatedValue: string, updatedCursorPosition: number) => {
@@ -714,13 +705,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     setFormDiagnostics([]);
                                     // Use ref to get current mode (not stale closure value)
                                     const currentMode = inputModeRef.current;
-                                    const rawValue = currentMode === InputMode.TEMPLATE && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
-                                    onChange(rawValue);
+                                    onChange(updatedValue);
                                     if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE)) {
                                         getExpressionEditorDiagnostics(
-                                            (required ?? !field.optional) || rawValue !== '',
-                                            rawValue,
+                                            (required ?? !field.optional) || updatedValue !== '',
+                                            updatedValue,
                                             key,
                                             getPropertyFromFormField(field)
                                         );
@@ -729,18 +719,18 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     // Check if the current character is a trigger character
                                     const triggerCharacter =
                                         updatedCursorPosition > 0
-                                            ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
+                                            ? triggerCharacters.find((char) => updatedValue[updatedCursorPosition - 1] === char)
                                             : undefined;
                                     if (triggerCharacter) {
                                         await retrieveCompletions(
-                                            rawValue,
+                                            updatedValue,
                                             getPropertyFromFormField(field),
                                             updatedCursorPosition,
                                             triggerCharacter
                                         );
                                     } else {
                                         await retrieveCompletions(
-                                            rawValue,
+                                            updatedValue,
                                             getPropertyFromFormField(field),
                                             updatedCursorPosition
                                         );

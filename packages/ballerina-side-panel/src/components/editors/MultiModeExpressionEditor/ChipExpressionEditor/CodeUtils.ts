@@ -37,8 +37,6 @@ export type TokenStream = number[];
 
 export type TokensChangePayload = {
     tokens: TokenStream;
-    rawValue?: string;      // Raw expression (e.g., `${var}`)
-    sanitizedValue?: string; // Sanitized expression (e.g., ${var})
 };
 
 export type CursorInfo = {
@@ -225,23 +223,12 @@ export const tokenField = StateField.define<TokenFieldState>({
         for (let effect of tr.effects) {
             if (effect.is(tokensChangeEffect)) {
                 const payload = effect.value;
-                const sanitizedDoc = tr.newDoc.toString();
+                const currentValue = tr.newDoc.toString();
 
-                // Parse tokens using the raw value if provided, otherwise use sanitized
-                const valueForParsing = payload.rawValue || sanitizedDoc;
-                tokens = getParsedExpressionTokens(payload.tokens, valueForParsing);
-
-                // If we have both raw and sanitized values, map positions
-                if (payload.rawValue && payload.sanitizedValue) {
-                    tokens = tokens.map(token => ({
-                        ...token,
-                        start: mapRawToSanitized(token.start, payload.rawValue!, payload.sanitizedValue!),
-                        end: mapRawToSanitized(token.end, payload.rawValue!, payload.sanitizedValue!)
-                    }));
-                }
+                tokens = getParsedExpressionTokens(payload.tokens, currentValue);
 
                 // Detect compounds once when tokens change
-                compounds = detectTokenPatterns(tokens, sanitizedDoc);
+                compounds = detectTokenPatterns(tokens, currentValue);
 
                 return { tokens, compounds };
             }
