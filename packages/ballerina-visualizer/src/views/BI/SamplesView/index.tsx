@@ -232,10 +232,6 @@ const CATEGORY_COLOR_MAP: Record<string, string> = {
     "Default": "#4A90E2"
 };
 
-interface SamplesViewProps {
-    // Samples view props are not needed
-}
-
 export function SamplesView() {
     const { rpcClient } = useRpcContext();
     const [searchQuery, setSearchQuery] = useState("");
@@ -272,7 +268,7 @@ export function SamplesView() {
         };
 
         fetchSamples();
-    }, []);
+    }, [rpcClient]);
 
     const categories = useMemo(() => {
         const uniqueCategories = Array.from(new Set(samples.map((s) => s.category)));
@@ -297,6 +293,9 @@ export function SamplesView() {
             await rpcClient.getCommonRpcClient().downloadSelectedSampleFromGithub(request);
         } catch (error) {
             console.error("Error downloading sample:", error);
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: `Error while downloading the sample: ${error instanceof Error ? error.message : String(error)}`
+            });
         }
     };
 

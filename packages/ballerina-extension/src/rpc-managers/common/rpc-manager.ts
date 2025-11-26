@@ -319,7 +319,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         const defaultDownloadsPath = path.join(os.homedir(), 'Downloads'); // Construct the default downloads path
         const pathFromDialog = await selectSampleDownloadPath();
         if (pathFromDialog === "") {
-            return;
+            return false;
         }
         const selectedPath = pathFromDialog === "" ? defaultDownloadsPath : pathFromDialog;
         const filePath = path.join(selectedPath, params.zipFileName + '.zip');
@@ -338,6 +338,10 @@ export class CommonRpcManager implements CommonRPCAPI {
                 let cancelled: boolean = false;
                 cancellationToken.onCancellationRequested(async () => {
                     cancelled = true;
+                    // Clean up partial download
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
                 });
 
                 try {
@@ -357,7 +361,7 @@ export class CommonRpcManager implements CommonRPCAPI {
                 // already extracted
                 let uri = Uri.file(path.join(selectedPath, params.zipFileName));
                 commands.executeCommand("vscode.openFolder", uri, true);
-                return;
+                return true;
             }
             zipReadStream.pipe(unzipper.Parse()).on("entry", function (entry) {
                 var isDir = entry.type === "Directory";
@@ -393,5 +397,6 @@ export class CommonRpcManager implements CommonRPCAPI {
                 successMsg,
             );
         }
+        return isSuccess;
     }
 }

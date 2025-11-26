@@ -138,7 +138,11 @@ async function downloadFile(url: string, filePath: string, progressCallback?: (d
                 "User-Agent": "Mozilla/5.0"
             },
             onDownloadProgress: (progressEvent) => {
-                totalBytes = progressEvent.total!;
+                totalBytes = progressEvent.total ?? 0;
+                if (totalBytes === 0) {
+                    // Cannot calculate progress without total size
+                    return;
+                }
                 const formatSize = (sizeInBytes: number) => {
                     const sizeInKB = sizeInBytes / 1024;
                     if (sizeInKB < 1024) {
