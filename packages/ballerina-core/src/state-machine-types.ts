@@ -327,6 +327,7 @@ export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotif
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
 

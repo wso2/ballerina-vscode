@@ -183,7 +183,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(openChatWindowWithCommand, HOST_EXTENSION);
     }
 
-    generateContextTypes(params: ProcessContextTypeCreationRequest): void {
+    generateContextTypes(params: ProcessContextTypeCreationRequest): void{
         return this._messenger.sendNotification(generateContextTypes, HOST_EXTENSION, params);
     }
 

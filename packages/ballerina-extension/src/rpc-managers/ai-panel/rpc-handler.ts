@@ -26,6 +26,7 @@ import {
     addToProject,
     AddToProjectRequest,
     AIChatSummary,
+    AIPanelPrompt,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,

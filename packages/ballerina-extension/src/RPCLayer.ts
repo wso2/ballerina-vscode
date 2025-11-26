@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, getAIChatUIHistory, AIChatMachineEventType, AIChatMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, getAIChatUIHistory, AIChatMachineEventType, AIChatMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -185,6 +185,10 @@ export function notifyCurrentWebview() {
 
 export function notifyAiWebview() {
     RPCLayer._messenger.sendNotification(projectContentUpdated, { type: 'webview', webviewType: AiPanelWebview.viewType }, true);
+}
+
+export function notifyAiPromptUpdated() {
+    RPCLayer._messenger.sendNotification(promptUpdated, { type: 'webview', webviewType: AiPanelWebview.viewType });
 }
 
 export function notifyBreakpointChange() {
