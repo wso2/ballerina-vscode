@@ -400,8 +400,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         if (devantProxyResp?.proxyServerPort) {
             debugConfig.env = { ...(debugConfig.env || {}), ...devantProxyResp.envVars };
             if (devantProxyResp.requiresProxy) {
-                (debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST = "127.0.0.1"),
-                    (debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT = `${devantProxyResp.proxyServerPort}`);
+                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST = "127.0.0.1";
+                debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT = `${devantProxyResp.proxyServerPort}`;
             } else {
                 delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYHOST;
                 delete debugConfig.env.BAL_CONFIG_VAR_DEVANTPROXYPORT;
