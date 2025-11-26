@@ -548,7 +548,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const { platformRpcClient, platformExtState, deployableArtifacts } = usePlatformExtContext();
+    const { platformRpcClient, platformExtState, deployableArtifacts, refetchProjectInfo } = usePlatformExtContext();
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
@@ -601,6 +601,7 @@ export function PackageOverview(props: PackageOverviewProps) {
         showLoginAlert().then((status) => {
             setShowAlert(status);
         });
+        refetchProjectInfo();
     }, [projectPath]);
 
     const projectName = useMemo(() => {

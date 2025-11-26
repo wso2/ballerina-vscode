@@ -133,6 +133,7 @@ async function getContext(): Promise<VisualizerLocation> {
             syntaxTree: context.syntaxTree,
             isBI: context.isBI,
             projectPath: context.projectPath,
+            workspacePath: context.workspacePath,
             serviceType: context.serviceType,
             type: context.type,
             isGraphql: context.isGraphql,
