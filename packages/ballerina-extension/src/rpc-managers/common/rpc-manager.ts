@@ -31,19 +31,24 @@ import {
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
+    PackageTomlValues,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
+    SampleDownloadRequest,
     ShowErrorMessageRequest,
     SyntaxTree,
-    PackageTomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
-    WorkspaceTypeResponse,
+    WorkspaceTypeResponse
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
-import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
+import path from "path";
+import os from "os";
+import fs from "fs";
+import * as unzipper from 'unzipper';
+import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
@@ -60,9 +65,11 @@ import {
     askFilePath,
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
-    getUpdatedSource
+    getUpdatedSource,
+    handleDownloadFile,
+    selectSampleDownloadPath
 } from "./utils";
-import path from "path";
+import { VisualizerWebview } from "../../views/visualizer/webview";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -303,5 +310,88 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         return { type: "UNKNOWN" };
+    }
+
+
+    async downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
+        const repoUrl = 'https://raw.githubusercontent.com/wso2/integration-samples/refs/heads/main/ballerina-integrator/samples/';
+        const rawFileLink = repoUrl + params.zipFileName + '.zip';
+        const defaultDownloadsPath = path.join(os.homedir(), 'Downloads'); // Construct the default downloads path
+        const pathFromDialog = await selectSampleDownloadPath();
+        if (pathFromDialog === "") {
+            return;
+        }
+        const selectedPath = pathFromDialog === "" ? defaultDownloadsPath : pathFromDialog;
+        const filePath = path.join(selectedPath, params.zipFileName + '.zip');
+        let isSuccess = false;
+
+        if (fs.existsSync(filePath)) {
+            // already downloaded
+            isSuccess = true;
+        } else {
+            await window.withProgress({
+                location: ProgressLocation.Notification,
+                title: 'Downloading file',
+                cancellable: true
+            }, async (progress, cancellationToken) => {
+
+                let cancelled: boolean = false;
+                cancellationToken.onCancellationRequested(async () => {
+                    cancelled = true;
+                });
+
+                try {
+                    await handleDownloadFile("projectUri", rawFileLink, filePath, progress, cancelled);
+                    isSuccess = true;
+                    return;
+                } catch (error) {
+                    window.showErrorMessage(`Error while downloading the file: ${error}`);
+                }
+            });
+        }
+
+        if (isSuccess) {
+            const successMsg = `The Integration sample file has been downloaded successfully to the following directory: ${filePath}.`;
+            const zipReadStream = fs.createReadStream(filePath);
+            if (fs.existsSync(path.join(selectedPath, params.zipFileName))) {
+                // already extracted
+                let uri = Uri.file(path.join(selectedPath, params.zipFileName));
+                commands.executeCommand("vscode.openFolder", uri, true);
+                return;
+            }
+            zipReadStream.pipe(unzipper.Parse()).on("entry", function (entry) {
+                var isDir = entry.type === "Directory";
+                var fullpath = path.join(selectedPath, entry.path);
+                var directory = isDir ? fullpath : path.dirname(fullpath);
+                if (!fs.existsSync(directory)) {
+                    fs.mkdirSync(directory, { recursive: true });
+                }
+                if (!isDir) {
+                    entry.pipe(fs.createWriteStream(fullpath));
+                }
+            }).on("close", () => {
+                console.log("Extraction complete!");
+                window.showInformationMessage('Where would you like to open the project?',
+                    { modal: true },
+                    'Current Window',
+                    'New Window'
+                ).then(selection => {
+                    if (selection === "Current Window") {
+                        // Dispose the current webview
+                        VisualizerWebview.currentPanel?.dispose();
+                        const folderUri = Uri.file(path.join(selectedPath, params.zipFileName));
+                        const workspaceFolders = workspace.workspaceFolders || [];
+                        if (!workspaceFolders.some(folder => folder.uri.fsPath === folderUri.fsPath)) {
+                            workspace.updateWorkspaceFolders(workspaceFolders.length, 0, { uri: folderUri });
+                        }
+                    } else if (selection === "New Window") {
+                        commands.executeCommand('vscode.openFolder', Uri.file(path.join(selectedPath, params.zipFileName)));
+                    }
+                });
+            });
+            window.showInformationMessage(
+                successMsg,
+            );
+        }
     }
 }
