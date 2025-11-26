@@ -20,6 +20,7 @@ import styled from "@emotion/styled";
 import { Codicon, Popover, ThemeColors, VSCodeColors, Button, Divider } from "@wso2/ui-toolkit";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 const PopupContainer = styled.div`
     min-width: 200px;
@@ -63,6 +64,11 @@ const PanelItemVal = styled.div`
     line-height: 12px;
 `;
 
+const ButtonContent = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
 interface Props {
     onClick: () => void;
     text: string;
@@ -85,11 +91,30 @@ export function RunDebugButton(props: Props) {
         );
     }
 
+    const { mutate: onOptionSelect } = useMutation({
+        mutationFn: async (connectedToDevant: boolean) => {
+            await platformRpcClient.setConnectedToDevant(connectedToDevant);
+            onClick();
+        },
+        onSuccess: () => setAnchorEl(null),
+    });
+
     return (
         <>
-            <Button appearance="icon" onClick={(e) => setAnchorEl(e.currentTarget)} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name={icon} sx={{ marginRight: 5 }} /> {text}{" "}
-                <Codicon name="chevron-down" sx={{ marginLeft: 5 }} />
+            <Button appearance="icon" onClick={onClick} buttonSx={{ padding: "1px 8px" }}>
+                <ButtonContent>
+                    <Codicon name={icon} sx={{ marginRight: 5 }} /> {text}{" "}
+                    <Button
+                        appearance="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setAnchorEl(e.currentTarget);
+                        }}
+                        sx={{ marginLeft: 5 }}
+                    >
+                        <Codicon name="chevron-down" />
+                    </Button>
+                </ButtonContent>
             </Button>
             <Popover
                 open={!!anchorEl}
@@ -103,17 +128,12 @@ export function RunDebugButton(props: Props) {
                     borderRadius: 2,
                     marginTop: 4,
                     border: `1px solid ${VSCodeColors.PANEL_BORDER}`,
+                    zIndex: 1100
                 }}
             >
                 <PopupContainer>
                     <>
-                        <PanelItem
-                            active={platformExtState?.connectedToDevant}
-                            onClick={() => {
-                                platformRpcClient.setConnectedToDevant(true);
-                                setAnchorEl(null)
-                            }}
-                        >
+                        <PanelItem active={platformExtState?.connectedToDevant} onClick={() => onOptionSelect(true)}>
                             <Codicon name="vm-active" />
                             <PanelItemContent>
                                 <PanelItemTitle>{text}</PanelItemTitle>
@@ -121,13 +141,7 @@ export function RunDebugButton(props: Props) {
                             </PanelItemContent>
                         </PanelItem>
                         <Divider sx={{ margin: 0 }} />
-                        <PanelItem
-                            active={!platformExtState?.connectedToDevant}
-                            onClick={() => {
-                                platformRpcClient.setConnectedToDevant(false);
-                                setAnchorEl(null)
-                            }}
-                        >
+                        <PanelItem active={!platformExtState?.connectedToDevant} onClick={() => onOptionSelect(false)}>
                             <Codicon name="vm" />
                             <PanelItemContent>
                                 <PanelItemTitle>{text}</PanelItemTitle>
