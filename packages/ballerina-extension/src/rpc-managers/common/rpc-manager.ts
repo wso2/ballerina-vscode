@@ -363,17 +363,72 @@ export class CommonRpcManager implements CommonRPCAPI {
                 commands.executeCommand("vscode.openFolder", uri, true);
                 return true;
             }
-            zipReadStream.pipe(unzipper.Parse()).on("entry", function (entry) {
+
+            let extractionError: Error | null = null;
+            const parseStream = unzipper.Parse();
+
+            // Handle errors on the read stream
+            zipReadStream.on("error", (error) => {
+                extractionError = error;
+                window.showErrorMessage(`Failed to read zip file: ${error.message}`);
+            });
+
+            // Handle errors on the parse stream
+            parseStream.on("error", (error) => {
+                extractionError = error;
+                window.showErrorMessage(`Failed to parse zip file. The file may be corrupted: ${error.message}`);
+            });
+
+            parseStream.on("entry", function (entry) {
+                // Skip processing if we've already encountered an error
+                if (extractionError) {
+                    entry.autodrain();
+                    return;
+                }
+
                 var isDir = entry.type === "Directory";
                 var fullpath = path.join(selectedPath, entry.path);
                 var directory = isDir ? fullpath : path.dirname(fullpath);
-                if (!fs.existsSync(directory)) {
-                    fs.mkdirSync(directory, { recursive: true });
+
+                try {
+                    if (!fs.existsSync(directory)) {
+                        fs.mkdirSync(directory, { recursive: true });
+                    }
+                } catch (error) {
+                    extractionError = error as Error;
+                    window.showErrorMessage(`Failed to create directory "${directory}": ${error instanceof Error ? error.message : String(error)}`);
+                    entry.autodrain();
+                    return;
                 }
+
                 if (!isDir) {
-                    entry.pipe(fs.createWriteStream(fullpath));
+                    const writeStream = fs.createWriteStream(fullpath);
+
+                    // Handle write stream errors
+                    writeStream.on("error", (error) => {
+                        extractionError = error;
+                        window.showErrorMessage(`Failed to write file "${fullpath}": ${error.message}. This may be due to insufficient disk space or permission issues.`);
+                        entry.autodrain();
+                    });
+
+                    // Handle entry stream errors
+                    entry.on("error", (error) => {
+                        extractionError = error;
+                        window.showErrorMessage(`Failed to extract entry "${entry.path}": ${error.message}`);
+                        writeStream.destroy();
+                    });
+
+                    entry.pipe(writeStream);
                 }
-            }).on("close", () => {
+            });
+
+            parseStream.on("close", () => {
+                if (extractionError) {
+                    console.error("Extraction failed:", extractionError);
+                    window.showErrorMessage(`Sample extraction failed: ${extractionError.message}`);
+                    return;
+                }
+
                 console.log("Extraction complete!");
                 window.showInformationMessage('Where would you like to open the project?',
                     { modal: true },
@@ -393,6 +448,8 @@ export class CommonRpcManager implements CommonRPCAPI {
                     }
                 });
             });
+
+            zipReadStream.pipe(parseStream);
             window.showInformationMessage(
                 successMsg,
             );
