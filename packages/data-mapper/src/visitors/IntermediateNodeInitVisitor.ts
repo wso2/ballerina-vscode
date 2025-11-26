@@ -15,12 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { LinkConnectorNode } from "../components/Diagram/Node";
+import { LinkConnectorNode, QueryExprConnectorNode, ClauseConnectorNode } from "../components/Diagram/Node";
 import { DataMapperNodeModel } from "../components/Diagram/Node/commons/DataMapperNode";
 import { DataMapperContext } from "../utils/DataMapperContext/DataMapperContext";
-import { Mapping } from "@wso2/ballerina-core";
+import { Mapping, Query } from "@wso2/ballerina-core";
 import { BaseVisitor } from "./BaseVisitor";
-import { QueryExprConnectorNode } from "../components/Diagram/Node/QueryExprConnector";
 
 export class IntermediateNodeInitVisitor implements BaseVisitor {
     private intermediateNodes: DataMapperNodeModel[] = [];
@@ -43,6 +42,11 @@ export class IntermediateNodeInitVisitor implements BaseVisitor {
             const linkConnectorNode = new LinkConnectorNode(this.context, node);
             this.intermediateNodes.push(linkConnectorNode);
         }
+    }
+
+    beginVisitQuery(query: Query): void {
+        const clauseConnectorNode = new ClauseConnectorNode(this.context, query);
+        this.intermediateNodes.push(clauseConnectorNode);
     }
 
     getNodes() {

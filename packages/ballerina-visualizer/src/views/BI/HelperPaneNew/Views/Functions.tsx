@@ -17,7 +17,7 @@
  */
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { HelperPaneCompletionItem, HelperPaneFunctionInfo } from "@wso2/ballerina-side-panel";
+import { HelperPaneCompletionItem, HelperPaneFunctionInfo, InputMode } from "@wso2/ballerina-side-panel";
 import { debounce } from "lodash";
 import { useRef, useState, useCallback, RefObject, useEffect } from "react";
 import { convertToHelperPaneFunction, extractFunctionInsertText } from "../../../../utils/bi";
@@ -36,6 +36,7 @@ import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
 import { HelperPaneListItem } from "../Components/HelperPaneListItem";
+import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -45,7 +46,8 @@ type FunctionsPageProps = {
     onClose: () => void;
     onChange: (insertText: CompletionInsertText | string) => void;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
-    selectedType?: CompletionItem
+    selectedType?: CompletionItem;
+    inputMode?: InputMode;
 };
 
 export const FunctionsPage = ({
@@ -56,7 +58,8 @@ export const FunctionsPage = ({
     onClose,
     onChange,
     updateImports,
-    selectedType
+    selectedType,
+    inputMode
 }: FunctionsPageProps) => {
 
     const { rpcClient } = useRpcContext();
@@ -175,7 +178,8 @@ export const FunctionsPage = ({
 
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
         const { value, cursorOffset } = await onFunctionItemSelect(item);
-        onChange({ value, cursorOffset });
+        const wrappedValue = wrapInTemplateInterpolation(value, inputMode);
+        onChange({ value: wrappedValue, cursorOffset });
         onClose();
     };
 

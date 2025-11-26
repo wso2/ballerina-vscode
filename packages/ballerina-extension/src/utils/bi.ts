@@ -15,19 +15,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import { exec } from "child_process";
-import { window, commands, workspace, Uri } from "vscode";
+import { commands, workspace, Uri } from "vscode";
 import * as fs from 'fs';
 import path from "path";
-import { AddProjectToWorkspaceRequest, BallerinaProjectComponents, ComponentRequest, CreateComponentResponse, createFunctionSignature, EVENT_TYPE, MACHINE_VIEW, MigrateRequest, NodePosition, ProjectRequest, STModification, SyntaxTreeResponse, VisualizerLocation, WorkspaceTomlValues } from "@wso2/ballerina-core";
+import {
+    AddProjectToWorkspaceRequest,
+    BallerinaProjectComponents,
+    ComponentRequest,
+    CreateComponentResponse,
+    createFunctionSignature,
+    EVENT_TYPE,
+    MigrateRequest,
+    NodePosition,
+    ProjectMigrationResult,
+    ProjectRequest,
+    STModification,
+    SyntaxTreeResponse,
+    WorkspaceTomlValues
+} from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "toml";
-import { buildProjectArtifactsStructure } from "./project-artifacts";
 import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
@@ -135,6 +146,32 @@ function resolveDirectoryPath(basePath: string, directoryName?: string, shouldCr
 }
 
 /**
+ * Creates .vscode folder and settings.json file
+ * @param projectRoot - Root directory of the project
+ */
+function createVSCodeSettings(projectRoot: string): void {
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    if (!fs.existsSync(vscodeDir)) {
+        fs.mkdirSync(vscodeDir);
+    }
+
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    fs.writeFileSync(settingsPath, settingsJsonContent);
+}
+
+/**
+ * Creates .vscode folder with both settings.json and launch.json files
+ * @param projectRoot - Root directory of the project
+ */
+function createVSCodeSettingsWithLaunch(projectRoot: string): void {
+    createVSCodeSettings(projectRoot);
+
+    const vscodeDir = path.join(projectRoot, '.vscode');
+    const launchPath = path.join(vscodeDir, 'launch.json');
+    fs.writeFileSync(launchPath, launchJsonContent.trim());
+}
+
+/**
  * Resolves the project root path and creates the directory if needed
  * @param projectPath - Base project path
  * @param sanitizedPackageName - Sanitized package name for directory creation
@@ -199,7 +236,10 @@ packages = ["${projectRequest.packageName}"]
     writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
 
     // Create Ballerina Package
-    createBIProjectPure({...projectRequest, projectPath: workspaceRoot, createDirectory: true});
+    createBIProjectPure({ ...projectRequest, projectPath: workspaceRoot, createDirectory: true });
+
+    // create settings.json file
+    createVSCodeSettings(workspaceRoot);
 
     console.log(`BI workspace created successfully at ${workspaceRoot}`);
     return workspaceRoot;
@@ -259,19 +299,8 @@ sticky = true
     const datamappingsBalPath = path.join(projectRoot, 'data_mappings.bal');
     writeBallerinaFileDidOpen(datamappingsBalPath, EMPTY);
 
-    // Create a .vscode folder
-    const vscodeDir = path.join(projectRoot, '.vscode');
-    if (!fs.existsSync(vscodeDir)) {
-        fs.mkdirSync(vscodeDir);
-    }
-
-    // Create launch.json file
-    const launchPath = path.join(vscodeDir, 'launch.json');
-    fs.writeFileSync(launchPath, launchJsonContent.trim());
-
-    // Create settings.json file
-    const settingsPath = path.join(vscodeDir, 'settings.json');
-    fs.writeFileSync(settingsPath, settingsJsonContent);
+    // Create .vscode configuration files
+    createVSCodeSettingsWithLaunch(projectRoot);
 
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');
@@ -299,21 +328,21 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
     createWorkspaceToml(newDirectory, currentPackageName);
-    updateWorkspaceToml(newDirectory, params.packageName);
+    addToWorkspaceToml(newDirectory, params.packageName);
 
     createProjectInWorkspace(params, newDirectory);
+
+    // create settings.json file
+    createVSCodeSettings(newDirectory);
 
     openInVSCode(newDirectory);
 }
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
+    addToWorkspaceToml(workspacePath, params.packageName);
 
-    updateWorkspaceToml(workspacePath, params.packageName);
-
-    const projectPath = createProjectInWorkspace(params, workspacePath);
-
-    await openNewlyCreatedProject(params, workspacePath, projectPath);
+    createProjectInWorkspace(params, workspacePath);
 }
 
 function createWorkspaceToml(workspacePath: string, packageName: string) {
@@ -325,7 +354,7 @@ packages = ["${packageName}"]
     writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
 }
 
-function updateWorkspaceToml(workspacePath: string, packageName: string) {
+function addToWorkspaceToml(workspacePath: string, packageName: string) {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
 
     if (!fs.existsSync(ballerinaTomlPath)) {
@@ -348,6 +377,47 @@ function updateWorkspaceToml(workspacePath: string, packageName: string) {
     }
 }
 
+export function deleteProjectFromWorkspace(workspacePath: string, packagePath: string) {
+    const relativeProjectPath = path.relative(workspacePath, packagePath);
+    console.log(">>> relative project path", relativeProjectPath);
+
+    const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
+    if (!fs.existsSync(ballerinaTomlPath)) {
+        return;
+    }
+    
+    try {
+        const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
+        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
+        const existingPackages: string[] = tomlData.workspace?.packages || [];
+
+        if (!existingPackages.includes(relativeProjectPath)) {
+            return; // Package not found
+        }
+
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        fs.writeFileSync(ballerinaTomlPath, updatedContent);
+
+        // send didChange event to the language server
+        StateMachine.langClient().didChange({
+            contentChanges: [
+                {
+                    text: updatedContent
+                }
+            ],
+            textDocument: {
+                uri: Uri.file(ballerinaTomlPath).toString(),
+                version: 1
+            }
+        });
+
+        // delete the project directory
+        fs.rmdirSync(packagePath, { recursive: true });
+    } catch (error) {
+        console.error(">>> error deleting project from workspace", error);
+    }
+}
+
 function addPackageToToml(tomlContent: string, packageName: string): string {
     const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
     const match = tomlContent.match(packagesRegex);
@@ -364,6 +434,26 @@ function addPackageToToml(tomlContent: string, packageName: string): string {
     }
 }
 
+function removePackageFromToml(tomlContent: string, packagePath: string): string {
+    const packagesRegex = /packages\s*=\s*\[([\s\S]*?)\]/;
+    const match = tomlContent.match(packagesRegex);
+
+    if (match) {
+        const currentArrayContent = match[1].trim();
+        
+        // Split by comma, trim whitespace, and filter out the package to remove
+        const packages = currentArrayContent
+            .split(',')
+            .map(pkg => pkg.trim())
+            .filter(pkg => pkg && pkg !== `"${packagePath}"`);
+        
+        const newArrayContent = packages.length > 0 ? packages.join(', ') : '';
+        return tomlContent.replace(packagesRegex, `packages = [${newArrayContent}]`);
+    } else {
+        return tomlContent;
+    }
+}
+
 function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspacePath: string): string {
     const projectRequest: ProjectRequest = {
         projectName: params.projectName,
@@ -375,19 +465,6 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
     };
 
     return createBIProjectPure(projectRequest);
-}
-
-async function openNewlyCreatedProject(params: AddProjectToWorkspaceRequest, workspacePath: string, projectPath: string) {
-    const viewLocation: VisualizerLocation = {
-        view: MACHINE_VIEW.Overview,
-        workspacePath: workspacePath,
-        projectPath: projectPath,
-        package: params.packageName,
-        org: params.orgName
-    };
-
-    await buildProjectArtifactsStructure(projectPath, StateMachine.langClient(), true);
-    openView(EVENT_TYPE.OPEN_VIEW, viewLocation);
 }
 
 export function openInVSCode(projectRoot: string) {
@@ -413,19 +490,12 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
     }
 
-    // Create a .vscode folder
-    const vscodeDir = path.join(projectRoot, '.vscode');
-    if (!fs.existsSync(vscodeDir)) {
-        fs.mkdirSync(vscodeDir);
-    }
+    params.projects?.forEach(project => {
+        createProjectFiles(project, projectRoot);
+    });
 
-    // Create launch.json file
-    const launchPath = path.join(vscodeDir, 'launch.json');
-    fs.writeFileSync(launchPath, launchJsonContent.trim());
-
-    // Create settings.json file
-    const settingsPath = path.join(vscodeDir, 'settings.json');
-    fs.writeFileSync(settingsPath, settingsJsonContent);
+    // Create .vscode configuration files
+    createVSCodeSettingsWithLaunch(projectRoot);
 
     // Create .gitignore file
     const gitignorePath = path.join(projectRoot, '.gitignore');
@@ -433,6 +503,23 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
     debug(`BI project created successfully at ${projectRoot}`);
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+}
+
+async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {
+    for (const [fileName, fileContent] of Object.entries(project.textEdits)) {
+        const filePath = path.join(projectRoot, project.projectName, fileName);
+        const fileDir = path.dirname(filePath);
+        if (!fs.existsSync(fileDir)) {
+            fs.mkdirSync(fileDir, { recursive: true });
+        }
+        writeBallerinaFileDidOpen(filePath, fileContent || "\n");
+    }
+
+    // Save migration report for this project
+    if (project.report) {
+        const reportPath = path.join(projectRoot, project.projectName, 'migration_report.html');
+        fs.writeFileSync(reportPath, project.report);
+    }
 }
 
 export async function createBIAutomation(params: ComponentRequest): Promise<CreateComponentResponse> {

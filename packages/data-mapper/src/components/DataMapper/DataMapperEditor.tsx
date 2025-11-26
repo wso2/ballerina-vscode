@@ -139,6 +139,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         deleteClause,
+        getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
@@ -150,7 +151,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         hasInputsOutputsChanged = false
     } = modelState;
 
-    const initialView = [{
+    const initialView: View[] = [{
         label: model.output.name,
         targetField: name
     }];
@@ -228,10 +229,10 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             const context = new DataMapperContext(
                 model, 
                 views, 
+                hasInputsOutputsChanged,
                 addView, 
                 applyModifications, 
                 addArrayElement,
-                hasInputsOutputsChanged,
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
@@ -361,6 +362,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
                                 deleteClause={deleteClause}
+                                getClausePosition={getClausePosition}
                                 generateForm={generateForm}
                             />
                         )}

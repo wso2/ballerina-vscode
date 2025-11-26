@@ -16,17 +16,31 @@
  * under the License.
  */
 
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { LANGUAGE } from "../../../core";
 import { extension } from "../../../BalExtensionContext";
 import { commands, window } from "vscode";
 import {
-    TM_EVENT_PROJECT_BUILD, CMP_PROJECT_BUILD, sendTelemetryEvent, sendTelemetryException
+    TM_EVENT_PROJECT_BUILD,
+    CMP_PROJECT_BUILD,
+    sendTelemetryEvent,
+    sendTelemetryException
 } from "../../telemetry";
-import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, MESSAGES }
-    from "./cmd-runner";
-import { getCurrentBallerinaProject, getCurrenDirectoryPath, getCurrentBallerinaFile }
-    from "../../../utils/project-utils";
+import {
+    runCommand,
+    BALLERINA_COMMANDS,
+    PROJECT_TYPE,
+    PALETTE_COMMANDS,
+    MESSAGES
+} from "./cmd-runner";
+import {
+    getCurrentBallerinaProject,
+    getCurrenDirectoryPath,
+    getCurrentBallerinaFile,
+    getCurrentProjectRoot
+} from "../../../utils/project-utils";
 import { isSupportedSLVersion, createVersionNumber } from "../../../utils";
+import { StateMachine } from "../../../stateMachine";
 
 export function activateBuildCommand() {
     // register run project build handler
@@ -39,9 +53,28 @@ export function activateBuildCommand() {
                 return;
             }
 
-            const currentProject = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
-                : await getCurrentBallerinaProject();
+            const context = StateMachine.context();
+            const { workspacePath, view: webviewType, projectPath } = context;
+
+            let targetPath = projectPath ?? "";
+            if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+                targetPath = workspacePath;
+            } else if (workspacePath && !projectPath) {
+                try {
+                    targetPath = await getCurrentProjectRoot();
+                } catch (error) {
+                    targetPath = workspacePath;
+                }
+            } else {
+                targetPath = await getCurrentProjectRoot();
+            }
+
+            if (!targetPath) {
+                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                return;
+            }
+
+            const currentProject = await getCurrentBallerinaProject(targetPath);
 
             let balCommand = BALLERINA_COMMANDS.BUILD;
 

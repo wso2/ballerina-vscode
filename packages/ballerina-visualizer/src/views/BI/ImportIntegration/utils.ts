@@ -16,8 +16,9 @@
  * under the License.
  */
 
-import { MigrationTool } from "@wso2/ballerina-core";
+import { ImportIntegrationResponse, MigrationTool, ProjectMigrationResult } from "@wso2/ballerina-core";
 import { CoverageLevel, MigrationDisplayState } from "./types";
+import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 
 export const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
 const IMPORT_DISABLED_TOOLTIP = "Please select a source platform to continue.";
@@ -50,20 +51,31 @@ export const getCoverageColor = (level: CoverageLevel): string => {
     return "var(--vscode-charts-red)";
 };
 
-export const getMigrationProgressHeaderData = (state: MigrationDisplayState) => {
+export const getMigrationProgressHeaderData = (state: MigrationDisplayState, isMultiProject: boolean = false) => {
     let headerText;
     let headerDesc;
 
     if (state.isSuccess) {
-        headerText = "Migration Completed Successfully!";
-        headerDesc =
-            "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        if (isMultiProject) {
+            headerText = "Migration Completed Successfully!";
+            headerDesc =
+                "Your integration project with multiple packages has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        } else {
+            headerText = "Migration Completed Successfully!";
+            headerDesc =
+                "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+        }
     } else if (state.isFailed) {
         headerText = "Migration Failed";
         headerDesc = "The migration process encountered errors and could not be completed.";
     } else if (state.isInProgress) {
-        headerText = "Migration in Progress...";
-        headerDesc = "Please wait while we set up your new integration project.";
+        if (isMultiProject) {
+            headerText = "Migration in Progress...";
+            headerDesc = "Please wait while we migrate your multi-project integration.";
+        } else {
+            headerText = "Migration in Progress...";
+            headerDesc = "Please wait while we set up your new integration project.";
+        }
     }
 
     return { headerText, headerDesc };
@@ -81,3 +93,33 @@ export const getMigrationDisplayState = (
     showButtonsInStep: migrationCompleted && migrationSuccessful,
     showButtonsAfterLogs: !migrationCompleted || (migrationCompleted && !migrationSuccessful)
 });
+
+export const handleMultiProjectReportOpening = (
+    migrationResponse: ImportIntegrationResponse,
+    projects: Array<ProjectMigrationResult>,
+    rpcClient: BallerinaRpcClient
+) => {
+    // Build a map of project reports from the projects array
+    const subProjectReports: { [projectName: string]: string } = {};
+
+    projects.forEach((project) => {
+        if (project.projectName && project.report) {
+            subProjectReports[project.projectName] = project.report;
+        }
+    });
+
+    // Store the sub-project reports via RPC so they can be retrieved on link clicks
+    if (Object.keys(subProjectReports).length > 0) {
+        try {
+            const migrateRpcClient = rpcClient.getMigrateIntegrationRpcClient();
+            migrateRpcClient.storeSubProjectReports({
+                reports: subProjectReports
+            });
+            console.log("Stored sub-project reports:", Object.keys(subProjectReports));
+        } catch (error) {
+            console.warn("Failed to store sub-project reports:", error);
+            // Fail gracefully - the reports just won't be available for clicking
+        }
+    }
+}
+
