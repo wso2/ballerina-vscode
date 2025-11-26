@@ -154,8 +154,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         activateEditorSupport(ballerinaExtInstance);
 
         // <------------ MAIN FEATURES ----------->
-        // Enable Ballerina by examples
-        activateBBE(ballerinaExtInstance);
+        // TODO: Enable Ballerina by examples once the samples are available
+        // https://github.com/wso2/product-ballerina-integrator/issues/1967
+        // activateBBE(ballerinaExtInstance);
 
         //Enable BI Feature
         activateBIFeatures(ballerinaExtInstance);
