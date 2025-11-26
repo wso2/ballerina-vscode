@@ -30,6 +30,7 @@ import React, { useContext, FC, ReactNode, useEffect, useMemo } from "react";
 
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
+    refetchProjectInfo: () => void;
     projectPath: string;
     workspacePath: string;
     projectToml?: { values: PackageTomlValues; refresh: () => void };
@@ -37,6 +38,7 @@ const defaultPlatformExtContext: {
     deployableArtifacts?: { exists: boolean, refetch: () => void }
 } = {
     platformExtState: { components: [], isLoggedIn: false },
+    refetchProjectInfo: () => {},
     projectPath: "",
     workspacePath: "",
 };
@@ -52,8 +54,8 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const { rpcClient } = useRpcContext();
     const platformRpcClient = rpcClient.getPlatformRpcClient();
 
-    const { data: visualizerLocation = { projectPath: "", workspacePath: "" } } = useQuery({
-        queryKey: ["project-paths"],
+    const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery({
+        queryKey: ["project-info"],
         queryFn: () => rpcClient.getVisualizerLocation(),
         select: (data) => ({ projectPath: data.projectPath, workspacePath: data.workspacePath}),
         refetchOnWindowFocus: true,
@@ -98,6 +100,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         });
     }, []);
 
+    // todo: avoid passing refetch functions via context
     return (
         <PlatformExtContext.Provider
             value={{
@@ -111,6 +114,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                 deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
                 workspacePath: visualizerLocation.workspacePath,
                 projectPath: visualizerLocation.projectPath,
+                refetchProjectInfo,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },
             }}
