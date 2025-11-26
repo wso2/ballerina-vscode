@@ -341,7 +341,7 @@ export class CommonRpcManager implements CommonRPCAPI {
                 });
 
                 try {
-                    await handleDownloadFile("projectUri", rawFileLink, filePath, progress, cancelled);
+                    await handleDownloadFile(rawFileLink, filePath, progress);
                     isSuccess = true;
                     return;
                 } catch (error) {
