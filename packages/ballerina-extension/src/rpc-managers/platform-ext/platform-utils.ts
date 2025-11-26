@@ -104,8 +104,14 @@ export const addConnection = async (
         tokenClientSecretVarName?: string;
     }
 ): Promise<{ connName: string; connFileUri: Uri }> => {
-    // todo: check if working in bal workspaces(check names with dashes)
-    const packageName = StateMachine.context().projectInfo?.name;
+    const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
+        (item) => item.projectPath === StateMachine.context().projectPath
+    );
+    if (!matchingBalProj) {
+        throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);
+    }
+
+    const packageName = matchingBalProj.projectName;
     const connectionBalFile = path.join(StateMachine.context().projectPath, "connections.bal");
     const connectionBalFileUri = Uri.file(connectionBalFile);
     if (!fs.existsSync(connectionBalFile)) {
@@ -131,7 +137,7 @@ export const addConnection = async (
     const newConnEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), Templates.emptyLine());
 
-    let baseName = connectionName?.replaceAll("-","_").replaceAll(" ","_");
+    let baseName = connectionName?.replaceAll("-", "_").replaceAll(" ", "_");
     let candidate = baseName;
     let counter = 1;
     while (
@@ -216,7 +222,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
             type: "apiKey",
             in: "header",
             name: "Choreo-API-Key",
-            "x-ballerina-name": "choreoAPIKey"
+            "x-ballerina-name": "choreoAPIKey",
         };
 
         if (securityType === "oauth") {
@@ -346,9 +352,9 @@ export const initializeDevantConnection = async (params: {
 
     const configFileUri = getConfigFileUri();
 
-    const envIds = Object.keys(params.configurations || {});  
-    const firstEnvConfig = envIds.length > 0 ? params.configurations[envIds[0]] : undefined;  
-    const connectionKeys = firstEnvConfig?.entries ?? {};  
+    const envIds = Object.keys(params.configurations || {});
+    const firstEnvConfig = envIds.length > 0 ? params.configurations[envIds[0]] : undefined;
+    const connectionKeys = firstEnvConfig?.entries ?? {};
 
     interface IkeyVal {
         keyname: string;
@@ -475,7 +481,9 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         SERVICE_URL_VAR_NAME: string;
         API_KEY_VAR_NAME: string;
     }) => {
-        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME} }, config = { ${
+        return `final ${params.MODULE_NAME}:Client ${
+            params.CONNECTION_NAME
+        } = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME} }, config = { ${
             params.requireProxy ? "proxy: devantProxyConfig, " : ""
         }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },

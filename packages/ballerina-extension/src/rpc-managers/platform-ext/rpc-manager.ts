@@ -494,7 +494,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             if (matchingConnection) {
                 const moduleName: string = (matchingConnection as ModuleVarDecl)?.initializer?.typeData?.typeSymbol
                     ?.moduleID?.moduleName;
-                const balPackage = StateMachine.context().projectInfo?.name;
+                const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
+                    (item) => item.projectPath === StateMachine.context().projectPath
+                );
+                if (!matchingBalProj) {
+                    throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);
+                }
+                const balPackage = matchingBalProj?.projectName;
                 const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
                 const matchingTomlEntry = tomlValues?.tool?.openapi?.find(
                     (item) => `${balPackage}.${item.targetModule}` === moduleName
