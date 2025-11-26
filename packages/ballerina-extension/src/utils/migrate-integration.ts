@@ -131,7 +131,7 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
 
                         // Extract download info from progress line if available
                         const sizeMatch = lastLine.match(/(\d+)\/(\d+)\s+KB/);
-                        let message = `Downloading... ${currentPercentage}%`;
+                        let message = `Downloading...`;
 
                         if (sizeMatch) {
                             const downloaded = parseInt(sizeMatch[1], 10);

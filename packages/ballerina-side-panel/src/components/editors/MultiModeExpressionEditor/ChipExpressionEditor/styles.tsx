@@ -21,18 +21,18 @@ import { keyframes } from "@emotion/react";
 import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "./constants";
 import { ThemeColors } from "@wso2/ui-toolkit";
 
-export const ChipEditorField = styled.div`
+export const ChipEditorField = styled.div<{ customHeight?: string }>`
     font-family: monospace;
     font-size: 12px;
-    min-height: ${CHIP_EXPRESSION_EDITOR_HEIGHT}px;
-    height: 100%;
+    min-height: ${props => props.customHeight || `${CHIP_EXPRESSION_EDITOR_HEIGHT}px`};
+    height: ${props => props.customHeight || '100%'};
     width: 100%;
-    padding: 1px 25px 1px 8px;
+    padding: 0px 25px 0px 8px;
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground, #000000);
     white-space: pre-wrap;
     outline: none;
-    border: 1px solid var(--vscode-dropdown-border);
+    border: 0.5px solid var(--vscode-dropdown-border);
     word-break: break-all;
     position: relative;
     overflow: auto;
@@ -48,18 +48,20 @@ export const ChipEditorContainer = styled.div`
     justify-content: space-between;
     width: 100%;
     max-width: 100%;
-    margin-top: 4px;
+    border-radius: 2px;
 `;
 
 export const Chip = styled.div`
     border-radius: 4px;
     background-color: rgba(0, 122, 204, 0.3);
-    color: var(--vscode-input-foreground, white); /* Updated text color */
+    color: var(--vscode-input-foreground, white);
     cursor: pointer;
     margin: 2px 0px;
     font-size: 12px;
     padding: 2px 10px;
-    display: inline-block;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     min-height: 20px;
     min-width: 25px;
     transition: all 0.2s ease;
@@ -78,6 +80,53 @@ export const Chip = styled.div`
     }
 `;
 
+export const DocumentChip = styled.div`
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--vscode-input-foreground);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    cursor: pointer;
+    margin: 2px 0px;
+    font-size: 12px;
+    padding: 2px 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 20px;
+    min-width: 25px;
+    transition: all 0.2s ease;
+    outline: none;
+    vertical-align: middle;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &:hover {
+        background-color: rgba(59, 130, 246, 0.25);
+    }
+
+    &:active {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.8);
+    }
+`;
+
+export const DocumentChipIcon = styled.span`
+    font-size: 16px;
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    color: rgba(59, 130, 246, 0.9);
+`;
+
+export const DocumentChipText = styled.span`
+    font-size: 12px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+`;
+
 export const COMPLETIONS_WIDTH = 300;
 
 export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
@@ -87,7 +136,7 @@ export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
     background-color: ${ThemeColors.SURFACE_CONTAINER};
     border-radius: 4px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    z-index: 1000;
+    z-index: 1600;
     min-width: 120px;
     width: ${COMPLETIONS_WIDTH}px;
     overflow: hidden;
@@ -223,20 +272,20 @@ interface CompletionsItemElProps {
 // Floating toggle button styles - VS Code design philosophy
 export const FloatingButtonContainer = styled.div`
     position: absolute;
-    bottom: 6px;
+    bottom: 4px;
     right: 6px; 
     display: flex;
     gap: 6px;
     z-index: 1500;
 `;
 
-export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
+export const FloatingToggleButton = styled.button`
     width: 16px;
     height: 16px;
-    border: 1px solid ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE};
+    border: 1px solid ${ThemeColors.OUTLINE};
     border-radius: 2px;
-    background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
-    color: ${props => props.isActive ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -246,20 +295,11 @@ export const FloatingToggleButton = styled.button<{ isActive: boolean }>`
     transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease, transform 0.1s ease;
     outline: none;
     padding: 0;
-    box-shadow: ${props => props.isActive ? `0 0 0 1px ${ThemeColors.PRIMARY}` : '0 1px 2px rgba(0, 0, 0, 0.15)'};
+    box-shadow: ${'0 1px 2px rgba(0, 0, 0, 0.15)'};
 
     &:hover {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_CONTAINER};
-        border-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT};
+        background-color: ${ThemeColors.SURFACE_DIM_2};
         transform: scale(1.05);
-        
-        svg {
-            color: ${ThemeColors.PRIMARY}cc;
-        }
-    }
-
-    &:active {
-        background-color: ${props => props.isActive ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
     }
 
     &:focus-visible {

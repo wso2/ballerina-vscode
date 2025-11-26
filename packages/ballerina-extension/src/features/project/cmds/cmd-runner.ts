@@ -50,7 +50,6 @@ export const PALETTE_COMMANDS = {
     SHOW_DIAGRAM: 'ballerina.show.diagram',
     SHOW_SOURCE: 'ballerina.show.source',
     SHOW_ARCHITECTURE_VIEW: 'ballerina.view.architectureView',
-    SHOW_EXAMPLES: 'ballerina.showExamples',
     REFRESH_SHOW_ARCHITECTURE_VIEW: "ballerina.view.architectureView.refresh",
     RUN_CONFIG: 'ballerina.project.run.config',
     CONFIG_CREATE_COMMAND: 'ballerina.project.config.create',
@@ -82,12 +81,13 @@ export enum MESSAGES {
     NOT_SUPPORT = "Ballerina version is not supported by the VSCode plugin.",
     MODULE_NAME = "Enter module name.",
     SELECT_OPTION = "Select a build option.",
-    NOT_IN_PROJECT = "Current file does not belong to a ballerina project.",
+    NOT_IN_PROJECT = "Current file does not belong to a Ballerina project.",
     INVALID_PACK = "Only a Ballerina package can be packed.",
     INVALID_JSON = "Invalid JSON String",
     INVALID_JSON_RESPONSE = "JSON response is invalid.",
     INVALID_XML = "Invalid XML String",
-    INVALID_XML_RESPONSE = "XML response is invalid."
+    INVALID_XML_RESPONSE = "XML response is invalid.",
+    NO_PROJECT_FOUND = "No Ballerina project found."
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';

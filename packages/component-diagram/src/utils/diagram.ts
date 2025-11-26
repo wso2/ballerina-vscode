@@ -24,7 +24,7 @@ import { NodeModel } from "./types";
 import { EntryNodeFactory, EntryNodeModel } from "../components/nodes/EntryNode";
 import { ConnectionNodeFactory } from "../components/nodes/ConnectionNode/ConnectionNodeFactory";
 import { ListenerNodeFactory } from "../components/nodes/ListenerNode/ListenerNodeFactory";
-import { LISTENER_NODE_WIDTH, NodeTypes, NODE_GAP_X, ENTRY_NODE_WIDTH } from "../resources/constants";
+import { LISTENER_NODE_WIDTH, NodeTypes, NODE_GAP_X, ENTRY_NODE_WIDTH, NODE_GAP_Y, LISTENER_NODE_HEIGHT } from "../resources/constants";
 import { ListenerNodeModel } from "../components/nodes/ListenerNode";
 import { ConnectionNodeModel } from "../components/nodes/ConnectionNode";
 import { CDConnection, CDResourceFunction, CDFunction, CDService } from "@wso2/ballerina-core";
@@ -64,16 +64,26 @@ export function autoDistribute(engine: DiagramEngine) {
     const entryX = listenerX + LISTENER_NODE_WIDTH + NODE_GAP_X;
     const connectionX = entryX + ENTRY_NODE_WIDTH + NODE_GAP_X;
 
-    // Position listeners while maintaining relative Y positions of their services
+    // Separate listeners into connected and unconnected
+    const connectedListeners: ListenerNodeModel[] = [];
+    const unconnectedListeners: ListenerNodeModel[] = [];
+
     listenerNodes.forEach((node) => {
         const listenerNode = node as ListenerNodeModel;
         const attachedServices = listenerNode.node.attachedServices;
 
-        // Find the average Y position of attached services
+        // Find the attached service nodes
         const serviceNodes = entryNodes.filter((n) => attachedServices.includes(n.getID()));
-        const avgY = serviceNodes.reduce((sum, n) => sum + n.getY(), 0) / serviceNodes.length;
 
-        listenerNode.setPosition(listenerX, avgY);
+        if (serviceNodes.length > 0) {
+            // Has attached services - position at average Y of services
+            const avgY = serviceNodes.reduce((sum, n) => sum + n.getY(), 0) / serviceNodes.length;
+            listenerNode.setPosition(listenerX, avgY);
+            connectedListeners.push(listenerNode);
+        } else {
+            // No attached services - will position later
+            unconnectedListeners.push(listenerNode);
+        }
     });
 
     // Update X positions for entry nodes while keeping their Y positions
@@ -87,6 +97,26 @@ export function autoDistribute(engine: DiagramEngine) {
         const connectionNode = node as ConnectionNodeModel;
         connectionNode.setPosition(connectionX, node.getY());
     });
+
+    // Position unconnected listeners below all other nodes
+    if (unconnectedListeners.length > 0) {
+        // Find the maximum Y position among all nodes
+        const allNodes = [...connectedListeners, ...entryNodes, ...connectionNodes];
+        let maxY = 100; // Default starting position if no other nodes
+
+        if (allNodes.length > 0) {
+            maxY = Math.max(...allNodes.map(node => {
+                const nodeHeight = node.height || LISTENER_NODE_HEIGHT;
+                return node.getY() + nodeHeight;
+            }));
+        }
+
+        // Position unconnected listeners below, with spacing
+        unconnectedListeners.forEach((listenerNode, index) => {
+            const yPosition = maxY + NODE_GAP_Y/2 + (index * (LISTENER_NODE_HEIGHT + NODE_GAP_Y/2));
+            listenerNode.setPosition(listenerX, yPosition);
+        });
+    }
 
     engine.repaintCanvas();
 }
