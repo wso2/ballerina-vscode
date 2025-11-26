@@ -20,10 +20,11 @@ import React from "react";
 import styled from "@emotion/styled";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
 import { Input } from "../../AIChatInput/utils/inputUtils";
-import { AIPanelPrompt, Attachment, TemplateId } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
 import { commandTemplates, suggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
+import CodeContextCard from "../../CodeContextCard";
 
 export const FooterContainer = styled.footer({
     padding: "20px",
@@ -78,6 +79,8 @@ type FooterProps = {
     onStop: () => void;
     isLoading: boolean;
     showSuggestedCommands: boolean;
+    codeContext?: CodeContext;
+    onRemoveCodeContext?: () => void;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -89,6 +92,8 @@ const Footer: React.FC<FooterProps> = ({
     onStop,
     isLoading,
     showSuggestedCommands,
+    codeContext,
+    onRemoveCodeContext,
 }) => {
     return (
         <FooterContainer>
@@ -96,6 +101,9 @@ const Footer: React.FC<FooterProps> = ({
                 <SuggestedCommandsWrapper>
                     {suggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
                 </SuggestedCommandsWrapper>
+            )}
+            {codeContext && onRemoveCodeContext && (
+                <CodeContextCard codeContext={codeContext} onRemove={onRemoveCodeContext} />
             )}
             <AIChatInput
                 ref={aiChatInputRef}

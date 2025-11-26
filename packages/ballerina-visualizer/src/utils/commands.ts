@@ -48,8 +48,11 @@ export function openAIPanelWithPromptRpc(
     rpcClient: CommonRpcClient,
     prompt?: AIPanelPrompt
 ): void {
-    rpcClient.executeCommand({
-        commands: [SHARED_COMMANDS.OPEN_AI_PANEL],
-        ...(prompt && { args: [prompt] })
-    });
+    // The executeCommand handler expects arguments to be in the commands array
+    // First element is the command, subsequent elements are the arguments
+    const commands = prompt
+        ? [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        : [SHARED_COMMANDS.OPEN_AI_PANEL];
+
+    rpcClient.executeCommand({ commands });
 }

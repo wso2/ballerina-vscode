@@ -24,6 +24,7 @@ import { extension } from '../../BalExtensionContext';
 import { getAccessToken, getLoginMethod } from '../../utils/ai/auth';
 import { checkToken, initiateInbuiltAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
 import * as vscode from 'vscode';
+import { notifyAiPromptUpdated } from '../../RPCLayer';
 
 export const USER_CHECK_BACKEND_URL = '/user/usage';
 
@@ -33,6 +34,10 @@ export const openAIWebview = (defaultprompt?: AIPanelPrompt) => {
         AiPanelWebview.currentPanel = new AiPanelWebview();
     } else {
         AiPanelWebview.currentPanel!.getWebview()?.reveal();
+        // Notify the webview to refetch the prompt since it's already open
+        if (defaultprompt) {
+            notifyAiPromptUpdated();
+        }
     }
 };
 

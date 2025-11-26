@@ -44,6 +44,7 @@ import {
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
+    CodeContext,
     AIChatMachineEventType,
     AIChatMachineStateValue,
     UIChatHistoryMessage,
@@ -207,6 +208,7 @@ const AIChat: React.FC = () => {
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
+    const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -236,17 +238,40 @@ const AIChat: React.FC = () => {
      * Effect: Initialize the component with initial prompts
      */
     useEffect(function initializeWithInitialPrompts() {
-        rpcClient
-            .getAiPanelRpcClient()
-            .getDefaultPrompt()
-            .then((defaultPrompt: AIPanelPrompt) => {
-                if (defaultPrompt) {
-                    aiChatInputRef.current?.setInputContent(defaultPrompt);
-                    if (defaultPrompt.type === 'text') {
-                        setIsPlanModeEnabled(defaultPrompt.planMode);
+        const fetchPrompt = () => {
+            rpcClient
+                .getAiPanelRpcClient()
+                .getDefaultPrompt()
+                .then((defaultPrompt: AIPanelPrompt) => {
+                    if (defaultPrompt) {
+                        aiChatInputRef.current?.setInputContent(defaultPrompt);
+
+                        // Extract CodeContext from both command-template metadata and text-type direct param
+                        const codeCtx = defaultPrompt.type === 'command-template'
+                            ? defaultPrompt.metadata?.codeContext
+                            : defaultPrompt.type === 'text'
+                                ? defaultPrompt.codeContext
+                                : undefined;
+
+                        if (codeCtx) {
+                            setCodeContext(codeCtx);
+                        }
+
+                        // Handle plan mode for text-type prompts
+                        if (defaultPrompt.type === 'text') {
+                            setIsPlanModeEnabled(defaultPrompt.planMode);
+                        }
                     }
-                }
-            });
+                });
+        };
+
+        // Fetch prompt on mount
+        fetchPrompt();
+
+        // Listen for prompt updates when panel is already open
+        rpcClient.onPromptUpdated(() => {
+            fetchPrompt();
+        });
     }, []);
 
     /**
@@ -1191,6 +1216,7 @@ const AIChat: React.FC = () => {
             chatHistory: chatArray,
             operationType,
             fileAttachmentContents: fileAttatchments,
+            codeContext: codeContext,
         };
 
         await rpcClient.getAiPanelRpcClient().generateCode(requestBody);
@@ -2141,6 +2167,8 @@ const AIChat: React.FC = () => {
                             onStop={handleStop}
                             isLoading={isLoading}
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                            codeContext={codeContext}
+                            onRemoveCodeContext={() => setCodeContext(undefined)}
                         />
                     )}
                 </AIChatView>
