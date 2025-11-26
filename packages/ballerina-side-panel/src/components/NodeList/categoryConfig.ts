@@ -24,7 +24,7 @@ export interface CategoryAction {
     hideOnEmptyState?: boolean;
     tooltip: string;
     emptyStateLabel: string;
-    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject';
+    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject' | 'onRefreshDevantConnections';
     condition?: (title: string) => boolean; // For special conditions like data mapper
 }
 
@@ -48,6 +48,14 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
                 emptyStateLabel: "",
                 hideOnEmptyState: true,
                 handlerKey: "onLinkDevantProject",
+            },
+            {
+                type: "connection",
+                codeIcon: "refresh",
+                tooltip: "Refresh Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
+                handlerKey: "onRefreshDevantConnections",
             },
             {
                 type: "connection",

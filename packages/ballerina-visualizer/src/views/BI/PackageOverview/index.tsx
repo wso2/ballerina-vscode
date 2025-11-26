@@ -40,6 +40,7 @@ import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
+import { RunDebugButton } from "./RunDebugButton";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -746,30 +747,18 @@ export function PackageOverview(props: PackageOverviewProps) {
                 />
                 Configure
             </Button>
-            <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-            </Button>
-            <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
-            </Button>
+            <RunDebugButton 
+                icon="play"
+                onClick={handleLocalRun}
+                text="Run"
+            />
+            <RunDebugButton 
+                icon="debug"
+                onClick={handleLocalDebug}
+                text="Debug"
+            />
             {platformExtState.isLoggedIn && (
                 <>
-                    {platformExtState?.connections?.filter(item=>item.isUsed)?.length > 0 && (
-                        <Button
-                            appearance="icon"
-                            onClick={() =>
-                                platformRpcClient.setConnectedToDevant(!platformExtState.connectedToDevant)
-                            }
-                            buttonSx={{ padding: "4px 8px" }}
-                        >
-                            <Codicon
-                                name={platformExtState.connectedToDevant ? "vm-active" : "vm outline"}
-                                sx={{ marginRight: 5 }}
-                            />{" "}
-                            {platformExtState.connectedToDevant ? "Connected to Devant" : "Connect to Devant"}
-                        </Button>
-                    )}
-
                     {platformExtState.components?.length > 1 && (
                         <Dropdown
                             id="selected component"

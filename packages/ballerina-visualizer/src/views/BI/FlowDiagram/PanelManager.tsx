@@ -148,6 +148,7 @@ interface PanelManagerProps {
     // Devant handlers
     onImportDevantConn?: (devantConn: ConnectionListItem) => void
     onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
 }
 
 export function PanelManager(props: PanelManagerProps) {
@@ -203,7 +204,8 @@ export function PanelManager(props: PanelManagerProps) {
         onUpdateNodeWithConnection,
         onNavigateToPanel,
         onImportDevantConn,
-        onLinkDevantProject
+        onLinkDevantProject,
+        onRefreshDevantConnections,
     } = props;
 
     const handleOnBackToAddTool = () => {
@@ -251,6 +253,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         onImportDevantConn={onImportDevantConn}
                         onLinkDevantProject={onLinkDevantProject}
+                        onRefreshDevantConnections={onRefreshDevantConnections}
                     />
                 );
 
