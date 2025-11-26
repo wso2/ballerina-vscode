@@ -32,6 +32,7 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/configurations/IConfiguration';
+import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -215,7 +216,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 
         );
     }
-     if (inputMode === InputMode.TEMPLATE) {
+    if (inputMode === InputMode.TEMPLATE) {
         return (
             <TextModeEditor
                 getHelperPane={getHelperPane}
@@ -238,21 +239,23 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     }
     if (inputMode === InputMode.RECORD) {
         return (
-            <TextModeEditor
-                getHelperPane={getHelperPane}
-                isExpandedVersion={false}
-                completions={completions}
-                onChange={onChange}
+            <RecordConfigPreviewEditor
+                exprRef={exprRef}
+                anchorRef={anchorRef}
+                name={name}
                 value={value}
-                sanitizedExpression={sanitizedExpression}
-                rawExpression={rawExpression}
-                fileName={fileName}
-                targetLineRange={targetLineRange}
-                extractArgsFromFunction={extractArgsFromFunction}
-                onOpenExpandedMode={onOpenExpandedMode}
+                autoFocus={autoFocus}
+                ariaLabel={ariaLabel}
+                onChange={onChange}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onSave={onSave}
+                onCancel={onCancel}
                 onRemove={onRemove}
+                growRange={growRange}
+                placeholder={placeholder}
+                onOpenExpandedMode={onOpenExpandedMode}
                 isInExpandedMode={isInExpandedMode}
-                configuration={new ChipExpressionEditorConfig()}
             />
 
         );
