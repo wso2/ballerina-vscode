@@ -19,7 +19,7 @@
 export enum InputMode {
   TEXT = "Text",
   EXP = "Expression",
-  GUIDED = "Guided",
+  RECORD = "Record",
   TEMPLATE = "Template"
 }
 

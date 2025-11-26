@@ -276,7 +276,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 .then((response) => {
                     console.log(">>> Updated source code", response);
                     if (!isConnector) {
-                        setSavingFormStatus(SavingFormStatus.SUCCESS);
                         selectedNodeRef.current = undefined;
                         if (options?.postUpdateCallBack) {
                             options.postUpdateCallBack();
