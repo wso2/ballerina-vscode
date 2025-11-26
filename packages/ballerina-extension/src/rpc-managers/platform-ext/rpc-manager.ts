@@ -446,7 +446,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 							vscode.commands.executeCommand(PlatformExtCommandIds.SignIn, { extName: 'Devant' } as ICmdParamsBase);
 						}
 					});
-                    return
+                    return;
                 }
 
                 if(!platformExtStore.getState().state?.selectedContext?.project){
@@ -460,7 +460,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 								vscode.commands.executeCommand(PlatformExtCommandIds.ManageDirectoryContext, { extName: 'Devant' } as ICmdParamsBase);
 							}
 						});
-                    return
+                    return;
                 }
             }
 
