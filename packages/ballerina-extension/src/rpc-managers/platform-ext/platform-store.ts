@@ -26,7 +26,7 @@ interface PlatformExtStore {
 	setState: (params: Partial<PlatformExtState>) => void;
 }
 
-const initialState: PlatformExtState = { isLoggedIn: false, components: [], connections: [] };
+const initialState: PlatformExtState = { isLoggedIn: false, components: [], connections: [], connectedToDevant: true };
 
 export const platformExtStore = createStore(
 	persist<PlatformExtStore>(

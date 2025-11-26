@@ -322,6 +322,7 @@ interface NodeListProps {
     searchPlaceholder?: string;
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
     onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -340,6 +341,7 @@ export function NodeList(props: NodeListProps) {
         searchPlaceholder,
         onImportDevantConn,
         onLinkDevantProject,
+        onRefreshDevantConnections,
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -442,6 +444,12 @@ export function NodeList(props: NodeListProps) {
     const handleOnLinkDevantProject = () => {
         if (onLinkDevantProject){
             onLinkDevantProject();
+        }
+    }
+
+    const handleOnRefreshDevantConnections = () => {
+        if (onRefreshDevantConnections){
+            onRefreshDevantConnections();
         }
     }
 
@@ -632,7 +640,8 @@ export function NodeList(props: NodeListProps) {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
                                                             onAdd: handleAdd,
-                                                            onLinkDevantProject: handleOnLinkDevantProject
+                                                            onLinkDevantProject: handleOnLinkDevantProject,
+                                                            onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                         };
                                                         
                                                         const handler = handlers[action.handlerKey];
@@ -686,7 +695,8 @@ export function NodeList(props: NodeListProps) {
                                                         onAddConnection: handleAddConnection,
                                                         onAddFunction: handleAddFunction,
                                                         onAdd: handleAdd,
-                                                        onLinkDevantProject: handleOnLinkDevantProject
+                                                        onLinkDevantProject: handleOnLinkDevantProject,
+                                                        onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                     };
                                                     
                                                     const handler = handlers[action.handlerKey];

@@ -2406,6 +2406,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Devant specific callbacks
                 onImportDevantConn={importConnection}
                 onLinkDevantProject={!platformExtState?.selectedContext?.project ? onLinkDevantProject : undefined}
+                onRefreshDevantConnections={
+                    platformExtState?.selectedContext?.project && !platformExtState?.loadingConnections
+                        ? () => platformRpcClient?.refreshConnectionList()
+                        : undefined
+                }
             />
 
             <PanelOverlayRenderer />

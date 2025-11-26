@@ -664,13 +664,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     async refreshConnectionList(): Promise<void> {
         try {
             const platformExt = await this.getPlatformExt();
+            platformExtStore.getState().setState({ loadingConnections: true });
             const connections = await this.getAllConnections();
             const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
             const connectionsUsed = connections.map((connItem) => ({
                 ...connItem,
                 isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteId === connItem.name),
             }));
-            platformExtStore.getState().setState({ connections: connectionsUsed });
+            platformExtStore.getState().setState({ connections: connectionsUsed, loadingConnections: false });
 
             // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant
             /*
