@@ -49,14 +49,8 @@ import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
 import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
-import { ChipExpressionEditorDefaultConfiguration } from "../configurations/IConfiguration";
-
-export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return value;
-    }
-}
-
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionDefaultConfig";
+import { ChipExpressionEditorConfig } from "../../Configurations";
 
 type HelperPaneState = {
     isOpen: boolean;
