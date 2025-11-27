@@ -136,7 +136,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
         getHelperValue(value: string, token?: ParsedToken): string {
             const isTextOrTemplateMode = primaryMode === InputMode.TEXT || primaryMode === InputMode.TEMPLATE;
-            if (isTextOrTemplateMode && token && token.type !== TokenType.FUNCTION ) {
+            if (isTextOrTemplateMode && (!token || token.type !== TokenType.FUNCTION) ) {
                 return `\$\{${value}\}`;
             }
             return value;
