@@ -99,7 +99,8 @@ export enum MACHINE_VIEW {
     AIAgentDesigner = "AI Agent Designer",
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
-    ServiceFunctionForm = "Service Function Form"
+    ServiceFunctionForm = "Service Function Form",
+    BISamplesView = "BI Samples View"
 }
 
 export interface MachineEvent {

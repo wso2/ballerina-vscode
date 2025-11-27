@@ -20,14 +20,10 @@
 import {
     BallerinaDiagnosticsRequest,
     CommandsRequest,
-    FileOrDirRequest,
-    GoToSourceRequest,
-    OpenExternalUrlRequest,
-    RunExternalCommandRequest,
-    ShowErrorMessageRequest,
-    WorkspaceFileRequest,
+    downloadSelectedSampleFromGithub,
     executeCommand,
     experimentalEnabled,
+    FileOrDirRequest,
     getBallerinaDiagnostics,
     getCurrentProjectTomlValues,
     getTypeCompletions,
@@ -35,12 +31,18 @@ import {
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
+    GoToSourceRequest,
     isNPSupported,
     openExternalUrl,
+    OpenExternalUrlRequest,
     runBackgroundTerminalCommand,
+    RunExternalCommandRequest,
+    SampleDownloadRequest,
     selectFileOrDirPath,
     selectFileOrFolderPath,
-    showErrorMessage
+    showErrorMessage,
+    ShowErrorMessageRequest,
+    WorkspaceFileRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { CommonRpcManager } from "./rpc-manager";
@@ -62,4 +64,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
+    messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
 }
