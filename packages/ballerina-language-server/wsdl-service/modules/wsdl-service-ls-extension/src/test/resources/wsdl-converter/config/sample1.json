@@ -2,9 +2,9 @@
   "wsdlContent": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<definitions xmlns=\"http://schemas.xmlsoap.org/wsdl/\"\n             xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"\n             xmlns:tns=\"http://www.example.org/calculator/\"\n             xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n             targetNamespace=\"http://www.example.org/calculator/\">\n\n    <types>\n        <xsd:schema targetNamespace=\"http://www.example.org/calculator/\">\n            <xsd:element name=\"AddRequest\">\n                <xsd:complexType>\n                    <xsd:sequence>\n                        <xsd:element name=\"intA\" type=\"xsd:int\"/>\n                        <xsd:element name=\"intB\" type=\"xsd:int\"/>\n                    </xsd:sequence>\n                </xsd:complexType>\n            </xsd:element>\n            <xsd:element name=\"AddResponse\">\n                <xsd:complexType>\n                    <xsd:sequence>\n                        <xsd:element name=\"result\" type=\"xsd:int\"/>\n                    </xsd:sequence>\n                </xsd:complexType>\n            </xsd:element>\n        </xsd:schema>\n    </types>\n\n    <message name=\"AddInput\">\n        <part name=\"parameters\" element=\"tns:AddRequest\"/>\n    </message>\n    <message name=\"AddOutput\">\n        <part name=\"parameters\" element=\"tns:AddResponse\"/>\n    </message>\n\n    <portType name=\"CalculatorPortType\">\n        <operation name=\"Add\">\n            <input message=\"tns:AddInput\"/>\n            <output message=\"tns:AddOutput\"/>\n        </operation>\n    </portType>\n\n    <binding name=\"CalculatorSoapBinding\" type=\"tns:CalculatorPortType\">\n        <soap:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n        <operation name=\"Add\">\n            <soap:operation soapAction=\"http://www.example.org/calculator/Add\"/>\n            <input>\n                <soap:body use=\"literal\"/>\n            </input>\n            <output>\n                <soap:body use=\"literal\"/>\n            </output>\n        </operation>\n    </binding>\n\n    <service name=\"CalculatorService\">\n        <port name=\"CalculatorPort\" binding=\"tns:CalculatorSoapBinding\">\n            <soap:address location=\"http://www.example.org/calculator/soap\"/>\n        </port>\n    </service>\n\n</definitions>",
   "description": "Test calculator service type generation from WSDL",
   "testProjectFolder": "sample1",
-  "portName": "",
+  "module": "wsdl_client",
   "output": {
-    "sample1/types.bal": [
+    "sample1/generated/wsdl_client/client.bal": [
       {
         "range": {
           "start": {
@@ -16,20 +16,22 @@
             "character": 0
           }
         },
-        "newText": "import ballerina/data.xmldata;"
-      },
+        "newText": "import ballerina/data.xmldata;\nimport ballerina/soap;\nimport ballerina/soap.soap11;\n\npublic isolated client class Client {\n    final soap11:Client clientEp;\n\n    public isolated function init(string serviceUrl = \"http://www.example.org/calculator/soap\", *soap:ClientConfig config) returns error? {\n        self.clientEp = check new (serviceUrl, config);\n    }\n\n    remote isolated function add(AddSoapRequest envelope) returns AddSoapResponse|error {\n        xml result = check self.clientEp->sendReceive(check xmldata:toXml(envelope), \"http://www.example.org/calculator/Add\");\n        return xmldata:parseAsType(result);\n    }\n}\n\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddHeader record {\n};\n\npublic type AddResponseBody record {\n    AddResponse AddResponse?;\n};\n\n@xmldata:Name {value: \"Envelope\"}\npublic type AddSoapResponse record {\n    AddResponseBody Body;\n};\n\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddRequestBody record {\n    AddRequest AddRequest?;\n};\n\n@xmldata:Name {value: \"Envelope\"}\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddSoapRequest record {\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddHeader Header?;\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddRequestBody Body;\n};\n"
+      }
+    ],
+    "sample1/generated/wsdl_client/types.bal": [
       {
         "range": {
           "start": {
-            "line": 1,
+            "line": 0,
             "character": 0
           },
           "end": {
-            "line": 1,
+            "line": 0,
             "character": 0
           }
         },
-        "newText": "\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddRequest record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup sequenceGroup;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddResponse record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup1 sequenceGroup1;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int intA;\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 2}\n    int intB;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup1 record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int result;\n|};\n\n\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddHeader record {\n};\npublic type AddResponseBody record {\n    AddResponse AddResponse?;\n};\n@xmldata:Name {value: \"Envelope\"}\npublic type AddSoapResponse record {\n    AddResponseBody Body;\n};\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddRequestBody record {\n    AddRequest AddRequest?;\n};\n@xmldata:Name {value: \"Envelope\"}\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddSoapRequest record {\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddHeader Header?;\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddRequestBody Body;\n};"
+        "newText": "import ballerina/data.xmldata;\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddRequest record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup sequenceGroup;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddResponse record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup1 sequenceGroup1;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int intA;\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 2}\n    int intB;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup1 record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int result;\n|};\n"
       }
     ]
   }
