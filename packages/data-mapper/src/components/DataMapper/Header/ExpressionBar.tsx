@@ -110,21 +110,26 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
             if (inputPort) {
                 // Keep the text field focused when an input port is selected
                 if (textFieldRef.current) {
+
                     if (focusedPort || focusedFilter) {
-                        textFieldRef.current.focus(true);
+                        // Update the expression text when an input port is selected
+                        const cursorPosition = textFieldRef.current.inputElement.selectionStart;
+                        
+                        const inputAccessExpr = buildInputAccessExpr(inputPort.attributes.fieldFQN);
+                        const updatedText =
+                            textFieldValue.substring(0, cursorPosition) +
+                            inputAccessExpr +
+                            textFieldValue.substring(cursorPosition);
+                        await handleChange(updatedText);
+
+                        textFieldRef.current.setCursor(updatedText, cursorPosition + inputAccessExpr.length);
+                       
                     } else {
                         textFieldRef.current.blur();
                     }
-
-                    // Update the expression text when an input port is selected
-                    const cursorPosition = textFieldRef.current.shadowRoot.querySelector('input').selectionStart;
-                    const inputAccessExpr = buildInputAccessExpr(inputPort.attributes.fieldFQN);
-                    const updatedText =
-                        textFieldValue.substring(0, cursorPosition) +
-                        inputAccessExpr +
-                        textFieldValue.substring(cursorPosition);
-                    await handleChange(updatedText);
+                    
                     resetInputPort();
+
                 }
             }
         })();
@@ -161,7 +166,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
         return disabled;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [textFieldRef.current, focusedPort, focusedFilter, views]);
+    }, [focusedPort, focusedFilter, views]);
 
     const handleChange = async (text: string, cursorPosition?: number) => {
         if (textFieldValue === text) {
