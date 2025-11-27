@@ -39,7 +39,7 @@
         "type": "LISTENER",
         "name": "orderListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png",
         "module": "kafka",
         "children": {}
       }
@@ -61,7 +61,7 @@
         "type": "SERVICE",
         "name": "Kafka Event Integration",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png",
         "module": "kafka",
         "children": {
           "onConsumerRecord": {

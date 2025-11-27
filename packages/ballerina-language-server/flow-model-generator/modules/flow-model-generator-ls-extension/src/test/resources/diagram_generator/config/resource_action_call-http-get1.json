@@ -47,7 +47,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -56,7 +56,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -232,7 +232,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -241,7 +241,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -424,7 +424,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -433,7 +433,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -609,7 +609,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -618,7 +618,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -798,7 +798,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -807,7 +807,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -983,7 +983,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -992,7 +992,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1169,7 +1169,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1178,7 +1178,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1354,7 +1354,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1363,7 +1363,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1539,7 +1539,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1548,7 +1548,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.15.1",
+          "version": "2.15.2",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
