@@ -53,6 +53,11 @@ export interface RepairedFiles {
     repairedFiles: SourceFile[];
 }
 
+export interface CodeRepairResult {
+    finalContent: string;
+    customFunctionsContent: string;
+}
+
 // =============================================================================
 // MAPPING HINTS
 // =============================================================================
