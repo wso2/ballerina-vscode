@@ -1,26 +1,27 @@
 {
-  "source": "proj2/main.bal",
-  "description": "Query with group by using direct field reference",
+  "source": "query27.bal",
+  "description": "Query with group by clause and sequence variable array conversion",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "proj2/main.bal",
+      "fileName": "main.bal",
       "startLine": {
-        "line": 18,
-        "offset": 8
+        "line": 25,
+        "offset": 4
       },
       "endLine": {
-        "line": 23,
-        "offset": 10
+        "line": 29,
+        "offset": 6
       }
     },
-    "sourceCode": "Array meanQuantity = {\n            values: from var salesItem in sales\n                let var quantity = salesItem.quantity\n                group by var item = salesItem.item\n                select sum(quantity)\n        };"
+    "sourceCode": ""
   },
   "position": {
-    "line": 18,
-    "offset": 8
+    "line": 25,
+    "offset": 4
   },
-  "targetField": "meanQuantity.values",
+  "propertyKey": "expression",
+  "targetField": "groupedItems.items",
   "model": {
     "inputs": [
       {
@@ -30,14 +31,14 @@
           "displayName": "<salesItem>",
           "typeName": "Sale",
           "kind": "record",
-          "ref": "1120091376"
+          "ref": "1373074483"
         },
         "name": "sales",
         "displayName": "sales",
         "typeName": "Sale[]",
         "kind": "array",
         "category": "variable",
-        "ref": "-1728427723"
+        "ref": "1849278691"
       },
       {
         "fields": [],
@@ -46,7 +47,7 @@
         "typeName": "Sale",
         "kind": "record",
         "focusExpression": "sales",
-        "ref": "1120091376",
+        "ref": "1373074483",
         "isSeq": true
       },
       {
@@ -67,31 +68,43 @@
     ],
     "output": {
       "member": {
-        "name": "values",
-        "displayName": "<valuesItem>",
-        "typeName": "int",
-        "kind": "int"
+        "fields": [],
+        "name": "items",
+        "displayName": "<itemsItem>",
+        "typeName": "GroupedItems",
+        "kind": "record",
+        "ref": "-1090680082"
       },
-      "name": "values",
-      "displayName": "values",
-      "typeName": "int[]",
-      "kind": "array"
+      "name": "items",
+      "displayName": "items",
+      "typeName": "GroupedItems[]",
+      "kind": "array",
+      "ref": "-1370309134"
     },
     "mappings": [
       {
-        "output": "values",
+        "output": "items.item",
         "inputs": [
-          "quantity"
+          "item"
         ],
-        "expression": "sum(quantity)\n",
+        "expression": "item",
         "diagnostics": [],
         "elements": [],
         "isQueryExpression": false,
-        "isFunctionCall": true
+        "isFunctionCall": false
+      },
+      {
+        "output": "items.quantityArray",
+        "inputs": [
+          "quantity"
+        ],
+        "expression": "[quantity]",
+        "diagnostics": [],
+        "elements": []
       }
     ],
     "query": {
-      "output": "values",
+      "output": "items",
       "inputs": [
         "sales"
       ],
@@ -127,13 +140,13 @@
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "sum(quantity)",
+          "expression": "{item: item, quantityArray: [quantity]}",
           "isOuter": false
         }
       }
     },
     "refs": {
-      "1120091376": {
+      "1373074483": {
         "fields": [
           {
             "name": "item",
@@ -148,9 +161,56 @@
             "typeName": "int",
             "kind": "int",
             "optional": false
+          },
+          {
+            "name": "price",
+            "displayName": "price",
+            "typeName": "decimal",
+            "kind": "decimal",
+            "optional": false
           }
         ],
         "typeName": "Sale",
+        "kind": "record"
+      },
+      "-1090680082": {
+        "fields": [
+          {
+            "name": "item",
+            "displayName": "item",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "totalQuantity",
+            "displayName": "totalQuantity",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "totalPrice",
+            "displayName": "totalPrice",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "quantityArray",
+              "displayName": "<quantityArrayItem>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "name": "quantityArray",
+            "displayName": "quantityArray",
+            "typeName": "int[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "GroupedItems",
         "kind": "record"
       }
     }

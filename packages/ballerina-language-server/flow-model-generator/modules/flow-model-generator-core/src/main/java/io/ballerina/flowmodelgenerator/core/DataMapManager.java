@@ -39,6 +39,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClauseNode;
@@ -132,10 +133,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -306,10 +309,18 @@ public class DataMapManager {
                 }
             }
 
+            // TODO: The sequence variables should be identified from the variable symbol itself
+            //  after fixing the issue https://github.com/ballerina-platform/ballerina-lang/issues/44409
+            Set<String> clauseDefinedVars = new HashSet<>();
+            clauseDefinedVars.add(fromClauseVar);
+
             handleIntermediateJoinClause(semanticModel, queryExpressionNode, inputs, inputPorts, typeDefSymbols,
                     references);
             handleIntermediateFromClauses(semanticModel, queryExpressionNode, inputs, inputPorts, typeDefSymbols,
                     references);
+
+            addIntermediateClauseVariables(queryExpressionNode, inputPorts, semanticModel, typeDefSymbols,
+                    references, clauseDefinedVars);
 
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
                     expression.toSourceCode().trim(), null, null, null, false));
@@ -350,15 +361,74 @@ public class DataMapManager {
         ExpressionNode expr = matchingNode.expr();
         if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             genMapping((MappingConstructorExpressionNode) expr, mappings, name, semanticModel,
-                    functionDocument, dataMappingDocument, enumPorts);
+                    functionDocument, dataMappingDocument, enumPorts, inputPorts);
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             genMapping((ListConstructorExpressionNode) expr, mappings, name, semanticModel, functionDocument,
-            dataMappingDocument, enumPorts);
+            dataMappingDocument, enumPorts, inputPorts);
         } else {
             genMapping(expr, name, mappings, semanticModel, functionDocument, dataMappingDocument, enumPorts);
         }
 
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
+    }
+
+    private void addIntermediateClauseVariables(QueryExpressionNode queryExpressionNode, List<MappingPort> inputPorts,
+                                                SemanticModel semanticModel, List<Symbol> typeDefSymbols,
+                                                Map<String, MappingPort> references, Set<String> clauseDefinedVars) {
+        Set<String> groupingKeyNames = new HashSet<>();
+        boolean hasGroupBy = false;
+
+        for (IntermediateClauseNode intermediateClause : queryExpressionNode.queryPipeline().intermediateClauses()) {
+            SyntaxKind clauseKind = intermediateClause.kind();
+            if (clauseKind == SyntaxKind.LET_CLAUSE) {
+                LetClauseNode letClauseNode = (LetClauseNode) intermediateClause;
+                for (LetVariableDeclarationNode letVarDecl : letClauseNode.letVarDeclarations()) {
+                    String varName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                    String expression = letVarDecl.expression().toSourceCode().trim();
+                    addClauseVariable(varName, expression, letVarDecl, clauseDefinedVars, inputPorts,
+                            semanticModel, typeDefSymbols, references);
+                }
+            } else if (clauseKind == SyntaxKind.GROUP_BY_CLAUSE) {
+                hasGroupBy = true;
+                GroupByClauseNode groupByClause = (GroupByClauseNode) intermediateClause;
+                SeparatedNodeList<Node> groupingKeys = groupByClause.groupingKey();
+
+                for (Node groupingKey : groupingKeys) {
+                    if (groupingKey.kind() == SyntaxKind.GROUPING_KEY_VAR_DECLARATION) {
+                        GroupingKeyVarDeclarationNode groupVarDecl = (GroupingKeyVarDeclarationNode) groupingKey;
+                        BindingPatternNode bindingPattern = groupVarDecl.simpleBindingPattern();
+                        String varName = bindingPattern.toSourceCode().trim();
+                        String expression = groupVarDecl.expression().toSourceCode().trim();
+                        groupingKeyNames.add(varName);
+                        addClauseVariable(varName, expression, bindingPattern, clauseDefinedVars, inputPorts,
+                                semanticModel, typeDefSymbols, references);
+                    }
+                }
+            }
+        }
+
+        if (hasGroupBy) {
+            for (MappingPort port : inputPorts) {
+                if (port.name != null && clauseDefinedVars.contains(port.name)
+                        && !groupingKeyNames.contains(port.name)) {
+                    port.setIsSeq(true);
+                }
+            }
+        }
+    }
+
+    private void addClauseVariable(String varName, String expression, Node node, Set<String> clauseDefinedVars,
+                                   List<MappingPort> inputPorts, SemanticModel semanticModel,
+                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references) {
+        clauseDefinedVars.add(varName);
+        Optional<Symbol> varSymbol = semanticModel.symbol(node);
+        if (varSymbol.isPresent()) {
+            MappingPort mappingPort = getRefMappingPort(varName, varName,
+                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(varSymbol.get(),
+                            typeDefSymbols)), new HashMap<>(), references);
+            mappingPort.focusExpression = expression;
+            inputPorts.add(mappingPort);
+        }
     }
 
     private List<JoinClauseNode> getJoinClauses(QueryExpressionNode query) {
@@ -668,7 +738,7 @@ public class DataMapManager {
 
     private void genMapping(MappingConstructorExpressionNode mappingCtrExpr, List<Mapping> mappings, String name,
                             SemanticModel semanticModel, Document functionDocument, Document dataMappingDocument,
-                            List<MappingPort> enumPorts) {
+                            List<MappingPort> enumPorts, List<MappingPort> inputPorts) {
         for (MappingFieldNode field : mappingCtrExpr.fields()) {
             if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
                 SpecificFieldNode f = (SpecificFieldNode) field;
@@ -681,11 +751,11 @@ public class DataMapManager {
                 if (kind == SyntaxKind.MAPPING_CONSTRUCTOR) {
                     genMapping((MappingConstructorExpressionNode) fieldExpr, mappings,
                             name + "." + f.fieldName().toSourceCode().trim(),
-                            semanticModel, functionDocument, dataMappingDocument, enumPorts);
+                            semanticModel, functionDocument, dataMappingDocument, enumPorts, inputPorts);
                 } else if (kind == SyntaxKind.LIST_CONSTRUCTOR) {
                     genMapping((ListConstructorExpressionNode) fieldExpr, mappings, name + "." +
                             f.fieldName().toSourceCode().trim(), semanticModel, functionDocument, dataMappingDocument,
-                            enumPorts);
+                            enumPorts, inputPorts);
                 } else {
                     genMapping(fieldExpr, name + "." + f.fieldName().toSourceCode().trim(), mappings,
                             semanticModel, functionDocument, dataMappingDocument, enumPorts);
@@ -696,19 +766,39 @@ public class DataMapManager {
 
     private void genMapping(ListConstructorExpressionNode listCtrExpr, List<Mapping> mappings, String name,
                             SemanticModel semanticModel, Document functionDocument, Document dataMappingDocument,
-                            List<MappingPort> enumPorts) {
+                            List<MappingPort> enumPorts, List<MappingPort> inputPorts) {
         SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
         int size = expressions.size();
+
+        // TODO: The sequence variables should be identified from the variable symbol itself
+        //  after fixing the issue https://github.com/ballerina-platform/ballerina-lang/issues/44409
+        if (size == 1) {
+            Node expr = expressions.get(0);
+            if (expr.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+                String varName = ((SimpleNameReferenceNode) expr).name().text();
+                for (MappingPort port : inputPorts) {
+                    if (varName.equals(port.name) && Boolean.TRUE.equals(port.isSeq)) {
+                        List<String> inputs = new ArrayList<>();
+                        inputs.add(varName);
+                        Mapping mapping = new Mapping(name, inputs, listCtrExpr.toSourceCode(),
+                                getDiagnostics(listCtrExpr.lineRange(), semanticModel), new ArrayList<>());
+                        mappings.add(mapping);
+                        return;
+                    }
+                }
+            }
+        }
+
         List<MappingElements> mappingElements = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             List<Mapping> elements = new ArrayList<>();
             Node expr = expressions.get(i);
             if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
                 genMapping((MappingConstructorExpressionNode) expr, elements, name + "." + i, semanticModel,
-                        functionDocument, dataMappingDocument, enumPorts);
+                        functionDocument, dataMappingDocument, enumPorts, inputPorts);
             } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
                 genMapping((ListConstructorExpressionNode) expr, elements, name + "." + i, semanticModel,
-                        functionDocument, dataMappingDocument, enumPorts);
+                        functionDocument, dataMappingDocument, enumPorts, inputPorts);
             } else {
                 genMapping(expr, name + "." + i, elements, semanticModel, functionDocument, dataMappingDocument,
                         enumPorts);
@@ -2811,6 +2901,7 @@ public class DataMapManager {
         Boolean optional;
         String ref;
         TypeInfo typeInfo;
+        Boolean isSeq;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2893,6 +2984,14 @@ public class DataMapManager {
 
         void setOptional(Boolean optional) {
             this.optional = optional;
+        }
+
+        void setIsSeq(Boolean isSeq) {
+            this.isSeq = isSeq;
+        }
+
+        Boolean getIsSeq() {
+            return this.isSeq;
         }
 
         public String getFocusExpression() {

@@ -1,10 +1,10 @@
 {
-  "source": "proj2/main.bal",
+  "source": "query26.bal",
   "description": "Query with group by using direct field reference",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "proj2/main.bal",
+      "fileName": "query26.bal",
       "startLine": {
         "line": 18,
         "offset": 8
@@ -30,14 +30,14 @@
           "displayName": "<salesItem>",
           "typeName": "Sale",
           "kind": "record",
-          "ref": "1120091376"
+          "ref": "1373074483"
         },
         "name": "sales",
         "displayName": "sales",
         "typeName": "Sale[]",
         "kind": "array",
         "category": "variable",
-        "ref": "-1728427723"
+        "ref": "470028498"
       },
       {
         "fields": [],
@@ -46,7 +46,7 @@
         "typeName": "Sale",
         "kind": "record",
         "focusExpression": "sales",
-        "ref": "1120091376",
+        "ref": "1373074483",
         "isSeq": true
       },
       {
@@ -133,7 +133,7 @@
       }
     },
     "refs": {
-      "1120091376": {
+      "1373074483": {
         "fields": [
           {
             "name": "item",
