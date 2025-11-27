@@ -19,9 +19,6 @@ import {
     CodeData,
     ELineRange,
     Flow,
-    AllDataMapperSourceRequest,
-    DataMapperSourceRequest,
-    DataMapperSourceResponse,
     NodePosition,
     ProjectStructureArtifactResponse,
     TextEdit,
@@ -40,7 +37,6 @@ import {
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
 import { VariableFindingVisitor } from "./VariableFindingVisitor";
-import { is } from "zod/v4/locales";
 
 const MAX_NESTED_DEPTH = 4;
 
