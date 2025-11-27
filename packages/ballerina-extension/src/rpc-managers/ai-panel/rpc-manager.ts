@@ -33,8 +33,8 @@ import {
     DocGenerationRequest,
     FetchDataRequest,
     FetchDataResponse,
-    GenerateCodeRequest,
     GenerateAgentCodeRequest,
+    GenerateCodeRequest,
     GenerateOpenAPIRequest,
     GetFromFileRequest,
     GetModuleDirParams,
@@ -72,8 +72,10 @@ import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { generateContextTypes, generateInlineMappingCode, generateMappingCode, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
+import { generateDesign } from "../../../src/features/ai/service/design/design";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
-import { AIStateMachine } from "../../../src/views/ai-panel/aiMachine";
+import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
+import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
 import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
@@ -101,8 +103,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { generateDesign, generateDesignCore } from "../../../src/features/ai/service/design/design";
-import { checkToken } from "../../../src/views/ai-panel/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -701,6 +701,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
         await generateDesign(params);
         return true;
+    }
+
+    async openAIPanel(params: AIPanelPrompt): Promise<void> {
+        openAIPanelWithPrompt(params)
     }
 }
 

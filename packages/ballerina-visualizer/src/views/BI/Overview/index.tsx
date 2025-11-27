@@ -40,7 +40,6 @@ import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@w
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { findScopeByModule } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
-import { openAIPanelWithPromptRpc } from "../../../utils/commands";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -722,7 +721,11 @@ export function Overview(props: ComponentDiagramProps) {
     };
 
     async function handleSettings() {
-        openAIPanelWithPromptRpc(rpcClient.getCommonRpcClient());
+        rpcClient.getAiPanelRpcClient().openAIPanel({
+            type: 'text',
+            planMode: false,
+            text: ''
+        });
     }
 
     async function handleClose() {
