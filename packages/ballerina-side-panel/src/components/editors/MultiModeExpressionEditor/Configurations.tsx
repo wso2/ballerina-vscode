@@ -19,6 +19,7 @@
 import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
+import { InputMode } from "./ChipExpressionEditor/types";
 
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
@@ -82,5 +83,22 @@ export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfi
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
         return `\$\{${value}\}`;
+    }
+}
+
+export class PrimaryModeChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    private readonly primaryMode: InputMode;
+
+    constructor(primaryMode: InputMode) {
+        super();
+        this.primaryMode = primaryMode;
+    }
+
+    getHelperValue(value: string, token?: ParsedToken): string {
+        const isTextOrTemplateMode = this.primaryMode === InputMode.TEXT || this.primaryMode === InputMode.TEMPLATE;
+        if (isTextOrTemplateMode && (!token || token.type !== TokenType.FUNCTION)) {
+            return `\$\{${value}\}`;
+        }
+        return value;
     }
 }

@@ -345,10 +345,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     useEffect(() => {
         if (props.value == null || !viewRef.current) return;
-        const serializedValue = configuration.serializeValue(props.value.trim());
-        const deserializeValue = configuration.deserializeValue(props.value.trim());
+        const serializedValue = configuration.serializeValue(props.value);
+        const deserializeValue = configuration.deserializeValue(props.value);
         if (deserializeValue.trim() !== props.value.trim()) {
-            props.onChange(deserializeValue.trim(), deserializeValue.trim().length);
+            props.onChange(deserializeValue, deserializeValue.length);
             return
         }
         const updateEditorState = async () => {

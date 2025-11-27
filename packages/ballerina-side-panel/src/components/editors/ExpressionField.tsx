@@ -33,8 +33,7 @@ import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
-import { ParsedToken } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -133,16 +132,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-        getHelperValue(value: string, token?: ParsedToken): string {
-            const isTextOrTemplateMode = primaryMode === InputMode.TEXT || primaryMode === InputMode.TEMPLATE;
-            if (isTextOrTemplateMode && (!token || token.type !== TokenType.FUNCTION) ) {
-                return `\$\{${value}\}`;
-            }
-            return value;
-        }
-    }
-     if (inputMode === InputMode.RECORD) {
+    if (inputMode === InputMode.RECORD) {
         return (
             <RecordConfigPreviewEditor
                 exprRef={exprRef}
@@ -222,7 +212,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={new ChipExpressionEditorConfig()}
+            configuration={new PrimaryModeChipExpressionEditorConfig(primaryMode)}
         />
     );
 };
