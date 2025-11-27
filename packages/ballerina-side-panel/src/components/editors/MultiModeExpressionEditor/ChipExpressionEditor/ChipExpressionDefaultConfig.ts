@@ -16,8 +16,10 @@
  * under the License.
  */
 
+import { ParsedToken } from "./utils";
+
 export abstract class ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string) {
+    getHelperValue(value: string, token?: ParsedToken) {
         return value;
     }
     getSerializationPrefix() {

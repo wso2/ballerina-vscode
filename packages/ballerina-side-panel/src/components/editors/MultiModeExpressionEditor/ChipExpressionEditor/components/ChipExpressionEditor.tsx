@@ -35,7 +35,8 @@ import {
     CursorInfo,
     buildOnFocusOutListner,
     buildOnSelectionChange,
-    SyncDocValueWithPropValue
+    SyncDocValueWithPropValue,
+    isSelectionOnToken
 } from "../CodeUtils";
 import { mapSanitizedToRaw, TOKEN_START_CHAR_OFFSET_INDEX } from "../utils";
 import { history } from "@codemirror/commands";
@@ -167,13 +168,16 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     });
 
     const onHelperItemSelect = async (value: string, options: HelperpaneOnChangeOptions) => {
-        const newValue = configuration.getHelperValue(value);
         if (!viewRef.current) return;
         const view = viewRef.current;
 
         // Use saved selection if available, otherwise fall back to current selection
         const currentSelection = savedSelectionRef.current || view.state.selection.main;
         const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
+        
+        // Only apply getHelperValue if selection is not on a token
+        const selectionIsOnToken = isSelectionOnToken(currentSelection.from, currentSelection.to, view);
+        const newValue = selectionIsOnToken ? value : configuration.getHelperValue(value);
 
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;

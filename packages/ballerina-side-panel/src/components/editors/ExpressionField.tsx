@@ -27,13 +27,14 @@ import {
 } from '@wso2/ui-toolkit';
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
-import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { InputMode, TokenType } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
 import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { ParsedToken } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -133,8 +134,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     isInExpandedMode
 }) => {
     class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-        getHelperValue(value: string): string {
-            if (primaryMode === InputMode.TEXT || primaryMode === InputMode.TEMPLATE) {
+        getHelperValue(value: string, token?: ParsedToken): string {
+            const isTextOrTemplateMode = primaryMode === InputMode.TEXT || primaryMode === InputMode.TEMPLATE;
+            if (isTextOrTemplateMode && token && token.type !== TokenType.FUNCTION ) {
                 return `\$\{${value}\}`;
             }
             return value;
