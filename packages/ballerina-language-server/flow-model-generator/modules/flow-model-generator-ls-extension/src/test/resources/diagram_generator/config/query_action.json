@@ -347,7 +347,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "Represents a Kafka producer endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -423,7 +423,7 @@
             "typeMembers": [
               {
                 "type": "ProducerAcks",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -450,7 +450,7 @@
             "typeMembers": [
               {
                 "type": "CompressionType",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -774,7 +774,7 @@
             "typeMembers": [
               {
                 "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -801,7 +801,7 @@
             "typeMembers": [
               {
                 "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -1368,7 +1368,7 @@
             "typeMembers": [
               {
                 "type": "SecureSocket",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1395,7 +1395,7 @@
             "typeMembers": [
               {
                 "type": "AuthenticationConfiguration",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1422,7 +1422,7 @@
             "typeMembers": [
               {
                 "type": "SecurityProtocol",
-                "packageInfo": "ballerinax:kafka:4.6.1",
+                "packageInfo": "ballerinax:kafka:4.6.2",
                 "packageName": "kafka",
                 "kind": "BASIC_TYPE",
                 "selected": false
