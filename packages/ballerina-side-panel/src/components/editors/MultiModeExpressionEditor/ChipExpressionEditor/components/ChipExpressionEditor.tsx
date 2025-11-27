@@ -175,7 +175,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const currentSelection = savedSelectionRef.current || view.state.selection.main;
         const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
         
-        // Only apply getHelperValue if selection is not on a token
         const selectionIsOnToken = isSelectionOnToken(currentSelection.from, currentSelection.to, view);
         const newValue = selectionIsOnToken ? value : configuration.getHelperValue(value);
 
