@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import FXButton from "./components/FxButton";
 import { ParsedToken } from "./utils";
 
 export abstract class ChipExpressionEditorDefaultConfiguration {
@@ -33,5 +34,14 @@ export abstract class ChipExpressionEditorDefaultConfiguration {
     }
     deserializeValue(value: string) {
         return value;
+    }
+    showHelperPane() {
+        return true;
+    }
+    getPlugins() {
+        return [];
+    }
+    getAdornment() {
+        return (FXButton)
     }
 }

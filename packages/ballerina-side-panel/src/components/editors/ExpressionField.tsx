@@ -31,9 +31,9 @@ import { InputMode, TokenType } from './MultiModeExpressionEditor/ChipExpression
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
-import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -192,6 +192,26 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={new RawTemplateEditorConfig()}
+            />
+
+        );
+    }
+    if (inputMode === InputMode.NUMBER) {
+        return (
+            <NumberExpressionEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
             />
 
         );

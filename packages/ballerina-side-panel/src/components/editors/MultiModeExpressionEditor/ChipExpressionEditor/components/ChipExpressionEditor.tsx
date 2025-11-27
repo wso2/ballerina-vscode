@@ -285,6 +285,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const startState = EditorState.create({
             doc: props.value ?? "",
             extensions: [
+                ...(configuration.getPlugins()),
                 history(),
                 keymap.of([
                     ...helperPaneKeymap,
@@ -452,7 +453,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 ...props.sx,
                 ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
             }}>
-                {!props.isInExpandedMode && <FXButton />}
+                {!props.isInExpandedMode && configuration.getAdornment()({ onClick: () => {}})}
                 <div style={{
                     position: 'relative',
                     width: '100%',
@@ -463,7 +464,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         ...props.sx,
                         ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto', maxHeight: '150px' })
                     }} />
-                    {helperPaneState.isOpen &&
+                    {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
                             ref={helperPaneRef}
                             top={helperPaneState.top}
