@@ -62,7 +62,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName, isPlanModeEnabled);
+    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName, isPlanModeEnabled, params.codeContext);
     const allMessages: ModelMessage[] = [
         {
             role: "system",

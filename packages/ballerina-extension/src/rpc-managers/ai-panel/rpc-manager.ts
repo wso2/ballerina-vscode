@@ -704,7 +704,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async openAIPanel(params: AIPanelPrompt): Promise<void> {
-        openAIPanelWithPrompt(params)
+        openAIPanelWithPrompt(params);
     }
 }
 

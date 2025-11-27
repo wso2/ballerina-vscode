@@ -396,6 +396,7 @@ export interface GenerateAgentCodeRequest {
     fileAttachmentContents: FileAttatchment[];
     messageId: string;
     isPlanMode: boolean;
+    codeContext?: CodeContext;
 }
 
 export interface SourceFiles {

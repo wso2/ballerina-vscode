@@ -3,7 +3,8 @@ import { LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { TASK_WRITE_TOOL_NAME } from "../libs/task_write_tool";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 import { CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
-import { formatCodebaseStructure } from "./utils";
+import { formatCodebaseStructure, formatCodeContext } from "./utils";
+import { CodeContext } from "@wso2/ballerina-core";
 
 /**
  * Generates the system prompt for the design agent
@@ -165,13 +166,21 @@ When generating Ballerina code strictly follow these syntax and structure guidel
  * @param packageName Name of the Ballerina package
  * @param isPlanModeEnabled Whether plan mode is enabled
  */
-export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean) {
+export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean, codeContext?: CodeContext) {
     const content = [];
 
     if (!hasHistory) {
         content.push({
             type: 'text' as const,
             text: formatCodebaseStructure(tempProjectPath, packageName)
+        });
+    }
+
+    // Add code context if available
+    if (codeContext) {
+        content.push({
+            type: 'text' as const,
+            text: formatCodeContext(codeContext, tempProjectPath)
         });
     }
 
