@@ -19,7 +19,7 @@
 package io.ballerina.wsdl.extension;
 
 /**
- * Represents a request to generate Ballerina types from a WSDL file.
+ * Represents a request to generate Ballerina types and client from a WSDL file.
  *
  * @since 1.4.0
  */
@@ -27,14 +27,28 @@ public class WSDLConverterRequest {
     private String wsdlContent;
     private String projectPath;
     private String portName;
+    private String module;
+    private String[] operations;
 
     public WSDLConverterRequest() {
     }
 
-    public WSDLConverterRequest(String wsdlContent, String projectPath, String portName) {
+    /**
+     * Constructor for WSDLConverterRequest.
+     *
+     * @param wsdlContent  The WSDL file content
+     * @param projectPath  The project path
+     * @param portName     The port name to use (optional)
+     * @param module       The target module name
+     * @param operations   The operations to include (optional, null/empty = all operations)
+     */
+    public WSDLConverterRequest(String wsdlContent, String projectPath, String portName, String module,
+                                String[] operations) {
         this.wsdlContent = wsdlContent;
         this.projectPath = projectPath;
         this.portName = portName;
+        this.module = module;
+        this.operations = operations;
     }
 
     public String getWsdlContent() {
@@ -59,5 +73,21 @@ public class WSDLConverterRequest {
 
     public void setPortName(String portName) {
         this.portName = portName;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String module) {
+        this.module = module;
+    }
+
+    public String[] getOperations() {
+        return operations;
+    }
+
+    public void setOperations(String[] operations) {
+        this.operations = operations;
     }
 }

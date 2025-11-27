@@ -56,18 +56,21 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
         WSDLConverterRequest request = new WSDLConverterRequest(
                 testConfig.wsdlContent(),
                 sourceDir.resolve(testConfig.testProjectFolder).toAbsolutePath().toString(),
-                testConfig.portName() != null ? testConfig.portName() : ""
+                testConfig.portName(),
+                testConfig.module(),
+                testConfig.operations()
         );
 
         JsonObject response = getResponse(request);
-        JsonObject jsonMap = response.getAsJsonObject("textEdits");
+        JsonObject source = response.getAsJsonObject("source");
 
-        if (jsonMap == null) {
-            String error = response.get("error").getAsString();
+        if (source == null) {
+            String error = response.get("errorMsg") != null ? response.get("errorMsg").getAsString() : "Unknown error";
             Assert.fail("WSDL conversion failed: " + error);
         }
 
-        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(jsonMap, TEXT_EDIT_LIST_TYPE);
+        JsonObject textEditsMap = source.getAsJsonObject("textEditsMap");
+        Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(textEditsMap, TEXT_EDIT_LIST_TYPE);
         assertResults(actualTextEdits, testConfig, configJsonPath);
     }
 
@@ -102,6 +105,8 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
                     testConfig.description(),
                     testConfig.testProjectFolder(),
                     testConfig.portName(),
+                    testConfig.module(),
+                    testConfig.operations(),
                     newMap
             );
 //          updateConfig(configJsonPath, updatedConfig);
@@ -126,7 +131,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "generateTypesFromWSDL";
+        return "genClient";
     }
 
     /**
@@ -136,10 +141,13 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
      * @param description The description of the test.
      * @param testProjectFolder The test project folder path.
      * @param portName The port name to process (optional).
+     * @param module The target module name (optional, defaults to "wsdl_client").
+     * @param operations The operations to include (optional, null/empty = all operations).
      * @param output      The expected text edits output.
      */
     private record TestConfig(String wsdlContent, String description, String testProjectFolder,
-                              String portName, Map<String, List<TextEdit>> output) {
+                              String portName, String module, String[] operations,
+                              Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;
@@ -147,6 +155,14 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
 
         public String portName() {
             return portName == null ? "" : portName;
+        }
+
+        public String module() {
+            return module == null ? "wsdl_client" : module;
+        }
+
+        public String[] operations() {
+            return operations;
         }
     }
 }

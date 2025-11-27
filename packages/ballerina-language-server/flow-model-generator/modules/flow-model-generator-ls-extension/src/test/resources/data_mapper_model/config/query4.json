@@ -41,6 +41,13 @@
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
         "ref": "-782972947"
+      },
+      {
+        "name": "email",
+        "displayName": "email",
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "u.info.emails"
       }
     ],
     "output": {
@@ -96,7 +103,8 @@
     "query": {
       "output": "phoneNumbers",
       "inputs": [
-        "u.info.secondaryPhones"
+        "u.info.secondaryPhones",
+        "u.info.emails"
       ],
       "fromClause": {
         "type": "from",

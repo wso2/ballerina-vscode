@@ -1,29 +1,25 @@
-public type Sale record {
-    string item;
-    int quantity;
+type Elephant record {
+    string name;
+    int age;
+    string cast;
 };
 
-public type Array record {
-    int[] values;
-};
+type Names record {|
+    string name;
+|};
 
-public function main() returns error? {
-    do {
-        Sale[] sales = [
-            {item: "apple", quantity: 10},
-            {item: "banana", quantity: 20},
-            {item: "apple", quantity: 15},
-            {item: "orange", quantity: 25}
-        ];
+public function main() {
+    Elephant[][] AAA = [[{name: "Dumbo1", age: 10, cast: ""}, {name: "Dumbo2", age: 10, cast: ""}, {name: "Dumbo3", age: 10, cast: ""}],
+                        [{name: "Dumbo4", age: 10, cast: ""}, {name: "Dumbo5", age: 10, cast: ""}]];
+    Elephant[] BBB = [{cast: "", name: "", age: 0}, {cast: "", name: "", age: 0}];
 
-        Array meanQuantity = {
-            values: from var salesItem in sales
-                let var quantity = salesItem.quantity
-                group by var item = salesItem.item
-                select sum(quantity)
-        };
+    Names[] names = from Elephant[] aaa in AAA
+                    from Elephant bbb in aaa
+                    select {name: bbb.name};
 
-    } on fail error e {
-        return e;
-    }
+    Elephant[] CCC = [{cast: "", name: "", age: 0}, {cast: "", name: "", age: 0}];
+
+    Names[] newNames = from Elephant bbb in BBB
+                        from Elephant ccc in CCC
+                        select {name: bbb.name + ccc.name};
 }
