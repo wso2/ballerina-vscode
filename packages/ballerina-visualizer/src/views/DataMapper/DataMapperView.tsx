@@ -370,9 +370,14 @@ export function DataMapperView(props: DataMapperProps) {
                 targetField: targetField,
                 index: index
             });
-            return position;
+            if (position) {
+                return position;
+            } else {
+                throw new Error("Clause position not found");
+            }
         } catch (error) {
             console.error(error);
+            return { line: 0, offset: 0  };
         }
     }
 
@@ -548,7 +553,12 @@ export function DataMapperView(props: DataMapperProps) {
             codedata: viewState.codedata,
             targetField: viewId
         })
-        // TODO: need to handle undfined property case
+
+        if (!property?.codedata?.lineRange?.startLine) {
+            console.error("Failed to get start line for generating unique name");
+            return name;
+        }
+
         const completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
             filePath,
             context: {
