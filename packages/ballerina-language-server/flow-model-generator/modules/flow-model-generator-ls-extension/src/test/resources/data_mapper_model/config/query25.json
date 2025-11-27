@@ -1,0 +1,197 @@
+{
+  "source": "query23.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query23.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 44
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 15,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "names.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "AAA",
+            "displayName": "<AAAItemItem>",
+            "typeName": "Elephant",
+            "kind": "record",
+            "ref": "-2143678211"
+          },
+          "name": "AAA",
+          "displayName": "<AAAItem>",
+          "typeName": "Elephant[]",
+          "kind": "array",
+          "ref": "115957393"
+        },
+        "name": "AAA",
+        "displayName": "AAA",
+        "typeName": "Elephant[][]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "115957393"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "BBB",
+          "displayName": "<BBBItem>",
+          "typeName": "Elephant",
+          "kind": "record",
+          "ref": "-2143678211"
+        },
+        "name": "BBB",
+        "displayName": "BBB",
+        "typeName": "Elephant[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "115957393"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "aaa",
+          "displayName": "<aaaItem>",
+          "typeName": "Elephant",
+          "kind": "record",
+          "ref": "-2143678211"
+        },
+        "name": "aaa",
+        "displayName": "aaa",
+        "typeName": "Elephant[]",
+        "kind": "array",
+        "focusExpression": "AAA",
+        "ref": "115957393"
+      },
+      {
+        "fields": [],
+        "name": "bbb",
+        "displayName": "bbb",
+        "typeName": "Elephant",
+        "kind": "record",
+        "focusExpression": "aaa",
+        "ref": "-2143678211"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "names",
+        "displayName": "<namesItem>",
+        "typeName": "Names",
+        "kind": "record",
+        "ref": "-388980516"
+      },
+      "name": "names",
+      "displayName": "names",
+      "typeName": "Names[]",
+      "kind": "array",
+      "ref": "1544441335"
+    },
+    "mappings": [
+      {
+        "output": "names.name",
+        "inputs": [
+          "bbb.name"
+        ],
+        "expression": "bbb.name",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "names",
+      "inputs": [
+        "AAA",
+        "aaa"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "aaa",
+          "type": "Elephant[]",
+          "expression": "AAA",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [
+        {
+          "type": "from",
+          "properties": {
+            "name": "bbb",
+            "type": "Elephant",
+            "expression": "aaa",
+            "isOuter": false
+          }
+        }
+      ],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{name: bbb.name}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-2143678211": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "cast",
+            "displayName": "cast",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Elephant",
+        "kind": "record"
+      },
+      "-388980516": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Names",
+        "kind": "record"
+      }
+    }
+  }
+}

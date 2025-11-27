@@ -306,26 +306,10 @@ public class DataMapManager {
                 }
             }
 
-            List<JoinClauseNode> joinClauses = getJoinClause(queryExpressionNode);
-            if (!joinClauses.isEmpty()) {
-                for (JoinClauseNode joinClause : joinClauses) {
-                    ExpressionNode joinExpression = joinClause.expression();
-                    inputs.add(joinExpression.toSourceCode().trim());
-                    Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
-                    String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
-                    if (joinTypeSymbol.isPresent()) {
-                        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(joinTypeSymbol.get());
-                        if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
-                            TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
-                            MappingPort mappingPort = getRefMappingPort(joinClauseVar, joinClauseVar,
-                                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
-                                            typeDefSymbols)), new HashMap<>(), references);
-                            mappingPort.setFocusExpression(joinExpression.toString().trim());
-                            inputPorts.add(mappingPort);
-                        }
-                    }
-                }
-            }
+            handleIntermediateJoinClause(semanticModel, queryExpressionNode, inputs, inputPorts, typeDefSymbols,
+                    references);
+            handleIntermediateFromClauses(semanticModel, queryExpressionNode, inputs, inputPorts, typeDefSymbols,
+                    references);
 
             Clause fromClause = new Clause(FROM, new Properties(fromClauseVar, itemType,
                     expression.toSourceCode().trim(), null, null, null, false));
@@ -377,14 +361,79 @@ public class DataMapManager {
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
     }
 
-    private List<JoinClauseNode> getJoinClause(QueryExpressionNode query) {
+    private List<JoinClauseNode> getJoinClauses(QueryExpressionNode query) {
         List<JoinClauseNode> joinClauses = new ArrayList<>();
-        for (IntermediateClauseNode intermediateClauseNode : query.queryPipeline().intermediateClauses()) {
-            if (intermediateClauseNode.kind() == SyntaxKind.JOIN_CLAUSE) {
-                joinClauses.add((JoinClauseNode) intermediateClauseNode);
+        for (IntermediateClauseNode intermediateClause : query.queryPipeline().intermediateClauses()) {
+            if (intermediateClause.kind() == SyntaxKind.JOIN_CLAUSE) {
+                joinClauses.add((JoinClauseNode) intermediateClause);
             }
         }
         return joinClauses;
+    }
+
+    private List<FromClauseNode> getIntermediateFromClauses(QueryExpressionNode query) {
+        List<FromClauseNode> fromClauses = new ArrayList<>();
+        for (IntermediateClauseNode intermediateClause : query.queryPipeline().intermediateClauses()) {
+            if (intermediateClause.kind() == SyntaxKind.FROM_CLAUSE) {
+                fromClauses.add((FromClauseNode) intermediateClause);
+            }
+        }
+        return fromClauses;
+    }
+
+    private void handleIntermediateJoinClause(SemanticModel semanticModel, QueryExpressionNode queryExpr,
+                                              List<String> inputs, List<DataMapManager.MappingPort> inputPorts,
+                                              List<Symbol> typeDefSymbols,
+                                              Map<String, DataMapManager.MappingPort> references) {
+        List<JoinClauseNode> joinClauses = getJoinClauses(queryExpr);
+        if (joinClauses.isEmpty()) {
+            return;
+        }
+
+        for (JoinClauseNode joinClause : joinClauses) {
+            ExpressionNode joinExpression = joinClause.expression();
+            inputs.add(joinExpression.toSourceCode().trim());
+            Optional<TypeSymbol> joinTypeSymbol = semanticModel.typeOf(joinExpression);
+            String joinClauseVar = joinClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+            joinTypeSymbol.ifPresent(typeSymbol ->
+                    addClauseExpressionType(typeSymbol, inputPorts, typeDefSymbols, references, joinClauseVar,
+                    joinExpression.toString().trim()));
+        }
+    }
+
+    private void handleIntermediateFromClauses(SemanticModel semanticModel, QueryExpressionNode queryExpr,
+                                               List<String> inputs, List<DataMapManager.MappingPort> inputPorts,
+                                               List<Symbol> typeDefSymbols,
+                                               Map<String, DataMapManager.MappingPort> references) {
+        List<FromClauseNode> fromClauses = getIntermediateFromClauses(queryExpr);
+        if (fromClauses.isEmpty()) {
+            return;
+        }
+
+        for (FromClauseNode fromClause : fromClauses) {
+            ExpressionNode fromClauseExpression = fromClause.expression();
+            inputs.add(fromClauseExpression.toSourceCode().trim());
+            Optional<TypeSymbol> fromClauseTypeSymbol = semanticModel.typeOf(fromClauseExpression);
+            String fromClauseVarName = fromClause.typedBindingPattern().bindingPattern().toSourceCode().trim();
+            fromClauseTypeSymbol.ifPresent(typeSymbol ->
+                    addClauseExpressionType(typeSymbol, inputPorts, typeDefSymbols, references, fromClauseVarName,
+                            fromClauseExpression.toString().trim()));
+        }
+    }
+
+    private void addClauseExpressionType(TypeSymbol fromClauseTypeSymbol, List<DataMapManager.MappingPort> inputPorts,
+                                         List<Symbol> typeDefSymbols,
+                                         Map<String, DataMapManager.MappingPort> references, String varName,
+                                         String clauseExpr) {
+        TypeSymbol rawTypeSymbol = CommonUtils.getRawType(fromClauseTypeSymbol);
+        if (rawTypeSymbol.typeKind() == TypeDescKind.ARRAY) {
+            TypeSymbol memberTypeSymbol = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor();
+            MappingPort mappingPort = getRefMappingPort(varName, varName,
+                    Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
+                            typeDefSymbols)), new HashMap<>(), references);
+            mappingPort.setFocusExpression(clauseExpr);
+            inputPorts.add(mappingPort);
+        }
     }
 
     private String getVariableName(NonTerminalNode node) {
