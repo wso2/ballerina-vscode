@@ -364,8 +364,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 props.fileName,
                 startLine !== undefined ? startLine : undefined
             );
-            const prefixCorrectedTokenStream = tokenStream;
+            let prefixCorrectedTokenStream = tokenStream;
             if (tokenStream && tokenStream.length >= 5) {
+                prefixCorrectedTokenStream = [...tokenStream];
                 prefixCorrectedTokenStream[TOKEN_START_CHAR_OFFSET_INDEX] -= configuration.getSerializationPrefix().length;
             }
             setIsTokenUpdateScheduled(false);

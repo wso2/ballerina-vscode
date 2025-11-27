@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import { ExpressionField } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
 import styled from "@emotion/styled";
@@ -37,8 +36,6 @@ const EditorContainer = styled.div`
         opacity: 1;
     }
 `;
-
-type TextModeEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
 
 export const TextModeEditor: React.FC<ChipExpressionEditorComponentProps> = (props) => {
 
