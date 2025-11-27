@@ -670,7 +670,7 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Use the current process environment which should have the updated PATH
-            const env = process.env;
+            const env = { ...process.env, ...((args as any)?.env || {}) };
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
             // Determine the correct working directory for the task
