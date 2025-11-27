@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="persist-service-ls-extension-test-suite">
+    <test name="persist-service-ls-extension-test">
+        <packages>
+            <package name="io.ballerina.persist.extension"/>
+        </packages>
+    </test>
+</suite>
+
