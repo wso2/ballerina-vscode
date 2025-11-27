@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -502,6 +502,7 @@ export interface AIChatMachineContext {
     currentApproval?: UserApproval;
     autoApproveEnabled?: boolean;
     isPlanMode?: boolean;
+    codeContext?: CodeContext;
     currentSpec?: {
         requestId: string;
         spec?: any;
@@ -514,7 +515,7 @@ export interface AIChatMachineContext {
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string; isPlanMode: boolean } }
+    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }

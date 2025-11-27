@@ -14,44 +14,33 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFiles, FileChanges } from "@wso2/ballerina-core";
+import { SourceFiles, FileChanges, CodeContext } from "@wso2/ballerina-core";
 import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from 'vscode';
-import type { TextEdit } from 'vscode-languageserver-protocol';
+import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
+import type { TextEdit } from "vscode-languageserver-protocol";
 
 /**
  * File extensions to include in codebase structure
  */
-const CODEBASE_STRUCTURE_FILE_TYPES = ['.bal'];
+const CODEBASE_STRUCTURE_FILE_TYPES = [".bal"];
 
 /**
  * Directories to ignore in codebase structure
  */
-const CODEBASE_STRUCTURE_IGNORE_FOLDERS = [
-    'target',
-    '.ballerina',
-    '.vscode',
-    '.git',
-];
+const CODEBASE_STRUCTURE_IGNORE_FOLDERS = ["target", ".ballerina", ".vscode", ".git"];
 
 /**
  * Files to ignore in codebase structure
  */
-const CODEBASE_STRUCTURE_IGNORE_FILES = [
-    'Ballerina.toml',
-    'Config.toml',
-    'Dependencies.toml'
-];
+const CODEBASE_STRUCTURE_IGNORE_FILES = ["Ballerina.toml", "Config.toml", "Dependencies.toml"];
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
  */
-const FILES_REQUIRING_PATH_SANITIZATION = [
-    'Ballerina.toml'
-];
+const FILES_REQUIRING_PATH_SANITIZATION = ["Ballerina.toml"];
 
 /**
  * Sanitizes temp directory paths in file content by replacing them with workspace paths
@@ -62,11 +51,11 @@ const FILES_REQUIRING_PATH_SANITIZATION = [
  */
 function sanitizeTempPaths(content: string, tempPath: string, workspacePath: string): string {
     // Normalize paths to forward slashes for consistent replacement
-    const normalizedTempPath = tempPath.replace(/\\/g, '/');
-    const normalizedWorkspacePath = workspacePath.replace(/\\/g, '/');
+    const normalizedTempPath = tempPath.replace(/\\/g, "/");
+    const normalizedWorkspacePath = workspacePath.replace(/\\/g, "/");
 
     // Replace all occurrences of temp path with workspace path
-    return content.replace(new RegExp(normalizedTempPath, 'g'), normalizedWorkspacePath);
+    return content.replace(new RegExp(normalizedTempPath, "g"), normalizedWorkspacePath);
 }
 
 /**
@@ -99,7 +88,7 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
             const fullPath = path.join(tempProjectPath, relativePath);
 
             if (fs.existsSync(fullPath)) {
-                let content = fs.readFileSync(fullPath, 'utf-8');
+                let content = fs.readFileSync(fullPath, "utf-8");
 
                 // Check if this file requires path sanitization
                 const fileName = path.basename(relativePath);
@@ -110,7 +99,7 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
 
                 fileChanges.push({
                     filePath: relativePath,
-                    content: content
+                    content: content,
                 });
                 console.log(`[Design Integration] Prepared modified file: ${relativePath}`);
             } else {
@@ -139,9 +128,11 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
 
 export function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
     const codeBlocks = updatedFileNames
-        .map(fileName => {
-            const sourceFile = updatedSourceFiles.find(sf => sf.filePath === fileName);
-            if (!sourceFile) { return null; }
+        .map((fileName) => {
+            const sourceFile = updatedSourceFiles.find((sf) => sf.filePath === fileName);
+            if (!sourceFile) {
+                return null;
+            }
 
             return `<code filename="${sourceFile.filePath}">
 \`\`\`ballerina
@@ -164,7 +155,7 @@ ${sourceFile.content}
 export function formatCodebaseStructure(tempProjectPath: string, packageName: string): string {
     const allFiles: string[] = [];
 
-    function collectFiles(dir: string, basePath: string = '') {
+    function collectFiles(dir: string, basePath: string = "") {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
 
         for (const entry of entries) {
@@ -190,12 +181,12 @@ export function formatCodebaseStructure(tempProjectPath: string, packageName: st
 
     collectFiles(tempProjectPath);
 
-    let text = '<codebase_structure>\n';
+    let text = "<codebase_structure>\n";
     text += `This is the complete structure of the codebase you are working with (Package: ${packageName}). `;
-    text += 'You do not need to acknowledge or list these files in your response. ';
-    text += 'This information is provided for your awareness only.\n\n';
-    text += '<files>\n' + allFiles.join('\n') + '\n</files>\n';
-    text += '</codebase_structure>';
+    text += "You do not need to acknowledge or list these files in your response. ";
+    text += "This information is provided for your awareness only.\n\n";
+    text += "<files>\n" + allFiles.join("\n") + "\n</files>\n";
+    text += "</codebase_structure>";
 
     return text;
 }
@@ -233,5 +224,76 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
     } catch (error) {
         console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
         throw error;
+    }
+}
+
+/**
+ * Formats code context with surrounding lines (3 before, 3 after) in XML format
+ * @param codeContext The code context (addition or selection type) with relative file path from workspace root
+ * @param tempProjectPath The temporary project directory path
+ * @returns Formatted XML string with file content and context
+ */
+export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
+    const absolutePath = path.join(tempProjectPath, codeContext.filePath);
+
+    const fileContent = fs.readFileSync(absolutePath, "utf-8");
+    const lines = fileContent.split("\n");
+    const totalLines = lines.length;
+
+    let startLine: number;
+    let endLine: number;
+    let markerLine: number | undefined;
+
+    if (codeContext.type === "addition") {
+        // For addition: show 3 lines before and after the insertion point
+        const insertLine = codeContext.position.line;
+        startLine = Math.max(0, insertLine - 3);
+        endLine = Math.min(totalLines - 1, insertLine + 3);
+        markerLine = insertLine;
+    } else {
+        // For selection: show 3 lines before start and 3 lines after end
+        const selectionStart = codeContext.startPosition.line;
+        const selectionEnd = codeContext.endPosition.line;
+        startLine = Math.max(0, selectionStart - 3);
+        endLine = Math.min(totalLines - 1, selectionEnd + 3);
+    }
+
+    // Build the context snippet
+    const contextLines: string[] = [];
+    for (let i = startLine; i <= endLine; i++) {
+        const lineContent = lines[i] || "";
+
+        if (codeContext.type === "addition" && i === markerLine) {
+            contextLines.push(lineContent);
+            contextLines.push(`>>> Cursor Position <<<`);
+        } else if (codeContext.type === "selection") {
+            // Add selection start marker before the first selected line
+            if (i === codeContext.startPosition.line) {
+                contextLines.push(`>>> SELECTION START <<<`);
+            }
+            contextLines.push(lineContent);
+            // Add selection end marker after the last selected line
+            if (i === codeContext.endPosition.line) {
+                contextLines.push(`>>> SELECTION END <<<`);
+            }
+        } else {
+            contextLines.push(lineContent);
+        }
+    }
+
+    return `
+** Note: ${getCodeContextInstruction(codeContext.type)} **
+<selected_code>
+<file path="${codeContext.filePath}">
+${contextLines.join("\n")}
+</file>
+</selected_code>`;
+}
+
+function getCodeContextInstruction(type: "addition" | "selection"): string {
+    if (type === "addition") {
+        return "The user has indicated a cursor position where new code can be added. The cursor position is marked with >>> Cursor Position <<< in the code context below.";
+    } else {
+        return "The user has selected a block of code that is relevant to the current task. The selected code is enclosed between >>> SELECTION START <<< and >>> SELECTION END <<< markers in the code context below.";
     }
 }

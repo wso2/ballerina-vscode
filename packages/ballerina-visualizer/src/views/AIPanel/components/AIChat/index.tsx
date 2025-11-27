@@ -1530,7 +1530,7 @@ const AIChat: React.FC = () => {
     async function processDesignGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
         });
     }
 
