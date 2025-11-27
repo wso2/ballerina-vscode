@@ -17,10 +17,14 @@
  */
 
 import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { TokenType } from "./ChipExpressionEditor/types";
+import { ParsedToken } from "./ChipExpressionEditor/utils";
 
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return `\$\{${value}\}`;
+    getHelperValue(value: string, token?: ParsedToken): string {
+        if (token?.type !== TokenType.FUNCTION) {
+            return `\$\{${value}\}`;
+        }
     }
     getSerializationPrefix() {
         return "string `";
@@ -47,8 +51,10 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
 }
 
 export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return `\$\{${value}\}`;
+    getHelperValue(value: string, token?: ParsedToken): string {
+        if (token?.type !== TokenType.FUNCTION) {
+            return `\$\{${value}\}`;
+        }
     }
     getSerializationPrefix() {
         return "`";
@@ -75,7 +81,7 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
 }
 
 export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
+    getHelperValue(value: string, token?: ParsedToken): string {
         return value;
     }
 }

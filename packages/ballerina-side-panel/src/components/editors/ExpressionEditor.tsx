@@ -449,26 +449,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.EXP);
             return;
         }
-        if (newInputMode === InputMode.TEXT
-            && typeof initialFieldValue.current === 'string'
-            && initialFieldValue.current.trim() !== ''
-            && !(initialFieldValue.current.trim().startsWith("\"")
-                && initialFieldValue.current.trim().endsWith("\"")
-            )
-        ) {
-            setInputMode(InputMode.EXP)
-        } else if (newInputMode === InputMode.TEMPLATE) {
-            if (sanitizedExpression && rawExpression) {
-                const sanitized = sanitizedExpression(initialFieldValue.current as string);
-                if (sanitized !== initialFieldValue.current || !initialFieldValue.current || initialFieldValue.current.trim() === '') {
-                    setInputMode(InputMode.TEMPLATE);
-                } else {
-                    setInputMode(InputMode.EXP);
-                }
-            }
-        } else {
-            setInputMode(newInputMode);
-        }
+       setInputMode(newInputMode)
     }, [field?.valueTypeConstraint, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {

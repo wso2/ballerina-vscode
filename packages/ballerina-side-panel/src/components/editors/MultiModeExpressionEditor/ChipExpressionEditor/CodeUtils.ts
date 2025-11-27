@@ -605,3 +605,18 @@ export const buildHelperPaneKeymap = (getIsHelperPaneOpen: () => boolean, onClos
         }
     ];
 };
+
+export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {
+    if (!view) return undefined;
+    const { tokens, compounds } = view.state.field(tokenField);
+
+    const matchingCompound = compounds.find(
+        compound => compound.start === from && compound.end === to
+    );
+    if (matchingCompound) return undefined;
+
+    const matchingToken = tokens.find(
+        token => token.start === from && token.end === to
+    );
+    return matchingToken;
+};
