@@ -31,6 +31,8 @@ export enum MappingType {
 	ArrayJoin = "array-join",
 	Incompatible = "incompatible",
 	ContainsUnions = "contains-unions",
+	SeqToPrimitive = "seq-primitive",
+	SeqToArray = "seq-array",
 	Default = undefined // This is for non-array mappings currently
 }
 
