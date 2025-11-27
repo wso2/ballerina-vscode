@@ -26,7 +26,7 @@ import { MarkdownPreview } from "../controls/MarkdownPreview";
 import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
 import { useFormContext } from "../../../../context/form";
 import { ErrorBanner } from "@wso2/ui-toolkit";
-import { ChipExpressionEditorDefaultConfiguration } from "../../MultiModeExpressionEditor/ChipExpressionEditor/configurations/IConfiguration";
+import { RawTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -36,34 +36,6 @@ const ExpressionContainer = styled.div`
     box-sizing: border-box;
     overflow: hidden;
 `;
-
-export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return `\$\{${value}\}`;
-    }
-    getSerializationPrefix() {
-        return "`";
-    }
-    getSerializationSuffix() {
-        return "`";
-    }
-    serializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
-        }
-        return value;
-    }
-    deserializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value;
-        }
-        return `${prefix}${value}${suffix}`;
-    }
-}
 
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     value,

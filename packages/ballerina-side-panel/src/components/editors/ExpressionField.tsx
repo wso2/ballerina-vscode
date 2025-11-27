@@ -31,8 +31,9 @@ import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/type
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
-import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/configurations/IConfiguration';
+import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
+import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export interface ExpressionField {
     inputMode: InputMode;
@@ -97,62 +98,6 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
-export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return `\$\{${value}\}`;
-    }
-    getSerializationPrefix() {
-        return "string `";
-    }
-    getSerializationSuffix() {
-        return "`";
-    }
-    serializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
-        }
-        return value;
-    }
-    deserializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value;
-        }
-        return `${prefix}${value}${suffix}`;
-    }
-}
-
-export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    getHelperValue(value: string): string {
-        return `\$\{${value}\}`;
-    }
-    getSerializationPrefix() {
-        return "`";
-    }
-    getSerializationSuffix() {
-        return "`";
-    }
-    serializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
-        }
-        return value;
-    }
-    deserializeValue(value: string): string {
-        const suffix = this.getSerializationSuffix();
-        const prefix = this.getSerializationPrefix();
-        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
-            return value;
-        }
-        return `${prefix}${value}${suffix}`;
-    }
-}
-
 export const ExpressionField: React.FC<ExpressionField> = ({
     inputMode,
     primaryMode,
@@ -195,6 +140,28 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             return value;
         }
     }
+     if (inputMode === InputMode.RECORD) {
+        return (
+            <RecordConfigPreviewEditor
+                exprRef={exprRef}
+                anchorRef={anchorRef}
+                name={name}
+                value={value}
+                autoFocus={autoFocus}
+                ariaLabel={ariaLabel}
+                onChange={onChange}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onSave={onSave}
+                onCancel={onCancel}
+                onRemove={onRemove}
+                growRange={growRange}
+                placeholder={placeholder}
+                onOpenExpandedMode={onOpenExpandedMode}
+                isInExpandedMode={isInExpandedMode}
+            />
+        );
+    }
     if (inputMode === InputMode.TEXT) {
         return (
             <TextModeEditor
@@ -233,29 +200,6 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={new RawTemplateEditorConfig()}
-            />
-
-        );
-    }
-    if (inputMode === InputMode.RECORD) {
-        return (
-            <RecordConfigPreviewEditor
-                exprRef={exprRef}
-                anchorRef={anchorRef}
-                name={name}
-                value={value}
-                autoFocus={autoFocus}
-                ariaLabel={ariaLabel}
-                onChange={onChange}
-                onFocus={onFocus}
-                onBlur={onBlur}
-                onSave={onSave}
-                onCancel={onCancel}
-                onRemove={onRemove}
-                growRange={growRange}
-                placeholder={placeholder}
-                onOpenExpandedMode={onOpenExpandedMode}
-                isInExpandedMode={isInExpandedMode}
             />
 
         );
