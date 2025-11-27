@@ -1,7 +1,7 @@
 {
   "description": "A simple example of a reference-based type",
   "source": "RefTypeTest/BalProject5",
-  "typeSymbolName": "GetOrdersRes",
+  "typeSymbolName": "Outer",
   "refType": {
     "fields": [
       {
@@ -9,9 +9,9 @@
         "type": {
           "elementType": {
             "dependentTypeKeys": [],
-            "hashCode": "1040263469",
-            "key": "246887829",
-            "name": "Product",
+            "hashCode": "-1966649113",
+            "key": "-1027446987",
+            "name": "Inner1",
             "typeName": "record",
             "moduleInfo": {
               "orgName": "ballerinax",
@@ -22,13 +22,13 @@
             }
           },
           "dependentTypeKeys": [
-            "1807032540",
-            "246887829",
-            "-1221387492",
-            "1040263469"
+            "1310198466",
+            "-1966649113",
+            "-1027446986",
+            "-1027446987"
           ],
-          "hashCode": "1040263469",
-          "key": "246887829",
+          "hashCode": "-1966649113",
+          "key": "-1027446987",
           "name": "",
           "typeName": "array",
           "moduleInfo": {
@@ -44,26 +44,26 @@
       }
     ],
     "dependentTypeKeys": [
-      "1807032540",
-      "246887829",
-      "-1221387492",
-      "1040263469"
+      "1310198466",
+      "-1966649113",
+      "-1027446986",
+      "-1027446987"
     ],
-    "hashCode": "1182124281",
-    "key": "-1411368993",
-    "name": "GetOrdersRes",
+    "hashCode": "66336515",
+    "key": "803895969",
+    "name": "Outer",
     "typeName": "record",
     "dependentTypes": {
-      "246887829": {
+      "-1027446986": {
         "fields": [
           {
-            "fieldName": "bundles",
+            "fieldName": "products",
             "type": {
               "elementType": {
                 "dependentTypeKeys": [],
-                "hashCode": "1807032540",
-                "key": "-1221387492",
-                "name": "Bundle",
+                "hashCode": "-1966649113",
+                "key": "-1027446987",
+                "name": "Inner1",
                 "typeName": "record",
                 "moduleInfo": {
                   "orgName": "ballerinax",
@@ -74,12 +74,10 @@
                 }
               },
               "dependentTypeKeys": [
-                "246887829",
-                "-1221387492",
-                "1040263469"
+                "-1027446987"
               ],
-              "hashCode": "1807032540",
-              "key": "-1221387492",
+              "hashCode": "-1966649113",
+              "key": "-1027446987",
               "name": "",
               "typeName": "array",
               "moduleInfo": {
@@ -95,14 +93,12 @@
           }
         ],
         "dependentTypeKeys": [
-          "1807032540",
-          "246887829",
-          "-1221387492",
-          "1040263469"
+          "-1966649113",
+          "-1027446987"
         ],
-        "hashCode": "1040263469",
-        "key": "246887829",
-        "name": "Product",
+        "hashCode": "1310198466",
+        "key": "-1027446986",
+        "name": "Inner2",
         "typeName": "record",
         "moduleInfo": {
           "orgName": "ballerinax",
@@ -112,16 +108,16 @@
           "modulePrefix": "r1"
         }
       },
-      "-1221387492": {
+      "-1027446987": {
         "fields": [
           {
-            "fieldName": "products",
+            "fieldName": "bundles",
             "type": {
               "elementType": {
                 "dependentTypeKeys": [],
-                "hashCode": "1040263469",
-                "key": "246887829",
-                "name": "Product",
+                "hashCode": "1310198466",
+                "key": "-1027446986",
+                "name": "Inner2",
                 "typeName": "record",
                 "moduleInfo": {
                   "orgName": "ballerinax",
@@ -132,10 +128,12 @@
                 }
               },
               "dependentTypeKeys": [
-                "246887829"
+                "-1966649113",
+                "-1027446986",
+                "-1027446987"
               ],
-              "hashCode": "1040263469",
-              "key": "246887829",
+              "hashCode": "1310198466",
+              "key": "-1027446986",
               "name": "",
               "typeName": "array",
               "moduleInfo": {
@@ -151,12 +149,14 @@
           }
         ],
         "dependentTypeKeys": [
-          "246887829",
-          "1040263469"
+          "1310198466",
+          "-1966649113",
+          "-1027446986",
+          "-1027446987"
         ],
-        "hashCode": "1807032540",
-        "key": "-1221387492",
-        "name": "Bundle",
+        "hashCode": "-1966649113",
+        "key": "-1027446987",
+        "name": "Inner1",
         "typeName": "record",
         "moduleInfo": {
           "orgName": "ballerinax",

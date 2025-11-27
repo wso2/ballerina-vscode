@@ -1,11 +1,11 @@
-public type GetOrdersRes record {|
-    Product[] products;
+public type Outer record {|
+    Inner1[] products;
 |};
 
-public type Bundle record {|
-    Product[] products;
+public type Inner2 record {|
+    Inner1[] products;
 |};
 
-public type Product record {|
-    Bundle[] bundles;
+public type Inner1 record {|
+    Inner2[] bundles;
 |};
