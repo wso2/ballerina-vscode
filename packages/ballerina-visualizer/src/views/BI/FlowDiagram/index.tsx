@@ -19,7 +19,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { openAIPanelWithPromptRpc } from "../../../utils/commands";
 import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
 import { MemoizedDiagram } from "@wso2/bi-diagram";
 import {
@@ -798,7 +797,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         };
 
         // Use the standard pattern - import from utils/commands
-        openAIPanelWithPromptRpc(rpcClient.getCommonRpcClient(), aiPrompt);
+        rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
     const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {

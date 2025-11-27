@@ -37,9 +37,9 @@ import {
     DocGenerationRequest,
     fetchData,
     FetchDataRequest,
+    GenerateAgentCodeRequest,
     generateCode,
     GenerateCodeRequest,
-    GenerateAgentCodeRequest,
     generateContextTypes,
     generateDesign,
     generateFunctionTests,
@@ -77,6 +77,7 @@ import {
     isUserAuthenticated,
     markAlertShown,
     MetadataWithAttachments,
+    openAIPanel,
     openChatWindowWithCommand,
     postProcess,
     PostProcessRequest,
@@ -161,4 +162,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
+    messenger.onNotification(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
 }

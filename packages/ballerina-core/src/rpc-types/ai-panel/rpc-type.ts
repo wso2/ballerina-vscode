@@ -19,7 +19,7 @@
  */
 import { DataMapperModelResponse } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
@@ -39,9 +39,9 @@ export const getShadowDiagnostics: RequestType<ProjectSource, ProjectDiagnostics
 export const checkSyntaxError: RequestType<ProjectSource, boolean> = { method: `${_preFix}/checkSyntaxError` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
 export const openChatWindowWithCommand: NotificationType<void> = { method: `${_preFix}/openChatWindowWithCommand` };
-export const generateContextTypes: RequestType<ProcessContextTypeCreationRequest, void> = { method: `${_preFix}/generateContextTypes` };
-export const generateMappingCode: RequestType<ProcessMappingParametersRequest, void> = { method: `${_preFix}/generateMappingCode` };
-export const generateInlineMappingCode: RequestType<MetadataWithAttachments, void> = { method: `${_preFix}/generateInlineMappingCode` };
+export const generateContextTypes: NotificationType<ProcessContextTypeCreationRequest> = { method: `${_preFix}/generateContextTypes` };
+export const generateMappingCode: NotificationType<ProcessMappingParametersRequest> = { method: `${_preFix}/generateMappingCode` };
+export const generateInlineMappingCode: NotificationType<MetadataWithAttachments> = { method: `${_preFix}/generateInlineMappingCode` };
 export const getGeneratedTests: RequestType<TestGenerationRequest, TestGenerationResponse> = { method: `${_preFix}/getGeneratedTests` };
 export const getTestDiagnostics: RequestType<TestGenerationResponse, ProjectDiagnostics> = { method: `${_preFix}/getTestDiagnostics` };
 export const getServiceSourceForName: RequestType<string, string> = { method: `${_preFix}/getServiceSourceForName` };
@@ -70,12 +70,13 @@ export const submitFeedback: RequestType<SubmitFeedbackRequest, boolean> = { met
 export const getRelevantLibrariesAndFunctions: RequestType<RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse> = { method: `${_preFix}/getRelevantLibrariesAndFunctions` };
 export const generateOpenAPI: NotificationType<GenerateOpenAPIRequest> = { method: `${_preFix}/generateOpenAPI` };
 export const generateCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateCode` };
-export const generateDesign: RequestType<GenerateCodeRequest, boolean> = { method: `${_preFix}/generateDesign` };
+export const generateDesign: RequestType<GenerateAgentCodeRequest, boolean> = { method: `${_preFix}/generateDesign` };
 export const repairGeneratedCode: NotificationType<RepairParams> = { method: `${_preFix}/repairGeneratedCode` };
 export const generateTestPlan: NotificationType<TestPlanGenerationRequest> = { method: `${_preFix}/generateTestPlan` };
 export const generateFunctionTests: NotificationType<TestGeneratorIntermediaryState> = { method: `${_preFix}/generateFunctionTests` };
 export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateHealthcareCode` };
 export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
-export const getGeneratedDocumentation: RequestType<DocGenerationRequest, boolean> = { method: `${_preFix}/getGeneratedDocumentation` };
+export const getGeneratedDocumentation: NotificationType<DocGenerationRequest> = { method: `${_preFix}/getGeneratedDocumentation` };
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
+export const openAIPanel: NotificationType<AIPanelPrompt> = { method: `${_preFix}/openAIPanel` };

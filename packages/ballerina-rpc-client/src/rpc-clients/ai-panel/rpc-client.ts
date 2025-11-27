@@ -29,8 +29,8 @@ import {
     DocGenerationRequest,
     FetchDataRequest,
     FetchDataResponse,
-    GenerateCodeRequest,
     GenerateAgentCodeRequest,
+    GenerateCodeRequest,
     GenerateOpenAPIRequest,
     GetFromFileRequest,
     LLMDiagnostics,
@@ -98,6 +98,7 @@ import {
     isRequirementsSpecificationFileExist,
     isUserAuthenticated,
     markAlertShown,
+    openAIPanel,
     openChatWindowWithCommand,
     postProcess,
     promptGithubAuthorize,
@@ -183,7 +184,7 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(openChatWindowWithCommand, HOST_EXTENSION);
     }
 
-    generateContextTypes(params: ProcessContextTypeCreationRequest): void{
+    generateContextTypes(params: ProcessContextTypeCreationRequest): void {
         return this._messenger.sendNotification(generateContextTypes, HOST_EXTENSION, params);
     }
 
@@ -341,5 +342,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     isUserAuthenticated(): Promise<boolean> {
         return this._messenger.sendRequest(isUserAuthenticated, HOST_EXTENSION);
+    }
+
+    openAIPanel(params: AIPanelPrompt): Promise<void> {
+        return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
     }
 }
