@@ -25,7 +25,7 @@ import {
 } from "./types";
 import { GeneratedMappingSchema, RepairedSourceFilesSchema } from "./schema";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, DiagnosticList, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest, SyntaxTree } from "@wso2/ballerina-core";
+import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, DiagnosticList, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./dataMappingPrompt";
 import { getBallerinaCodeRepairPrompt } from "./codeRepairPrompt";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
@@ -41,6 +41,7 @@ import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
 import path from "path";
 import { URI } from "vscode-uri";
 import fs from 'fs';
+import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -397,44 +398,35 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         }, langClient, projectRoot);
     }
 
-    // Repair and check diagnostics for both main file and custom functions file
-    const filePaths = [tempFileMetadata.codeData.lineRange.fileName];
-    if (allMappingsRequest.customFunctionsFilePath && !isSameFile) {
-        filePaths.push(allMappingsRequest.customFunctionsFilePath);
-    }
-
-    let diags = await repairAndCheckDiagnostics(langClient, projectRoot, {
-        tempDir: tempDirectory,
-        filePaths
-    });
-
-    // Handle error for mappings with 'check' expressions (BCE3032 error) using code actions
-    const hasCheckError = diags.diagnosticsList.some((diagEntry) =>
-        diagEntry.diagnostics.some(d => d.code === "BCE3032")
+    // Handle check expression errors and repair diagnostics
+    const filePaths = await handleCheckExpressionErrorsAndRepair(
+        langClient,
+        projectRoot,
+        tempFileMetadata,
+        allMappingsRequest,
+        tempDirectory,
+        isSameFile,
+        codeRepairResult
     );
 
-    if (hasCheckError) {
-        const isModified = await addCheckExpressionErrors(diags.diagnosticsList, langClient);
-        if (isModified) {
-            // Re-read the files after modifications
-            const mainFilePath = tempFileMetadata.codeData.lineRange.fileName;
-            codeRepairResult.finalContent = fs.readFileSync(mainFilePath, 'utf8');
-
-            if (allMappingsRequest.customFunctionsFilePath && !isSameFile) {
-                codeRepairResult.customFunctionsContent = fs.readFileSync(
-                    allMappingsRequest.customFunctionsFilePath,
-                    'utf8'
-                );
-            }
-        }
-    }
+    // Remove compilation error mappings
+    const { updatedMainContent, updatedCustomContent } = await removeCompilationErrorMappingFields(
+        langClient,
+        projectRoot,
+        mainFilePath,
+        targetFunctionName,
+        allMappingsRequest,
+        tempDirectory,
+        filePaths,
+        isSameFile
+    );
 
     let generatedFunctionDefinition = await getFunctionDefinitionFromSyntaxTree(
         langClient,
         tempFileMetadata.codeData.lineRange.fileName,
         targetFunctionName
     );
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // For workspace projects, compute relative file path from workspace root
     const workspacePath = context.workspacePath;
@@ -448,9 +440,9 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
 
     const generatedSourceFiles = buildMappingFileArray(
         targetFilePath,
-        codeRepairResult.finalContent,
+        updatedMainContent,
         customFunctionsTargetPath,
-        codeRepairResult.customFunctionsContent,
+        updatedCustomContent,
     );
 
     // Build assistant response
@@ -481,8 +473,8 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
     } else {
         assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
 
-        if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        if (updatedCustomContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${updatedCustomContent}\n\`\`\`\n</code>`;
         }
     }
 
@@ -707,7 +699,8 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     let customFunctionsTargetPath: string | undefined;
     let customFunctionsFileName: string | undefined;
-
+    let codeToDisplay: string;
+    
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
         const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, targetFileName);
         customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
@@ -768,10 +761,34 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const variableName = inlineMappingRequest.metadata.name || inlineMappingsResult.tempFileMetadata.name;
 
-    let codeToDisplay = codeRepairResult.finalContent;
+    // Handle check expression errors and repair diagnostics for inline mappings
+    const { inlineFilePaths, updatedCodeToDisplay } = await handleInlineCheckExpressionErrorsAndRepair(
+        langClient,
+        projectRoot,
+        inlineMappingsResult,
+        isSameFile,
+        codeRepairResult,
+        variableName
+    );
+
+    if (updatedCodeToDisplay) {
+        codeToDisplay = updatedCodeToDisplay;
+    }
+
+    // Remove compilation error mappings for inline mappings
+    const { updatedMainContent, updatedCustomContent } = await removeInlineCompilationErrorMappingFields(
+        langClient,
+        projectRoot,
+        mainFilePath,
+        variableName,
+        inlineMappingsResult,
+        inlineFilePaths,
+        isSameFile
+    );
+
     if (variableName) {
         const extractedVariableDefinition = await extractVariableDefinitionSource(
-            inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName,
+            mainFilePath,
             inlineMappingsResult.tempFileMetadata.codeData,
             variableName
         );
@@ -780,55 +797,11 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         }
     }
 
-    // Repair and check diagnostics for both main file and custom functions file
-    const inlineFilePaths = [inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName];
-    if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
-        inlineFilePaths.push(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath);
-    }
-
-    let diags = await repairAndCheckDiagnostics(langClient, projectRoot, {
-        tempDir: inlineMappingsResult.tempDir,
-        filePaths: inlineFilePaths
-    });
-
-    // Handle error for inline mappings with 'check' expressions (BCE3032 error) using code actions
-    const hasCheckError = diags.diagnosticsList.some(diagEntry =>
-        diagEntry.diagnostics.some(d => d.code === "BCE3032")
-    );
-
-    if (hasCheckError) {
-        const isModified = await addCheckExpressionErrors(diags.diagnosticsList, langClient);
-        if (isModified) {
-            // Re-read the files after modifications
-            const tempFilePath = inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName;
-            codeRepairResult.finalContent = fs.readFileSync(tempFilePath, 'utf8');
-
-            // Update the code to display if we're working with a variable
-            if (variableName) {
-                const extractedVariableDefinition = await extractVariableDefinitionSource(
-                    tempFilePath,
-                    inlineMappingsResult.tempFileMetadata.codeData,
-                    variableName
-                );
-                if (extractedVariableDefinition) {
-                    codeToDisplay = extractedVariableDefinition;
-                }
-            }
-
-            if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
-                codeRepairResult.customFunctionsContent = fs.readFileSync(
-                    inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
-                    'utf8'
-                );
-            }
-        }
-    }
-
     const generatedSourceFiles = buildMappingFileArray(
         context.documentUri,
-        codeRepairResult.finalContent,
+        updatedMainContent,
         customFunctionsTargetPath,
-        codeRepairResult.customFunctionsContent,
+        updatedCustomContent,
     );
 
     // Build assistant response
@@ -851,8 +824,8 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
     } else {
         assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
 
-        if (codeRepairResult.customFunctionsContent) {
-            assistantResponse += `<code filename="${customFunctionsTargetPath || customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${codeRepairResult.customFunctionsContent}\n\`\`\`\n</code>`;
+        if (updatedCustomContent) {
+            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${updatedCustomContent}\n\`\`\`\n</code>`;
         }
     }
 
@@ -958,4 +931,309 @@ export async function openChatWindowWithCommand(): Promise<void> {
             mappingsModel: model.mappingsModel as DMModel
         }
     });
+}
+
+// Removes mapping fields with compilation errors for inline mappings and reads updated content
+async function removeInlineCompilationErrorMappingFields(
+    langClient: any,
+    projectRoot: string,
+    mainFilePath: string,
+    variableName: string,
+    inlineMappingsResult: InlineMappingsSourceResult,
+    inlineFilePaths: string[],
+    isSameFile: boolean
+): Promise<{ updatedMainContent: string; updatedCustomContent: string }> {
+    // For inline mappings, we use the variable's location from the codedata
+    const updatedDataMapperMetadata: DataMapperModelRequest = {
+        filePath: mainFilePath,
+        codedata: inlineMappingsResult.allMappingsRequest.codedata,
+        targetField: variableName,
+        position: inlineMappingsResult.allMappingsRequest.codedata.lineRange.startLine
+    };
+
+    // Get DM model with mappings to check for mapping-level diagnostics
+    const dataMapperModel = await langClient.getDataMapperMappings(updatedDataMapperMetadata) as DataMapperModelResponse;
+    const dmModel = dataMapperModel.mappingsModel as DMModel;
+
+    // Check if any mappings have diagnostics
+    if (dmModel && dmModel.mappings && dmModel.mappings.length > 0) {
+        const mappingsWithDiagnostics = dmModel.mappings.filter((mapping: Mapping) =>
+            mapping.diagnostics && mapping.diagnostics.length > 0
+        );
+
+        if (mappingsWithDiagnostics.length > 0) {
+            // Delete each mapping with diagnostics using the deleteMapping API
+            for (const mapping of mappingsWithDiagnostics) {
+                const deleteRequest: DeleteMappingRequest = {
+                    filePath: mainFilePath,
+                    codedata: updatedDataMapperMetadata.codedata,
+                    mapping: mapping,
+                    varName: inlineMappingsResult.allMappingsRequest.varName,
+                    targetField: variableName,
+                };
+
+                const deleteResponse = await langClient.deleteMapping(deleteRequest);
+
+                // Apply the text edits from the delete operation directly to temp files
+                if (Object.keys(deleteResponse.textEdits).length > 0) {
+                    await applyTextEditsToTempFile(deleteResponse.textEdits, mainFilePath);
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+            }
+
+            await repairAndCheckDiagnostics(langClient, projectRoot, {
+                tempDir: inlineMappingsResult.tempDir,
+                filePaths: inlineFilePaths
+            });
+        }
+    }
+
+    // Read updated content after diagnostics handling
+    const updatedMainContent = fs.readFileSync(mainFilePath, 'utf8');
+    let updatedCustomContent = '';
+    if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+        updatedCustomContent = fs.readFileSync(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath, 'utf8');
+    }
+
+    return { updatedMainContent, updatedCustomContent };
+}
+
+// Handles check expression errors (BCE3032) and repairs diagnostics for inline mapping files
+async function handleInlineCheckExpressionErrorsAndRepair(
+    langClient: any,
+    projectRoot: string,
+    inlineMappingsResult: InlineMappingsSourceResult,
+    isSameFile: boolean,
+    codeRepairResult: CodeRepairResult,
+    variableName: string
+): Promise<{ inlineFilePaths: string[]; updatedCodeToDisplay?: string }> {
+    // Build file paths array for both main file and custom functions file
+    const inlineFilePaths = [inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName];
+    if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+        inlineFilePaths.push(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath);
+    }
+
+    // Repair and check diagnostics for all files
+    let diags = await repairAndCheckDiagnostics(langClient, projectRoot, {
+        tempDir: inlineMappingsResult.tempDir,
+        filePaths: inlineFilePaths
+    });
+
+    // Check for inline mappings with 'check' expressions (BCE3032 error)
+    const hasCheckError = diags.diagnosticsList.some(diagEntry =>
+        diagEntry.diagnostics.some(d => d.code === "BCE3032")
+    );
+
+    let updatedCodeToDisplay: string;
+
+    if (hasCheckError) {
+        const isModified = await addCheckExpressionErrors(diags.diagnosticsList, langClient);
+        if (isModified) {
+            // Re-read the files after modifications
+            const tempFilePath = inlineMappingsResult.tempFileMetadata.codeData.lineRange.fileName;
+            codeRepairResult.finalContent = fs.readFileSync(tempFilePath, 'utf8');
+
+            // Update the code to display if we're working with a variable
+            if (variableName) {
+                const extractedVariableDefinition = await extractVariableDefinitionSource(
+                    tempFilePath,
+                    inlineMappingsResult.tempFileMetadata.codeData,
+                    variableName
+                );
+                if (extractedVariableDefinition) {
+                    updatedCodeToDisplay = extractedVariableDefinition;
+                }
+            }
+
+            if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+                codeRepairResult.customFunctionsContent = fs.readFileSync(
+                    inlineMappingsResult.allMappingsRequest.customFunctionsFilePath,
+                    'utf8'
+                );
+            }
+        }
+    }
+
+    return { inlineFilePaths, updatedCodeToDisplay };
+}
+
+// Handles check expression errors (BCE3032) and repairs diagnostics for mapping files
+async function handleCheckExpressionErrorsAndRepair(
+    langClient: any,
+    projectRoot: string,
+    tempFileMetadata: any,
+    allMappingsRequest: AllDataMapperSourceRequest,
+    tempDirectory: string,
+    isSameFile: boolean,
+    codeRepairResult: CodeRepairResult
+): Promise<string[]> {
+    // Build file paths array for both main file and custom functions file
+    const filePaths = [tempFileMetadata.codeData.lineRange.fileName];
+    if (allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+        filePaths.push(allMappingsRequest.customFunctionsFilePath);
+    }
+
+    // Repair and check diagnostics for all files
+    let diags = await repairAndCheckDiagnostics(langClient, projectRoot, {
+        tempDir: tempDirectory,
+        filePaths
+    });
+
+    // Check for mappings with 'check' expressions (BCE3032 error)
+    const hasCheckError = diags.diagnosticsList.some((diagEntry) =>
+        diagEntry.diagnostics.some(d => d.code === "BCE3032")
+    );
+
+    if (hasCheckError) {
+        const isModified = await addCheckExpressionErrors(diags.diagnosticsList, langClient);
+        if (isModified) {
+            // Re-read the files after modifications
+            const mainFilePath = tempFileMetadata.codeData.lineRange.fileName;
+            codeRepairResult.finalContent = fs.readFileSync(mainFilePath, 'utf8');
+
+            if (allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+                codeRepairResult.customFunctionsContent = fs.readFileSync(
+                    allMappingsRequest.customFunctionsFilePath,
+                    'utf8'
+                );
+            }
+        }
+    }
+
+    return filePaths;
+}
+
+// Removes mapping fields with compilation errors to avoid syntax errors in generated code and reads updated content
+async function removeCompilationErrorMappingFields(
+    langClient: any,
+    projectRoot: string,
+    mainFilePath: string,
+    targetFunctionName: string,
+    allMappingsRequest: AllDataMapperSourceRequest,
+    tempDirectory: string,
+    filePaths: string[],
+    isSameFile: boolean
+): Promise<{ updatedMainContent: string; updatedCustomContent: string }> {
+    // Get function definition from syntax tree
+    const funcDefinitionNode = await getFunctionDefinitionFromSyntaxTree(
+        langClient,
+        mainFilePath,
+        targetFunctionName
+    );
+
+    const updatedDataMapperMetadata: DataMapperModelRequest = {
+        filePath: mainFilePath,
+        codedata: {
+            lineRange: {
+                fileName: mainFilePath,
+                startLine: {
+                    line: funcDefinitionNode.position.startLine,
+                    offset: funcDefinitionNode.position.startColumn,
+                },
+                endLine: {
+                    line: funcDefinitionNode.position.endLine,
+                    offset: funcDefinitionNode.position.endColumn,
+                },
+            },
+        },
+        targetField: targetFunctionName,
+        position: {
+            line: funcDefinitionNode.position.startLine,
+            offset: funcDefinitionNode.position.startColumn
+        }
+    };
+
+    // Get DM model with mappings to check for mapping-level diagnostics
+    const dataMapperModel = await langClient.getDataMapperMappings(updatedDataMapperMetadata) as DataMapperModelResponse;
+    const dmModel = dataMapperModel.mappingsModel as DMModel;
+
+    // Check if any mappings have diagnostics
+    if (dmModel && dmModel.mappings && dmModel.mappings.length > 0) {
+        const mappingsWithDiagnostics = dmModel.mappings.filter((mapping: Mapping) =>
+            mapping.diagnostics && mapping.diagnostics.length > 0
+        );
+
+        if (mappingsWithDiagnostics.length > 0) {
+            // Delete each mapping with diagnostics using the deleteMapping API
+            for (const mapping of mappingsWithDiagnostics) {
+                const deleteRequest: DeleteMappingRequest = {
+                    filePath: mainFilePath,
+                    codedata: updatedDataMapperMetadata.codedata,
+                    mapping: mapping,
+                    varName: allMappingsRequest.varName,
+                    targetField: targetFunctionName,
+                };
+
+                const deleteResponse = await langClient.deleteMapping(deleteRequest);
+
+                // Apply the text edits from the delete operation directly to temp files
+                if (Object.keys(deleteResponse.textEdits).length > 0) {
+                    await applyTextEditsToTempFile(deleteResponse.textEdits, mainFilePath);
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+            }
+
+            await repairAndCheckDiagnostics(langClient, projectRoot, {
+                tempDir: tempDirectory,
+                filePaths: filePaths
+            });
+        }
+    }
+
+    // Read updated content after diagnostics handling
+    const updatedMainContent = fs.readFileSync(mainFilePath, 'utf8');
+    let updatedCustomContent = '';
+    if (allMappingsRequest.customFunctionsFilePath && !isSameFile) {
+        updatedCustomContent = fs.readFileSync(allMappingsRequest.customFunctionsFilePath, 'utf8');
+    }
+
+    return { updatedMainContent, updatedCustomContent };
+}
+
+// Applies text edits to a temporary file without using VS Code workspace APIs
+async function applyTextEditsToTempFile(textEdits: { [key: string]: TextEdit[] }, targetFilePath: string): Promise<void> {
+    // Read current file content
+    let fileContent = fs.readFileSync(targetFilePath, 'utf8');
+    const lines = fileContent.split('\n');
+
+    // Get edits for this file
+    const editsForFile = textEdits[targetFilePath] || textEdits[Uri.file(targetFilePath).toString()];
+
+    if (!editsForFile || editsForFile.length === 0) {
+        return;
+    }
+
+    // Sort edits in reverse order (bottom to top) to maintain line positions
+    const sortedEdits = [...editsForFile].sort((a, b) => {
+        if (b.range.start.line !== a.range.start.line) {
+            return b.range.start.line - a.range.start.line;
+        }
+        return b.range.start.character - a.range.start.character;
+    });
+
+    // Apply each edit
+    for (const edit of sortedEdits) {
+        const startLine = edit.range.start.line;
+        const startChar = edit.range.start.character;
+        const endLine = edit.range.end.line;
+        const endChar = edit.range.end.character;
+
+        // Handle single line edit
+        if (startLine === endLine) {
+            const line = lines[startLine];
+            lines[startLine] = line.substring(0, startChar) + edit.newText + line.substring(endChar);
+        } else {
+            // Handle multi-line edit
+            const firstLine = lines[startLine].substring(0, startChar);
+            const lastLine = lines[endLine].substring(endChar);
+            const newContent = firstLine + edit.newText + lastLine;
+
+            // Remove the lines in the range and replace with new content
+            lines.splice(startLine, endLine - startLine + 1, newContent);
+        }
+    }
+
+    // Write updated content back to file
+    const updatedContent = lines.join('\n');
+    writeBallerinaFileDidOpenTemp(targetFilePath, updatedContent);
 }
