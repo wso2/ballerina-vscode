@@ -23,7 +23,7 @@ import { useDMQueryClausesPanelStore } from "../../../../store/store";
 import { AddButton, ClauseItem } from "./ClauseItem";
 import { ClauseEditor } from "./ClauseEditor";
 import { ClauseItemListContainer } from "./styles";
-import { DMFormProps, IntermediateClause, LinePosition, Query } from "@wso2/ballerina-core";
+import { DMFormProps, IntermediateClause, IntermediateClauseType, LinePosition, Query } from "@wso2/ballerina-core";
 
 export interface ClausesPanelProps {
     query: Query;
@@ -32,12 +32,13 @@ export interface ClausesPanelProps {
     deleteClause: (targetField: string, index: number) => Promise<void>;
     getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
+    genUniqueName: (name: string, viewId: string) => Promise<string>;
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
-    const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm } = props;
+    const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm , genUniqueName} = props;
 
     const [adding, setAdding] = React.useState<number>();
     const [editing, setEditing] = React.useState<number>();
@@ -46,8 +47,20 @@ export function ClausesPanel(props: ClausesPanelProps) {
 
     const clauses = query?.intermediateClauses || [];
 
+    const fillDefaults = async (clause: IntermediateClause) => {
+        const clauseType = clause.type;
+        if (clauseType === IntermediateClauseType.JOIN) {
+            clause.properties.type = "var";
+            clause.properties.isOuter = false;
+        } else if (clauseType === IntermediateClauseType.GROUP_BY) {
+            clause.properties.type = "var";
+            clause.properties.name = await genUniqueName(clause.properties.expression.split('.').pop(), targetField);
+        }
+    };
+
     const setClauses = async (clause: IntermediateClause, isNew: boolean, index: number) => {
         setSaving(index);
+        await fillDefaults(clause);
         await addClauses(clause, targetField, isNew, index);
         setSaving(undefined);
     }
