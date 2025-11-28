@@ -17,7 +17,6 @@
  */
 
 export enum Command {
-    Code = '/code',
     Tests = '/tests',
     DataMap = '/datamap',
     TypeCreator = '/typecreator',
@@ -25,17 +24,13 @@ export enum Command {
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
-    Design = '/design',
+    Design = '/design', // Internal use only - design is the default behavior
     Doc = '/doc'
 }
 
 export enum TemplateId {
     // Shared
     Wildcard = 'wildcard',
-
-    // Command.Code
-    GenerateCode = 'generate-code',
-    GenerateFromReadme = 'generate-from-readme',
 
     // Command.Tests
     TestsForService = 'tests-for-service',

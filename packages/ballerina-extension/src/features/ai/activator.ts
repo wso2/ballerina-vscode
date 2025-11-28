@@ -19,7 +19,6 @@
 import { commands, window } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
-import { generateCodeCore } from './service/code/code';
 import { GenerateCodeRequest, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from './service/event';
 import { addConfigFile, getConfigFilePath } from './utils';
@@ -41,7 +40,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
         commands.registerCommand('ballerina.test.ai.generateCodeCore', async (params: GenerateCodeRequest, testEventHandler: CopilotEventHandler) => {
-            await generateCodeCore(params, testEventHandler);
+            // await generateCodeCore(params, testEventHandler);
         });
 
         commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {

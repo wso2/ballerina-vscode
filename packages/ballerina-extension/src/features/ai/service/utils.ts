@@ -42,7 +42,7 @@ import { MessageRole } from "./types";
 import { RPCLayer } from "../../../../src/RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { GenerationType } from "./libs/libs";
-import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
+// import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
 export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
     if (!chatHistory || chatHistory.length === 0) {
@@ -108,7 +108,7 @@ export function transformProjectSource(project: ProjectSource): SourceFiles[] {
 
 export function extractResourceDocumentContent(sourceFiles: readonly SourceFiles[]): string {
     const requirementFiles = sourceFiles
-        .filter(sourceFile => sourceFile.filePath.toLowerCase().endsWith(REQUIREMENTS_DOCUMENT_KEY))
+        .filter(sourceFile => sourceFile.filePath.toLowerCase().endsWith("Requirements.md"))
         .slice(0, 1)
         .map(sourceFile => sourceFile.content);
 

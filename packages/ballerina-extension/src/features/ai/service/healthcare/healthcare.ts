@@ -40,7 +40,7 @@ import {
 import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
-import { stringifyExistingCode } from "../code/code";
+// import { stringifyExistingCode } from "../code/code";
 
 
 // Core healthcare code generation function that emits events
@@ -280,7 +280,7 @@ ${usecase}
 
 Existing Code: Users existing code.
 <existing_code>
-${stringifyExistingCode(existingCode, op)}
+
 </existing_code>
 
 Current Package name: ${packageName}

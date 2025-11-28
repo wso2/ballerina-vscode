@@ -93,6 +93,7 @@ import { getOnboardingOpens, incrementOnboardingOpens } from "./utils/utils";
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { URI } from "vscode-uri";
+import { SegmentType, splitContent } from "./segment";
 
 interface ChatIndexes {
     integratedChatIndex: number;
@@ -204,6 +205,7 @@ const AIChat: React.FC = () => {
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
+    const [isExperimentalEnabled, setIsExperimentalEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -386,6 +388,20 @@ const AIChat: React.FC = () => {
         };
 
         initializeAutoApproveState();
+    }, [rpcClient]);
+
+    useEffect(() => {
+        const checkExperimentalEnabled = async () => {
+            try {
+                const enabled = await rpcClient.getCommonRpcClient().experimentalEnabled();
+                setIsExperimentalEnabled(enabled);
+            } catch (error) {
+                console.error("[AIChat] Failed to check experimental enabled status:", error);
+                setIsExperimentalEnabled(false);
+            }
+        };
+
+        checkExperimentalEnabled();
     }, [rpcClient]);
 
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
@@ -734,14 +750,13 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsRepairMode(false);
             setErrorCount(0);
-            const command = response.command;
             // Use functional update to access current state (avoid stale closure)
             setMessages((prevMessages) => {
                 if (prevMessages.length >= 2) {
                     addChatEntry(
                         "user",
                         prevMessages[prevMessages.length - 2].content,
-                        command != undefined && command == Command.Code
+                        false
                     );
                     addChatEntry("assistant", prevMessages[prevMessages.length - 1].content);
                 }
@@ -761,14 +776,13 @@ const AIChat: React.FC = () => {
             setErrorCount(0);
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const command = response.command;
             const messageId = response.messageId;
 
             // Save chat entries
             addChatEntry(
                 "user",
                 messages[messages.length - 2].content,
-                command != undefined && command == Command.Code
+                false
             );
             addChatEntry("assistant", messages[messages.length - 1].content);
 
@@ -1035,26 +1049,6 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Code: {
-                    let useCase = "";
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            useCase = parsedInput.text;
-                            break;
-                        case "generate-code":
-                            useCase = parsedInput.placeholderValues.usecase;
-                            break;
-                        case "generate-from-readme":
-                            useCase = getTemplateTextById(
-                                commandTemplates,
-                                parsedInput.command,
-                                "generate-from-readme"
-                            );
-                            break;
-                    }
-                    await processCodeGeneration([useCase, attachments, CodeGenerationType.CODE_GENERATION], inputText);
-                    break;
-                }
                 case Command.Tests: {
                     switch (parsedInput.templateId) {
                         case "tests-for-service":
@@ -1147,14 +1141,6 @@ const AIChat: React.FC = () => {
                     switch (parsedInput.templateId) {
                         case TemplateId.Wildcard:
                             await processOpenAPICodeGeneration(parsedInput.text, inputText);
-                            break;
-                    }
-                    break;
-                }
-                case Command.Design: {
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            await processDesignGeneration(parsedInput.text, inputText);
                             break;
                     }
                     break;
@@ -1845,22 +1831,26 @@ const AIChat: React.FC = () => {
                         </Badge>
                         <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
-                            <Button
-                                appearance="icon"
-                                onClick={handleTogglePlanMode}
-                                tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
-                            >
-                                <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
-                                &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
-                            </Button>
-                            <Button
-                                appearance="icon"
-                                onClick={handleToggleAutoApprove}
-                                tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
-                            >
-                                <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
-                            </Button>
+                            {isExperimentalEnabled && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={handleTogglePlanMode}
+                                    tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
+                                >
+                                    <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
+                                    &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
+                                </Button>
+                            )}
+                            {isExperimentalEnabled && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={handleToggleAutoApprove}
+                                    tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
+                                >
+                                    <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
+                                    &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
+                                </Button>
+                            )}
                             <Button
                                 appearance="icon"
                                 onClick={() => handleClearChat()}
@@ -2181,358 +2171,6 @@ const AIChat: React.FC = () => {
 
 export default AIChat;
 
-export function replaceCodeBlocks(originalResp: string, newResp: string): string {
-    // Create a map to store new code blocks by filename
-    const newCodeBlocks = new Map<string, string>();
-
-    // Extract code blocks from newResp
-    const newCodeRegex = /<code filename="(.+?)">\s*```ballerina\s*([\s\S]*?)```\s*<\/code>/g;
-    let match;
-    while ((match = newCodeRegex.exec(newResp)) !== null) {
-        newCodeBlocks.set(match[1], match[2].trim());
-    }
-
-    // Replace code blocks in originalResp
-    const updatedResp = originalResp.replace(
-        /<code filename="(.+?)">\s*```ballerina\s*([\s\S]*?)```\s*<\/code>/g,
-        (match, filename, content) => {
-            const newContent = newCodeBlocks.get(filename);
-            if (newContent !== undefined) {
-                return `<code filename="${filename}">\n\`\`\`ballerina\n${newContent}\n\`\`\`\n</code>`;
-            }
-            return match; // If no new content, keep the original
-        }
-    );
-
-    // Remove replaced code blocks from newCodeBlocks
-    const originalCodeRegex = /<code filename="(.+?)">/g;
-    while ((match = originalCodeRegex.exec(originalResp)) !== null) {
-        newCodeBlocks.delete(match[1]);
-    }
-
-    // Append any remaining new code blocks
-    let finalResp = updatedResp;
-    newCodeBlocks.forEach((content, filename) => {
-        finalResp += `\n\n<code filename="${filename}">\n\`\`\`ballerina\n${content}\n\`\`\`\n</code>`;
-    });
-
-    return finalResp;
-}
-
-function extractRecordTypes(typesCode: string): { name: string; code: string }[] {
-    const recordPattern = /\b(?:public|private)?\s*type\s+(\w+)\s+record\s+(?:{[|]?|[|]?{)[\s\S]*?;?\s*[}|]?;/g;
-    const matches = [...typesCode.matchAll(recordPattern)];
-    return matches.map((match) => ({
-        name: match[1],
-        code: match[0].trim(),
-    }));
-}
-interface ContentBlock {
-    delta: ContentBlockDeltaBody;
-}
-
-// Define the different event body types
-interface ContentBlockDeltaBody {
-    text: string;
-}
-
-interface OtherEventBody {
-    // Define properties for other event types as needed
-    [key: string]: any;
-}
-
-// Define the SSEEvent type with a discriminated union for the body
-type SSEEvent = { event: "content_block_delta"; body: ContentBlock } | { event: string; body: OtherEventBody };
-
-/**
- * Parses a chunk of text to extract the SSE event and body.
- * @param chunk - The chunk of text from the SSE stream.
- * @returns The parsed SSE event containing the event name and body (if present).
- * @throws Will throw an error if the data field is not valid JSON.
- */
-export function parseSSEEvent(chunk: string): SSEEvent {
-    let event: string | undefined;
-    let body: any;
-
-    chunk.split("\n").forEach((line) => {
-        if (line.startsWith("event: ")) {
-            event = line.slice(7);
-        } else if (line.startsWith("data: ")) {
-            try {
-                body = JSON.parse(line.slice(6));
-            } catch (e) {
-                throw new Error("Invalid JSON data in SSE event");
-            }
-        }
-    });
-
-    if (!event) {
-        throw new Error("Event field is missing in SSE event");
-    }
-
-    if (event === "content_block_delta") {
-        return { event, body: body as ContentBlockDeltaBody };
-    } else if (event === "functions") {
-        return { event, body: body };
-    } else {
-        return { event, body: body as OtherEventBody };
-    }
-}
-
-export function getProjectFromResponse(req: string): ProjectSource {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(req)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({ filePath, content: fileContent });
-    }
-
-    return { sourceFiles, projectName: "" };
-}
-
-export enum SegmentType {
-    Code = "Code",
-    Text = "Text",
-    Progress = "Progress",
-    ToolCall = "ToolCall",
-    Todo = "Todo",
-    Attachment = "Attachment",
-    InlineCode = "InlineCode",
-    References = "References",
-    TestScenario = "TestScenario",
-    Button = "Button",
-    SpecFetcher = "SpecFetcher",
-}
-
-interface Segment {
-    type: SegmentType;
-    language?: string;
-    loading: boolean;
-    text: string;
-    fileName?: string;
-    command?: string;
-    failed?: boolean;
-    [key: string]: any;
-}
-
-function getCommand(command: string) {
-    if (!command) {
-        return "code";
-    } else {
-        return command.replaceAll(/"/g, "");
-    }
-}
-
-function splitHalfGeneratedCode(content: string): Segment[] {
-    const segments: Segment[] = [];
-    // Regex to capture filename and optional test attribute
-    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
-    let match;
-    let lastIndex = 0;
-
-    while ((match = regex.exec(content)) !== null) {
-        const [fullMatch, fileName, type, language, code] = match;
-        if (match.index > lastIndex) {
-            // Non-code segment before the current code block
-            segments.push({
-                type: SegmentType.Text,
-                loading: false,
-                text: content.slice(lastIndex, match.index),
-                command: getCommand(type),
-            });
-        }
-
-        // Code segment
-        segments.push({
-            type: SegmentType.Code,
-            language: language,
-            loading: true,
-            text: code,
-            fileName: fileName,
-            command: getCommand(type),
-        });
-
-        lastIndex = regex.lastIndex;
-    }
-
-    if (lastIndex < content.length) {
-        // Remaining non-code segment after the last code block
-        segments.push({
-            type: SegmentType.Text,
-            loading: false,
-            text: content.slice(lastIndex),
-        });
-    }
-
-    return segments;
-}
-
-export function splitContent(content: string): Segment[] {
-    const segments: Segment[] = [];
-
-    // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
-    const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
-    let match;
-    let lastIndex = 0;
-
-    function updateLastProgressSegmentLoading(failed: boolean = false) {
-        const lastSegment = segments[segments.length - 1];
-        if (lastSegment && (lastSegment.type === SegmentType.Progress || lastSegment.type === SegmentType.ToolCall)) {
-            lastSegment.loading = false;
-            lastSegment.failed = failed;
-        }
-    }
-
-    while ((match = regex.exec(content)) !== null) {
-        // Handle text before the current match
-        if (match.index > lastIndex) {
-            updateLastProgressSegmentLoading();
-
-            const textSegment = content.slice(lastIndex, match.index);
-            segments.push(...splitHalfGeneratedCode(textSegment));
-        }
-
-        if (match[1]) {
-            // <code> block matched
-            const fileName = match[1];
-            const type = match[2];
-            const language = match[3];
-            const code = match[4];
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.Code,
-                loading: false,
-                text: code,
-                fileName: fileName,
-                language: language,
-                command: getCommand(type),
-            });
-        } else if (match[5]) {
-            // <progress> block matched
-            const progressText = match[5];
-
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.Progress,
-                loading: true,
-                text: progressText,
-            });
-        } else if (match[6]) {
-            // <toolcall> block matched
-            const toolcallText = match[6];
-
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.ToolCall,
-                loading: true,
-                text: toolcallText,
-            });
-        } else if (match[7]) {
-            // <todo> block matched
-            const todoData = match[7];
-
-            updateLastProgressSegmentLoading();
-            try {
-                const parsedData = JSON.parse(todoData);
-                segments.push({
-                    type: SegmentType.Todo,
-                    loading: false,
-                    text: "",
-                    tasks: parsedData.tasks || [],
-                    message: parsedData.message || ""
-                });
-            } catch (error) {
-                // If parsing fails, show as text
-                console.error("Failed to parse todo data:", error);
-            }
-        } else if (match[8]) {
-            // <attachment> block matched
-            const attachmentName = match[8].trim();
-
-            updateLastProgressSegmentLoading();
-
-            const existingAttachmentSegment = segments.find((segment) => segment.type === SegmentType.Attachment);
-
-            if (existingAttachmentSegment) {
-                existingAttachmentSegment.text += `, ${attachmentName}`;
-            } else {
-                segments.push({
-                    type: SegmentType.Attachment,
-                    loading: false,
-                    text: attachmentName,
-                });
-            }
-        } else if (match[9]) {
-            // <scenario> block matched
-            const scenarioContent = match[9].trim();
-
-            updateLastProgressSegmentLoading(true);
-            segments.push({
-                type: SegmentType.TestScenario,
-                loading: false,
-                text: scenarioContent,
-            });
-        } else if (match[10]) {
-            // <button> block matched
-            const buttonType = match[10].trim();
-            const buttonContent = match[11].trim();
-
-            updateLastProgressSegmentLoading(true);
-            segments.push({
-                type: SegmentType.Button,
-                loading: false,
-                text: buttonContent,
-                buttonType: buttonType,
-            });
-        } else if (match[12]) {
-            segments.push({
-                type: SegmentType.InlineCode,
-                text: match[12].trim(),
-                loading: false,
-            });
-        } else if (match[13]) {
-            segments.push({
-                type: SegmentType.References,
-                text: match[13].trim(),
-                loading: false,
-            });
-        } else if (match[14]) {
-            // <connectorgenerator> block matched
-            const connectorData = match[14];
-
-            updateLastProgressSegmentLoading();
-            try {
-                const parsedData = JSON.parse(connectorData);
-                segments.push({
-                    type: SegmentType.SpecFetcher,
-                    loading: false,
-                    text: "",
-                    specData: parsedData
-                });
-            } catch (error) {
-                // If parsing fails, show as text
-                console.error("Failed to parse connector generator data:", error);
-            }
-        }
-
-        // Update lastIndex to the end of the current match
-        lastIndex = regex.lastIndex;
-    }
-
-    // Handle any remaining text after the last match
-    if (lastIndex < content.length) {
-        updateLastProgressSegmentLoading();
-
-        const remainingText = content.slice(lastIndex);
-        segments.push(...splitHalfGeneratedCode(remainingText));
-    }
-
-    return segments;
-}
 function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
     return chatArray
         .slice(integratedChatIndex)
@@ -2544,34 +2182,6 @@ function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_REQUIREMENT) &&
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED)
         );
-}
-
-function transformProjectSource(project: ProjectSource): SourceFiles[] {
-    const sourceFiles: SourceFiles[] = [];
-    project.sourceFiles.forEach((file) => {
-        sourceFiles.push({
-            filePath: file.filePath,
-            content: file.content,
-        });
-    });
-    project.projectModules?.forEach((module) => {
-        let basePath = "";
-        if (!module.isGenerated) {
-            basePath += "modules/";
-        } else {
-            basePath += "generated/";
-        }
-
-        basePath += module.moduleName + "/";
-        // const path =
-        module.sourceFiles.forEach((file) => {
-            sourceFiles.push({
-                filePath: basePath + file.filePath,
-                content: file.content,
-            });
-        });
-    });
-    return sourceFiles;
 }
 
 function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {

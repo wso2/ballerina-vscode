@@ -48,8 +48,6 @@ import {
     CodeData,
     CodeContext,
     AIPanelPrompt,
-    Command,
-    TemplateId,
 } from "@wso2/ballerina-core";
 
 import {
@@ -787,13 +785,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             filePath: model.fileName
         };
 
-        // Create AIPanelPrompt with CodeContext in metadata
+        // Create AIPanelPrompt with CodeContext - design mode is the default
         const aiPrompt: AIPanelPrompt = {
-            type: 'command-template',
-            command: Command.Code,
-            templateId: TemplateId.Wildcard,
+            type: 'text',
             text: prompt || '',
-            metadata: { codeContext }
+            planMode: true,
+            codeContext
         };
 
         // Use the standard pattern - import from utils/commands
