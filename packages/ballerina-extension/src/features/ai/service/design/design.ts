@@ -28,7 +28,8 @@ import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
-import { getTempProject } from "../../utils/temp-project-utils";
+import { getTempProject, FileModificationInfo } from "../../utils/temp-project-utils";
+import { formatCodebaseStructure, integrateCodeToWorkspace } from "./utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { LangfuseExporter } from 'langfuse-vercel';
@@ -49,8 +50,9 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
-
+//TODO: Tool name, types and uesd in both ext and visualizer to display, either move to core or use visualizer as view only.
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+    const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
     const project: ProjectSource = await getProjectSource(params.operationType);
     const historyMessages = populateHistoryForAgent(params.chatHistory);
@@ -61,7 +63,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName);
+    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName, isPlanModeEnabled, params.codeContext);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
@@ -92,7 +94,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
     };
 
-    const { fullStream, response, steps } = streamText({
+    const { fullStream, response } = streamText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 8192,
         temperature: 0,
@@ -129,18 +131,22 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
                 if (toolName === "LibraryProviderTool") {
                     selectedLibraries = (part.input as any)?.libraryNames || [];
+                    eventHandler({ type: "tool_call", toolName });
+
                 } else if (
                     [
                         FILE_WRITE_TOOL_NAME,
                         FILE_SINGLE_EDIT_TOOL_NAME,
                         FILE_BATCH_EDIT_TOOL_NAME,
-                        FILE_READ_TOOL_NAME,
                     ].includes(toolName)
                 ) {
                     const input = part.input as any;
-                    if (input && input.file_path) {
-                        let fileName = input.file_path;
-                    }
+                    const fileName = input?.file_path ? input.file_path.split('/').pop() : 'file';
+                    eventHandler({
+                        type: "tool_call",
+                        toolName,
+                        toolInput: { fileName }
+                    });
                 } else {
                     eventHandler({ type: "tool_call", toolName });
                 }
@@ -165,14 +171,37 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
                 } else if (toolName === "LibraryProviderTool") {
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
+                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
+
                 } else if (
                     [
                         FILE_WRITE_TOOL_NAME,
                         FILE_SINGLE_EDIT_TOOL_NAME,
                         FILE_BATCH_EDIT_TOOL_NAME,
-                        FILE_READ_TOOL_NAME,
                     ].includes(toolName)
                 ) {
+                    // Extract action from result message for file_write
+                    let action = undefined;
+                    if (toolName === FILE_WRITE_TOOL_NAME && result) {
+                        const message = (result as any).message || '';
+                        if (message.includes('updated')) {
+                            action = 'updated';
+                        } else if (message.includes('created')) {
+                            action = 'created';
+                        }
+                    }
+
+                    eventHandler({
+                        type: "tool_result",
+                        toolName,
+                        toolOutput: { success: true, action }
+                    });
+                } else if (toolName === DIAGNOSTICS_TOOL_NAME) {
+                    eventHandler({
+                        type: "tool_result",
+                        toolName,
+                        toolOutput: result
+                    });
                 } else {
                     eventHandler({ type: "tool_result", toolName });
                 }
@@ -230,6 +259,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 const assistantMessages = finalResponse.messages || [];
 
                 console.log(`[Design] Finished with reason: ${finishReason}`);
+
+                // Auto-apply changes to workspace when plan mode is disabled
+                if (!isPlanModeEnabled && tempProjectPath && modifiedFiles.length > 0) {
+                    const modifiedFilesSet = new Set(modifiedFiles);
+                    console.log(`[Design] Auto-integrating ${modifiedFilesSet.size} modified file(s) to workspace`);
+                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+                }
 
                 updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });

@@ -3,7 +3,8 @@ import { LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { TASK_WRITE_TOOL_NAME } from "../libs/task_write_tool";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 import { CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
-import { formatCodebaseStructure } from "./utils";
+import { formatCodebaseStructure, formatCodeContext } from "./utils";
+import { CodeContext } from "@wso2/ballerina-core";
 
 /**
  * Generates the system prompt for the design agent
@@ -13,12 +14,16 @@ export function getSystemPrompt(): string {
 
 ONLY answer Ballerina-related queries.
 
-# Plan Mode Approach
+<system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result. therefore avoid responding using them.
+# Generation Modes
 
-## Step 1: Create High-Level Design
+## Plan Mode
+In the <system-reminder> tags, you will see if Plan mode is enabled. When its enabled, you must follow the below instructions strictly.
+
+### Step 1: Create High-Level Design
 Create a very high-level and concise design plan for the given user requirement.
 
-## Step 2: Break Down Into Tasks and Execute
+### Step 2: Break Down Into Tasks and Execute
 
 **REQUIRED: Use Task Management**
 You have access to ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
@@ -31,7 +36,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 - This ensures you don't miss critical steps
 - Each task should be concise and high level as they are visible to a very high level user. During the implementation, you will break them down further as needed and implement them.
 
-### Task Types
+#### Task Types
 1. 'service_design'
 - Responsible for creating the http listener, service, and its resource function signatures.
 - The signature should only have path, query, payload, header paramters and the return types. This step should contain types relevant to the service contract as well.
@@ -47,7 +52,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 3. 'implementation'
 - for all the other implementations. Have resource function implementations in its own task.
 
-### Task Breakdown Example
+#### Task Breakdown Example
 1. Create the HTTP service contract
 2. Create the MYSQL Connection
 3. Implement the resource functions
@@ -83,11 +88,27 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Keep language simple and non-technical when responding
 - No need to add manual progress indicators - the task list shows what you're working on
 
-## Code Generation Guidelines
+## Edit Mode
+In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
+
+### Step 1: Create High-Level Design
+Create a very high-level and concise design plan for the given user requirement. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
+
+### Step 2: Identify nescessary libraries
+Identify the libraries required to implement the user requirement. Use the ${LIBRARY_PROVIDER_TOOL} tool to get the information about the libraries.
+
+### Step 3: Write the code
+Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
+
+### Step 4: Validate the code
+Once the task is done, Always use ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. 
+You can use this tool multiple times after making changes to ensure there are no compilation errors.
+If you think you can't fix the error after multiple attempts, make sure to keep bring the code into a good state and finish off the task.
+
+# Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
 
-
-### Library Usage and Importing libraries
+## Library Usage and Importing libraries
 - Only use the libraries received from user query or the ${LIBRARY_PROVIDER_TOOL} tool or langlibs.
 - Examine the library API documentation provided by the ${LIBRARY_PROVIDER_TOOL} carefully. Strictly follow the type definitions, function signatures, and all the other details provided when writing the code.
 - Each .bal file must include its own import statements for any external library references.
@@ -101,12 +122,12 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
-### Code Structure
+## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
-### Coding Rules
+## Coding Rules
 - Use records as canonical representations of data structures. Always define records for data structures instead of using maps or json and navigate using the record fields.
 - Do not invoke methods on json access expressions. Always use separate statements.
 - Use dot notation to access a normal function. Use -> to access a remote function or resource function.
@@ -143,14 +164,23 @@ When generating Ballerina code strictly follow these syntax and structure guidel
  * @param hasHistory Whether chat history exists
  * @param tempProjectPath Path to temp project (used when hasHistory is false)
  * @param packageName Name of the Ballerina package
+ * @param isPlanModeEnabled Whether plan mode is enabled
  */
-export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string) {
+export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean, codeContext?: CodeContext) {
     const content = [];
 
     if (!hasHistory) {
         content.push({
             type: 'text' as const,
             text: formatCodebaseStructure(tempProjectPath, packageName)
+        });
+    }
+
+    // Add code context if available
+    if (codeContext) {
+        content.push({
+            type: 'text' as const,
+            text: formatCodeContext(codeContext, tempProjectPath)
         });
     }
 
@@ -161,5 +191,18 @@ ${usecase}
 </User Query>`
     });
 
+
+    content.push({
+        type: 'text' as const,
+        text: getGenerationType(isPlanModeEnabled)
+    });
     return content;
+}
+
+
+function getGenerationType(isPlanMode:boolean):string {
+    if (isPlanMode) {
+        return `<system-reminder> Plan Mode is enabled. Make sure to use task management using ${TASK_WRITE_TOOL_NAME} </system-reminder>`;
+    }
+    return `<system-reminder> Edit Mode is enabled. Avoid using Task management and make the edits directly. </system-reminder>`;
 }

@@ -92,7 +92,7 @@ export async function checkCompilationErrors(
 
         // Get language client from state machine
         const langClient = StateMachine.langClient();
-
+        
         // Get diagnostics from language server for the current project
         console.log(`[DiagnosticsUtils] Calling language server for diagnostics on ${tempProjectPath}`);
         const diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath);

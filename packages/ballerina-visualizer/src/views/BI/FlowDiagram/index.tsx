@@ -46,6 +46,10 @@ import {
     SearchKind,
     DataMapperDisplayMode,
     CodeData,
+    CodeContext,
+    AIPanelPrompt,
+    Command,
+    TemplateId,
 } from "@wso2/ballerina-core";
 
 import {
@@ -772,27 +776,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddNodePrompt = (parent: FlowNode | Branch, target: LineRange, prompt: string) => {
-        if (topNodeRef.current || targetRef.current) {
-            closeSidePanelAndFetchUpdatedFlowModel();
-            return;
-        }
-        topNodeRef.current = parent;
-        changeTargetRange(target)
-        // Use hook to save original model for AI suggestions
-        addDraftNode(parent, target);
-        setFetchingAiSuggestions(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getAiSuggestions({ position: target, filePath: model.fileName, prompt })
-            .then((model) => {
-                if (model?.flowModel?.nodes?.length > 0) {
-                    setSuggestedModel(model.flowModel);
-                    suggestedText.current = model.suggestion;
-                }
-            })
-            .finally(() => {
-                setFetchingAiSuggestions(false);
-            });
+        // Create CodeContext from the target position
+        // TODO: Offset seem to be wrong. Investigate further
+        const codeContext: CodeContext = {
+            type: 'addition',
+            position: {
+                line: target.startLine.line,
+                offset: target.startLine.offset
+            },
+            filePath: model.fileName
+        };
+
+        // Create AIPanelPrompt with CodeContext in metadata
+        const aiPrompt: AIPanelPrompt = {
+            type: 'command-template',
+            command: Command.Code,
+            templateId: TemplateId.Wildcard,
+            text: prompt || '',
+            metadata: { codeContext }
+        };
+
+        // Use the standard pattern - import from utils/commands
+        rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
     const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {

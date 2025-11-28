@@ -62,7 +62,9 @@ import {
     AIChatMachineContext,
     UIChatHistoryMessage,
     checkpointCaptured,
-    CheckpointCapturedPayload
+    CheckpointCapturedPayload,
+    AIPanelPrompt,
+    promptUpdated
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -224,6 +226,10 @@ export class BallerinaRpcClient {
 
     onCheckpointCaptured(callback: (payload: CheckpointCapturedPayload) => void) {
         this.messenger.onNotification(checkpointCaptured, callback);
+    }
+
+    onPromptUpdated(callback: () => void) {
+        this.messenger.onNotification(promptUpdated, callback);
     }
 
     onProjectContentUpdated(callback: (state: boolean) => void) {
