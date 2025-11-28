@@ -462,7 +462,7 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
-            } else if (response.toolName === "DiagnosticsTool") {
+            } else if (response.toolName === "getCompilationErrors") {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
@@ -589,9 +589,10 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
-            } else if (response.toolName === "DiagnosticsTool") {
+            } else if (response.toolName === "getCompilationErrors") {
                 const diagnosticsOutput = response.toolOutput;
-                const errors = diagnosticsOutput?.diagnostics?.filter((d: any) => d.severity === 1) || [];
+                // Backend already filters for errors only (severity === 1), so no need to filter again
+                const errors = diagnosticsOutput?.diagnostics || [];
                 const errorCount = errors.length;
 
                 setErrorCount(errorCount);

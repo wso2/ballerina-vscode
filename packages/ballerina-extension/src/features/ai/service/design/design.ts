@@ -50,6 +50,7 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
+//TODO: Tool name, types and uesd in both ext and visualizer to display, either move to core or use visualizer as view only.
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
