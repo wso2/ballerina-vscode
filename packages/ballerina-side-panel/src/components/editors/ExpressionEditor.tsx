@@ -373,9 +373,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const inputModeRef = useRef<InputMode>(inputMode);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
-    const [targetInputMode, setTargetInputMode] = useState<InputMode | null>(null);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
+    const targetInputModeRef = useRef<InputMode>(null);
 
     // Update formDiagnostics when field.diagnostics changes
     useEffect(() => {
@@ -441,15 +441,22 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
 
         let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
-        if (isModeSwitcherRestricted()) {
-            setInputMode(InputMode.EXP);
-            return;
-        }
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
         }
-       setInputMode(newInputMode)
+        if (isModeSwitcherRestricted()) {
+            setInputMode(InputMode.EXP);
+            return;
+        }
+        switch (newInputMode) {
+            case (InputMode.BOOLEAN):
+                if (!isExpToBooleanSafe(field?.value as string)) {
+                    setInputMode(InputMode.EXP);
+                    return;
+                }
+        }
+        setInputMode(newInputMode)
     }, [field?.valueTypeConstraint, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
@@ -529,55 +536,37 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
+    const isExpToBooleanSafe = (expValue: string) => {
+        return ["true", "false"].includes(expValue.trim().toLowerCase())
+    }
+
     const handleModeChange = (value: InputMode) => {
         const raw = watch(key);
         const currentValue = typeof raw === "string" ? raw.trim() : "";
-
-        // Warn when switching from EXP to TEXT if value doesn't have quotes
-        if (
-            inputMode === InputMode.EXP
-            && value === InputMode.TEXT
-            && (!currentValue.trim().startsWith("\"") || !currentValue.trim().endsWith("\""))
-            && currentValue.trim() !== ''
-        ) {
-            setTargetInputMode(value);
-            setShowModeSwitchWarning(true);
+        if (inputMode !== InputMode.EXP) {
+            setInputMode(value);
             return;
         }
-
-        // Warn when switching from EXP to TEMPLATE if sanitization would hide parts of the expression
-        if (
-            inputMode === InputMode.EXP
-            && value === InputMode.TEMPLATE
-            && sanitizedExpression
-            && currentValue
-            && currentValue.trim() !== ''
-        ) {
-            setTargetInputMode(value);
-            if (currentValue === sanitizedExpression(currentValue)) {
-                setShowModeSwitchWarning(true);
-            } else {
-                setInputMode(value);
-            }
-            return;
+        const primaryInputMode = getInputModeFromTypes(field.valueTypeConstraint);
+        switch (primaryInputMode) {
+            case (InputMode.BOOLEAN):
+                if (!isExpToBooleanSafe(currentValue)) {
+                    targetInputModeRef.current = value;
+                    setShowModeSwitchWarning(true)
+                    return;
+                }
+                break;
         }
-
         setInputMode(value);
     };
 
     const handleModeSwitchWarningContinue = () => {
-        if (targetInputMode !== null) {
-            setInputMode(targetInputMode);
-            setTargetInputMode(null);
-            if (targetInputMode === InputMode.TEMPLATE && inputMode === InputMode.EXP && rawExpression) {
-                setValue(key, rawExpression(""));
-            }
-        }
+        setInputMode(targetInputModeRef.current);
         setShowModeSwitchWarning(false);
     };
 
     const handleModeSwitchWarningCancel = () => {
-        setTargetInputMode(null);
+        targetInputModeRef.current = null;
         setShowModeSwitchWarning(false);
     };
 
@@ -670,6 +659,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     render={({ field: { name, value, onChange }, fieldState: { error } }) => (
                         <div>
                             <ExpressionField
+                                field={field}
                                 inputMode={inputMode}
                                 primaryMode={getInputModeFromTypes(field.valueTypeConstraint)}
                                 name={name}

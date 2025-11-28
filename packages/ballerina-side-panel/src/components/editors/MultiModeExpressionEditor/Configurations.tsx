@@ -32,6 +32,9 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     getSerializationSuffix() {
         return "`";
     }
+    getAdornment(): ({ onClick }: { onClick?: () => void; }) => JSX.Element {
+        return () => null;
+    }
     serializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
@@ -60,6 +63,9 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
     }
     getSerializationSuffix() {
         return "`";
+    }
+    getAdornment(): ({ onClick }: { onClick?: () => void; }) => JSX.Element {
+        return () => null;
     }
     serializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
