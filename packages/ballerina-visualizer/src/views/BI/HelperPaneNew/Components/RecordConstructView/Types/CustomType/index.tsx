@@ -22,7 +22,7 @@ import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 
 import { TypeProps } from "../../ParameterBranch";
 import { useHelperPaneStyles } from "../../styles";
-import { isRequiredParam } from "../../utils";
+import { isRequiredParam, resetFieldValues } from "../../utils";
 
 export default function CustomType(props: TypeProps) {
     const { param, onChange } = props;
@@ -38,6 +38,12 @@ export default function CustomType(props: TypeProps) {
         if (!requiredParam) {
             const newSelectedState = !paramSelected;
             param.selected = newSelectedState;
+            
+            // When unchecking, reset the field values
+            if (!newSelectedState) {
+                resetFieldValues(param);
+            }
+            
             setParamSelected(newSelectedState);
             onChange();
         }
