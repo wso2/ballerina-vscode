@@ -127,7 +127,7 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseClick }) => {
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org,onCloseClick }) => {
     const { platformRpcClient } = usePlatformExtContext();
 
     const {
@@ -135,10 +135,10 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseCl
         error: serviceIdlError,
         isLoading: isLoadingIdl,
     } = useQuery({
-        queryKey: ["marketplace_idl", { orgId: org.id, serviceId: item?.serviceId, type: item?.serviceType }],
+        queryKey: ["marketplace_idl", { orgId: org.id, resourceId: item?.resourceId, serviceId: item?.serviceId, type: item?.serviceType }],
         queryFn: () =>
             platformRpcClient?.getMarketplaceIdl({
-                serviceId: item?.serviceId,
+                serviceId: item.isThirdParty ? item.resourceId : item?.serviceId,
                 orgId: org.id.toString(),
             }),
         enabled: !!item,
@@ -154,7 +154,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org, onCloseCl
                         <>
                             {serviceIdl?.idlType === "OpenAPI" ? (
                                 <SwaggerUI
-                                    spec={serviceIdl?.content}
+                                    spec={item.isThirdParty ? decodeURIComponent(serviceIdl?.content) : serviceIdl?.content}
                                     defaultModelExpandDepth={-1}
                                     docExpansion="list"
                                     tryItOutEnabled={false}
