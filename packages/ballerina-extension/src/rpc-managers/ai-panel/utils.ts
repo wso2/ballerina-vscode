@@ -27,6 +27,7 @@ import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { MappingFileRecord} from "./types";
 import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { VisualizerRpcManager } from "../visualizer/rpc-manager";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -119,6 +120,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Subscribe to artifact updated notifications
         let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            new VisualizerRpcManager().updateCurrentArtifactLocation({ artifacts: payload.data });
             clearTimeout(timeoutId);
             resolve(payload.data);
             unsubscribe();
