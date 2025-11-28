@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, ProgressRing, Typography } from "@wso2/ui-toolkit";
@@ -40,14 +40,30 @@ const GridContainer = styled.div<{ isHalfView?: boolean }>`
     width: 100%;
 `;
 
+const ProgressRingWrap = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding-top: 50px;
+`;
+
+const AddButtonWrap = styled.div`
+    position: absolute;
+    top: 10px;
+    right: 12px;
+`;
+
 export const DevantConnectorList: FC<{
     search: string;
     hideTitle?: boolean;
     onSelectDevantConnector: (item: MarketplaceItem) => void;
 }> = ({ search, hideTitle, onSelectDevantConnector }) => {
     const { rpcClient } = useRpcContext();
-    const { platformExtState, deployableArtifacts, platformRpcClient, workspacePath, projectPath } = usePlatformExtContext();
+    const { platformExtState, deployableArtifacts, platformRpcClient, workspacePath, projectPath, devantConsoleUrl } =
+        usePlatformExtContext();
     const [debouncedSearch, setDebouncedSearch] = useState(search);
+    const [selectedTab, setSelectedTab] = useState<"internal-services" | "third-party-services">("internal-services");
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -65,6 +81,7 @@ export const DevantConnectorList: FC<{
                 debouncedSearch,
                 isLoggedIn: platformExtState.isLoggedIn,
                 component: platformExtState?.selectedComponent?.metadata?.id,
+                internalOnly: selectedTab === "internal-services",
             },
         ],
         queryFn: () =>
@@ -73,22 +90,32 @@ export const DevantConnectorList: FC<{
                 request: {
                     limit: 60,
                     offset: 0,
-                    networkVisibilityFilter: "all",
+                    networkVisibilityFilter: selectedTab === "third-party-services" ? "org,project,public" : "all",
                     networkVisibilityprojectId: platformExtState?.selectedContext?.project?.id,
                     sortBy: "createdTime",
                     query: debouncedSearch || undefined,
                     searchContent: false,
-                    isThirdParty: false,
+                    isThirdParty: selectedTab === "third-party-services",
                 },
             }),
         enabled: platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
         select: (data) => ({
             ...data,
-            data: data.data.filter(
-                (item) => item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id
+            data: data.data.filter((item) =>
+                selectedTab === "third-party-services"
+                    ? true
+                    : item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id
             ),
         }),
     });
+
+    const openRegisterNew3rdPartySvc = (isNew?: boolean) => {
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: `${devantConsoleUrl}/organizations/${platformExtState?.selectedContext?.org?.handle}/projects/${
+                platformExtState?.selectedContext?.project?.id
+            }/admin/third-party-services${isNew ? "/new" : ""}`,
+        });
+    };
 
     if (!platformExtState.isLoggedIn) {
         return (
@@ -125,7 +152,9 @@ export const DevantConnectorList: FC<{
                         onClick={() => platformRpcClient.deployIntegrationInDevant()}
                         disabled={!deployableArtifacts?.exists}
                         tooltip={
-                            deployableArtifacts?.exists ? "" : "Please add a deployable artifact to your project in order to deploy it"
+                            deployableArtifacts?.exists
+                                ? ""
+                                : "Please add a deployable artifact to your project in order to deploy it"
                         }
                     >
                         Deploy Now
@@ -136,7 +165,11 @@ export const DevantConnectorList: FC<{
                             rpcClient.getCommonRpcClient().executeCommand({
                                 commands: [
                                     PlatformExtCommandIds.CreateDirectoryContext,
-                                    { extName: "Devant", skipComponentExistCheck: true, fsPath: workspacePath || projectPath } as ICreateDirCtxCmdParams,
+                                    {
+                                        extName: "Devant",
+                                        skipComponentExistCheck: true,
+                                        fsPath: workspacePath || projectPath,
+                                    } as ICreateDirCtxCmdParams,
                                 ],
                             })
                         }
@@ -149,48 +182,111 @@ export const DevantConnectorList: FC<{
     }
 
     return (
-        <>
-            <VSCodePanels style={{ height: "100%" }}>
-                <VSCodePanelTab id={`tab-internal-services`} key={`tab-internal-services`}>
+        <div style={{ position: "relative" }}>
+            {selectedTab === "third-party-services" && marketplaceResp?.data?.length > 0 && !isLoading && (
+                <AddButtonWrap>
+                    <Button
+                        appearance="icon"
+                        tooltip="Register new 3rd party service"
+                        onClick={() => openRegisterNew3rdPartySvc(true)}
+                    >
+                        <Codicon name="plus" />
+                    </Button>
+                </AddButtonWrap>
+            )}
+            <VSCodePanels style={{ height: "100%" }} activeid={selectedTab}>
+                <VSCodePanelTab
+                    id={`internal-services`}
+                    key={`tab-internal-services`}
+                    onClick={() => setSelectedTab("internal-services")}
+                >
                     Internal API Services
                 </VSCodePanelTab>
-                <VSCodePanelView id={`view-internal-services`} key={`view-internal-services`}>
-                    <div style={{ width: "100%" }}>
-                        {isLoading && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    height: "100%",
-                                    paddingTop: "50px",
-                                }}
-                            >
-                                <ProgressRing />
-                            </div>
-                        )}
-                        {marketplaceResp?.data?.length === 0 && (
-                            <BodyTinyInfo>
-                                There are no internal API services available to connect to in your Devant project.
-                            </BodyTinyInfo>
-                        )}
-                        <GridContainer isHalfView={hideTitle}>
-                            {marketplaceResp?.data?.map((item, index) => {
-                                return (
-                                    <ButtonCard
-                                        id={`connector-${item.serviceId}`}
-                                        key={item.serviceId}
-                                        title={item.name}
-                                        description={item.description}
-                                        icon={<Codicon name="package" />}
-                                        onClick={() => onSelectDevantConnector(item)}
-                                    />
-                                );
-                            })}
-                        </GridContainer>
-                    </div>
-                </VSCodePanelView>
+                <VSCodePanelTab
+                    id={`third-party-services`}
+                    key={`tab-third-party-services`}
+                    onClick={() => setSelectedTab("third-party-services")}
+                >
+                    Third Party API Services
+                </VSCodePanelTab>
+
+                <PanelTab
+                    id="internal-services"
+                    data={marketplaceResp?.data || []}
+                    emptyMessage="There are no internal API services available to connect to in your Devant project."
+                    hideTitle={hideTitle}
+                    isLoading={isLoading}
+                    onSelectItem={(item) => onSelectDevantConnector(item)}
+                />
+                <PanelTab
+                    id="tab-third-party-services"
+                    data={marketplaceResp?.data || []}
+                    emptyMessage="There are no third party API services registered in your Devant account."
+                    hideTitle={hideTitle}
+                    isLoading={isLoading}
+                    onSelectItem={(item) => onSelectDevantConnector(item)}
+                    emptyActionButton={{
+                        text: "Register New Service",
+                        tooltip: "Open Devant console and register a new 3rd party API service",
+                        onClick: () => openRegisterNew3rdPartySvc(),
+                    }}
+                />
             </VSCodePanels>
-        </>
+        </div>
+    );
+};
+
+const PanelTab = (props: {
+    id: string;
+    isLoading: boolean;
+    data: MarketplaceItem[];
+    hideTitle: boolean;
+    onSelectItem: (item: MarketplaceItem) => void;
+    emptyMessage: ReactNode;
+    emptyActionButton?: {
+        text: string;
+        tooltip: string;
+        onClick: () => void;
+    };
+}) => {
+    const { isLoading, data, hideTitle, id, onSelectItem, emptyMessage, emptyActionButton } = props;
+    return (
+        <VSCodePanelView id={id} key={id}>
+            <div style={{ width: "100%", marginTop: 12 }}>
+                {isLoading && (
+                    <ProgressRingWrap>
+                        <ProgressRing />
+                    </ProgressRingWrap>
+                )}
+                {data?.length === 0 && (
+                    <>
+                        <BodyTinyInfo>{emptyMessage}</BodyTinyInfo>
+                        {emptyActionButton && (
+                            <Button
+                                sx={{ marginTop: 6 }}
+                                tooltip={emptyActionButton.tooltip}
+                                onClick={emptyActionButton.onClick}
+                            >
+                                {emptyActionButton.text}
+                            </Button>
+                        )}
+                    </>
+                )}
+                <GridContainer isHalfView={hideTitle}>
+                    {data?.map((item) => {
+                        return (
+                            <ButtonCard
+                                id={`connector-${item.serviceId}`}
+                                key={item.serviceId}
+                                title={item.name}
+                                description={item.description}
+                                icon={<Codicon name="package" />}
+                                onClick={() => onSelectItem(item)}
+                            />
+                        );
+                    })}
+                </GridContainer>
+            </div>
+        </VSCodePanelView>
     );
 };

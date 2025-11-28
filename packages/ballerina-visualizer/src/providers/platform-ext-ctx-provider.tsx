@@ -31,6 +31,7 @@ import React, { useContext, FC, ReactNode, useEffect, useMemo } from "react";
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
     refetchProjectInfo: () => void;
+    devantConsoleUrl: string;
     projectPath: string;
     workspacePath: string;
     projectToml?: { values: PackageTomlValues; refresh: () => void };
@@ -39,6 +40,7 @@ const defaultPlatformExtContext: {
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     refetchProjectInfo: () => {},
+    devantConsoleUrl: "",
     projectPath: "",
     workspacePath: "",
 };
@@ -100,6 +102,11 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         });
     }, []);
 
+     const { data: devantConsoleUrl = "" } = useQuery({
+        queryKey: ["devant-url"],
+        queryFn: () => platformRpcClient.getDevantConsoleUrl(),
+    });
+
     // todo: avoid passing refetch functions via context
     return (
         <PlatformExtContext.Provider
@@ -112,6 +119,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     connections: platformExtState?.isLoggedIn ? platformExtState.connections : [],
                 },
                 deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
+                devantConsoleUrl,
                 workspacePath: visualizerLocation.workspacePath,
                 projectPath: visualizerLocation.projectPath,
                 refetchProjectInfo,
