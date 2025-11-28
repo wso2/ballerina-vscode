@@ -20,6 +20,8 @@ import { CopilotEventHandler } from '../event';
 import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, SourceFiles } from '@wso2/ballerina-core';
 import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
 import { integrateCodeToWorkspace } from '../design/utils';
+import { checkCompilationErrors } from './diagnostics_utils';
+import { DIAGNOSTICS_TOOL_NAME } from './diagnostics_tool';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
@@ -311,6 +313,19 @@ async function handleTaskCompletion(
 ): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
+
+    const diagnosticResult = await checkCompilationErrors(tempProjectPath!);
+
+    if (diagnosticResult.diagnostics.length > 0) {
+        const errorCount = diagnosticResult.diagnostics.length;
+        console.error(`[TaskWrite Tool] Found ${errorCount} compilation error(s), blocking task completion`);
+
+        return {
+            approved: false,
+            comment: `Cannot complete task: ${errorCount} compilation error(s) detected. Use the ${DIAGNOSTICS_TOOL_NAME} tool to check the errors and fix them before marking the task as completed.`,
+            approvedTaskDescription: lastCompletedTask.description
+        };
+    }
 
     if (tempProjectPath && modifiedFiles) {
         const modifiedFilesSet = new Set(modifiedFiles);
