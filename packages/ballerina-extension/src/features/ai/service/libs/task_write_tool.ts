@@ -17,7 +17,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
-import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, SourceFiles } from '@wso2/ballerina-core';
+import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, SourceFiles, AIChatMachineContext } from '@wso2/ballerina-core';
 import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
 import { integrateCodeToWorkspace } from '../design/utils';
 import { checkCompilationErrors } from './diagnostics_utils';
@@ -136,11 +136,11 @@ Rules:
 
                 const taskCategories = categorizeTasks(allTasks);
 
-                // TODO: Fix issue where agent updates to existing plan trigger new approval
-                // Problem: When agent continues chat with plan updates, currentPlan state is empty
-                // causing it to be identified as new plan and triggering approval unnecessarily.
-                // Need to preserve plan state across chat continuations or use chat history to
-                // detect if this is a continuation of an existing conversation with a plan.
+                // TODO: Add tests for plan modification detection in the middle of execution
+                // Fixed: Plan state is now preserved in the state machine across chat continuations,
+                // preventing unnecessary approval requests when agent continues with existing plan.
+                // Still need comprehensive tests for: mid-execution plan modifications, task reordering,
+                // task additions/removals, and edge cases where plan changes should trigger re-approval.
                 const isNewPlan = !existingPlan || existingPlan.tasks.length === 0;
                 const isPlanRemodification = existingPlan && (
                     allTasks.length !== existingPlan.tasks.length ||
@@ -306,7 +306,7 @@ async function handlePlanApproval(
 async function handleTaskCompletion(
     allTasks: Task[],
     newlyCompletedTasks: Task[],
-    currentContext: any,
+    currentContext: AIChatMachineContext,
     eventHandler: CopilotEventHandler,
     tempProjectPath?: string,
     modifiedFiles?: string[]
