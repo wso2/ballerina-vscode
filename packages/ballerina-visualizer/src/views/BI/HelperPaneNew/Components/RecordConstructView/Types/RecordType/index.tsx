@@ -23,7 +23,7 @@ import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { TypeProps } from "../../ParameterBranch";
 import { useHelperPaneStyles } from "../../styles";
 import { MemoizedParameterBranch } from "../../ParameterBranch";
-import { isRequiredParam, updateFieldsSelection } from "../../utils";
+import { isRequiredParam, updateFieldsSelection, resetFieldValues } from "../../utils";
 
 export default function RecordType(props: TypeProps) {
     const { param, depth, onChange } = props;
@@ -39,6 +39,11 @@ export default function RecordType(props: TypeProps) {
         if (!requiredParam) {
             const newSelectedState = !paramSelected;
             param.selected = newSelectedState;
+
+            // When unchecking, reset the field values
+            if (!newSelectedState) {
+                resetFieldValues(param);
+            }
 
             // If the record has fields, update their selection state
             if (param.fields && param.fields.length > 0) {
