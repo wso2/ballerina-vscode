@@ -33,15 +33,24 @@ class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultConfigurat
         const numericOnly = EditorState.changeFilter.of(tr => {
             let allow = true;
             tr.changes.iterChanges((_fromA, _toA, _fromB, _toB, inserted) => {
-                const insertedText = inserted.toString();
-                if (!/^[\d\s+\-\*\/]*$/.test(insertedText)) {
+                const text = inserted.toString();
+
+                if (!/^[0-9.]*$/.test(text)) {
                     allow = false;
+                    return;
+                }
+
+                if ((text.match(/\./g) || []).length > 1) {
+                    allow = false;
+                    return;
                 }
             });
+
             return allow;
         });
 
         return [numericOnly];
+
     }
 }
 
