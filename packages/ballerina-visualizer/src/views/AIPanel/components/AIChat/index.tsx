@@ -19,7 +19,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
     GetWorkspaceContextResponse,
-    ProjectSource,
     SourceFile,
     MappingParameters,
     TestGenerationTarget,
@@ -33,13 +32,10 @@ import {
     TestPlanGenerationRequest,
     TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
-    SourceFiles,
     ChatEntry,
     OperationType,
     GENERATE_TEST_AGAINST_THE_REQUIREMENT,
     GENERATE_CODE_AGAINST_THE_REQUIREMENT,
-    ComponentInfo,
-    MetadataWithAttachments,
     ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
@@ -79,7 +75,7 @@ import {
     upsertTemplate,
 } from "../../commandTemplates/utils/utils";
 import { acceptResolver, handleAttachmentSelection } from "../../utils/attachment/attachmentManager";
-import { fetchWithAuth } from "../../utils/networkUtils";
+import { fetchWithAuth, streamToString } from "../../utils/networkUtils";
 import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
@@ -88,38 +84,11 @@ import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
-import { getOnboardingOpens, incrementOnboardingOpens } from "./utils/utils";
+import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError, ChatIndexes } from "./utils/utils";
 
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
-import { URI } from "vscode-uri";
 import { SegmentType, splitContent } from "./segment";
-
-interface ChatIndexes {
-    integratedChatIndex: number;
-    previouslyIntegratedChatIndex: number;
-}
-
-// Helper function to convert chat history messages to UI format
-const convertToUIMessages = (messages: UIChatHistoryMessage[]) => {
-    return messages.map((msg) => {
-        let role, type;
-        if (msg.role === "user") {
-            role = "User";
-            type = "user_message";
-        } else if (msg.role === "assistant") {
-            role = "Copilot";
-            type = "assistant_message";
-        }
-        return {
-            role: role,
-            type: type,
-            content: msg.content,
-            checkpointId: msg.checkpointId,
-            messageId: msg.messageId,
-        };
-    });
-};
 
 // Helper function to load chat history from localStorage
 const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
@@ -168,16 +137,10 @@ var projectUuid = "";
 var backendRootUri = "";
 var chatLocation = "";
 
-var remainingTokenPercentage: string | number;
-var remaingTokenLessThanOne: boolean = false;
-
-var timeToReset: number;
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
-const RATE_LIMIT_ERROR = ` Cause: Your usage limit has been exceeded. This should reset in the beggining of the next month.`;
 const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 
-const CHECK_DRIFT_BETWEEN_CODE_AND_DOCUMENTATION = "Check drift between code and documentation";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
 
@@ -1301,22 +1264,6 @@ const AIChat: React.FC = () => {
         }
     };
 
-    async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
-        const reader = stream.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let result = "";
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-            result += decoder.decode(value, { stream: true });
-        }
-
-        return result;
-    }
-
     const handleRevertChanges = async (
         codeSegments: any,
         setIsCodeAdded: React.Dispatch<React.SetStateAction<boolean>>,
@@ -2182,18 +2129,4 @@ function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_REQUIREMENT) &&
                 !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED)
         );
-}
-
-function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {
-    return diagnostics.some((diag) => {
-        if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
-            const match = diag.code.match(/^BCE(\d+)$/);
-            if (match) {
-                const codeNumber = Number(match[1]);
-                if (codeNumber < 2000) {
-                    return true;
-                }
-            }
-        }
-    });
 }
