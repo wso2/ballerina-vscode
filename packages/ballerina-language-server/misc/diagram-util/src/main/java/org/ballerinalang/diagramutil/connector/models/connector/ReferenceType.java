@@ -510,10 +510,13 @@ public class ReferenceType {
             if (depSymbol != null) {
                 TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) depSymbol;
                 TypeSymbol typeDesc = typeDefSymbol.typeDescriptor();
-                String moduleId = typeDesc.getModule().isPresent() ?
-                        typeDesc.getModule().get().id().toString() : null;
+                ModuleID moduleId = getModuleID(depSymbol);
+                if (moduleId == null) {
+                    moduleId = getModuleID(typeDesc, null);
+                }
+                String moduleIdString = moduleId != null ? moduleId.toString() : null;
                 String updatedHashCode = String.valueOf(Objects.hash(
-                        moduleId,
+                        moduleIdString,
                         typeDefSymbol.getName().orElse(""),
                         typeDesc.signature()));
 
