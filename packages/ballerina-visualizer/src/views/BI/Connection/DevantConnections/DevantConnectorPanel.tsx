@@ -30,7 +30,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
 }) => {
     const [showInfo, setShowInfo] = useState(false);
     const { platformExtState } = usePlatformExtContext();
-
+    
     return (
         <>
             <>
