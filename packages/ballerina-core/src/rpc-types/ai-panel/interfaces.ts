@@ -21,14 +21,14 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue, ChatMessage } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, Project } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, LinePosition, Project } from "../..";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any>}
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -376,11 +376,17 @@ export interface FileAttatchment {
 }
 
 export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+
+export type CodeContext =
+    | { type: 'addition'; position: LinePosition, filePath: string }
+    | { type: 'selection'; startPosition: LinePosition; endPosition: LinePosition, filePath: string };
+
 export interface GenerateCodeRequest {
     usecase: string;
     chatHistory: ChatEntry[];
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
+    codeContext?: CodeContext;
 }
 
 export interface GenerateAgentCodeRequest {
@@ -389,6 +395,8 @@ export interface GenerateAgentCodeRequest {
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
     messageId: string;
+    isPlanMode: boolean;
+    codeContext?: CodeContext;
 }
 
 export interface SourceFiles {

@@ -35,7 +35,8 @@ import { updateSourceCode } from "../../../../../src/utils/source-utils";
 import { StateMachine } from "../../../../stateMachine";
 import { extractVariableDefinitionSource, getHasStopped, setHasStopped } from "../../../../../src/rpc-managers/data-mapper/utils";
 import { commands, Uri, window } from "vscode";
-import { CLOSE_AI_PANEL_COMMAND, OPEN_AI_PANEL_COMMAND } from "../../constants";
+import { CLOSE_AI_PANEL_COMMAND } from "../../constants";
+import { openAIPanelWithPrompt } from "../../../../views/ai-panel/aiMachine";
 import path from "path";
 import { URI } from "vscode-uri";
 
@@ -814,11 +815,11 @@ export async function openChatWindowWithCommand(): Promise<void> {
     const { identifier, dataMapperMetadata } = context;
 
     commands.executeCommand(CLOSE_AI_PANEL_COMMAND);
-    commands.executeCommand(OPEN_AI_PANEL_COMMAND, {
+    openAIPanelWithPrompt({
         type: 'command-template',
         command: Command.DataMap,
         templateId: identifier ? TemplateId.MappingsForFunction : TemplateId.InlineMappings,
-        ...(identifier && { params: { functionName: identifier } }),
+        ...(identifier && { params: new Map([['functionName', identifier]]) }),
         metadata: {
             ...dataMapperMetadata,
             mappingsModel: model.mappingsModel as DMModel

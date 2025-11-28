@@ -20,9 +20,10 @@
 import { createMachine, assign, interpret } from 'xstate';
 import { extension } from '../../BalExtensionContext';
 import * as crypto from 'crypto';
+import * as path from 'path';
 import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task, TaskStatus, UIChatHistoryMessage, Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
 import { workspace } from 'vscode';
-import { GenerateAgentCodeRequest } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
+import { GenerateAgentCodeRequest, CodeContext } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
 import { captureWorkspaceSnapshot, restoreWorkspaceSnapshot } from './checkpoint/checkpointUtils';
 import { getCheckpointConfig } from './checkpoint/checkpointConfig';
@@ -53,6 +54,45 @@ export const generateProjectId = (): string => {
     const projectHash = hash.digest('hex').substring(0, 16);
 
     return `project-${projectHash}`;
+};
+
+/**
+ * Normalizes codeContext to use relative paths from workspace root
+ * @param codeContext The code context with potentially absolute file path
+ * @returns CodeContext with relative file path, or undefined if input is undefined
+ */
+const normalizeCodeContext = (codeContext?: CodeContext): CodeContext | undefined => {
+    if (!codeContext) {
+        return undefined;
+    }
+
+    const workspaceFolders = workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        return codeContext;
+    }
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    const absolutePath = path.isAbsolute(codeContext.filePath)
+        ? codeContext.filePath
+        : path.join(workspaceRoot, codeContext.filePath);
+
+    // Convert to relative path from workspace root
+    const relativePath = path.relative(workspaceRoot, absolutePath);
+
+    if (codeContext.type === 'addition') {
+        return {
+            type: 'addition',
+            position: codeContext.position,
+            filePath: relativePath
+        };
+    } else {
+        return {
+            type: 'selection',
+            startPosition: codeContext.startPosition,
+            endPosition: codeContext.endPosition,
+            filePath: relativePath
+        };
+    }
 };
 
 const addUserMessage = (
@@ -174,6 +214,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         autoApproveEnabled: false,
         previousState: undefined,
         currentSpec: undefined,
+        isPlanMode: true,
         checkpoints: [],
     } as AIChatMachineContext,
     on: {
@@ -183,6 +224,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 assign({
                     chatHistory: (ctx, event) => addUserMessage(ctx.chatHistory, event.payload.prompt),
                     errorMessage: (_ctx) => undefined,
+                    isPlanMode: (_ctx, event) => event.payload.isPlanMode,
+                    codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
                 }),
                 "captureCheckpoint",
             ],
@@ -649,6 +692,8 @@ const startGenerationService = async (context: AIChatMachineContext): Promise<vo
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
         messageId: messageId,
+        isPlanMode: context.isPlanMode ?? true,
+        codeContext: context.codeContext,
     };
 
     generateDesign(requestBody).catch(error => {

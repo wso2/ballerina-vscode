@@ -32,7 +32,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
-import { getProjectFromResponse, parseSSEEvent, replaceCodeBlocks, splitContent } from "../../AIPanel/components/AIChat";
 import ComponentDiagram from "../ComponentDiagram";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
@@ -668,15 +667,15 @@ export function Overview(props: ComponentDiagramProps) {
 
     const handleGenerate = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: false,
+            planMode: true,
         });
     };
 
     const handleGenerateWithReadme = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: true,
+            planMode: true,
         });
     };
 
@@ -722,7 +721,11 @@ export function Overview(props: ComponentDiagramProps) {
     };
 
     async function handleSettings() {
-        rpcClient.getCommonRpcClient().executeCommand({ commands: [SHARED_COMMANDS.OPEN_AI_PANEL] });
+        rpcClient.getAiPanelRpcClient().openAIPanel({
+            type: 'text',
+            planMode: false,
+            text: ''
+        });
     }
 
     async function handleClose() {

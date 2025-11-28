@@ -44,6 +44,7 @@ import {
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
+    CodeContext,
     AIChatMachineEventType,
     AIChatMachineStateValue,
     UIChatHistoryMessage,
@@ -202,13 +203,17 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
+    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
+    const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
+    const [isRepairMode, setIsRepairMode] = useState(false);
+    const [errorCount, setErrorCount] = useState(0);
     const functionsRef = useRef<any>([]);
     const lastAttatchmentsRef = useRef<any>([]);
     const aiChatInputRef = useRef<AIChatInputRef>(null);
@@ -233,14 +238,40 @@ const AIChat: React.FC = () => {
      * Effect: Initialize the component with initial prompts
      */
     useEffect(function initializeWithInitialPrompts() {
-        rpcClient
-            .getAiPanelRpcClient()
-            .getDefaultPrompt()
-            .then((defaultPrompt: AIPanelPrompt) => {
-                if (defaultPrompt) {
-                    aiChatInputRef.current?.setInputContent(defaultPrompt);
-                }
-            });
+        const fetchPrompt = () => {
+            rpcClient
+                .getAiPanelRpcClient()
+                .getDefaultPrompt()
+                .then((defaultPrompt: AIPanelPrompt) => {
+                    if (defaultPrompt) {
+                        aiChatInputRef.current?.setInputContent(defaultPrompt);
+
+                        // Extract CodeContext from both command-template metadata and text-type direct param
+                        const codeCtx = defaultPrompt.type === 'command-template'
+                            ? defaultPrompt.metadata?.codeContext
+                            : defaultPrompt.type === 'text'
+                                ? defaultPrompt.codeContext
+                                : undefined;
+
+                        if (codeCtx) {
+                            setCodeContext(codeCtx);
+                        }
+
+                        // Handle plan mode for text-type prompts
+                        if (defaultPrompt.type === 'text') {
+                            setIsPlanModeEnabled(defaultPrompt.planMode);
+                        }
+                    }
+                });
+        };
+
+        // Fetch prompt on mount
+        fetchPrompt();
+
+        // Listen for prompt updates when panel is already open
+        rpcClient.onPromptUpdated(() => {
+            fetchPrompt();
+        });
     }, []);
 
     /**
@@ -412,16 +443,30 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
-            } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
+            } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
-                const message = response.toolName === "file_read"
-                    ? `Reading ${fileName}...`
-                    : `Generating code for ${fileName}...`;
+                let message: string;
+
+                if (isRepairMode && errorCount > 0) {
+                    message = `Repairing ${fileName}...`;
+                } else if (response.toolName === "file_write") {
+                    message = `Creating ${fileName}...`;
+                } else {
+                    message = `Editing ${fileName}...`;
+                }
 
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         newMessages[newMessages.length - 1].content += `\n\n<toolcall>${message}</toolcall>`;
+                    }
+                    return newMessages;
+                });
+            } else if (response.toolName === "getCompilationErrors") {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Checking for errors...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -509,27 +554,70 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
-            } else if (["file_write", "file_edit", "file_batch_edit", "file_read"].includes(response.toolName)) {
+            } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const generatingPattern = /<toolcall>Generating code for (.+?)\.\.\.<\/toolcall>/;
-                        const readingPattern = /<toolcall>Reading (.+?)\.\.\.<\/toolcall>/;
+                        const creatingPattern = /<toolcall>Creating (.+?)\.\.\.<\/toolcall>/;
+                        const editingPattern = /<toolcall>Editing (.+?)\.\.\.<\/toolcall>/;
+                        const repairingPattern = /<toolcall>Repairing (.+?)\.\.\.<\/toolcall>/;
 
                         let updatedContent = lastMessageContent;
 
-                        if (response.toolName === "file_read") {
+                        if (repairingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
-                                readingPattern,
-                                (_match, fileName) => `<toolcall>Read ${fileName}</toolcall>`
+                                repairingPattern,
+                                (_match, fileName) => `<toolcall>Repaired ${fileName}</toolcall>`
                             );
-                        } else {
+                        } else if (creatingPattern.test(lastMessageContent)) {
+                            // For file_write, check if it was an update or create
+                            const action = response.toolOutput?.action;
+                            const resultText = action === 'updated' ? 'Updated' : 'Created';
                             updatedContent = lastMessageContent.replace(
-                                generatingPattern,
-                                (_match, fileName) => `<toolcall>Generated ${fileName}</toolcall>`
+                                creatingPattern,
+                                (_match, fileName) => `<toolcall>${resultText} ${fileName}</toolcall>`
+                            );
+                        } else if (editingPattern.test(lastMessageContent)) {
+                            updatedContent = lastMessageContent.replace(
+                                editingPattern,
+                                (_match, fileName) => `<toolcall>Edited ${fileName}</toolcall>`
                             );
                         }
+
+                        newMessages[newMessages.length - 1].content = updatedContent;
+                    }
+                    return newMessages;
+                });
+            } else if (response.toolName === "getCompilationErrors") {
+                const diagnosticsOutput = response.toolOutput;
+                // Backend already filters for errors only (severity === 1), so no need to filter again
+                const errors = diagnosticsOutput?.diagnostics || [];
+                const errorCount = errors.length;
+
+                setErrorCount(errorCount);
+                if (errorCount > 0) {
+                    setIsRepairMode(true);
+                }
+
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+                        const checkingPattern = /<toolcall>Checking for errors\.\.\.<\/toolcall>/;
+
+                        let message: string;
+                        if (errorCount === 0) {
+                            message = "No errors found";
+                            setIsRepairMode(false);
+                        } else {
+                            message = `Found ${errorCount} error${errorCount > 1 ? 's' : ''}`;
+                        }
+
+                        const updatedContent = lastMessageContent.replace(
+                            checkingPattern,
+                            `<toolcall>${message}</toolcall>`
+                        );
 
                         newMessages[newMessages.length - 1].content = updatedContent;
                     }
@@ -644,6 +732,8 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
+            setIsRepairMode(false);
+            setErrorCount(0);
             const command = response.command;
             // Use functional update to access current state (avoid stale closure)
             setMessages((prevMessages) => {
@@ -667,6 +757,8 @@ const AIChat: React.FC = () => {
             });
             setIsCodeLoading(false);
             setIsLoading(false);
+            setIsRepairMode(false);
+            setErrorCount(0);
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const command = response.command;
@@ -1125,6 +1217,7 @@ const AIChat: React.FC = () => {
             chatHistory: chatArray,
             operationType,
             fileAttachmentContents: fileAttatchments,
+            codeContext: codeContext,
         };
 
         await rpcClient.getAiPanelRpcClient().generateCode(requestBody);
@@ -1438,7 +1531,7 @@ const AIChat: React.FC = () => {
     async function processDesignGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_PROMPT,
-            payload: { prompt: useCase }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
         });
     }
 
@@ -1482,6 +1575,11 @@ const AIChat: React.FC = () => {
         } else {
             rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
         }
+    };
+
+    const handleTogglePlanMode = () => {
+        const newValue = !isPlanModeEnabled;
+        setIsPlanModeEnabled(newValue);
     };
 
     const questionMessages = messages.filter((message) => message.type === "question");
@@ -1747,6 +1845,14 @@ const AIChat: React.FC = () => {
                         </Badge>
                         <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
+                            <Button
+                                appearance="icon"
+                                onClick={handleTogglePlanMode}
+                                tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
+                            >
+                                <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
+                                &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
+                            </Button>
                             <Button
                                 appearance="icon"
                                 onClick={handleToggleAutoApprove}
@@ -2062,6 +2168,8 @@ const AIChat: React.FC = () => {
                             onStop={handleStop}
                             isLoading={isLoading}
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                            codeContext={codeContext}
+                            onRemoveCodeContext={() => setCodeContext(undefined)}
                         />
                     )}
                 </AIChatView>
