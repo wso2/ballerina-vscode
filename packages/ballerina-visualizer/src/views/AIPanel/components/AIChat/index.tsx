@@ -91,6 +91,7 @@ import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 
 // Helper function to load chat history from localStorage
+// TODO: Need to be removed and move chat history to statemachine fully
 const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
     const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
     const storedChatArray = localStorage.getItem(localStorageFile);
@@ -280,6 +281,7 @@ const AIChat: React.FC = () => {
             setMessages(uiMessages);
 
             chatArray = chatArray.slice(0, updatedMessages.length);
+            // TODO: Need to be removed and move chat history to statemachine fully
             localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
 
             setIsLoading(false);
@@ -1300,6 +1302,7 @@ const AIChat: React.FC = () => {
                 filepath: chatLocation,
             });
             integratedChatIndex = previouslyIntegratedChatIndex;
+            // TODO: Need to be removed and move chat history to statemachine fully
             localStorage.setItem(
                 `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
                 JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
