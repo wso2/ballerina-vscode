@@ -267,6 +267,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
                 }
 
+                // Fallback integration: integrate any remaining modified files that weren't integrated via TaskWrite in plan mode
+                if (isPlanModeEnabled && modifiedFiles.length > 0) {
+                    const modifiedFilesSet = new Set(modifiedFiles);
+                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+                    console.log(`[Design] Successfully integrated files on stream completion`);
+                    modifiedFiles.length = 0;
+                }
+
                 updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });
                 AIChatStateMachine.sendEvent({
