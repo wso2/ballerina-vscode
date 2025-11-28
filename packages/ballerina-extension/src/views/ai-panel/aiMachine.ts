@@ -63,13 +63,12 @@ export const closeAIWebview = () => {
  * // Open with a command template
  * openAIPanelWithPrompt({
  *   type: 'command-template',
- *   command: Command.Code,
- *   templateId: TemplateId.GenerateFromReadme,
- *   planMode: false
+ *   command: Command.Tests,
+ *   templateId: TemplateId.TestsForService,
  * });
  *
  * @example
- * // Open with text input
+ * // Open with text input (design mode is the default)
  * openAIPanelWithPrompt({
  *   type: 'text',
  *   text: 'Generate a REST API',

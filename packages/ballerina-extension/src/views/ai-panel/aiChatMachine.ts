@@ -214,7 +214,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         autoApproveEnabled: false,
         previousState: undefined,
         currentSpec: undefined,
-        isPlanMode: true,
+        isPlanMode: false,
         checkpoints: [],
     } as AIChatMachineContext,
     on: {
@@ -224,7 +224,14 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 assign({
                     chatHistory: (ctx, event) => addUserMessage(ctx.chatHistory, event.payload.prompt),
                     errorMessage: (_ctx) => undefined,
-                    isPlanMode: (_ctx, event) => event.payload.isPlanMode,
+                    isPlanMode: (_ctx, event) => {
+                        const isExperimentalEnabled = extension.ballerinaExtInstance?.enabledExperimentalFeatures() ?? false;
+                        if (event.payload.isPlanMode && !isExperimentalEnabled) {
+                            console.log('[AIChatMachine] Plan mode requested but experimental features are disabled. Setting isPlanMode to false.');
+                            return false;
+                        }
+                        return event.payload.isPlanMode;
+                    },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
                 }),
                 "captureCheckpoint",

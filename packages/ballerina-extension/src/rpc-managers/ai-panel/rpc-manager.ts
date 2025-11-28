@@ -77,7 +77,6 @@ import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/op
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
-import { generateCode, triggerGeneratedCodeRepair } from "../../features/ai/service/code/code";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
@@ -628,11 +627,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateCode(params: GenerateCodeRequest): Promise<void> {
-        await generateCode(params);
+        // await generateCode(params);
     }
 
     async repairGeneratedCode(params: RepairParams): Promise<void> {
-        await triggerGeneratedCodeRepair(params);
+        // await triggerGeneratedCodeRepair(params);
     }
 
     async generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {

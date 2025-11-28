@@ -56,8 +56,6 @@ import {
     BuildMode,
     Category,
     ClassFieldModifierRequest,
-    Command,
-    ComponentRequest,
     ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
@@ -120,7 +118,6 @@ import {
     SignatureHelpRequest,
     SignatureHelpResponse,
     SourceEditResponse,
-    TemplateId,
     TextEdit,
     UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
@@ -144,6 +141,7 @@ import {
     FormDiagnosticsResponse,
     ExpressionTokensRequest,
     ExpressionTokensResponse,
+    ComponentRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -1054,9 +1052,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     openAIChat(params: AIChatRequest): void {
         if (params.readme) {
             openAIPanelWithPrompt({
-                type: 'command-template',
-                command: Command.Code,
-                templateId: TemplateId.GenerateFromReadme,
+                type: 'text',
+                text: 'generate an integration according to the given Readme file',
+                planMode: true,
             });
         } else if (params.planMode) {
             openAIPanelWithPrompt({
