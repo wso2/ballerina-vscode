@@ -201,7 +201,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             { output, expression: undefined },
             targetField
         );
-    }, [views]);
+    }, [views, deleteMapping]);
 
     useEffect(() => {
         const lastView = views[views.length - 1];
