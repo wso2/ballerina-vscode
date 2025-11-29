@@ -1226,7 +1226,8 @@ const AIChat: React.FC = () => {
             }
 
             const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
-            const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
+            // const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
+            const updatedChatHistory = chatArray;
             setIsCodeAdded(true);
             setIsAddingToWorkspace(false);
 

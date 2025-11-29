@@ -39,18 +39,8 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues } from './utils';
-import { buildProjectArtifactsStructure } from './utils/project-artifacts';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace } from './utils';
 import { AIChatStateMachine } from './views/ai-panel/aiChatMachine';
-import {
-    checkIsBallerinaPackage,
-    checkIsBallerinaWorkspace,
-    checkIsBI,
-    fetchScope,
-    getOrgPackageName,
-    UndoRedoManager,
-    getOrgAndPackageName
-} from './utils';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
 import { buildOutputChannel } from './utils/logger';

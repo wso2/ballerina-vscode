@@ -51,7 +51,6 @@ import {
     currentThemeChanged,
     ChatNotify,
     onChatNotify,
-    AIMachineSendableEvent,
     sendAIChatStateEvent,
     AIChatMachineEventType,
     aiChatStateChanged,
@@ -64,7 +63,7 @@ import {
     checkpointCaptured,
     CheckpointCapturedPayload,
     AIPanelPrompt,
-    promptUpdated
+    promptUpdated,
     AIMachineSendableEvent,
     dependencyPullProgress,
     ProjectMigrationResult,

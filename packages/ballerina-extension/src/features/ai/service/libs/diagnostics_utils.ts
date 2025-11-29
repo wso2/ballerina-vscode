@@ -1,4 +1,4 @@
-import { DiagnosticEntry, SourceFiles, Diagnostics } from '@wso2/ballerina-core';
+import { DiagnosticEntry, Diagnostics } from '@wso2/ballerina-core';
 import { checkProjectDiagnostics } from '../../../../rpc-managers/ai-panel/repair-utils';
 import { StateMachine } from '../../../../stateMachine';
 import * as path from 'path';
