@@ -78,7 +78,7 @@ import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-pan
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
-import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+// import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
 import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
 import { Library } from "../../features/ai/service/libs/libs_types";
@@ -102,7 +102,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { checkToken } from "../../../src/views/ai-panel/utils";
 import { getWorkspaceTomlValues } from "./../../../src/utils/config";
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -652,7 +651,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
-        await generateHealthcareCode(params);
+        // await generateHealthcareCode(params);
     }
 
     async abortAIGeneration(): Promise<void> {

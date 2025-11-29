@@ -54,7 +54,7 @@ sdk.start();
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
-    const project: ProjectSource = await getProjectSource(params.operationType);
+    const project: ProjectSource = (await getProjectSource(params.operationType))[0]; //TOOD: Fix multi project
     const historyMessages = populateHistoryForAgent(params.chatHistory);
     const hasHistory = historyMessages.length > 0;
     const { path: tempProjectPath } = await getTempProject(project, hasHistory);

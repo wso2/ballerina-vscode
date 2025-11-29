@@ -17,7 +17,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
-import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, SourceFiles, AIChatMachineContext } from '@wso2/ballerina-core';
+import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, AIChatMachineContext } from '@wso2/ballerina-core';
 import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
 import { integrateCodeToWorkspace } from '../design/utils';
 import { checkCompilationErrors } from './diagnostics_utils';

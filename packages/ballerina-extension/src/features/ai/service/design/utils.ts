@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFiles, FileChanges, CodeContext } from "@wso2/ballerina-core";
+import { SourceFile, FileChanges, CodeContext } from "@wso2/ballerina-core";
 import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
@@ -126,7 +126,7 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
     }
 }
 
-export function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
+export function getCodeBlocks(updatedSourceFiles: SourceFile[], updatedFileNames: string[]): string {
     const codeBlocks = updatedFileNames
         .map((fileName) => {
             const sourceFile = updatedSourceFiles.find((sf) => sf.filePath === fileName);
