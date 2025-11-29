@@ -1,10 +1,10 @@
 {
-  "source": "focussedView2.bal",
+  "source": "focussedView.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "focussedView2.json",
+      "fileName": "focussedView.json",
       "startLine": {
         "line": 9,
         "offset": 0
