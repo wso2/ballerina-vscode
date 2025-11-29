@@ -599,13 +599,6 @@ export function DataMapperView(props: DataMapperProps) {
         await refreshDMModel();
     };
 
-    const onDMReset = async () => {
-        await deleteMapping(
-            { output: name, expression: undefined },
-            name
-        );
-    };
-
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
@@ -732,7 +725,6 @@ export function DataMapperView(props: DataMapperProps) {
                             reusable={reusable}
                             onClose={onDMClose}
                             onRefresh={onDMRefresh}
-                            onReset={onDMReset}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}
