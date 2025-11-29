@@ -90,53 +90,14 @@ import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 
-// Helper function to load chat history from localStorage
-// TODO: Need to be removed and move chat history to statemachine fully
-const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
-    const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
-    const storedChatArray = localStorage.getItem(localStorageFile);
-    if (storedChatArray) {
-        const chatArrayFromStorage = JSON.parse(storedChatArray);
-        chatArray.length = 0;
-        chatArray.push(...chatArrayFromStorage);
-        // Add the messages from the chat array to the view
-        setMessages((prevMessages) => [
-            ...prevMessages,
-            ...chatArray.map((entry: ChatEntry) => {
-                let role, type;
-                if (entry.actor === "user") {
-                    role = "User";
-                    type = "user_message";
-                } else if (entry.actor === "assistant") {
-                    role = "Copilot";
-                    type = "assistant_message";
-                }
-                return {
-                    role: role,
-                    type: type,
-                    content: entry.message,
-                };
-            }),
-        ]);
-    }
-};
-
 enum CodeGenerationType {
     CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
     TESTS_FOR_USER_REQUIREMENT = "TESTS_FOR_USER_REQUIREMENT",
     CODE_GENERATION = "CODE_GENERATION",
 }
 
-var chatArray: ChatEntry[] = [];
-var integratedChatIndex = 0;
-var previouslyIntegratedChatIndex = 0;
-var previousDevelopmentDocumentContent = "";
-
-// A string array to store all code blocks
-const codeBlocks: string[] = [];
-var projectUuid = "";
-var backendRootUri = "";
-var chatLocation = "";
+// var projectUuid = "";
+// var chatLocation = "";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -248,28 +209,6 @@ const AIChat: React.FC = () => {
     }, []);
     /* REFACTORED CODE END [2] */
 
-    let codeSegmentRendered = false;
-    const [tempStorage, setTempStorage] = useState<{ [filePath: string]: string }>({});
-    const [initialFiles, setInitialFiles] = useState<Set<string>>(new Set<string>());
-    const [emptyFiles, setEmptyFiles] = useState<Set<string>>(new Set<string>());
-
-    async function fetchBackendUrl() {
-        try {
-            backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectPath ;
-            setIsReqFileExists(
-                chatLocation != null &&
-                chatLocation != undefined &&
-                (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
-            );
-
-            generateNaturalProgrammingTemplate(isReqFileExists);
-            // Do something with backendRootUri
-        } catch (error) {
-            console.error("Failed to fetch backend URL:", error);
-        }
-    }
-
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
             await rpcClient.sendAIChatStateEvent({
@@ -279,10 +218,6 @@ const AIChat: React.FC = () => {
             const updatedMessages = await rpcClient.getAIChatUIHistory();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
-
-            chatArray = chatArray.slice(0, updatedMessages.length);
-            // TODO: Need to be removed and move chat history to statemachine fully
-            localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
 
             setIsLoading(false);
             setIsCodeLoading(false);
@@ -296,49 +231,6 @@ const AIChat: React.FC = () => {
             console.error("Failed to restore checkpoint:", error);
         }
     };
-
-    useEffect(() => {
-        fetchBackendUrl();
-    }, []);
-
-    useEffect(() => {
-        rpcClient
-            ?.getAiPanelRpcClient()
-            .getProjectUuid()
-            .then((response) => {
-                projectUuid = response;
-
-                const localStorageIndexFile = `chatArray-AIGenerationChat-${projectUuid}-developer-index`;
-                const storedIndexes = localStorage.getItem(localStorageIndexFile);
-                if (storedIndexes) {
-                    const indexes: ChatIndexes = JSON.parse(storedIndexes);
-                    integratedChatIndex = indexes.integratedChatIndex;
-                    previouslyIntegratedChatIndex = indexes.previouslyIntegratedChatIndex;
-                }
-
-                // TODO: Enable state machine-based chat history loading once fully tested
-                // Try to get chat history from state machine first
-                rpcClient
-                    .getAIChatUIHistory()
-                    .then((uiMessages: UIChatHistoryMessage[]) => {
-                        if (uiMessages && uiMessages.length > 0) {
-                            // Convert and set messages from state machine
-                            setMessages((prevMessages) => [
-                                ...prevMessages,
-                                ...convertToUIMessages(uiMessages)
-                            ]);
-                        } else {
-                            // Fallback to localStorage if state machine has no messages
-                            loadFromLocalStorage(projectUuid, setMessages, chatArray);
-                        }
-                    })
-                    .catch((error: any) => {
-                        // Fallback to localStorage if state machine call fails
-                        console.warn('[AIChat] Failed to get chat history from state machine, falling back to localStorage:', error);
-                        loadFromLocalStorage(projectUuid, setMessages, chatArray);
-                    });
-            });
-    }, []);
 
     useEffect(() => {
         const initializeAutoApproveState = async () => {
@@ -367,6 +259,26 @@ const AIChat: React.FC = () => {
         };
 
         checkExperimentalEnabled();
+    }, [rpcClient]);
+
+    /**
+     * Effect: Load initial chat history from aiChatMachine context
+     */
+    useEffect(function loadInitialChatHistory() {
+        const loadHistory = async () => {
+            try {
+                const historyMessages = await rpcClient.getAIChatUIHistory();
+                if (historyMessages && historyMessages.length > 0) {
+                    const uiMessages = convertToUIMessages(historyMessages);
+                    setMessages(uiMessages);
+                }
+            } catch (error) {
+                console.error('[AIChat] Failed to load initial chat history:', error);
+                // Continue with empty messages - don't block the UI
+            }
+        };
+
+        loadHistory();
     }, [rpcClient]);
 
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
@@ -715,18 +627,6 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsRepairMode(false);
             setErrorCount(0);
-            // Use functional update to access current state (avoid stale closure)
-            setMessages((prevMessages) => {
-                if (prevMessages.length >= 2) {
-                    addChatEntry(
-                        "user",
-                        prevMessages[prevMessages.length - 2].content,
-                        false
-                    );
-                    addChatEntry("assistant", prevMessages[prevMessages.length - 1].content);
-                }
-                return prevMessages;
-            });
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -742,14 +642,6 @@ const AIChat: React.FC = () => {
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const messageId = response.messageId;
-
-            // Save chat entries
-            addChatEntry(
-                "user",
-                messages[messages.length - 2].content,
-                false
-            );
-            addChatEntry("assistant", messages[messages.length - 1].content);
 
             // Update chat message in state machine with UI message
             rpcClient.sendAIChatStateEvent({
@@ -840,25 +732,6 @@ const AIChat: React.FC = () => {
                 getTemplateById("generate-test-from-requirements", NATURAL_PROGRAMMING_TEMPLATES)
             );
             removeTemplate(commandTemplates, Command.NaturalProgramming, "generate-code-from-requirements");
-        }
-    }
-
-    function addChatEntry(role: string, content: string, isCodeGeneration: boolean = false): void {
-        chatArray.push({
-            actor: role,
-            message: content,
-            isCodeGeneration,
-        });
-
-        localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
-    }
-
-    function updateChatEntry(chatIdx: number, newEntry: ChatEntry): void {
-        if (chatIdx >= 0 && chatIdx < chatArray.length) {
-            newEntry.isCodeGeneration = chatArray[chatIdx].isCodeGeneration;
-            chatArray[chatIdx] = newEntry;
-
-            localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
         }
     }
 
@@ -972,33 +845,33 @@ const AIChat: React.FC = () => {
                     let useCase = "";
                     switch (parsedInput.templateId) {
                         case "code-doc-drift-check":
-                            await processLLMDiagnostics(attachments, inputText);
+                            // await processLLMDiagnostics(attachments, inputText);
                             break;
                         case "generate-code-from-following-requirements":
-                            await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
-                                filepath: chatLocation,
-                                content: parsedInput.placeholderValues.requirements,
-                            });
-                            setIsReqFileExists(true);
+                            // await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
+                            //     filepath: chatLocation,
+                            //     content: parsedInput.placeholderValues.requirements,
+                            // });
+                            // setIsReqFileExists(true);
 
-                            useCase = parsedInput.placeholderValues.requirements;
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                                inputText
-                            );
+                            // useCase = parsedInput.placeholderValues.requirements;
+                            // await processCodeGeneration(
+                            //     [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
+                            //     inputText
+                            // );
                             break;
                         case "generate-test-from-requirements":
-                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
+                            // rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
 
-                            useCase = getTemplateTextById(
-                                commandTemplates,
-                                Command.NaturalProgramming,
-                                "generate-test-from-requirements"
-                            );
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
-                                inputText
-                            );
+                            // useCase = getTemplateTextById(
+                            //     commandTemplates,
+                            //     Command.NaturalProgramming,
+                            //     "generate-test-from-requirements"
+                            // );
+                            // await processCodeGeneration(
+                            //     [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
+                            //     inputText
+                            // );
                             break;
                         case "generate-code-from-requirements":
                             useCase = getTemplateTextById(
@@ -1122,40 +995,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processLLMDiagnostics(attachments: Attachment[], message: string) {
-        let response: LLMDiagnostics =
-            rpcClient == null
-                ? { statusCode: 500, diags: DRIFT_CHECK_ERROR }
-                : await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents(chatLocation);
-
-        const responseStatus = response.statusCode;
-        const invalidResponse = response == null || response.statusCode == null;
-
-        if (invalidResponse) {
-            throw new Error(DRIFT_CHECK_ERROR);
-        }
-
-        if (!(responseStatus >= 200 && responseStatus < 300)) {
-            throw new Error(DRIFT_CHECK_ERROR);
-        }
-
-        if (response.diags == null || response.diags == "") {
-            response.diags = NO_DRIFT_FOUND;
-        }
-
-        setIsLoading(false);
-
-        const userMessage = getUserMessage([message, attachments]);
-        setMessages((prevMessages) => {
-            const newMessage = [...prevMessages];
-            newMessage[newMessage.length - 1].content = response.diags;
-            return newMessage;
-        });
-        addChatEntry("user", userMessage);
-        addChatEntry("assistant", response.diags);
-        setIsSyntaxError(false);
-    }
-
     async function processCodeGeneration(content: [string, Attachment[], OperationType], message: string) {
         const [useCase, attachments, operationType] = content;
         const fileAttatchments = attachments.map((file) => ({
@@ -1165,7 +1004,7 @@ const AIChat: React.FC = () => {
 
         const requestBody: GenerateCodeRequest = {
             usecase: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
             operationType,
             fileAttachmentContents: fileAttatchments,
             codeContext: codeContext,
@@ -1182,89 +1021,6 @@ const AIChat: React.FC = () => {
     ) => {
         console.log("Add to integration called. Command: ", command);
         setIsAddingToWorkspace(true);
-
-        try {
-            const fileChanges: FileChanges[] = [];
-            for (let { segmentText, filePath } of codeSegments) {
-                let originalContent = "";
-                if (!tempStorage[filePath]) {
-                    try {
-                        originalContent = await rpcClient.getAiPanelRpcClient().getFromFile({ filePath: filePath });
-                        setTempStorage((prev) => ({ ...prev, [filePath]: originalContent }));
-                        if (originalContent === "") {
-                            setEmptyFiles((prev) => new Set([...prev, filePath]));
-                        } else {
-                            setInitialFiles((prev) => new Set([...prev, filePath]));
-                        }
-                    } catch (error) {
-                        setTempStorage((prev) => ({ ...prev, [filePath]: "" }));
-                    }
-                }
-
-                if (command === "ai_map") {
-                    const matchingFile = filePaths?.find(file => {
-                        const filePathName = file.filePath.split('/').pop();
-                        return filePathName === filePath.split('/').pop();
-                    });
-                    segmentText = matchingFile.content
-                } else if (command === "test" || command === "type_creator") {
-                    segmentText = `${originalContent}\n\n${segmentText}`;
-                } else {
-                    segmentText = `${segmentText}`;
-                }
-
-                let isTestCode = false;
-                if (command === "test") {
-                    isTestCode = true;
-                }
-
-                fileChanges.push({ filePath, content: segmentText });
-            }
-
-            if (fileChanges.length > 0) {
-                await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
-            }
-
-            const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
-            // const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
-            const updatedChatHistory = chatArray;
-            setIsCodeAdded(true);
-            setIsAddingToWorkspace(false);
-
-            if (await rpcClient.getAiPanelRpcClient().isNaturalProgrammingDirectoryExists(chatLocation)) {
-                fetchWithAuth({
-                    url: backendRootUri + "/prompt/summarize",
-                    method: "POST",
-                    body: { chats: updatedChatHistory, existingChatSummary: developerMdContent },
-                    rpcClient: rpcClient,
-                })
-                    .then(async (response) => {
-                        const chatSummaryResponseStr = await streamToString(response.body);
-                        await rpcClient
-                            .getAiPanelRpcClient()
-                            .addChatSummary({ summary: chatSummaryResponseStr, filepath: chatLocation })
-                            .then(() => {
-                                previouslyIntegratedChatIndex = integratedChatIndex;
-                                integratedChatIndex = chatArray.length;
-                                localStorage.setItem(
-                                    `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-                                    JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-                                );
-                                previousDevelopmentDocumentContent = developerMdContent;
-                            })
-                            .catch((error: any) => {
-                                rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
-                            });
-                    })
-                    .catch((error: any) => {
-                        rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
-                    });
-            }
-        } catch (error) {
-            console.error("Error in handleAddAllCodeSegmentsToWorkspace:", error);
-            setIsAddingToWorkspace(false);
-            throw error;
-        }
     };
 
     const handleRevertChanges = async (
@@ -1274,50 +1030,6 @@ const AIChat: React.FC = () => {
     ) => {
         console.log("Revert gration called. Command: ", command);
         setIsAddingToWorkspace(true);
-
-        try {
-            const fileChanges: FileChanges[] = [];
-            for (const { filePath } of codeSegments) {
-                let originalContent = tempStorage[filePath];
-                if (originalContent === "" && !initialFiles.has(filePath) && !emptyFiles.has(filePath)) {
-                    // Delete the file if it didn't initially exist in the workspace
-                    try {
-                        await rpcClient.getAiPanelRpcClient().deleteFromProject({ filePath: filePath });
-                    } catch (error) {
-                        console.error(`Error deleting file ${filePath}:`, error);
-                    }
-                } else {
-                    let isTestCode = false;
-                    if (command === "test") {
-                        isTestCode = true;
-                    }
-                    const revertContent = emptyFiles.has(filePath) ? "" : originalContent;
-                    fileChanges.push({ filePath, content: revertContent });
-                }
-            }
-            if (fileChanges.length > 0) {
-                await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
-            }
-            rpcClient.getAiPanelRpcClient().updateDevelopmentDocument({
-                content: previousDevelopmentDocumentContent,
-                filepath: chatLocation,
-            });
-            integratedChatIndex = previouslyIntegratedChatIndex;
-            // TODO: Need to be removed and move chat history to statemachine fully
-            localStorage.setItem(
-                `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-                JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-            );
-            setTempStorage({});
-            setInitialFiles(new Set<string>());
-            setEmptyFiles(new Set<string>());
-            setIsCodeAdded(false);
-            setIsAddingToWorkspace(false);
-        } catch (error) {
-            console.error("Error in handleRevertChanges:", error);
-            setIsAddingToWorkspace(false);
-            throw error;
-        }
     };
 
     async function processTestGeneration(
@@ -1442,14 +1154,12 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             throw error;
         }
-        addChatEntry("user", message);
-        addChatEntry("assistant", formatted_response);
     }
 
     async function processHealthcareCodeGeneration(useCase: string, message: string) {
         const requestBody: GenerateCodeRequest = {
             usecase: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
             fileAttachmentContents: [],
             operationType: CodeGenerationType.CODE_GENERATION,
         };
@@ -1459,7 +1169,7 @@ const AIChat: React.FC = () => {
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
         const requestBody: any = {
             query: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
         };
 
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
@@ -1487,19 +1197,8 @@ const AIChat: React.FC = () => {
     }
 
     function handleClearChat(): void {
-        codeBlocks.length = 0;
-        chatArray.length = 0;
-        integratedChatIndex = 0;
-        previouslyIntegratedChatIndex = 0;
-        localStorage.setItem(
-            `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-            JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-        );
-
         setMessages((prevMessages) => []);
         setApprovalRequest(null);
-
-        localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
 
         rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
@@ -1521,10 +1220,10 @@ const AIChat: React.FC = () => {
 
     const questionMessages = messages.filter((message) => message.type === "question");
     if (questionMessages.length > 0) {
-        localStorage.setItem(
-            `Question-AIGenerationChat-${projectUuid}`,
-            questionMessages[questionMessages.length - 1].content
-        );
+        // localStorage.setItem(
+        //     `Question-AIGenerationChat-${projectUuid}`,
+        //     questionMessages[questionMessages.length - 1].content
+        // );
     }
     const otherMessages = messages.filter((message) => message.type !== "question");
     useEffect(() => {
@@ -1550,12 +1249,6 @@ const AIChat: React.FC = () => {
                 ...prevState,
                 testPlan: newContent,
             }));
-
-            // Update the memory as well
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1589,17 +1282,7 @@ const AIChat: React.FC = () => {
                     ...prevState,
                     testPlan: newContent,
                 }));
-
-                updateChatEntry(chatArray.length - 1, {
-                    actor: "assistant",
-                    message: newContent,
-                });
             }
-
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1626,12 +1309,6 @@ const AIChat: React.FC = () => {
                 ...prevState,
                 testPlan: updatedContent,
             }));
-
-            // Update the memory as well
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1678,7 +1355,6 @@ const AIChat: React.FC = () => {
                         /<button type="save_documentation">Save Documentation<\/button>/g,
                         '<button type="documentation_saved">Saved</button>'
                     );
-                    addChatEntry("assistant", messages[messages.length - 1].content);
                 }
                 return newMessages;
             });
@@ -1823,12 +1499,10 @@ const AIChat: React.FC = () => {
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}
                         {otherMessages.map((message, index) => {
-                            const showGeneratingFiles = !codeSegmentRendered && index === currentGeneratingPromptIndex;
                             const isLastResponse = index === currentGeneratingPromptIndex;
                             const isAssistantMessage = message.role === "Copilot";
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
-                            codeSegmentRendered = false;
 
                             const segmentedContent = splitContent(message.content);
                             const areTestsGenerated = segmentedContent.some(
@@ -1891,14 +1565,14 @@ const AIChat: React.FC = () => {
                                                     <CodeSection
                                                         key={i}
                                                         codeSegments={codeSegments}
-                                                        loading={isLoading && showGeneratingFiles}
+                                                        loading={isLoading}
                                                         handleAddAllCodeSegmentsToWorkspace={
                                                             handleAddAllCodeSegmentsToWorkspace
                                                         }
                                                         handleRevertChanges={handleRevertChanges}
                                                         isReady={!isCodeLoading}
                                                         message={message}
-                                                        buttonsActive={showGeneratingFiles}
+                                                        buttonsActive={true}
                                                         isSyntaxError={isContainsSyntaxError(
                                                             currentDiagnosticsRef.current
                                                         )}
