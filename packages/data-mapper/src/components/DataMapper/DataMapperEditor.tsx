@@ -128,7 +128,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         applyModifications,
         onClose,
         onRefresh,
-        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -190,6 +189,19 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const resetView = useCallback((newData: View) => {
         dispatch({ type: ActionType.RESET_VIEW, payload: { view: newData } });
     }, [resetSearchStore]);
+
+    const handleOnReset = useCallback(async () => {
+        const targetField = views[views.length - 1].targetField;
+        const outputIds = targetField.split('.');
+
+        let output: string;
+        while ((output = outputIds.pop()) === '0');
+        
+        await deleteMapping(
+            { output, expression: undefined },
+            targetField
+        );
+    }, [views]);
 
     useEffect(() => {
         const lastView = views[views.length - 1];
@@ -335,7 +347,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         onClose={handleOnClose}
                         onBack={handleOnBack}
                         onRefresh={onRefresh}
-                        onReset={onReset}
+                        onReset={handleOnReset}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                         undoRedoGroup={undoRedoGroup}
