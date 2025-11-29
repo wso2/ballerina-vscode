@@ -164,3 +164,9 @@ export interface TypesFromSymbolResponse {
 export interface ExecutorPositionsResponse {
     executorPositions?: ExecutorPosition[];
 }
+
+export interface SemanticVersion {
+    major: number;
+    minor: number;
+    patch: number;
+}

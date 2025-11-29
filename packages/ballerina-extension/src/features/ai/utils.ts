@@ -280,52 +280,17 @@ import { ProjectSource, ProjectModule, OpenAPISpec } from '@wso2/ballerina-core'
 import { langClient } from './activator';
 
 /**
- * Finds the root directory of a Ballerina project by searching for Ballerina.toml
- */
-export async function findBallerinaProjectRoot(dirPath: string): Promise<string | null> {
-    if (dirPath === null) {
-        return null;
-    }
-
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders) {
-        return null;
-    }
-
-    // Check if the directory is within any of the workspace folders
-    const workspaceFolder = workspaceFolders.find(folder => dirPath.startsWith(folder.uri.fsPath));
-    if (!workspaceFolder) {
-        return null;
-    }
-
-    let currentDir = dirPath;
-
-    while (currentDir.startsWith(workspaceFolder.uri.fsPath)) {
-        const ballerinaTomlPath = path.join(currentDir, 'Ballerina.toml');
-        if (fs.existsSync(ballerinaTomlPath)) {
-            return currentDir;
-        }
-        currentDir = path.dirname(currentDir);
-    }
-
-    return null;
-}
-
-/**
  * Gets the project source including all .bal files and modules
  */
-export async function getProjectSource(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaProjectRoot(dirPath);
-
-    if (!projectRoot) {
-        return null;
-    }
+export async function getProjectSource(projectRoot: string): Promise<ProjectSource | null> {
 
     const projectSource: ProjectSource = {
         sourceFiles: [],
         projectTests: [],
         projectModules: [],
-        projectName: ""
+        projectName: "",
+        packagePath: projectRoot,
+        isActive: true
     };
 
     // Read root-level .bal files
@@ -370,14 +335,9 @@ export async function getProjectSource(dirPath: string): Promise<ProjectSource |
 /**
  * Gets the project source including test files
  */
-export async function getProjectSourceWithTests(dirPath: string): Promise<ProjectSource | null> {
-    const projectRoot = await findBallerinaProjectRoot(dirPath);
+export async function getProjectSourceWithTests(projectRoot: string): Promise<ProjectSource | null> {
 
-    if (!projectRoot) {
-        return null;
-    }
-
-    const projectSourceWithTests: ProjectSource = await getProjectSource(dirPath);
+    const projectSourceWithTests: ProjectSource = await getProjectSource(projectRoot);
 
     // Read tests
     const testsDir = path.join(projectRoot, 'tests');

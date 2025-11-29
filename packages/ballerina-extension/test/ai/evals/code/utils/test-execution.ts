@@ -21,14 +21,14 @@ import { createTestEventHandler } from './test-event-handler';
 import { validateTestResult } from './test-validation';
 import { VSCODE_COMMANDS } from './constants';
 import { getProjectFromResponse, getProjectSource } from "./evaluator-utils";
-import { SourceFiles } from "@wso2/ballerina-core";
+import { SourceFile } from "@wso2/ballerina-core";
 
 /**
  * Executes a single test case and returns the result
  */
 export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestCaseResult> {
     console.log(`\n🚀 Starting test case: ${useCase.id} - ${useCase.description}`);
-    
+
     const { handler: testEventHandler, getResult } = createTestEventHandler(useCase);
 
     const params: GenerateCodeRequest = {
@@ -38,13 +38,13 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
         fileAttachmentContents: useCase.fileAttachments ? [...useCase.fileAttachments] : [],
     };
 
-    const initialSources: SourceFiles[] = (await getProjectSource(useCase.projectPath)).sourceFiles;
+    const initialSources: SourceFile[] = (await getProjectSource(useCase.projectPath)).sourceFiles;
 
     try {
         await commands.executeCommand(VSCODE_COMMANDS.AI_GENERATE_CODE_CORE, params, testEventHandler);
 
         const result = getResult();
-        const finalSources: SourceFiles[] = getProjectFromResponse(result.fullContent)
+        const finalSources: SourceFile[] = getProjectFromResponse(result.fullContent)
         return await validateTestResult(result, useCase, initialSources, finalSources);
 
     } catch (error) {

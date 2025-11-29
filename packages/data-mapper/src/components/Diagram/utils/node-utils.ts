@@ -20,28 +20,27 @@ import { InputNode, SubMappingNode } from "../Node";
 import { View } from "../../DataMapper/Views/DataMapperView";
 
 
-export function findInputNode(field: string, outputNode: DataMapperNodeModel, views?: View[], lastViewIndex?: number): InputNode {
+export function findInputNode(field: string, outputNode: DataMapperNodeModel, views?: View[], lastViewIndex?: number): InputNode | SubMappingNode | undefined {
     const nodes = outputNode.getModel().getNodes();
     
     // Helper function to find input node by field path
-    const findNodeByField = (fieldPath: string): InputNode | undefined => {
-        const mappingStartsWith = fieldPath.split('.')[0];
+    const findNodeByField = (fieldStartsWith: string): InputNode | SubMappingNode | undefined => {
         return nodes.find(node => {
             if (node instanceof InputNode) {
-                return node.inputType.id === mappingStartsWith;
+                return node.inputType.id === fieldStartsWith;
             } else if (node instanceof SubMappingNode) {
-                return node.subMappings.some(subMapping => subMapping.name === mappingStartsWith);
+                return node.subMappings.some(subMapping => subMapping.name === fieldStartsWith);
             }
-        }) as InputNode | undefined;
+        }) as InputNode | SubMappingNode | undefined;
     };
 
     // try finding input node using 'field' (map from other input ports)
-    let inputNode = findNodeByField(field);
+    const fieldStartsWith = field.split('.')[0];
+    let inputNode = findNodeByField(fieldStartsWith);
     
     // if not found, try with parentSourceField
     if (!inputNode && views && lastViewIndex) {
-        const parentSourceField = views[lastViewIndex].sourceField;
-        inputNode = findInputNode(parentSourceField, outputNode, views, lastViewIndex - 1);
+        inputNode = findNodeByField(outputNode.context.model.focusInputRootMap?.[fieldStartsWith]);
     }
 
     return inputNode;

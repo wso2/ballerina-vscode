@@ -92,22 +92,19 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
                 typeName: name
             });
 
-            //  find the record with the name
-            const record = typesFromJson.types.find((t) => t.type.name === name);
-            // if there are other records than the matching name, get the types
+            const record = typesFromJson.types[typesFromJson.types.length - 1];
             const otherRecords = typesFromJson.types
-                .filter((t) => t.type.name !== name)
+                .slice(0, -1)
                 .map((t) => t.type);
 
-
             if (otherRecords.length > 0) {
-                const response: UpdateTypesResponse = await rpcClient.getBIDiagramRpcClient().updateTypes({
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
                     filePath: 'types.bal',
                     types: otherRecords
                 });
 
                 if (!isPopupTypeForm) {
-                    await props.rpcClient.getVisualizerRpcClient().openView(
+                    await rpcClient.getVisualizerRpcClient().openView(
                         { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
                     );
                 }
@@ -115,6 +112,9 @@ export const RecordFromJson = (props: RecordFromJsonProps) => {
 
             if (record) {
                 onImport([record.type]);
+            } else {
+                setIsSaving(false);
+                setError("Could not import JSON as type.");
             }
         } catch (err) {
             setError("Could not import JSON as type.");
