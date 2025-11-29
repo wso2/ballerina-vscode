@@ -78,7 +78,6 @@ export interface DataMapperEditorProps {
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     onRefresh: () => Promise<void>;
-    onReset: () => Promise<void>;
     onClose: () => void;
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
