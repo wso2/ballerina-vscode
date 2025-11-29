@@ -461,7 +461,11 @@ public class DataMapManager {
 
         String[] fieldSplits = targetField.split(DOT);
         int idx = 1;
-        if (initializer.kind() == SyntaxKind.QUERY_EXPRESSION) {
+        ExpressionNode exprToCheck = initializer;
+        if (initializer.kind() == SyntaxKind.LET_EXPRESSION) {
+            exprToCheck = ((LetExpressionNode) initializer).expression();
+        }
+        if (exprToCheck.kind() == SyntaxKind.QUERY_EXPRESSION) {
             if (fieldSplits.length >= 2 && fieldSplits[1].equals(ZERO)) {
                 idx = 2;
             }
