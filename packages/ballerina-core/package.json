@@ -27,8 +27,7 @@
     "tree-kill": "^1.2.2",
     "vscode-uri": "^3.0.8",
     "@types/mousetrap": "~1.6.11",
-    "@types/ws": "^8.2.1",
-    "ai": "^5.0.101"
+    "@types/ws": "^8.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",

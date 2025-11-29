@@ -18,7 +18,6 @@
 
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
-import { ModelMessage } from "ai";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { Type } from "./interfaces/extended-lang-client";
@@ -435,7 +434,7 @@ export interface ChatMessage {
     id: string;
     content: string;
     uiResponse: string;
-    modelMessages: ModelMessage[];
+    modelMessages: any[];
     timestamp: number;
     checkpointId?: string;
 }
