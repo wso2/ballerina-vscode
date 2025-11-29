@@ -20,13 +20,15 @@ import { BallerinaProjectComponents, SyntaxTreeResponse } from "@wso2/ballerina-
 import { LangClientRpcClient } from "@wso2/ballerina-rpc-client";
 import { URI } from "vscode-uri";
 
+const TYPE_EDITOR_SUPPORTED_VERSION = {major: 2201, minor: 7, patch: 2};
+
 export const useBallerinaVersion = (
     langServerRpcClient: LangClientRpcClient
 ): {
     ballerinaVersion: string;
     isFetching: boolean;
     isError: boolean;
-    refetch: any;
+    refetch: () => void;
 } => {
     const fetchBallerinaVersion = async () => {
         try {
@@ -49,6 +51,37 @@ export const useBallerinaVersion = (
     });
 
     return { ballerinaVersion, isFetching, isError, refetch };
+};
+
+export const useVersionCompatibility = (
+    langServerRpcClient: LangClientRpcClient
+): {
+    isVersionCompatible: boolean;
+    isFetching: boolean;
+    isError: boolean;
+    refetch: () => void;
+} => {
+    const checkVersionCompatibility = async () => {
+        try {
+            const isCompatible = await langServerRpcClient.isSupportedSLVersion(TYPE_EDITOR_SUPPORTED_VERSION);
+            return isCompatible;
+        } catch (networkError: any) {
+            console.error("Error while checking version compatibility in type editor", networkError);
+        }
+    };
+
+    const {
+        data: isVersionCompatible,
+        isFetching,
+        isError,
+        refetch,
+    } = useQuery({
+        queryKey: ["checkVersionCompatibility"],
+        queryFn: checkVersionCompatibility,
+        networkMode: 'always'
+    });
+
+    return { isVersionCompatible, isFetching, isError, refetch };
 };
 
 export const useFullST = (

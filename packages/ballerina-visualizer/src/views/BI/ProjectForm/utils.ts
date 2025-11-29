@@ -17,6 +17,7 @@
  */
 
 // Import from the component file since types.ts was removed
+import { AddProjectFormData } from "./AddProjectFormFields";
 import { ProjectFormData } from "./ProjectFormFields";
 
 export const isValidPackageName = (name: string): boolean => {
@@ -60,6 +61,15 @@ export const isFormValid = (formData: ProjectFormData): boolean => {
         formData.integrationName.length >= 2 &&
         formData.packageName.length >= 2 &&
         formData.path.length >= 2 &&
+        validatePackageName(formData.packageName, formData.integrationName) === null
+    );
+};
+
+export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspace: boolean): boolean => {
+    return (
+        formData.integrationName.length >= 2 &&
+        formData.packageName.length >= 2 &&
+        (isInWorkspace || (!isInWorkspace && formData.workspaceName?.length >= 1)) &&
         validatePackageName(formData.packageName, formData.integrationName) === null
     );
 };

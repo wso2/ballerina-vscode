@@ -256,7 +256,7 @@ const AIChat: React.FC = () => {
     async function fetchBackendUrl() {
         try {
             backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
+            chatLocation = (await rpcClient.getVisualizerLocation()).projectPath ;
             setIsReqFileExists(
                 chatLocation != null &&
                 chatLocation != undefined &&
@@ -1204,7 +1204,7 @@ const AIChat: React.FC = () => {
                 if (command === "ai_map") {
                     const matchingFile = filePaths?.find(file => {
                         const filePathName = file.filePath.split('/').pop();
-                        return filePathName === filePath;
+                        return filePathName === filePath.split('/').pop();
                     });
                     segmentText = matchingFile.content
                 } else if (command === "test" || command === "type_creator") {
@@ -1713,7 +1713,8 @@ const AIChat: React.FC = () => {
 
         await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
             diagnostics: currentDiagnostics,
-            assistantResponse: messages[messages.length - 1].content,
+            assistantResponse: messages[messages.length - 1].content, // XML format with code blocks
+            updatedFileNames: [], // Will be determined from parsed XML
             previousMessages: messagesRef.current,
         });
     };
@@ -2120,16 +2121,3 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
-
-function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
-    return chatArray
-        .slice(integratedChatIndex)
-        .filter(
-            (chatEntry) =>
-                chatEntry.actor.toLowerCase() == "user" &&
-                chatEntry.isCodeGeneration &&
-                !chatEntry.message.includes(GENERATE_TEST_AGAINST_THE_REQUIREMENT) &&
-                !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_REQUIREMENT) &&
-                !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED)
-        );
-}
