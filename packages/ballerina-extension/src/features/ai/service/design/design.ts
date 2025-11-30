@@ -28,7 +28,7 @@ import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
-import { getTempProject, FileModificationInfo } from "../../utils/temp-project-utils";
+import { getTempProject, cleanupTempProject } from "../../utils/temp-project-utils";
 import { formatCodebaseStructure, integrateCodeToWorkspace } from "./utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
@@ -56,14 +56,16 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
     const messageId = params.messageId;
     const project: ProjectSource = (await getProjectSource(params.operationType))[0]; //TOOD: Fix multi project
     const historyMessages = populateHistoryForAgent(params.chatHistory);
-    const hasHistory = historyMessages.length > 0;
-    const { path: tempProjectPath } = await getTempProject(project, hasHistory);
+
+    // Create temp project using shared utilities
+    const { path: tempProjectPath } = await getTempProject();
+
     const cacheOptions = await getProviderCacheControl();
 
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, hasHistory, tempProjectPath, project.projectName, isPlanModeEnabled, params.codeContext);
+    const userMessageContent = getUserPrompt(params.usecase, tempProjectPath, project.projectName, isPlanModeEnabled, params.codeContext);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
@@ -210,6 +212,8 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
             case "error": {
                 const error = part.error;
                 console.error("[Design] Error:", error);
+                // Cleanup temp project on error
+                cleanupTempProject(tempProjectPath);
                 eventHandler({ type: "error", content: getErrorMessage(error) });
                 break;
             }
@@ -241,6 +245,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 </abort_notification>`,
                 });
 
+                // Cleanup temp project
+                cleanupTempProject(tempProjectPath);
+
                 updateAndSaveChat(messageId, userMessageContent, messagesToSave, eventHandler);
                 eventHandler({ type: "abort", command: Command.Design });
                 AIChatStateMachine.sendEvent({
@@ -260,20 +267,15 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
                 console.log(`[Design] Finished with reason: ${finishReason}`);
 
-                // Auto-apply changes to workspace when plan mode is disabled
-                if (!isPlanModeEnabled && tempProjectPath && modifiedFiles.length > 0) {
+                // Integration happens here in the service layer
+                if (modifiedFiles.length > 0 && tempProjectPath) {
                     const modifiedFilesSet = new Set(modifiedFiles);
-                    console.log(`[Design] Auto-integrating ${modifiedFilesSet.size} modified file(s) to workspace`);
                     await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+                    console.log(`[Design] Integrated ${modifiedFiles.length} modified file(s) to workspace`);
                 }
 
-                // Fallback integration: integrate any remaining modified files that weren't integrated via TaskWrite in plan mode
-                if (isPlanModeEnabled && modifiedFiles.length > 0) {
-                    const modifiedFilesSet = new Set(modifiedFiles);
-                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
-                    console.log(`[Design] Successfully integrated files on stream completion`);
-                    modifiedFiles.length = 0;
-                }
+                // Cleanup temp project
+                cleanupTempProject(tempProjectPath);
 
                 updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });

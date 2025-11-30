@@ -405,6 +405,7 @@ export type AIChatMachineStateValue =
     | 'PlanReview'
     | 'ApprovedPlan'
     | 'ExecutingTask'
+    | 'ExecutingDatamapper'
     | 'TaskReview'
     | 'ApprovedTask'
     | 'RejectedTask'
@@ -414,10 +415,12 @@ export type AIChatMachineStateValue =
     | 'Error';
 
 export enum AIChatMachineEventType {
-    SUBMIT_PROMPT = 'SUBMIT_PROMPT',
+    SUBMIT_DESIGN_PROMPT = 'SUBMIT_DESIGN_PROMPT',
+    SUBMIT_DATAMAPPER_REQUEST = 'SUBMIT_DATAMAPPER_REQUEST',
     UPDATE_CHAT_MESSAGE = 'UPDATE_CHAT_MESSAGE',
     RESET = 'RESET',
     PLANNING_STARTED = 'PLANNING_STARTED',
+    DATAMAPPER_GENERATION_STARTED = 'DATAMAPPER_GENERATION_STARTED',
     PLAN_GENERATED = 'PLAN_GENERATED',
     APPROVE_PLAN = 'APPROVE_PLAN',
     REJECT_PLAN = 'REJECT_PLAN',
@@ -519,12 +522,20 @@ export interface AIChatMachineContext {
     };
     previousState?: AIChatMachineStateValue;
     checkpoints?: Checkpoint[];
+    // Generation type field
+    generationType?: 'design' | 'datamapper';
+    // Command execution fields
+    commandType?: string;
+    modifiedFiles?: string[];
+    commandParams?: any;
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
+    | { type: AIChatMachineEventType.DATAMAPPER_GENERATION_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
     | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
     | { type: AIChatMachineEventType.REJECT_PLAN; payload: { comment?: string } }

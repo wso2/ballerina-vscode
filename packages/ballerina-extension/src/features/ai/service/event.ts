@@ -72,9 +72,6 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
             case "diagnostics":
                 sendDiagnosticMessageNotification(event.diagnostics);
                 break;
-            case "generated_sources":
-                sendGeneratedSourcesNotification(event.fileArray);
-                break;
             case "connector_generation_notification":
                 sendConnectorGenerationNotification(event);
                 break;

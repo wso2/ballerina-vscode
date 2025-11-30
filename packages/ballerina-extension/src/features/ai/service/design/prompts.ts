@@ -166,15 +166,13 @@ When generating Ballerina code strictly follow these syntax and structure guidel
  * @param packageName Name of the Ballerina package
  * @param isPlanModeEnabled Whether plan mode is enabled
  */
-export function getUserPrompt(usecase: string, hasHistory: boolean, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean, codeContext?: CodeContext) {
+export function getUserPrompt(usecase: string, tempProjectPath: string, packageName: string, isPlanModeEnabled: boolean, codeContext?: CodeContext) {
     const content = [];
 
-    if (!hasHistory) {
-        content.push({
-            type: 'text' as const,
-            text: formatCodebaseStructure(tempProjectPath, packageName)
-        });
-    }
+    content.push({
+        type: 'text' as const,
+        text: formatCodebaseStructure(tempProjectPath, packageName)
+    });
 
     // Add code context if available
     if (codeContext) {
