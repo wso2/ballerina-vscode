@@ -174,6 +174,7 @@ interface RichTemplateMarkdownToolbarProps {
     editorView: EditorView | null;
     isSourceView?: boolean;
     onToggleView?: () => void;
+    hideHelperPaneToggle?: boolean;
     helperPaneToggle?: {
         ref: React.RefObject<HTMLButtonElement>;
         isOpen: boolean;
@@ -185,6 +186,7 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
     editorView,
     isSourceView = false,
     onToggleView,
+    hideHelperPaneToggle = false,
     helperPaneToggle
 }, ref) => {
     const [, forceUpdate] = React.useReducer(x => x + 1, 0);
@@ -296,19 +298,21 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
     return (
         <ToolbarContainer ref={ref}>
             <ToolbarButtonGroup>
-                {helperPaneToggle && (
-                    <HelperPaneToggleButton
-                        ref={helperPaneToggle.ref}
-                        disabled={!editorView}
-                        isOpen={helperPaneToggle.isOpen}
-                        onClick={helperPaneToggle.onClick}
-                        sx={{ marginBottom: 0, width: '90px' }}
-                        title="Toggle Helper Panel (Ctrl+/ or Cmd+/)"
-                        displayText="Insert"
-                    />
-                )}
+                {!hideHelperPaneToggle && helperPaneToggle && (
+                    <>
+                        <HelperPaneToggleButton
+                            ref={helperPaneToggle.ref}
+                            disabled={!editorView}
+                            isOpen={helperPaneToggle.isOpen}
+                            onClick={helperPaneToggle.onClick}
+                            sx={{ marginBottom: 0, width: '90px' }}
+                            title="Toggle Helper Panel (Ctrl+/ or Cmd+/)"
+                            displayText="Insert"
+                        />
 
-                <ToolbarDivider />
+                        <ToolbarDivider />
+                    </>
+                )}
 
                 <ToolbarButton
                     title="Undo (Ctrl+Z / Cmd+Z)"
