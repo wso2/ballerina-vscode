@@ -188,8 +188,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     }, [defaultMode]);
 
     useEffect(() => {
-        // Only text mode and prompt mode don't support preview
-        if (mode === "text") {
+        // Text mode and template mode don't support preview (simplified)
+        if (mode === "text" || mode === "template") {
             setShowPreview(false);
         }
     }, [mode]);
@@ -220,10 +220,18 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         value: value,
         onChange: onChange,
         field,
-        // Props for modes with preview support
+        // Props for prompt mode (now uses EditorModeExpressionProps)
         ...(mode === "prompt" && {
-            isPreviewMode: showPreview,
-            onTogglePreview: (enabled: boolean) => setShowPreview(enabled)
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            error,
+            formDiagnostics,
+            inputMode
         }),
         // Props for expression mode
         ...(mode === "expression" && {
@@ -237,7 +245,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             error,
             formDiagnostics
         }),
-        // Props for template mode (uses ProseMirror with source view toggle)
+        // Props for template mode (simplified - same as expression but with inputMode)
         ...(mode === "template" && {
             completions,
             fileName,

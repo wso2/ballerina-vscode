@@ -620,9 +620,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     };
 
-    // Only allow opening expanded mode for specific fields or expression mode
-    const onOpenExpandedMode = (!props.isInExpandedMode &&
-        (["query", "instructions", "role"].includes(field.key) || inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE))
+    const onOpenExpandedMode = !props.isInExpandedMode
         ? handleOpenExpandedMode
         : undefined;
 
@@ -823,7 +821,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         setIsExpandedModalOpen(false)
                                     }}
                                     onSave={handleSaveExpandedMode}
-                                    mode={inputModeRef.current === InputMode.EXP ? "expression" : inputModeRef.current === InputMode.PROMPT ? "template" : undefined}
+                                    mode={
+                                        inputModeRef.current === InputMode.EXP
+                                            ? "expression"
+                                            : inputModeRef.current === InputMode.PROMPT
+                                                ? "prompt"
+                                                : inputModeRef.current === InputMode.TEMPLATE
+                                                    ? "template"
+                                                    : undefined
+                                    }
                                     completions={completions}
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}
