@@ -71,10 +71,12 @@ import { workspace } from 'vscode';
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
-import { generateContextTypes, generateInlineMappingCode, generateMappingCode, openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
+import { openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
 import { generateDesign } from "../../../src/features/ai/service/design/design";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
+import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
+import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
@@ -700,15 +702,37 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
-        await generateMappingCode(params);
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
+            payload: {
+                datamapperType: 'function',
+                params: params,
+                userMessage: `Generate mapping code for function: ${params.parameters.functionName}`
+            }
+        });
     }
 
     async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
-        await generateInlineMappingCode(params);
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
+            payload: {
+                datamapperType: 'inline',
+                params: params,
+                userMessage: 'Generate inline mapping code'
+            }
+        });
     }
 
     async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<boolean> {
-        await generateContextTypes(params);
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
+            payload: {
+                datamapperType: 'contextTypes',
+                params: params,
+                userMessage: 'Generate context types'
+            }
+        });
+
         return true;
     }
 
@@ -726,7 +750,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
-        await generateDesign(params);
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT,
+            payload: {
+                prompt: params.usecase,
+                isPlanMode: params.isPlanMode ?? true,
+                codeContext: params.codeContext
+            }
+        });
         return true;
     }
 

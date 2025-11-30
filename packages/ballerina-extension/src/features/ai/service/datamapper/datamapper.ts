@@ -43,6 +43,9 @@ import path from "path";
 import { URI } from "vscode-uri";
 import fs from 'fs';
 import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
+import { getTempProject, cleanupTempProject } from "../../utils/temp-project-utils";
+import { getProjectSource } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
+import { integrateCodeToWorkspace } from "../design/utils";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -246,7 +249,10 @@ export async function generateRepairCode(codeRepairRequest?: repairCodeRequest):
 // =============================================================================
 
 // Core mapping code generation function that emits events
-export async function generateMappingCodeCore(mappingRequest: ProcessMappingParametersRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateMappingCodeCore(
+    mappingRequest: ProcessMappingParametersRequest,
+    eventHandler: CopilotEventHandler
+): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!mappingRequest.parameters) {
         throw new Error("Parameters are required in the mapping request");
     }
@@ -255,15 +261,16 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         throw new Error("Function name is required in the mapping parameters");
     }
 
-    // Initialize generation process
-    eventHandler({ type: "start" });
-    eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
-    eventHandler({ type: "content_block", content: "<progress>Reading project files and collecting imports...</progress>" });
-    let assistantResponse: string = "";
-    const biDiagramRpcManager = new BiDiagramRpcManager();
-    const langClient = StateMachine.langClient();
-    const context = StateMachine.context();
-    const projectRoot = context.projectPath;
+    const { path: tempProjectPath } = await getTempProject();
+    try {
+        // Initialize generation process
+        eventHandler({ type: "start" });
+        eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
+        eventHandler({ type: "content_block", content: "<progress>Reading project files and collecting imports...</progress>" });
+        const biDiagramRpcManager = new BiDiagramRpcManager();
+        const langClient = StateMachine.langClient();
+        const context = StateMachine.context();
+        const projectRoot = tempProjectPath;
 
     const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -321,7 +328,8 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         projectRoot
     );
 
-    const tempDirectory = await createTempBallerinaDir();
+    // Use temp directory provided by state machine (no double temp creation)
+    const tempDirectory = tempProjectPath;
     const doesFunctionAlreadyExist = existingFunctionsInProject.some(func => func.name === targetFunctionName);
 
     const tempFileMetadata = await createTempFileAndGenerateMetadata({
@@ -422,13 +430,6 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         isSameFile
     );
 
-    let generatedFunctionDefinition = await getFunctionDefinitionFromSyntaxTree(
-        langClient,
-        tempFileMetadata.codeData.lineRange.fileName,
-        targetFunctionName
-    );
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     // For workspace projects, compute relative file path from workspace root
     const workspacePath = context.workspacePath;
     let targetFilePath = mappingContext.filePath;
@@ -446,42 +447,41 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         updatedCustomContent,
     );
 
-    // Build assistant response
-    assistantResponse = `The generated data mapping details are as follows:\n`;
-    if (mappingRequest.parameters.inputRecord.length === 1) {
-        assistantResponse += `- **Input Record**: ${mappingContext.mappingDetails.inputParams[0]}\n`;
-    } else {
-        assistantResponse += `- **Input Records**: ${mappingContext.mappingDetails.inputParams.join(", ")}\n`;
-    }
-    assistantResponse += `- **Output Record**: ${mappingContext.mappingDetails.outputParam}\n`;
-    assistantResponse += `- **Function Name**: ${targetFunctionName}\n`;
+        // Extract modified file paths
+        const modifiedFiles = generatedSourceFiles.map(file => file.filePath);
 
-    if (mappingRequest.attachments.length > 0) {
-        const attachmentNames = [];
-        for (const att of (mappingRequest.attachments)) {
-            attachmentNames.push(att.name);
+        // Integrate code to workspace automatically
+        if (modifiedFiles.length > 0) {
+            eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
+            const modifiedFilesSet = new Set(modifiedFiles);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
-        assistantResponse += `- **Attachments**: ${attachmentNames.join(", ")}\n`;
-    }
 
-    if (tempFileMetadata.mappingsModel.mappings.length > 0) {
-        assistantResponse += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-    }
+        eventHandler({ type: "stop", command: Command.DataMap });
 
-    if (isSameFile) {
-        const mergedContent = `${generatedFunctionDefinition.source}\n${customContent}`;
-        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedContent}\n\`\`\`\n</code>`;
-    } else {
-        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${generatedFunctionDefinition.source}\n\`\`\`\n</code>`;
+        return {
+            modifiedFiles,
+            sourceFiles: generatedSourceFiles
+        };
+    } catch (error) {
+        console.error("Error during mapping code generation:", error);
 
-        if (updatedCustomContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${updatedCustomContent}\n\`\`\`\n</code>`;
+        // Enhanced error message for integration failures
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('Failed to integrate code')) {
+            eventHandler({
+                type: "error",
+                content: `Integration failed: ${getErrorMessage(error)}\n\nPlease check file permissions and try again.`
+            });
+        } else {
+            eventHandler({ type: "error", content: getErrorMessage(error) });
         }
+        throw error;
+    } finally {
+        // Always cleanup temp project
+        cleanupTempProject(tempProjectPath);
     }
-
-    eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });
-    eventHandler({ type: "content_block", content: assistantResponse });
-    eventHandler({ type: "stop", command: Command.DataMap });
 }
 
 // Main public function that uses the default event handler for mapping generation
@@ -660,7 +660,10 @@ export function combineTextEdits(sortedTextEdits: TextEdit[]): TextEdit {
 // =============================================================================
 
 // Core inline mapping code generation function that emits events and generates mappings inline
-export async function generateInlineMappingCodeCore(inlineMappingRequest: MetadataWithAttachments, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateInlineMappingCodeCore(
+    inlineMappingRequest: MetadataWithAttachments,
+    eventHandler: CopilotEventHandler
+): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!inlineMappingRequest.metadata) {
         throw new Error("Metadata is required in the inline mapping request");
     }
@@ -669,13 +672,16 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         throw new Error("Code data is required in the metadata");
     }
 
-    // Initialize generation process
-    eventHandler({ type: "start" });
-    eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
-    eventHandler({ type: "content_block", content: "<progress>Reading project files and collecting imports...</progress>" });
-    let assistantResponse: string = "";
-    const projectImports = await collectAllImportsFromProject();
-    const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
+    // Create temp project using shared utilities
+    const { path: tempProjectPath } = await getTempProject();
+
+    try {
+        // Initialize generation process
+        eventHandler({ type: "start" });
+        eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
+        eventHandler({ type: "content_block", content: "<progress>Reading project files and collecting imports...</progress>" });
+        const projectImports = await collectAllImportsFromProject();
+        const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
 
     // Remove duplicates based on moduleName
     const uniqueImportStatements = Array.from(
@@ -690,7 +696,7 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = context.projectPath;
+    const projectRoot = tempProjectPath;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler);
@@ -700,8 +706,7 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     let customFunctionsTargetPath: string | undefined;
     let customFunctionsFileName: string | undefined;
-    let codeToDisplay: string;
-    
+
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
         const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, targetFileName);
         customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
@@ -751,19 +756,10 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         }, langClient, projectRoot);
     }
 
-    // For workspace projects, compute relative file path from workspace root
-    let targetFilePath = path.relative(projectRoot, context.documentUri);
-    const workspacePath = context.workspacePath;
-
-    if (workspacePath) {
-        // Workspace project: make path relative to workspace root (e.g., "foo/mappings.bal")
-        targetFilePath = path.relative(workspacePath, context.documentUri);
-    }
-
     const variableName = inlineMappingRequest.metadata.name || inlineMappingsResult.tempFileMetadata.name;
 
     // Handle check expression errors and repair diagnostics for inline mappings
-    const { inlineFilePaths, updatedCodeToDisplay } = await handleInlineCheckExpressionErrorsAndRepair(
+    const { inlineFilePaths } = await handleInlineCheckExpressionErrorsAndRepair(
         langClient,
         projectRoot,
         inlineMappingsResult,
@@ -771,10 +767,6 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         codeRepairResult,
         variableName
     );
-
-    if (updatedCodeToDisplay) {
-        codeToDisplay = updatedCodeToDisplay;
-    }
 
     // Remove compilation error mappings for inline mappings
     const { updatedMainContent, updatedCustomContent } = await removeInlineCompilationErrorMappingFields(
@@ -787,17 +779,6 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         isSameFile
     );
 
-    if (variableName) {
-        const extractedVariableDefinition = await extractVariableDefinitionSource(
-            mainFilePath,
-            inlineMappingsResult.tempFileMetadata.codeData,
-            variableName
-        );
-        if (extractedVariableDefinition) {
-            codeToDisplay = extractedVariableDefinition;
-        }
-    }
-
     const generatedSourceFiles = buildMappingFileArray(
         context.documentUri,
         updatedMainContent,
@@ -805,34 +786,41 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
         updatedCustomContent,
     );
 
-    // Build assistant response
-    assistantResponse = `Here are the data mappings:\n\n`;
-    if (inlineMappingRequest.attachments.length > 0) {
-        const attachmentNames = [];
-        for (const att of (inlineMappingRequest.attachments)) {
-            attachmentNames.push(att.name);
+        // Extract modified file paths
+        const modifiedFiles = generatedSourceFiles.map(file => file.filePath);
+
+        // Integrate code to workspace automatically
+        if (modifiedFiles.length > 0) {
+            eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
+            const modifiedFilesSet = new Set(modifiedFiles);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
-        assistantResponse += `- **Attachments**: ${attachmentNames.join(", ")}\n`;
-    }
 
-    if (inlineMappingRequest.metadata.mappingsModel.mappings.length > 0) {
-        assistantResponse += `\n**Note**: When you click **Add to Integration**, it will override your existing mappings.\n`;
-    }
+        eventHandler({ type: "stop", command: Command.DataMap });
 
-    if (isSameFile) {
-        const mergedCodeDisplay = customContent ? `${codeToDisplay}\n${customContent}` : codeToDisplay;
-        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${mergedCodeDisplay}\n\`\`\`\n</code>`;
-    } else {
-        assistantResponse += `<code filename="${targetFilePath}" type="ai_map">\n\`\`\`ballerina\n${codeToDisplay}\n\`\`\`\n</code>`;
+        return {
+            modifiedFiles,
+            sourceFiles: generatedSourceFiles
+        };
+    } catch (error) {
+        console.error("Error during inline mapping code generation:", error);
 
-        if (updatedCustomContent) {
-            assistantResponse += `<code filename="${customFunctionsFileName}" type="ai_map">\n\`\`\`ballerina\n${updatedCustomContent}\n\`\`\`\n</code>`;
+        // Enhanced error message for integration failures
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('Failed to integrate code')) {
+            eventHandler({
+                type: "error",
+                content: `Integration failed: ${getErrorMessage(error)}\n\nPlease check file permissions and try again.`
+            });
+        } else {
+            eventHandler({ type: "error", content: getErrorMessage(error) });
         }
+        throw error;
+    } finally {
+        // Always cleanup temp project
+        cleanupTempProject(tempProjectPath);
     }
-
-    eventHandler({ type: "generated_sources", fileArray: generatedSourceFiles });
-    eventHandler({ type: "content_block", content: assistantResponse });
-    eventHandler({ type: "stop", command: Command.DataMap });
 }
 
 // Main public function that uses the default event handler for inline mapping generation
@@ -852,19 +840,23 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
 // =============================================================================
 
 // Core context type creation function that emits events and generates Ballerina record types
-export async function generateContextTypesCore(typeCreationRequest: ProcessContextTypeCreationRequest, eventHandler: CopilotEventHandler): Promise<void> {
+export async function generateContextTypesCore(
+    typeCreationRequest: ProcessContextTypeCreationRequest,
+    eventHandler: CopilotEventHandler
+): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (typeCreationRequest.attachments.length === 0) {
         throw new Error("Attachments are required for type creation");
     }
 
-    // Initialize generation process
-    eventHandler({ type: "start" });
-    let assistantResponse: string = "";
+    // Create temp project using shared utilities
+    const { path: tempProjectPath } = await getTempProject();
 
     try {
+        // Initialize generation process
+        eventHandler({ type: "start" });
+
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
-        const context = StateMachine.context();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
 
         // Generate types from context with validation
@@ -874,29 +866,44 @@ export async function generateContextTypesCore(typeCreationRequest: ProcessConte
             langClient
         );
 
-        // For workspace projects, compute relative file path from workspace root
-        const workspacePath = context.workspacePath;
-        const projectRoot = context.projectPath;
-        let targetFilePath = filePath;
+        // Create source files array
+        const sourceFiles: SourceFile[] = [{
+            filePath: filePath,
+            content: typesCode
+        }];
+        const modifiedFiles = [filePath];
 
-        if (workspacePath && projectRoot) {
-            // Workspace project: need to include package path prefix (e.g., "foo/types.bal")
-            const absoluteFilePath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath);
-            targetFilePath = path.relative(workspacePath, absoluteFilePath);
+        // Integrate code to workspace automatically
+        if (modifiedFiles.length > 0) {
+            eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
+            const modifiedFilesSet = new Set(modifiedFiles);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
 
-        // Build assistant response
-        const sourceAttachmentNames = typeCreationRequest.attachments.map(a => a.name).join(", ");
-        const fileText = typeCreationRequest.attachments.length === 1 ? "file" : "files";
-        assistantResponse = `Types generated from the ${sourceAttachmentNames} ${fileText} shown below.\n`;
-        assistantResponse += `<code filename="${filePath}" type="type_creator">\n\`\`\`ballerina\n${typesCode}\n\`\`\`\n</code>`;
-
-        // Send assistant response through event handler
-        eventHandler({ type: "content_block", content: assistantResponse });
         eventHandler({ type: "stop", command: Command.TypeCreator });
+
+        return {
+            modifiedFiles,
+            sourceFiles
+        };
     } catch (error) {
         console.error("Error during context type creation:", error);
+
+        // Enhanced error message for integration failures
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('Failed to integrate code')) {
+            eventHandler({
+                type: "error",
+                content: `Integration failed: ${getErrorMessage(error)}\n\nPlease check file permissions and try again.`
+            });
+        } else {
+            eventHandler({ type: "error", content: getErrorMessage(error) });
+        }
         throw error;
+    } finally {
+        // Always cleanup temp project
+        cleanupTempProject(tempProjectPath);
     }
 }
 
