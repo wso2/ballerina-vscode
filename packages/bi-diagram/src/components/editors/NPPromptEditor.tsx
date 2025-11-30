@@ -396,7 +396,7 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
                         onChange={handleChangeFromExpandedEditor}
                         onClose={handleCloseExpandedMode}
                         onSave={handleSaveExpandedMode}
-                        mode="template"
+                        mode={InputMode.PROMPT}
                         completions={completions}
                         fileName={fileName}
                         targetLineRange={targetLineRange}

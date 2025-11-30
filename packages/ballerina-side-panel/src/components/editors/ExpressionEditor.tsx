@@ -28,7 +28,7 @@ import {
     RequiredFormInput,
     ThemeColors
 } from '@wso2/ui-toolkit';
-import { getPropertyFromFormField, sanitizeType } from './utils';
+import { getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
@@ -620,7 +620,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     };
 
-    const onOpenExpandedMode = !props.isInExpandedMode
+    const onOpenExpandedMode = !props.isInExpandedMode && isExpandableMode(inputMode)
         ? handleOpenExpandedMode
         : undefined;
 
@@ -774,7 +774,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 formDiagnostics && formDiagnostics.length > 0 &&
                                 <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
                             }
-                            {onOpenExpandedMode && (
+                            {onOpenExpandedMode && toEditorMode(inputModeRef.current) && (
                                 <ExpandedEditor
                                     isOpen={isExpandedModalOpen}
                                     field={field}
@@ -821,15 +821,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         setIsExpandedModalOpen(false)
                                     }}
                                     onSave={handleSaveExpandedMode}
-                                    mode={
-                                        inputModeRef.current === InputMode.EXP
-                                            ? "expression"
-                                            : inputModeRef.current === InputMode.PROMPT
-                                                ? "prompt"
-                                                : inputModeRef.current === InputMode.TEMPLATE
-                                                    ? "template"
-                                                    : undefined
-                                    }
+                                    mode={toEditorMode(inputModeRef.current)!}
                                     completions={completions}
                                     fileName={effectiveFileName}
                                     targetLineRange={effectiveTargetLineRange}

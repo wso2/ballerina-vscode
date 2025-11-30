@@ -147,10 +147,10 @@ const TitleWrapper = styled.div`
  * Map of mode components - add new modes here
  */
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
-    text: TextMode,
-    prompt: PromptMode,
-    expression: ExpressionMode,
-    template: TemplateMode
+    [InputMode.TEXT]: TextMode,
+    [InputMode.PROMPT]: PromptMode,
+    [InputMode.EXP]: ExpressionMode,
+    [InputMode.TEMPLATE]: TemplateMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -176,23 +176,15 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     // Determine mode - use prop if provided, otherwise auto-detect
     const defaultMode: EditorMode = propMode ?? (
-        promptFields.includes(field.key) ? "prompt" : "text"
+        promptFields.includes(field.key) ? InputMode.PROMPT : InputMode.TEXT
     );
 
     const [mode, setMode] = useState<EditorMode>(defaultMode);
-    const [showPreview, setShowPreview] = useState(false);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
         setMode(defaultMode);
     }, [defaultMode]);
-
-    useEffect(() => {
-        // Text mode and template mode don't support preview (simplified)
-        if (mode === "text" || mode === "template") {
-            setShowPreview(false);
-        }
-    }, [mode]);
 
     const handleMinimize = () => {
         onClose();
@@ -220,8 +212,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         value: value,
         onChange: onChange,
         field,
-        // Props for prompt mode (now uses EditorModeExpressionProps)
-        ...(mode === "prompt" && {
+        // Props for prompt mode
+        ...(mode === InputMode.PROMPT && {
             completions,
             fileName,
             targetLineRange,
@@ -234,7 +226,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             inputMode
         }),
         // Props for expression mode
-        ...(mode === "expression" && {
+        ...(mode === InputMode.EXP && {
             completions,
             fileName,
             targetLineRange,
@@ -245,8 +237,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             error,
             formDiagnostics
         }),
-        // Props for template mode (simplified - same as expression but with inputMode)
-        ...(mode === "template" && {
+        // Props for template mode
+        ...(mode === InputMode.TEMPLATE && {
             completions,
             fileName,
             targetLineRange,
