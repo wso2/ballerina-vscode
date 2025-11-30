@@ -26,7 +26,6 @@
         "@codemirror/view": "~6.38.8",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
-        "@github/markdown-toolbar-element": "^2.2.3",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-rpc-client": "workspace:*",
         "@wso2/ui-toolkit": "workspace:*",
