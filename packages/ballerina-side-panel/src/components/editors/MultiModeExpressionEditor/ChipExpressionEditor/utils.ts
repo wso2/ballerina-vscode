@@ -40,8 +40,9 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): InputMode => {
+export const getInputModeFromTypes = (valueTypeConstraint: string | string[], key?: string): InputMode => {
     if (!valueTypeConstraint) return;
+    if (key === "query") return InputMode.PROMPT;
     let types: string[];
     if (typeof valueTypeConstraint === 'string') {
         if (valueTypeConstraint.includes('|')) {
@@ -61,9 +62,9 @@ export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): I
     return;
 };
 
-export const getDefaultExpressionMode = (valueTypeConstraint: string | string[]): InputMode => {
+export const getDefaultExpressionMode = (valueTypeConstraint: string | string[], key?: string): InputMode => {
     if (!valueTypeConstraint) throw new Error("Value type constraint is undefined");
-    return getInputModeFromTypes(valueTypeConstraint);
+    return getInputModeFromTypes(valueTypeConstraint, key);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
