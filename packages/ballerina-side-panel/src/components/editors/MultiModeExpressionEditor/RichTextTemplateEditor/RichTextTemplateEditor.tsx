@@ -32,6 +32,7 @@ import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { HelperpaneOnChangeOptions } from "../../../Form/types";
 import { useFormContext } from "../../../../context/form";
 import { createChipPlugin, createChipSchema, updateChipTokens } from "./chipPlugin";
+import { createXMLTagDecorationPlugin } from "./xmlTagDecorationPlugin";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -115,6 +116,13 @@ const EditorContainer = styled.div`
     .ProseMirror pre code {
         background: none;
         padding: 0;
+    }
+
+    .ProseMirror .xml-tag,
+    .ProseMirror .xml-tag-opening,
+    .ProseMirror .xml-tag-closing,
+    .ProseMirror .xml-tag-selfClosing {
+        color: var(--vscode-charts-green);
     }
 `;
 
@@ -327,6 +335,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         const sanitizedValue = sanitizedExpression ? sanitizedExpression(value) : value;
         const chipPlugin = createChipPlugin(chipSchema, handleChipClick);
+        const xmlTagPlugin = createXMLTagDecorationPlugin();
 
         // Plugin to close helper pane when cursor moves
         const cursorMovePlugin = new Plugin({
@@ -399,6 +408,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 keymap(baseKeymap),
                 gapCursor(),
                 chipPlugin,
+                xmlTagPlugin,
                 cursorMovePlugin
             ]
         });
