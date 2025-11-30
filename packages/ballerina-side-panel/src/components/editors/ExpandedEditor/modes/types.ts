@@ -83,7 +83,11 @@ export interface EditorModeExpressionProps extends EditorModeProps {
     inputMode?: InputMode;
 }
 
-/**
- * Mode type identifier
- */
-export type EditorMode = "text" | "prompt" | "expression" | "template";
+export const EXPANDABLE_MODES = [
+    InputMode.TEXT,
+    InputMode.PROMPT,
+    InputMode.EXP,
+    InputMode.TEMPLATE
+] as const;
+
+export type EditorMode = typeof EXPANDABLE_MODES[number];
