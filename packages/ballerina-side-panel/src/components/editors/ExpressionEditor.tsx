@@ -440,7 +440,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        let newInputMode = getInputModeFromTypes(field.valueTypeConstraint, field.key)
+        if (isModeSwitcherRestricted()) {
+            setInputMode(InputMode.EXP);
+            return;
+        }
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
@@ -683,6 +687,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
                                         valueTypeConstraint={field.valueTypeConstraint}
+                                        fieldKey={field.key}
                                     />
                                 )}
                             </S.FieldInfoSection>

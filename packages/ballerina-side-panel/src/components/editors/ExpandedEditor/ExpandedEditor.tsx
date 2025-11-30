@@ -172,12 +172,16 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     formDiagnostics,
     inputMode
 }) => {
-    const promptFields = ["query", "instructions", "role"];
+    const promptFields = ["instructions", "role"];
 
     // Determine mode - use prop if provided, otherwise auto-detect
-    const defaultMode: EditorMode = propMode ?? (
+    let defaultMode: EditorMode = propMode ?? (
         promptFields.includes(field.key) ? InputMode.PROMPT : InputMode.TEXT
     );
+
+    if (field.key === "query" && propMode === InputMode.TEXT) {
+        defaultMode = InputMode.PROMPT;
+    }
 
     const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
