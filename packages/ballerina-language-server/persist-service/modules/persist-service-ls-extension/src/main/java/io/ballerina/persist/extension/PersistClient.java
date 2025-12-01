@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static io.ballerina.persist.utils.BalProjectUtils.populateEntities;
+import static io.ballerina.persist.utils.BalProjectUtils.populateEnums;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
 
 /**
@@ -104,7 +106,8 @@ public class PersistClient {
                 .withPort(String.valueOf(this.port))
                 .withUser(this.user)
                 .withPassword(password)
-                .withDatabase(this.database);
+                .withDatabase(this.database)
+                .withSourcePath(projectPath);
     }
 
     /**
@@ -116,8 +119,9 @@ public class PersistClient {
     public String[] introspectDatabaseTables() throws PersistClientException {
         validateConnectionDetails();
         try {
-            Introspector introspector = introspectorBuilder.build();
-            return introspector.getAvailableTables();
+            return introspectorBuilder
+                    .build()
+                    .getAvailableTables();
         } catch (BalException e) {
             throw new PersistClientException("Error introspecting database tables: " + e.getMessage(), e);
         }
@@ -156,6 +160,9 @@ public class PersistClient {
                         .build();
             }
             Module entityModule = introspector.introspectDatabase();
+            if (entityModule.getEntityMap().isEmpty()) {
+                throw new PersistClientException("No entities found in the database for the selected tables.");
+            }
             DbModelGenSyntaxTree dbModelGenSyntaxTree = new DbModelGenSyntaxTree();
             SyntaxTree dataModels = dbModelGenSyntaxTree.getDataModels(entityModule);
             List<TextEdit> persistModelTextEdits = new ArrayList<>();
@@ -163,6 +170,11 @@ public class PersistClient {
             persistModelTextEdits.add(new TextEdit(startRange, Formatter.format(dataModels.toSourceCode())));
             Path persistModelPath = this.projectPath.resolve(PERSIST_DIR).resolve(MODEL_FILE_NAME);
             textEditsMap.put(persistModelPath, persistModelTextEdits);
+
+            Module.Builder moduleBuilder = Module.newBuilder(module);
+            populateEnums(moduleBuilder, dataModels);
+            populateEntities(moduleBuilder, dataModels);
+            entityModule = moduleBuilder.build();
 
             // Generate client source files
             DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();

@@ -16,9 +16,12 @@
  *  under the License.
  */
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply from: "$rootDir/gradle/javaProject.gradle"
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "java"
+apply from: "docker-compose.gradle"
 
 description = 'LS extension for Persist client generation from database introspection'
 
@@ -110,8 +113,21 @@ test {
     }
     systemProperty "ballerina.home", balDistribution
 
+    // Start Docker containers before running tests (only on non-Windows systems)
+    if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+        dependsOn startDockerContainers
+        finalizedBy stopDockerContainers
+    } else {
+        println('Windows detected - Skipping Docker-dependent tests')
+    }
+
     useTestNG() {
         suites "src/test/resources/testng.xml"
+    }
+
+    // Skip tests on Windows as they require Docker
+    onlyIf {
+        !Os.isFamily(Os.FAMILY_WINDOWS)
     }
 }
 
