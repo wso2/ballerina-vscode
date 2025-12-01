@@ -72,6 +72,11 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                             iconName="clear-all"
                             tooltip="Clear all mappings"
                         />
+                        <ActionIconButton
+                            onClick={onRefresh}
+                            iconName="refresh"
+                            tooltip="Refresh all mappings"
+                        />
                     </ActionGroupContaner>
                     <FilterBar>
                         <HeaderSearchBox />
@@ -131,6 +136,7 @@ const RightContainer = styled.div<{ isClickable: boolean }>`
 
 const ActionGroupContaner = styled.div`
     display: flex;
+    gap: 2px;
 `;
 
 const BreadCrumb = styled.div`
