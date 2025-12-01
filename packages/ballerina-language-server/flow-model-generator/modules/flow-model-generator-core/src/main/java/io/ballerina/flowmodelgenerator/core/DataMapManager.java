@@ -2007,7 +2007,7 @@ public class DataMapManager {
 
         NodeList<IntermediateClauseNode> intermediateClauses = queryExprNode.queryPipeline().intermediateClauses();
         if (index < 0) {
-            if (intermediateClauses.isEmpty()) {;
+            if (intermediateClauses.isEmpty()) {
                 return gson.toJsonTree(queryExprNode.resultClause().lineRange().startLine());
             } else {
                 return gson.toJsonTree(intermediateClauses.get(0).lineRange().startLine());
