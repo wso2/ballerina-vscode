@@ -330,3 +330,98 @@ export async function addMissingRequiredFields(
 
     return projectModified;
 }
+
+export async function addCheckExpressionErrors(
+    diagnosticsResult: Diagnostics[],
+    langClient: ExtendedLangClient
+): Promise<boolean> {
+    let projectModified = false;
+
+    for (const diag of diagnosticsResult) {
+        const fileUri = diag.uri;
+        const diagnostics = diag.diagnostics;
+
+        // Filter BCE3032 diagnostics (check expression errors)
+        const checkExprDiagnostics = diagnostics.filter(d => d.code === "BCE3032");
+        if (!checkExprDiagnostics.length) {
+            continue;
+        }
+
+        const astModifications: STModification[] = [];
+
+        // Process each diagnostic individually
+        for (const diagnostic of checkExprDiagnostics) {
+            try {
+                // Get code actions for the diagnostic
+                const codeActions = await langClient.codeAction({
+                    textDocument: { uri: fileUri },
+                    range: {
+                        start: diagnostic.range.start,
+                        end: diagnostic.range.end
+                    },
+                    context: {
+                        diagnostics: [diagnostic],
+                        only: ['quickfix'],
+                        triggerKind: 1
+                    }
+                });
+
+                if (!codeActions?.length) {
+                    console.warn(`No code actions returned for ${fileUri} at line ${diagnostic.range.start.line}`);
+                    continue;
+                }
+
+                // Find the action that adds error to return type
+                // The language server typically provides actions like "Change return type to ..."
+                const action = codeActions.find(
+                    action => action.title && (
+                        action.title.toLowerCase().includes("change") &&
+                        action.title.toLowerCase().includes("return") &&
+                        action.title.toLowerCase().includes("error")
+                    )
+                );
+
+                if (!action?.edit?.documentChanges?.length) {
+                    continue;
+                }
+
+                const docEdit = action.edit.documentChanges[0] as TextDocumentEdit;
+
+                // Process all edits from the code action
+                for (const edit of docEdit.edits) {
+                    astModifications.push({
+                        startLine: edit.range.start.line,
+                        startColumn: edit.range.start.character,
+                        endLine: edit.range.end.line,
+                        endColumn: edit.range.end.character,
+                        type: "INSERT",
+                        isImport: false,
+                        config: { STATEMENT: edit.newText }
+                    });
+                }
+            } catch (err) {
+                console.warn(`Could not apply code action for ${fileUri} at line ${diagnostic.range.start.line}:`, err);
+            }
+        }
+
+        // Apply modifications to syntax tree
+        if (astModifications.length > 0) {
+            const syntaxTree = await langClient.stModify({
+                documentIdentifier: { uri: fileUri },
+                astModifications: astModifications
+            });
+
+            // Update file content
+            const { source } = syntaxTree as SyntaxTree;
+            if (!source) {
+                // Handle the case where source is undefined, when compiler issue occurs
+                return false;
+            }
+            const absolutePath = fileURLToPath(fileUri);
+            writeBallerinaFileDidOpenTemp(absolutePath, source);
+            projectModified = true;
+        }
+    }
+
+    return projectModified;
+}
