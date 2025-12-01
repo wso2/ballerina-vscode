@@ -17,7 +17,7 @@
  */
 
 // tslint:disable: jsx-no-multiline-js
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -97,148 +97,160 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     const pendingMappingType = link.pendingMappingType;
 
     const [inProgress, setInProgress] = React.useState(false);
-    const wrapWithProgress = (onClick: () => Promise<void>) => {
-        return async () => {
-            setInProgress(true);
-            await onClick();
-        }
-    };
     
-    const onClickMapDirectly = async () => {
-        await createNewMapping(link);
-    }
-
-    const onClickMapIndividualElements = async () => {
-        await mapWithQuery(link, ResultClauseType.SELECT, context);
-    };
-
-    const onClickMapArraysAccessSingleton = async () => {
-       await createNewMapping(link, (expr: string) => `${expr}${genArrayElementAccessSuffix(link)}`);
-    };
-
-    const onClickAggregateArray = async () => {
-        await mapWithQuery(link, ResultClauseType.COLLECT, context);
-    };
-
-    const onClickMapWithCustomFn = async () => {
-        await mapWithCustomFn(link, context);
-    };
-
-    const onClickMapWithTransformFn = async () => {
-        await mapWithTransformFn(link, context);
-    }
-
-    const onClickMapWithAggregateFn = async (fn: string) => {
-        await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
-    }
-
-    const getItemElement = (id: string, label: string) => {
-        return (
-            <div
-                className={classes.itemContainer}
-                key={id}
-            >
-                <Codicon name="lightbulb" sx={codiconStyles} />
-                {label}
-            </div>
-        );
-    }
-
-    const a2aMenuItems: Item[] = [
-        {
-            id: "a2a-direct",
-            label: getItemElement("a2a-direct", "Map Input Array to Output Array"),
-            onClick: wrapWithProgress(onClickMapDirectly)
-        },
-        {
-            id: "a2a-inner",
-            label: getItemElement("a2a-inner", "Map Array Elements Individually"),
-            onClick: wrapWithProgress(onClickMapIndividualElements)
-        }
-    ];
-
-    const defaultMenuItems: Item[] = [
-        {
-            id: "a2a-direct",
-            label: getItemElement("direct", "Map Anyway"),
-            onClick: wrapWithProgress(onClickMapDirectly)
-        }
-    ];
-
-    const genAggregateItems = () => {
-        const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
-        const aggregateFnsString = ["string:'join"];
-        const aggregateFnsCommon = ["first", "last"];
-
-        const sourcePort = link.getSourcePort() as InputOutputPortModel;
-        const sourceType = sourcePort.attributes.field.kind;
-
-        const aggregateFns = [...(isNumericType(sourceType) ? aggregateFnsNumeric :
-            getGenericTypeKind(sourceType) === TypeKind.String ? aggregateFnsString :
-                []),
-        ...aggregateFnsCommon];
-        const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
-            id: `a2s-collect-${fn}`,
-            label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
-            onClick: wrapWithProgress(async () => await onClickMapWithAggregateFn(fn))
-        }));
-        return a2sAggregateItems;
-    };
-
-    const genArrayToSingletonItems = (): Item[] => {
-        const a2sMenuItems: Item[] = [
-            {
-                id: "a2s-index",
-                label: getItemElement("a2s-index", "Extract Single Element from Array"),
-                onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
+    const menuItems: Item[] = useMemo(() => {
+        const wrapWithProgress = (onClick: () => Promise<void>) => {
+            return async () => {
+                setInProgress(true);
+                await onClick();
             }
+        };
+        
+        const onClickMapDirectly = async () => {
+            await createNewMapping(link);
+        }
+    
+        const onClickMapIndividualElements = async () => {
+            await mapWithQuery(link, ResultClauseType.SELECT, context);
+        };
+    
+        const onClickMapArraysAccessSingleton = async () => {
+           await createNewMapping(link, (expr: string) => `${expr}${genArrayElementAccessSuffix(link)}`);
+        };
+    
+        const onClickAggregateArray = async () => {
+            await mapWithQuery(link, ResultClauseType.COLLECT, context);
+        };
+    
+        const onClickMapWithCustomFn = async () => {
+            await mapWithCustomFn(link, context);
+        };
+    
+        const onClickMapWithTransformFn = async () => {
+            await mapWithTransformFn(link, context);
+        }
+    
+        const onClickMapWithAggregateFn = async (fn: string) => {
+            await createNewMapping(link, (expr: string) => `${fn}(${expr})`);
+        }
 
+        const onClickMapSeqToPrimitive = async (fn: string) => {
+            await mapSeqToX(link, context, (expr: string) => `${fn}(${expr})`);
+        }
+
+        const getItemElement = (id: string, label: string) => {
+            return (
+                <div
+                    className={classes.itemContainer}
+                    key={id}
+                >
+                    <Codicon name="lightbulb" sx={codiconStyles} />
+                    {label}
+                </div>
+            );
+        }
+    
+        const a2aMenuItems: Item[] = [
+            {
+                id: "a2a-direct",
+                label: getItemElement("a2a-direct", "Map Input Array to Output Array"),
+                onClick: wrapWithProgress(onClickMapDirectly)
+            },
+            {
+                id: "a2a-inner",
+                label: getItemElement("a2a-inner", "Map Array Elements Individually"),
+                onClick: wrapWithProgress(onClickMapIndividualElements)
+            }
         ];
-        const sourcePort = link.getSourcePort() as InputOutputPortModel;
-        const targetPort = link.getTargetPort() as InputOutputPortModel;
-        const sourceMemberType = sourcePort.attributes.field.member?.kind;
-        const targetType = targetPort.attributes.field.kind;
-
-        if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
-            a2sMenuItems.push({
-                id: "a2s-aggregate",
-                label: getItemElement("a2s-aggregate", "Aggregate and map"),
-                onClick: wrapWithProgress(onClickAggregateArray)
-            });
-        }
-
-        return a2sMenuItems;
-    };
-
-    const genMenuItems = (): Item[] => {
-        switch (pendingMappingType) {
-            case MappingType.ArrayToArray:
-                return a2aMenuItems;
-            case MappingType.ArrayToSingleton:
-                return genArrayToSingletonItems();
-            case MappingType.ArrayToSingletonAggregate:
-                return genAggregateItems();
-            default:
-                return defaultMenuItems;
-        }
-    };
-
-    const menuItems = genMenuItems();
-
-    if (pendingMappingType !== MappingType.ArrayToSingletonAggregate) {
-        menuItems.push({
-            id: "a2a-a2s-custom-func",
-            label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
-            onClick: wrapWithProgress(onClickMapWithCustomFn)
-        });
-        if (pendingMappingType !== MappingType.ContainsUnions) {
+    
+        const defaultMenuItems: Item[] = [
+            {
+                id: "a2a-direct",
+                label: getItemElement("direct", "Map Anyway"),
+                onClick: wrapWithProgress(onClickMapDirectly)
+            }
+        ];
+    
+        const genAggregateItems = (onClick: (fn: string) => Promise<void>) => {
+            const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
+            const aggregateFnsString = ["string:'join"];
+            const aggregateFnsCommon = ["first", "last"];
+    
+            const sourcePort = link.getSourcePort() as InputOutputPortModel;
+            const sourceType = sourcePort.attributes.field.kind;
+    
+            const aggregateFns = [...(isNumericType(sourceType) ? aggregateFnsNumeric :
+                getGenericTypeKind(sourceType) === TypeKind.String ? aggregateFnsString :
+                    []),
+            ...aggregateFnsCommon];
+            const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
+                id: `a2s-collect-${fn}`,
+                label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
+                onClick: wrapWithProgress(async () => await onClick(fn))
+            }));
+            return a2sAggregateItems;
+        };
+    
+        const genArrayToSingletonItems = (): Item[] => {
+            const a2sMenuItems: Item[] = [
+                {
+                    id: "a2s-index",
+                    label: getItemElement("a2s-index", "Extract Single Element from Array"),
+                    onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
+                }
+    
+            ];
+            const sourcePort = link.getSourcePort() as InputOutputPortModel;
+            const targetPort = link.getTargetPort() as InputOutputPortModel;
+            const sourceMemberType = sourcePort.attributes.field.member?.kind;
+            const targetType = targetPort.attributes.field.kind;
+    
+            if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
+                a2sMenuItems.push({
+                    id: "a2s-aggregate",
+                    label: getItemElement("a2s-aggregate", "Aggregate and map"),
+                    onClick: wrapWithProgress(onClickAggregateArray)
+                });
+            }
+    
+            return a2sMenuItems;
+        };
+    
+        const genMenuItems = (): Item[] => {
+            switch (pendingMappingType) {
+                case MappingType.ArrayToArray:
+                    return a2aMenuItems;
+                case MappingType.ArrayToSingleton:
+                    return genArrayToSingletonItems();
+                case MappingType.ArrayToSingletonAggregate:
+                    return genAggregateItems(onClickMapWithAggregateFn);
+                case MappingType.SeqToPrimitive:
+                    return genAggregateItems(onClickMapSeqToPrimitive);
+                default:
+                    return defaultMenuItems;
+            }
+        };
+    
+        const menuItems = genMenuItems();
+    
+        if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
+            pendingMappingType !== MappingType.SeqToPrimitive &&
+            pendingMappingType !== MappingType.SeqToArray) {
             menuItems.push({
-                id: "a2a-a2s-transform-func",
-                label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
-                onClick: wrapWithProgress(onClickMapWithTransformFn)
+                id: "a2a-a2s-custom-func",
+                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
+                onClick: wrapWithProgress(onClickMapWithCustomFn)
             });
+            if (pendingMappingType !== MappingType.ContainsUnions) {
+                menuItems.push({
+                    id: "a2a-a2s-transform-func",
+                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                    onClick: wrapWithProgress(onClickMapWithTransformFn)
+                });
+            }
         }
-    }
+        return menuItems;
+    }, [pendingMappingType, link, context]);
 
     return (
         <div className={classes.arrayMappingMenu}>
