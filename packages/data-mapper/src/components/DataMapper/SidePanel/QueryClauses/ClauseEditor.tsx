@@ -47,8 +47,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         { content: "Sort by", value: IntermediateClauseType.ORDER_BY },
         { content: "Limit", value: IntermediateClauseType.LIMIT },
         { content: "From", value: IntermediateClauseType.FROM },
-        { content: "Join", value: IntermediateClauseType.JOIN },
-        { content: "Group by", value: IntermediateClauseType.GROUP_BY }
+        { content: "Join", value: IntermediateClauseType.JOIN }
     ]
 
     const nameField: DMFormField = {
