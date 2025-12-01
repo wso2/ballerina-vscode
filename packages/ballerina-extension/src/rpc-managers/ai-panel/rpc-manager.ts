@@ -673,7 +673,23 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 throw new Error("Not a Ballerina project.");
             }
             await addToIntegration(projectPath, params.fileChanges);
-            updateView();
+
+            const context = StateMachine.context();
+            const dataMapperMetadata = context.dataMapperMetadata;
+            if (!dataMapperMetadata || !dataMapperMetadata.codeData) {
+                updateView();
+                return true;
+            }
+
+            // Refresh data mapper with the updated code
+            let filePath = dataMapperMetadata.codeData.lineRange?.fileName;
+            const varName = dataMapperMetadata.name;
+            if (!filePath || !varName) {
+                updateView();
+                return true;
+            }
+
+            await refreshDataMapper(filePath, dataMapperMetadata.codeData, varName);
             return true;
         } catch (error) {
             console.error(">>> Failed to add files to the project", error);
