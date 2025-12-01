@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonElement;
-import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPositionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -30,24 +30,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tests for the getting the field position and text edits.
+ * Tests for the getting the clause position and text edits.
  *
  * @since 1.0.0
  */
-public class DataMappingFieldPositionTest extends AbstractLSTest {
+public class DataMappingClausePositionTest extends AbstractLSTest {
 
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("variable1.json")},
-                {Path.of("variable1_1.json")},
-                {Path.of("variable1_2.json")},
-                {Path.of("variable2.json")},
-                {Path.of("variable2_1.json")},
-                {Path.of("variable3.json")},
                 {Path.of("function_definition1.json")},
+                {Path.of("variable2.json")},
+                {Path.of("variable3.json")},
                 {Path.of("variable4.json")},
+                {Path.of("variable5.json")},
         };
     }
 
@@ -57,23 +55,29 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        DataMapperFieldPositionRequest request =
-                new DataMapperFieldPositionRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.codedata(), testConfig.targetField(),
-                        testConfig.fieldId());
-        JsonElement property = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("property");
+        DataMapperClausePositionRequest request =
+                new DataMapperClausePositionRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
+                        testConfig.codedata(), testConfig.targetField(), testConfig.index());
+        JsonElement position = getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("position");
 
-        if (!property.equals(testConfig.property())) {
+        if (position == null) {
+            if (testConfig.position() != null) {
+                TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
+                        testConfig.codedata(), testConfig.targetField(), testConfig.index(), position);
+                updateConfig(configJsonPath, updatedConfig);
+                Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
+            }
+        } else if (!position.equals(testConfig.position())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    testConfig.codedata(), testConfig.targetField(), testConfig.fieldId(), property);
-//            updateConfig(configJsonPath, updatedConfig);
+                    testConfig.codedata(), testConfig.targetField(), testConfig.index(), position);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 
     @Override
     protected String getResourceDir() {
-        return "data_mapper_field_position";
+        return "data_mapper_clause_position";
     }
 
     @Override
@@ -83,7 +87,7 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "fieldPosition";
+        return "clausePosition";
     }
 
     @Override
@@ -98,11 +102,11 @@ public class DataMappingFieldPositionTest extends AbstractLSTest {
      * @param description The description of the test
      * @param codedata    Details of the node
      * @param targetField The target field to add the element
-     * @param fieldId     The field ID to identify the specific field to get the position
-     * @param property    Type property of the type of field ID
+     * @param index       The clause ID to get the position
+     * @param position    The start position of the clause
      */
-    private record TestConfig(String source, String description, JsonElement codedata, String targetField,
-                              String fieldId, JsonElement property) {
+    private record TestConfig(String source, String description, JsonElement codedata,
+                              String targetField, int index, JsonElement position) {
 
         public String description() {
             return description == null ? "" : description;

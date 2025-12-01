@@ -8,6 +8,7 @@
       "offset": 0
     },
     "offset": 1,
+    "lineOffset": 0,
     "codedata": {
       "node": "NEW_CONNECTION",
       "org": "ballerinax",
@@ -68,14 +69,6 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "clientConfig",
-      "kind": "Field",
-      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clientConfig",
-      "sortText": "K",
-      "insertText": "clientConfig: {}",
-      "insertTextFormat": "Snippet"
-    },
-    {
       "label": "optionalParams",
       "kind": "Field",
       "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.optionalParams",
@@ -124,19 +117,19 @@
       "insertTextFormat": "Snippet"
     },
     {
-      "label": "refreshUrl",
-      "kind": "Field",
-      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.refreshUrl",
-      "sortText": "K",
-      "insertText": "refreshUrl: ${1:\"\"}",
-      "insertTextFormat": "Snippet"
-    },
-    {
       "label": "credentialBearer",
       "kind": "Field",
       "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.credentialBearer",
       "sortText": "K",
       "insertText": "credentialBearer: ${1:\"POST_BODY_BEARER\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "refreshUrl",
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.refreshUrl",
+      "sortText": "K",
+      "insertText": "refreshUrl: ${1:\"\"}",
       "insertTextFormat": "Snippet"
     },
     {
@@ -153,6 +146,14 @@
       "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.defaultTokenExpTime",
       "sortText": "K",
       "insertText": "defaultTokenExpTime: ${1:0}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "clientConfig",
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clientConfig",
+      "sortText": "K",
+      "insertText": "clientConfig: {}",
       "insertTextFormat": "Snippet"
     }
   ]

@@ -1552,7 +1552,7 @@ public class DataMapManager {
         }
     }
 
-    public JsonElement addClauses(Path filePath, JsonElement cd, JsonElement cl, int index, String targetField) {
+    public JsonElement addClause(Path filePath, JsonElement cd, JsonElement cl, int index, String targetField) {
         Clause clause = gson.fromJson(cl, Clause.class);
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -1943,7 +1943,6 @@ public class DataMapManager {
                                         String fieldId) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode stNode = getNode(codedata.lineRange());
-
         TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
         if (targetNode == null) {
             return null;
@@ -1959,6 +1958,65 @@ public class DataMapManager {
             dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();
         }
         return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
+    public JsonElement getTargetFieldPosition(SemanticModel semanticModel, JsonElement cd, String targetField) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        MatchingNode matchingNode = targetNode.matchingNode();
+        LineRange lineRange;
+        if (matchingNode.queryExpr() == null) {
+            lineRange = matchingNode.expr().lineRange();
+        } else {
+            lineRange = resultClausePosition(matchingNode.expr());
+        }
+
+        Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
+        dataMapManagerBuilder = dataMapManagerBuilder
+                .type(Property.ValueType.EXPRESSION)
+                .codedata()
+                    .lineRange(lineRange)
+                .stepOut();
+        return gson.toJsonTree(dataMapManagerBuilder.build());
+    }
+
+    public JsonElement getClausePosition(SemanticModel semanticModel, JsonElement cd, String targetField, int index) {
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode stNode = getNode(codedata.lineRange());
+
+        TargetNode targetNode = getTargetNode(stNode, targetField, semanticModel);
+        if (targetNode == null) {
+            return null;
+        }
+
+        MatchingNode matchingNode = targetNode.matchingNode();
+        if (matchingNode == null) {
+            return null;
+        }
+
+        QueryExpressionNode queryExprNode = matchingNode.queryExpr();
+        if (queryExprNode == null) {
+            return null;
+        }
+
+        NodeList<IntermediateClauseNode> intermediateClauses = queryExprNode.queryPipeline().intermediateClauses();
+        if (index < 0) {
+            if (intermediateClauses.isEmpty()) {
+                return gson.toJsonTree(queryExprNode.resultClause().lineRange().startLine());
+            } else {
+                return gson.toJsonTree(intermediateClauses.get(0).lineRange().startLine());
+            }
+        } else if (index >= intermediateClauses.size()) {
+            return gson.toJsonTree(queryExprNode.resultClause().lineRange().startLine());
+        } else {
+            return gson.toJsonTree(intermediateClauses.get(index).lineRange().startLine());
+        }
     }
 
     public JsonElement subMapping(JsonElement cd, String view) {
@@ -2245,6 +2303,17 @@ public class DataMapManager {
         } else {
             return expr.lineRange();
         }
+    }
+
+    private LineRange resultClausePosition(ExpressionNode expressionNode) {
+        Node node = expressionNode.parent();
+        while (node != null) {
+            if (node.kind() == SyntaxKind.SELECT_CLAUSE || node.kind() == SyntaxKind.COLLECT_CLAUSE) {
+                return node.lineRange();
+            }
+            node = node.parent();
+        }
+        throw new IllegalStateException("Result clause not found for the expression node");
     }
 
     private String genFunctionDef(WorkspaceManager workspaceManager, Path filePath,

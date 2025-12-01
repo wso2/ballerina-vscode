@@ -16,21 +16,24 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension.request;
+package io.ballerina.flowmodelgenerator.extension.response;
 
 import com.google.gson.JsonElement;
 
 /**
- * Represents a request to get the position of given field.
+ * Represents the response containing data mapper clause position.
  *
- * @param filePath    file path of the source file
- * @param codedata    Details of the node
- * @param targetField The target field that needs to consider to get the type
- * @param portId      The port ID to identify the specific field to get the position
  * @since 2.0.0
  */
-public record DataMapperFieldPositionRequest(String filePath,
-                                             JsonElement codedata,
-                                             String targetField,
-                                             String portId) {
+public class DataMapperClausePositionResponse extends AbstractFlowModelResponse {
+
+    private JsonElement position;
+
+    public void setPosition(JsonElement position) {
+        this.position = position;
+    }
+
+    public JsonElement getPosition() {
+        return this.position;
+    }
 }
