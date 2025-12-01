@@ -83,14 +83,6 @@ export function RunDebugButton(props: Props) {
     const hasDevantConnections =
         platformExtState?.isLoggedIn && platformExtState?.connections?.some((item) => item.isUsed);
 
-    if (!hasDevantConnections) {
-        return (
-            <Button appearance="icon" onClick={onClick} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name={icon} sx={{ marginRight: 5 }} /> {text}
-            </Button>
-        );
-    }
-
     const { mutate: onOptionSelect } = useMutation({
         mutationFn: async (connectedToDevant: boolean) => {
             await platformRpcClient.setConnectedToDevant(connectedToDevant);
@@ -98,6 +90,14 @@ export function RunDebugButton(props: Props) {
         },
         onSuccess: () => setAnchorEl(null),
     });
+
+    if (!hasDevantConnections) {
+        return (
+            <Button appearance="icon" onClick={onClick} buttonSx={{ padding: "4px 8px" }}>
+                <Codicon name={icon} sx={{ marginRight: 5 }} /> {text}
+            </Button>
+        );
+    }
 
     return (
         <>

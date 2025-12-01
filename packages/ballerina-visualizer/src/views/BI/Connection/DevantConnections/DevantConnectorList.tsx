@@ -253,39 +253,43 @@ const PanelTab = (props: {
     return (
         <VSCodePanelView id={id} key={id}>
             <div style={{ width: "100%", marginTop: 12 }}>
-                {isLoading && (
+                {isLoading ? (
                     <ProgressRingWrap>
                         <ProgressRing />
                     </ProgressRingWrap>
-                )}
-                {data?.length === 0 && (
+                ) : (
                     <>
-                        <BodyTinyInfo>{emptyMessage}</BodyTinyInfo>
-                        {emptyActionButton && (
-                            <Button
-                                sx={{ marginTop: 6 }}
-                                tooltip={emptyActionButton.tooltip}
-                                onClick={emptyActionButton.onClick}
-                            >
-                                {emptyActionButton.text}
-                            </Button>
+                        {data?.length === 0 ? (
+                            <>
+                                <BodyTinyInfo>{emptyMessage}</BodyTinyInfo>
+                                {emptyActionButton && (
+                                    <Button
+                                        sx={{ marginTop: 6 }}
+                                        tooltip={emptyActionButton.tooltip}
+                                        onClick={emptyActionButton.onClick}
+                                    >
+                                        {emptyActionButton.text}
+                                    </Button>
+                                )}
+                            </>
+                        ) : (
+                            <GridContainer isHalfView={hideTitle}>
+                                {data?.map((item) => {
+                                    return (
+                                        <ButtonCard
+                                            id={`connector-${item.serviceId}`}
+                                            key={item.serviceId}
+                                            title={item.name}
+                                            description={item.description}
+                                            icon={<Codicon name="package" />}
+                                            onClick={() => onSelectItem(item)}
+                                        />
+                                    );
+                                })}
+                            </GridContainer>
                         )}
                     </>
                 )}
-                <GridContainer isHalfView={hideTitle}>
-                    {data?.map((item) => {
-                        return (
-                            <ButtonCard
-                                id={`connector-${item.serviceId}`}
-                                key={item.serviceId}
-                                title={item.name}
-                                description={item.description}
-                                icon={<Codicon name="package" />}
-                                onClick={() => onSelectItem(item)}
-                            />
-                        );
-                    })}
-                </GridContainer>
             </div>
         </VSCodePanelView>
     );

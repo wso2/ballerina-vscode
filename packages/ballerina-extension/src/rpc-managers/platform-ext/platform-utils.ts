@@ -94,7 +94,7 @@ export const addProxyConfigurable = async (configBalFileUri: Uri) => {
 export const addConnection = async (
     connectionName: string,
     moduleName: string,
-    securityType: "oauth" | "apikey",
+    securityType: "" | "oauth" | "apikey",
     requireProxy: boolean,
     configs: {
         apiKeyVarName: string;
@@ -149,25 +149,34 @@ export const addConnection = async (
         counter++;
     }
 
-    const newConnTemplate =
-        securityType === "oauth"
-            ? Templates.newConnectionWithOAuth({
-                  requireProxy,
-                  API_KEY_VAR_NAME: configs.apiKeyVarName,
-                  CONNECTION_NAME: candidate,
-                  MODULE_NAME: moduleName,
-                  SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
-                  CLIENT_ID: configs.tokenClientIdVarName,
-                  CLIENT_SECRET: configs.tokenClientSecretVarName,
-                  TOKEN_URL: configs.tokenUrlVarName,
-              })
-            : Templates.newConnectionWithApiKey({
-                  requireProxy,
-                  API_KEY_VAR_NAME: configs.apiKeyVarName,
-                  CONNECTION_NAME: candidate,
-                  MODULE_NAME: moduleName,
-                  SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
-              });
+    let newConnTemplate = "";
+    if (securityType === "") {
+        newConnTemplate = Templates.newConnectionNoSecurity({
+            CONNECTION_NAME: candidate,
+            MODULE_NAME: moduleName,
+            SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+        });
+    } else if (securityType === "oauth") {
+        newConnTemplate = Templates.newConnectionWithOAuth({
+            requireProxy,
+            API_KEY_VAR_NAME: configs.apiKeyVarName,
+            CONNECTION_NAME: candidate,
+            MODULE_NAME: moduleName,
+            SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+            CLIENT_ID: configs.tokenClientIdVarName,
+            CLIENT_SECRET: configs.tokenClientSecretVarName,
+            TOKEN_URL: configs.tokenUrlVarName,
+        });
+    } else if (securityType === "apikey") {
+        newConnTemplate = Templates.newConnectionWithApiKey({
+            requireProxy,
+            API_KEY_VAR_NAME: configs.apiKeyVarName,
+            CONNECTION_NAME: candidate,
+            MODULE_NAME: moduleName,
+            SERVICE_URL_VAR_NAME: configs.svsUrlVarName,
+        });
+    }
+
     connBalEdits.insert(connectionBalFileUri, new vscode.Position(newConnEditLine, 0), newConnTemplate);
 
     await workspace.applyEdit(connBalEdits);
@@ -200,9 +209,26 @@ const getDevantConnectorInitKey = async (moduleName: string): Promise<string> =>
 };
 */
 
-export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "oauth" | "apikey"): string => {
+const getYamlString = (yamlString: string) => {
     try {
-        const openApiDefinition = yaml.load(yamlString) as OpenAPIDefinition;
+        if (/%[0-9A-Fa-f]{2}/.test(yamlString)) {
+            const decoded = decodeURIComponent(yamlString);
+            if (
+                decoded !== yamlString &&
+                (decoded.includes("\n") || decoded.includes(":") || /openapi/i.test(decoded))
+            ) {
+                return decoded;
+            }
+        }
+        return yamlString;
+    } catch {
+        return yamlString;
+    }
+};
+
+export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "" | "oauth" | "apikey"): string => {
+    try {
+        const openApiDefinition = yaml.load(getYamlString(yamlString)) as OpenAPIDefinition;
         const oAuthSchemaName = "DevantOAuth2";
         const apiKeySchemaName = "DevantApiKeyAuth";
 
@@ -214,16 +240,9 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
             openApiDefinition.components = {};
         }
 
-        if (!openApiDefinition.components.securitySchemes) {
+        if (!openApiDefinition.components.securitySchemes && securityType!=="") {
             openApiDefinition.components.securitySchemes = {};
         }
-
-        openApiDefinition.components.securitySchemes[apiKeySchemaName] = {
-            type: "apiKey",
-            in: "header",
-            name: "Choreo-API-Key",
-            "x-ballerina-name": "choreoAPIKey",
-        };
 
         if (securityType === "oauth") {
             openApiDefinition.components.securitySchemes[oAuthSchemaName] = {
@@ -235,14 +254,21 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
                     },
                 },
             };
+        }else if(securityType === "apikey"){
+            openApiDefinition.components.securitySchemes[apiKeySchemaName] = {
+                type: "apiKey",
+                in: "header",
+                name: "Choreo-API-Key",
+                "x-ballerina-name": "choreoAPIKey",
+            };
         }
 
-        if (!openApiDefinition.security) {
+        if (!openApiDefinition.security && securityType !== "") {
             openApiDefinition.security = [];
         }
         if (securityType === "oauth") {
             openApiDefinition.security.push({ [oAuthSchemaName]: [], [apiKeySchemaName]: [] });
-        } else {
+        } else if(securityType === "apikey"){
             openApiDefinition.security.push({ [apiKeySchemaName]: [] });
         }
 
@@ -255,7 +281,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
                                 [oAuthSchemaName]: [],
                                 [apiKeySchemaName]: [],
                             });
-                        } else {
+                        }else if(securityType === "apikey"){
                             openApiDefinition.paths[path]?.[method]?.security.push({ [apiKeySchemaName]: [] });
                         }
                     }
@@ -284,7 +310,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
 export const initializeDevantConnection = async (params: {
     name: string;
     visibility: string;
-    securityType: "oauth" | "apikey";
+    securityType: "" | "oauth" | "apikey";
     marketplaceItem: MarketplaceItem;
     configurations: ConnectionConfigurations;
     platformExt: IWso2PlatformExtensionAPI;
@@ -473,6 +499,13 @@ configurable int? devantProxyPort = ();
 http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPort is int ? { host: <string> devantProxyHost, port: <int> devantProxyPort } : ();
 \n`);
         return template({});
+    },
+    newConnectionNoSecurity: (params: {
+        MODULE_NAME: string;
+        CONNECTION_NAME: string;
+        SERVICE_URL_VAR_NAME: string;
+    }) => {
+        return `final ${params.MODULE_NAME}:Client ${params.CONNECTION_NAME} = check new (config = { timeout: 30 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },
     newConnectionWithApiKey: (params: {
         requireProxy: boolean;

@@ -154,7 +154,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org,onCloseCli
                         <>
                             {serviceIdl?.idlType === "OpenAPI" ? (
                                 <SwaggerUI
-                                    spec={item.isThirdParty ? decodeURIComponent(serviceIdl?.content) : serviceIdl?.content}
+                                    spec={getYamlString(serviceIdl?.content)}
                                     defaultModelExpandDepth={-1}
                                     docExpansion="list"
                                     tryItOutEnabled={false}
@@ -232,3 +232,21 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, org,onCloseCli
         </StyledContainer>
     );
 };
+
+const getYamlString = (yamlString: string) => {
+    try {
+        if (/%[0-9A-Fa-f]{2}/.test(yamlString)) {
+            const decoded = decodeURIComponent(yamlString);
+            // Basic heuristic to ensure decoding produced YAML-like content
+            if (
+                decoded !== yamlString &&
+                (decoded.includes("\n") || decoded.includes(":") || /openapi/i.test(decoded))
+            ) {
+                return decoded;
+            }
+        }
+        return yamlString;
+    } catch {
+        return yamlString
+    }
+}
