@@ -75,6 +75,7 @@ import {
     GetConfigVariableNodeTemplateRequest,
     getConfigVariables,
     getConfigVariablesV2,
+    getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
     getEnclosedFunction,
@@ -182,6 +183,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(handleReadmeContent, (args: ReadmeContentRequest) => rpcManger.handleReadmeContent(args));
     messenger.onRequest(getVisibleVariableTypes, (args: BIGetVisibleVariableTypesRequest) => rpcManger.getVisibleVariableTypes(args));
     messenger.onRequest(getExpressionCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getExpressionCompletions(args));
+    messenger.onRequest(getDataMapperCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getDataMapperCompletions(args));
     messenger.onRequest(getConfigVariables, () => rpcManger.getConfigVariables());
     messenger.onRequest(updateConfigVariables, (args: UpdateConfigVariableRequest) => rpcManger.updateConfigVariables(args));
     messenger.onRequest(getConfigVariablesV2, (args: ConfigVariableRequest) => rpcManger.getConfigVariablesV2(args));

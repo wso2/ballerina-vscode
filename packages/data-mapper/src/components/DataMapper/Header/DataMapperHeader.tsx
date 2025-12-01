@@ -67,11 +67,15 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
                     <ActionGroupContaner>
-                        {undoRedoGroup && undoRedoGroup()}
                         <ActionIconButton
                             onClick={onReset}
                             iconName="clear-all"
                             tooltip="Clear all mappings"
+                        />
+                        <ActionIconButton
+                            onClick={onRefresh}
+                            iconName="refresh"
+                            tooltip="Refresh all mappings"
                         />
                     </ActionGroupContaner>
                     <FilterBar>
@@ -132,6 +136,7 @@ const RightContainer = styled.div<{ isClickable: boolean }>`
 
 const ActionGroupContaner = styled.div`
     display: flex;
+    gap: 2px;
 `;
 
 const BreadCrumb = styled.div`

@@ -53,13 +53,15 @@ export const ChipEditorContainer = styled.div`
 
 export const Chip = styled.div`
     border-radius: 4px;
-    background-color: rgba(0, 122, 204, 0.7);
-    color: ${ThemeColors.ON_PRIMARY}; 
+    background-color: rgba(0, 122, 204, 0.3);
+    color: var(--vscode-input-foreground, white);
     cursor: pointer;
     margin: 2px 0px;
     font-size: 12px;
     padding: 2px 10px;
-    display: inline-block;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     min-height: 20px;
     min-width: 25px;
     transition: all 0.2s ease;
@@ -76,6 +78,53 @@ export const Chip = styled.div`
         box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.8);
         background-color: ${ThemeColors.PRIMARY};
     }
+`;
+
+export const DocumentChip = styled.div`
+    border-radius: 4px;
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--vscode-input-foreground);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    cursor: pointer;
+    margin: 2px 0px;
+    font-size: 12px;
+    padding: 2px 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 20px;
+    min-width: 25px;
+    transition: all 0.2s ease;
+    outline: none;
+    vertical-align: middle;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &:hover {
+        background-color: rgba(59, 130, 246, 0.25);
+    }
+
+    &:active {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.8);
+    }
+`;
+
+export const DocumentChipIcon = styled.span`
+    font-size: 16px;
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    color: rgba(59, 130, 246, 0.9);
+`;
+
+export const DocumentChipText = styled.span`
+    font-size: 12px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.01em;
 `;
 
 export const COMPLETIONS_WIDTH = 300;
