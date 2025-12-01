@@ -149,6 +149,7 @@ import {
     getConfigVariableNodeTemplate,
     getConfigVariables,
     getConfigVariablesV2,
+    getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
     getEnclosedFunction,
@@ -307,6 +308,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
         return this._messenger.sendRequest(getExpressionCompletions, HOST_EXTENSION, params);
+    }
+
+    getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return this._messenger.sendRequest(getDataMapperCompletions, HOST_EXTENSION, params);
     }
 
     getConfigVariables(): Promise<ConfigVariableResponse> {

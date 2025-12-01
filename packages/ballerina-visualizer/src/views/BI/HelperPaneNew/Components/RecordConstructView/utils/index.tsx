@@ -64,12 +64,41 @@ export function checkFormFieldValue(field: FormField): boolean {
     return field.value !== undefined && field.value !== null;
 }
 
+export function resetFieldValues(field: FormField): void {
+    if (!field) return;
+
+    // Reset the field value
+    if (field.value !== undefined) {
+        field.value = undefined;
+    }
+
+    // Reset nested fields
+    if (field.fields && field.fields.length > 0) {
+        field.fields.forEach(nestedField => {
+            resetFieldValues(nestedField);
+        });
+    }
+
+    // Reset union members
+    if (field.members && field.members.length > 0) {
+        field.members.forEach(member => {
+            resetFieldValues(member);
+        });
+    }
+
+    // Reset inclusion type fields
+    if (field.inclusionType?.fields && field.inclusionType.fields.length > 0) {
+        field.inclusionType.fields.forEach(inclusionField => {
+            resetFieldValues(inclusionField);
+        });
+    }
+}
+
 export function updateFieldsSelection(fields: FormField[], selected: boolean): void {
     if (!fields || !fields.length) return;
 
     fields.forEach(field => {
         // When selecting: only select required fields
-        // When deselecting: deselect all fields (both required and optional)
         if (!selected || isRequiredParam(field)) {
             field.selected = selected;
             
