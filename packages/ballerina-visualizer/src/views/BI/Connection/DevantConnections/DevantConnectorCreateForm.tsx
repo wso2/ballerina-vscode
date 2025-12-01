@@ -27,7 +27,7 @@ import {
     ServiceInfoVisibilityEnum,
     capitalizeFirstLetter,
 } from "@wso2/wso2-platform-core";
-import React, { useEffect, useState, type FC } from "react";
+import React, { ReactNode, useEffect, useState, type FC } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Button, Typography, Codicon, LinkButton, ThemeColors, CheckBox } from "@wso2/ui-toolkit";
@@ -96,7 +96,10 @@ const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Proj
     return filteredVisibilities;
 };
 
-const getInitialVisibility = (visibilities: string[] = []) => {
+const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []) => {
+    if(item.isThirdParty){
+        return ServiceInfoVisibilityEnum.Public;
+    }
     if (visibilities.includes(ServiceInfoVisibilityEnum.Project)) {
         return ServiceInfoVisibilityEnum.Project;
     }
@@ -106,7 +109,11 @@ const getInitialVisibility = (visibilities: string[] = []) => {
     return ServiceInfoVisibilityEnum.Public;
 };
 
-const getPossibleSchemas = (selectedVisibility: string, connectionSchemas: MarketplaceItemSchema[] = []) => {
+const getPossibleSchemas = (item: MarketplaceItem, selectedVisibility: string, connectionSchemas: MarketplaceItemSchema[] = []) => {
+    // If third party, return schemas without filtering
+    if(item.isThirdParty){
+        return item.connectionSchemas
+    }
     // Set the filtered schemas based on the selected visibility
     // organization and public visibilities can have
     // Oauth2, api key or unauthenaticated
@@ -143,7 +150,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
         mode: "all",
         defaultValues: {
             name: item.name,
-            visibility: getInitialVisibility(visibilities),
+            visibility: getInitialVisibility(item, visibilities),
             schemaId: "",
             isProjectLevel: false,
         },
@@ -151,7 +158,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
 
     const selectedVisibility = form.watch("visibility");
 
-    const schemas = getPossibleSchemas(selectedVisibility, item.connectionSchemas);
+    const schemas = getPossibleSchemas(item, selectedVisibility, item.connectionSchemas);
 
     useEffect(() => {
         if (!schemas.some((item) => item.id === form.getValues("schemaId")) && schemas.length > 0) {
@@ -176,6 +183,66 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
     const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
     const isProjectLevel = form.watch("isProjectLevel");
+
+    const advancedConfigItems: ReactNode[] = [];
+    if (!item.isThirdParty) {
+        advancedConfigItems.push(
+            <FormStyles.Row>
+                <Dropdown
+                    id="visibility"
+                    label="Access Mode"
+                    containerSx={{ width: "100%" }}
+                    items={visibilities?.map((item) => ({
+                        value: item,
+                        content: capitalizeFirstLetter(item.toLowerCase()),
+                    }))}
+                    {...form.register("visibility", {
+                        validate: (value) => {
+                            if (!value) {
+                                return "Required";
+                            }
+                        },
+                    })}
+                    required
+                    disabled={visibilities?.length === 0}
+                    errorMsg={form.formState.errors.visibility?.message}
+                />
+            </FormStyles.Row>,
+            <FormStyles.Row>
+                <Dropdown
+                    id="schemaId"
+                    label="Authentication Scheme"
+                    containerSx={{ width: "100%" }}
+                    items={schemas.map((item) => ({ value: item.id, content: item.name }))}
+                    {...form.register("schemaId", {
+                        validate: (value) => {
+                            if (!value) {
+                                return "Required";
+                            }
+                        },
+                    })}
+                    required
+                    disabled={schemas?.length === 0}
+                    errorMsg={form.formState.errors.schemaId?.message}
+                />
+            </FormStyles.Row>
+        );
+    }
+
+    if (platformExtState.selectedComponent) {
+        advancedConfigItems.push(
+            <FormStyles.Row>
+                <CheckBox
+                    label="Connection available to all integrations within your Devant project"
+                    checked={isProjectLevel}
+                    onChange={(checked: boolean) => {
+                        form.setValue("isProjectLevel", checked);
+                    }}
+                />
+            </FormStyles.Row>
+        );
+    }
+
     return (
         <>
             <HeaderWrap>
@@ -215,84 +282,33 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
                     />
                 </FormStyles.Row>
 
-                <Row>
-                    Advanced Configurations
-                    <ButtonContainer>
-                        {!showAdvancedSection && (
-                            <LinkButton
-                                onClick={() => setShowAdvancedSection(true)}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Expand
-                            </LinkButton>
-                        )}
-                        {showAdvancedSection && (
-                            <LinkButton
-                                onClick={() => setShowAdvancedSection(false)}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapsed
-                            </LinkButton>
-                        )}
-                    </ButtonContainer>
-                </Row>
-
-                {showAdvancedSection && (
-                    <>
-                        <FormStyles.Row>
-                            <Dropdown
-                                id="visibility"
-                                label="Access Mode"
-                                containerSx={{ width: "100%" }}
-                                items={visibilities?.map((item) => ({
-                                    value: item,
-                                    content: capitalizeFirstLetter(item.toLowerCase()),
-                                }))}
-                                {...form.register("visibility", {
-                                    validate: (value) => {
-                                        if (!value) {
-                                            return "Required";
-                                        }
-                                    },
-                                })}
-                                required
-                                disabled={visibilities?.length === 0}
-                                errorMsg={form.formState.errors.visibility?.message}
-                            />
-                        </FormStyles.Row>
-                        <FormStyles.Row>
-                            <Dropdown
-                                id="schemaId"
-                                label="Authentication Scheme"
-                                containerSx={{ width: "100%" }}
-                                items={schemas.map((item) => ({ value: item.id, content: item.name }))}
-                                {...form.register("schemaId", {
-                                    validate: (value) => {
-                                        if (!value) {
-                                            return "Required";
-                                        }
-                                    },
-                                })}
-                                required
-                                disabled={schemas?.length === 0}
-                                errorMsg={form.formState.errors.schemaId?.message}
-                            />
-                        </FormStyles.Row>
-                        {platformExtState.selectedComponent && (
-                            <FormStyles.Row>
-                                <CheckBox
-                                    label="Connection available to all integrations within your Devant project"
-                                    checked={isProjectLevel}
-                                    onChange={(checked: boolean) => {
-                                        form.setValue("isProjectLevel", checked);
-                                    }}
-                                />
-                            </FormStyles.Row>
-                        )}
-                    </>
+                {advancedConfigItems.length > 0 && (
+                    <Row>
+                        Advanced Configurations
+                        <ButtonContainer>
+                            {!showAdvancedSection && (
+                                <LinkButton
+                                    onClick={() => setShowAdvancedSection(true)}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                    Expand
+                                </LinkButton>
+                            )}
+                            {showAdvancedSection && (
+                                <LinkButton
+                                    onClick={() => setShowAdvancedSection(false)}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                    Collapsed
+                                </LinkButton>
+                            )}
+                        </ButtonContainer>
+                    </Row>
                 )}
+
+                {showAdvancedSection && advancedConfigItems}
 
                 <FormStyles.Footer>
                     <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>

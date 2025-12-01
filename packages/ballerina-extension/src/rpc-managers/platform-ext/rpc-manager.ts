@@ -137,6 +137,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             );
             hasLocalChanges = await platformExt.localRepoHasChanges(context.projectPath);
             hasProjectYaml = hasContextYaml(context.projectPath);
+            await this.debouncedRefreshConnectionList();
         }
 
         platformExtStore.getState().setState({
@@ -161,8 +162,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     private async initSelfStoreSubscription(messenger: Messenger) {
-        const debouncedRefreshConnectionList = debounce(() => this.refreshConnectionList(), 500);
-
         platformExtStore.subscribe((state, prevState) => {
             messenger.sendNotification(
                 onPlatformExtStoreStateChange,
@@ -194,7 +193,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
 
             if (refetchConnections) {
-                debouncedRefreshConnectionList();
+                this.debouncedRefreshConnectionList();
             }
         });
     }
@@ -203,6 +202,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         await platformExtStore.persist.rehydrate();
         await this.initAuthState();
         let disposeProjectPathWatcher = await this.initProjectPathWatcher(StateMachine.context());
+        if (StateMachine.context().projectPath) {
+            this.debouncedRefreshConnectionList();
+        }
         await this.initFileWatcher();
         const debouncedInitProjectPathWatcher = debounce(
             async (context: VisualizerLocation) => await this.initProjectPathWatcher(context),
@@ -216,7 +218,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(state.context);
         });
 
-        await this.refreshConnectionList();
         await this.initSelfStoreSubscription(messenger);
     }
 
@@ -439,27 +440,36 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 requiresProxy = true;
             }
 
-            if(debugConfig.request === "launch" && debugConfig?.choreoConnect){
-                if(!platformExtStore.getState().state?.isLoggedIn){
-                    window.showErrorMessage("You must log in before connecting to devant environment. Retry after logging in.", "Login").then((res) => {
-						if (res === "Login") {
-							vscode.commands.executeCommand(PlatformExtCommandIds.SignIn, { extName: 'Devant' } as ICmdParamsBase);
-						}
-					});
+            if (debugConfig.request === "launch" && debugConfig?.choreoConnect) {
+                if (!platformExtStore.getState().state?.isLoggedIn) {
+                    window
+                        .showErrorMessage(
+                            "You must log in before connecting to devant environment. Retry after logging in.",
+                            "Login"
+                        )
+                        .then((res) => {
+                            if (res === "Login") {
+                                vscode.commands.executeCommand(PlatformExtCommandIds.SignIn, {
+                                    extName: "Devant",
+                                } as ICmdParamsBase);
+                            }
+                        });
                     return;
                 }
 
-                if(!platformExtStore.getState().state?.selectedContext?.project){
+                if (!platformExtStore.getState().state?.selectedContext?.project) {
                     window
-						.showErrorMessage(
-							"Pease associate your directory with Devant project in order to connect to Devant while running or debugging",
-							"Manage Project",
-						)
-						.then((res) => {
-							if (res === "Manage Project") {
-								vscode.commands.executeCommand(PlatformExtCommandIds.ManageDirectoryContext, { extName: 'Devant' } as ICmdParamsBase);
-							}
-						});
+                        .showErrorMessage(
+                            "Pease associate your directory with Devant project in order to connect to Devant while running or debugging",
+                            "Manage Project"
+                        )
+                        .then((res) => {
+                            if (res === "Manage Project") {
+                                vscode.commands.executeCommand(PlatformExtCommandIds.ManageDirectoryContext, {
+                                    extName: "Devant",
+                                } as ICmdParamsBase);
+                            }
+                        });
                     return;
                 }
             }
@@ -630,15 +640,21 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceId: params?.connectionListItem?.serviceId,
             });
 
+            let securityType: "" | "oauth" | "apikey";
+            if(marketplaceItem?.isThirdParty){
+                securityType = ""
+            }else{
+                securityType = params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")? "oauth": "apikey"
+            }
+
             const resp = await initializeDevantConnection({
                 platformExt,
                 name: params.connectionListItem.name,
                 marketplaceItem: marketplaceItem,
                 visibility: visibility,
                 configurations: connectionItem?.configurations,
-                securityType: params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")
-                    ? "oauth"
-                    : "apikey",
+                // todo: handle third party
+                securityType,
             });
 
             StateMachine.setReadyMode();
@@ -659,21 +675,56 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const isProjectLevel =
                 !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel;
 
-            const createdConnection = await platformExt?.createComponentConnection({
-                componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                name: params.params.name,
-                orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
-                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                serviceSchemaId: params.params.schemaId,
-                serviceId: params.marketplaceItem.serviceId,
-                serviceVisibility: params.params.visibility!,
-                componentType: isProjectLevel
-                    ? "non-component"
-                    : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
-                componentPath: projectPath,
-                generateCreds: true,
-            });
+            let createdConnection: ConnectionDetailed;
+            let securityType: "" | "oauth" | "apikey"
+            if (params?.marketplaceItem?.isThirdParty) {
+                const matchingSchema = params.marketplaceItem.connectionSchemas?.find(
+                    (item) => item.id === params.params?.schemaId
+                );
+                if (!matchingSchema) {
+                    throw new Error(`No matching schemes found in marketplace item`);
+                }
+                if (
+                    !params?.marketplaceItem?.endpointRefs ||
+                    Object.keys(params?.marketplaceItem?.endpointRefs).length === 0
+                ) {
+                    throw new Error(`No endpoints found in the third party API item`);
+                }
+
+                createdConnection = await platformExt?.createThirdPartyConnection({
+                    componentId: isProjectLevel
+                        ? ""
+                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                    name: params.params.name,
+                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
+                    serviceSchemaId: params.params.schemaId,
+                    serviceId: params.marketplaceItem.serviceId,
+                    endpointName: Object.keys(params?.marketplaceItem?.endpointRefs)[0],
+                    sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
+                });
+                securityType = ""
+            } else {
+                createdConnection = await platformExt?.createComponentConnection({
+                    componentId: isProjectLevel
+                        ? ""
+                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                    name: params.params.name,
+                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
+                    serviceSchemaId: params.params.schemaId,
+                    serviceId: params.marketplaceItem.serviceId,
+                    serviceVisibility: params.params.visibility!,
+                    componentType: isProjectLevel
+                        ? "non-component"
+                        : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
+                    componentPath: projectPath,
+                    generateCreds: true,
+                });
+                securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey"
+            }
 
             const resp = await initializeDevantConnection({
                 platformExt,
@@ -681,7 +732,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 marketplaceItem: params.marketplaceItem,
                 visibility: params.params.visibility!,
                 configurations: createdConnection.configurations,
-                securityType: createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey",
+                securityType: securityType,
             });
 
             StateMachine.setReadyMode();
@@ -694,12 +745,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    debouncedRefreshConnectionList = debounce(() => this.refreshConnectionList(), 500);
+
     async refreshConnectionList(): Promise<void> {
         try {
-            const platformExt = await this.getPlatformExt();
             platformExtStore.getState().setState({ loadingConnections: true });
-            const connections = await this.getAllConnections();
             const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+            const connections = await this.getAllConnections();
             const connectionsUsed = connections.map((connItem) => ({
                 ...connItem,
                 isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteId === connItem.name),
@@ -757,6 +809,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
             */
         } catch (err) {
+            platformExtStore.getState().setState({ loadingConnections: false });
             log(`Failed to refresh connection list: ${err}`);
         }
     }
