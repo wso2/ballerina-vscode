@@ -31,19 +31,24 @@ import {
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
+    PackageTomlValues,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
+    SampleDownloadRequest,
     ShowErrorMessageRequest,
     SyntaxTree,
-    PackageTomlValues,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
-    WorkspaceTypeResponse,
+    WorkspaceTypeResponse
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
-import { Uri, commands, env, window, workspace, MarkdownString } from "vscode";
+import path from "path";
+import os from "os";
+import fs from "fs";
+import * as unzipper from 'unzipper';
+import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
@@ -60,9 +65,11 @@ import {
     askFilePath,
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
-    getUpdatedSource
+    getUpdatedSource,
+    handleDownloadFile,
+    selectSampleDownloadPath
 } from "./utils";
-import path from "path";
+import { VisualizerWebview } from "../../views/visualizer/webview";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -303,5 +310,150 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         return { type: "UNKNOWN" };
+    }
+
+
+    async downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
+        const repoUrl = 'https://raw.githubusercontent.com/wso2/integration-samples/refs/heads/main/ballerina-integrator/samples/';
+        const rawFileLink = repoUrl + params.zipFileName + '.zip';
+        const defaultDownloadsPath = path.join(os.homedir(), 'Downloads'); // Construct the default downloads path
+        const pathFromDialog = await selectSampleDownloadPath();
+        if (pathFromDialog === "") {
+            return false;
+        }
+        const selectedPath = pathFromDialog === "" ? defaultDownloadsPath : pathFromDialog;
+        const filePath = path.join(selectedPath, params.zipFileName + '.zip');
+        let isSuccess = false;
+
+        if (fs.existsSync(filePath)) {
+            // already downloaded
+            isSuccess = true;
+        } else {
+            await window.withProgress({
+                location: ProgressLocation.Notification,
+                title: 'Downloading file',
+                cancellable: true
+            }, async (progress, cancellationToken) => {
+
+                let cancelled: boolean = false;
+                cancellationToken.onCancellationRequested(async () => {
+                    cancelled = true;
+                    // Clean up partial download
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                });
+
+                try {
+                    await handleDownloadFile(rawFileLink, filePath, progress);
+                    isSuccess = true;
+                    return;
+                } catch (error) {
+                    window.showErrorMessage(`Error while downloading the file: ${error}`);
+                }
+            });
+        }
+
+        if (isSuccess) {
+            const successMsg = `The Integration sample file has been downloaded successfully to the following directory: ${filePath}.`;
+            const zipReadStream = fs.createReadStream(filePath);
+            if (fs.existsSync(path.join(selectedPath, params.zipFileName))) {
+                // already extracted
+                let uri = Uri.file(path.join(selectedPath, params.zipFileName));
+                commands.executeCommand("vscode.openFolder", uri, true);
+                return true;
+            }
+
+            let extractionError: Error | null = null;
+            const parseStream = unzipper.Parse();
+
+            // Handle errors on the read stream
+            zipReadStream.on("error", (error) => {
+                extractionError = error;
+                window.showErrorMessage(`Failed to read zip file: ${error.message}`);
+            });
+
+            // Handle errors on the parse stream
+            parseStream.on("error", (error) => {
+                extractionError = error;
+                window.showErrorMessage(`Failed to parse zip file. The file may be corrupted: ${error.message}`);
+            });
+
+            parseStream.on("entry", function (entry) {
+                // Skip processing if we've already encountered an error
+                if (extractionError) {
+                    entry.autodrain();
+                    return;
+                }
+
+                var isDir = entry.type === "Directory";
+                var fullpath = path.join(selectedPath, entry.path);
+                var directory = isDir ? fullpath : path.dirname(fullpath);
+
+                try {
+                    if (!fs.existsSync(directory)) {
+                        fs.mkdirSync(directory, { recursive: true });
+                    }
+                } catch (error) {
+                    extractionError = error as Error;
+                    window.showErrorMessage(`Failed to create directory "${directory}": ${error instanceof Error ? error.message : String(error)}`);
+                    entry.autodrain();
+                    return;
+                }
+
+                if (!isDir) {
+                    const writeStream = fs.createWriteStream(fullpath);
+
+                    // Handle write stream errors
+                    writeStream.on("error", (error) => {
+                        extractionError = error;
+                        window.showErrorMessage(`Failed to write file "${fullpath}": ${error.message}. This may be due to insufficient disk space or permission issues.`);
+                        entry.autodrain();
+                    });
+
+                    // Handle entry stream errors
+                    entry.on("error", (error) => {
+                        extractionError = error;
+                        window.showErrorMessage(`Failed to extract entry "${entry.path}": ${error.message}`);
+                        writeStream.destroy();
+                    });
+
+                    entry.pipe(writeStream);
+                }
+            });
+
+            parseStream.on("close", () => {
+                if (extractionError) {
+                    console.error("Extraction failed:", extractionError);
+                    window.showErrorMessage(`Sample extraction failed: ${extractionError.message}`);
+                    return;
+                }
+
+                console.log("Extraction complete!");
+                window.showInformationMessage('Where would you like to open the project?',
+                    { modal: true },
+                    'Current Window',
+                    'New Window'
+                ).then(selection => {
+                    if (selection === "Current Window") {
+                        // Dispose the current webview
+                        VisualizerWebview.currentPanel?.dispose();
+                        const folderUri = Uri.file(path.join(selectedPath, params.zipFileName));
+                        const workspaceFolders = workspace.workspaceFolders || [];
+                        if (!workspaceFolders.some(folder => folder.uri.fsPath === folderUri.fsPath)) {
+                            workspace.updateWorkspaceFolders(workspaceFolders.length, 0, { uri: folderUri });
+                        }
+                    } else if (selection === "New Window") {
+                        commands.executeCommand('vscode.openFolder', Uri.file(path.join(selectedPath, params.zipFileName)));
+                    }
+                });
+            });
+
+            zipReadStream.pipe(parseStream);
+            window.showInformationMessage(
+                successMsg,
+            );
+        }
+        return isSuccess;
     }
 }
