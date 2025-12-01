@@ -119,9 +119,13 @@ public class PersistClient {
     public String[] introspectDatabaseTables() throws PersistClientException {
         validateConnectionDetails();
         try {
-            return introspectorBuilder
+            String[] availableTables = introspectorBuilder
                     .build()
                     .getAvailableTables();
+            if (availableTables.length == 0) {
+                throw new PersistClientException("No tables found in the database.");
+            }
+            return availableTables;
         } catch (BalException e) {
             throw new PersistClientException("Error introspecting database tables: " + e.getMessage(), e);
         }
