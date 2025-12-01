@@ -19,8 +19,11 @@
 package io.ballerina.persist.extension;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -35,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Tests for Persist client generation functionality.
@@ -71,6 +75,24 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
                 testConfig.selectedTables(),
                 testConfig.module());
 
+        // Handle negative test cases
+        if (testConfig.expectError()) {
+            try {
+                JsonObject response = getResponseForNegativeTest(request);
+                Assert.fail("Expected error but got successful response for test: " + testConfig.description());
+            } catch (AssertionError e) {
+                // Expected error - verify error message contains expected text
+                String errorMessage = e.getMessage();
+                if (testConfig.expectedErrorMessage() != null && 
+                    !errorMessage.toLowerCase().contains(testConfig.expectedErrorMessage().toLowerCase())) {
+                    Assert.fail("Error message '" + errorMessage + "' does not contain expected text: " + 
+                               testConfig.expectedErrorMessage());
+                }
+                log.info("Negative test passed: " + testConfig.description());
+                return;
+            }
+        }
+
         JsonObject response = getResponse(request);
 
         // Check if source exists in response
@@ -82,6 +104,17 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
         JsonObject textEditsMap = source.getAsJsonObject("textEditsMap");
         Map<String, List<TextEdit>> actualTextEdits = gson.fromJson(textEditsMap, TEXT_EDIT_LIST_TYPE);
         assertResults(actualTextEdits, testConfig, configJsonPath);
+    }
+
+    private JsonObject getResponseForNegativeTest(Object request) throws IOException {
+        CompletableFuture<?> result = serviceEndpoint.request(getServiceName() + "/" + getApiName(), request);
+        String response = TestUtil.getResponseString(result);
+        JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+        JsonPrimitive errorMsg = jsonObject.getAsJsonPrimitive("errorMsg");
+        if (errorMsg != null) {
+            throw new AssertionError(errorMsg.getAsString());
+        }
+        return jsonObject;
     }
 
     private void assertResults(Map<String, List<TextEdit>> actualTextEdits, TestConfig testConfig,
@@ -168,27 +201,37 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
     /**
      * Represents the test configuration for persist client generation test.
      *
-     * @param description       The description of the test.
-     * @param testProjectFolder The test project folder path.
-     * @param name              Name of the database connector.
-     * @param dbSystem          Database system type (mysql, postgresql, mssql).
-     * @param host              Database host address.
-     * @param port              Database port number.
-     * @param user              Database username.
-     * @param password          Database user password.
-     * @param database          Name of the database to connect.
-     * @param selectedTables    Selected tables to generate entities for.
-     * @param module            The target module name for generated client.
-     * @param output            The expected text edits output.
+     * @param description          The description of the test.
+     * @param testProjectFolder    The test project folder path.
+     * @param name                 Name of the database connector.
+     * @param dbSystem             Database system type (mysql, postgresql, mssql).
+     * @param host                 Database host address.
+     * @param port                 Database port number.
+     * @param user                 Database username.
+     * @param password             Database user password.
+     * @param database             Name of the database to connect.
+     * @param selectedTables       Selected tables to generate entities for.
+     * @param module               The target module name for generated client.
+     * @param output               The expected text edits output.
+     * @param expectError          Flag to indicate if an error is expected.
+     * @param expectedErrorMessage Expected error message content for negative tests.
      */
     private record TestConfig(String description, String testProjectFolder, String name,
             String dbSystem, String host, Integer port,
             String user, String password, String database,
             String[] selectedTables, String module,
-            Map<String, List<TextEdit>> output) {
+            Map<String, List<TextEdit>> output, Boolean expectError, String expectedErrorMessage) {
 
         public String description() {
             return description == null ? "" : description;
+        }
+
+        public Boolean expectError() {
+            return expectError != null && expectError;
+        }
+
+        public String expectedErrorMessage() {
+            return expectedErrorMessage == null ? "" : expectedErrorMessage;
         }
     }
 }

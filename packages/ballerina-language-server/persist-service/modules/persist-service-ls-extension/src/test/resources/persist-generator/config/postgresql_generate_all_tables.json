@@ -1,0 +1,13 @@
+{
+  "description": "PostgreSQL persist client generation - generate from all tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "postgresql",
+  "host": "localhost",
+  "port": 5432,
+  "user": "postgres",
+  "password": "postgres",
+  "database": "testdb",
+  "selectedTables": ["employees", "departments"],
+  "module": "testdb_pg"
+}

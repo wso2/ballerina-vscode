@@ -1,0 +1,13 @@
+{
+  "description": "MSSQL persist client generation - generate from all tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mssql",
+  "host": "localhost",
+  "port": 1434,
+  "user": "SA",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["employees", "departments"],
+  "module": "testdb_mssql"
+}

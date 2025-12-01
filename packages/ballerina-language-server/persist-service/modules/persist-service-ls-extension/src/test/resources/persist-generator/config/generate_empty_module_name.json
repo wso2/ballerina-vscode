@@ -1,0 +1,15 @@
+{
+  "description": "Persist client generation - empty module name",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["employees"],
+  "module": "",
+  "expectError": true,
+  "expectedErrorMessage": "module"
+}
