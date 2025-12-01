@@ -36,6 +36,8 @@ import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExp
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
+import { TupleEditor } from './MultiModeExpressionEditor/TupleEditor/TupleEditor';
+import { UnionEditor } from './MultiModeExpressionEditor/UnionEditor/UnionEditor';
 
 export interface ExpressionField {
     field: FormField;
@@ -130,18 +132,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     isInExpandedMode
 }) => {
     if (inputMode === InputMode.BOOLEAN) {
-        const parsedValues = (() => {
-            try {
-                return value ? JSON.parse(value) : {};
-            } catch {
-                return {};
-            }
-        })();
         return (
-            <MappingConstructor
-                label={field.label}
-                values={parsedValues}
-                onChange={onChange}
+            <UnionEditor
+               
             />
         );
     }
