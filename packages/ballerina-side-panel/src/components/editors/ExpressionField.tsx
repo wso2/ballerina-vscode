@@ -35,6 +35,7 @@ import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigP
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
 
 export interface ExpressionField {
     field: FormField;
@@ -136,14 +137,21 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     isInExpandedMode
 }) => {
     if (inputMode === InputMode.BOOLEAN) {
+        const parsedValues = (() => {
+            try {
+                return value ? JSON.parse(value) : {};
+            } catch {
+                return {};
+            }
+        })();
         return (
-            <BooleanEditor
-                field={field}
-                value={value}
+            <MappingConstructor
+                label={field.label}
+                values={parsedValues}
                 onChange={onChange}
             />
-            );
-        }
+        );
+    }
     if (inputMode === InputMode.RECORD) {
         return (
             <RecordConfigPreviewEditor
