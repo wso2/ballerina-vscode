@@ -18,7 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { ThemeColors, Icon, Switch } from "@wso2/ui-toolkit";
+import { ThemeColors, Icon } from "@wso2/ui-toolkit";
 import { EditorView } from "@codemirror/view";
 import {
     insertMarkdownFormatting,
@@ -178,21 +178,6 @@ export const TemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Template
                     <Icon name="bi-checklist" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                 </ToolbarButton>
             </ToolbarButtonGroup>
-
-            {onTogglePreview && (
-                <Switch
-                    checked={isPreviewMode}
-                    leftLabel="Edit"
-                    rightLabel="Preview"
-                    onChange={onTogglePreview}
-                    checkedColor="var(--vscode-button-background)"
-                    checkedBorder="1px solid color-mix(in srgb, var(--vscode-dropdown-border) 75%, transparent)"
-                    enableTransition={false}
-                    sx={{
-                        borderColor: ThemeColors.OUTLINE_VARIANT
-                    }}
-                />
-            )}
         </ToolbarContainer>
     );
 });
