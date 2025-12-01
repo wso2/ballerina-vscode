@@ -15,23 +15,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType, IntermediateClause } from "@wso2/ballerina-core";
 import { View } from "../../components/DataMapper/Views/DataMapperView";
 
 export interface IDataMapperContext {
     model: ExpandedDMModel;
     views: View[];
+    hasInputsOutputsChanged: boolean;
     addView: (view: View) => void;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
-    hasInputsOutputsChanged: boolean;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
+    addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
+    genUniqueName: (name: string, viewId: string) => Promise<string>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
@@ -39,16 +41,18 @@ export class DataMapperContext implements IDataMapperContext {
     constructor(
         public model: ExpandedDMModel,
         public views: View[] = [],
+        public hasInputsOutputsChanged: boolean = false,
         public addView: (view: View) => void,
         public applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>,
         public addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>,
-        public hasInputsOutputsChanged: boolean = false,
         public convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>,
         public deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>,
         public deleteSubMapping: (index: number, viewId: string) => Promise<void>,
+        public addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,
-        public enrichChildFields: (parentField: IOType) => Promise<void>
+        public enrichChildFields: (parentField: IOType) => Promise<void>,
+        public genUniqueName: (name: string, viewId: string) => Promise<string>
     ){}
 }
