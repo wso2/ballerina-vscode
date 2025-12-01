@@ -47,3 +47,13 @@ INSERT INTO employees (first_name, last_name, email, department, salary, hire_da
 INSERT INTO projects (project_name, start_date, end_date, status, department_id) VALUES
 ('Project Alpha', '2024-01-01', '2024-12-31', 'In Progress', 1),
 ('Project Beta', '2024-06-01', '2025-06-30', 'Planning', 2);
+
+-- Create empty database for testing empty database scenario
+CREATE DATABASE IF NOT EXISTS emptydb;
+
+-- Create database with table without primary key for negative testing
+USE testdb;
+CREATE TABLE IF NOT EXISTS no_pk_table (
+    name VARCHAR(100),
+    value VARCHAR(255)
+);

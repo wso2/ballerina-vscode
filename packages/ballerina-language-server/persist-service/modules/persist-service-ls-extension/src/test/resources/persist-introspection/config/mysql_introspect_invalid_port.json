@@ -1,0 +1,13 @@
+{
+  "description": "MySQL database introspection test - invalid port",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 9999,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "expectError": true,
+  "expectedErrorMessage": "failed to connect"
+}

@@ -11,6 +11,7 @@
   "expectedTables": [
     "employees",
     "departments",
-    "projects"
+    "projects",
+    "no_pk_table"
   ]
 }

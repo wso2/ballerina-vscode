@@ -19,7 +19,10 @@
 package io.ballerina.persist.extension;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -28,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Tests for database introspection functionality of Persist Service.
@@ -61,15 +65,39 @@ public class DatabaseIntrospectionTest extends AbstractLSTest {
                 testConfig.database()
         );
 
-        JsonObject response = getResponse(request);
-
-        // Check if tables array exists in response
-        if (!response.has("tables") || response.get("tables").isJsonNull()) {
-            Assert.fail("Database introspection failed: No tables returned in response");
+        // Handle negative test cases
+        if (testConfig.expectError()) {
+            try {
+                JsonObject response = getResponseForNegativeTest(request);
+                Assert.fail("Expected error but got successful response for test: " + testConfig.description());
+            } catch (AssertionError e) {
+                // Expected error - verify error message contains expected text
+                String errorMessage = e.getMessage();
+                if (testConfig.expectedErrorMessage() != null && 
+                    !errorMessage.toLowerCase().contains(testConfig.expectedErrorMessage().toLowerCase())) {
+                    Assert.fail("Error message '" + errorMessage + "' does not contain expected text: " + 
+                               testConfig.expectedErrorMessage());
+                }
+                log.info("Negative test passed: " + testConfig.description());
+                return;
+            }
         }
+
+        JsonObject response = getResponse(request);
 
         String[] tables = gson.fromJson(response.get("tables"), String[].class);
         assertResults(tables, testConfig, configJsonPath);
+    }
+
+    private JsonObject getResponseForNegativeTest(Object request) throws IOException {
+        CompletableFuture<?> result = serviceEndpoint.request(getServiceName() + "/" + getApiName(), request);
+        String response = TestUtil.getResponseString(result);
+        JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+        JsonPrimitive errorMsg = jsonObject.getAsJsonPrimitive("errorMsg");
+        if (errorMsg != null) {
+            throw new AssertionError(errorMsg.getAsString());
+        }
+        return jsonObject;
     }
 
     private void assertResults(String[] actualTables, TestConfig testConfig, Path configJsonPath) {
@@ -138,24 +166,34 @@ public class DatabaseIntrospectionTest extends AbstractLSTest {
     /**
      * Represents the test configuration for database introspection test.
      *
-     * @param description       The description of the test.
-     * @param testProjectFolder The test project folder path.
-     * @param name              Name of the database connector.
-     * @param dbSystem          Database system type (mysql, postgresql, mssql).
-     * @param host              Database host address.
-     * @param port              Database port number.
-     * @param user              Database username.
-     * @param password          Database user password.
-     * @param database          Name of the database to connect.
-     * @param expectedTables    Expected table names in the database.
+     * @param description          The description of the test.
+     * @param testProjectFolder    The test project folder path.
+     * @param name                 Name of the database connector.
+     * @param dbSystem             Database system type (mysql, postgresql, mssql).
+     * @param host                 Database host address.
+     * @param port                 Database port number.
+     * @param user                 Database username.
+     * @param password             Database user password.
+     * @param database             Name of the database to connect.
+     * @param expectedTables       Expected table names in the database.
+     * @param expectError          Flag to indicate if an error is expected.
+     * @param expectedErrorMessage Expected error message content for negative tests.
      */
     private record TestConfig(String description, String testProjectFolder, String name,
                               String dbSystem, String host, Integer port,
                               String user, String password, String database,
-                              String[] expectedTables) {
+                              String[] expectedTables, Boolean expectError, String expectedErrorMessage) {
 
         public String description() {
             return description == null ? "" : description;
+        }
+
+        public Boolean expectError() {
+            return expectError != null && expectError;
+        }
+
+        public String expectedErrorMessage() {
+            return expectedErrorMessage == null ? "" : expectedErrorMessage;
         }
     }
 }
