@@ -16,6 +16,7 @@
  * under the License.
  */
 import { css } from "@emotion/css";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 
 const removePadding = {
@@ -296,21 +297,43 @@ export const useHelperPaneStyles = () => ({
     listOptionalWrapper: css({
         display: 'flex',
         alignItems: 'center',
-        height: '32px',
-        marginBottom: '12px'
+        marginTop: '8px',
+        marginBottom: '8px'
+    }),
+    listOptionalHeader: css({
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: 'auto',
+        gap: '6px',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        border: '1px solid transparent',
+        '&:hover': {
+            backgroundColor: 'var(--vscode-list-hoverBackground)',
+        },
+        '&:hover > div:last-of-type': {
+            opacity: 1,
+            color: ThemeColors.PRIMARY,
+        }
+    }),
+    listOptionalTitle: css({
+        fontSize: '13px',
+        opacity: 0.7,
+        color: ThemeColors.ON_SURFACE_VARIANT,
+        transition: 'all 0.2s ease',
+        padding: '2px 4px',
+        borderRadius: '3px',
+        '&:hover': {
+            backgroundColor: 'var(--vscode-list-hoverBackground)',
+        }
     }),
     listOptionalBtn: css({
         textTransform: 'none',
         minWidth: '32px',
         marginLeft: '8px'
-    }),
-    listOptionalHeader: css({
-        fontSize: '13px',
-        color: "gray",
-        fontWeight: 500,
-        letterSpacing: '0',
-        lineHeight: '14px',
-        paddingLeft: '0px',
     }),
 });
 
