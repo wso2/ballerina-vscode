@@ -35,6 +35,7 @@ import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigP
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 
 export interface ExpressionField {
     field: FormField;
@@ -137,9 +138,9 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 }) => {
     if (inputMode === InputMode.BOOLEAN) {
         return (
-            <BooleanEditor
-                field={field}
-                value={value}
+            <DynamicArrayBuilder
+                label={field.label}
+                values={value ? JSON.parse(value) : []}
                 onChange={onChange}
             />
             );
