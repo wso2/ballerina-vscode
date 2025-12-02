@@ -21,9 +21,9 @@
         "storybook:setup": "node tools/setup-storybook.js"
     },
     "dependencies": {
+        "@date-io/date-fns": "^3.2.1",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
-        "@date-io/date-fns": "^3.2.1",
         "classnames": "^2.5.1",
         "clipboard-copy": "^4.0.1",
         "clsx": "^2.1.1",
@@ -38,14 +38,14 @@
         "lodash.camelcase": "^4.3.0",
         "lodash.clonedeep": "^4.5.0",
         "lodash.debounce": "^4.0.8",
+        "monaco-editor": "0.52.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "react-intl": "^7.1.11",
         "react-lottie": "^1.2.10",
         "react-zoom-pan-pinch": "^3.7.0",
         "uuid": "^11.1.0",
-        "vscode-languageserver-protocol": "^3.17.5",
-        "monaco-editor": "0.52.2"
+        "vscode-languageserver-protocol": "^3.17.5"
     },
     "devDependencies": {
         "@babel/core": "^7.27.1",
@@ -73,6 +73,7 @@
         "copy-webpack-plugin": "^13.0.0",
         "copyfiles": "^2.4.1",
         "css-loader": "^7.1.2",
+        "express": "^4.22.1",
         "file-loader": "^6.2.0",
         "fork-ts-checker-webpack-plugin": "^9.1.0",
         "glob": "^11.1.0",
@@ -101,8 +102,7 @@
         "typescript": "5.8.3",
         "webpack": "^5.99.8",
         "webpack-cli": "^6.0.1",
-        "webpack-dev-server": "^5.2.1",
-        "express": "^4.21.2"
+        "webpack-dev-server": "^5.2.1"
     },
     "repository": {
         "type": "git",
