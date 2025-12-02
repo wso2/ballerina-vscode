@@ -58,6 +58,7 @@ import {
     CreateDevantConnectionResp,
     ImportDevantConnectionReq,
     ImportDevantConnectionResp,
+    SetConnectedToDevantReq,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -188,7 +189,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 state.state?.selectedContext?.project?.id !== prevState.state?.selectedContext?.project?.id
             ) {
                 // if project selection has changed
-                platformExtStore.getState().setState({ connections: [] });
+                platformExtStore.getState().setConnectionState({ list: [] });
                 refetchConnections = true;
             }
 
@@ -303,8 +304,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    setConnectedToDevant(connectedToDevant: boolean): void {
-        platformExtStore.getState().setState({ connectedToDevant });
+    setConnectedToDevant(params: SetConnectedToDevantReq): void {
+        if (params.mode === "runInDevant") {
+            platformExtStore.getState().setConnectionState({ runInDevant: params.value });
+        } else if (params.mode === "debugInDevant") {
+            platformExtStore.getState().setConnectionState({ debugInDevant: params.value });
+        }
     }
 
     async deployIntegrationInDevant(): Promise<void> {
@@ -479,8 +484,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state?.isLoggedIn &&
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
-                platformExtStore.getState().state?.connections?.filter((item) => item.isUsed)?.length > 0 &&
-                platformExtStore.getState().state?.connectedToDevant
+                platformExtStore.getState().state?.devantConns?.list?.filter((item) => item.isUsed)?.length > 0 &&
+                ((debugConfig?.noDebug && platformExtStore.getState().state?.devantConns?.runInDevant) ||
+                    (!debugConfig?.noDebug && platformExtStore.getState().state?.devantConns?.debugInDevant))
             ) {
                 // TODO: need to check whether at least one devant connection being used
                 const resp = await window.withProgress(
@@ -576,7 +582,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     const selected = platformExtStore.getState().state?.selectedContext;
                     const matchingConnListItem = platformExtStore
                         .getState()
-                        .state?.connections.find((connItem) => connItem.name === matchingTomlEntry?.remoteId);
+                        .state?.devantConns?.list.find((connItem) => connItem.name === matchingTomlEntry?.remoteId);
                     if (matchingConnListItem) {
                         await this.deleteLocalConnectionsConfig({
                             componentDir: projectPath,
@@ -641,10 +647,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             });
 
             let securityType: "" | "oauth" | "apikey";
-            if(marketplaceItem?.isThirdParty){
-                securityType = ""
-            }else{
-                securityType = params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")? "oauth": "apikey"
+            if (marketplaceItem?.isThirdParty) {
+                securityType = "";
+            } else {
+                securityType = params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")
+                    ? "oauth"
+                    : "apikey";
             }
 
             const resp = await initializeDevantConnection({
@@ -676,7 +684,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel;
 
             let createdConnection: ConnectionDetailed;
-            let securityType: "" | "oauth" | "apikey"
+            let securityType: "" | "oauth" | "apikey";
             if (params?.marketplaceItem?.isThirdParty) {
                 const matchingSchema = params.marketplaceItem.connectionSchemas?.find(
                     (item) => item.id === params.params?.schemaId
@@ -704,7 +712,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     endpointName: Object.keys(params?.marketplaceItem?.endpointRefs)[0],
                     sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
                 });
-                securityType = ""
+                securityType = "";
             } else {
                 createdConnection = await platformExt?.createComponentConnection({
                     componentId: isProjectLevel
@@ -723,7 +731,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     componentPath: projectPath,
                     generateCreds: true,
                 });
-                securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey"
+                securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey";
             }
 
             const resp = await initializeDevantConnection({
@@ -749,14 +757,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     async refreshConnectionList(): Promise<void> {
         try {
-            platformExtStore.getState().setState({ loadingConnections: true });
+            platformExtStore.getState().setConnectionState({ loading: true });
             const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
             const connections = await this.getAllConnections();
             const connectionsUsed = connections.map((connItem) => ({
                 ...connItem,
                 isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteId === connItem.name),
             }));
-            platformExtStore.getState().setState({ connections: connectionsUsed, loadingConnections: false });
+            platformExtStore.getState().setConnectionState({ list: connectionsUsed, loading: false });
 
             // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant
             /*
@@ -809,7 +817,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
             */
         } catch (err) {
-            platformExtStore.getState().setState({ loadingConnections: false });
+            platformExtStore.getState().setConnectionState({ loading: false });
             log(`Failed to refresh connection list: ${err}`);
         }
     }

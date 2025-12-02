@@ -17,7 +17,7 @@
  */
 
 import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp} from "./interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, SetConnectedToDevantReq} from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
 
@@ -35,7 +35,7 @@ export interface PlatformExtAPI {
     deleteLocalConnectionsConfig: (params: DeleteLocalConnectionsConfigReq) => void;
     getDevantConsoleUrl: () => Promise<string>;
     refreshConnectionList: () => Promise<void>;
-    setConnectedToDevant: (connected: boolean) => void;
+    setConnectedToDevant: (params: SetConnectedToDevantReq) => void;
     setSelectedComponent: (componentId: string) => void;
     deployIntegrationInDevant: () => void;
 }

@@ -23,7 +23,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 const PopupContainer = styled.div`
-    min-width: 200px;
+    min-width: 150px;
     font-family: "GilmerRegular";
     font-size: 12px;
     text-overflow: ellipsis;
@@ -52,13 +52,6 @@ const PanelItemContent = styled.div`
     flex: 1;
 `;
 
-const PanelItemTitle = styled.div`
-    font-size: 10px;
-    opacity: 60%;
-    line-height: 10px;
-    margin-bottom: 2px;
-`;
-
 const PanelItemVal = styled.div`
     font-size: 12px;
     line-height: 12px;
@@ -73,6 +66,7 @@ interface Props {
     onClick: () => void;
     text: string;
     icon: string;
+    devantMode: "runInDevant" | "debugInDevant"
 }
 
 export function RunDebugButton(props: Props) {
@@ -81,11 +75,11 @@ export function RunDebugButton(props: Props) {
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
     const hasDevantConnections =
-        platformExtState?.isLoggedIn && platformExtState?.connections?.some((item) => item.isUsed);
+        platformExtState?.isLoggedIn && platformExtState?.devantConns?.list?.some((item) => item.isUsed);
 
     const { mutate: onOptionSelect } = useMutation({
-        mutationFn: async (connectedToDevant: boolean) => {
-            await platformRpcClient.setConnectedToDevant(connectedToDevant);
+        mutationFn: async (value: boolean) => {
+            await platformRpcClient.setConnectedToDevant({mode: props.devantMode, value});
             onClick();
         },
         onSuccess: () => setAnchorEl(null),
@@ -103,7 +97,7 @@ export function RunDebugButton(props: Props) {
         <>
             <Button appearance="icon" onClick={onClick} buttonSx={{ padding: "1px 8px" }}>
                 <ButtonContent>
-                    <Codicon name={icon} sx={{ marginRight: 5 }} /> {text}{" "}
+                    <Codicon name={icon} sx={{ marginRight: 5 }} /> {platformExtState?.devantConns?.[props.devantMode] ? `${text} in Devant` : text}
                     <Button
                         appearance="icon"
                         onClick={(e) => {
@@ -133,19 +127,17 @@ export function RunDebugButton(props: Props) {
             >
                 <PopupContainer>
                     <>
-                        <PanelItem active={platformExtState?.connectedToDevant} onClick={() => onOptionSelect(true)}>
+                        <PanelItem active={platformExtState?.devantConns?.[props.devantMode]} onClick={() => onOptionSelect(true)}>
                             <Codicon name="vm-active" />
                             <PanelItemContent>
-                                <PanelItemTitle>{text}</PanelItemTitle>
-                                <PanelItemVal>Connected to Devant dependencies</PanelItemVal>
+                                <PanelItemVal>{text} in Devant</PanelItemVal>
                             </PanelItemContent>
                         </PanelItem>
                         <Divider sx={{ margin: 0 }} />
-                        <PanelItem active={!platformExtState?.connectedToDevant} onClick={() => onOptionSelect(false)}>
+                        <PanelItem active={!platformExtState?.devantConns?.[props.devantMode]} onClick={() => onOptionSelect(false)}>
                             <Codicon name="vm" />
                             <PanelItemContent>
-                                <PanelItemTitle>{text}</PanelItemTitle>
-                                <PanelItemVal>Connected to own dependencies</PanelItemVal>
+                                <PanelItemVal>{text}</PanelItemVal>
                             </PanelItemContent>
                         </PanelItem>
                     </>

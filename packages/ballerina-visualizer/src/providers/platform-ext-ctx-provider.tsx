@@ -25,8 +25,7 @@ import {
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
-import { DevantScopes } from "@wso2/wso2-platform-core";
-import React, { useContext, FC, ReactNode, useEffect, useMemo } from "react";
+import React, { useContext, FC, ReactNode, useEffect } from "react";
 
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
@@ -116,7 +115,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     selectedContext: platformExtState?.isLoggedIn ? platformExtState.selectedContext : undefined,
                     selectedComponent: platformExtState?.isLoggedIn ? platformExtState.selectedComponent : undefined,
                     components: platformExtState?.isLoggedIn ? platformExtState.components : [],
-                    connections: platformExtState?.isLoggedIn ? platformExtState.connections : [],
+                    devantConns: platformExtState?.isLoggedIn ? platformExtState.devantConns : {},
                 },
                 deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
                 devantConsoleUrl,
