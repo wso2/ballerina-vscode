@@ -47,7 +47,8 @@
         "typeName": "MyType2[]",
         "kind": "array",
         "focusExpression": "arr1.m2",
-        "ref": "802102543"
+        "ref": "802102543",
+        "isIterableVariable": true
       }
     ],
     "output": {

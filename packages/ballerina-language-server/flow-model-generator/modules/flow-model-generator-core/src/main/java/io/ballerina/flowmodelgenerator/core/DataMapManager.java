@@ -283,6 +283,7 @@ public class DataMapManager {
                             Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, typeDefSymbols)),
                             new HashMap<>(), references);
                     mappingPort.setFocusExpression(expression.toString().trim());
+                    mappingPort.setIsIterableVariable(true);
                     NonTerminalNode parent = matchingNode.queryExpr().parent();
                     SyntaxKind parentKind = parent.kind();
                     while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
@@ -502,6 +503,7 @@ public class DataMapManager {
                     Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.setFocusExpression(clauseExpr);
+            mappingPort.setIsIterableVariable(true);
             inputPorts.add(mappingPort);
         }
     }
@@ -2902,6 +2904,7 @@ public class DataMapManager {
         String ref;
         TypeInfo typeInfo;
         Boolean isSeq;
+        Boolean isIterableVariable;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2992,6 +2995,10 @@ public class DataMapManager {
 
         Boolean getIsSeq() {
             return this.isSeq;
+        }
+
+        void setIsIterableVariable(Boolean isIterableVariable) {
+            this.isIterableVariable = isIterableVariable;
         }
 
         public String getFocusExpression() {

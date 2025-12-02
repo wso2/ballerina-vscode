@@ -50,7 +50,8 @@
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
         "focusExpression": "l2Item.l3Arr",
-        "ref": "83688130"
+        "ref": "83688130",
+        "isIterableVariable": true
       }
     ],
     "output": {

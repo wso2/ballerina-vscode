@@ -46,6 +46,7 @@
         "typeName": "Sale",
         "kind": "record",
         "focusExpression": "sales",
+        "isIterableVariable": true,
         "ref": "1120091376",
         "isSeq": true
       },
