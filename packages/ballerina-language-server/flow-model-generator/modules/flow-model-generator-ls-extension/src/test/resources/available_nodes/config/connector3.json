@@ -21,7 +21,7 @@
               "metadata": {
                 "label": "send",
                 "description": "Sends the request message to the server.\n```ballerina\ngrpc:Error? err = sClient->send(message);\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -30,7 +30,7 @@
                 "packageName": "grpc",
                 "object": "StreamingClient",
                 "symbol": "send",
-                "version": "1.14.0",
+                "version": "1.14.2",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -40,7 +40,7 @@
               "metadata": {
                 "label": "complete",
                 "description": "Informs the server when the caller has sent all the messages.\n```ballerina\ngrpc:Error? result = sClient->complete();\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -49,7 +49,7 @@
                 "packageName": "grpc",
                 "object": "StreamingClient",
                 "symbol": "complete",
-                "version": "1.14.0",
+                "version": "1.14.2",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -59,7 +59,7 @@
               "metadata": {
                 "label": "sendError",
                 "description": "Sends an error message to the server.\n```ballerina\ngrpc:Error? result = sClient->sendError(error grpc:AbortedError(\"Operation aborted\"));\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -68,7 +68,7 @@
                 "packageName": "grpc",
                 "object": "StreamingClient",
                 "symbol": "sendError",
-                "version": "1.14.0",
+                "version": "1.14.2",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
@@ -78,7 +78,7 @@
               "metadata": {
                 "label": "receive",
                 "description": "Receives server responses in client streaming and bidirectional streaming.\n```ballerina\n[anydata, map<string|string[]>]|grpc:Error? result = streamingClient->receive();\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -87,7 +87,7 @@
                 "packageName": "grpc",
                 "object": "StreamingClient",
                 "symbol": "receive",
-                "version": "1.14.0",
+                "version": "1.14.2",
                 "parentSymbol": "moduleClient",
                 "resourcePath": ""
               },
