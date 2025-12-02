@@ -3001,6 +3001,10 @@ public class DataMapManager {
             this.isIterableVariable = isIterableVariable;
         }
 
+        Boolean getIsIterableVariable() {
+            return this.isIterableVariable;
+        }
+
         public String getFocusExpression() {
             return focusExpression;
         }
