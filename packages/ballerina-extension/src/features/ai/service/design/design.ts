@@ -54,7 +54,7 @@ sdk.start();
 export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
-    const project: ProjectSource = (await getProjectSource(params.operationType))[0]; //TOOD: Fix multi project
+    const projects: ProjectSource[] = await getProjectSource(params.operationType); //TOOD: Fix multi project
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
     // Create temp project using shared utilities
@@ -65,7 +65,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, tempProjectPath, project.projectName, isPlanModeEnabled, params.codeContext);
+    const userMessageContent = getUserPrompt(params.usecase, tempProjectPath, projects, isPlanModeEnabled, params.codeContext);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
@@ -88,7 +88,7 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, project.projectName, modifiedFiles),
+        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
