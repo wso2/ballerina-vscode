@@ -20,7 +20,7 @@ import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplace
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, SetConnectedToDevantReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
     private _messenger: Messenger;
@@ -77,8 +77,8 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(refreshConnectionList, HOST_EXTENSION, undefined);
     }
 
-    setConnectedToDevant(connected: boolean): Promise<void> {
-        return this._messenger.sendRequest(setConnectedToDevant, HOST_EXTENSION, connected);
+    setConnectedToDevant(params: SetConnectedToDevantReq): Promise<void> {
+        return this._messenger.sendRequest(setConnectedToDevant, HOST_EXTENSION, params);
     }
 
     setSelectedComponent(componentId: string): Promise<void> {

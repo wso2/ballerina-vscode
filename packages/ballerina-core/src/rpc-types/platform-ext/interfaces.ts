@@ -44,6 +44,13 @@ export interface BiDevantConnectionListItem extends ConnectionListItem {
     isUsed?: boolean;
 }
 
+export interface PlatformExtConnectionState {
+    loading?: boolean;
+    list?: BiDevantConnectionListItem[];
+    runInDevant?: boolean;
+    debugInDevant?: boolean;
+}
+
 export interface PlatformExtState {
 	isLoggedIn: boolean;
     hasPossibleComponent?: boolean;
@@ -51,7 +58,10 @@ export interface PlatformExtState {
 	components: ComponentKind[];
     selectedComponent?: ComponentKind;
 	selectedContext?: ContextItemEnriched;
-    loadingConnections?: boolean;
-    connectedToDevant?: boolean;
-    connections?: BiDevantConnectionListItem[]
+    devantConns?: PlatformExtConnectionState;
+}
+
+export interface SetConnectedToDevantReq {
+    mode: "runInDevant" | "debugInDevant";
+    value: boolean;
 }

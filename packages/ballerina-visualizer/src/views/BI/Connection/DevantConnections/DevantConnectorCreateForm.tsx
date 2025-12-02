@@ -263,7 +263,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
                             validate: (value) => {
                                 if (!value || value.trim().length === 0) {
                                     return "Required";
-                                } else if (platformExtState?.connections?.some((item) => item.name === value)) {
+                                } else if (platformExtState?.devantConns?.list?.some((item) => item.name === value)) {
                                     return "Name already exists";
                                 } else if (
                                     !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(

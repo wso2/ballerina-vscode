@@ -213,8 +213,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml?.values, platformExtState?.connections, categories, importingConn)
-    },[projectToml?.values, platformExtState?.selectedContext, platformExtState?.connections, categories, importingConn])
+         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml?.values, platformExtState?.devantConns?.list, categories, importingConn)
+    },[projectToml?.values, platformExtState?.selectedContext, platformExtState?.devantConns?.list, categories, importingConn])
 
     const { mutate: importConnection } = useMutation({
         mutationFn: async (data: ConnectionListItem) => {
@@ -2407,7 +2407,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onImportDevantConn={importConnection}
                 onLinkDevantProject={!platformExtState?.selectedContext?.project ? onLinkDevantProject : undefined}
                 onRefreshDevantConnections={
-                    platformExtState?.selectedContext?.project && !platformExtState?.loadingConnections
+                    platformExtState?.selectedContext?.project && !platformExtState?.devantConns?.loading
                         ? () => platformRpcClient?.refreshConnectionList()
                         : undefined
                 }

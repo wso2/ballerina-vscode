@@ -752,11 +752,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                 icon="play"
                 onClick={handleLocalRun}
                 text="Run"
+                devantMode="runInDevant"
             />
             <RunDebugButton 
                 icon="debug"
                 onClick={handleLocalDebug}
                 text="Debug"
+                devantMode="debugInDevant"
             />
             {platformExtState.isLoggedIn && (
                 <>
