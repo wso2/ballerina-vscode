@@ -751,8 +751,8 @@ function processTypeFields(
             displayName: field.displayName,
             typeName: field.typeName,
             kind: field.kind,
-            // ...(isFocused && { isFocused }),
-            // ...(isSeq && { isSeq }),
+            ...(isFocused && { isFocused }),
+            ...(isSeq && { isSeq }),
             ...(field.optional !== undefined && { optional: field.optional }),
             ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
