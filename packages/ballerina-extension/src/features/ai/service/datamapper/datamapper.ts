@@ -43,6 +43,12 @@ import { URI } from "vscode-uri";
 import fs from 'fs';
 import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
 
+const NO_MAPPINGS_GENERATED_WARNING = `**No Relevant Mappings Generated**\n\n` +
+    `The AI was unable to identify compatible field mappings between the input and output structures.\n\n` +
+    `**Suggestions:**\n` +
+    `- Check if input and output record structures are correct\n` +
+    `- Try providing mapping hints or examples\n`;
+
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
 // =============================================================================
@@ -339,6 +345,13 @@ export async function generateMappingCodeCore(mappingRequest: ProcessMappingPara
         metadata: tempFileMetadata,
         attachments: mappingRequest.attachments
     }, context, eventHandler);
+
+    // Check if no mappings were generated
+    if (!allMappingsRequest.mappings || allMappingsRequest.mappings.length === 0) {
+        eventHandler({ type: "content_block", content: NO_MAPPINGS_GENERATED_WARNING });
+        eventHandler({ type: "stop", command: Command.DataMap });
+        return;
+    }
 
     const sourceCodeResponse = await getAllDataMapperSource(allMappingsRequest);
 
@@ -693,6 +706,13 @@ export async function generateInlineMappingCodeCore(inlineMappingRequest: Metada
 
     const inlineMappingsResult: InlineMappingsSourceResult =
         await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler);
+
+    // Check if no mappings were generated
+    if (!inlineMappingsResult.allMappingsRequest.mappings || inlineMappingsResult.allMappingsRequest.mappings.length === 0) {
+        eventHandler({ type: "content_block", content: NO_MAPPINGS_GENERATED_WARNING });
+        eventHandler({ type: "stop", command: Command.DataMap });
+        return;
+    }
 
     await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
     await new Promise((resolve) => setTimeout(resolve, 100));

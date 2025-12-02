@@ -266,7 +266,8 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
-        return getProjectTomlValues(StateMachine.context().projectPath);
+        const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
+        return tomlValues ?? {};  
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
