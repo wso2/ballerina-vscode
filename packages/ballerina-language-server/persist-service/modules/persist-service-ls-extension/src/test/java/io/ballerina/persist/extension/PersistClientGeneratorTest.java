@@ -118,12 +118,12 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
     }
 
     private void assertResults(Map<String, List<TextEdit>> actualTextEdits, TestConfig testConfig,
-                               Path configJsonPath) {
+                               Path configJsonPath) throws IOException {
         boolean assertFailure = false;
 
         if (actualTextEdits == null || actualTextEdits.isEmpty()) {
             log.info("No text edits generated.");
-            assertFailure = true;
+            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
 
         if (testConfig.output() != null && !testConfig.output().isEmpty()) {
@@ -151,6 +151,23 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
             }
 
             if (assertFailure) {
+                TestConfig updatedConfig = new TestConfig(
+                        testConfig.description(),
+                        testConfig.testProjectFolder(),
+                        testConfig.name(),
+                        testConfig.dbSystem(),
+                        testConfig.host(),
+                        testConfig.port(),
+                        testConfig.user(),
+                        testConfig.password(),
+                        testConfig.database(),
+                        testConfig.selectedTables(),
+                        testConfig.module(),
+                        newMap,
+                        testConfig.expectError(),
+                        testConfig.expectedErrorMessage()
+                );
+                updateConfig(configJsonPath, updatedConfig);
                 Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
             }
         } else {

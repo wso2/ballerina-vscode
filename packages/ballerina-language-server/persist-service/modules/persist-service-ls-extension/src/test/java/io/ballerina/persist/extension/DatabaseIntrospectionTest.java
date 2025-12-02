@@ -136,9 +136,6 @@ public class DatabaseIntrospectionTest extends AbstractLSTest {
         }
 
         if (assertFailure) {
-            // Uncomment to update config file with actual results
-            // TestConfig updatedConfig = new TestConfig(...);
-            // updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

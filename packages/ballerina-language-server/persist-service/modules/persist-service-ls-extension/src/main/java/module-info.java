@@ -14,4 +14,3 @@ module io.ballerina.persist.extension {
 
     exports io.ballerina.persist.extension;
 }
-

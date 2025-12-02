@@ -50,4 +50,3 @@ public class DatabaseIntrospectionResponse {
         this.errorMsg = e.getLocalizedMessage();
     }
 }
-

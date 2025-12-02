@@ -147,4 +147,3 @@ public class PersistClientGeneratorRequest {
         this.module = module;
     }
 }
-

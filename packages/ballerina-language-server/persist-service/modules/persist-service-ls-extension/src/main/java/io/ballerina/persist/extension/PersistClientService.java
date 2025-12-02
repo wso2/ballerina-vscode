@@ -120,4 +120,3 @@ public class PersistClientService implements ExtendedLanguageServerService {
         });
     }
 }
-

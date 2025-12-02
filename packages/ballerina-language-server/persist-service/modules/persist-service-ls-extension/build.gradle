@@ -152,4 +152,3 @@ compileJava {
 artifacts {
     archives shadowJar
 }
-

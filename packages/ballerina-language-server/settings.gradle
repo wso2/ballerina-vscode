@@ -41,7 +41,6 @@ include(':xsd-service:xsd-service-ls-extension')
 include(':wsdl-service:wsdl-service-ls-extension')
 include(':edi-service:edi-service-ls-extension')
 include(':persist-service:persist-service-ls-extension')
-
 include(":langserver-commons")
 include(":langserver-core")
 include(":langserver-stdlib")
@@ -69,7 +68,6 @@ project(':xsd-service:xsd-service-ls-extension').projectDir = file('xsd-service/
 project(':wsdl-service:wsdl-service-ls-extension').projectDir = file('wsdl-service/modules/wsdl-service-ls-extension')
 project(':edi-service:edi-service-ls-extension').projectDir = file('edi-service/modules/edi-service-ls-extension')
 project(':persist-service:persist-service-ls-extension').projectDir = file('persist-service/modules/persist-service-ls-extension')
-
 project(":langserver-commons").projectDir = file("langserver-commons")
 project(":langserver-core").projectDir = file("langserver-core")
 project(":langserver-stdlib").projectDir = file("langserver-stdlib")
