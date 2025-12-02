@@ -150,7 +150,7 @@ export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], 
     }
 
     return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field' || completion.kind === 'namespace' || completion.kind === 'enum-member') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
 };
