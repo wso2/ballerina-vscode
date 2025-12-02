@@ -37,6 +37,19 @@
       },
       "newText" : "import ballerina/persist as _;\nimport ballerina/time;\nimport ballerinax/persist.sql;\n\n@sql:Name {value: \"departments\"}\npublic type Department record {|\n    @sql:Name {value: \"dept_id\"}\n    @sql:Generated\n    readonly int deptId;\n    @sql:Name {value: \"dept_name\"}\n    @sql:Varchar {length: 100}\n    @sql:UniqueIndex {name: \"departments_dept_name_key\"}\n    string deptName;\n    @sql:Varchar {length: 100}\n    string? location;\n    @sql:Decimal {precision: [12, 2]}\n    decimal? budget;\n|};\n\n@sql:Name {value: \"employees\"}\npublic type Employee record {|\n    @sql:Generated\n    readonly int id;\n    @sql:Name {value: \"first_name\"}\n    @sql:Varchar {length: 100}\n    string firstName;\n    @sql:Name {value: \"last_name\"}\n    @sql:Varchar {length: 100}\n    string lastName;\n    @sql:Varchar {length: 255}\n    @sql:UniqueIndex {name: \"employees_email_key\"}\n    string email;\n    @sql:Varchar {length: 100}\n    string? department;\n    @sql:Decimal {precision: [10, 2]}\n    decimal? salary;\n    @sql:Name {value: \"hire_date\"}\n    time:Date? hireDate;\n    @sql:Name {value: \"created_at\"}\n    time:Utc? createdAt;\n|};\n"
     } ],
+    "sample-project/connections.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "import sample_project.employees;\n\nfinal employees:Client testdb = check new ();\n\n"
+    } ],
     "sample-project/generated/employees/persist_db_config.bal" : [ {
       "range" : {
         "start" : {
