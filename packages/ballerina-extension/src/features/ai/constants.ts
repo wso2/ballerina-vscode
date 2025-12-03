@@ -46,6 +46,11 @@ export enum NullablePrimitiveType {
   BOOLEAN = "boolean?"
 }
 
+// Error type
+export enum ErrorType {
+  ERROR = "error"
+}
+
 // Array types for primitive data types
 export enum PrimitiveArrayType {
   // Basic array types
