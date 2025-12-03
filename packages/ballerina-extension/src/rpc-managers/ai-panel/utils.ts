@@ -22,11 +22,13 @@ import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
-import { DataMapperRequest, DataMapperResponse, FileData, processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
+import { processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
+import { DataMapperRequest, DataMapperResponse, FileData } from "../../../src/features/ai/service/datamapper/types";
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { MappingFileRecord} from "./types";
 import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { CopilotEventHandler } from "../../../src/features/ai/service/event";
 import { VisualizerRpcManager } from "../visualizer/rpc-manager";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
@@ -152,18 +154,21 @@ async function convertAttachmentToFileData(attachment: Attachment): Promise<File
 
 // Datamapper related functions
 
-// Processes data mapper model and optional mapping instruction file to generate mapping expressions
+// Processes data mapper model and optional mapping instruction files to generate mapping expressions
 export async function generateMappingExpressionsFromModel(
     dataMapperModel: DMModel,
-    mappingInstructionFile?: Attachment
+    mappingInstructionFiles: Attachment[] = [],
+    eventHandler: CopilotEventHandler
 ): Promise<Mapping[]> {
     let dataMapperResponse: DataMapperModelResponse = {
         mappingsModel: dataMapperModel as DMModel
     };
-    if (mappingInstructionFile) {
-        const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFile, dataMapperResponse);
+    if (mappingInstructionFiles.length > 0) {
+        eventHandler({ type: "content_block", content: "\n<progress>Processing mapping hints from attachments...</progress>" });
+        const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFiles, dataMapperResponse);
         dataMapperResponse = enhancedResponse as DataMapperModelResponse;
     }
+    eventHandler({ type: "content_block", content: "\n<progress>Generating data mappings...</progress>" });
 
     const generatedMappings = await generateAutoMappings(dataMapperResponse);
     return generatedMappings.map(mapping => ({
@@ -174,12 +179,16 @@ export async function generateMappingExpressionsFromModel(
     }));
 }
 
-// Processes a mapping instruction file and merges it with the existing data mapper model
-export async function enrichModelWithMappingInstructions(mappingInstructionFile: Attachment, currentDataMapperResponse: DataMapperModelResponse): Promise<DataMapperModelResponse> {
-    if (!mappingInstructionFile) { return currentDataMapperResponse; }
-    const fileData = await convertAttachmentToFileData(mappingInstructionFile);
+// Processes mapping instruction files and merges them with the existing data mapper model
+export async function enrichModelWithMappingInstructions(mappingInstructionFiles: Attachment[], currentDataMapperResponse: DataMapperModelResponse): Promise<DataMapperModelResponse> {
+    if (!mappingInstructionFiles || mappingInstructionFiles.length === 0) { return currentDataMapperResponse; }
+
+    const fileDataArray = await Promise.all(
+        mappingInstructionFiles.map(file => convertAttachmentToFileData(file))
+    );
+
     const requestParams: DataMapperRequest = {
-        file: fileData,
+        files: fileDataArray,
         processType: "mapping_instruction"
     };
     const response: DataMapperResponse = await processDataMapperInput(requestParams);
@@ -208,12 +217,18 @@ export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeReque
 // Type Creator related functions
 
 // Extracts type definitions from a file attachment and generates Ballerina record definitions
-export async function extractRecordTypeDefinitionsFromFile(sourceFile: Attachment): Promise<string> {
-    if (!sourceFile) { throw new Error("File is undefined"); }
+export async function extractRecordTypeDefinitionsFromFile(sourceFiles: Attachment[]): Promise<string> {
+    if (sourceFiles.length === 0) {
+        throw new Error("No files provided");
+    }
 
-    const fileData = await convertAttachmentToFileData(sourceFile);
+    // Process all files together to understand correlations
+    const fileDataArray = await Promise.all(
+        sourceFiles.map(attachment => convertAttachmentToFileData(attachment))
+    );
+
     const requestParams: DataMapperRequest = {
-        file: fileData,
+        files: fileDataArray,
         processType: "records"
     };
     const response: DataMapperResponse = await processDataMapperInput(requestParams);
@@ -232,7 +247,7 @@ export async function requirementsSpecification(filepath: string): Promise<strin
         content: convertFileToBase64(filepath), status: AttachmentStatus.UnknownError
     });
     const params: DataMapperRequest = {
-        file: fileData,
+        files: [fileData],
         processType: "requirements",
         isRequirementAnalysis: true
     };

@@ -26,7 +26,7 @@ import { useDMSearchStore } from "../../../store/store";
 import { InputNode } from "../Node";
 import { getErrorKind } from "../utils/common-utils";
 import { OverlayLayerModel } from "../OverlayLayer/OverlayLayerModel";
-import { IOType } from "@wso2/ballerina-core";
+import { IntermediateClauseType, IOType } from "@wso2/ballerina-core";
 import { useEffect } from "react";
 
 export const useDiagramModel = (
@@ -47,6 +47,10 @@ export const useDiagramModel = (
     const { model } = context ?? {};
     const mappings = model?.mappings.map(mapping => mapping.output + ':' + mapping.expression).toString();
     const subMappings = model?.subMappings?.map(mapping => (mapping as IOType).id).toString();
+    const queryIOs = model?.query ? model.query.inputs.toString() + ':' + model.query.output : '';
+    const queryClauses = model?.query?.intermediateClauses
+        ?.filter(clause => clause.type === IntermediateClauseType.LET || clause.type === IntermediateClauseType.GROUP_BY)
+        .map(clause => clause.properties.name + ':' + clause.properties.expression).toString();
     const collapsedFields = useDMCollapsedFieldsStore(state => state.fields); // Subscribe to collapsedFields
     const expandedFields = useDMExpandedFieldsStore(state => state.fields); // Subscribe to expandedFields
     const { inputSearch, outputSearch } = useDMSearchStore();
@@ -99,7 +103,9 @@ export const useDiagramModel = (
             inputSearch,
             outputSearch,
             mappings,
-            subMappings
+            subMappings,
+            queryIOs,
+            queryClauses
         ],
         queryFn: genModel,
         networkMode: 'always',

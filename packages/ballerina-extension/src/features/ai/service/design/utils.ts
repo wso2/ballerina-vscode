@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFiles, FileChanges, CodeContext } from "@wso2/ballerina-core";
+import { SourceFile, FileChanges, CodeContext, ProjectSource } from "@wso2/ballerina-core";
 import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
@@ -126,7 +126,7 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
     }
 }
 
-export function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]): string {
+export function getCodeBlocks(updatedSourceFiles: SourceFile[], updatedFileNames: string[]): string {
     const codeBlocks = updatedFileNames
         .map((fileName) => {
             const sourceFile = updatedSourceFiles.find((sf) => sf.filePath === fileName);
@@ -146,47 +146,106 @@ ${sourceFile.content}
 }
 
 /**
- * Formats complete codebase structure into XML for Claude
- * Used when starting a new session without history
- * @param tempProjectPath Path to the temporary project directory
- * @param packageName Name of the Ballerina package
- * @returns Formatted XML string with codebase structure
+ * Collects files with content from a ProjectSource
+ * @param project ProjectSource to collect files from
+ * @param includePackagePath Whether to prepend packagePath to file paths (for multi-project case)
+ * @returns Array of SourceFile objects with paths and content
  */
-export function formatCodebaseStructure(tempProjectPath: string, packageName: string): string {
-    const allFiles: string[] = [];
+function collectFilesFromProject(project: ProjectSource, includePackagePath: boolean = false): SourceFile[] {
+    const files: SourceFile[] = [];
+    const prefix = includePackagePath && project.packagePath ? `${project.packagePath}/` : "";
 
-    function collectFiles(dir: string, basePath: string = "") {
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
+    // Collect source files
+    for (const sourceFile of project.sourceFiles) {
+        files.push({
+            filePath: `${prefix}${sourceFile.filePath}`,
+            content: sourceFile.content,
+        });
+    }
 
-        for (const entry of entries) {
-            const fullPath = path.join(dir, entry.name);
-            const relativePath = path.join(basePath, entry.name);
-
-            if (entry.isDirectory()) {
-                if (CODEBASE_STRUCTURE_IGNORE_FOLDERS.includes(entry.name)) {
-                    continue;
-                }
-                collectFiles(fullPath, relativePath);
-            } else if (entry.isFile()) {
-                if (CODEBASE_STRUCTURE_IGNORE_FILES.includes(entry.name)) {
-                    continue;
-                }
-                const ext = path.extname(entry.name);
-                if (CODEBASE_STRUCTURE_FILE_TYPES.includes(ext)) {
-                    allFiles.push(relativePath);
-                }
+    // Collect module files
+    if (project.projectModules) {
+        for (const module of project.projectModules) {
+            for (const sourceFile of module.sourceFiles) {
+                files.push({
+                    filePath: `${prefix}${sourceFile.filePath}`,
+                    content: sourceFile.content,
+                });
             }
         }
     }
 
-    collectFiles(tempProjectPath);
+    // Collect test files
+    if (project.projectTests) {
+        for (const testFile of project.projectTests) {
+            files.push({
+                filePath: `${prefix}${testFile.filePath}`,
+                content: testFile.content,
+            });
+        }
+    }
 
+    return files;
+}
+
+/**
+ * Formats a file with its content in XML format
+ * @param file SourceFile with path and content
+ * @returns Formatted XML string for the file
+ */
+function formatFileWithContent(file: SourceFile): string {
+    return `<file path="${file.filePath}">
+\`\`\`ballerina
+${file.content}
+\`\`\`
+</file>`;
+}
+
+/**
+ * Formats complete codebase structure into XML for Claude
+ * Used when starting a new session without history
+ * @param projects Array of ProjectSource objects
+ * @returns Formatted XML string with codebase structure including file contents
+ */
+export function formatCodebaseStructure(projects: ProjectSource[]): string {
     let text = "<codebase_structure>\n";
-    text += `This is the complete structure of the codebase you are working with (Package: ${packageName}). `;
+    text += "This is the complete structure of the codebase you are working with. ";
     text += "You do not need to acknowledge or list these files in your response. ";
     text += "This information is provided for your awareness only.\n\n";
-    text += "<files>\n" + allFiles.join("\n") + "\n</files>\n";
+
+    if (projects.length === 1) {
+        // Single project case: show project name and files with content
+        const project = projects[0];
+        const files = collectFilesFromProject(project);
+
+        text += `<project name="${project.projectName}">\n`;
+        text += "<files>\n";
+        text += files.map(formatFileWithContent).join("\n");
+        text += "\n</files>\n";
+        text += "</project>\n";
+    } else {
+        // Multi-workspace project case: show all projects with active status
+        // Include packagePath prefix in file paths for clarity
+        for (const project of projects) {
+            const files = collectFilesFromProject(project, true);
+            const activeStatus = project.isActive ? ' active="true"' : "";
+
+            text += `<project name="${project.projectName}"${activeStatus}>\n`;
+            text += "<files>\n";
+            text += files.map(formatFileWithContent).join("\n");
+            text += "\n</files>\n";
+            text += "</project>\n";
+        }
+    }
+
     text += "</codebase_structure>";
+
+    if (projects.length > 0) {
+        text += `Note: This is a Ballerina workspace with multiple packages. File paths are prefixed with their package paths (e.g., "mainpackage/main.bal").
+Files from external packages (not the active package) are marked with the externalPackageName attribute (e.g., <file filename="otherpackage/main.bal" externalPackageName="otherpackage">).
+You can import these packages by just using the package name (e.g., import otherpackage;).
+When creating or modifying files, you should always prefer making edits for the current active package. Make sure to include the package path as prefix for the file edits.`
+    }
 
     return text;
 }

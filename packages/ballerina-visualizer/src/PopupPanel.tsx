@@ -71,7 +71,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
                             <AddConnectionWizard
-                                fileName={location.documentUri || location.projectUri}
+                                projectPath={location.projectPath}
+                                fileName={location.documentUri || location.projectPath}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
                                 isPopupScreen={true}
@@ -84,7 +85,6 @@ const PopupPanel = (props: PopupPanelProps) => {
                         setViewComponent(
                             <>
                                 <EditConnectionWizard
-                                    projectUri={location.projectUri}
                                     connectionName={machineState?.identifier}
                                     onClose={onClose}
                                 />
@@ -96,9 +96,9 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BIFunctionForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
+                        const defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
                         setViewComponent(<FunctionForm
-                            projectPath={location.projectUri}
+                            projectPath={location.projectPath}
                             filePath={defaultFunctionsFile}
                             functionName={undefined}
                             isPopup={true} />
@@ -108,10 +108,10 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BIDataMapperForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('data_mappings.bal');
+                        const defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['data_mappings.bal'] })).filePath;
                         setViewComponent(
                             <FunctionForm
-                                projectPath={location.projectUri}
+                                projectPath={location.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={undefined}
                                 isDataMapper={true}
@@ -123,10 +123,10 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.BINPFunctionForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {
-                        const defaultFunctionsFile = await rpcClient.getVisualizerRpcClient().joinProjectPath('functions.bal');
+                        const defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
                         setViewComponent(
                             <FunctionForm
-                                projectPath={location.projectUri}
+                                projectPath={location.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={undefined}
                                 isDataMapper={false}

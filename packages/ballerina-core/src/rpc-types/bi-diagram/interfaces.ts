@@ -27,6 +27,18 @@ export interface ProjectRequest {
     packageName: string;
     projectPath: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
+    workspaceName?: string;
+    orgName?: string;
+    version?: string;
+}
+
+export interface AddProjectToWorkspaceRequest {
+    projectName: string;
+    packageName: string;
+    path: string;
+    convertToWorkspace?: boolean;
+    workspaceName?: string;
     orgName?: string;
     version?: string;
 }
@@ -88,8 +100,14 @@ export interface RecordsInWorkspaceMentions {
 }
 
 export interface ReadmeContentRequest {
-    read: boolean
+    projectPath: string;
+    read?: boolean
     content?: string;
+}
+
+export interface OpenReadmeRequest {
+    projectPath: string;
+    isWorkspaceReadme?: boolean;
 }
 
 export interface ReadmeContentResponse {
@@ -174,4 +192,8 @@ export interface DevantMetadata {
 
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
+}
+
+export interface DeleteProjectRequest {
+    projectPath: string;
 }

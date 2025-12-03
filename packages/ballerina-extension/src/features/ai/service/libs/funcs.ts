@@ -30,7 +30,7 @@ import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } fr
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
 import { GenerationType } from "./libs";
-import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
+// import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../utils";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
@@ -43,10 +43,10 @@ export async function selectRequiredFunctions(prompt: string, selectedLibNames: 
     const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
     const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs);
     let typeLibraries: Library[] = [];
-    if (generationType === GenerationType.HEALTHCARE_GENERATION) {
-        const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
-        typeLibraries = toTypesToLibraries(resp, selectedLibs);
-    }
+    // if (generationType === GenerationType.HEALTHCARE_GENERATION) {
+    //     const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
+    //     typeLibraries = toTypesToLibraries(resp, selectedLibs);
+    // }
     const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
 
     // Merge typeLibraries and maximizedLibraries without duplicates

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFile, SourceFiles } from "@wso2/ballerina-core";
+import { SourceFile } from "@wso2/ballerina-core";
 import { tool } from 'ai';
 import { z } from 'zod';
 import * as fs from 'fs';
@@ -358,10 +358,14 @@ export function createEditExecute(tempProjectPath: string, modifiedFiles?: strin
 
     // Perform replacement
     let newContent: string;
-    if (replace_all) {
-      newContent = content.replaceAll(old_string, new_string);
+    if (content.trim() === "" && old_string.trim() === "") {
+        newContent = new_string;
     } else {
-      newContent = content.replace(old_string, new_string);
+      if (replace_all) {
+        newContent = content.replaceAll(old_string, new_string);
+      } else {
+        newContent = content.replace(old_string, new_string);
+      }
     }
 
     // Write back to temp directory
@@ -461,10 +465,14 @@ export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: 
       }
 
       // Apply the edit to simulate the sequence
-      if (edit.replace_all) {
-        content = content.replaceAll(edit.old_string, edit.new_string);
+      if (content.trim() === "" && edit.old_string.trim() === "") {
+        content = edit.new_string;
       } else {
-        content = content.replace(edit.old_string, edit.new_string);
+        if (edit.replace_all) {
+          content = content.replaceAll(edit.old_string, edit.new_string);
+        } else {
+          content = content.replace(edit.old_string, edit.new_string);
+        }
       }
     }
 

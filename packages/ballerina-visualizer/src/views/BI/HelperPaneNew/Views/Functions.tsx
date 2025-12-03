@@ -17,7 +17,7 @@
  */
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { HelperPaneCompletionItem, HelperPaneFunctionInfo } from "@wso2/ballerina-side-panel";
+import { HelperPaneCompletionItem, HelperPaneFunctionInfo, InputMode } from "@wso2/ballerina-side-panel";
 import { debounce } from "lodash";
 import { useRef, useState, useCallback, RefObject, useEffect } from "react";
 import { convertToHelperPaneFunction, extractFunctionInsertText } from "../../../../utils/bi";
@@ -36,6 +36,7 @@ import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
 import { HelperPaneListItem } from "../Components/HelperPaneListItem";
+import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -45,7 +46,8 @@ type FunctionsPageProps = {
     onClose: () => void;
     onChange: (insertText: CompletionInsertText | string) => void;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
-    selectedType?: CompletionItem
+    selectedType?: CompletionItem;
+    inputMode?: InputMode;
 };
 
 export const FunctionsPage = ({
@@ -56,7 +58,8 @@ export const FunctionsPage = ({
     onClose,
     onChange,
     updateImports,
-    selectedType
+    selectedType,
+    inputMode
 }: FunctionsPageProps) => {
 
     const { rpcClient } = useRpcContext();
@@ -66,12 +69,12 @@ export const FunctionsPage = ({
     const [showContent, setShowContent] = useState<boolean>(false);
     const [functionInfo, setFunctionInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
     const [libraryBrowserInfo, setLibraryBrowserInfo] = useState<HelperPaneFunctionInfo | undefined>(undefined);
-    const [projectUri, setProjectUri] = useState<string>('');
+    const [projectPath, setProjectPath] = useState<string>('');
 
     const { addModal, closeModal } = useModalStack();
 
     //TODO: get the correct filepath
-    let defaultFunctionsFile = Utils.joinPath(URI.file(projectUri), 'functions.bal').fsPath;
+    let defaultFunctionsFile = Utils.joinPath(URI.file(projectPath), 'functions.bal').fsPath;
 
     const debounceFetchFunctionInfo = useCallback(
         debounce((searchText: string, includeAvailableFunctions?: string) => {
@@ -158,7 +161,7 @@ export const FunctionsPage = ({
 
     const setDefaultFunctionsPath = () => {
         rpcClient.getVisualizerLocation().then((location) => {
-            setProjectUri(location?.projectUri || '')
+            setProjectPath(location?.projectPath || '')
         })
     }
 
@@ -175,14 +178,15 @@ export const FunctionsPage = ({
 
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
         const { value, cursorOffset } = await onFunctionItemSelect(item);
-        onChange({ value, cursorOffset });
+        const wrappedValue = wrapInTemplateInterpolation(value, inputMode);
+        onChange({ value: wrappedValue, cursorOffset });
         onClose();
     };
 
     const handleNewFunctionClick = () => {
         addModal(
             <FunctionFormStatic
-                projectPath={projectUri}
+                projectPath={projectPath}
                 filePath={defaultFunctionsFile}
                 handleSubmit={handleFunctionSave}
                 functionName={undefined}

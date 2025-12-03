@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.5.0",
+    "version": "5.6.2",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -26,7 +26,6 @@
     "activationEvents": [
         "onStartupFinished",
         "onLanguage:ballerina",
-        "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
         "onNotebook:ballerina-notebook",
         "onUri"
@@ -376,11 +375,6 @@
         ],
         "commands": [
             {
-                "command": "ballerina.showExamples",
-                "title": "Show Examples",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.project.build",
                 "title": "Build",
                 "category": "Ballerina"
@@ -708,18 +702,12 @@
                 "category": "BI"
             },
             {
-                "command": "BI.project-explorer.switch-project",
-                "title": "Switch Project",
-                "icon": "$(distro-switch-project)",
-                "group": "navigation",
-                "category": "BI"
-            },
-            {
                 "command": "BI.project-explorer.add",
-                "title": "Add Construct",
+                "title": "Add Project",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "BI",
+                "when": "ballerina.bi.workspaceSupported"
             },
             {
                 "command": "BI.project-explorer.overview",
@@ -804,7 +792,8 @@
             },
             {
                 "view": "testing",
-                "contents": "[Add Unit Test](command:BI.test.add.function)"
+                "contents": "[Add Unit Test](command:BI.test.add.function)",
+                "when": "isBIProject || isBallerinaProject"
             }
         ],
         "viewsContainers": {
@@ -848,7 +837,7 @@
                 },
                 {
                     "command": "BI.test.add.function",
-                    "when": "view == workbench.view.testing",
+                    "when": "(isBIProject || isBallerinaProject) && view == workbench.view.testing",
                     "group": "navigation"
                 },
                 {
@@ -1054,21 +1043,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f19a"
+                    "fontCharacter": "\\f16e"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f210"
+                    "fontCharacter": "\\f11a"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f195"
+                    "fontCharacter": "\\f171"
                 }
             },
             "distro-source-view": {
@@ -1082,7 +1071,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1eb"
+                    "fontCharacter": "\\f133"
                 }
             },
             "distro-cached-rounded": {
@@ -1214,11 +1203,12 @@
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
         "build-tm-grammar": "js-yaml grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.yaml > grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.json",
         "lint": "tslint --fix 'src/**/*{.ts,.tsx}'",
-        "package": "if [ $isPreRelease = true ]; then vsce package --no-dependencies --pre-release; else vsce package --no-dependencies; fi",
+        "package": "node ../../common-libs/scripts/package-vsix.js",
         "copyFonts": "copyfiles -f ./node_modules/@wso2/font-wso2-vscode/dist/* ./resources/font-wso2-vscode/dist/",
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
         "download-ls": "node scripts/download-ls.js",
+        "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
@@ -1231,7 +1221,7 @@
         "@opentelemetry/sdk-node": "^0.208.0",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
-        "@vscode/vsce": "^2.22.0",
+        "@vscode/vsce": "^3.7.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
@@ -1243,7 +1233,7 @@
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
         "file-uri-to-path": "^2.0.0",
-        "glob": "^7.2.3",
+        "glob": "^11.1.0",
         "handlebars": "~4.7.8",
         "jwt-decode": "^4.0.0",
         "langfuse-vercel": "^3.38.6",
@@ -1255,6 +1245,7 @@
         "protobufjs": "^7.2.5",
         "source-map-support": "^0.5.21",
         "toml": "^3.0.0",
+        "unzipper": "~0.12.3",
         "uuid": "^11.1.0",
         "vscode-debugadapter": "^1.51.0",
         "vscode-debugprotocol": "^1.51.0",
@@ -1286,7 +1277,7 @@
         "decache": "^4.6.2",
         "express": "^4.18.2",
         "istanbul": "^0.4.5",
-        "js-yaml": "^4.1.0",
+        "js-yaml": "^4.1.1",
         "jwt-decode": "^3.1.2",
         "keytar": "^7.9.0",
         "kill-port": "2.0.1",
@@ -1304,7 +1295,6 @@
         "vscode-messenger": "^0.4.4",
         "webpack": "^5.89.0",
         "webpack-cli": "^6.0.1",
-        "webpack-merge-and-include-globally": "^2.3.4",
         "yarn": "^1.22.19"
     },
     "extensionPack": [

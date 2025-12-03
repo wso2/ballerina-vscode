@@ -32,13 +32,6 @@ export type PlaceholderTagMap = {
 
 // NOTE: if the placeholders are known at compiletime, define here, otherwise inject at runtime.
 export const placeholderTags: PlaceholderTagMap = {
-    [Command.Code]: {
-        'wildcard': {},
-        'generate-code': {
-            usecase: [],
-        },
-        'generate-from-readme': {},
-    },
     [Command.Tests]: {
         'tests-for-service': {
             servicename: [],
@@ -73,7 +66,7 @@ export const placeholderTags: PlaceholderTagMap = {
         'wildcard': {},
     },
     [Command.Design]: {
-        'wildcard': {},
+        // Internal use only - design is the default behavior when no command is specified
     },
     [Command.Doc]: {
         'generate-user-doc': {

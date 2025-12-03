@@ -139,10 +139,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         deleteClause,
+        getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
         enrichChildFields,
+        genUniqueName,
         undoRedoGroup
     } = props;
     const {
@@ -150,7 +152,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         hasInputsOutputsChanged = false
     } = modelState;
 
-    const initialView = [{
+    const initialView: View[] = [{
         label: model.output.name,
         targetField: name
     }];
@@ -228,17 +230,19 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             const context = new DataMapperContext(
                 model, 
                 views, 
+                hasInputsOutputsChanged,
                 addView, 
                 applyModifications, 
                 addArrayElement,
-                hasInputsOutputsChanged,
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
+                addClauses,
                 mapWithCustomFn,
                 mapWithTransformFn,
                 goToFunction,
-                enrichChildFields
+                enrichChildFields,
+                genUniqueName
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
@@ -361,7 +365,9 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
                                 deleteClause={deleteClause}
+                                getClausePosition={getClausePosition}
                                 generateForm={generateForm}
+                                genUniqueName={genUniqueName}
                             />
                         )}
                     </>
