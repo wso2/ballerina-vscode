@@ -38,7 +38,7 @@ import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
-import { parse } from "toml";
+import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
 
 export const README_FILE = "readme.md";
@@ -363,8 +363,8 @@ function addToWorkspaceToml(workspacePath: string, packageName: string) {
 
     try {
         const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
-        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
-        const existingPackages: string[] = tomlData.workspace?.packages || [];
+        const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
+        const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
         if (existingPackages.includes(packageName)) {
             return; // Package already exists
@@ -388,8 +388,8 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
     
     try {
         const ballerinaTomlContent = fs.readFileSync(ballerinaTomlPath, 'utf8');
-        const tomlData: WorkspaceTomlValues = parse(ballerinaTomlContent);
-        const existingPackages: string[] = tomlData.workspace?.packages || [];
+        const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
+        const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
         if (!existingPackages.includes(relativeProjectPath)) {
             return; // Package not found
