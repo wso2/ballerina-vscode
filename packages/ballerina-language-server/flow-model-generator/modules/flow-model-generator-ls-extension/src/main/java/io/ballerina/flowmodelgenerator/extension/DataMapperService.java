@@ -20,7 +20,6 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.DataMapManager;
-import io.ballerina.flowmodelgenerator.core.expressioneditor.DocumentContext;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
