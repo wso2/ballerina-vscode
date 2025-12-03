@@ -21,29 +21,6 @@ import { AIPanelPrompt, Command, TemplateId } from "@wso2/ballerina-core/";
 
 // All command templates are defined here.
 export const commandTemplates = {
-    [Command.Code]: [
-        {
-            id: TemplateId.Wildcard,
-            text: '',
-            placeholders: [],
-        },
-        {
-            id: TemplateId.GenerateCode,
-            text: 'generate code for the use-case: <usecase>',
-            placeholders: [
-                {
-                    id: 'usecase',
-                    text: '<usecase>',
-                    multiline: true,
-                }
-            ],
-        },
-        {
-            id: TemplateId.GenerateFromReadme,
-            text: 'generate an integration according to the given Readme file',
-            placeholders: [],
-        },
-    ],
     [Command.Tests]: [
         {
             id: TemplateId.TestsForService,
@@ -111,7 +88,7 @@ export const commandTemplates = {
     [Command.TypeCreator]: [
         {
             id: TemplateId.TypesForAttached,
-            text: 'generate types using the attached file',
+            text: 'generate types using the attached files',
             placeholders: []
         }
     ],
@@ -140,11 +117,7 @@ export const commandTemplates = {
         },
     ],
     [Command.Design]: [
-        {
-            id: TemplateId.Wildcard,
-            text: '',
-            placeholders: [],
-        },
+        // Internal use only - design is the default behavior when no command is specified
     ],
     [Command.Doc]: [
         {
@@ -196,22 +169,19 @@ export const NATURAL_PROGRAMMING_TEMPLATES: TemplateDefinition[] = [
 // Suggested command templates are defined here.
 export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
-        type: "command-template",
-        command: Command.Design,
-        templateId: TemplateId.Wildcard,
+        type: "text",
         text: "write a hello world http service",
+        planMode: true,
     },
     {
-        type: "command-template",
-        command: Command.Design,
-        templateId: TemplateId.Wildcard,
+        type: "text",
         text: "I need to build a pet store application that manages pets, store orders, and users. Can you help me integrate with the Petstore API?",
+        planMode: true,
     },
     {
-        type: "command-template",
-        command: Command.Design,
-        templateId: TemplateId.Wildcard,
+        type: "text",
         text: "create an API for a task management system with mysql",
+        planMode: true,
     },
     {
         type: "command-template",

@@ -24,7 +24,7 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType } from "@wso2/ballerina-core";
+import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType, Property, LinePosition } from "@wso2/ballerina-core";
 import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
@@ -68,6 +68,7 @@ export interface DataMapperEditorProps {
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
@@ -81,6 +82,7 @@ export interface DataMapperEditorProps {
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
     generateForm: (formProps: DMFormProps) => JSX.Element;
+    genUniqueName: (name: string, viewId: string) => Promise<string>;
     undoRedoGroup: () => JSX.Element;
 }
 

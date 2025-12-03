@@ -99,12 +99,13 @@ const PackageName = styled.span`
 `;
 
 interface TopNavigationBarProps {
+    projectPath: string;
     onBack?: () => void;
     onHome?: () => void;
 }
 
 export function TopNavigationBar(props: TopNavigationBarProps) {
-    const { onBack, onHome } = props;
+    const { projectPath, onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
@@ -118,7 +119,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             setHistory(history);
             setWorkspaceType(workspaceType);
         });
-    }, []);
+    }, [projectPath]);
 
     const handleBack = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();
@@ -142,9 +143,31 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             workspaceType?.type === "VSCODE_WORKSPACE";
     }, [workspaceType]);
 
+    const isAtOverview = useMemo(() => {
+        return history.length > 0 && history[history.length - 1].location.view === MACHINE_VIEW.PackageOverview;
+    }, [history]);
+
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
-    const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
+    const hackToSkipForms = [
+        "workspace overview",
+        "automation",
+        "service",
+        "function",
+        "add natural function",
+        "data mapper",
+        "connection",
+        "add project",
+        "bi add project skip",
+        "welcome"
+    ];
+
+    if (workspaceType?.type !== "BALLERINA_WORKSPACE") {
+        hackToSkipForms.push("package overview");
+    }    
+
     const existingLabels = new Set<string>();
+    let hasRenderedPreviousItem = false;
+    
     return (
         <NavContainer>
             {onBack && (
@@ -160,16 +183,19 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                     const shortName = getShortNames(crumb.location.view);
                     if (index === history.length - 1 || !existingLabels.has(shortName) && !hackToSkipForms.includes(shortName.toLowerCase())) {
                         existingLabels.add(shortName);
+                        const shouldShowChevron = hasRenderedPreviousItem;
+                        hasRenderedPreviousItem = true;
+                        
                         return (
                             <React.Fragment key={index}>
-                                {index > 0 && (
-                                    <Icon 
-                                        name="wide-chevron" 
+                                {shouldShowChevron && (
+                                    <Icon
+                                        name="wide-chevron"
                                         iconSx={{
                                             color: "var(--vscode-foreground)",
                                             fontSize: hasMultiplePackages ? "20px" : "15px",
-                                            opacity: 0.5 
-                                        }} 
+                                            opacity: 0.5
+                                        }}
                                         sx={{ alignSelf: "center" }}
                                     />
                                 )}
@@ -180,12 +206,12 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     >
                                         {shortName}
                                     </BreadcrumbText>
-                                    {hasMultiplePackages && crumb.location.package && (
+                                    {hasMultiplePackages && crumb.location.package && !(isAtOverview && index === history.length - 1) && (
                                         <PackageContainer>
-                                            <Codicon 
-                                                name="project" 
+                                            <Codicon
+                                                name="project"
                                                 sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
-                                                iconSx={{ fontSize: "10px", lineHeight: "1" }} 
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }}
                                             />
                                             <PackageName>{crumb.location.package}</PackageName>
                                         </PackageContainer>

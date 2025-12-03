@@ -28,7 +28,7 @@ export interface DataMapperProps {
     filePath: string;
     codedata: CodeData;
     name: string;
-    projectUri?: string;
+    projectPath?: string;
     position?: LinePosition;
     reusable?: boolean;
     onClose?: () => void;
@@ -37,7 +37,7 @@ export interface DataMapperProps {
 export function DataMapper(props: DataMapperProps) {
     return (
         <>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={props.projectPath}/>
             <ErrorBoundary errorMsg="Error while loading the Data Mapper">
                 <DataMapperView {...props} />
             </ErrorBoundary>

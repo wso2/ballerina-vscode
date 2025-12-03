@@ -137,7 +137,7 @@ async function getContext(): Promise<VisualizerLocation> {
             position: context.position,
             syntaxTree: context.syntaxTree,
             isBI: context.isBI,
-            projectUri: context.projectUri,
+            projectPath: context.projectPath,
             serviceType: context.serviceType,
             type: context.type,
             isGraphql: context.isGraphql,
@@ -147,7 +147,7 @@ async function getContext(): Promise<VisualizerLocation> {
             metadata: {
                 isBISupported: context.isBISupported,
                 haveLS: StateMachine.langClient() && true,
-                recordFilePath: path.join(context.projectUri, "types.bal"),
+                recordFilePath: context.projectPath ? path.join(context.projectPath, "types.bal") : undefined,
                 enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
                 target: context.metadata?.target
             },

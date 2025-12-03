@@ -18,10 +18,9 @@
 
 import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
-import { ModelMessage } from "ai";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
-import { Type } from "./interfaces/extended-lang-client";
+import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext } from "./rpc-types/ai-panel/interfaces";
 
@@ -64,7 +63,8 @@ export enum SCOPE {
 export type VoidCommands = "OPEN_LOW_CODE" | "OPEN_PROJECT" | "CREATE_PROJECT";
 
 export enum MACHINE_VIEW {
-    Overview = "Overview",
+    PackageOverview = "Overview",
+    WorkspaceOverview = "Workspace Overview",
     BallerinaUpdateView = "Ballerina Update View",
     SequenceDiagram = "Sequence Diagram",
     ServiceDesigner = "Service Designer",
@@ -78,6 +78,7 @@ export enum MACHINE_VIEW {
     BIWelcome = "BI Welcome",
     BIProjectForm = "BI Project SKIP",
     BIImportIntegration = "BI Import Integration SKIP",
+    BIAddProjectForm = "BI Add Project SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
     AddCustomConnector = "Add Custom Connector",
@@ -98,7 +99,8 @@ export enum MACHINE_VIEW {
     AIAgentDesigner = "AI Agent Designer",
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
-    ServiceFunctionForm = "Service Function Form"
+    ServiceFunctionForm = "Service Function Form",
+    BISamplesView = "BI Samples View"
 }
 
 export interface MachineEvent {
@@ -121,7 +123,9 @@ export type FocusFlowDiagramView = typeof FOCUS_FLOW_DIAGRAM_VIEW[keyof typeof F
 export interface VisualizerLocation {
     view?: MACHINE_VIEW | null;
     documentUri?: string;
-    projectUri?: string;
+    projectPath?: string;
+    workspacePath?: string;
+    projectInfo?: ProjectInfo;
     identifier?: string;
     parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
@@ -327,10 +331,12 @@ export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
+export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
 export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
+export const dependencyPullProgress: NotificationType<string> = { method: 'dependencyPullProgress' };
 
 // Artifact updated request and notification
 export const onArtifactUpdatedNotification: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onArtifactUpdatedNotification' };
@@ -399,6 +405,7 @@ export type AIChatMachineStateValue =
     | 'PlanReview'
     | 'ApprovedPlan'
     | 'ExecutingTask'
+    | 'ExecutingDatamapper'
     | 'TaskReview'
     | 'ApprovedTask'
     | 'RejectedTask'
@@ -408,10 +415,12 @@ export type AIChatMachineStateValue =
     | 'Error';
 
 export enum AIChatMachineEventType {
-    SUBMIT_PROMPT = 'SUBMIT_PROMPT',
+    SUBMIT_DESIGN_PROMPT = 'SUBMIT_DESIGN_PROMPT',
+    SUBMIT_DATAMAPPER_REQUEST = 'SUBMIT_DATAMAPPER_REQUEST',
     UPDATE_CHAT_MESSAGE = 'UPDATE_CHAT_MESSAGE',
     RESET = 'RESET',
     PLANNING_STARTED = 'PLANNING_STARTED',
+    DATAMAPPER_GENERATION_STARTED = 'DATAMAPPER_GENERATION_STARTED',
     PLAN_GENERATED = 'PLAN_GENERATED',
     APPROVE_PLAN = 'APPROVE_PLAN',
     REJECT_PLAN = 'REJECT_PLAN',
@@ -435,7 +444,7 @@ export interface ChatMessage {
     id: string;
     content: string;
     uiResponse: string;
-    modelMessages: ModelMessage[];
+    modelMessages: any[];
     timestamp: number;
     checkpointId?: string;
 }
@@ -513,12 +522,20 @@ export interface AIChatMachineContext {
     };
     previousState?: AIChatMachineStateValue;
     checkpoints?: Checkpoint[];
+    // Generation type field
+    generationType?: 'design' | 'datamapper';
+    // Command execution fields
+    commandType?: string;
+    modifiedFiles?: string[];
+    commandParams?: any;
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
+    | { type: AIChatMachineEventType.DATAMAPPER_GENERATION_STARTED }
     | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
     | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
     | { type: AIChatMachineEventType.REJECT_PLAN; payload: { comment?: string } }

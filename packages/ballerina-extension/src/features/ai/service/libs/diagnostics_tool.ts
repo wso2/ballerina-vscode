@@ -1,6 +1,5 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { SourceFiles } from '@wso2/ballerina-core';
 import { checkCompilationErrors, DiagnosticsCheckResult } from './diagnostics_utils';
 
 export const DIAGNOSTICS_TOOL_NAME = "getCompilationErrors";

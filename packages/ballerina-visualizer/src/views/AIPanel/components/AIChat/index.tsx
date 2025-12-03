@@ -19,7 +19,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
     GetWorkspaceContextResponse,
-    ProjectSource,
     SourceFile,
     MappingParameters,
     TestGenerationTarget,
@@ -33,13 +32,10 @@ import {
     TestPlanGenerationRequest,
     TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
-    SourceFiles,
     ChatEntry,
     OperationType,
     GENERATE_TEST_AGAINST_THE_REQUIREMENT,
     GENERATE_CODE_AGAINST_THE_REQUIREMENT,
-    ComponentInfo,
-    MetadataWithAttachments,
     ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
@@ -79,7 +75,7 @@ import {
     upsertTemplate,
 } from "../../commandTemplates/utils/utils";
 import { acceptResolver, handleAttachmentSelection } from "../../utils/attachment/attachmentManager";
-import { fetchWithAuth } from "../../utils/networkUtils";
+import { fetchWithAuth, streamToString } from "../../utils/networkUtils";
 import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
@@ -88,68 +84,11 @@ import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
-import { getOnboardingOpens, incrementOnboardingOpens } from "./utils/utils";
+import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError, ChatIndexes } from "./utils/utils";
 
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
-import { URI } from "vscode-uri";
-
-interface ChatIndexes {
-    integratedChatIndex: number;
-    previouslyIntegratedChatIndex: number;
-}
-
-// Helper function to convert chat history messages to UI format
-const convertToUIMessages = (messages: UIChatHistoryMessage[]) => {
-    return messages.map((msg) => {
-        let role, type;
-        if (msg.role === "user") {
-            role = "User";
-            type = "user_message";
-        } else if (msg.role === "assistant") {
-            role = "Copilot";
-            type = "assistant_message";
-        }
-        return {
-            role: role,
-            type: type,
-            content: msg.content,
-            checkpointId: msg.checkpointId,
-            messageId: msg.messageId,
-        };
-    });
-};
-
-// Helper function to load chat history from localStorage
-// TODO: Need to be removed and move chat history to statemachine fully
-const loadFromLocalStorage = (projectUuid: string, setMessages: React.Dispatch<React.SetStateAction<any[]>>, chatArray: ChatEntry[]) => {
-    const localStorageFile = `chatArray-AIGenerationChat-${projectUuid}`;
-    const storedChatArray = localStorage.getItem(localStorageFile);
-    if (storedChatArray) {
-        const chatArrayFromStorage = JSON.parse(storedChatArray);
-        chatArray.length = 0;
-        chatArray.push(...chatArrayFromStorage);
-        // Add the messages from the chat array to the view
-        setMessages((prevMessages) => [
-            ...prevMessages,
-            ...chatArray.map((entry: ChatEntry) => {
-                let role, type;
-                if (entry.actor === "user") {
-                    role = "User";
-                    type = "user_message";
-                } else if (entry.actor === "assistant") {
-                    role = "Copilot";
-                    type = "assistant_message";
-                }
-                return {
-                    role: role,
-                    type: type,
-                    content: entry.message,
-                };
-            }),
-        ]);
-    }
-};
+import { SegmentType, splitContent } from "./segment";
 
 enum CodeGenerationType {
     CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
@@ -157,27 +96,13 @@ enum CodeGenerationType {
     CODE_GENERATION = "CODE_GENERATION",
 }
 
-var chatArray: ChatEntry[] = [];
-var integratedChatIndex = 0;
-var previouslyIntegratedChatIndex = 0;
-var previousDevelopmentDocumentContent = "";
+// var projectUuid = "";
+// var chatLocation = "";
 
-// A string array to store all code blocks
-const codeBlocks: string[] = [];
-var projectUuid = "";
-var backendRootUri = "";
-var chatLocation = "";
-
-var remainingTokenPercentage: string | number;
-var remaingTokenLessThanOne: boolean = false;
-
-var timeToReset: number;
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
-const RATE_LIMIT_ERROR = ` Cause: Your usage limit has been exceeded. This should reset in the beggining of the next month.`;
 const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 
-const CHECK_DRIFT_BETWEEN_CODE_AND_DOCUMENTATION = "Check drift between code and documentation";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
 
@@ -205,6 +130,7 @@ const AIChat: React.FC = () => {
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
+    const [isExperimentalEnabled, setIsExperimentalEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -283,28 +209,6 @@ const AIChat: React.FC = () => {
     }, []);
     /* REFACTORED CODE END [2] */
 
-    let codeSegmentRendered = false;
-    const [tempStorage, setTempStorage] = useState<{ [filePath: string]: string }>({});
-    const [initialFiles, setInitialFiles] = useState<Set<string>>(new Set<string>());
-    const [emptyFiles, setEmptyFiles] = useState<Set<string>>(new Set<string>());
-
-    async function fetchBackendUrl() {
-        try {
-            backendRootUri = await rpcClient.getAiPanelRpcClient().getBackendUrl();
-            chatLocation = (await rpcClient.getVisualizerLocation()).projectUri;
-            setIsReqFileExists(
-                chatLocation != null &&
-                chatLocation != undefined &&
-                (await rpcClient.getAiPanelRpcClient().isRequirementsSpecificationFileExist(chatLocation))
-            );
-
-            generateNaturalProgrammingTemplate(isReqFileExists);
-            // Do something with backendRootUri
-        } catch (error) {
-            console.error("Failed to fetch backend URL:", error);
-        }
-    }
-
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
             await rpcClient.sendAIChatStateEvent({
@@ -314,10 +218,6 @@ const AIChat: React.FC = () => {
             const updatedMessages = await rpcClient.getAIChatUIHistory();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
-
-            chatArray = chatArray.slice(0, updatedMessages.length);
-            // TODO: Need to be removed and move chat history to statemachine fully
-            localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
 
             setIsLoading(false);
             setIsCodeLoading(false);
@@ -333,49 +233,6 @@ const AIChat: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchBackendUrl();
-    }, []);
-
-    useEffect(() => {
-        rpcClient
-            ?.getAiPanelRpcClient()
-            .getProjectUuid()
-            .then((response) => {
-                projectUuid = response;
-
-                const localStorageIndexFile = `chatArray-AIGenerationChat-${projectUuid}-developer-index`;
-                const storedIndexes = localStorage.getItem(localStorageIndexFile);
-                if (storedIndexes) {
-                    const indexes: ChatIndexes = JSON.parse(storedIndexes);
-                    integratedChatIndex = indexes.integratedChatIndex;
-                    previouslyIntegratedChatIndex = indexes.previouslyIntegratedChatIndex;
-                }
-
-                // TODO: Enable state machine-based chat history loading once fully tested
-                // Try to get chat history from state machine first
-                rpcClient
-                    .getAIChatUIHistory()
-                    .then((uiMessages: UIChatHistoryMessage[]) => {
-                        if (uiMessages && uiMessages.length > 0) {
-                            // Convert and set messages from state machine
-                            setMessages((prevMessages) => [
-                                ...prevMessages,
-                                ...convertToUIMessages(uiMessages)
-                            ]);
-                        } else {
-                            // Fallback to localStorage if state machine has no messages
-                            loadFromLocalStorage(projectUuid, setMessages, chatArray);
-                        }
-                    })
-                    .catch((error: any) => {
-                        // Fallback to localStorage if state machine call fails
-                        console.warn('[AIChat] Failed to get chat history from state machine, falling back to localStorage:', error);
-                        loadFromLocalStorage(projectUuid, setMessages, chatArray);
-                    });
-            });
-    }, []);
-
-    useEffect(() => {
         const initializeAutoApproveState = async () => {
             try {
                 const context = await rpcClient.getAIChatContext();
@@ -388,6 +245,40 @@ const AIChat: React.FC = () => {
         };
 
         initializeAutoApproveState();
+    }, [rpcClient]);
+
+    useEffect(() => {
+        const checkExperimentalEnabled = async () => {
+            try {
+                const enabled = await rpcClient.getCommonRpcClient().experimentalEnabled();
+                setIsExperimentalEnabled(enabled);
+            } catch (error) {
+                console.error("[AIChat] Failed to check experimental enabled status:", error);
+                setIsExperimentalEnabled(false);
+            }
+        };
+
+        checkExperimentalEnabled();
+    }, [rpcClient]);
+
+    /**
+     * Effect: Load initial chat history from aiChatMachine context
+     */
+    useEffect(function loadInitialChatHistory() {
+        const loadHistory = async () => {
+            try {
+                const historyMessages = await rpcClient.getAIChatUIHistory();
+                if (historyMessages && historyMessages.length > 0) {
+                    const uiMessages = convertToUIMessages(historyMessages);
+                    setMessages(uiMessages);
+                }
+            } catch (error) {
+                console.error('[AIChat] Failed to load initial chat history:', error);
+                // Continue with empty messages - don't block the UI
+            }
+        };
+
+        loadHistory();
     }, [rpcClient]);
 
     rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
@@ -736,19 +627,6 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsRepairMode(false);
             setErrorCount(0);
-            const command = response.command;
-            // Use functional update to access current state (avoid stale closure)
-            setMessages((prevMessages) => {
-                if (prevMessages.length >= 2) {
-                    addChatEntry(
-                        "user",
-                        prevMessages[prevMessages.length - 2].content,
-                        command != undefined && command == Command.Code
-                    );
-                    addChatEntry("assistant", prevMessages[prevMessages.length - 1].content);
-                }
-                return prevMessages;
-            });
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -763,16 +641,7 @@ const AIChat: React.FC = () => {
             setErrorCount(0);
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const command = response.command;
             const messageId = response.messageId;
-
-            // Save chat entries
-            addChatEntry(
-                "user",
-                messages[messages.length - 2].content,
-                command != undefined && command == Command.Code
-            );
-            addChatEntry("assistant", messages[messages.length - 1].content);
 
             // Update chat message in state machine with UI message
             rpcClient.sendAIChatStateEvent({
@@ -863,25 +732,6 @@ const AIChat: React.FC = () => {
                 getTemplateById("generate-test-from-requirements", NATURAL_PROGRAMMING_TEMPLATES)
             );
             removeTemplate(commandTemplates, Command.NaturalProgramming, "generate-code-from-requirements");
-        }
-    }
-
-    function addChatEntry(role: string, content: string, isCodeGeneration: boolean = false): void {
-        chatArray.push({
-            actor: role,
-            message: content,
-            isCodeGeneration,
-        });
-
-        localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
-    }
-
-    function updateChatEntry(chatIdx: number, newEntry: ChatEntry): void {
-        if (chatIdx >= 0 && chatIdx < chatArray.length) {
-            newEntry.isCodeGeneration = chatArray[chatIdx].isCodeGeneration;
-            chatArray[chatIdx] = newEntry;
-
-            localStorage.setItem(`chatArray-AIGenerationChat-${projectUuid}`, JSON.stringify(chatArray));
         }
     }
 
@@ -995,33 +845,33 @@ const AIChat: React.FC = () => {
                     let useCase = "";
                     switch (parsedInput.templateId) {
                         case "code-doc-drift-check":
-                            await processLLMDiagnostics(attachments, inputText);
+                            // await processLLMDiagnostics(attachments, inputText);
                             break;
                         case "generate-code-from-following-requirements":
-                            await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
-                                filepath: chatLocation,
-                                content: parsedInput.placeholderValues.requirements,
-                            });
-                            setIsReqFileExists(true);
+                            // await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
+                            //     filepath: chatLocation,
+                            //     content: parsedInput.placeholderValues.requirements,
+                            // });
+                            // setIsReqFileExists(true);
 
-                            useCase = parsedInput.placeholderValues.requirements;
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                                inputText
-                            );
+                            // useCase = parsedInput.placeholderValues.requirements;
+                            // await processCodeGeneration(
+                            //     [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
+                            //     inputText
+                            // );
                             break;
                         case "generate-test-from-requirements":
-                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
+                            // rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
 
-                            useCase = getTemplateTextById(
-                                commandTemplates,
-                                Command.NaturalProgramming,
-                                "generate-test-from-requirements"
-                            );
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
-                                inputText
-                            );
+                            // useCase = getTemplateTextById(
+                            //     commandTemplates,
+                            //     Command.NaturalProgramming,
+                            //     "generate-test-from-requirements"
+                            // );
+                            // await processCodeGeneration(
+                            //     [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
+                            //     inputText
+                            // );
                             break;
                         case "generate-code-from-requirements":
                             useCase = getTemplateTextById(
@@ -1035,26 +885,6 @@ const AIChat: React.FC = () => {
                             );
                             break;
                     }
-                    break;
-                }
-                case Command.Code: {
-                    let useCase = "";
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            useCase = parsedInput.text;
-                            break;
-                        case "generate-code":
-                            useCase = parsedInput.placeholderValues.usecase;
-                            break;
-                        case "generate-from-readme":
-                            useCase = getTemplateTextById(
-                                commandTemplates,
-                                parsedInput.command,
-                                "generate-from-readme"
-                            );
-                            break;
-                    }
-                    await processCodeGeneration([useCase, attachments, CodeGenerationType.CODE_GENERATION], inputText);
                     break;
                 }
                 case Command.Tests: {
@@ -1153,14 +983,6 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Design: {
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            await processDesignGeneration(parsedInput.text, inputText);
-                            break;
-                    }
-                    break;
-                }
                 case Command.Doc: {
                     switch (parsedInput.templateId) {
                         case "generate-user-doc":
@@ -1173,40 +995,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processLLMDiagnostics(attachments: Attachment[], message: string) {
-        let response: LLMDiagnostics =
-            rpcClient == null
-                ? { statusCode: 500, diags: DRIFT_CHECK_ERROR }
-                : await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents(chatLocation);
-
-        const responseStatus = response.statusCode;
-        const invalidResponse = response == null || response.statusCode == null;
-
-        if (invalidResponse) {
-            throw new Error(DRIFT_CHECK_ERROR);
-        }
-
-        if (!(responseStatus >= 200 && responseStatus < 300)) {
-            throw new Error(DRIFT_CHECK_ERROR);
-        }
-
-        if (response.diags == null || response.diags == "") {
-            response.diags = NO_DRIFT_FOUND;
-        }
-
-        setIsLoading(false);
-
-        const userMessage = getUserMessage([message, attachments]);
-        setMessages((prevMessages) => {
-            const newMessage = [...prevMessages];
-            newMessage[newMessage.length - 1].content = response.diags;
-            return newMessage;
-        });
-        addChatEntry("user", userMessage);
-        addChatEntry("assistant", response.diags);
-        setIsSyntaxError(false);
-    }
-
     async function processCodeGeneration(content: [string, Attachment[], OperationType], message: string) {
         const [useCase, attachments, operationType] = content;
         const fileAttatchments = attachments.map((file) => ({
@@ -1216,7 +1004,7 @@ const AIChat: React.FC = () => {
 
         const requestBody: GenerateCodeRequest = {
             usecase: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
             operationType,
             fileAttachmentContents: fileAttatchments,
             codeContext: codeContext,
@@ -1233,105 +1021,7 @@ const AIChat: React.FC = () => {
     ) => {
         console.log("Add to integration called. Command: ", command);
         setIsAddingToWorkspace(true);
-
-        try {
-            const fileChanges: FileChanges[] = [];
-            for (let { segmentText, filePath } of codeSegments) {
-                let originalContent = "";
-                if (!tempStorage[filePath]) {
-                    try {
-                        originalContent = await rpcClient.getAiPanelRpcClient().getFromFile({ filePath: filePath });
-                        setTempStorage((prev) => ({ ...prev, [filePath]: originalContent }));
-                        if (originalContent === "") {
-                            setEmptyFiles((prev) => new Set([...prev, filePath]));
-                        } else {
-                            setInitialFiles((prev) => new Set([...prev, filePath]));
-                        }
-                    } catch (error) {
-                        setTempStorage((prev) => ({ ...prev, [filePath]: "" }));
-                    }
-                }
-
-                if (command === "ai_map") {
-                    const matchingFile = filePaths?.find(file => {
-                        const filePathName = file.filePath.split('/').pop();
-                        return filePathName === filePath;
-                    });
-                    segmentText = matchingFile.content
-                } else if (command === "test" || command === "type_creator") {
-                    segmentText = `${originalContent}\n\n${segmentText}`;
-                } else {
-                    segmentText = `${segmentText}`;
-                }
-
-                let isTestCode = false;
-                if (command === "test") {
-                    isTestCode = true;
-                }
-
-                fileChanges.push({ filePath, content: segmentText });
-            }
-
-            if (fileChanges.length > 0) {
-                await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
-            }
-
-            const developerMdContent = await rpcClient.getAiPanelRpcClient().readDeveloperMdFile(chatLocation);
-            const updatedChatHistory = generateChatHistoryForSummarize(chatArray);
-            setIsCodeAdded(true);
-            setIsAddingToWorkspace(false);
-
-            if (await rpcClient.getAiPanelRpcClient().isNaturalProgrammingDirectoryExists(chatLocation)) {
-                fetchWithAuth({
-                    url: backendRootUri + "/prompt/summarize",
-                    method: "POST",
-                    body: { chats: updatedChatHistory, existingChatSummary: developerMdContent },
-                    rpcClient: rpcClient,
-                })
-                    .then(async (response) => {
-                        const chatSummaryResponseStr = await streamToString(response.body);
-                        await rpcClient
-                            .getAiPanelRpcClient()
-                            .addChatSummary({ summary: chatSummaryResponseStr, filepath: chatLocation })
-                            .then(() => {
-                                previouslyIntegratedChatIndex = integratedChatIndex;
-                                integratedChatIndex = chatArray.length;
-                                localStorage.setItem(
-                                    `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-                                    JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-                                );
-                                previousDevelopmentDocumentContent = developerMdContent;
-                            })
-                            .catch((error: any) => {
-                                rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
-                            });
-                    })
-                    .catch((error: any) => {
-                        rpcClient.getAiPanelRpcClient().handleChatSummaryError(UPDATE_CHAT_SUMMARY_FAILED);
-                    });
-            }
-        } catch (error) {
-            console.error("Error in handleAddAllCodeSegmentsToWorkspace:", error);
-            setIsAddingToWorkspace(false);
-            throw error;
-        }
     };
-
-    async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
-        const reader = stream.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let result = "";
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-            result += decoder.decode(value, { stream: true });
-        }
-
-        return result;
-    }
 
     const handleRevertChanges = async (
         codeSegments: any,
@@ -1340,50 +1030,6 @@ const AIChat: React.FC = () => {
     ) => {
         console.log("Revert gration called. Command: ", command);
         setIsAddingToWorkspace(true);
-
-        try {
-            const fileChanges: FileChanges[] = [];
-            for (const { filePath } of codeSegments) {
-                let originalContent = tempStorage[filePath];
-                if (originalContent === "" && !initialFiles.has(filePath) && !emptyFiles.has(filePath)) {
-                    // Delete the file if it didn't initially exist in the workspace
-                    try {
-                        await rpcClient.getAiPanelRpcClient().deleteFromProject({ filePath: filePath });
-                    } catch (error) {
-                        console.error(`Error deleting file ${filePath}:`, error);
-                    }
-                } else {
-                    let isTestCode = false;
-                    if (command === "test") {
-                        isTestCode = true;
-                    }
-                    const revertContent = emptyFiles.has(filePath) ? "" : originalContent;
-                    fileChanges.push({ filePath, content: revertContent });
-                }
-            }
-            if (fileChanges.length > 0) {
-                await rpcClient.getAiPanelRpcClient().addFilesToProject({ fileChanges });
-            }
-            rpcClient.getAiPanelRpcClient().updateDevelopmentDocument({
-                content: previousDevelopmentDocumentContent,
-                filepath: chatLocation,
-            });
-            integratedChatIndex = previouslyIntegratedChatIndex;
-            // TODO: Need to be removed and move chat history to statemachine fully
-            localStorage.setItem(
-                `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-                JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-            );
-            setTempStorage({});
-            setInitialFiles(new Set<string>());
-            setEmptyFiles(new Set<string>());
-            setIsCodeAdded(false);
-            setIsAddingToWorkspace(false);
-        } catch (error) {
-            console.error("Error in handleRevertChanges:", error);
-            setIsAddingToWorkspace(false);
-            throw error;
-        }
     };
 
     async function processTestGeneration(
@@ -1508,14 +1154,12 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             throw error;
         }
-        addChatEntry("user", message);
-        addChatEntry("assistant", formatted_response);
     }
 
     async function processHealthcareCodeGeneration(useCase: string, message: string) {
         const requestBody: GenerateCodeRequest = {
             usecase: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
             fileAttachmentContents: [],
             operationType: CodeGenerationType.CODE_GENERATION,
         };
@@ -1525,7 +1169,7 @@ const AIChat: React.FC = () => {
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
         const requestBody: any = {
             query: useCase,
-            chatHistory: chatArray,
+            chatHistory: [],
         };
 
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
@@ -1533,7 +1177,7 @@ const AIChat: React.FC = () => {
 
     async function processDesignGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
-            type: AIChatMachineEventType.SUBMIT_PROMPT,
+            type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT,
             payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
         });
     }
@@ -1553,19 +1197,8 @@ const AIChat: React.FC = () => {
     }
 
     function handleClearChat(): void {
-        codeBlocks.length = 0;
-        chatArray.length = 0;
-        integratedChatIndex = 0;
-        previouslyIntegratedChatIndex = 0;
-        localStorage.setItem(
-            `chatArray-AIGenerationChat-${projectUuid}-developer-index`,
-            JSON.stringify({ integratedChatIndex, previouslyIntegratedChatIndex })
-        );
-
         setMessages((prevMessages) => []);
         setApprovalRequest(null);
-
-        localStorage.removeItem(`chatArray-AIGenerationChat-${projectUuid}`);
 
         rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
     }
@@ -1587,10 +1220,10 @@ const AIChat: React.FC = () => {
 
     const questionMessages = messages.filter((message) => message.type === "question");
     if (questionMessages.length > 0) {
-        localStorage.setItem(
-            `Question-AIGenerationChat-${projectUuid}`,
-            questionMessages[questionMessages.length - 1].content
-        );
+        // localStorage.setItem(
+        //     `Question-AIGenerationChat-${projectUuid}`,
+        //     questionMessages[questionMessages.length - 1].content
+        // );
     }
     const otherMessages = messages.filter((message) => message.type !== "question");
     useEffect(() => {
@@ -1616,12 +1249,6 @@ const AIChat: React.FC = () => {
                 ...prevState,
                 testPlan: newContent,
             }));
-
-            // Update the memory as well
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1655,17 +1282,7 @@ const AIChat: React.FC = () => {
                     ...prevState,
                     testPlan: newContent,
                 }));
-
-                updateChatEntry(chatArray.length - 1, {
-                    actor: "assistant",
-                    message: newContent,
-                });
             }
-
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1692,12 +1309,6 @@ const AIChat: React.FC = () => {
                 ...prevState,
                 testPlan: updatedContent,
             }));
-
-            // Update the memory as well
-            updateChatEntry(chatArray.length - 1, {
-                actor: "assistant",
-                message: newMessages[newMessages.length - 1].content,
-            });
 
             return newMessages;
         });
@@ -1744,7 +1355,6 @@ const AIChat: React.FC = () => {
                         /<button type="save_documentation">Save Documentation<\/button>/g,
                         '<button type="documentation_saved">Saved</button>'
                     );
-                    addChatEntry("assistant", messages[messages.length - 1].content);
                 }
                 return newMessages;
             });
@@ -1780,7 +1390,8 @@ const AIChat: React.FC = () => {
 
         await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
             diagnostics: currentDiagnostics,
-            assistantResponse: messages[messages.length - 1].content,
+            assistantResponse: messages[messages.length - 1].content, // XML format with code blocks
+            updatedFileNames: [], // Will be determined from parsed XML
             previousMessages: messagesRef.current,
         });
     };
@@ -1848,22 +1459,26 @@ const AIChat: React.FC = () => {
                         </Badge>
                         <div>State: {aiChatStateMachineState}</div>
                         <HeaderButtons>
-                            <Button
-                                appearance="icon"
-                                onClick={handleTogglePlanMode}
-                                tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
-                            >
-                                <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
-                                &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
-                            </Button>
-                            <Button
-                                appearance="icon"
-                                onClick={handleToggleAutoApprove}
-                                tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
-                            >
-                                <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
-                            </Button>
+                            {isExperimentalEnabled && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={handleTogglePlanMode}
+                                    tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
+                                >
+                                    <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
+                                    &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
+                                </Button>
+                            )}
+                            {isExperimentalEnabled && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={handleToggleAutoApprove}
+                                    tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
+                                >
+                                    <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
+                                    &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
+                                </Button>
+                            )}
                             <Button
                                 appearance="icon"
                                 onClick={() => handleClearChat()}
@@ -1884,12 +1499,10 @@ const AIChat: React.FC = () => {
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}
                         {otherMessages.map((message, index) => {
-                            const showGeneratingFiles = !codeSegmentRendered && index === currentGeneratingPromptIndex;
                             const isLastResponse = index === currentGeneratingPromptIndex;
                             const isAssistantMessage = message.role === "Copilot";
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
-                            codeSegmentRendered = false;
 
                             const segmentedContent = splitContent(message.content);
                             const areTestsGenerated = segmentedContent.some(
@@ -1952,14 +1565,14 @@ const AIChat: React.FC = () => {
                                                     <CodeSection
                                                         key={i}
                                                         codeSegments={codeSegments}
-                                                        loading={isLoading && showGeneratingFiles}
+                                                        loading={isLoading}
                                                         handleAddAllCodeSegmentsToWorkspace={
                                                             handleAddAllCodeSegmentsToWorkspace
                                                         }
                                                         handleRevertChanges={handleRevertChanges}
                                                         isReady={!isCodeLoading}
                                                         message={message}
-                                                        buttonsActive={showGeneratingFiles}
+                                                        buttonsActive={true}
                                                         isSyntaxError={isContainsSyntaxError(
                                                             currentDiagnosticsRef.current
                                                         )}
@@ -2183,410 +1796,3 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
-
-export function replaceCodeBlocks(originalResp: string, newResp: string): string {
-    // Create a map to store new code blocks by filename
-    const newCodeBlocks = new Map<string, string>();
-
-    // Extract code blocks from newResp
-    const newCodeRegex = /<code filename="(.+?)">\s*```ballerina\s*([\s\S]*?)```\s*<\/code>/g;
-    let match;
-    while ((match = newCodeRegex.exec(newResp)) !== null) {
-        newCodeBlocks.set(match[1], match[2].trim());
-    }
-
-    // Replace code blocks in originalResp
-    const updatedResp = originalResp.replace(
-        /<code filename="(.+?)">\s*```ballerina\s*([\s\S]*?)```\s*<\/code>/g,
-        (match, filename, content) => {
-            const newContent = newCodeBlocks.get(filename);
-            if (newContent !== undefined) {
-                return `<code filename="${filename}">\n\`\`\`ballerina\n${newContent}\n\`\`\`\n</code>`;
-            }
-            return match; // If no new content, keep the original
-        }
-    );
-
-    // Remove replaced code blocks from newCodeBlocks
-    const originalCodeRegex = /<code filename="(.+?)">/g;
-    while ((match = originalCodeRegex.exec(originalResp)) !== null) {
-        newCodeBlocks.delete(match[1]);
-    }
-
-    // Append any remaining new code blocks
-    let finalResp = updatedResp;
-    newCodeBlocks.forEach((content, filename) => {
-        finalResp += `\n\n<code filename="${filename}">\n\`\`\`ballerina\n${content}\n\`\`\`\n</code>`;
-    });
-
-    return finalResp;
-}
-
-function extractRecordTypes(typesCode: string): { name: string; code: string }[] {
-    const recordPattern = /\b(?:public|private)?\s*type\s+(\w+)\s+record\s+(?:{[|]?|[|]?{)[\s\S]*?;?\s*[}|]?;/g;
-    const matches = [...typesCode.matchAll(recordPattern)];
-    return matches.map((match) => ({
-        name: match[1],
-        code: match[0].trim(),
-    }));
-}
-interface ContentBlock {
-    delta: ContentBlockDeltaBody;
-}
-
-// Define the different event body types
-interface ContentBlockDeltaBody {
-    text: string;
-}
-
-interface OtherEventBody {
-    // Define properties for other event types as needed
-    [key: string]: any;
-}
-
-// Define the SSEEvent type with a discriminated union for the body
-type SSEEvent = { event: "content_block_delta"; body: ContentBlock } | { event: string; body: OtherEventBody };
-
-/**
- * Parses a chunk of text to extract the SSE event and body.
- * @param chunk - The chunk of text from the SSE stream.
- * @returns The parsed SSE event containing the event name and body (if present).
- * @throws Will throw an error if the data field is not valid JSON.
- */
-export function parseSSEEvent(chunk: string): SSEEvent {
-    let event: string | undefined;
-    let body: any;
-
-    chunk.split("\n").forEach((line) => {
-        if (line.startsWith("event: ")) {
-            event = line.slice(7);
-        } else if (line.startsWith("data: ")) {
-            try {
-                body = JSON.parse(line.slice(6));
-            } catch (e) {
-                throw new Error("Invalid JSON data in SSE event");
-            }
-        }
-    });
-
-    if (!event) {
-        throw new Error("Event field is missing in SSE event");
-    }
-
-    if (event === "content_block_delta") {
-        return { event, body: body as ContentBlockDeltaBody };
-    } else if (event === "functions") {
-        return { event, body: body };
-    } else {
-        return { event, body: body as OtherEventBody };
-    }
-}
-
-export function getProjectFromResponse(req: string): ProjectSource {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(req)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({ filePath, content: fileContent });
-    }
-
-    return { sourceFiles, projectName: "" };
-}
-
-export enum SegmentType {
-    Code = "Code",
-    Text = "Text",
-    Progress = "Progress",
-    ToolCall = "ToolCall",
-    Todo = "Todo",
-    Attachment = "Attachment",
-    InlineCode = "InlineCode",
-    References = "References",
-    TestScenario = "TestScenario",
-    Button = "Button",
-    SpecFetcher = "SpecFetcher",
-}
-
-interface Segment {
-    type: SegmentType;
-    language?: string;
-    loading: boolean;
-    text: string;
-    fileName?: string;
-    command?: string;
-    failed?: boolean;
-    [key: string]: any;
-}
-
-function getCommand(command: string) {
-    if (!command) {
-        return "code";
-    } else {
-        return command.replaceAll(/"/g, "");
-    }
-}
-
-function splitHalfGeneratedCode(content: string): Segment[] {
-    const segments: Segment[] = [];
-    // Regex to capture filename and optional test attribute
-    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
-    let match;
-    let lastIndex = 0;
-
-    while ((match = regex.exec(content)) !== null) {
-        const [fullMatch, fileName, type, language, code] = match;
-        if (match.index > lastIndex) {
-            // Non-code segment before the current code block
-            segments.push({
-                type: SegmentType.Text,
-                loading: false,
-                text: content.slice(lastIndex, match.index),
-                command: getCommand(type),
-            });
-        }
-
-        // Code segment
-        segments.push({
-            type: SegmentType.Code,
-            language: language,
-            loading: true,
-            text: code,
-            fileName: fileName,
-            command: getCommand(type),
-        });
-
-        lastIndex = regex.lastIndex;
-    }
-
-    if (lastIndex < content.length) {
-        // Remaining non-code segment after the last code block
-        segments.push({
-            type: SegmentType.Text,
-            loading: false,
-            text: content.slice(lastIndex),
-        });
-    }
-
-    return segments;
-}
-
-export function splitContent(content: string): Segment[] {
-    const segments: Segment[] = [];
-
-    // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
-    const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
-    let match;
-    let lastIndex = 0;
-
-    function updateLastProgressSegmentLoading(failed: boolean = false) {
-        const lastSegment = segments[segments.length - 1];
-        if (lastSegment && (lastSegment.type === SegmentType.Progress || lastSegment.type === SegmentType.ToolCall)) {
-            lastSegment.loading = false;
-            lastSegment.failed = failed;
-        }
-    }
-
-    while ((match = regex.exec(content)) !== null) {
-        // Handle text before the current match
-        if (match.index > lastIndex) {
-            updateLastProgressSegmentLoading();
-
-            const textSegment = content.slice(lastIndex, match.index);
-            segments.push(...splitHalfGeneratedCode(textSegment));
-        }
-
-        if (match[1]) {
-            // <code> block matched
-            const fileName = match[1];
-            const type = match[2];
-            const language = match[3];
-            const code = match[4];
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.Code,
-                loading: false,
-                text: code,
-                fileName: fileName,
-                language: language,
-                command: getCommand(type),
-            });
-        } else if (match[5]) {
-            // <progress> block matched
-            const progressText = match[5];
-
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.Progress,
-                loading: true,
-                text: progressText,
-            });
-        } else if (match[6]) {
-            // <toolcall> block matched
-            const toolcallText = match[6];
-
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.ToolCall,
-                loading: true,
-                text: toolcallText,
-            });
-        } else if (match[7]) {
-            // <todo> block matched
-            const todoData = match[7];
-
-            updateLastProgressSegmentLoading();
-            try {
-                const parsedData = JSON.parse(todoData);
-                segments.push({
-                    type: SegmentType.Todo,
-                    loading: false,
-                    text: "",
-                    tasks: parsedData.tasks || [],
-                    message: parsedData.message || ""
-                });
-            } catch (error) {
-                // If parsing fails, show as text
-                console.error("Failed to parse todo data:", error);
-            }
-        } else if (match[8]) {
-            // <attachment> block matched
-            const attachmentName = match[8].trim();
-
-            updateLastProgressSegmentLoading();
-
-            const existingAttachmentSegment = segments.find((segment) => segment.type === SegmentType.Attachment);
-
-            if (existingAttachmentSegment) {
-                existingAttachmentSegment.text += `, ${attachmentName}`;
-            } else {
-                segments.push({
-                    type: SegmentType.Attachment,
-                    loading: false,
-                    text: attachmentName,
-                });
-            }
-        } else if (match[9]) {
-            // <scenario> block matched
-            const scenarioContent = match[9].trim();
-
-            updateLastProgressSegmentLoading(true);
-            segments.push({
-                type: SegmentType.TestScenario,
-                loading: false,
-                text: scenarioContent,
-            });
-        } else if (match[10]) {
-            // <button> block matched
-            const buttonType = match[10].trim();
-            const buttonContent = match[11].trim();
-
-            updateLastProgressSegmentLoading(true);
-            segments.push({
-                type: SegmentType.Button,
-                loading: false,
-                text: buttonContent,
-                buttonType: buttonType,
-            });
-        } else if (match[12]) {
-            segments.push({
-                type: SegmentType.InlineCode,
-                text: match[12].trim(),
-                loading: false,
-            });
-        } else if (match[13]) {
-            segments.push({
-                type: SegmentType.References,
-                text: match[13].trim(),
-                loading: false,
-            });
-        } else if (match[14]) {
-            // <connectorgenerator> block matched
-            const connectorData = match[14];
-
-            updateLastProgressSegmentLoading();
-            try {
-                const parsedData = JSON.parse(connectorData);
-                segments.push({
-                    type: SegmentType.SpecFetcher,
-                    loading: false,
-                    text: "",
-                    specData: parsedData
-                });
-            } catch (error) {
-                // If parsing fails, show as text
-                console.error("Failed to parse connector generator data:", error);
-            }
-        }
-
-        // Update lastIndex to the end of the current match
-        lastIndex = regex.lastIndex;
-    }
-
-    // Handle any remaining text after the last match
-    if (lastIndex < content.length) {
-        updateLastProgressSegmentLoading();
-
-        const remainingText = content.slice(lastIndex);
-        segments.push(...splitHalfGeneratedCode(remainingText));
-    }
-
-    return segments;
-}
-function generateChatHistoryForSummarize(chatArray: ChatEntry[]): ChatEntry[] {
-    return chatArray
-        .slice(integratedChatIndex)
-        .filter(
-            (chatEntry) =>
-                chatEntry.actor.toLowerCase() == "user" &&
-                chatEntry.isCodeGeneration &&
-                !chatEntry.message.includes(GENERATE_TEST_AGAINST_THE_REQUIREMENT) &&
-                !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_REQUIREMENT) &&
-                !chatEntry.message.includes(GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED)
-        );
-}
-
-function transformProjectSource(project: ProjectSource): SourceFiles[] {
-    const sourceFiles: SourceFiles[] = [];
-    project.sourceFiles.forEach((file) => {
-        sourceFiles.push({
-            filePath: file.filePath,
-            content: file.content,
-        });
-    });
-    project.projectModules?.forEach((module) => {
-        let basePath = "";
-        if (!module.isGenerated) {
-            basePath += "modules/";
-        } else {
-            basePath += "generated/";
-        }
-
-        basePath += module.moduleName + "/";
-        // const path =
-        module.sourceFiles.forEach((file) => {
-            sourceFiles.push({
-                filePath: basePath + file.filePath,
-                content: file.content,
-            });
-        });
-    });
-    return sourceFiles;
-}
-
-function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {
-    return diagnostics.some((diag) => {
-        if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
-            const match = diag.code.match(/^BCE(\d+)$/);
-            if (match) {
-                const codeNumber = Number(match[1]);
-                if (codeNumber < 2000) {
-                    return true;
-                }
-            }
-        }
-    });
-}

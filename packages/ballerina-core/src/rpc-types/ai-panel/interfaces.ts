@@ -54,7 +54,9 @@ export interface ProjectSource {
     projectModules?: ProjectModule[];
     projectTests?: SourceFile[];
     sourceFiles: SourceFile[];
-    projectName: string;
+    projectName: string; // Actual package name from package's Ballerina.toml (e.g., "mypackage")
+    packagePath: string; // Relative path from workspace root (e.g., "package1", "packages/foo"), empty string for non-workspace
+    isActive: boolean; // True if this is the currently active package in the workspace
 }
 
 export interface ProjectModule {
@@ -119,7 +121,7 @@ export interface ProjectImports {
 // Data-mapper related interfaces
 export interface MetadataWithAttachments {
     metadata: ExtendedDataMapperMetadata;
-    attachments?: Attachment[];
+    attachments: Attachment[];
 }
 
 export interface InlineMappingsSourceResult {
@@ -168,7 +170,7 @@ export interface DataMappingRecord {
 }
 
 export interface GenerateTypesFromRecordRequest {
-    attachment?: Attachment[]
+    attachment: Attachment[]
 }
 
 export interface GenerateTypesFromRecordResponse {
@@ -272,11 +274,12 @@ export interface DocumentationGeneratorIntermediaryState {
 }
 
 export interface PostProcessRequest {
-    assistant_response: string;
+    sourceFiles: SourceFile[];
+    updatedFileNames: string[];
 }
 
 export interface PostProcessResponse {
-    assistant_response: string;
+    sourceFiles: SourceFile[];
     diagnostics: ProjectDiagnostics;
 }
 
@@ -399,19 +402,17 @@ export interface GenerateAgentCodeRequest {
     codeContext?: CodeContext;
 }
 
-export interface SourceFiles {
-    filePath: string;
-    content: string;
-}
-
 export interface RepairParams {
     previousMessages: any[];
-    assistantResponse: string;
+    assistantResponse?: string; // XML format with code blocks
+    sourceFiles?: SourceFile[]; // Optional: parsed from assistantResponse if not provided
+    updatedFileNames: string[];
     diagnostics: DiagnosticEntry[];
 }
 
 export interface RepairResponse {
-    repairResponse: string;
+    sourceFiles: SourceFile[];
+    updatedFileNames: string[];
     diagnostics: DiagnosticEntry[];
 }
 

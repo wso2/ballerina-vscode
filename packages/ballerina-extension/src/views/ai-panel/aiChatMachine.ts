@@ -19,122 +19,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { createMachine, assign, interpret } from 'xstate';
 import { extension } from '../../BalExtensionContext';
-import * as crypto from 'crypto';
-import * as path from 'path';
-import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, ChatMessage, Plan, Task, TaskStatus, UIChatHistoryMessage, Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
-import { workspace } from 'vscode';
-import { GenerateAgentCodeRequest, CodeContext } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
+import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, TaskStatus, Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
+import { GenerateAgentCodeRequest, SourceFile } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 import { generateDesign } from '../../features/ai/service/design/design';
 import { captureWorkspaceSnapshot, restoreWorkspaceSnapshot } from './checkpoint/checkpointUtils';
 import { getCheckpointConfig } from './checkpoint/checkpointConfig';
 import { notifyCheckpointCaptured } from '../../RPCLayer';
+import { StateMachine } from '../../stateMachine';
 
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-/**
- * Generates a unique project identifier based on the workspace root path
- * @returns A UUID string for the current project
- */
-export const generateProjectId = (): string => {
-    const workspaceFolders = workspace.workspaceFolders;
-
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-        // Fallback for when no workspace is open
-        return 'default-project';
-    }
-
-    // Use the first workspace folder path to generate a consistent UUID
-    const workspacePath = workspaceFolders[0].uri.fsPath;
-
-    // Create a hash of the workspace path for consistent project ID
-    const hash = crypto.createHash('sha256');
-    hash.update(workspacePath);
-    const projectHash = hash.digest('hex').substring(0, 16);
-
-    return `project-${projectHash}`;
-};
-
-/**
- * Normalizes codeContext to use relative paths from workspace root
- * @param codeContext The code context with potentially absolute file path
- * @returns CodeContext with relative file path, or undefined if input is undefined
- */
-const normalizeCodeContext = (codeContext?: CodeContext): CodeContext | undefined => {
-    if (!codeContext) {
-        return undefined;
-    }
-
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-        return codeContext;
-    }
-
-    const workspaceRoot = workspaceFolders[0].uri.fsPath;
-    const absolutePath = path.isAbsolute(codeContext.filePath)
-        ? codeContext.filePath
-        : path.join(workspaceRoot, codeContext.filePath);
-
-    // Convert to relative path from workspace root
-    const relativePath = path.relative(workspaceRoot, absolutePath);
-
-    if (codeContext.type === 'addition') {
-        return {
-            type: 'addition',
-            position: codeContext.position,
-            filePath: relativePath
-        };
-    } else {
-        return {
-            type: 'selection',
-            startPosition: codeContext.startPosition,
-            endPosition: codeContext.endPosition,
-            filePath: relativePath
-        };
-    }
-};
-
-const addUserMessage = (
-    history: ChatMessage[],
-    content: string
-): ChatMessage[] => {
-    const lastMessage = history[history.length - 1];
-    const baseHistory = lastMessage && !lastMessage.uiResponse && lastMessage.modelMessages.length === 0
-        ? history.slice(0, -1)
-        : history;
-
-    return [
-        ...baseHistory,
-        {
-            id: generateId(),
-            content,
-            uiResponse: '',
-            modelMessages: [],
-            timestamp: Date.now(),
-        },
-    ];
-};
-
-const updateChatMessage = (
-    history: ChatMessage[],
-    id: string,
-    updates: {
-        uiResponse?: string;
-        modelMessages?: any[];
-    }
-): ChatMessage[] => {
-    return history.map(msg => {
-        if (msg.id === id) {
-            return {
-                ...msg,
-                uiResponse: updates.uiResponse !== undefined ? updates.uiResponse : msg.uiResponse,
-                modelMessages: updates.modelMessages !== undefined ? updates.modelMessages : msg.modelMessages,
-            };
-        }
-        return msg;
-    });
-};
+// Extracted utilities
+import { generateProjectId, generateSessionId } from './idGenerators';
+import { addUserMessage, updateChatMessage, convertChatHistoryToModelMessages, convertChatHistoryToUIMessages } from './chatHistoryUtils';
+import { saveChatState, loadChatState, clearChatState, clearChatStateAction, getAllProjectIds, clearAllChatStates, getChatStateMetadata } from './chatStatePersistence';
+import { normalizeCodeContext } from './codeContextUtils';
 
 const cleanupOldCheckpoints = (checkpoints: Checkpoint[]): Checkpoint[] => {
     const config = getCheckpointConfig();
@@ -142,6 +39,20 @@ const cleanupOldCheckpoints = (checkpoints: Checkpoint[]): Checkpoint[] => {
         return checkpoints;
     }
     return checkpoints.slice(-config.maxCount);
+};
+
+// Temp project management removed from state machine
+// Each service (design, datamapper) now manages its own temp directory
+
+/**
+ * Cleanup action - simplified since temp project management moved to services
+ */
+const cleanupAction = (context: AIChatMachineContext): void => {
+    // Clear any command execution state
+    context.commandType = undefined;
+    context.modifiedFiles = undefined;
+    context.commandParams = undefined;
+    saveChatState(context);
 };
 
 const captureCheckpointAction = (context: AIChatMachineContext) => {
@@ -197,8 +108,10 @@ const restoreCheckpointAction = (context: AIChatMachineContext, event: any) => {
     });
 };
 
+// integrateAndCleanupAction removed - integration and cleanup now handled by services
+
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
-    /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AwtmLQVAArqr4DEEA9vjB0CAN34BrYeWa0wnbgG0ADAF1EoAA79YuGrkEaQAD0QBmACxm6ZgJzKAbACZbTpwEYnZ97YA0IAE9EAHZg9zoADk8HZQBWW2DHC1iLAF9U-zRMHAJiUgpqeiYWfXwOLl4cbH5sOk0uGgAzGoBbOhkS+QqVdSQQbV19Qz7TBEtrO0cXN09vP0DECIdYuidl4KcLdwdgiPtY9MyMLDxCEjIqWjoAVU0IVjKFXgEhEXxxKToAVzu5J56jAM9AZ8EZRuMbPZnK4PF4fP4gghYhELHQoWYHLZYsEHO5YrEzIcQFkTrlzgUrrd7qVytweFUanUGs1sG0ftSuko1ICdMDhqBwVZIVMYbN4QsEDsIjZ4hYIqFgpZlMo0hlicccmd8pd6ABRYxgchfGkAFVQsAkfEEwjEkmEYANRpoYDNFoBfSBQ1BI3MQsm0JmcPmiKidAstgjtnD9lcZkcRJJmryF0KdH1huNbFdloZtXqtBZbQdGed2fdWl5XrBvomUOmsLmCMQ7mCqKx3nc3giUQcUWCCY1p2TFPoADECGAaF98FnzZaXjb3na6I0J1OhGXuR7KyDq2M-XXRUGm2NcZF4pYsRE1sjVUdskPyTq6OOhOvZxb6dhqnnma0V2u04unO5b9Du-ImDWwoBg24qIms0oWFM3hmBEKSdoSRL4PwEBwEYiaPtqhQ8oMu4+ggRBmNYiSxEkeLuHsSGxCeRArJGEZOPKtF2O4cQDg+ZJEVcACSEBYCRfLegKzadqsDHBLE7jbE42JKSe4ZOHQnacS416Yg4yQHGqBGCSmVzFA8tJSWBpEQaM7ioi44ZmLeURxFiJ44ppyqxF4yhLDETitvxpJamZ9BPAASmAoi4GAADuElVuR6E2FYOIRGYwRQnBiDxIhDjOIqqH2N2d7qgJYUjjcvw0k8SVkdJSK2GiUwWBYQVbBsYQnvEwR0A4ZhOT52L4u4IVJk+qbpk6H4SA1dmIMkdAEvszgMVGjhmCeaErfl14ooNPhWBNhHhXQACC8WkDS1ywDgF3kMlFa2dZoypeMGVZTlwbNteYbZb2sp2IN+KnaZ1WvpO05zQtb1LU4J6ceE2kKVlWy8di4NVc+ACKXxwF6bB3TgcN7iiNhDcoazZT4g2OCeqEOANQ1LCDth7INmH3qFw7Pgw-AtPUk6QGT5EU1RTjUzsth03GDg7fYdDKDxHVxoqnZGTzk1CXq341GLTUfelvbfY4uUIIk-XIjEVEdTe8bpKkQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AogB5jkCuNBUAIragLaoADkJwBiCAHt8YOgQBukgNaywLdjTC8aA4aOwBtAAwBdRKCGTYuTtPMgmiACwBmABx0jXrwE4jfgEYAdgCAJgA2ABoQAE9EAFYjDwCjcLcncL8jYPiAX1zotEwcAmJSCmp6ZlYOLm1dEXEcbElsOiF0WgAzVv46NRrNesFGw1N7S2tbfHtHBFcPb19-bJCI6LiEcIi6cNS3UODgo1cA-IKQfEkIOHsirDxCEjIqWgmrG1w7JAdEIijYn9wvlChgHqVnhVaHQAJIQLDvKZfGY-OYBPZ0eKhFyuIKZeIBAI4pwbRBhNzxOhOHw0txuFwBLERYEXe4lJ7lV70ADiYBk2FoXAACp0URYPtNZs5QqStuEAp5vEEnAEnEEfKE3CzQcVHmUXpU6CLUPgAEpgeS4MAAd0Rn2+oDRDN2LnCQVCiRxbndPhJgIQbgV1JpPjcRiCWviPhcoRBIDZeshXLoAEERC15JBjWKQJN7TmnQrwq73Z6nN7Qr7ZQFvYqvEdi3iDi44wmIZzDdUNFwACqoWBKO2S1Fk53Ft0eoxen1+zaE+IuOghnxu8JOUJBTduVtg9n6qFVdS1fA8PgjfRD5FS+ZOOhBeIRnFeLcxlyyz2YpVOFV+HzxJw7rq7YGtCfYDualo2peDq-AgRJFiWk7TpWs6IJWoSfl4rqhOW3ruoB4IciB9BpkIGaQGBg4-Hmw6OqOCETmWFZVv6vqLksAR-iu7jBARe5Joa5oAFasJoECUdBBb0S6jFTuWM6yi4oZ1kY8QLi4Slat+fGJh20IAMKSPwHRgGJknXm6Cp-gyEQRFGOSytSi7xPSThJPZlYMjpwEHkaqDYJwYIxIZxlYGZ1ESleI5wWOiFMQp-opOWVIhuWal4pk3lEb5ADqpCcCeABirSGfgMjkDQrQAMqiOQ5nRYSQR0MEK4aiq5ZeASsr0k1iRLASYTukEWX7smDDYC02D1XRWwhEuC5hNs4T2fesrbJSSRPm6MYRmu5y5EAA */
     id: "ballerina-ai-chat",
     initial: "Idle",
     predictableActionArguments: true,
@@ -214,18 +127,45 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         autoApproveEnabled: false,
         previousState: undefined,
         currentSpec: undefined,
-        isPlanMode: true,
+        isPlanMode: false,
         checkpoints: [],
     } as AIChatMachineContext,
     on: {
-        [AIChatMachineEventType.SUBMIT_PROMPT]: {
-            target: "Initiating",
+        [AIChatMachineEventType.SUBMIT_DESIGN_PROMPT]: {
+            target: "GeneratingPlan",
             actions: [
                 assign({
+                    generationType: () => 'design' as const,
                     chatHistory: (ctx, event) => addUserMessage(ctx.chatHistory, event.payload.prompt),
                     errorMessage: (_ctx) => undefined,
-                    isPlanMode: (_ctx, event) => event.payload.isPlanMode,
+                    isPlanMode: (_ctx, event) => {
+                        const isExperimentalEnabled = extension.ballerinaExtInstance?.enabledExperimentalFeatures() ?? false;
+                        if (event.payload.isPlanMode && !isExperimentalEnabled) {
+                            console.log('[AIChatMachine] Plan mode requested but experimental features are disabled. Setting isPlanMode to false.');
+                            return false;
+                        }
+                        return event.payload.isPlanMode;
+                    },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
+                }),
+                "captureCheckpoint",
+            ],
+        },
+        [AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST]: {
+            target: "ExecutingDatamapper",
+            actions: [
+                assign({
+                    generationType: () => 'datamapper' as const,
+                    chatHistory: (ctx, event) => addUserMessage(
+                        ctx.chatHistory,
+                        event.payload.userMessage || `Generate ${event.payload.datamapperType} mapping`
+                    ),
+                    errorMessage: (_ctx) => undefined,
+                    commandType: () => 'datamapper',
+                    commandParams: (_ctx, event) => ({
+                        datamapperType: event.payload.datamapperType,
+                        params: event.payload.params
+                    }),
                 }),
                 "captureCheckpoint",
             ],
@@ -325,21 +265,15 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 projectId: (_ctx) => generateProjectId(),
             }),
         },
-        //TODO : Optional state we can remove if not needed. its just to show that generation is starting.
-        Initiating: {
-            entry: "saveChatState",
-            invoke: {
-                id: "startGeneration",
-                src: "startGeneration",
-            },
-            on: {
-                [AIChatMachineEventType.PLANNING_STARTED]: {
-                    target: "GeneratingPlan",
-                },
-            },
-        },
         GeneratingPlan: {
-            entry: "saveChatState",
+            entry: [
+                "captureCheckpoint",
+                "saveChatState"
+            ],
+            invoke: {
+                id: "startDesignGeneration",
+                src: "startDesignGenerationService",
+            },
             on: {
                 [AIChatMachineEventType.PLAN_GENERATED]: {
                     target: "PlanReview",
@@ -416,6 +350,28 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                                 updatedAt: Date.now(),
                             };
                         },
+                    }),
+                },
+            },
+        },
+        ExecutingDatamapper: {
+            entry: [
+                "captureCheckpoint",
+                "saveChatState"
+            ],
+            invoke: {
+                id: "executeDatamapper",
+                src: "executeDatamapper",
+                onDone: {
+                    target: "Completed",
+                    actions: assign({
+                        modifiedFiles: (_ctx, event) => event.data.modifiedFiles,
+                    }),
+                },
+                onError: {
+                    target: "Error",
+                    actions: assign({
+                        errorMessage: (_ctx, event) => event.data?.message || 'Datamapper execution failed',
                     }),
                 },
             },
@@ -516,7 +472,10 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Completed: {
-            entry: "saveChatState",
+            entry: [
+                "cleanupAction",  // NEW: Just cleanup (integration done by services)
+                "saveChatState"
+            ],
         },
         PartiallyCompleted: {
             entry: "saveChatState",
@@ -539,18 +498,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                             console.log("[State Machine] PROVIDE_CONNECTOR_SPEC: previousState =", ctx.previousState);
                             return ctx.previousState === "GeneratingPlan";
                         },
-                        actions: assign({
-                            currentSpec: (ctx, event) => ({
-                                ...ctx.currentSpec,
-                                requestId: event.payload.requestId,
-                                spec: event.payload.spec,
-                                provided: true,
-                            }),
-                        }),
-                    },
-                    {
-                        target: "Initiating",
-                        cond: (ctx) => ctx.previousState === "Initiating",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
                                 ...ctx.currentSpec,
@@ -592,18 +539,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         }),
                     },
                     {
-                        target: "Initiating",
-                        cond: (ctx) => ctx.previousState === "Initiating",
-                        actions: assign({
-                            currentSpec: (ctx, event) => ({
-                                ...ctx.currentSpec,
-                                requestId: event.payload.requestId,
-                                skipped: true,
-                                comment: event.payload.comment,
-                            }),
-                        }),
-                    },
-                    {
                         target: "ExecutingTask",
                         actions: assign({
                             currentSpec: (ctx, event) => ({
@@ -618,6 +553,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             },
         },
         Error: {
+            entry: ["cleanupAction"],  // NEW: Cleanup temp on error
             on: {
                 [AIChatMachineEventType.RETRY]: [
                     {
@@ -643,44 +579,12 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
 });
 
 // Service implementations
-const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] => {
-    const messages: any[] = [];
 
-    for (const msg of chatHistory) {
-        if (msg.modelMessages && msg.modelMessages.length > 0) {
-            messages.push(...msg.modelMessages);
-        }
-    }
-
-    return messages;
-};
-
-const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
-    const messages: UIChatHistoryMessage[] = [];
-    const lastMessage = chatHistory[chatHistory.length - 1];
-    const historyToConvert = lastMessage && !lastMessage.uiResponse ? chatHistory.slice(0, -1) : chatHistory;
-
-    for (const msg of historyToConvert) {
-
-        messages.push({
-            role: 'user',
-            content: msg.content,
-            checkpointId: msg.checkpointId,
-            messageId: msg.id
-        });
-
-        if (msg.uiResponse) {
-            messages.push({
-                role: 'assistant',
-                content: msg.uiResponse
-            });
-        }
-    }
-
-    return messages;
-};
-
-const startGenerationService = async (context: AIChatMachineContext): Promise<void> => {
+/**
+ * Service to start design generation
+ * Each service now manages its own temp directory lifecycle
+ */
+const startDesignGenerationService = async (context: AIChatMachineContext): Promise<void> => {
     const lastMessage = context.chatHistory[context.chatHistory.length - 1];
     const usecase = lastMessage?.content;
     const previousHistory = context.chatHistory.slice(0, -1);
@@ -697,7 +601,7 @@ const startGenerationService = async (context: AIChatMachineContext): Promise<vo
     };
 
     generateDesign(requestBody).catch(error => {
-        console.error('[startGenerationService] Error:', error);
+        console.error('[startDesignGenerationService] Error:', error);
         chatStateService.send({
             type: AIChatMachineEventType.ERROR,
             payload: { message: error.message || 'Failed to generate plan' }
@@ -705,189 +609,73 @@ const startGenerationService = async (context: AIChatMachineContext): Promise<vo
     });
 };
 
-
-// State persistence functions
-const CHAT_STATE_STORAGE_KEY_PREFIX = 'ballerina.ai.chat.state';
-
 /**
- * Gets the storage key for the current project
- * @param projectId The project identifier
- * @returns The storage key for this project
+ * Service to execute datamapper operations
+ * Manages its own temp directory lifecycle
  */
-const getStorageKey = (projectId: string): string => {
-    return `${CHAT_STATE_STORAGE_KEY_PREFIX}.${projectId}`;
-};
-
-/**
- * Saves the chat state for the current project
- * @param context The chat machine context
- */
-const saveChatState = (context: AIChatMachineContext) => {
-    try {
-        if (!context.projectId) {
-            console.warn("No project ID available, skipping state save");
-            return;
-        }
-
-        const stateToSave = {
-            chatHistory: context.chatHistory,
-            currentPlan: context.currentPlan,
-            currentTaskIndex: context.currentTaskIndex,
-            sessionId: context.sessionId,
-            projectId: context.projectId,
-            checkpoints: context.checkpoints || [],
-            savedAt: Date.now(),
-        };
-
-        const storageKey = getStorageKey(context.projectId);
-        extension.context?.globalState.update(storageKey, stateToSave);
-
-        // Also save a list of all project IDs for management purposes
-        const allProjectIds =
-            extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
-        if (!allProjectIds.includes(context.projectId)) {
-            allProjectIds.push(context.projectId);
-            extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, allProjectIds);
-        }
-    } catch (error) {
-        console.error("Failed to save chat state:", error);
+const executeDatamapperService = async (context: AIChatMachineContext): Promise<{ modifiedFiles: string[] }> => {
+    if (!context.commandParams) {
+        throw new Error('No command parameters in context');
     }
-};
 
-/**
- * Clears the chat state for a specific project
- * @param context The chat machine context
- */
-const clearChatStateAction = (context: AIChatMachineContext) => {
-    try {
-        if (!context.projectId) {
-            console.warn('No project ID available, skipping state clear');
-            return;
-        }
+    const { datamapperType, params } = context.commandParams;
 
-        const storageKey = getStorageKey(context.projectId);
-        extension.context?.globalState.update(storageKey, undefined);
-        console.log(`Cleared chat state for project: ${context.projectId}`);
-    } catch (error) {
-        console.error('Failed to clear chat state:', error);
+    // Import datamapper functions dynamically
+    const {
+        generateMappingCode,
+        generateInlineMappingCode,
+        generateContextTypes
+    } = await import('../../features/ai/service/datamapper/datamapper');
+
+    let result: { modifiedFiles: string[], sourceFiles: SourceFile[] } | undefined;
+
+    // Execute the appropriate datamapper function
+    // Each function manages its own temp directory internally
+    switch (datamapperType) {
+        case 'function':
+            await generateMappingCode(params);
+            result = { modifiedFiles: [], sourceFiles: [] }; // No return from these functions
+            break;
+        case 'inline':
+            await generateInlineMappingCode(params);
+            result = { modifiedFiles: [], sourceFiles: [] };
+            break;
+        case 'contextTypes':
+            await generateContextTypes(params);
+            result = { modifiedFiles: [], sourceFiles: [] };
+            break;
+        default:
+            throw new Error(`Unknown datamapper type: ${datamapperType}`);
     }
-};
 
-/**
- * Loads the chat state for the current project
- * @param projectId Optional project ID. If not provided, uses current workspace
- * @returns The saved chat state or undefined
- */
-export const loadChatState = async (projectId?: string): Promise<AIChatMachineContext | undefined> => {
-    try {
-        const targetProjectId = projectId || generateProjectId();
-        const storageKey = getStorageKey(targetProjectId);
-        const savedState = extension.context?.globalState.get<AIChatMachineContext & { savedAt?: number }>(storageKey);
-
-        if (savedState) {
-            console.log(`Loaded chat state for project: ${targetProjectId}, saved at: ${savedState.savedAt ? new Date(savedState.savedAt).toISOString() : 'unknown'}`);
-        }
-
-        return savedState;
-    } catch (error) {
-        console.error('Failed to load chat state:', error);
-        return undefined;
-    }
-};
-
-/**
- * Clears the chat state for a specific project or current project
- * @param projectId Optional project ID. If not provided, uses current workspace
- */
-export const clearChatState = async (projectId?: string): Promise<void> => {
-    try {
-        const targetProjectId = projectId || generateProjectId();
-        const storageKey = getStorageKey(targetProjectId);
-        await extension.context?.globalState.update(storageKey, undefined);
-        console.log(`Cleared chat state for project: ${targetProjectId}`);
-    } catch (error) {
-        console.error('Failed to clear chat state:', error);
-    }
-};
-
-/**
- * Gets all project IDs that have saved chat states
- * @returns Array of project IDs
- */
-export const getAllProjectIds = async (): Promise<string[]> => {
-    try {
-        return extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
-    } catch (error) {
-        console.error('Failed to get project IDs:', error);
-        return [];
-    }
-};
-
-/**
- * Clears all chat states for all projects
- */
-export const clearAllChatStates = async (): Promise<void> => {
-    try {
-        const projectIds = await getAllProjectIds();
-
-        for (const projectId of projectIds) {
-            await clearChatState(projectId);
-        }
-
-        // Clear the projects list
-        await extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, []);
-        console.log('Cleared all chat states');
-    } catch (error) {
-        console.error('Failed to clear all chat states:', error);
-    }
-};
-
-/**
- * Gets metadata about saved chat states
- * @returns Array of project metadata
- */
-export const getChatStateMetadata = async (): Promise<Array<{
-    projectId: string;
-    workspacePath?: string;
-    savedAt?: number;
-    sessionId?: string;
-    taskCount?: number;
-}>> => {
-    try {
-        const projectIds = await getAllProjectIds();
-        const metadata = [];
-
-        for (const projectId of projectIds) {
-            const state = await loadChatState(projectId);
-            if (state) {
-                const savedState = state as AIChatMachineContext & { savedAt?: number };
-                metadata.push({
-                    projectId,
-                    savedAt: savedState.savedAt,
-                    sessionId: savedState.sessionId,
-                    taskCount: savedState.currentPlan?.tasks.length || 0,
-                });
+    // Update chat message
+    const lastMessage = context.chatHistory[context.chatHistory.length - 1];
+    if (lastMessage) {
+        chatStateService.send({
+            type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
+            payload: {
+                id: lastMessage.id,
+                uiResponse: `Datamapping (${datamapperType}) completed successfully`,
             }
-        }
-
-        return metadata;
-    } catch (error) {
-        console.error('Failed to get chat state metadata:', error);
-        return [];
+        });
     }
+
+    return { modifiedFiles: result.modifiedFiles };
 };
 
 // Create and export the state machine service
 const chatStateService = interpret(
     chatMachine.withConfig({
         services: {
-            startGeneration: startGenerationService
+            startDesignGenerationService: startDesignGenerationService,
+            executeDatamapper: executeDatamapperService,
         },
         actions: {
             saveChatState: (context) => saveChatState(context),
             clearChatState: (context) => clearChatStateAction(context),
             captureCheckpoint: (context) => captureCheckpointAction(context),
             restoreCheckpoint: (context, event) => restoreCheckpointAction(context, event),
+            cleanupAction: (context) => cleanupAction(context),
         },
     })
 );

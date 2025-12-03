@@ -35,20 +35,27 @@ import { TracerMachine } from "../tracing";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
-export async function prepareAndGenerateConfig(ballerinaExtInstance: BallerinaExtension, filePath: string, isCommand?: boolean, isBi?: boolean, executeRun: boolean = true, includeOptional: boolean = false): Promise<void> {
-    const currentProject: BallerinaProject | undefined = await getCurrentBIProject(filePath);
+export async function prepareAndGenerateConfig(
+    ballerinaExtInstance: BallerinaExtension,
+    projectPath: string,
+    isCommand?: boolean,
+    isBi?: boolean,
+    executeRun: boolean = true,
+    includeOptional: boolean = false
+): Promise<void> {
+    const currentProject: BallerinaProject | undefined = await getCurrentBIProject(projectPath);
     const ignoreFile = path.join(currentProject.path, ".gitignore");
     const configFile = path.join(currentProject.path, BAL_CONFIG_FILE);
 
     const hasWarnings = (
         await checkConfigUpdateRequired(
             ballerinaExtInstance,
-            filePath
+            projectPath
         )).hasWarnings;
 
     if (!hasWarnings) {
         if (!isCommand && executeRun) {
-            executeRunCommand(ballerinaExtInstance, filePath, isBi);
+            executeRunCommand(ballerinaExtInstance, projectPath, isBi);
         }
         return;
     }
@@ -56,12 +63,15 @@ export async function prepareAndGenerateConfig(ballerinaExtInstance: BallerinaEx
     await handleOnUnSetValues(currentProject.packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi);
 }
 
-export async function checkConfigUpdateRequired(ballerinaExtInstance: BallerinaExtension, filePath: string): Promise<{ hasWarnings: boolean }> {
+export async function checkConfigUpdateRequired(
+    ballerinaExtInstance: BallerinaExtension,
+    projectPath: string
+): Promise<{ hasWarnings: boolean }> {
     try {
         const showLibraryConfigVariables = ballerinaExtInstance.showLibraryConfigVariables();
 
         const response = await ballerinaExtInstance.langClient?.getConfigVariablesV2({
-            projectPath: filePath,
+            projectPath,
             includeLibraries: showLibraryConfigVariables !== false
         }) as ConfigVariableResponse;
 
@@ -141,8 +151,8 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    if (StateMachine.context().projectUri) {
-        projectPath = StateMachine.context().projectUri;
+    if (StateMachine.context().projectPath) {
+        projectPath = StateMachine.context().projectPath;
     }
 
     return await getCurrentBallerinaProject(projectPath);

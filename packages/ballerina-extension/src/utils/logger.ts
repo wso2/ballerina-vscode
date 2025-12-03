@@ -23,6 +23,7 @@ import os from 'os';
 import fs from 'fs';
 
 export const outputChannel = vscode.window.createOutputChannel("Ballerina");
+export const buildOutputChannel = vscode.window.createOutputChannel("Ballerina Build");
 const logLevelDebug: boolean = getPluginConfig().get('debugLog') === true;
 
 function withNewLine(value: string) {
