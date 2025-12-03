@@ -213,8 +213,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.selectedContext, projectToml?.values, platformExtState?.devantConns?.list, categories, importingConn)
-    },[projectToml?.values, platformExtState?.selectedContext, platformExtState?.devantConns?.list, categories, importingConn])
+         return  enrichCategoryWithDevant(platformExtState?.isLoggedIn, platformExtState?.selectedContext, projectToml?.values, platformExtState?.devantConns?.list, categories, importingConn)
+    },[projectToml?.values, platformExtState, categories, importingConn])
 
     const { mutate: importConnection } = useMutation({
         mutationFn: async (data: ConnectionListItem) => {

@@ -206,6 +206,13 @@ export function GroupList(props: GroupListProps) {
             <S.TitleRow onClick={handleToggleList}>
                 <S.CardIcon>{category.icon || <LogIcon />}</S.CardIcon>
                 <S.Title>{category.title}</S.Title>
+                {category.tooltip && (
+                    <Codicon
+                        sx={{ color: category.tooltip?.color }}
+                        name={category.tooltip?.icon || "info"}
+                        tooltip={category.tooltip?.text}
+                    />
+                )}
                 <S.CardAction>
                     {openList ? <Codicon name={"chevron-up"} /> : <Codicon name={"chevron-down"} />}
                 </S.CardAction>

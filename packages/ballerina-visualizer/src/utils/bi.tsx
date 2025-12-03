@@ -71,7 +71,7 @@ import { cloneDeep } from "lodash";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import hljs from "highlight.js";
-import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation } from "@wso2/ui-toolkit";
+import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation, VSCodeColors } from "@wso2/ui-toolkit";
 import { FunctionDefinition, STNode } from "@wso2/syntax-tree";
 import { DocSection } from "../components/ExpressionEditor";
 
@@ -138,6 +138,7 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
 /** Map devant connection details with BI connection and to figure out which Devant connection are not used */
 export function enrichCategoryWithDevant(
+    isLoggedIn: boolean,
     selected: ContextItemEnriched,
     tomlValues: PackageTomlValues,
     connections: ConnectionListItem[] = [],
@@ -145,7 +146,7 @@ export function enrichCategoryWithDevant(
     importingConn?: ConnectionListItem
 ): PanelCategory[] {
     const updated = panelCategories?.map((category) => {
-        if (category.title === "Connections" && tomlValues && selected?.org && selected?.project) {
+        if (category.title === "Connections" && tomlValues) {
             const usedConnIds: string[] = [];
             const mappedCategoryItems = category.items?.map((categoryItem) => {
                 const matchingConn = tomlValues?.tool?.openapi?.find((openapiItem: any) => {
@@ -155,7 +156,13 @@ export function enrichCategoryWithDevant(
                             `${tomlValues?.package?.name}.${openapiItem?.targetModule}`
                     );
                 });
-                if (matchingConn) {
+                if (matchingConn?.remoteId) {
+                    if (!isLoggedIn) {
+                        return { ...categoryItem, tooltip: { icon: "info", text: "You are logged out of Devant" }};
+                    }
+                    if (!selected?.project) {
+                        return { ...categoryItem, tooltip: { icon: "info", text: "This directory is not associated with a Devant Project" }};
+                    }
                     const matchingDevantConn = connections?.find(
                         (conn) => conn.name === matchingConn?.remoteId
                     );
@@ -166,6 +173,8 @@ export function enrichCategoryWithDevant(
                             devant: matchingDevantConn,
                             unusedDevantConn: false,
                         };
+                    }  else {
+                        return { ...categoryItem, tooltip: { icon: "warning", text: "This connection does not exist in Devant", color: VSCodeColors.ERROR }};
                     }
                 }
                 return categoryItem;

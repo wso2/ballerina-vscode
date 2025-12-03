@@ -25,6 +25,11 @@ export type Category = {
     icon?: JSX.Element;
     items: Item[];
     isLoading?: boolean;
+    tooltip?: {
+        icon?: string;
+        color?: string;
+        text?: string;
+    }
     devant?: ConnectionListItem;
     unusedDevantConn?: boolean;
 };
