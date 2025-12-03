@@ -32,7 +32,6 @@ export const BI_COMMANDS = {
     BI_RUN_PROJECT: 'BI.project.run',
     BI_DEBUG_PROJECT: 'BI.project.debug',
     REFRESH_COMMAND: 'BI.project-explorer.refresh',
-    FOCUS_PROJECT_EXPLORER: 'BI.project-explorer.focus',
     PROJECT_EXPLORER: 'BI.project-explorer',
     ADD_CONNECTIONS: 'BI.project-explorer.add-connection',
     ADD_CUSTOM_CONNECTOR: 'BI.project-explorer.add-custom-connector',
@@ -52,6 +51,8 @@ export const BI_COMMANDS = {
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
+    CREATE_BI_PROJECT: 'BI.project.createBIProjectPure',
+    CREATE_BI_MIGRATION_PROJECT: 'BI.project.createBIProjectMigration',
     ADD_INTEGRATION: 'BI.project-explorer.add-integration',
     NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify',
 };
