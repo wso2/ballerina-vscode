@@ -20,7 +20,19 @@ package io.ballerina.persist.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.NodeFactory;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.persist.BalException;
 import io.ballerina.persist.introspect.Introspector;
@@ -28,6 +40,8 @@ import io.ballerina.persist.introspect.IntrospectorBuilder;
 import io.ballerina.persist.models.Module;
 import io.ballerina.persist.nodegenerator.syntax.sources.DbModelGenSyntaxTree;
 import io.ballerina.persist.nodegenerator.syntax.sources.DbSyntaxTree;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
 import io.ballerina.toml.syntax.tree.DocumentMemberDeclarationNode;
 import io.ballerina.toml.syntax.tree.DocumentNode;
 import io.ballerina.toml.syntax.tree.KeyValueNode;
@@ -39,6 +53,9 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -50,7 +67,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createImplicitNewExpressionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOT_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.FINAL_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.IMPORT_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.persist.utils.BalProjectUtils.populateEntities;
 import static io.ballerina.persist.utils.BalProjectUtils.populateEnums;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
@@ -67,6 +103,7 @@ public class PersistClient {
     public static final String MYSQL = "mysql";
     public static final String POSTGRESQL = "postgresql";
     public static final String MSSQL = "mssql";
+    public static final Range START_RANGE = CommonUtils.toRange(LinePosition.from(0, 0));
 
     private final Path projectPath;
     private final String name;
@@ -77,21 +114,24 @@ public class PersistClient {
     private final String database;
     private final Gson gson;
     private final IntrospectorBuilder introspectorBuilder;
+    private final WorkspaceManager workspaceManager;
 
     /**
      * Constructor for PersistClient.
      *
-     * @param projectPath The project directory path
-     * @param name        Name of the database connector
-     * @param datastore    Database system type (mysql, postgresql, mssql)
-     * @param host        Database host address
-     * @param port        Database port number
-     * @param user        Database username
-     * @param password    Database user password
-     * @param database    Name of the database to connect
+     * @param projectPath      The project directory path
+     * @param name             Name of the database connector
+     * @param datastore        Database system type (mysql, postgresql, mssql)
+     * @param host             Database host address
+     * @param port             Database port number
+     * @param user             Database username
+     * @param password         Database user password
+     * @param database         Name of the database to connect
+     * @param workspaceManager The workspace manager
      */
     public PersistClient(String projectPath, String name, String datastore, String host,
-                         Integer port, String user, String password, String database) {
+                         Integer port, String user, String password, String database,
+                         WorkspaceManager workspaceManager) {
         this.projectPath = Path.of(projectPath);
         this.name = name;
         this.datastore = datastore != null ? datastore.toLowerCase(Locale.getDefault()) : "";
@@ -100,6 +140,7 @@ public class PersistClient {
         this.user = user;
         this.database = database;
         this.gson = new Gson();
+        this.workspaceManager = workspaceManager;
         this.introspectorBuilder = IntrospectorBuilder.newBuilder()
                 .withDatastore(this.datastore)
                 .withHost(this.host)
@@ -143,71 +184,221 @@ public class PersistClient {
         validateConnectionDetails();
 
         if (module == null || module.isEmpty()) {
-            module = name;
+            module = generateModuleNameFromDatabase(this.database, this.datastore);
         }
 
         if (selectedTables == null || selectedTables.length == 0) {
             throw new PersistClientException("Selected tables cannot be null or empty");
         }
 
+        // If the directory exists with at least one bal file, then throw error for now
+        // Once persist supports multiple model files, this can be removed
+        Path persistPath = this.projectPath.resolve(PERSIST_DIR);
+        if (Files.exists(persistPath)) {
+            try (var files = Files.list(persistPath)) {
+                if (files.anyMatch(path -> path.toString().endsWith(".bal"))) {
+                    throw new PersistClientException("Persist only supports a single model file for now. " +
+                            "The persist directory : " + persistPath + " already contains Ballerina files.");
+                }
+            } catch (IOException e) {
+                throw new PersistClientException("Error checking existing persist model files: " + e.getMessage(), e);
+            }
+        }
+
+        Path persistModelPath = persistPath.resolve(MODEL_FILE_NAME);
+
         try {
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = genBalTomlTableEntry(module, textEditsMap);
-
-            // Create the model file
-            Introspector introspector;
-            if (selectedTables.length == 1 && selectedTables[0].equals("*")) {
-                introspector = introspectorBuilder.build();
-            } else {
-                introspector = introspectorBuilder
-                        .withTables(String.join(",", selectedTables))
-                        .build();
-            }
-            Module entityModule = introspector.introspectDatabase();
-            if (entityModule.getEntityMap().isEmpty()) {
-                throw new PersistClientException("No entities found in the database for the selected tables.");
-            }
-            DbModelGenSyntaxTree dbModelGenSyntaxTree = new DbModelGenSyntaxTree();
-            SyntaxTree dataModels = dbModelGenSyntaxTree.getDataModels(entityModule);
-            List<TextEdit> persistModelTextEdits = new ArrayList<>();
-            Range startRange = CommonUtils.toRange(LinePosition.from(0, 0));
-            persistModelTextEdits.add(new TextEdit(startRange, Formatter.format(dataModels.toSourceCode())));
-            Path persistModelPath = this.projectPath.resolve(PERSIST_DIR).resolve(MODEL_FILE_NAME);
-            textEditsMap.put(persistModelPath, persistModelTextEdits);
-
-            Module.Builder moduleBuilder = Module.newBuilder(module);
-            populateEnums(moduleBuilder, dataModels);
-            populateEntities(moduleBuilder, dataModels);
-            entityModule = moduleBuilder.build();
-
-            // Generate client source files
-            DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
-            Path outputPath = projectPath.resolve("generated").resolve(module);
-
-            SyntaxTree configFile = dbSyntaxTree.getDataStoreConfigSyntax(datastore);
-            List<TextEdit> configTextEdits = new ArrayList<>();
-            configTextEdits.add(new TextEdit(startRange, Formatter.format(configFile.toSourceCode())));
-            textEditsMap.put(outputPath.resolve("persist_db_config.bal"), configTextEdits);
-
-
-            SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
-            List<TextEdit> dataTypesTextEdits = new ArrayList<>();
-            dataTypesTextEdits.add(new TextEdit(startRange, Formatter.format(dataTypesFile.toSourceCode())));
-            textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
-
-
-            SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true);
-            List<TextEdit> clientTextEdits = new ArrayList<>();
-            clientTextEdits.add(new TextEdit(startRange, Formatter.format(clientFile.toSourceCode())));
-            textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
-
+            boolean isModuleExists = addTextEditForPersistBuildOption(module, textEditsMap);
+            Module entityModule = getInitialEntityModule(selectedTables);
+            SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
+            addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
+            // Need to reload since the current initial entity module does not have enums and other details
+            entityModule = reloadEntityFromSyntaxTree(module, dataModels);
+            addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
+            addTextEditForConnectionClient(module, textEditsMap);
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
         }
     }
 
-    private boolean genBalTomlTableEntry(String module, Map<Path, List<TextEdit>> textEditsMap) throws IOException {
+    private void addTextEditForConnectionClient(String module, Map<Path, List<TextEdit>> textEditsMap)
+            throws PersistClientException {
+        try {
+            Path connectionsFilePath = projectPath.resolve("connections.bal");
+            Project project = this.workspaceManager.loadProject(projectPath);
+            String packageName = project.currentPackage().packageName().value();
+            boolean isConnectionsFileExists = Files.exists(connectionsFilePath);
+            Optional<Document> document = isConnectionsFileExists ? workspaceManager.document(connectionsFilePath) :
+                    Optional.empty();
+
+            // If the connections file is not present or empty, add the full content at the start
+            if (document.isEmpty() || document.get().textDocument().textLines().isEmpty()) {
+                List<TextEdit> textEdits = new ArrayList<>();
+                String importStmt = "import " + packageName + "." + module + ";" + LS;
+                String clientDeclaration = "final " + module + ":Client " + name + " = check new ();" + LS;
+                textEdits.add(new TextEdit(START_RANGE, importStmt + LS + clientDeclaration + LS));
+                textEditsMap.put(connectionsFilePath, textEdits);
+            } else {
+                addTextEditWithExistingConnections(module, textEditsMap, document.get(), connectionsFilePath);
+            }
+        } catch (WorkspaceDocumentException | EventSyncException | FormatterException e) {
+            throw new PersistClientException("Error accessing connections.bal file: " + e.getMessage(), e);
+        }
+    }
+
+    private void addTextEditWithExistingConnections(String module, Map<Path, List<TextEdit>> textEditsMap,
+                                                    Document document, Path connectionsFilePath)
+            throws FormatterException {
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        modulePartNode = modifyWithImportStatement(module, modulePartNode);
+        modulePartNode = modifyWithClientDeclaration(module, modulePartNode);
+        SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
+        SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
+        textEditsMap.put(connectionsFilePath, textEdits);
+    }
+
+    private ModulePartNode modifyWithClientDeclaration(String module, ModulePartNode modulePartNode) {
+        QualifiedNameReferenceNode moduleRefNode = createQualifiedNameReferenceNode(
+                createIdentifierToken(module),
+                createToken(COLON_TOKEN),
+                createIdentifierToken("Client")
+        );
+        CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
+                createIdentifierToken(name));
+        TypedBindingPatternNode clientTypeBindingNode = createTypedBindingPatternNode(
+                moduleRefNode,
+                bindingPattern
+        );
+        ParenthesizedArgList parenthesizedArgList = createParenthesizedArgList(createToken(OPEN_PAREN_TOKEN),
+                createSeparatedNodeList(new ArrayList<>()),
+                createToken(CLOSE_PAREN_TOKEN));
+        NewExpressionNode clientInitNode = createImplicitNewExpressionNode(
+                createToken(NEW_KEYWORD),
+                parenthesizedArgList
+        );
+        ModuleMemberDeclarationNode clientDeclarationNode = createModuleVariableDeclarationNode(
+                null,
+                null,
+                createNodeList(NodeFactory.createToken(FINAL_KEYWORD)),
+                clientTypeBindingNode,
+                NodeFactory.createToken(io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN),
+                clientInitNode,
+                NodeFactory.createToken(SEMICOLON_TOKEN)
+        );
+        modulePartNode = modulePartNode.modify()
+                .withMembers(modulePartNode.members().add(clientDeclarationNode)).apply();
+        return modulePartNode;
+    }
+
+    private static ModulePartNode modifyWithImportStatement(String module, ModulePartNode modulePartNode) {
+        SeparatedNodeList<IdentifierToken> moduleName = createSeparatedNodeList(
+                        createIdentifierToken(module),
+                        createToken(DOT_TOKEN),
+                        createIdentifierToken("Client")
+        );
+        ImportDeclarationNode importDeclarationNode = NodeFactory.createImportDeclarationNode(
+                createToken(IMPORT_KEYWORD),
+                null,
+                moduleName,
+                null,
+                NodeFactory.createToken(SEMICOLON_TOKEN)
+        );
+        NodeList<ImportDeclarationNode> importDeclarations = modulePartNode.imports();
+        // Check if the import already exists
+        boolean importExists = false;
+        for (ImportDeclarationNode importDeclaration : importDeclarations) {
+            if (importDeclaration.moduleName().equals(moduleName)) {
+                importExists = true;
+                break;
+            }
+        }
+        if (!importExists) {
+            ArrayList<ImportDeclarationNode> imports = new ArrayList<>(importDeclarations.stream().toList());
+            imports.add(importDeclarationNode);
+            NodeList<ImportDeclarationNode> newImports = createNodeList(imports);
+            modulePartNode = modulePartNode.modify().withImports(newImports).apply();
+        }
+        return modulePartNode;
+    }
+
+    private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
+                                                    Module entityModule)
+            throws PersistClientException, FormatterException, BalException {
+        DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
+        Path outputPath = projectPath.resolve("generated").resolve(module);
+
+        // If the module directory already exists, throw an error
+        if (Files.exists(outputPath)) {
+            throw new PersistClientException("The target module directory already exists: " + outputPath);
+        }
+
+        SyntaxTree configFile = dbSyntaxTree.getDataStoreConfigSyntax(datastore);
+        List<TextEdit> configTextEdits = new ArrayList<>();
+        configTextEdits.add(new TextEdit(START_RANGE, Formatter.format(configFile.toSourceCode())));
+        textEditsMap.put(outputPath.resolve("persist_db_config.bal"), configTextEdits);
+
+
+        SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
+        List<TextEdit> dataTypesTextEdits = new ArrayList<>();
+        dataTypesTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataTypesFile.toSourceCode())));
+        textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
+
+
+        SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true);
+        List<TextEdit> clientTextEdits = new ArrayList<>();
+        clientTextEdits.add(new TextEdit(START_RANGE, Formatter.format(clientFile.toSourceCode())));
+        textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
+    }
+
+    private static Module reloadEntityFromSyntaxTree(String module, SyntaxTree dataModels)
+            throws IOException, BalException {
+        Module entityModule;
+        Module.Builder moduleBuilder = Module.newBuilder(module);
+        populateEnums(moduleBuilder, dataModels);
+        populateEntities(moduleBuilder, dataModels);
+        entityModule = moduleBuilder.build();
+        return entityModule;
+    }
+
+    private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
+                                                       Path persistModelPath)
+            throws FormatterException {
+        List<TextEdit> persistModelTextEdits = new ArrayList<>();
+        persistModelTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataModels.toSourceCode())));
+        textEditsMap.put(persistModelPath, persistModelTextEdits);
+    }
+
+    private Module getInitialEntityModule(String[] selectedTables) throws BalException, PersistClientException {
+        Introspector introspector;
+        if (selectedTables.length == 1 && selectedTables[0].equals("*")) {
+            introspector = introspectorBuilder.build();
+        } else {
+            introspector = introspectorBuilder
+                    .withTables(String.join(",", selectedTables))
+                    .build();
+        }
+        Module entityModule = introspector.introspectDatabase();
+        if (entityModule.getEntityMap().isEmpty()) {
+            throw new PersistClientException("No entities found in the database for the selected tables.");
+        }
+        return entityModule;
+    }
+
+    private static String generateModuleNameFromDatabase(String database, String datastore) {
+        // Generate a module name combining the database name and datastore name
+        // Module names can only contain alphanumerics, underscores, and periods
+        String sanitizedDbName = database.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase(Locale.getDefault());
+        String sanitizedDatastore = datastore.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase(Locale.getDefault());
+        return sanitizedDbName + "_" + sanitizedDatastore;
+    }
+
+    private boolean addTextEditForPersistBuildOption(String module, Map<Path, List<TextEdit>> textEditsMap)
+            throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
         TextDocument configDocument = TextDocuments.from(Files.readString(tomlPath));
         io.ballerina.toml.syntax.tree.SyntaxTree syntaxTree = io.ballerina.toml.syntax.tree.SyntaxTree

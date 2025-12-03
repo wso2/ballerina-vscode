@@ -71,7 +71,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
                         request.getPort(),
                         request.getUser(),
                         request.getPassword(),
-                        request.getDatabase()
+                        request.getDatabase(),
+                        this.workspaceManager
                 );
 
                 String[] tables = generator.introspectDatabaseTables();
@@ -105,7 +106,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
                         request.getPort(),
                         request.getUser(),
                         request.getPassword(),
-                        request.getDatabase()
+                        request.getDatabase(),
+                        this.workspaceManager
                 );
 
                 JsonElement source = generator.generateClient(
