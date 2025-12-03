@@ -334,6 +334,11 @@ export const chipPlugin = ViewPlugin.fromClass(
 
             iterateTokenStream(tokens, compounds, docContent, {
                 onCompound: (compound) => {
+                    const compoundText = docContent.slice(compound.start, compound.end);
+                    if (compoundText.includes('\n')) {
+                        return;
+                    }
+
                     widgets.push(
                         createChip(
                             compound.displayText,
@@ -346,6 +351,10 @@ export const chipPlugin = ViewPlugin.fromClass(
                     );
                 },
                 onToken: (token, text) => {
+                    if (text.includes('\n')) {
+                        return;
+                    }
+
                     widgets.push(
                         createChip(
                             text,
