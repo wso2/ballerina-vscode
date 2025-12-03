@@ -265,8 +265,9 @@ export class CommonRpcManager implements CommonRPCAPI {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
-    async getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
-        return getProjectTomlValues(StateMachine.context().projectPath);
+    async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
+        const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
+        return tomlValues ?? {};  
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
