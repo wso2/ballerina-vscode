@@ -38,15 +38,14 @@ import {
     SyncDocValueWithPropValue,
     isSelectionOnToken
 } from "../CodeUtils";
-import { mapSanitizedToRaw, TOKEN_START_CHAR_OFFSET_INDEX } from "../utils";
+import { TOKEN_START_CHAR_OFFSET_INDEX } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HELPER_PANE_WIDTH, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
-import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
 import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
