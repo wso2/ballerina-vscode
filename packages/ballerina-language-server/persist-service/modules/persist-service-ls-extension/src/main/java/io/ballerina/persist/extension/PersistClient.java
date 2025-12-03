@@ -173,7 +173,8 @@ public class PersistClient {
     }
 
     /**
-     * Generates Ballerina persist client with model file and generated source files.
+     * Generates Ballerina persist client with model file and generated source
+     * files.
      *
      * @param selectedTables The tables to generate entities for
      * @param module         The target module name for the generated files
@@ -197,11 +198,11 @@ public class PersistClient {
         if (Files.exists(persistPath)) {
             try (var files = Files.list(persistPath)) {
                 if (files.anyMatch(path -> path.toString().endsWith(".bal"))) {
-                    throw new PersistClientException("Persist only supports a single model file for now. " +
-                            "The persist directory : " + persistPath + " already contains Ballerina files.");
+                    throw new PersistClientException("Currently only one database connection is supported per " +
+                            "project. A database connection is already present in the project at: " + persistPath);
                 }
             } catch (IOException e) {
-                throw new PersistClientException("Error checking existing persist model files: " + e.getMessage(), e);
+                throw new PersistClientException("Error checking existing database connections: " + e.getMessage(), e);
             }
         }
 
@@ -213,7 +214,8 @@ public class PersistClient {
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
-            // Need to reload since the current initial entity module does not have enums and other details
+            // Need to reload since the current initial entity module does not have enums
+            // and other details
             entityModule = reloadEntityFromSyntaxTree(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
             addTextEditForConnectionClient(module, textEditsMap);
@@ -230,10 +232,11 @@ public class PersistClient {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
             boolean isConnectionsFileExists = Files.exists(connectionsFilePath);
-            Optional<Document> document = isConnectionsFileExists ? workspaceManager.document(connectionsFilePath) :
-                    Optional.empty();
+            Optional<Document> document = isConnectionsFileExists ? workspaceManager.document(connectionsFilePath)
+                    : Optional.empty();
 
-            // If the connections file is not present or empty, add the full content at the start
+            // If the connections file is not present or empty, add the full content at the
+            // start
             if (document.isEmpty() || document.get().textDocument().textLines().isEmpty()) {
                 List<TextEdit> textEdits = new ArrayList<>();
                 String importStmt = "import " + packageName + "." + module + ";" + LS;
@@ -244,43 +247,46 @@ public class PersistClient {
                 addTextEditWithExistingConnections(module, textEditsMap, document.get(), connectionsFilePath);
             }
         } catch (WorkspaceDocumentException | EventSyncException | FormatterException e) {
-            throw new PersistClientException("Error accessing connections.bal file: " + e.getMessage(), e);
+            throw new PersistClientException("Error accessing existing connections: " + e.getMessage(), e);
         }
     }
 
     private void addTextEditWithExistingConnections(String module, Map<Path, List<TextEdit>> textEditsMap,
-                                                    Document document, Path connectionsFilePath)
-            throws FormatterException {
-        SyntaxTree syntaxTree = document.syntaxTree();
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        modulePartNode = modifyWithImportStatement(module, modulePartNode);
-        modulePartNode = modifyWithClientDeclaration(module, modulePartNode);
-        SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
-        SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
-        List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
-        textEditsMap.put(connectionsFilePath, textEdits);
+            Document document, Path connectionsFilePath)
+            throws FormatterException, PersistClientException {
+        try {
+            Project project = this.workspaceManager.loadProject(projectPath);
+            String packageName = project.currentPackage().packageName().value();
+            SyntaxTree syntaxTree = document.syntaxTree();
+            ModulePartNode modulePartNode = syntaxTree.rootNode();
+            modulePartNode = modifyWithImportStatement(packageName, module, modulePartNode);
+            modulePartNode = modifyWithClientDeclaration(module, modulePartNode);
+            SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
+            SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
+            List<TextEdit> textEdits = new ArrayList<>();
+            textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
+            textEditsMap.put(connectionsFilePath, textEdits);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            throw new PersistClientException("Error loading project for connections: " + e.getMessage(), e);
+        }
     }
 
     private ModulePartNode modifyWithClientDeclaration(String module, ModulePartNode modulePartNode) {
         QualifiedNameReferenceNode moduleRefNode = createQualifiedNameReferenceNode(
                 createIdentifierToken(module),
                 createToken(COLON_TOKEN),
-                createIdentifierToken("Client")
-        );
+                createIdentifierToken("Client"));
         CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
                 createIdentifierToken(name));
         TypedBindingPatternNode clientTypeBindingNode = createTypedBindingPatternNode(
                 moduleRefNode,
-                bindingPattern
-        );
+                bindingPattern);
         ParenthesizedArgList parenthesizedArgList = createParenthesizedArgList(createToken(OPEN_PAREN_TOKEN),
                 createSeparatedNodeList(new ArrayList<>()),
                 createToken(CLOSE_PAREN_TOKEN));
         NewExpressionNode clientInitNode = createImplicitNewExpressionNode(
                 createToken(NEW_KEYWORD),
-                parenthesizedArgList
-        );
+                parenthesizedArgList);
         ModuleMemberDeclarationNode clientDeclarationNode = createModuleVariableDeclarationNode(
                 null,
                 null,
@@ -288,26 +294,24 @@ public class PersistClient {
                 clientTypeBindingNode,
                 NodeFactory.createToken(io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN),
                 clientInitNode,
-                NodeFactory.createToken(SEMICOLON_TOKEN)
-        );
+                NodeFactory.createToken(SEMICOLON_TOKEN));
         modulePartNode = modulePartNode.modify()
                 .withMembers(modulePartNode.members().add(clientDeclarationNode)).apply();
         return modulePartNode;
     }
 
-    private static ModulePartNode modifyWithImportStatement(String module, ModulePartNode modulePartNode) {
+    private static ModulePartNode modifyWithImportStatement(String packageName, String module,
+                                                            ModulePartNode modulePartNode) {
         SeparatedNodeList<IdentifierToken> moduleName = createSeparatedNodeList(
-                        createIdentifierToken(module),
-                        createToken(DOT_TOKEN),
-                        createIdentifierToken("Client")
-        );
+                createIdentifierToken(packageName),
+                createToken(DOT_TOKEN),
+                createIdentifierToken(module));
         ImportDeclarationNode importDeclarationNode = NodeFactory.createImportDeclarationNode(
                 createToken(IMPORT_KEYWORD),
                 null,
                 moduleName,
                 null,
-                NodeFactory.createToken(SEMICOLON_TOKEN)
-        );
+                NodeFactory.createToken(SEMICOLON_TOKEN));
         NodeList<ImportDeclarationNode> importDeclarations = modulePartNode.imports();
         // Check if the import already exists
         boolean importExists = false;
@@ -334,7 +338,7 @@ public class PersistClient {
 
         // If the module directory already exists, throw an error
         if (Files.exists(outputPath)) {
-            throw new PersistClientException("The target module directory already exists: " + outputPath);
+            throw new PersistClientException("A database connector with the same name already exists: " + outputPath);
         }
 
         SyntaxTree configFile = dbSyntaxTree.getDataStoreConfigSyntax(datastore);
@@ -342,12 +346,10 @@ public class PersistClient {
         configTextEdits.add(new TextEdit(START_RANGE, Formatter.format(configFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_db_config.bal"), configTextEdits);
 
-
         SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
         List<TextEdit> dataTypesTextEdits = new ArrayList<>();
         dataTypesTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataTypesFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
-
 
         SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true);
         List<TextEdit> clientTextEdits = new ArrayList<>();
@@ -366,7 +368,7 @@ public class PersistClient {
     }
 
     private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
-                                                       Path persistModelPath)
+            Path persistModelPath)
             throws FormatterException {
         List<TextEdit> persistModelTextEdits = new ArrayList<>();
         persistModelTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataModels.toSourceCode())));
@@ -494,7 +496,8 @@ public class PersistClient {
     /**
      * Record to hold the persist client response.
      *
-     * @param isModuleExists Indicates if the module already exists in the Ballerina.toml
+     * @param isModuleExists Indicates if the module already exists in the
+     *                       Ballerina.toml
      * @param textEditsMap   Map of file paths to their corresponding text edits
      */
     private record PersistClientResponse(boolean isModuleExists, Map<Path, List<TextEdit>> textEditsMap) {

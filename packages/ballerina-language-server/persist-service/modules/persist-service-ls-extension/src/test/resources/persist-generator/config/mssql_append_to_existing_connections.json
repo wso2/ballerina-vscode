@@ -1,0 +1,93 @@
+{
+  "description": "MSSQL persist client generation - append to existing connections.bal",
+  "testProjectFolder": "sample-project-with-connections",
+  "name": "orderdb",
+  "dbSystem": "mssql",
+  "host": "localhost",
+  "port": 1434,
+  "user": "SA",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["departments"],
+  "module": "orders",
+  "output": {
+    "sample-project-with-connections/connections.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// This file demonstrates an existing connections file with a pre-existing client\n// The test will append a new client to this file\n\nimport sample_project_with_connections.orders;\n\nimport ballerina/http;\nimport ballerinax/mysql;\nimport ballerinax/mysql.driver as _;\n\nfinal mysql:Client mysqlClient = check new (\"localhost\", \"root\", \"root@123\", \"demo\", 3306);\nfinal http:Client httpClient = check new (\"http://localhost:8080\");\nfinal orders:Client orderdb = new ();\n"
+    } ],
+    "sample-project-with-connections/Ballerina.toml" : [ {
+      "range" : {
+        "start" : {
+          "line" : 4,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 4,
+          "character" : 0
+        }
+      },
+      "newText" : "\n[[tool.persist]]\nid = \"orders\"\ntargetModule = \"orders\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\n"
+    } ],
+    "sample-project-with-connections/generated/orders/persist_types.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for orders.\n// It should not be modified by hand.\n\npublic type Department record {|\n    readonly int deptId;\n    string deptName;\n    string? location;\n    decimal? budget;\n|};\n\npublic type DepartmentOptionalized record {|\n    int deptId?;\n    string deptName?;\n    string? location?;\n    decimal? budget?;\n|};\n\npublic type DepartmentTargetType typedesc<DepartmentOptionalized>;\n\npublic type DepartmentInsert record {|\n    string deptName;\n    string? location;\n    decimal? budget;\n|};\n\npublic type DepartmentUpdate record {|\n    string deptName?;\n    string? location?;\n    decimal? budget?;\n|};\n"
+    } ],
+    "sample-project-with-connections/generated/orders/persist_client.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for orders.\n// It should not be modified by hand.\n\nimport ballerina/jballerina.java;\nimport ballerina/persist;\nimport ballerina/sql;\nimport ballerinax/mssql;\nimport ballerinax/mssql.driver as _;\nimport ballerinax/persist.sql as psql;\n\nconst DEPARTMENT = \"departments\";\n\n# MSSQL persist client.\npublic isolated client class Client {\n    *persist:AbstractPersistClient;\n\n    private final mssql:Client dbClient;\n\n    private final map<psql:SQLClient> persistClients;\n\n    private final record {|psql:SQLMetadata...;|} metadata = {\n        [DEPARTMENT]: {\n            entityName: \"Department\",\n            tableName: \"departments\",\n            fieldMetadata: {\n                deptId: {columnName: \"dept_id\", dbGenerated: true},\n                deptName: {columnName: \"dept_name\"},\n                location: {columnName: \"location\"},\n                budget: {columnName: \"budget\"}\n            },\n            keyFields: [\"deptId\"]\n        }\n    };\n\n    public isolated function init() returns persist:Error? {\n        mssql:Client|error dbClient = new (host = host, user = user, password = password, database = database, port = port, options = connectionOptions);\n        if dbClient is error {\n            return <persist:Error>error(dbClient.message());\n        }\n        self.dbClient = dbClient;\n        if defaultSchema != () {\n            lock {\n                foreach string key in self.metadata.keys() {\n                    psql:SQLMetadata metadata = self.metadata.get(key);\n                    if metadata.schemaName == () {\n                        metadata.schemaName = defaultSchema;\n                    }\n                    map<psql:JoinMetadata>? joinMetadataMap = metadata.joinMetadata;\n                    if joinMetadataMap == () {\n                        continue;\n                    }\n                    foreach [string, psql:JoinMetadata] [_, joinMetadata] in joinMetadataMap.entries() {\n                        if joinMetadata.refSchema == () {\n                            joinMetadata.refSchema = defaultSchema;\n                        }\n                    }\n                }\n            }\n        }\n        self.persistClients = {[DEPARTMENT]: check new (dbClient, self.metadata.get(DEPARTMENT).cloneReadOnly(), psql:MSSQL_SPECIFICS)};\n    }\n\n    # Get rows from departments table.\n    #\n    # + targetType - Defines which fields to retrieve from the results\n    # + whereClause - SQL WHERE clause to filter the results (e.g., `column_name = value`)\n    # + orderByClause - SQL ORDER BY clause to sort the results (e.g., `column_name ASC`)\n    # + limitClause - SQL LIMIT clause to limit the number of results (e.g., `10`)\n    # + groupByClause - SQL GROUP BY clause to group the results (e.g., `column_name`)\n    # + return - A collection of matching records or an error\n    isolated resource function get departments(DepartmentTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns targetType[]|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MSSQLProcessor\",\n        name: \"queryAsList\"\n    } external;\n\n    # Get row from departments table.\n    #\n    # + deptId - The value of the primary key field dept_id\n    # + targetType - Defines which fields to retrieve from the result\n    # + return - The matching record or an error\n    isolated resource function get departments/[int deptId](DepartmentTargetType targetType = <>) returns targetType|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MSSQLProcessor\",\n        name: \"queryOne\"\n    } external;\n\n    # Insert rows into departments table.\n    #\n    # + data - A list of records to be inserted\n    # + return - The primary key value(s) of the inserted rows or an error\n    isolated resource function post departments(DepartmentInsert[] data) returns int[]|persist:Error {\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(DEPARTMENT);\n        }\n        sql:ExecutionResult[] result = check sqlClient.runBatchInsertQuery(data);\n        return from sql:ExecutionResult inserted in result\n            where inserted.lastInsertId != ()\n            select <int>inserted.lastInsertId;\n    }\n\n    # Update row in departments table.\n    #\n    # + deptId - The value of the primary key field dept_id\n    # + value - The record containing updated field values\n    # + return - The updated record or an error\n    isolated resource function put departments/[int deptId](DepartmentUpdate value) returns Department|persist:Error {\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(DEPARTMENT);\n        }\n        _ = check sqlClient.runUpdateQuery(deptId, value);\n        return self->/departments/[deptId].get();\n    }\n\n    # Delete row from departments table.\n    #\n    # + deptId - The value of the primary key field dept_id\n    # + return - The deleted record or an error\n    isolated resource function delete departments/[int deptId]() returns Department|persist:Error {\n        Department result = check self->/departments/[deptId].get();\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(DEPARTMENT);\n        }\n        _ = check sqlClient.runDeleteQuery(deptId);\n        return result;\n    }\n\n    # Execute a custom SQL query and return results.\n    #\n    # + sqlQuery - The SQL query to execute\n    # + rowType - Defines the structure of the result rows\n    # + return - A collection of result rows or an error\n    remote isolated function queryNativeSQL(sql:ParameterizedQuery sqlQuery, typedesc<record {}> rowType = <>) returns stream<rowType, persist:Error?> = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MSSQLProcessor\"\n    } external;\n\n    # Execute a custom SQL command (INSERT, UPDATE, DELETE, etc.).\n    #\n    # + sqlQuery - The SQL command to execute\n    # + return - The execution result or an error\n    remote isolated function executeNativeSQL(sql:ParameterizedQuery sqlQuery) returns psql:ExecutionResult|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MSSQLProcessor\"\n    } external;\n\n    # Close the database client and release connections.\n    #\n    # + return - An error if closing fails\n    public isolated function close() returns persist:Error? {\n        error? result = self.dbClient.close();\n        if result is error {\n            return <persist:Error>error(result.message());\n        }\n        return result;\n    }\n}\n"
+    } ],
+    "sample-project-with-connections/persist/model.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "import ballerina/persist as _;\nimport ballerinax/persist.sql;\n\n@sql:Name {value: \"departments\"}\npublic type Department record {|\n    @sql:Name {value: \"dept_id\"}\n    @sql:Generated\n    readonly int deptId;\n    @sql:Name {value: \"dept_name\"}\n    @sql:Varchar {length: 100}\n    @sql:UniqueIndex {name: \"departments_dept_name_key\"}\n    string deptName;\n    @sql:Varchar {length: 100}\n    string? location;\n    @sql:Decimal {precision: [12, 2]}\n    decimal? budget;\n|};\n"
+    } ],
+    "sample-project-with-connections/generated/orders/persist_db_config.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer.\n// It should not be modified by hand.\n\nimport ballerinax/mssql;\n\nconfigurable int port = ?;\nconfigurable string host = ?;\nconfigurable string user = ?;\nconfigurable string database = ?;\nconfigurable string password = ?;\nconfigurable mssql:Options & readonly connectionOptions = {};\nconfigurable string? defaultSchema = ();\n"
+    } ]
+  }
+}
