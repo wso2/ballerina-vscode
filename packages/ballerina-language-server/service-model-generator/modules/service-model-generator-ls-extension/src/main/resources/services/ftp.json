@@ -1,0 +1,399 @@
+{
+  "id": "0",
+  "displayName": "FTP Integration",
+  "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+  "orgName": "ballerina",
+  "packageName": "http",
+  "moduleName": "http",
+  "version": "2.14.0",
+  "type": "http",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+  "properties": {
+    "designApproach": {
+      "metadata": {
+        "label": "Protocol",
+        "description": "Choose network protocol to use for file transfer operations"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "valueType": "CHOICE",
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "choices": [
+        {
+          "metadata": {
+            "label": "ftp",
+            "description": ""
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "host": {
+              "metadata": {
+                "label": "Host",
+                "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            },
+            "portNumber": {
+              "metadata": {
+                "label": "Port Number",
+                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "folderPath": {
+              "metadata": {
+                "label": "Folder Path",
+                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "SERVICE_PATH",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_BASEPATH"
+              }
+            },
+            "userName": {
+              "metadata": {
+                "label": "Username",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            },
+            "password": {
+              "metadata": {
+                "label": "Password",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "sftp",
+            "description": ""
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "host": {
+              "metadata": {
+                "label": "Host",
+                "description": "Hostname or IP address of the server (e.g., ftp.example.com)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "portNumber": {
+              "metadata": {
+                "label": "Port Number",
+                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "folderPath": {
+              "metadata": {
+                "label": "Folder Path",
+                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "SERVICE_PATH",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_BASEPATH"
+              }
+            },
+            "privateKey": {
+              "metadata": {
+                "label": "Private Key",
+                "description": "Private Key Configuration for the SFTP Connection\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "userName": {
+              "metadata": {
+                "label": "Username",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            },
+            "password": {
+              "metadata": {
+                "label": "Password",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "ftps",
+            "description": ""
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "host": {
+              "metadata": {
+                "label": "Host",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "portNumber": {
+              "metadata": {
+                "label": "Port Number",
+                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            },
+            "folderPath": {
+              "metadata": {
+                "label": "Folder Path",
+                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "SERVICE_PATH",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_PATH"
+              }
+            },
+            "userName": {
+              "metadata": {
+                "label": "Username",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            },
+            "password": {
+              "metadata": {
+                "label": "Password",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "IDENTIFIER",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "IDENTIFIER"
+              }
+            },
+            "secureSocket": {
+              "metadata": {
+                "label": "Secure Socket (SecureSocket)",
+                "description": "Configure SSL/TLS configuration for secure connection.\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "valueType": "EXPRESSION",
+              "valueTypeConstraint": "string",
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "EXPRESSION"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "listenerVarName": {
+      "metadata": {
+        "label": "Listener Name",
+        "description": "Provide a name for the listener being created"
+      },
+      "codedata": {
+        "type": "LISTENER_VAR_NAME"
+      },
+      "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "Global",
+      "value": "ftpListener",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": true
+    }
+  }
+}
