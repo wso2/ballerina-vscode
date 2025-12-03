@@ -522,7 +522,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
      *
      * @param request The request containing expression, expressionType, output, and outputType
      * @return Response containing the converted expression and any required imports
-     * @since 1.2.0
+     * @since 1.6.0
      */
     @JsonRequest
     public CompletableFuture<DataMapperConvertResponse> convertExpression(DataMapperConvertRequest request) {
