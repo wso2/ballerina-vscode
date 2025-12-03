@@ -251,11 +251,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         let top = buttonRect.bottom - editorRect.top;
         let left = buttonRect.left - editorRect.left;
 
-        // Add overflow correction for window boundaries
-        const HELPER_PANE_WIDTH = 300;
-        const viewportWidth = window.innerWidth;
-        const absoluteLeft = buttonRect.left;
-        const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+        // Add overflow correction for editor boundaries
+        const editorWidth = editorRect.width;
+        const relativeRight = left + HELPER_PANE_WIDTH;
+        const overflow = relativeRight - editorWidth;
 
         if (overflow > 0) {
             left -= overflow;
@@ -311,20 +310,16 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 ...(props.isInExpandedMode
                     ? [EditorView.theme({
                         "&": { height: "100%" },
-                        ".cm-scroller": { overflow: "auto" }
+                        ".cm-scroller": { overflow: "auto", maxHeight: "100%" }
                     })]
                     : props.sx && 'height' in props.sx
                         ? [EditorView.theme({
-                            "&": {
-                                height: typeof (props.sx as any).height === 'number' ?
-                                    `${(props.sx as any).height}px` :
-                                    (props.sx as any).height
-                            },
-                            ".cm-scroller": { overflow: "auto" }
+                            "&": { height: "100%" },
+                            ".cm-scroller": { overflow: "auto", maxHeight: "100%" }
                         })]
                         : [EditorView.theme({
                             "&": { maxHeight: "150px" },
-                            ".cm-scroller": { overflow: "auto" }
+                            ".cm-scroller": { overflow: "auto", maxHeight: "150px" }
                         })])
             ]
         });
@@ -451,7 +446,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             <ChipEditorContainer ref={fieldContainerRef} style={{
                 position: 'relative',
                 ...props.sx,
-                ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
+                ...(props.isInExpandedMode ? { height: '100%' } : props.sx && 'height' in props.sx ? {} : { height: 'auto' })
             }}>
                 {!props.isInExpandedMode && configuration.getAdornment()({ onClick: () => {}})}
                 <div style={{
@@ -461,8 +456,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 }}>
                     <div ref={editorRef} style={{
                         border: '1px solid var(--vscode-dropdown-border)',
-                        ...props.sx,
-                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto', maxHeight: '150px' })
+                        width: '100%',
+                        height: '100%'
                     }} />
                     {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
