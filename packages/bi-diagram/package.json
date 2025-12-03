@@ -26,6 +26,7 @@
     "dependencies": {
         "react": "18.2.0",
         "react-dom": "18.2.0",
+        "react-hook-form": "7.56.4",
         "@projectstorm/geometry": "^6.7.4",
         "@projectstorm/react-canvas-core": "^6.7.4",
         "@projectstorm/react-diagrams": "^7.0.4",
