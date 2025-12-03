@@ -23,6 +23,7 @@ import io.ballerina.flowmodelgenerator.core.DataMapManager;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
@@ -40,6 +41,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequ
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClausePositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClearCacheResponse;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperConvertResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperModelResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperNodePositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperPositionResponse;
@@ -60,6 +62,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -508,6 +511,34 @@ public class DataMapperService implements ExtendedLanguageServerService {
             } catch (Throwable e) {
                 response.setError(e);
                 response.setSuccess(false);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Converts an expression from one type to another for incompatible primitive types.
+     * This API is only called when there are incompatible types that need conversion.
+     *
+     * @param request The request containing expression, expressionType, output, and outputType
+     * @return Response containing the converted expression and any required imports
+     * @since 1.2.0
+     */
+    @JsonRequest
+    public CompletableFuture<DataMapperConvertResponse> convertExpression(DataMapperConvertRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperConvertResponse response = new DataMapperConvertResponse();
+            try {
+                DataMapManager dataMapManager = new DataMapManager(null);
+                Map<String, Object> result = dataMapManager.convertExpression(
+                        request.expression(),
+                        request.expressionType(),
+                        request.outputType()
+                );
+
+                response.setConvertedExpression((String) result.get("convertedExpression"));
+            } catch (Throwable e) {
+                response.setError(e);
             }
             return response;
         });
