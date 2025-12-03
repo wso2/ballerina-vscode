@@ -107,8 +107,8 @@ const ActionCard = styled.div<ActionCardProps>`
 
     &:hover {
         ${(props: ActionCardProps) =>
-            !props.disabled &&
-            `
+        !props.disabled &&
+        `
             border-color: ${ThemeColors.PRIMARY};
             box-shadow: 0 0 0 2px ${ThemeColors.PRIMARY_CONTAINER};
         `}
@@ -255,8 +255,11 @@ export function WelcomeView(props: WelcomeViewProps) {
     };
 
     const openSamples = () => {
-        rpcClient.getCommonRpcClient().openExternalUrl({
-            url: "https://bi.docs.wso2.com/integration-guides/integration-as-api/message-transformation/",
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BISamplesView,
+            },
         });
     };
 

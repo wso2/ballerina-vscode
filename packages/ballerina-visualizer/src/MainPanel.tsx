@@ -81,6 +81,7 @@ import Popup from "./components/Popup";
 import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
+import { SamplesView } from "./views/BI/SamplesView";
 
 const globalStyles = css`
     *,
@@ -453,6 +454,10 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIWelcome:
                         setNavActive(false);
                         setViewComponent(<WelcomeView isBISupported={value.metadata.isBISupported} />);
+                        break;
+                    case MACHINE_VIEW.BISamplesView:
+                        setNavActive(false);
+                        setViewComponent(<SamplesView />);
                         break;
                     case MACHINE_VIEW.SetupView:
                         setNavActive(false);
