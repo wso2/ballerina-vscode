@@ -32,6 +32,7 @@ import {
     getTokenTypeColor,
     getChipDisplayContent
 } from "./chipStyles";
+import { HELPER_PANE_WIDTH } from "./constants";
 
 export type TokenStream = number[];
 
@@ -93,7 +94,9 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             Object.assign(span.style, {
                 ...BASE_CHIP_STYLES,
                 background: colors.background,
-                border: `1px solid ${colors.border}`
+                border: `1px solid ${colors.border}`,
+                marginRight: "2px",
+                marginLeft: "2px",
             });
 
             // Create icon element for standard chip
@@ -441,7 +444,6 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
                 let relativeTop = coords.bottom - editorRect.top + 5;
                 let relativeLeft = coords.left - editorRect.left;
 
-                const HELPER_PANE_WIDTH = 300;
                 const editorWidth = editorRect.width;
                 const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
                 const overflow = relativeRight - editorWidth;
@@ -475,7 +477,6 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
-            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
@@ -546,7 +547,6 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
-            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
