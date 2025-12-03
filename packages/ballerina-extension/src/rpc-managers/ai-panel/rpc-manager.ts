@@ -40,6 +40,7 @@ import {
     LoginMethod,
     MetadataWithAttachments,
     OperationType,
+    PackageTomlValues,
     PostProcessRequest,
     PostProcessResponse,
     ProcessContextTypeCreationRequest,
@@ -63,7 +64,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import path from "path";
-import { parse } from 'toml';
+import { parse } from "@iarna/toml";
 import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
@@ -789,8 +790,8 @@ async function getCurrentProjectSource(requestType: OperationType, projectPath?:
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
         // Simple parsing to extract the package.name field
         try {
-            const tomlObj = parse(tomlContent);
-            packageName = tomlObj.package.name;
+            const tomlObj = parse(tomlContent) as Partial<PackageTomlValues>;
+            packageName = tomlObj?.package?.name;
         } catch (error) {
             packageName = '';
         }
