@@ -20,6 +20,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
 import { getCheckpointConfig } from './checkpointConfig';
+import { ArtifactNotificationHandler, ArtifactsUpdated } from '../../../utils/project-artifacts-handler';
+import { VisualizerRpcManager } from '../../../rpc-managers/visualizer/rpc-manager';
+import { StateMachine, updateView } from '../../../../src/stateMachine';
+import { refreshDataMapper } from '../../../../src/rpc-managers/data-mapper/utils';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -103,6 +107,7 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
     }
 
     const workspaceRoot = workspaceFolders[0].uri;
+    let isBalFileRestored = false;
 
     try {
         await vscode.window.withProgress({
@@ -124,32 +129,70 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
                 filePath => !snapshotFilePaths.has(filePath)
             );
 
-            progress.report({ message: `Deleting ${filesToDelete.length} files...` });
+            // Check if any .bal files are being modified
+            isBalFileRestored = filesToDelete.some(filePath => filePath.endsWith('.bal')) ||
+                checkpoint.fileList.some(filePath => filePath.endsWith('.bal'));
+
+            // Create a WorkspaceEdit for batch operations
+            const workspaceEdit = new vscode.WorkspaceEdit();
+
+            progress.report({ message: `Preparing ${filesToDelete.length} deletions and ${checkpoint.fileList.length} file restorations...` });
+
+            // Queue all file deletions
             for (const filePath of filesToDelete) {
-                try {
-                    const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
-                    await vscode.workspace.fs.delete(fileUri);
-                } catch (error) {
-                    console.error(`[Checkpoint] Failed to delete file ${filePath}:`, error);
-                }
+                const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
+                workspaceEdit.deleteFile(fileUri, { ignoreIfNotExists: true });
             }
 
-            progress.report({ message: `Restoring ${checkpoint.fileList.length} files...` });
+            // Queue all file creations/updates with content
             for (const [filePath, content] of Object.entries(checkpoint.workspaceSnapshot)) {
-                try {
-                    const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
-                    const dirUri = vscode.Uri.file(path.dirname(fileUri.fsPath));
+                const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
+                const contentBuffer = Buffer.from(content, 'utf8');
+                workspaceEdit.createFile(fileUri, { overwrite: true, contents: contentBuffer });
+            }
 
-                    await vscode.workspace.fs.createDirectory(dirUri);
+            progress.report({ message: 'Applying workspace changes...' });
 
-                    const contentBuffer = Buffer.from(content, 'utf8');
-                    await vscode.workspace.fs.writeFile(fileUri, contentBuffer);
-                } catch (error) {
-                    console.error(`[Checkpoint] Failed to restore file ${filePath}:`, error);
-                }
+            // Apply all changes atomically
+            const success = await vscode.workspace.applyEdit(workspaceEdit);
+            if (!success) {
+                throw new Error('Failed to apply workspace edit');
             }
 
             progress.report({ message: 'Checkpoint restored successfully!' });
+        });
+        await renderDatamapper();
+
+        // Wait for artifact update notification if any .bal files were restored
+        await new Promise<void>((resolve, reject) => {
+            if (!isBalFileRestored) {
+                resolve();
+                return;
+            }
+
+            // Get the artifact notification handler instance
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            // Subscribe to artifact updated notifications
+            let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+                new VisualizerRpcManager().updateCurrentArtifactLocation({ artifacts: payload.data });
+                clearTimeout(timeoutId);
+                resolve();
+                unsubscribe();
+            });
+
+            // Set a timeout to reject if no notification is received within 10 seconds
+            const timeoutId = setTimeout(() => {
+                console.log("[Checkpoint] No artifact update notification received within 10 seconds");
+                reject(new Error("Operation timed out. Please try again."));
+                unsubscribe();
+            }, 10000);
+
+            // Clear the timeout when notification is received
+            const originalUnsubscribe = unsubscribe;
+            unsubscribe = () => {
+                clearTimeout(timeoutId);
+                originalUnsubscribe();
+            };
         });
 
         vscode.window.showInformationMessage('Checkpoint restored successfully');
@@ -157,6 +200,26 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
         console.error('[Checkpoint] Failed to restore workspace snapshot:', error);
         vscode.window.showErrorMessage('Failed to restore checkpoint: ' + (error as Error).message);
     }
+}
+
+//TODO: Verify why this doesnt work.
+export async function renderDatamapper() {
+    const context = StateMachine.context();
+    const dataMapperMetadata = context.dataMapperMetadata;
+    if (!dataMapperMetadata || !dataMapperMetadata.codeData) {
+        updateView();
+        return true;
+    }
+
+    // Refresh data mapper with the updated code
+    let filePath = dataMapperMetadata.codeData.lineRange?.fileName;
+    const varName = dataMapperMetadata.name;
+    if (!filePath || !varName) {
+        updateView();
+        return true;
+    }
+
+    await refreshDataMapper(filePath, dataMapperMetadata.codeData, varName);
 }
 
 async function getAllWorkspaceFiles(workspaceRoot: vscode.Uri, ignorePatterns: string[]): Promise<vscode.Uri[]> {

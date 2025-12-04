@@ -30,6 +30,7 @@ import { generateAutoMappings, generateRepairCode } from "../../../src/features/
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
 import { CopilotEventHandler } from "../../../src/features/ai/service/event";
 import { VisualizerRpcManager } from "../visualizer/rpc-manager";
+import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -114,6 +115,8 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         }
         fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
     }
+    await renderDatamapper();
+
     return new Promise((resolve, reject) => {
         if (!isBalFileAdded) {
             resolve([]);
