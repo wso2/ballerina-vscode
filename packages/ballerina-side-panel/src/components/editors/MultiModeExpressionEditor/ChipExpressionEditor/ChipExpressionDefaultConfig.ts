@@ -16,9 +16,32 @@
  * under the License.
  */
 
-import { InputMode } from "@wso2/ballerina-side-panel";
+import FXButton from "./components/FxButton";
+import { ParsedToken } from "./utils";
 
-// Wraps a value in template interpolation syntax ${} if in template mode
-export const wrapInTemplateInterpolation = (value: string, _inputMode?: InputMode): string => {
-    return value;
-};
+export abstract class ChipExpressionEditorDefaultConfiguration {
+    getHelperValue(value: string, token?: ParsedToken) {
+        return value;
+    }
+    getSerializationPrefix() {
+        return "";
+    }
+    getSerializationSuffix() {
+        return "";
+    }
+    serializeValue(value: string) {
+        return value
+    }
+    deserializeValue(value: string) {
+        return value;
+    }
+    showHelperPane() {
+        return true;
+    }
+    getPlugins() {
+        return [];
+    }
+    getAdornment() {
+        return (FXButton)
+    }
+}
