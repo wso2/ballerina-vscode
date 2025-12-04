@@ -15,12 +15,12 @@
 // under the License.
 
 import { SourceFile, FileChanges, CodeContext, ProjectSource } from "@wso2/ballerina-core";
-import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import type { TextEdit } from "vscode-languageserver-protocol";
+import { StateMachine } from "../../../../../src/stateMachine";
 
 /**
  * File extensions to include in codebase structure
@@ -74,12 +74,11 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
         return;
     }
 
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders?.length) {
-        throw new Error("No workspace folder found. Please open a workspace.");
+    let workspaceFolderPath = StateMachine.context().projectPath;
+    const workspacePath = StateMachine.context().workspacePath;
+    if (workspacePath) {
+        workspaceFolderPath = workspacePath;
     }
-
-    const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
 
     const fileChanges: FileChanges[] = [];
 

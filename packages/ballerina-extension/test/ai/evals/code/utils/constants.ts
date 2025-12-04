@@ -21,8 +21,8 @@ import * as path from 'path';
  * Default test configuration
  */
 export const DEFAULT_TEST_CONFIG: TestConfiguration = {
-    // should be 1, 5, 10, 15, 20 ...
-    maxConcurrency: 5,
+    // Set to 1 to avoid temp project naming collisions
+    maxConcurrency: 1,
     iterations: 1
 } as const;
 
@@ -76,5 +76,5 @@ observabilityIncluded = true
 export const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
     OPEN: "vscode.open",
-    AI_GENERATE_CODE_CORE: "ballerina.test.ai.generateCodeCore"
+    AI_GENERATE_DESIGN_FOR_TEST: "ballerina.test.ai.generateDesignForTest"
 } as const;

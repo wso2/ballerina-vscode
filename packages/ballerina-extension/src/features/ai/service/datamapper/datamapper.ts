@@ -43,8 +43,7 @@ import path from "path";
 import { URI } from "vscode-uri";
 import fs from 'fs';
 import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
-import { getTempProject, cleanupTempProject } from "../../utils/temp-project-utils";
-import { getProjectSource } from "../../../../../src/rpc-managers/ai-panel/rpc-manager";
+import { getTempProject, cleanupTempProject } from "../../utils/project-utils";
 import { integrateCodeToWorkspace } from "../design/utils";
 
 // =============================================================================

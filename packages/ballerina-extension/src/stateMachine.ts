@@ -90,9 +90,7 @@ const stateMachine = createMachine<MachineContext>(
                     () => {
                         // Use queueMicrotask to ensure context is updated before command execution
                         queueMicrotask(() => {
-                            console.log('Refreshing BI project explorer');
                             commands.executeCommand("BI.project-explorer.refresh");
-                            console.log('Notifying current webview');
                             // Check if the current view is Service desginer and if so don't notify the webview
                             if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner) {
                                 notifyCurrentWebview();
@@ -105,6 +103,7 @@ const stateMachine = createMachine<MachineContext>(
                 actions: [
                     assign({
                         projectPath: (context, event) => event.projectPath,
+                        workspacePath: (context, event) => event.workspacePath !== undefined ? event.workspacePath : context.workspacePath,
                         projectInfo: (context, event) => event.projectInfo
                     }),
                     async (context, event) => {
@@ -186,12 +185,14 @@ const stateMachine = createMachine<MachineContext>(
                                     org: (context, event) => event.data.orgName,
                                     package: (context, event) => event.data.packageName
                                 }),
-                                (context, event) => notifyTreeView(
-                                    event.data.projectPath,
-                                    context.documentUri,
-                                    context.position,
-                                    context.view
-                                )
+                                (context, event) => {
+                                    notifyTreeView(
+                                        event.data.projectPath,
+                                        context.documentUri,
+                                        context.position,
+                                        context.view
+                                    );
+                                }
                             ]
                         },
                         {
@@ -206,12 +207,14 @@ const stateMachine = createMachine<MachineContext>(
                                     org: (context, event) => event.data.orgName,
                                     package: (context, event) => event.data.packageName
                                 }),
-                                (context, event) => notifyTreeView(
-                                    event.data.projectPath,
-                                    context.documentUri,
-                                    context.position,
-                                    context.view
-                                )
+                                (context, event) => {
+                                    notifyTreeView(
+                                        event.data.projectPath,
+                                        context.documentUri,
+                                        context.position,
+                                        context.view
+                                    );
+                                }
                             ]
                         }
                     ],
@@ -572,8 +575,6 @@ const stateMachine = createMachine<MachineContext>(
                         );
 
                         if (result.success) {
-                            console.log('Build task completed successfully');
-
                             // Retry resolving missing dependencies after build is successful. This is a temporary solution to ensure the project is reloaded with new dependencies.
                             const projectUri = Uri.file(context.projectPath).toString();
                             await StateMachine.langClient().resolveMissingDependencies({
@@ -785,7 +786,10 @@ function startMachine(): Promise<void> {
 
 // Define your API as functions
 export const StateMachine = {
-    initialize: async () => await startMachine(),
+    initialize: async () => {
+        await startMachine();
+        // Set up workspace folder change listener after initialization
+    },
     service: () => { return stateService; },
     context: () => { return stateService.getSnapshot().context; },
     langClient: () => { return stateService.getSnapshot().context.langClient; },
