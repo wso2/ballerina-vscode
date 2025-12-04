@@ -100,7 +100,8 @@ export enum MACHINE_VIEW {
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
-    BISamplesView = "BI Samples View"
+    BISamplesView = "BI Samples View",
+    ReviewMode = "Review Mode"
 }
 
 export interface MachineEvent {
@@ -147,6 +148,7 @@ export interface VisualizerLocation {
     version?: string;
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
+    reviewData?: ReviewModeData;
 }
 
 export interface ArtifactInfo {
@@ -172,6 +174,21 @@ export interface VisualizerMetadata {
 export interface DataMapperMetadata {
     name: string;
     codeData: CodeData;
+}
+
+export interface ReviewViewItem {
+    type: 'component' | 'flow';
+    filePath: string;
+    position: NodePosition;
+    projectPath: string;
+    label?: string;
+}
+
+export interface ReviewModeData {
+    views: ReviewViewItem[];
+    currentIndex: number;
+    onAccept?: string;
+    onReject?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
