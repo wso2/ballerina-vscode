@@ -28,3 +28,4 @@ export * from "./FormMapEditor";
 export * from "./FieldContext";
 export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 export { getPropertyFromFormField } from "./utils";
+export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";

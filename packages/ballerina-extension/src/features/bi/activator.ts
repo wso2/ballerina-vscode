@@ -35,6 +35,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
+import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
 import { createVersionNumber, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 
@@ -60,7 +61,7 @@ function handleCommandWithContext(
     // Scenario 1: Multi-package workspace invoked from command palette
     if (isBalWorkspace && !item) {
         const packageList = StateMachine.context().projectInfo?.children.map((child) => child.projectPath);
-        
+
         if (!packageList || packageList.length === 0) {
             openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
             return;
@@ -70,10 +71,10 @@ function handleCommandWithContext(
             placeHolder: "Select a package"
         }).then((selectedPackage) => {
             if (selectedPackage) {
-                openView(EVENT_TYPE.OPEN_VIEW, { 
-                    view, 
-                    projectPath: selectedPackage, 
-                    ...additionalViewParams 
+                openView(EVENT_TYPE.OPEN_VIEW, {
+                    view,
+                    projectPath: selectedPackage,
+                    ...additionalViewParams
                 });
             }
         });
@@ -81,12 +82,12 @@ function handleCommandWithContext(
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
         const projectPath = item.resourceUri.fsPath;
-        openView(EVENT_TYPE.OPEN_VIEW, { 
-            view, 
-            projectPath, 
-            ...additionalViewParams 
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view,
+            projectPath,
+            ...additionalViewParams
         });
-    } 
+    }
     // Scenario 3: Default - no specific context
     else {
         openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
@@ -95,7 +96,7 @@ function handleCommandWithContext(
 
 export function activate(context: BallerinaExtension) {
     const isWorkspaceSupported = isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0));
-    
+
     // Set context for command visibility
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
@@ -165,7 +166,7 @@ export function activate(context: BallerinaExtension) {
             window.showErrorMessage('This command requires Ballerina version 2201.13.0 or higher. ');
             return;
         }
-        
+
         const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
         if (projectPath) {
             openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
@@ -183,6 +184,14 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
+
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
+        return createBIProjectPure(params);
+    });
+
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
+        return createBIProjectFromMigration(params);
+    });
 
     commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
         // Guard: DELETE requires a tree item context

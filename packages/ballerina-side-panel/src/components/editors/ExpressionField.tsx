@@ -27,13 +27,19 @@ import {
 } from '@wso2/ui-toolkit';
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
-import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { InputMode, TokenType } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
-import { HelperpaneOnChangeOptions } from '../Form/types';
+import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
+import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
+import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
+import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 
 export interface ExpressionField {
+    field: FormField;
     inputMode: InputMode;
+    primaryMode: InputMode;
     name: string;
     value: string;
     fileName?: string;
@@ -41,6 +47,7 @@ export interface ExpressionField {
     completions: CompletionItem[];
     autoFocus?: boolean;
     sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
@@ -95,6 +102,8 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
 
 export const ExpressionField: React.FC<ExpressionField> = ({
     inputMode,
+    field,
+    primaryMode,
     name,
     value,
     completions,
@@ -122,12 +131,22 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     anchorRef,
     onToggleHelperPane,
     sanitizedExpression,
+    rawExpression,
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
-    if (inputMode === InputMode.TEXT || inputMode === InputMode.RECORD) {
+    if (inputMode === InputMode.BOOLEAN) {
         return (
-            <TextModeEditor
+            <BooleanEditor
+                field={field}
+                value={value}
+                onChange={onChange}
+            />
+            );
+        }
+    if (inputMode === InputMode.RECORD) {
+        return (
+            <RecordConfigPreviewEditor
                 exprRef={exprRef}
                 anchorRef={anchorRef}
                 name={name}
@@ -145,6 +164,67 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 isInExpandedMode={isInExpandedMode}
             />
+        );
+    }
+    if (inputMode === InputMode.TEXT) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={new StringTemplateEditorConfig()}
+            />
+
+        );
+    }
+    if (inputMode === InputMode.TEMPLATE) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={new RawTemplateEditorConfig()}
+            />
+
+        );
+    }
+    if (inputMode === InputMode.NUMBER) {
+        return (
+            <NumberExpressionEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+            />
 
         );
     }
@@ -156,12 +236,15 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             completions={completions}
             onChange={onChange}
             value={value}
+            sanitizedExpression={sanitizedExpression}
+            rawExpression={rawExpression}
             fileName={fileName}
             targetLineRange={targetLineRange}
             extractArgsFromFunction={extractArgsFromFunction}
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
+            configuration={new PrimaryModeChipExpressionEditorConfig(primaryMode)}
         />
     );
 };
