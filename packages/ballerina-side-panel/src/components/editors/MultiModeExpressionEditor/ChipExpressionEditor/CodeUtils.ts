@@ -20,7 +20,7 @@ import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotat
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
 import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken, mapRawToSanitized } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
-import { CompletionItem } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { TokenType, TokenMetadata, CompoundTokenSequence } from "./types";
@@ -32,7 +32,7 @@ import {
     getTokenTypeColor,
     getChipDisplayContent
 } from "./chipStyles";
-import { HELPER_PANE_WIDTH } from "./constants";
+import React from "react";
 
 export type TokenStream = number[];
 
@@ -431,6 +431,7 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
                 let relativeTop = coords.bottom - editorRect.top + 5;
                 let relativeLeft = coords.left - editorRect.left;
 
+                const HELPER_PANE_WIDTH = 300;
                 const editorWidth = editorRect.width;
                 const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
                 const overflow = relativeRight - editorWidth;
@@ -464,6 +465,7 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
+            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
@@ -534,6 +536,7 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
+            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
@@ -602,6 +605,262 @@ export const buildHelperPaneKeymap = (getIsHelperPaneOpen: () => boolean, onClos
             }
         }
     ];
+};
+
+
+export const extractTextContent = (content: any): string => {
+    if (typeof content === 'string') {
+        return content;
+    }
+    if (React.isValidElement(content)) {
+        const props = (content as any).props;
+        if (props) {
+            if (typeof props.children === 'string') {
+                return props.children;
+            }
+            if (Array.isArray(props.children)) {
+                return props.children
+                    .map((child: any) => extractTextContent(child))
+                    .filter(Boolean)
+                    .join(' ');
+            }
+            if (props.children && typeof props.children === 'object') {
+                return extractTextContent(props.children);
+            }
+        }
+    }
+    if (Array.isArray(content)) {
+        return content
+            .map((item: any) => extractTextContent(item))
+            .filter(Boolean)
+            .join(' ');
+    }
+    return '';
+};
+
+export const parseMarkdownToDOM = (text: string, container: HTMLElement, codeBackground: string) => {
+    const parseInline = (str: string, parent: HTMLElement) => {
+        let remaining = str;
+        
+        while (remaining.length > 0) {
+            const boldMatch = remaining.match(/^\*\*(.+?)\*\*/);
+            const codeMatch = remaining.match(/^`([^`]+?)`/);
+            
+            if (boldMatch) {
+                const bold = document.createElement('strong');
+                bold.style.fontWeight = '600';
+                parseInline(boldMatch[1], bold);
+                parent.appendChild(bold);
+                remaining = remaining.slice(boldMatch[0].length);
+            } else if (codeMatch) {
+                const code = document.createElement('code');
+                code.textContent = codeMatch[1];
+                code.style.cssText = `
+                    background: ${codeBackground};
+                    color: ${ThemeColors.PRIMARY};
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-family: var(--vscode-editor-font-family);
+                    font-size: 11px;
+                    border: 1px solid ${ThemeColors.OUTLINE};
+                `;
+                parent.appendChild(code);
+                remaining = remaining.slice(codeMatch[0].length);
+            } else {
+                parent.appendChild(document.createTextNode(remaining[0]));
+                remaining = remaining.slice(1);
+            }
+        }
+    };
+    
+    const lines = text.split('\n');
+    lines.forEach((line, index) => {
+        if (index > 0) {
+            container.appendChild(document.createElement('br'));
+        }
+        parseInline(line, container);
+    });
+};
+
+export const createTooltipHeader = (label: string): HTMLDivElement => {
+    const header = document.createElement("div");
+    header.style.cssText = `
+        padding: 8px 12px;
+        background: ${ThemeColors.SURFACE_CONTAINER};
+        border-bottom: 1px solid ${ThemeColors.OUTLINE};
+        font-weight: 500;
+        color: ${ThemeColors.PRIMARY};
+        font-family: var(--vscode-editor-font-family);
+    `;
+    header.textContent = label;
+    return header;
+};
+
+export const createSectionLabel = (text: string): HTMLDivElement => {
+    const label = document.createElement("div");
+    label.style.cssText = `
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    `;
+    label.textContent = text;
+    return label;
+};
+
+export const createParametersSection = (args: string[], currentArgIndex: number): HTMLDivElement => {
+    const section = document.createElement("div");
+    section.style.cssText = `
+        padding: 8px 12px;
+        background: ${ThemeColors.SURFACE};
+        border-bottom: 1px solid ${ThemeColors.OUTLINE};
+    `;
+
+    section.appendChild(createSectionLabel("Parameters"));
+
+    args.forEach((arg, index) => {
+        const isCurrent = index === currentArgIndex;
+        const argDiv = document.createElement("div");
+        argDiv.style.cssText = `
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-family: var(--vscode-editor-font-family);
+            color: ${isCurrent ? ThemeColors.ON_SURFACE : ThemeColors.ON_SURFACE_VARIANT};
+            background: ${isCurrent ? ThemeColors.SURFACE_CONTAINER : 'transparent'};
+            font-weight: ${isCurrent ? '600' : '400'};
+            border-left: ${isCurrent ? `3px solid ${ThemeColors.PRIMARY}` : '3px solid transparent'};
+        `;
+        argDiv.textContent = arg;
+        section.appendChild(argDiv);
+    });
+
+    return section;
+};
+
+export const createDocumentationSection = (documentation: FnSignatureDocumentation): HTMLDivElement => {
+    const section = document.createElement("div");
+    section.style.cssText = `
+        padding: 8px 12px;
+        background: ${ThemeColors.SURFACE};
+    `;
+
+    section.appendChild(createSectionLabel("Documentation"));
+
+    const docContent = document.createElement("div");
+    docContent.style.cssText = `
+        color: ${ThemeColors.ON_SURFACE};
+        line-height: 1.5;
+        font-size: 12px;
+    `;
+
+    if (documentation.fn) {
+        const fnDoc = document.createElement("div");
+        fnDoc.style.cssText = `margin-bottom: 8px;`;
+        const text = extractTextContent(documentation.fn);
+        if (text) {
+            parseMarkdownToDOM(text, fnDoc, ThemeColors.SURFACE_CONTAINER);
+        } else {
+            fnDoc.textContent = 'Function documentation available';
+        }
+        docContent.appendChild(fnDoc);
+    }
+
+    if (documentation.args) {
+        const argsDoc = document.createElement("div");
+        argsDoc.style.cssText = `
+            padding: 8px;
+            background: ${ThemeColors.SURFACE_CONTAINER};
+            border-radius: 3px;
+            border-left: 3px solid ${ThemeColors.OUTLINE_VARIANT};
+        `;
+        
+        argsDoc.appendChild(createSectionLabel("Arguments"));
+        
+        const argsDocText = document.createElement("div");
+        argsDocText.style.cssText = `
+            color: ${ThemeColors.ON_SURFACE};
+            font-size: 12px;
+        `;
+        
+        const text = extractTextContent(documentation.args);
+        if (text) {
+            parseMarkdownToDOM(text, argsDocText, ThemeColors.SURFACE);
+        } else {
+            argsDocText.textContent = 'Arguments documentation available';
+        }
+        
+        argsDoc.appendChild(argsDocText);
+        docContent.appendChild(argsDoc);
+    }
+
+    section.appendChild(docContent);
+    return section;
+};
+
+export const createTooltipContainer = (): HTMLElement => {
+    const dom = document.createElement("div");
+    dom.style.cssText = `
+        background: ${ThemeColors.SURFACE_BRIGHT};
+        border: 1px solid ${ThemeColors.OUTLINE};
+        border-radius: 4px;
+        padding: 0;
+        max-width: 500px;
+        max-height: 200px;
+        font-family: var(--vscode-font-family);
+        font-size: 13px;
+        box-shadow: 0 2px 8px ${ThemeColors.SURFACE_CONTAINER};
+        overflow-y: auto;
+        overflow-x: hidden;
+    `;
+    return dom;
+};
+
+export const createTooltipPositioningHandlers = (view: EditorView) => {
+    let adjustmentObserver: MutationObserver | null = null;
+
+    const adjustPosition = () => {
+        const tooltipElements = view.dom.querySelectorAll('.cm-tooltip');
+        if (tooltipElements.length === 0) return;
+
+        const tooltip = tooltipElements[tooltipElements.length - 1] as HTMLElement;
+        const editorRect = view.dom.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        const rightOverflow = (tooltipRect.left + tooltipRect.width) - (editorRect.left + editorRect.width);
+
+        if (rightOverflow > 0) {
+            const currentLeft = parseFloat(tooltip.style.left) || 0;
+            const newLeft = currentLeft - rightOverflow - 10;
+            tooltip.style.left = `${Math.max(0, newLeft)}px`;
+        }
+    };
+
+    const mount = () => {
+        requestAnimationFrame(() => {
+            adjustPosition();
+
+            const tooltipElements = view.dom.querySelectorAll('.cm-tooltip');
+            if (tooltipElements.length > 0) {
+                const tooltip = tooltipElements[tooltipElements.length - 1] as HTMLElement;
+                adjustmentObserver = new MutationObserver(adjustPosition);
+                adjustmentObserver.observe(tooltip, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+        });
+    };
+
+    const destroy = () => {
+        if (adjustmentObserver) {
+            adjustmentObserver.disconnect();
+        }
+    };
+
+    return { mount, destroy };
 };
 
 export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {

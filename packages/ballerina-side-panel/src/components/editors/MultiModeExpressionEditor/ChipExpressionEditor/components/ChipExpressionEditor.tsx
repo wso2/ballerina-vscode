@@ -17,7 +17,7 @@
  */
 
 import { EditorState } from "@codemirror/state";
-import { EditorView, keymap, tooltips } from "@codemirror/view";
+import { EditorView, hoverTooltip, keymap, tooltips } from "@codemirror/view";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
 import {
@@ -36,7 +36,12 @@ import {
     buildOnFocusOutListner,
     buildOnSelectionChange,
     SyncDocValueWithPropValue,
-    isSelectionOnToken
+    isSelectionOnToken,
+    createTooltipHeader,
+    createParametersSection,
+    createDocumentationSection,
+    createTooltipContainer,
+    createTooltipPositioningHandlers
 } from "../CodeUtils";
 import { TOKEN_START_CHAR_OFFSET_INDEX } from "../utils";
 import { history } from "@codemirror/commands";
@@ -110,6 +115,40 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
+
+    async function docTooltip(view: EditorView, pos: number) {
+        const value = view.state.doc.toString()
+        const fnSignature = await props.extractArgsFromFunction?.(value, pos);
+        if (!fnSignature) return null;
+
+        return {
+            pos: pos,
+            end: pos,
+            above: true,
+            create() {
+                const dom = createTooltipContainer();
+                dom.appendChild(createTooltipHeader(fnSignature.label));
+
+                if (fnSignature.args && fnSignature.args.length > 0) {
+                    dom.appendChild(createParametersSection(fnSignature.args, fnSignature.currentArgIndex));
+                }
+                if (fnSignature.documentation) {
+                    dom.appendChild(createDocumentationSection(fnSignature.documentation));
+                }
+                const { mount, destroy } = createTooltipPositioningHandlers(view);
+                
+                return { 
+                    dom,
+                    mount,
+                    destroy
+                };
+            }
+        };
+    }
+
+    const tooltipExtension = hoverTooltip((view, pos) => {
+        return docTooltip(view, pos);
+    });
 
     const needTokenRefetchListner = buildNeedTokenRefetchListner(() => {
         setIsTokenUpdateScheduled(true);
@@ -305,6 +344,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 handleChangeListner,
                 handleFocusListner,
                 handleFocusOutListner,
+                tooltipExtension,
                 handleSelectionChange,
                 ...(props.isInExpandedMode
                     ? [EditorView.theme({
