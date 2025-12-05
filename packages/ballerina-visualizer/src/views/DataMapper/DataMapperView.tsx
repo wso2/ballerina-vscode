@@ -609,15 +609,6 @@ export function DataMapperView(props: DataMapperProps) {
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
 
-    useEffect(() => {
-        // Expose function to refresh data mapper in playwright tests
-        (window as any).__refreshDM = onDMRefresh;
-
-        return () => {
-            delete (window as any).__refreshDM;
-        };
-    }, []);
-
 
     useEffect(() => {
         // Hack to hit the error boundary
