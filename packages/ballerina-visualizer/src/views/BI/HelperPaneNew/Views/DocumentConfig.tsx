@@ -44,9 +44,8 @@ type DocumentConfigProps = {
 const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: AIDocumentType, content: string, addInterpolation: boolean = true): string => {
-    const docStructure = `<${documentType}>{content: ${content}}`;
-    return addInterpolation ? `\${${docStructure}}` : docStructure;
+const wrapInDocumentType = (documentType: AIDocumentType, content: string): string => {
+    return`<${documentType}>{content: ${content}}`;
 };
 
 export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
@@ -164,13 +163,13 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         if (isAIDocumentType) {
             // For AI document types, wrap in string interpolation only in template mode
             if (isTemplateMode) {
-                onChange(`\${${fullPath}}`, false);
+                onChange(`${fullPath}`, false);
             } else {
                 onChange(fullPath, false);
             }
         } else if (needsTypeCasting) {
             // Wrap the variable in the document structure with or without interpolation based on mode
-            const wrappedValue = wrapInDocumentType(documentType, fullPath, isTemplateMode);
+            const wrappedValue = wrapInDocumentType(documentType, fullPath);
             onChange(wrappedValue, false);
         } else {
             // For other types (records, etc.), insert directly
@@ -212,7 +211,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                 return;
             }
             const isTemplateMode = inputMode === InputMode.TEMPLATE;
-            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode);
+            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`);
             onChange(wrappedValue, false, false);
             closeModal(POPUP_IDS.DOCUMENT_URL);
         };
