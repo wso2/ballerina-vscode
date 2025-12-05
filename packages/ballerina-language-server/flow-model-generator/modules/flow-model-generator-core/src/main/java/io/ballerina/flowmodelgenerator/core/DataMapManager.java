@@ -587,7 +587,7 @@ public class DataMapManager {
         String[] fieldSplits = targetField.split(DOT);
         int idx = 1;
 
-        if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
+        if (fieldSplits.length > 1 && expr.kind() == SyntaxKind.LET_EXPRESSION) {
             expr = ((LetExpressionNode) expr).expression();
         }
 
