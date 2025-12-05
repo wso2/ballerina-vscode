@@ -26,6 +26,7 @@ import { RichTextTemplateEditor } from "../../MultiModeExpressionEditor/RichText
 import { RichTemplateMarkdownToolbar } from "../controls/RichTemplateMarkdownToolbar";
 import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolbar";
 import { ErrorBanner } from "@wso2/ui-toolkit";
+import { RawTemplateEditorConfig, StringTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -129,6 +130,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
                         enableListContinuation={true}
                         inputMode={inputMode}
+                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                     />
                 </ExpressionContainer>
             ) : (
@@ -139,12 +141,11 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         completions={isSimpleMode ? [] : completions}
                         fileName={fileName}
                         targetLineRange={targetLineRange}
-                        sanitizedExpression={sanitizedExpression}
-                        rawExpression={rawExpression}
                         extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
                         getHelperPane={isSimpleMode ? undefined : getHelperPane}
                         onEditorViewReady={setProseMirrorView}
                         onHelperPaneStateChange={handleHelperPaneStateChange}
+                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                     />
                 </ExpressionContainer>
             )

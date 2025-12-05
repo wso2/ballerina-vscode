@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useRef, useState, useMemo } from "react";
+import React, { useCallback, useRef, useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
@@ -26,7 +26,8 @@ import {
     FormExpressionEditorProps,
     HelperpaneOnChangeOptions,
     InputMode,
-    ExpandedEditor
+    ExpandedEditor,
+    RawTemplateEditorConfig
 } from "@wso2/ballerina-side-panel";
 import {
     CompletionItem,
@@ -118,7 +119,6 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
         triggerCharacters,
         retrieveCompletions,
         onCompletionItemSelect,
-        onFocus,
         onBlur,
         onCancel,
         extractArgsFromFunction,
@@ -162,13 +162,13 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
     };
 
     // Helper to create ExpressionProperty
-    const createProperty = (expressionValue: string): ExpressionProperty => {
+    const createProperty = useCallback((expressionValue: string): ExpressionProperty => {
         const promptProperty = props.node.properties['prompt'];
         return {
             ...promptProperty,
             value: getSanitizedExp(expressionValue),
         }
-    };
+    }, [props.node]); 
 
     // Debounced diagnostics fetching
     const fetchDiagnostics = useCallback(
@@ -201,6 +201,13 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
         }, 300),
         [enableDiagnostics, getExpressionFormDiagnostics]
     );
+
+    // Cancel debounced function on unmount  
+    useEffect(() => {  
+        return () => {  
+            fetchDiagnostics.cancel();  
+        };  
+    }, [fetchDiagnostics]);
 
     // Handle change with diagnostics
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
@@ -365,11 +372,10 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
                         isInExpandedMode={isExpandedModalOpen}
                         inputMode={inputMode}
                         onOpenExpandedMode={handleOpenExpandedMode}
-                        sanitizedExpression={getSanitizedExp}
-                        rawExpression={getRawExp}
                         hideFxButton={true}
                         disabled={disabled}
                         placeholder={placeholder}
+                        configuration={new RawTemplateEditorConfig()}
                     />
                     {enableDiagnostics && formDiagnostics && formDiagnostics.length > 0 && (
                         <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
@@ -383,7 +389,7 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
                         field={{
                             key: "expression",
                             label: "Prompt",
-                            type: null,
+                            type: undefined,
                             optional: false,
                             editable: true,
                             documentation: "",
@@ -400,8 +406,6 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
                         completions={completions}
                         fileName={fileName}
                         targetLineRange={targetLineRange}
-                        sanitizedExpression={getSanitizedExp}
-                        rawExpression={getRawExp}
                         extractArgsFromFunction={chipExtractArgsFromFunction}
                         getHelperPane={wrappedGetHelperPane}
                         inputMode={inputMode}

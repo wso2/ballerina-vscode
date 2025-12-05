@@ -18,13 +18,12 @@
 
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
-import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken, mapRawToSanitized } from "./utils";
+import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { TokenType, TokenMetadata, CompoundTokenSequence } from "./types";
-import { Extension } from '@codemirror/state';
 import {
     CHIP_TEXT_STYLES,
     BASE_CHIP_STYLES,
@@ -659,11 +658,11 @@ export const extractTextContent = (content: any): string => {
 export const parseMarkdownToDOM = (text: string, container: HTMLElement, codeBackground: string) => {
     const parseInline = (str: string, parent: HTMLElement) => {
         let remaining = str;
-        
+
         while (remaining.length > 0) {
             const boldMatch = remaining.match(/^\*\*(.+?)\*\*/);
             const codeMatch = remaining.match(/^`([^`]+?)`/);
-            
+
             if (boldMatch) {
                 const bold = document.createElement('strong');
                 bold.style.fontWeight = '600';
@@ -690,7 +689,7 @@ export const parseMarkdownToDOM = (text: string, container: HTMLElement, codeBac
             }
         }
     };
-    
+
     const lines = text.split('\n');
     lines.forEach((line, index) => {
         if (index > 0) {
@@ -794,22 +793,22 @@ export const createDocumentationSection = (documentation: FnSignatureDocumentati
             border-radius: 3px;
             border-left: 3px solid ${ThemeColors.OUTLINE_VARIANT};
         `;
-        
+
         argsDoc.appendChild(createSectionLabel("Arguments"));
-        
+
         const argsDocText = document.createElement("div");
         argsDocText.style.cssText = `
             color: ${ThemeColors.ON_SURFACE};
             font-size: 12px;
         `;
-        
+
         const text = extractTextContent(documentation.args);
         if (text) {
             parseMarkdownToDOM(text, argsDocText, ThemeColors.SURFACE);
         } else {
             argsDocText.textContent = 'Arguments documentation available';
         }
-        
+
         argsDoc.appendChild(argsDocText);
         docContent.appendChild(argsDoc);
     }

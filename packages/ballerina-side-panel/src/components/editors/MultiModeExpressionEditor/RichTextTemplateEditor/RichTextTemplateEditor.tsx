@@ -31,8 +31,8 @@ import { ThemeColors, CompletionItem, FnSignatureDocumentation, HelperPaneHeight
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { HelperpaneOnChangeOptions } from "../../../Form/types";
 import { useFormContext } from "../../../../context/form";
-import { createChipPlugin, createChipSchema, updateChipTokens } from "./chipPlugin";
-import { createXMLTagDecorationPlugin } from "./xmlTagDecorationPlugin";
+import { createChipPlugin, createChipSchema, updateChipTokens } from "./plugins/chipPlugin";
+import { createXMLTagDecorationPlugin } from "./plugins/xmlTagDecorationPlugin";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -41,10 +41,11 @@ import {
     toggleBlockquote,
     toggleBulletList,
     toggleOrderedList
-} from "./markdownCommands";
+} from "./plugins/markdownCommands";
 import { HELPER_PANE_WIDTH } from "../ChipExpressionEditor/constants";
 import { calculateHelperPanePosition, processFunctionWithArguments } from "../ChipExpressionEditor/utils";
 import { useHelperPaneClickOutside, useHelperPane } from "../ChipExpressionEditor/hooks/useHelperPane";
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 const EditorContainer = styled.div`
     flex: 1;
@@ -155,8 +156,7 @@ interface RichTextTemplateEditorProps {
     completions?: CompletionItem[];
     fileName?: string;
     targetLineRange?: LineRange;
-    sanitizedExpression?: (value: string) => string;
-    rawExpression?: (value: string) => string;
+    configuration: ChipExpressionEditorDefaultConfiguration;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -181,8 +181,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     onChange,
     fileName,
     targetLineRange,
-    sanitizedExpression,
-    rawExpression,
+    configuration,
     onEditorViewReady,
     getHelperPane,
     onHelperPaneStateChange,
@@ -267,7 +266,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             // HACK: this should be handled properly with completion items template
             if (newValue.endsWith('()') || newValue.endsWith(')}')) {
                 if (extractArgsFromFunction) {
-                    const result = await processFunctionWithArguments(newValue, chipPos, extractArgsFromFunction);
+                    const result = await processFunctionWithArguments(newValue, extractArgsFromFunction);
                     finalValue = result.finalValue;
                 }
             }
@@ -295,7 +294,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
-        const newEditorValue = rawExpression ? rawExpression(serialized) : serialized;
+        const newEditorValue = configuration.deserializeValue(serialized);
         onChange(newEditorValue, cursorPosition);
     };
 
@@ -311,7 +310,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
             const startLine = targetLineRange?.startLine;
 
-            const wrappedForAPI = rawExpression ? rawExpression(plainText) : plainText;
+            const wrappedForAPI = configuration.deserializeValue(plainText);
 
             const tokens = await rpcManager.getExpressionTokens(
                 wrappedForAPI,
@@ -333,7 +332,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     useEffect(() => {
         if (!editorRef.current) return;
 
-        const sanitizedValue = sanitizedExpression ? sanitizedExpression(value) : value;
+        const sanitizedValue = configuration.serializeValue(value);
         const chipPlugin = createChipPlugin(chipSchema, handleChipClick);
         const xmlTagPlugin = createXMLTagDecorationPlugin();
 
@@ -446,7 +445,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
                     // Call onChange when document changes
                     const serialized = customMarkdownSerializer.serialize(newState.doc);
-                    const newValue = rawExpression ? rawExpression(serialized) : serialized;
+                    const newValue = configuration.deserializeValue(serialized);
                     const cursorPos = (newState.selection as any).$head?.pos || 0;
                     onChange(newValue, cursorPos);
                 }

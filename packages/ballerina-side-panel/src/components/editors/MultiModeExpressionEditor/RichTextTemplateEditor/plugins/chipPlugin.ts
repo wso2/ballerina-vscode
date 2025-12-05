@@ -23,12 +23,12 @@ import {
     getParsedExpressionTokens,
     detectTokenPatterns,
     ParsedToken
-} from '../ChipExpressionEditor/utils';
+} from '../../ChipExpressionEditor/utils';
 import {
     TokenType,
     TokenMetadata,
     CompoundTokenSequence
-} from '../ChipExpressionEditor/types';
+} from '../../ChipExpressionEditor/types';
 import {
     getTokenTypeColor,
     getTokenIconClass,
@@ -36,7 +36,7 @@ import {
     BASE_CHIP_STYLES,
     BASE_ICON_STYLES,
     CHIP_TEXT_STYLES
-} from '../ChipExpressionEditor/chipStyles';
+} from '../../ChipExpressionEditor/chipStyles';
 
 export const chipPluginKey = new PluginKey('chipPlugin');
 
@@ -373,8 +373,8 @@ export function createChipPlugin(
                 if (prefixLength > 0) {
                     parsedTokens = parsedTokens.map(token => ({
                         ...token,
-                        start: Math.max(0, token.start - prefixLength),
-                        end: Math.max(0, token.end - prefixLength)
+                        start: Math.max(0, token.start - Math.max(0, prefixLength)),
+                        end: Math.max(0, token.end - Math.max(0, prefixLength))
                     }));
                 }
 

@@ -157,49 +157,6 @@ export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], 
     );
 };
 
-// Maps a position from raw expression space to sanitized expression space
-export const mapRawToSanitized = (
-    rawPosition: number,
-    rawExpression: string,
-    sanitizedExpression: string
-): number => {
-    if (rawExpression === sanitizedExpression) {
-        return rawPosition;
-    }
-
-    const sanitizedIndex = rawExpression.indexOf(sanitizedExpression);
-    if (sanitizedIndex === -1) {
-        return rawPosition;
-    }
-
-    const prefixLength = sanitizedIndex;
-    if (rawPosition <= prefixLength) {
-        return 0;
-    }
-
-    const mappedPosition = rawPosition - prefixLength;
-    return Math.min(mappedPosition, sanitizedExpression.length);
-};
-
-// Maps a position from sanitized expression space to raw expression space
-export const mapSanitizedToRaw = (
-    sanitizedPosition: number,
-    rawExpression: string,
-    sanitizedExpression: string
-): number => {
-    if (rawExpression === sanitizedExpression) {
-        return sanitizedPosition;
-    }
-
-    const sanitizedIndex = rawExpression.indexOf(sanitizedExpression);
-    if (sanitizedIndex === -1) {
-        return sanitizedPosition;
-    }
-
-    const prefixLength = sanitizedIndex;
-    return sanitizedPosition + prefixLength;
-};
-
 /**
  * Extracts metadata for document tokens
  * Pattern: ${<ai:DocumentType>{content: value}}
@@ -360,10 +317,77 @@ export interface FunctionExtractionResult {
     cursorAdjustment: number; // How much to adjust cursor position from base position
 }
 
+export const correctTokenStreamPositions = (
+    tokenStream: number[],
+    serializedValue: string,
+    prefixLength: number,
+    suffixLength: number
+): number[] => {
+    if (!tokenStream || tokenStream.length < 5) {
+        return tokenStream;
+    }
+
+    if (prefixLength === 0 && suffixLength === 0) {
+        return tokenStream;
+    }
+
+    const chunks = getTokenChunks(tokenStream);
+    const correctedTokens: number[] = [];
+
+    let currentLine = 0;
+    let currentChar = 0;
+    let previousLine = 0;
+    let previousChar = 0;
+
+    for (const chunk of chunks) {
+        const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
+        const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
+        const length = chunk[TOKEN_LENGTH_INDEX];
+        const type = chunk[TOKEN_TYPE_INDEX];
+        const modifiers = chunk[TOKEN_MODIFIERS_INDEX];
+
+        // Calculate absolute position in raw expression
+        currentLine += deltaLine;
+        if (deltaLine === 0) {
+            currentChar += deltaStartChar;
+        } else {
+            currentChar = deltaStartChar;
+        }
+
+        // Map to sanitized expression space
+        let sanitizedLine = currentLine;
+        let sanitizedChar = currentChar;
+
+        if (currentLine === 0) {
+            // First line: subtract prefix length
+            sanitizedChar = Math.max(0, currentChar - prefixLength);
+        }
+        // For lines > 0, no adjustment needed as prefix is only on first line
+
+        // Calculate deltas for the corrected token
+        const correctedDeltaLine = sanitizedLine - previousLine;
+        const correctedDeltaChar = correctedDeltaLine === 0
+            ? sanitizedChar - previousChar
+            : sanitizedChar;
+
+        correctedTokens.push(
+            correctedDeltaLine,
+            correctedDeltaChar,
+            length,
+            type,
+            modifiers
+        );
+
+        previousLine = sanitizedLine;
+        previousChar = sanitizedChar;
+    }
+
+    return correctedTokens;
+};
+
 // Processes a value that ends with () or )}, extracting function arguments and creating placeholders
 export const processFunctionWithArguments = async (
     value: string,
-    basePosition: number,
     extractArgsFromFunction: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -403,7 +427,7 @@ export const processFunctionWithArguments = async (
             // Cursor adjustment is relative to the start of the inserted value
             const closingParenIndex = finalValue.lastIndexOf(")");
             const cursorAdjustment =
-                closingParenIndex >= 0 ? closingParenIndex : finalValue.length;
+                closingParenIndex >= 0 ? closingParenIndex + 1 : finalValue.length;
 
             return { finalValue, cursorAdjustment };
         }
