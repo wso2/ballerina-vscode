@@ -26,6 +26,7 @@ import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,27 +35,26 @@ import java.util.Set;
 /**
  * Represents an expression in the flow model.
  *
- * @param metadata            metadata of the property
- * @param valueType           acceptable value types of the property
- * @param valueTypeConstraint constraint of the value type
- * @param value               value of the property
- * @param oldValue            old value of the property (before modification)
- * @param placeholder         placeholder value of the property
- * @param defaultValue        default value of the property
- * @param optional            whether the property can be left empty
- * @param editable            whether the property is not readonly
- * @param advanced            whether the property should be shown in the advanced tab
- * @param hidden              whether the property should be hidden
- * @param modified            Whether the property is modified in the UI.
- * @param diagnostics         diagnostics of the property
- * @param codedata            codedata of the property
- * @param typeMembers         member types of the type constrain
- * @param advancedValue       advanced value of the property
- * @param imports             import statements of the dependent types in the format prefix -> moduleId
- * @param comment             leading and trailing comments of the property
+ * @param metadata      metadata of the property
+ * @param types         acceptable value types of the property
+ * @param value         value of the property
+ * @param oldValue      old value of the property (before modification)
+ * @param placeholder   placeholder value of the property
+ * @param defaultValue  default value of the property
+ * @param optional      whether the property can be left empty
+ * @param editable      whether the property is not readonly
+ * @param advanced      whether the property should be shown in the advanced tab
+ * @param hidden        whether the property should be hidden
+ * @param modified      Whether the property is modified in the UI.
+ * @param diagnostics   diagnostics of the property
+ * @param codedata      codedata of the property
+ * @param typeMembers   member types of the type constraint
+ * @param advancedValue advanced value of the property
+ * @param imports       import statements of the dependent types in the format prefix -> moduleId
+ * @param comment       leading and trailing comments of the property
  * @since 1.0.0
  */
-public record Property(Metadata metadata, String valueType, Object valueTypeConstraint, Object value, Object oldValue,
+public record Property(Metadata metadata, List<PropertyType> types, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
                        Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
                        List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports,
@@ -247,41 +247,51 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         return value.toString();
     }
 
+    // Compatibility method for backward compatibility
+    public String valueType() {
+        if (types != null && !types.isEmpty()) {
+            return types.getFirst().fieldType().name();
+        }
+        return null;
+    }
+
+    // Compatibility method for backward compatibility
+    public Object valueTypeConstraint() {
+        if (types != null && !types.isEmpty()) {
+            return types.getFirst().ballerinaType();
+        }
+        return null;
+    }
+
+    // Enum for backward compatibility
     public enum ValueType {
         EXPRESSION,
+        FLAG,
+        SINGLE_SELECT,
+        MULTI_SELECT,
+        MULTIPLE_SELECT,
+        FIXED_PROPERTY,
+        REPEATABLE_PROPERTY,
+        RAW_TEMPLATE,
+        MAPPING_EXPRESSION_SET,
+        EXPRESSION_SET,
         LV_EXPRESSION,
+        ACTION_PATH,
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
         STRING,
         TYPE,
         ENUM,
-        SINGLE_SELECT,
-        MULTIPLE_SELECT,
         VIEW,
-        INCLUSION,
-        UNION,
-        FLAG,
-        MAPPING_EXPRESSION_SET,
-        EXPRESSION_SET,
-        FIXED_PROPERTY,
-        RAW_TEMPLATE,
-        REPEATABLE_PROPERTY,
-        ACTION_PATH,
+        CUSTOM,
+        NUMBER,
         ACTION_TYPE,
         DATA_MAPPING_EXPRESSION
     }
 
-    public static ValueType valueTypeFrom(String s) {
-        return switch (s) {
-            case "inclusion" -> ValueType.INCLUSION;
-            case "union" -> ValueType.UNION;
-            default -> ValueType.EXPRESSION;
-        };
-    }
-
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
 
-        private String type;
+        private List<PropertyType> types = new ArrayList<>();
         private Object value;
         private Object oldValue;
         private String placeholder;
@@ -290,7 +300,6 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
         private boolean advanced;
         private boolean hidden;
         private Boolean modified;
-        private Object typeConstraint;
         private Metadata.Builder<Builder<T>> metadataBuilder;
         private Diagnostics.Builder<Builder<T>> diagnosticsBuilder;
         private PropertyCodedata.Builder<Builder<T>> codedataBuilder;
@@ -302,21 +311,6 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
-        }
-
-        public Builder<T> type(TypeSymbol typeSymbol) {
-            this.type = CommonUtils.getTypeSignature(null, typeSymbol, false);
-            return this;
-        }
-
-        public Builder<T> type(ValueType type) {
-            this.type = type.name();
-            return this;
-        }
-
-        public Builder<T> typeConstraint(Object typeConstraint) {
-            this.typeConstraint = typeConstraint;
-            return this;
         }
 
         public Builder<T> value(Object value) {
@@ -455,15 +449,105 @@ public record Property(Metadata metadata, String valueType, Object valueTypeCons
             return this;
         }
 
+        public class TypeBuilder {
+
+            private Property.ValueType fieldType;
+            private String ballerinaType;
+            private List<String> options;
+            private Property template;
+
+            private TypeBuilder() {
+            }
+
+            public TypeBuilder fieldType(Property.ValueType fieldType) {
+                this.fieldType = fieldType;
+                return this;
+            }
+
+            public TypeBuilder ballerinaType(String ballerinaType) {
+                this.ballerinaType = ballerinaType;
+                return this;
+            }
+
+            public TypeBuilder ballerinaType(TypeSymbol typeSymbol) {
+                this.ballerinaType = CommonUtils.getTypeSignature(null, typeSymbol, false);
+                return this;
+            }
+
+            public TypeBuilder options(List<String> options) {
+                this.options = options;
+                return this;
+            }
+
+            public TypeBuilder options(String... options) {
+                this.options = List.of(options);
+                return this;
+            }
+
+            public TypeBuilder template(Property template) {
+                this.template = template;
+                return this;
+            }
+
+            public Builder<T> stepOut() {
+                if (fieldType != null) {
+                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, options, template));
+                }
+                reset();
+                return Builder.this;
+            }
+
+            public TypeBuilder and() {
+                if (fieldType != null) {
+                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, options, template));
+                }
+                reset();
+                return this;
+            }
+
+            private void reset() {
+                fieldType = null;
+                ballerinaType = null;
+                options = null;
+                template = null;
+            }
+        }
+
+        public TypeBuilder type() {
+            return new TypeBuilder();
+        }
+
+        // Method overload: type(Property.ValueType)
+        public Builder<T> type(Property.ValueType valueType) {
+            type().fieldType(valueType).stepOut();
+            return this;
+        }
+
+        // Method overload: type(Property.ValueType, String)
+        public Builder<T> type(Property.ValueType valueType, String ballerinaType) {
+            type().fieldType(valueType).ballerinaType(ballerinaType).stepOut();
+            return this;
+        }
+
+        // Method for backward compatibility - typeConstraint
+        public Builder<T> typeConstraint(Object ballerinaType) {
+            if (types != null && !types.isEmpty()) {
+                Property.ValueType valueType = types.getFirst().fieldType();
+                type().fieldType(valueType).ballerinaType(ballerinaType != null ? ballerinaType.toString() : null)
+                        .stepOut();
+            }
+            return this;
+        }
+
         public Property build() {
-            Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), type,
-                    typeConstraint, value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
+            List<PropertyType> finalTypes = types.isEmpty() ? null : new ArrayList<>(types);
+            Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), finalTypes,
+                    value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
                     imports == null ? null : imports, defaultValue, commentProperty);
             this.metadataBuilder = null;
-            this.type = null;
-            this.typeConstraint = null;
+            this.types = new ArrayList<>();
             this.value = null;
             this.oldValue = null;
             this.placeholder = null;
