@@ -35,7 +35,7 @@ import {
     redoCommand,
     canUndo,
     canRedo
-} from "../../MultiModeExpressionEditor/RichTextTemplateEditor/markdownCommands";
+} from "../../MultiModeExpressionEditor/RichTextTemplateEditor/plugins/markdownCommands";
 import { HelperPaneToggleButton } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/HelperPaneToggleButton";
 import { LinkDialog } from "./LinkDialog";
 
