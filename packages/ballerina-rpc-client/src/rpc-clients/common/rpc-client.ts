@@ -116,7 +116,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
     }
 
-    getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
+    getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 
