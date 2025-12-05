@@ -22,14 +22,16 @@ export enum InputMode {
   RECORD = "Record",
   TEMPLATE = "Template",
   NUMBER = "Number",
-  BOOLEAN = "Boolean"
+  BOOLEAN = "Boolean",
+  SQL = "SQL"
 }
 
 export const INPUT_MODE_MAP = {
   string: InputMode.TEXT,
   "ai:Prompt": InputMode.TEMPLATE,
   int: InputMode.NUMBER,
-  boolean: InputMode.BOOLEAN
+  boolean: InputMode.BOOLEAN,
+  "sql:ParameterizedQuery": InputMode.SQL
 };
 
 export enum TokenType {
