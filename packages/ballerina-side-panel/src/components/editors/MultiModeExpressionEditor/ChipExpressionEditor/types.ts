@@ -20,12 +20,16 @@ export enum InputMode {
   TEXT = "Text",
   EXP = "Expression",
   RECORD = "Record",
-  TEMPLATE = "Template"
+  TEMPLATE = "Template",
+  NUMBER = "Number",
+  BOOLEAN = "Boolean"
 }
 
 export const INPUT_MODE_MAP = {
   string: InputMode.TEXT,
-  "ai:Prompt": InputMode.TEMPLATE
+  "ai:Prompt": InputMode.TEMPLATE,
+  int: InputMode.NUMBER,
+  boolean: InputMode.BOOLEAN
 };
 
 export enum TokenType {
