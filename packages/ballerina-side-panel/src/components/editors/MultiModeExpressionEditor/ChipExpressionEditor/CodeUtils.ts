@@ -18,13 +18,27 @@
 
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
-import { ParsedToken, filterCompletionsByPrefixAndType, getParsedExpressionTokens, getWordBeforeCursor, getWordBeforeCursorPosition } from "./utils";
+import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken, mapRawToSanitized } from "./utils";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
+import { TokenType, TokenMetadata, CompoundTokenSequence } from "./types";
+import {
+    CHIP_TEXT_STYLES,
+    BASE_CHIP_STYLES,
+    BASE_ICON_STYLES,
+    getTokenIconClass,
+    getTokenTypeColor,
+    getChipDisplayContent
+} from "./chipStyles";
+import { HELPER_PANE_WIDTH } from "./constants";
 
 export type TokenStream = number[];
+
+export type TokensChangePayload = {
+    tokens: TokenStream;
+};
 
 export type CursorInfo = {
     top: number;
@@ -32,49 +46,27 @@ export type CursorInfo = {
     position: SelectionRange;
 }
 
-export type TokenType = 'variable' | 'property' | 'parameter';
+export const ProgrammerticSelectionChange = Annotation.define<boolean>();
 
 export const SyncDocValueWithPropValue = Annotation.define<boolean>();
 
 
-export function createChip(text: string, type: TokenType, start: number, end: number, view: EditorView) {
+export function createChip(text: string, type: TokenType, start: number, end: number, view: EditorView, metadata?: TokenMetadata) {
     class ChipWidget extends WidgetType {
-        constructor(readonly text: string, readonly type: TokenType, readonly start: number, readonly end: number, readonly view: EditorView) {
+        constructor(
+            readonly text: string,
+            readonly type: TokenType,
+            readonly start: number,
+            readonly end: number,
+            readonly view: EditorView,
+            readonly metadata?: TokenMetadata
+        ) {
             super();
         }
         toDOM() {
             const span = document.createElement("span");
-            span.textContent = this.type === 'parameter' && /^\$\d+$/.test(this.text) ? '  ' : this.text;
+            this.createChip(span);
 
-            let backgroundColor = "rgba(0, 122, 204, 0.6)";
-            let color = "white";
-            switch (this.type) {
-                case 'variable':
-                case 'property':
-                    backgroundColor = "rgba(0, 122, 204, 0.6)";
-                    break;
-                case 'parameter':
-                    backgroundColor = "#70c995";
-                    color = "black";
-                    break;
-                default:
-                    backgroundColor = "rgba(0, 122, 204, 0.6)";
-            }
-            span.style.background = backgroundColor;
-            span.style.color = color;
-            span.style.borderRadius = "4px";
-            span.style.padding = "2px 6px";
-            span.style.margin = "1px 0px";
-            span.style.display = "inline-block";
-            span.style.cursor = "pointer";
-            span.style.fontSize = "12px";
-            span.style.lineHeight = "12px";
-            span.style.minHeight = "14px";
-            span.style.minWidth = "25px";
-            span.style.transition = "all 0.2s ease";
-            span.style.outline = "none";
-            span.style.verticalAlign = "middle";
-            span.style.userSelect = "none";
             // Add click handler to select the chip text
             span.addEventListener("click", (event) => {
                 event.preventDefault();
@@ -87,6 +79,44 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
 
             return span;
         }
+
+        private createChip(span: HTMLSpanElement) {
+            let displayText = getChipDisplayContent(this.type, this.text);
+            if (this.type === TokenType.DOCUMENT) {
+                displayText = this.metadata?.content || this.text;
+            }
+
+            const colors = getTokenTypeColor(this.type);
+
+            // Apply base styles to the chip container
+            Object.assign(span.style, {
+                ...BASE_CHIP_STYLES,
+                background: colors.background,
+                border: `1px solid ${colors.border}`,
+                marginRight: "2px",
+                marginLeft: "2px",
+            });
+
+            // Create icon element for standard chip
+            const icon = document.createElement("i");
+            let iconClass = getTokenIconClass(this.type, this.metadata?.documentType);
+            if (iconClass) {
+                icon.className = iconClass;
+            }
+            Object.assign(icon.style, {
+                ...BASE_ICON_STYLES,
+                color: colors.icon
+            });
+
+            // Create text span with ellipsis handling
+            const textSpan = document.createElement("span");
+            textSpan.textContent = displayText;
+            Object.assign(textSpan.style, CHIP_TEXT_STYLES);
+
+            span.appendChild(icon);
+            span.appendChild(textSpan);
+        }
+
         ignoreEvent() {
             return false;
         }
@@ -95,7 +125,7 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
         }
     }
     return Decoration.replace({
-        widget: new ChipWidget(text, type, start, end, view),
+        widget: new ChipWidget(text, type, start, end, view, metadata),
         inclusive: false,
         block: false
     });
@@ -165,34 +195,121 @@ export const completionTheme = EditorView.theme({
     },
 });
 
-export const tokensChangeEffect = StateEffect.define<TokenStream>();
+export const tokensChangeEffect = StateEffect.define<TokensChangePayload>();
 export const removeChipEffect = StateEffect.define<number>(); // contains token ID
 
-export const tokenField = StateField.define<ParsedToken[]>({
-    create() {
-        return [];
-    },
-    update(oldTokens, tr) {
+export type TokenFieldState = {
+    tokens: ParsedToken[];
+    compounds: CompoundTokenSequence[];
+};
 
-        oldTokens = oldTokens.map(token => ({
+export const tokenField = StateField.define<TokenFieldState>({
+    create() {
+        return { tokens: [], compounds: [] };
+    },
+    update(oldState, tr) {
+        // Map existing positions through changes
+        let tokens = oldState.tokens.map(token => ({
             ...token,
             start: tr.changes.mapPos(token.start, 1),
             end: tr.changes.mapPos(token.end, -1)
         }));
 
+        let compounds = oldState.compounds.map(compound => ({
+            ...compound,
+            start: tr.changes.mapPos(compound.start, 1),
+            end: tr.changes.mapPos(compound.end, -1)
+        }));
+
         for (let effect of tr.effects) {
             if (effect.is(tokensChangeEffect)) {
-                const tokenObjects = getParsedExpressionTokens(effect.value, tr.newDoc.toString());
-                return tokenObjects;
+                const payload = effect.value;
+                const currentValue = tr.newDoc.toString();
+
+                tokens = getParsedExpressionTokens(payload.tokens, currentValue);
+
+                // Detect compounds once when tokens change
+                compounds = detectTokenPatterns(tokens, currentValue);
+
+                return { tokens, compounds };
             }
             if (effect.is(removeChipEffect)) {
                 const removingTokenId = effect.value;
-                return oldTokens.filter(token => token.id !== removingTokenId);
+                tokens = tokens.filter(token => token.id !== removingTokenId);
+
+                // Recompute compounds after token removal
+                const docText = tr.newDoc.toString();
+                compounds = detectTokenPatterns(tokens, docText);
+
+                return { tokens, compounds };
             }
         }
-        return oldTokens;
+        return { tokens, compounds };
     }
 });
+
+export const iterateTokenStream = (
+    tokens: ParsedToken[],
+    compounds: CompoundTokenSequence[],
+    content: string,
+    callbacks: {
+        onCompound: (compound: CompoundTokenSequence) => void;
+        onToken: (token: ParsedToken, text: string) => void;
+    }
+) => {
+    const docLength = content.length;
+
+    const compoundsByStartIndex = new Map<number, CompoundTokenSequence[]>();
+    const compoundTokenIndices = new Set<number>();
+
+    for (const compound of compounds) {
+        // Validate compound range
+        if (compound.start < 0 || compound.end > docLength || compound.start >= compound.end) {
+            continue;
+        }
+
+        // Group compounds by their starting token index
+        const existing = compoundsByStartIndex.get(compound.startIndex) || [];
+        existing.push(compound);
+        compoundsByStartIndex.set(compound.startIndex, existing);
+
+        // Mark all indices within this compound as consumed
+        for (let i = compound.startIndex; i <= compound.endIndex; i++) {
+            compoundTokenIndices.add(i);
+        }
+    }
+
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        // Check if any compounds begin at this token index
+        const startingCompounds = compoundsByStartIndex.get(i);
+        if (startingCompounds) {
+            // Trigger callback for each compound starting here
+            for (const compound of startingCompounds) {
+                callbacks.onCompound(compound);
+            }
+        }
+
+        // Check if the individual token is consumed by a compound
+        if (compoundTokenIndices.has(i)) {
+            continue;
+        }
+
+        // Skip START_EVENT and END_EVENT tokens
+        if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
+            continue;
+        }
+
+        // Validate token range
+        if (token.start < 0 || token.end > docLength || token.start >= token.end) {
+            continue;
+        }
+
+        const text = content.slice(token.start, token.end);
+        callbacks.onToken(token, text);
+    }
+};
 
 export const chipPlugin = ViewPlugin.fromClass(
     class {
@@ -210,13 +327,35 @@ export const chipPlugin = ViewPlugin.fromClass(
             }
         }
         buildDecorations(view: EditorView) {
-            const widgets = [];
-            const tokens = view.state.field(tokenField);
+            const widgets: any[] = []; // Type as any[] to allow pushing Range<Decoration>
+            const { tokens, compounds } = view.state.field(tokenField);
+            const docContent = view.state.doc.toString();
 
-            for (const token of tokens) {
-                const text = view.state.doc.sliceString(token.start, token.end);
-                widgets.push(createChip(text, token.type, token.start, token.end, view).range(token.start, token.end));
-            }
+            iterateTokenStream(tokens, compounds, docContent, {
+                onCompound: (compound) => {
+                    widgets.push(
+                        createChip(
+                            compound.displayText,
+                            compound.tokenType,
+                            compound.start,
+                            compound.end,
+                            view,
+                            compound.metadata
+                        ).range(compound.start, compound.end)
+                    );
+                },
+                onToken: (token, text) => {
+                    widgets.push(
+                        createChip(
+                            text,
+                            token.type,
+                            token.start,
+                            token.end,
+                            view
+                        ).range(token.start, token.end)
+                    );
+                }
+            });
 
             return Decoration.set(widgets, true);
         }
@@ -229,14 +368,35 @@ export const chipPlugin = ViewPlugin.fromClass(
 export const expressionEditorKeymap = [
     {
         key: "Backspace",
-        run: (view) => {
+        run: (view: EditorView) => {
             const state = view.state;
-            const tokens = state.field(tokenField, false);
-            if (!tokens) return false;
+            const tokenState = state.field(tokenField, false);
+            if (!tokenState) return false;
 
+            const { tokens, compounds } = tokenState;
             const cursor = state.selection.main.head;
 
-            const affectedToken = tokens.find(token => token.start < cursor && token.end >= cursor);
+            // Check if cursor is within a compound token
+            const affectedCompound = compounds.find(
+                compound => compound.start < cursor && compound.end >= cursor
+            );
+
+            if (affectedCompound) {
+                // Delete all tokens in the compound sequence
+                const effects = [];
+                for (let i = affectedCompound.startIndex; i <= affectedCompound.endIndex; i++) {
+                    effects.push(removeChipEffect.of(tokens[i].id));
+                }
+
+                view.dispatch({
+                    effects,
+                    changes: { from: affectedCompound.start, to: affectedCompound.end, insert: '' }
+                });
+                return true;
+            }
+
+            // Check for individual tokens
+            const affectedToken = tokens.find((token: ParsedToken) => token.start < cursor && token.end >= cursor);
 
             if (affectedToken) {
                 view.dispatch({
@@ -271,7 +431,6 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
                 let relativeTop = coords.bottom - editorRect.top + 5;
                 let relativeLeft = coords.left - editorRect.left;
 
-                const HELPER_PANE_WIDTH = 300;
                 const editorWidth = editorRect.width;
                 const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
                 const overflow = relativeRight - editorWidth;
@@ -305,7 +464,6 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
-            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
@@ -333,6 +491,12 @@ export const buildOnFocusOutListner = (onTrigger: () => void) => {
 export const buildNeedTokenRefetchListner = (onTrigger: () => void) => {
     const needTokenRefetchListner = EditorView.updateListener.of((update) => {
         const userEvent = update.transactions[0]?.annotation(Transaction.userEvent);
+
+        if (update.docChanged && (userEvent === "undo" || userEvent === "redo")) {
+            onTrigger();
+            return;
+        }
+
         if (update.docChanged && (
             userEvent === "input.type" ||
             userEvent === "input.paste" ||
@@ -370,7 +534,6 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
             let relativeTop = coords.bottom - editorRect.top + 5;
             let relativeLeft = coords.left - editorRect.left;
 
-            const HELPER_PANE_WIDTH = 300;
             const editorWidth = editorRect.width;
             const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
             const overflow = relativeRight - editorWidth;
@@ -432,11 +595,26 @@ export const buildHelperPaneKeymap = (getIsHelperPaneOpen: () => boolean, onClos
     return [
         {
             key: "Escape",
-            run: (_view) => {
+            run: (_view: EditorView) => {
                 if (!getIsHelperPaneOpen()) return false;
                 onClose();
                 return true;
             }
         }
     ];
+};
+
+export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {
+    if (!view) return undefined;
+    const { tokens, compounds } = view.state.field(tokenField);
+
+    const matchingCompound = compounds.find(
+        compound => compound.start === from && compound.end === to
+    );
+    if (matchingCompound) return undefined;
+
+    const matchingToken = tokens.find(
+        token => token.start === from && token.end === to
+    );
+    return matchingToken;
 };
