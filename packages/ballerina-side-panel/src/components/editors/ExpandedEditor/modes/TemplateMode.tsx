@@ -26,6 +26,7 @@ import { MarkdownPreview } from "../controls/MarkdownPreview";
 import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
 import { useFormContext } from "../../../../context/form";
 import { ErrorBanner } from "@wso2/ui-toolkit";
+import { RawTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -150,6 +151,7 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                         onEditorViewReady={setEditorView}
                         toolbarRef={toolbarRef}
                         enableListContinuation={true}
+                        configuration={new RawTemplateEditorConfig()}
                     />
                 </ExpressionContainer>
             )}

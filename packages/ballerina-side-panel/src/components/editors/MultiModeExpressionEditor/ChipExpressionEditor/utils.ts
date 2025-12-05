@@ -19,11 +19,11 @@
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
 
-const TOKEN_LINE_OFFSET_INDEX = 0;
-const TOKEN_START_CHAR_OFFSET_INDEX = 1;
-const TOKEN_LENGTH_INDEX = 2;
-const TOKEN_TYPE_INDEX = 3;
-const TOKEN_MODIFIERS_INDEX = 4;
+export const TOKEN_LINE_OFFSET_INDEX = 0;
+export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
+export const TOKEN_LENGTH_INDEX = 2;
+export const TOKEN_TYPE_INDEX = 3;
+export const TOKEN_MODIFIERS_INDEX = 4;
 
 export const TOKEN_TYPE_INDEX_MAP: { [key: number]: TokenType } = {
     0: TokenType.VARIABLE,
@@ -150,7 +150,7 @@ export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], 
     }
 
     return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field' || completion.kind === 'enum-member') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
 };
