@@ -1,0 +1,146 @@
+{
+  "source": "focussedView.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "focussedView.json",
+      "startLine": {
+        "line": 9,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 28
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 9,
+    "offset": 51
+  },
+  "targetField": "transform.0",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "input",
+        "displayName": "input",
+        "typeName": "Outer",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "-387454449"
+      },
+      {
+        "fields": [],
+        "name": "subMapping",
+        "displayName": "subMapping",
+        "typeName": "Outer",
+        "kind": "record",
+        "category": "variable",
+        "ref": "-387454449"
+      },
+      {
+        "fields": [],
+        "name": "peopleItem",
+        "displayName": "peopleItem",
+        "typeName": "Person",
+        "kind": "record",
+        "focusExpression": "input.people",
+        "ref": "887620673"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "transform",
+        "displayName": "<transformItem>",
+        "typeName": "Outer",
+        "kind": "record",
+        "ref": "-387454449"
+      },
+      "name": "transform",
+      "displayName": "transform",
+      "typeName": "Outer[]",
+      "kind": "array",
+      "ref": "-1405125018"
+    },
+    "mappings": [
+      {
+        "output": "transform.people",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      }
+    ],
+    "query": {
+      "output": "transform",
+      "inputs": [
+        "input.people"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "peopleItem",
+          "type": "Person",
+          "expression": "input.people",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{people: []}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-387454449": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "people",
+              "displayName": "<peopleItem>",
+              "typeName": "Person",
+              "kind": "record",
+              "ref": "887620673"
+            },
+            "name": "people",
+            "displayName": "people",
+            "typeName": "Person[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "270133461"
+          }
+        ],
+        "typeName": "Outer",
+        "kind": "record"
+      }
+    }
+  }
+}
