@@ -55,4 +55,4 @@ export class DataMapperErrorBoundaryC extends React.Component<DataMapperErrorBou
     }
 }
 
-export const DataMapperErrorBoundary = DataMapperErrorBoundaryC;
+export const DataMapperErrorBoundaryLegacy = DataMapperErrorBoundaryC;
