@@ -103,7 +103,6 @@ const stateMachine = createMachine<MachineContext>(
                 actions: [
                     assign({
                         projectPath: (context, event) => event.projectPath,
-                        workspacePath: (context, event) => event.workspacePath !== undefined ? event.workspacePath : context.workspacePath,
                         projectInfo: (context, event) => event.projectInfo
                     }),
                     async (context, event) => {
@@ -788,7 +787,6 @@ function startMachine(): Promise<void> {
 export const StateMachine = {
     initialize: async () => {
         await startMachine();
-        // Set up workspace folder change listener after initialization
     },
     service: () => { return stateService; },
     context: () => { return stateService.getSnapshot().context; },
@@ -855,13 +853,13 @@ export function updateView(refreshTreeView?: boolean) {
         const project = StateMachine.context().projectStructure.projects.find(project => project.projectPath === projectPath);
 
         // These changes will be revisited in the revamp
-        project.directoryMap[targetedArtifactType].forEach((artifact) => {
+        project.directoryMap[targetedArtifactType].forEach((artifact: ProjectStructureArtifactResponse) => {
             if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
             // Check if artifact has resources and find within those
             if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find((resource) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+                const resource = artifact.resources.find((resource: ProjectStructureArtifactResponse) => resource.id === currentIdentifier || resource.name === currentIdentifier);
                 if (resource) {
                     currentArtifact = resource;
                 }
