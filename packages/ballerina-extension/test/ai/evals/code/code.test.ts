@@ -145,19 +145,19 @@ async function setupTestEnvironment(): Promise<void> {
         dotenv.config({ path: envPath });
         console.log("Loaded .env file for AI tests");
     }
-    
+
     // Poll for AI test command availability
     let attempts = 0;
-    
+
     while (attempts < TIMING.MAX_ACTIVATION_ATTEMPTS) {
         const availableCommands = await vscode.commands.getCommands();
-        if (availableCommands.includes(VSCODE_COMMANDS.AI_GENERATE_CODE_CORE)) {
+        if (availableCommands.includes(VSCODE_COMMANDS.AI_GENERATE_DESIGN_FOR_TEST)) {
             break;
         }
         await new Promise(resolve => setTimeout(resolve, TIMING.EXTENSION_ACTIVATION_RETRY_INTERVAL));
         attempts++;
     }
-    
+
     if (attempts >= TIMING.MAX_ACTIVATION_ATTEMPTS) {
         throw new Error("AI test command never registered - extension failed to activate");
     }
@@ -172,7 +172,7 @@ async function setupTestEnvironment(): Promise<void> {
     }
 }
 
-suite.skip("AI Code Generator Tests Suite", () => {
+suite.only("AI Code Generator Tests Suite", () => {
 
     suiteSetup(async function (): Promise<void> {
         await setupTestEnvironment();
@@ -186,7 +186,7 @@ suite.skip("AI Code Generator Tests Suite", () => {
         // Check API key before running any tests in this suite
         const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
         const hasAnthropicKey = anthropicApiKey && anthropicApiKey.trim() !== "";
-        
+
         if (!hasAnthropicKey) {
             console.log(`\n⚠️  Skipping entire test suite: ANTHROPIC_API_KEY not set`);
             return; // Skip the entire suite
