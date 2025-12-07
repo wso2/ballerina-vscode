@@ -1,0 +1,12 @@
+package io.ballerina.copilotagent.core.models;
+
+public enum NodeKind {
+    MODULE_FUNCTION,
+    OBJECT_FUNCTION,
+    TYPE_DEFINITION,
+    MODULE_CONNECTION,
+    OBJECT_LEVEL_CONNECTION,
+    FUNCTION_LEVEL_CONNECTION,
+    LISTENER_DECLARATION,
+    DATA_MAPPING_FUNCTION
+}
