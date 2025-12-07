@@ -27,7 +27,7 @@ import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
-import { DataMapperErrorBoundary } from "./ErrorBoundary";
+import { DataMapperErrorBoundaryLegacy } from "./ErrorBoundary";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
 import {
@@ -339,7 +339,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }
 
     return (
-        <DataMapperErrorBoundary hasError={hasInternalError} onClose={onClose}>
+        <DataMapperErrorBoundaryLegacy hasError={hasInternalError} onClose={onClose}>
             <div className={classes.root}>
                 {model && (
                     <DataMapperHeader
@@ -386,6 +386,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 )}
                 
             </div>
-        </DataMapperErrorBoundary>
+        </DataMapperErrorBoundaryLegacy>
     )
 }
