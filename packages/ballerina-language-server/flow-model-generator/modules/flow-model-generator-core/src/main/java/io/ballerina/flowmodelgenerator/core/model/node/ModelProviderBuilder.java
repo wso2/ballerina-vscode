@@ -175,7 +175,7 @@ public class ModelProviderBuilder extends CallBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
+                        customPropBuilder.typeExpression(paramResult.typeSymbol());
                     }
                 }
             }

@@ -179,7 +179,7 @@ public abstract class CallBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .type(Property.ValueType.EXPRESSION, paramResult.type())
+                    .typeExpression(paramResult.typeSymbol())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -203,7 +203,7 @@ public abstract class CallBuilder extends NodeBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
+                        customPropBuilder.typeExpression(paramResult.typeSymbol());
                     }
                 }
             }

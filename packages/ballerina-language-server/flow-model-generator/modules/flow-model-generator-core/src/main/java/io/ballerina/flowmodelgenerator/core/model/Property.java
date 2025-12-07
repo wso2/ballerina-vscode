@@ -537,6 +537,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
+        public Builder<T> typeExpression(TypeSymbol typeSymbol) {
+            type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
+            return this;
+        }
+
 
         // Method to add existing PropertyType list directly
         public Builder<T> addTypes(List<PropertyType> existingTypes) {

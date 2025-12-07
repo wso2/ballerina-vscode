@@ -812,7 +812,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .originalName(paramResult.name())
                                 .stepOut()
                             .value(expr.toSourceCode())
-                            .type(Property.ValueType.EXPRESSION, paramResult.type())
+                            .typeExpression(paramResult.typeSymbol())
                             .typeMembers(paramResult.typeMembers())
                             .editable()
                             .defaultable(paramResult.optional())
@@ -872,7 +872,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .type(Property.ValueType.EXPRESSION, paramResult.type())
+                    .typeExpression(paramResult.typeSymbol())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -890,7 +890,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
             } else {
-                customPropBuilder.type(Property.ValueType.EXPRESSION);
+                customPropBuilder.typeExpression(paramResult.typeSymbol());
             }
             customPropBuilder
                     .stepOut()
@@ -949,7 +949,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
-                        .type(Property.ValueType.EXPRESSION, paramResult.type())
+                        .typeExpression(paramResult.typeSymbol())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
                         .editable()
@@ -969,7 +969,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
+                        customPropBuilder.typeExpression(paramResult.typeSymbol());
                     }
                 }
                 customPropBuilder
