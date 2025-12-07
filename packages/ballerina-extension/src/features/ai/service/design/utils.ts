@@ -15,12 +15,12 @@
 // under the License.
 
 import { SourceFile, FileChanges, CodeContext, ProjectSource } from "@wso2/ballerina-core";
-import { workspace } from "vscode";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import type { TextEdit } from "vscode-languageserver-protocol";
+import { StateMachine } from "../../../../../src/stateMachine";
 
 /**
  * File extensions to include in codebase structure
@@ -74,12 +74,11 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
         return;
     }
 
-    const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders?.length) {
-        throw new Error("No workspace folder found. Please open a workspace.");
+    let workspaceFolderPath = StateMachine.context().projectPath;
+    const workspacePath = StateMachine.context().workspacePath;
+    if (workspacePath) {
+        workspaceFolderPath = workspacePath;
     }
-
-    const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
 
     const fileChanges: FileChanges[] = [];
 
@@ -244,7 +243,7 @@ export function formatCodebaseStructure(projects: ProjectSource[]): string {
         text += `Note: This is a Ballerina workspace with multiple packages. File paths are prefixed with their package paths (e.g., "mainpackage/main.bal").
 Files from external packages (not the active package) are marked with the externalPackageName attribute (e.g., <file filename="otherpackage/main.bal" externalPackageName="otherpackage">).
 You can import these packages by just using the package name (e.g., import otherpackage;).
-When creating or modifying files, you should always prefer making edits for the current active package. Make sure to include the package path as prefix for the file edits.`
+When creating or modifying files, you should always prefer making edits for the current active package. Make sure to include the package path as prefix for the file edits.`;
     }
 
     return text;

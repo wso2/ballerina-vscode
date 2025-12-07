@@ -22,19 +22,20 @@ import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
-import { getProjectSource } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { checkCompilationErrors } from "../libs/diagnostics_utils";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
-import { getTempProject, cleanupTempProject } from "../../utils/temp-project-utils";
+import { getTempProject as createTempProjectOfWorkspace, cleanupTempProject } from "../../utils/project-utils";
 import { formatCodebaseStructure, integrateCodeToWorkspace } from "./utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { LangfuseExporter } from 'langfuse-vercel';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { getProjectSource } from "../../utils/project-utils";
 
 const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
 const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
@@ -50,18 +51,22 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
-//TODO: Tool name, types and uesd in both ext and visualizer to display, either move to core or use visualizer as view only.
-export async function generateDesignCore(params: GenerateAgentCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
+// TODO: Tool name, types and used in both ext and visualizer to display, either move to core or use visualizer as view only.
+
+export async function generateDesignCore(
+    params: GenerateAgentCodeRequest,
+    eventHandler: CopilotEventHandler
+): Promise<string> {
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
-    const projects: ProjectSource[] = await getProjectSource(params.operationType); //TOOD: Fix multi project
+
+    const tempProjectPath = (await createTempProjectOfWorkspace()).path;
+    const shouldCleanup = !process.env.AI_TEST_ENV;
+
+    const projects: ProjectSource[] = await getProjectSource(params.operationType); // TODO: Fix multi project
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
-    // Create temp project using shared utilities
-    const { path: tempProjectPath } = await getTempProject();
-
     const cacheOptions = await getProviderCacheControl();
-
 
     const modifiedFiles: string[] = [];
 
@@ -212,10 +217,11 @@ export async function generateDesignCore(params: GenerateAgentCodeRequest, event
             case "error": {
                 const error = part.error;
                 console.error("[Design] Error:", error);
-                // Cleanup temp project on error
-                cleanupTempProject(tempProjectPath);
+                if (shouldCleanup) {
+                    cleanupTempProject(tempProjectPath);
+                }
                 eventHandler({ type: "error", content: getErrorMessage(error) });
-                break;
+                return tempProjectPath;
             }
             case "text-start": {
                 eventHandler({ type: "content_block", content: " \n" });
@@ -245,15 +251,16 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 </abort_notification>`,
                 });
 
-                // Cleanup temp project
-                cleanupTempProject(tempProjectPath);
+                if (shouldCleanup) {
+                    cleanupTempProject(tempProjectPath);
+                }
 
                 updateAndSaveChat(messageId, userMessageContent, messagesToSave, eventHandler);
                 eventHandler({ type: "abort", command: Command.Design });
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
-                break;
+                return tempProjectPath;
             }
             case "text-start": {
                 currentAssistantContent.push({ type: "text", text: "" });
@@ -261,21 +268,25 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 break;
             }
             case "finish": {
-                const finishReason = part.finishReason;
                 const finalResponse = await response;
                 const assistantMessages = finalResponse.messages || [];
 
-                console.log(`[Design] Finished with reason: ${finishReason}`);
-
-                // Integration happens here in the service layer
-                if (modifiedFiles.length > 0 && tempProjectPath) {
-                    const modifiedFilesSet = new Set(modifiedFiles);
-                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
-                    console.log(`[Design] Integrated ${modifiedFiles.length} modified file(s) to workspace`);
+                const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
+                if (finalDiagnostics.diagnostics && finalDiagnostics.diagnostics.length > 0) {
+                    eventHandler({
+                        type: "diagnostics",
+                        diagnostics: finalDiagnostics.diagnostics
+                    });
                 }
 
-                // Cleanup temp project
-                cleanupTempProject(tempProjectPath);
+                if (!process.env.AI_TEST_ENV && modifiedFiles.length > 0) {
+                    const modifiedFilesSet = new Set(modifiedFiles);
+                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+                }
+
+                if (shouldCleanup) {
+                    cleanupTempProject(tempProjectPath);
+                }
 
                 updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
                 eventHandler({ type: "stop", command: Command.Design });
@@ -283,10 +294,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
                 await langfuseExporter.forceFlush();
-                break;
+                return tempProjectPath;
             }
         }
         }
+
+    return tempProjectPath;
 }
 
 /**
