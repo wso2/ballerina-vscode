@@ -967,7 +967,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 } else {
-                    if (paramResult.type() instanceof List<?>) {
+                    if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
                         customPropBuilder.type(Property.ValueType.EXPRESSION);
@@ -1397,7 +1397,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (paramSymbol != null && isSubTypeOfRawTemplate(paramSymbol.typeDescriptor())) {
             return Property.ValueType.RAW_TEMPLATE;
         } else {
-            if (paramData.type() instanceof List<?>) {
+            if (paramData.unionTypes() != null && !paramData.unionTypes().isEmpty()) {
                 return Property.ValueType.SINGLE_SELECT;
             }
             return Property.ValueType.EXPRESSION;

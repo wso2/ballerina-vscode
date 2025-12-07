@@ -708,10 +708,11 @@ public class FunctionDataBuilder {
         String paramName = paramSymbol.getName().orElse("");
         String paramDescription = documentationMap.get(paramName);
         ParameterData.Kind parameterKind = ParameterData.Kind.fromKind(paramSymbol.paramKind());
-        Object paramType;
+        String paramType;
         boolean optional = true;
         String placeholder;
         String defaultValue = null;
+        List<String> unionTypes = null;
         TypeSymbol typeSymbol = paramSymbol.typeDescriptor();
         String importStatements = getImportStatements(typeSymbol);
         if (parameterKind == ParameterData.Kind.REST_PARAMETER) {
@@ -739,20 +740,16 @@ public class FunctionDataBuilder {
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
             if (isAiModelTypeParameter(paramName, functionKind)) {
-                List<String> memberTypes = new ArrayList<>();
                 TypeSymbol rawParamType = CommonUtils.getRawType(typeSymbol);
                 if (rawParamType.typeKind() == TypeDescKind.UNION) {
+                    unionTypes = new ArrayList<>();
                     UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) rawParamType;
                     for (TypeSymbol memType : unionTypeSymbol.userSpecifiedMemberTypes()) {
-                        memberTypes.add(memType.signature());
+                        unionTypes.add(memType.signature());
                     }
-                    paramType = memberTypes;
-                } else {
-                    paramType = getTypeSignature(typeSymbol);
                 }
-            } else {
-                paramType = getTypeSignature(typeSymbol);
             }
+            paramType = getTypeSignature(typeSymbol);
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             optional = false;
         } else {
@@ -763,7 +760,7 @@ public class FunctionDataBuilder {
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null));
                     return parameters;
                 }
             }
@@ -774,7 +771,7 @@ public class FunctionDataBuilder {
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                 parameterKind, optional,
-                importStatements);
+                importStatements, unionTypes);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
         return parameters;
@@ -900,7 +897,7 @@ public class FunctionDataBuilder {
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
-                    getImportStatements(typeSymbol));
+                    getImportStatements(typeSymbol), null);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
@@ -910,7 +907,7 @@ public class FunctionDataBuilder {
             parameters.put("Additional Values", new ParameterData(0, "Additional Values",
                     paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
                     "Capture key value pairs", null, true, getImportStatements(typeSymbol),
-                    new ArrayList<>()));
+                    new ArrayList<>(), null));
         });
         return parameters;
     }

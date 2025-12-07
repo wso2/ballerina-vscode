@@ -385,7 +385,8 @@ public class DatabaseManager {
                         rs.getString("label"),
                         rs.getBoolean("optional"),
                         rs.getString("import_statements"),
-                        new ArrayList<>()
+                        new ArrayList<>(),
+                        null
                 );
                 parameterResults.add(parameterData);
             }
@@ -494,6 +495,7 @@ public class DatabaseManager {
         boolean optional;
         String importStatements;
         List<ParameterMemberTypeData> typeMembers = new ArrayList<>();
+        List<String> unionTypes;
 
         ParameterData build() {
             return new ParameterData(
@@ -507,7 +509,8 @@ public class DatabaseManager {
                     label,
                     optional,
                     importStatements,
-                    typeMembers
+                    typeMembers,
+                    unionTypes
             );
         }
     }

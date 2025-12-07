@@ -37,12 +37,13 @@ import java.util.List;
  * @param optional         whether the parameter is optional
  * @param importStatements import statements of the dependent types
  * @param typeMembers      the member types of the parameter
+ * @param unionTypes       the union member types for AI model parameters
  * @since 1.0.0
  */
 public record ParameterData(
         int parameterId,
         String name,
-        Object type,
+        String type,
         Kind kind,
         String placeholder,
         String defaultValue,
@@ -50,18 +51,26 @@ public record ParameterData(
         String label,
         boolean optional,
         String importStatements,
-        List<ParameterMemberTypeData> typeMembers) {
+        List<ParameterMemberTypeData> typeMembers,
+        List<String> unionTypes) {
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
         return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
-                null, new ArrayList<>());
+                null, new ArrayList<>(), null);
     }
 
-    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
+    public static ParameterData from(String name, String description, String label, String type, String placeholder,
                                      String defaultValue, Kind kind, boolean optional, String importStatements) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-                importStatements, new ArrayList<>());
+                importStatements, new ArrayList<>(), null);
+    }
+
+    public static ParameterData from(String name, String description, String label, String type, String placeholder,
+                                     String defaultValue, Kind kind, boolean optional, String importStatements,
+                                     List<String> unionTypes) {
+        return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
+                importStatements, new ArrayList<>(), unionTypes);
     }
 
     public enum Kind {

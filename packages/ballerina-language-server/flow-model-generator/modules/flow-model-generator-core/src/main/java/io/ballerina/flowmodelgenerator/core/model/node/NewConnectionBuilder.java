@@ -232,7 +232,7 @@ public class NewConnectionBuilder extends CallBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
                 default -> {
-                    if (paramResult.type() instanceof List<?>) {
+                    if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
                         customPropBuilder.type(Property.ValueType.EXPRESSION);

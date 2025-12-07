@@ -497,14 +497,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return Builder.this;
             }
 
-            public TypeBuilder and() {
-                if (fieldType != null) {
-                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, options, template));
-                }
-                reset();
-                return this;
-            }
-
             private void reset() {
                 fieldType = null;
                 ballerinaType = null;

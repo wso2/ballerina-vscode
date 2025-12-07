@@ -687,6 +687,7 @@ public class ServiceDatabaseManager {
         boolean optional;
         String importStatements;
         List<ParameterMemberTypeData> typeMembers = new ArrayList<>();
+        List<String> unionTypes;
 
         ParameterData build() {
             return new ParameterData(
@@ -700,7 +701,8 @@ public class ServiceDatabaseManager {
                     null,
                     optional,
                     importStatements,
-                    typeMembers
+                    typeMembers,
+                    unionTypes
             );
         }
     }
