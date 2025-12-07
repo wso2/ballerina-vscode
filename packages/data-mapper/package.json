@@ -37,7 +37,8 @@
     "zustand": "^5.0.4",
     "blueimp-md5": "^2.19.0",
     "mousetrap": "^1.6.5",
-    "@types/mousetrap": "~1.6.15"
+    "@types/mousetrap": "~1.6.15",
+    "react-error-boundary": "~6.0.0"
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.6",
