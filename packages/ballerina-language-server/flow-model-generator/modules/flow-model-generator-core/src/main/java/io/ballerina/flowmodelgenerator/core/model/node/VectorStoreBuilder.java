@@ -130,7 +130,7 @@ public class VectorStoreBuilder extends CallBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
+                    .type(Property.ValueType.EXPRESSION, paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .editable()
                     .defaultable(paramResult.optional());

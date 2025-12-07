@@ -258,7 +258,13 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     // Compatibility method for backward compatibility
     public Object valueTypeConstraint() {
         if (types != null && !types.isEmpty()) {
-            return types.getFirst().ballerinaType();
+            PropertyType firstType = types.getFirst();
+            return switch (firstType.fieldType()) {
+                case IDENTIFIER -> firstType.scope();
+                case SINGLE_SELECT, MULTI_SELECT, MULTIPLE_SELECT -> firstType.options();
+                case REPEATABLE_PROPERTY -> firstType.template();
+                default -> firstType.ballerinaType();
+            };
         }
         return null;
     }
@@ -453,6 +459,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
             private Property.ValueType fieldType;
             private String ballerinaType;
+            private String scope;
             private List<String> options;
             private Property template;
 
@@ -474,6 +481,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder scope(String scope) {
+                this.scope = scope;
+                return this;
+            }
+
             public TypeBuilder options(List<String> options) {
                 this.options = options;
                 return this;
@@ -491,7 +503,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
             public Builder<T> stepOut() {
                 if (fieldType != null) {
-                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, options, template));
+                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template));
                 }
                 reset();
                 return Builder.this;
@@ -500,6 +512,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private void reset() {
                 fieldType = null;
                 ballerinaType = null;
+                scope = null;
                 options = null;
                 template = null;
             }
@@ -521,13 +534,29 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        // Method for backward compatibility - typeConstraint
-        public Builder<T> typeConstraint(Object ballerinaType) {
-            if (types != null && !types.isEmpty()) {
-                Property.ValueType valueType = types.getFirst().fieldType();
-                type().fieldType(valueType).ballerinaType(ballerinaType != null ? ballerinaType.toString() : null)
-                        .stepOut();
+        // Method overload: type(Property.ValueType, String, String) for IDENTIFIER with scope
+        public Builder<T> type(Property.ValueType valueType, String ballerinaType, String scope) {
+            type().fieldType(valueType).ballerinaType(ballerinaType).scope(scope).stepOut();
+            return this;
+        }
+
+        // Method to add existing PropertyType list directly
+        public Builder<T> addTypes(List<PropertyType> existingTypes) {
+            if (existingTypes != null) {
+                this.types.addAll(existingTypes);
             }
+            return this;
+        }
+
+        // Convenience method for SINGLE_SELECT/MULTI_SELECT/MULTIPLE_SELECT with options
+        public Builder<T> typeWithOptions(Property.ValueType valueType, List<String> options) {
+            type().fieldType(valueType).options(options).stepOut();
+            return this;
+        }
+
+        // Convenience method for REPEATABLE_PROPERTY with template
+        public Builder<T> typeWithTemplate(Property.ValueType valueType, Property template) {
+            type().fieldType(valueType).template(template).stepOut();
             return this;
         }
 

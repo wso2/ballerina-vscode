@@ -2238,8 +2238,7 @@ public class DataMapManager {
         TypeSymbol typeSymbol = getTargetType(targetNode.typeSymbol(), fieldId);
         Property.Builder<DataMapManager> dataMapManagerBuilder = new Property.Builder<>(this);
         dataMapManagerBuilder = dataMapManagerBuilder
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(CommonUtils.getTypeSignature(semanticModel, typeSymbol, false));
+                .type(Property.ValueType.EXPRESSION, CommonUtils.getTypeSignature(semanticModel, typeSymbol, false));
         LineRange lineRange = getFieldExprRange(targetNode.matchingNode().expr(), 1, fieldId.split(DOT));
         if (lineRange != null) {
             dataMapManagerBuilder = dataMapManagerBuilder.codedata().lineRange(lineRange).stepOut();

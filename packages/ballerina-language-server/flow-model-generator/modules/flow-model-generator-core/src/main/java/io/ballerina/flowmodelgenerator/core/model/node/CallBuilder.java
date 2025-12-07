@@ -112,10 +112,9 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                    .typeConstraint(isLocalFunction ? codedata.object() :
+                    .type(Property.ValueType.EXPRESSION, isLocalFunction ? codedata.object() :
                             CommonUtils.getClassType(codedata.module(), codedata.object()))
                     .value(codedata.parentSymbol())
-                    .type(Property.ValueType.EXPRESSION)
                     .hidden()
                     .stepOut()
                     .addProperty(Property.CONNECTION_KEY);
@@ -146,8 +145,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .value(value)
                 .placeholder(paramData.placeholder())
                 .defaultValue(paramData.defaultValue())
-                .type(Property.ValueType.TYPE)
-                .typeConstraint(paramData.type())
+                .type(Property.ValueType.TYPE, paramData.type())
                 .imports(paramData.importStatements())
                 .editable()
                 .stepOut()
@@ -181,7 +179,7 @@ public abstract class CallBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
+                    .type(Property.ValueType.EXPRESSION, paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -230,9 +228,8 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                .typeConstraint(CommonUtils.getClassType(codedata.module(), codedata.object()))
+                .type(Property.ValueType.EXPRESSION, CommonUtils.getClassType(codedata.module(), codedata.object()))
                 .value(codedata.parentSymbol())
-                .type(Property.ValueType.EXPRESSION)
                 .hidden()
                 .stepOut()
                 .addProperty(Property.CONNECTION_KEY);

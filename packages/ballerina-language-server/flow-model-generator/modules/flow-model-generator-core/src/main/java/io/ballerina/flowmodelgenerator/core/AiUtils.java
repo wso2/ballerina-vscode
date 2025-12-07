@@ -191,8 +191,7 @@ public class AiUtils {
         }
 
         Property.Builder<T> builder = new Property.Builder<T>(null)
-                .type(Property.ValueType.valueOf(originalProperty.valueType()))
-                .typeConstraint(originalProperty.valueTypeConstraint())
+                .addTypes(originalProperty.types())
                 .value(newValue);
 
         if (originalProperty.codedata() != null) {
@@ -232,11 +231,10 @@ public class AiUtils {
                     .label(property.metadata().label())
                     .description(property.metadata().description())
                     .stepOut()
-                .type(Property.ValueType.valueOf(property.valueType()))
+                .addTypes(property.types())
                 .placeholder(property.placeholder())
                 .value(valueToUse)
                 .defaultValue(property.defaultValue())
-                .typeConstraint(property.valueTypeConstraint())
                 .imports(property.imports() != null ? property.imports().toString() : null)
                 .optional(property.optional())
                 .editable(property.editable())

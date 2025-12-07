@@ -129,7 +129,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     public static void setToolKitNameProperty(NodeBuilder nodeBuilder, String toolKitName) {
         nodeBuilder.properties().custom()
                 .metadata().label(TOOL_KIT_NAME_PROPERTY_LABEL).description(TOOL_KIT_NAME_DESCRIPTION).stepOut()
-                .typeConstraint(GLOBAL_SCOPE).value(toolKitName).type(ValueType.IDENTIFIER)
+                .type(ValueType.IDENTIFIER, null, GLOBAL_SCOPE).value(toolKitName)
                 .editable().stepOut().addProperty(TOOL_KIT_NAME_PROPERTY);
     }
 
@@ -170,7 +170,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(param.placeholder())
                     .defaultValue(param.defaultValue())
-                    .typeConstraint(param.type())
+                    .type(Property.ValueType.EXPRESSION, param.type())
                     .typeMembers(param.typeMembers())
                     .editable()
                     .defaultable(param.optional());
