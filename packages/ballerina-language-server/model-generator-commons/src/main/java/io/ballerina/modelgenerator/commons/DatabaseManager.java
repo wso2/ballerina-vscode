@@ -386,6 +386,7 @@ public class DatabaseManager {
                         rs.getBoolean("optional"),
                         rs.getString("import_statements"),
                         new ArrayList<>(),
+                        null,
                         null
                 );
                 parameterResults.add(parameterData);
@@ -510,7 +511,8 @@ public class DatabaseManager {
                     optional,
                     importStatements,
                     typeMembers,
-                    unionTypes
+                    unionTypes,
+                    null
             );
         }
     }

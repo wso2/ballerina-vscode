@@ -19,6 +19,7 @@
 package io.ballerina.modelgenerator.commons;
 
 import io.ballerina.compiler.api.symbols.ParameterKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,25 +53,32 @@ public record ParameterData(
         boolean optional,
         String importStatements,
         List<ParameterMemberTypeData> typeMembers,
-        List<String> unionTypes) {
+        List<String> unionTypes,
+        TypeSymbol typeSymbol) {
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
         return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
-                null, new ArrayList<>(), null);
+                null, new ArrayList<>(), null, null);
+    }
+
+    public static ParameterData from(String name, String type, Kind kind, String placeholder,
+                                     String description, boolean optional, TypeSymbol typeSymbol) {
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
+                null, new ArrayList<>(), null, typeSymbol);
     }
 
     public static ParameterData from(String name, String description, String label, String type, String placeholder,
-                                     String defaultValue, Kind kind, boolean optional, String importStatements) {
+                                     String defaultValue, Kind kind, boolean optional, String importStatements, TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-                importStatements, new ArrayList<>(), null);
+                importStatements, new ArrayList<>(), null, typeSymbol);
     }
 
     public static ParameterData from(String name, String description, String label, String type, String placeholder,
                                      String defaultValue, Kind kind, boolean optional, String importStatements,
-                                     List<String> unionTypes) {
+                                     List<String> unionTypes, TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-                importStatements, new ArrayList<>(), unionTypes);
+                importStatements, new ArrayList<>(), unionTypes, typeSymbol);
     }
 
     public enum Kind {

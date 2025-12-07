@@ -1,4 +1,4 @@
-/*
+ /*
  *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
@@ -522,23 +522,21 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return new TypeBuilder();
         }
 
-        // Method overload: type(Property.ValueType)
         public Builder<T> type(Property.ValueType valueType) {
             type().fieldType(valueType).stepOut();
             return this;
         }
 
-        // Method overload: type(Property.ValueType, String)
         public Builder<T> type(Property.ValueType valueType, String ballerinaType) {
             type().fieldType(valueType).ballerinaType(ballerinaType).stepOut();
             return this;
         }
 
-        // Method overload: type(Property.ValueType, String, String) for IDENTIFIER with scope
         public Builder<T> type(Property.ValueType valueType, String ballerinaType, String scope) {
             type().fieldType(valueType).ballerinaType(ballerinaType).scope(scope).stepOut();
             return this;
         }
+
 
         // Method to add existing PropertyType list directly
         public Builder<T> addTypes(List<PropertyType> existingTypes) {

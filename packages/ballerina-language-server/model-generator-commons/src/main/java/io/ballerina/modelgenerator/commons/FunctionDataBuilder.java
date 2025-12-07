@@ -760,7 +760,7 @@ public class FunctionDataBuilder {
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, typeSymbol));
                     return parameters;
                 }
             }
@@ -771,7 +771,7 @@ public class FunctionDataBuilder {
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                 parameterKind, optional,
-                importStatements, unionTypes);
+                importStatements, unionTypes, typeSymbol);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
         return parameters;
@@ -897,7 +897,7 @@ public class FunctionDataBuilder {
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
-                    getImportStatements(typeSymbol), null);
+                    getImportStatements(typeSymbol), null, typeSymbol);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
@@ -907,7 +907,7 @@ public class FunctionDataBuilder {
             parameters.put("Additional Values", new ParameterData(0, "Additional Values",
                     paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
                     "Capture key value pairs", null, true, getImportStatements(typeSymbol),
-                    new ArrayList<>(), null));
+                    new ArrayList<>(), null, typeSymbol));
         });
         return parameters;
     }
@@ -1026,7 +1026,7 @@ public class FunctionDataBuilder {
                         pathBuilder.append("[").append(paramName).append("]");
                         pathParams.add(
                                 ParameterData.from(paramName, type, ParameterData.Kind.PATH_PARAM, defaultValue,
-                                        paramDescription, false));
+                                        paramDescription, false, pathParameterSymbol.typeDescriptor()));
                     } else {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }
