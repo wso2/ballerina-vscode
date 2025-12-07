@@ -60,12 +60,9 @@ export async function generateDesignCore(
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
 
-    // Create temp project from current workspace (which tests set to isolated project)
     const tempProjectPath = (await createTempProjectOfWorkspace()).path;
-    // In test mode (AI_TEST_ENV), caller manages cleanup. In production, we clean up.
     const shouldCleanup = !process.env.AI_TEST_ENV;
 
-    // Pass projectPath to getProjectSource so it uses the correct project
     const projects: ProjectSource[] = await getProjectSource(params.operationType); // TODO: Fix multi project
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
@@ -220,12 +217,11 @@ export async function generateDesignCore(
             case "error": {
                 const error = part.error;
                 console.error("[Design] Error:", error);
-                // Cleanup temp project on error (if we created it)
                 if (shouldCleanup) {
                     cleanupTempProject(tempProjectPath);
                 }
                 eventHandler({ type: "error", content: getErrorMessage(error) });
-                return tempProjectPath; // Return temp path even on error for cleanup
+                return tempProjectPath;
             }
             case "text-start": {
                 eventHandler({ type: "content_block", content: " \n" });
@@ -255,7 +251,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 </abort_notification>`,
                 });
 
-                // Cleanup temp project (if we created it)
                 if (shouldCleanup) {
                     cleanupTempProject(tempProjectPath);
                 }
@@ -265,7 +260,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
-                return tempProjectPath; // Return temp path for cleanup
+                return tempProjectPath;
             }
             case "text-start": {
                 currentAssistantContent.push({ type: "text", text: "" });
@@ -276,7 +271,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 const finalResponse = await response;
                 const assistantMessages = finalResponse.messages || [];
 
-                // Check final diagnostics before integration/cleanup
                 const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
                 if (finalDiagnostics.diagnostics && finalDiagnostics.diagnostics.length > 0) {
                     eventHandler({
@@ -285,13 +279,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     });
                 }
 
-                // Integration happens here in the service layer (skip in test mode)
                 if (!process.env.AI_TEST_ENV && modifiedFiles.length > 0) {
                     const modifiedFilesSet = new Set(modifiedFiles);
                     await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
                 }
 
-                // Cleanup temp project (if we created it)
                 if (shouldCleanup) {
                     cleanupTempProject(tempProjectPath);
                 }
@@ -302,12 +294,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
                 await langfuseExporter.forceFlush();
-                return tempProjectPath; // Return temp path for test validation
+                return tempProjectPath;
             }
         }
         }
 
-    // This should never be reached, but TypeScript needs a return
     return tempProjectPath;
 }
 

@@ -40,7 +40,6 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
-        // New test-specific command - isolated generation without workspace integration
         commands.registerCommand('ballerina.test.ai.generateDesignForTest', async (params: GenerateDesignForTestParams, testEventHandler: CopilotEventHandler) => {
             return await generateDesignForTest(params, testEventHandler);
         });
@@ -89,7 +88,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     const projectPath = StateMachine.context().projectPath;
 
-    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async (...args: any[]) => {
+    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async () => {
         const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);
         if (configPath !== null) {
             try {
