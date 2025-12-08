@@ -189,13 +189,13 @@ public abstract class CallBuilder extends NodeBuilder {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET, paramResult.type());
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET, paramResult.type());
                 }
                 default -> {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
