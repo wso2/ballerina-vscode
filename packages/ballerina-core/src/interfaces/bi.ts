@@ -336,6 +336,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "auth"
     | "checkError"
     | "client"
     | "collection"
