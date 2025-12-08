@@ -712,7 +712,6 @@ public class FunctionDataBuilder {
         boolean optional = true;
         String placeholder;
         String defaultValue = null;
-        List<String> unionTypes = null;
         TypeSymbol typeSymbol = paramSymbol.typeDescriptor();
         String importStatements = getImportStatements(typeSymbol);
         if (parameterKind == ParameterData.Kind.REST_PARAMETER) {
@@ -739,16 +738,6 @@ public class FunctionDataBuilder {
             parameters.putAll(includedParameters);
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
         } else if (parameterKind == ParameterData.Kind.REQUIRED) {
-            if (isAiModelTypeParameter(paramName, functionKind)) {
-                TypeSymbol rawParamType = CommonUtils.getRawType(typeSymbol);
-                if (rawParamType.typeKind() == TypeDescKind.UNION) {
-                    unionTypes = new ArrayList<>();
-                    UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) rawParamType;
-                    for (TypeSymbol memType : unionTypeSymbol.userSpecifiedMemberTypes()) {
-                        unionTypes.add(memType.signature());
-                    }
-                }
-            }
             paramType = getTypeSignature(typeSymbol);
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             optional = false;
@@ -760,7 +749,7 @@ public class FunctionDataBuilder {
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, typeSymbol));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, typeSymbol));
                     return parameters;
                 }
             }
@@ -771,7 +760,7 @@ public class FunctionDataBuilder {
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                 parameterKind, optional,
-                importStatements, unionTypes, typeSymbol);
+                importStatements, typeSymbol);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
         return parameters;
@@ -897,7 +886,7 @@ public class FunctionDataBuilder {
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
-                    getImportStatements(typeSymbol), null, typeSymbol);
+                    getImportStatements(typeSymbol), typeSymbol);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
@@ -907,7 +896,7 @@ public class FunctionDataBuilder {
             parameters.put("Additional Values", new ParameterData(0, "Additional Values",
                     paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
                     "Capture key value pairs", null, true, getImportStatements(typeSymbol),
-                    new ArrayList<>(), null, typeSymbol));
+                    new ArrayList<>(), typeSymbol));
         });
         return parameters;
     }

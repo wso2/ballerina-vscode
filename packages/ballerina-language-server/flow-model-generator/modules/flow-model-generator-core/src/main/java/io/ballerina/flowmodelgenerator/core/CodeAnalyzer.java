@@ -964,11 +964,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 } else {
-                    if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
-                    }
+                    customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
                 }
                 customPropBuilder
                         .stepOut()
@@ -1387,11 +1383,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
             builder.type(Property.ValueType.RAW_TEMPLATE);
         } else {
-            if (paramData.unionTypes() != null && !paramData.unionTypes().isEmpty()) {
-                builder.type(Property.ValueType.SINGLE_SELECT);
-            } else {
-                builder.typeExpression(paramData.typeSymbol(), moduleInfo);
-            }
+            builder.typeExpression(paramData.typeSymbol(), moduleInfo);
         }
     }
 

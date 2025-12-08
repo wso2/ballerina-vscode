@@ -186,8 +186,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                     applyRestDefaultability(builder, onlyRestParams);
                     builder.type(ValueType.EXPRESSION_SET);
                 }
-                default -> builder.type(param.unionTypes() != null && !param.unionTypes().isEmpty() ? ValueType.SINGLE_SELECT
-                        : ValueType.EXPRESSION);
+                default -> builder.typeExpression(param.typeSymbol(), moduleInfo);
             }
             builder.stepOut().addProperty(FlowNodeUtil.getPropertyKey(unescapedName));
         }
