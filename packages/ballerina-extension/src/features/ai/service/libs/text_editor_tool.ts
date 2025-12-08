@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
+import { sendAgentDidOpen, sendAgentDidChange } from "./agent_ls_notification_utils";
 
 // ============================================================================
 // Types & Interfaces
@@ -269,11 +270,15 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
       insertIntoUpdateFileNames(modifiedFiles, file_path);
     }
 
-    // Notify Language Server of the change
-    notifyLanguageServer(tempProjectPath, file_path);
-
     const lineCount = content.split('\n').length;
     const action = fileExists ? 'updated' : 'created';
+
+    // Notify Language Server
+    if (action === 'created') {
+      sendAgentDidOpen(tempProjectPath, file_path);
+    } else {
+      sendAgentDidChange(tempProjectPath, file_path);
+    }
 
     console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
     return {
@@ -376,7 +381,7 @@ export function createEditExecute(tempProjectPath: string, modifiedFiles?: strin
     }
 
     // Notify Language Server of the change
-    notifyLanguageServer(tempProjectPath, file_path);
+    sendAgentDidChange(tempProjectPath, file_path);
 
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
@@ -495,7 +500,7 @@ export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: 
     }
 
     // Notify Language Server of the change
-    notifyLanguageServer(tempProjectPath, file_path);
+    sendAgentDidChange(tempProjectPath, file_path);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     return {
