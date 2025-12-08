@@ -104,12 +104,6 @@ function showExamples(context: ExtensionContext, langClient: ExtendedLangClient)
 }
 
 export function activate(ballerinaExtInstance: BallerinaExtension) {
-    const context = <ExtensionContext>ballerinaExtInstance.context;
-    const langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
-    const examplesListRenderer = commands.registerCommand(PALETTE_COMMANDS.SHOW_EXAMPLES, () => {
-        sendTelemetryEvent(ballerinaExtInstance, TM_EVENT_OPEN_EXAMPLES, CMP_EXAMPLES_VIEW);
-        showExamples(context, langClient);
-    });
-
-    context.subscriptions.push(examplesListRenderer);
+    // TODO: Implement this once the samples are available
+    // https://github.com/wso2/product-ballerina-integrator/issues/1967
 }

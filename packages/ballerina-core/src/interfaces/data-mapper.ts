@@ -57,9 +57,10 @@ export enum IntermediateClauseType {
     LET = "let",
     WHERE = "where",
     FROM = "from",
-    ORDER_BY = "order by",
+    ORDER_BY = "order-by",
     LIMIT = "limit",
     JOIN = "join",
+    GROUP_BY = "group-by"
 }
 
 export enum ResultClauseType {
@@ -95,6 +96,7 @@ export interface IOType {
     defaultValue?: unknown;
     optional?: boolean;
     isFocused?: boolean;
+    isSeq?: boolean;
     isRecursive?: boolean;
     isDeepNested?: boolean;
     ref?: string;
@@ -141,6 +143,7 @@ export interface DMModel {
     triggerRefresh?: boolean;
     traversingRoot?: string;
     focusInputRootMap?: Record<string, string>;
+    groupById?: string;
 }
 
 export interface ModelState {
@@ -175,6 +178,7 @@ export interface IOTypeField {
     optional?: boolean;
     ref?: string;
     focusExpression?: string;
+    isSeq?: boolean;
     typeInfo?: TypeInfo;
 }
 
@@ -192,7 +196,7 @@ export interface Query {
     output: string,
     inputs: string[];
     diagnostics?: DMDiagnostic[];
-    fromClause: FromClause;
+    fromClause: IntermediateClause;
     intermediateClauses?: IntermediateClause[];
     resultClause: ResultClause;
 }

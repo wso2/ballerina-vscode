@@ -27,30 +27,32 @@ import {
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
+    PackageTomlValues,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
+    SampleDownloadRequest,
     ShowErrorMessageRequest,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
+    WorkspaceTypeResponse,
     WorkspacesFileResponse,
+    downloadSelectedSampleFromGithub,
     executeCommand,
     experimentalEnabled,
     getBallerinaDiagnostics,
+    getCurrentProjectTomlValues,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
+    getWorkspaceType,
     goToSource,
     isNPSupported,
     openExternalUrl,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
-    getCurrentProjectTomlValues,
-    PackageTomlValues,
     selectFileOrFolderPath,
-    showErrorMessage,
-    WorkspaceTypeResponse,
-    getWorkspaceType
+    showErrorMessage
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -114,11 +116,15 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
     }
 
-    getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
+    getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 
     getWorkspaceType(): Promise<WorkspaceTypeResponse> {
         return this._messenger.sendRequest(getWorkspaceType, HOST_EXTENSION);
+    }
+
+    downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
+        return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
     }
 }
