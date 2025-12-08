@@ -17,8 +17,8 @@
  */
 
 import { EditorState } from "@codemirror/state";
-import { EditorView, keymap, tooltips } from "@codemirror/view";
-import React, { useEffect, useRef, useState } from "react";
+import { EditorView, hoverTooltip, keymap, tooltips } from "@codemirror/view";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "../../../../../context";
 import {
     buildNeedTokenRefetchListner,
@@ -35,21 +35,27 @@ import {
     CursorInfo,
     buildOnFocusOutListner,
     buildOnSelectionChange,
-    ProgrammerticSelectionChange,
-    SyncDocValueWithPropValue
+    SyncDocValueWithPropValue,
+    isSelectionOnToken,
+    createTooltipHeader,
+    createParametersSection,
+    createDocumentationSection,
+    createTooltipContainer,
+    createTooltipPositioningHandlers
 } from "../CodeUtils";
-import { mapSanitizedToRaw } from "../utils";
+import { TOKEN_START_CHAR_OFFSET_INDEX } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HELPER_PANE_WIDTH, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
-import FXButton from "./FxButton";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
 import { HelperPane } from "./HelperPane";
 import { listContinuationKeymap } from "../../../ExpandedEditor/utils/templateUtils";
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionDefaultConfig";
+import { ChipExpressionEditorConfig } from "../../Configurations";
 
 type HelperPaneState = {
     isOpen: boolean;
@@ -91,29 +97,66 @@ export type ChipExpressionEditorComponentProps = {
     onEditorViewReady?: (view: EditorView) => void;
     toolbarRef?: React.RefObject<HTMLDivElement>;
     enableListContinuation?: boolean;
+    configuration?: ChipExpressionEditorDefaultConfiguration;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
+    const { configuration = new ChipExpressionEditorConfig() } = props;
     const [helperPaneState, setHelperPaneState] = useState<HelperPaneState>({ isOpen: false, top: 0, left: 0 });
-
     const editorRef = useRef<HTMLDivElement>(null);
     const helperPaneRef = useRef<HTMLDivElement>(null);
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
-    const completionsRef = useRef(props.completions);
+    const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
+    const completionsFetchScheduledRef = useRef<boolean>(false);
     const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
 
     const { expressionEditor } = useFormContext();
     const expressionEditorRpcManager = expressionEditor?.rpcManager;
+
+    async function docTooltip(view: EditorView, pos: number) {
+        const value = view.state.doc.toString()
+        const fnSignature = await props.extractArgsFromFunction?.(value, pos);
+        if (!fnSignature) return null;
+
+        return {
+            pos: pos,
+            end: pos,
+            above: true,
+            create() {
+                const dom = createTooltipContainer();
+                dom.appendChild(createTooltipHeader(fnSignature.label));
+
+                if (fnSignature.args && fnSignature.args.length > 0) {
+                    dom.appendChild(createParametersSection(fnSignature.args, fnSignature.currentArgIndex));
+                }
+                if (fnSignature.documentation) {
+                    dom.appendChild(createDocumentationSection(fnSignature.documentation));
+                }
+                const { mount, destroy } = createTooltipPositioningHandlers(view);
+                
+                return { 
+                    dom,
+                    mount,
+                    destroy
+                };
+            }
+        };
+    }
+
+    const tooltipExtension = hoverTooltip((view, pos) => {
+        return docTooltip(view, pos);
+    });
 
     const needTokenRefetchListner = buildNeedTokenRefetchListner(() => {
         setIsTokenUpdateScheduled(true);
     });
 
     const handleChangeListner = buildOnChangeListner((newValue, cursor) => {
-        props.onChange(newValue, cursor.position.to);
+        completionsFetchScheduledRef.current = true;
+        props.onChange(configuration.deserializeValue(newValue), cursor.position.to);
         const textBeforeCursor = newValue.slice(0, cursor.position.to);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
         const isTrigger = lastNonSpaceChar === '+' || lastNonSpaceChar === ':';
@@ -141,20 +184,37 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         setIsTokenUpdateScheduled(true);
     });
 
-    const completionSource = buildCompletionSource(() => completionsRef.current);
+    const waitForStateChange = (): Promise<CompletionItem[]> => {
+        return new Promise((resolve) => {
+            const checkState = () => {
+                if (!completionsFetchScheduledRef.current) {
+                    resolve(completionsRef.current);
+                } else {
+                    requestAnimationFrame(checkState);
+                }
+            };
+            checkState();
+        });
+    };
+
+    const completionSource = useMemo(() => {
+        return buildCompletionSource(waitForStateChange);
+    }, [props.completions]);
 
     const helperPaneKeymap = buildHelperPaneKeymap(() => helperPaneState.isOpen, () => {
         setHelperPaneState(prev => ({ ...prev, isOpen: false }));
     });
 
     const onHelperItemSelect = async (value: string, options: HelperpaneOnChangeOptions) => {
-        const newValue = value
         if (!viewRef.current) return;
         const view = viewRef.current;
 
         // Use saved selection if available, otherwise fall back to current selection
         const currentSelection = savedSelectionRef.current || view.state.selection.main;
         const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
+        
+        const selectionIsOnToken = isSelectionOnToken(currentSelection.from, currentSelection.to, view);
+        const newValue = selectionIsOnToken ? value : configuration.getHelperValue(value);
 
         let finalValue = newValue;
         let cursorPosition = from + newValue.length;
@@ -171,7 +231,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     let functionDef = newValue;
                     let prefix = '';
                     let suffix = '';
-                    
+
                     // Check if it's within a string template
                     const stringTemplateMatch = newValue.match(/^(.*\$\{)([^}]+)(\}.*)$/);
                     if (stringTemplateMatch) {
@@ -179,12 +239,12 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         functionDef = stringTemplateMatch[2];
                         suffix = stringTemplateMatch[3];
                     }
-                    
+
                     let cursorPositionForExtraction = from + prefix.length + functionDef.length - 1;
                     if (functionDef.endsWith(')}')) {
                         cursorPositionForExtraction -= 1;
                     }
-                    
+
                     const fnSignature = await props.extractArgsFromFunction(functionDef, cursorPositionForExtraction);
 
                     if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
@@ -229,11 +289,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         let top = buttonRect.bottom - editorRect.top;
         let left = buttonRect.left - editorRect.left;
 
-        // Add overflow correction for window boundaries
-        const HELPER_PANE_WIDTH = 300;
-        const viewportWidth = window.innerWidth;
-        const absoluteLeft = buttonRect.left;
-        const overflow = absoluteLeft + HELPER_PANE_WIDTH - viewportWidth;
+        // Add overflow correction for editor boundaries
+        const editorWidth = editorRect.width;
+        const relativeRight = left + HELPER_PANE_WIDTH;
+        const overflow = relativeRight - editorWidth;
 
         if (overflow > 0) {
             left -= overflow;
@@ -263,6 +322,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const startState = EditorState.create({
             doc: props.value ?? "",
             extensions: [
+                ...(configuration.getPlugins()),
                 history(),
                 keymap.of([
                     ...helperPaneKeymap,
@@ -284,24 +344,21 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 handleChangeListner,
                 handleFocusListner,
                 handleFocusOutListner,
+                tooltipExtension,
                 handleSelectionChange,
                 ...(props.isInExpandedMode
                     ? [EditorView.theme({
                         "&": { height: "100%" },
-                        ".cm-scroller": { overflow: "auto" }
+                        ".cm-scroller": { overflow: "auto", maxHeight: "100%" }
                     })]
                     : props.sx && 'height' in props.sx
                         ? [EditorView.theme({
-                            "&": {
-                                height: typeof (props.sx as any).height === 'number' ?
-                                    `${(props.sx as any).height}px` :
-                                    (props.sx as any).height
-                            },
-                            ".cm-scroller": { overflow: "auto" }
+                            "&": { height: "100%" },
+                            ".cm-scroller": { overflow: "auto", maxHeight: "100%" }
                         })]
                         : [EditorView.theme({
                             "&": { maxHeight: "150px" },
-                            ".cm-scroller": { overflow: "auto" }
+                            ".cm-scroller": { overflow: "auto", maxHeight: "150px" }
                         })])
             ]
         });
@@ -323,8 +380,14 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     useEffect(() => {
         if (props.value == null || !viewRef.current) return;
+        const serializedValue = configuration.serializeValue(props.value);
+        const deserializeValue = configuration.deserializeValue(props.value);
+        if (deserializeValue.trim() !== props.value.trim()) {
+            props.onChange(deserializeValue, deserializeValue.length);
+            return
+        }
         const updateEditorState = async () => {
-            const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(props.value) : props.value;
+            const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(serializedValue) : serializedValue;
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = sanitizedValue !== currentDoc;
 
@@ -332,15 +395,18 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             const startLine = props.targetLineRange?.startLine;
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
-                props.value,
+                deserializeValue,
                 props.fileName,
                 startLine !== undefined ? startLine : undefined
             );
+            let prefixCorrectedTokenStream = tokenStream;
+            if (tokenStream && tokenStream.length >= 5) {
+                prefixCorrectedTokenStream = [...tokenStream];
+                prefixCorrectedTokenStream[TOKEN_START_CHAR_OFFSET_INDEX] -= configuration.getSerializationPrefix().length;
+            }
             setIsTokenUpdateScheduled(false);
-            const effects = tokenStream ? [tokensChangeEffect.of({
-                tokens: tokenStream,
-                rawValue: props.value,
-                sanitizedValue: sanitizedValue
+            const effects = prefixCorrectedTokenStream ? [tokensChangeEffect.of({
+                tokens: prefixCorrectedTokenStream
             })] : [];
             const changes = isExternalUpdate
                 ? { from: 0, to: viewRef.current!.state.doc.length, insert: sanitizedValue }
@@ -362,6 +428,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     // just don't touch this.
     useEffect(() => {
         completionsRef.current = props.completions;
+        completionsFetchScheduledRef.current = false;
     }, [props.completions]);
 
     // Trigger token update when sanitization mode changes
@@ -381,10 +448,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
             if (!isClickInsideEditor && !isClickInsideHelperPane && !isClickOnToggleButton && !isClickInsideToolbar) {
                 setHelperPaneState(prev => ({ ...prev, isOpen: false }));
-                viewRef.current?.dispatch({
-                    selection: { anchor: 0 },
-                    annotations: ProgrammerticSelectionChange.of(true)
-                });
                 viewRef.current?.dom.blur();
             }
         };
@@ -422,16 +485,20 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             <ChipEditorContainer ref={fieldContainerRef} style={{
                 position: 'relative',
                 ...props.sx,
-                ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto' })
+                ...(props.isInExpandedMode ? { height: '100%' } : props.sx && 'height' in props.sx ? {} : { height: 'auto' })
             }}>
-                {!props.isInExpandedMode && <FXButton />}
-                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                {!props.isInExpandedMode && configuration.getAdornment()({ onClick: () => {}})}
+                <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    ...(props.isInExpandedMode || (props.sx && 'height' in props.sx) ? { height: '100%' } : {})
+                }}>
                     <div ref={editorRef} style={{
                         border: '1px solid var(--vscode-dropdown-border)',
-                        ...props.sx,
-                        ...(props.isInExpandedMode ? { height: '100%' } : { height: 'auto', maxHeight: '150px' })
+                        width: '100%',
+                        height: '100%'
                     }} />
-                    {helperPaneState.isOpen &&
+                    {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
                             ref={helperPaneRef}
                             top={helperPaneState.top}

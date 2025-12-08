@@ -231,7 +231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params) });
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
                         resolve({ artifacts });
                     }
                 })
@@ -890,6 +890,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     reject("Error fetching expression completions from ls");
+                });
+        });
+    }
+
+    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient()
+                .getDataMapperCompletions(params)
+                .then((completions) => {
+                    resolve(completions);
+                })
+                .catch((error) => {
+                    reject("Error fetching data mapper completions from ls");
                 });
         });
     }
@@ -2060,6 +2073,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         });
     }
+
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {

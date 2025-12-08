@@ -26,6 +26,7 @@ import { ChipExpressionEditorComponent, Context as FormContext, HelperpaneOnChan
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
+import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -142,6 +143,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const { rpcClient } = useRpcContext();
 
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
+    const recordModelRef = useRef<TypeField[]>([]);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
     const sourceCode = useRef<string>(currentValue);
@@ -260,6 +262,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             }
 
             setRecordModel([recordConfig]);
+            recordModelRef.current = [recordConfig];
             setSelectedMemberName(newRecordModel.name);
         }
 
@@ -268,6 +271,23 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const getExistingRecordModel = async () => {
         await fetchRecordModelFromSource(currentValue);
+    };
+
+
+    // Helper function to auto-select the first record in the model.
+    // Also selects required fields recursively within that record.
+    const autoSelectFirstRecord = (model: TypeField[]) => {
+        if (!model || model.length === 0) return;
+
+        const recordConfig = model[0];
+
+        // Select the first record itself
+        recordConfig.selected = true;
+
+        // If the record has fields, recursively select required fields
+        if (recordConfig.fields && recordConfig.fields.length > 0) {
+            updateFieldsSelection(recordConfig.fields as any, true);
+        }
     };
 
     const getNewRecordModel = async () => {
@@ -312,7 +332,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 ...typeFieldResponse.recordConfig
             }
 
-            setRecordModel([recordConfig]);
+            const newModel = [recordConfig];
+            setRecordModel(newModel);
+            recordModelRef.current = newModel;
+
+            // Auto-select the first field for new models
+            autoSelectFirstRecord(newModel);
+
+            // Generate source with the auto-selected field
+            await handleModelChange(newModel);
         }
         setIsLoading(false);
     }
@@ -354,7 +382,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                     ...typeFieldResponse.recordConfig
                 }
 
-                setRecordModel([recordConfig]);
+                const newModel = [recordConfig];
+                setRecordModel(newModel);
+                recordModelRef.current = newModel;
+
+                // Auto-select the first field when union member changes
+                autoSelectFirstRecord(newModel);
+
+                // Generate source with the auto-selected field
+                await handleModelChange(newModel);
             }
         }
 
@@ -523,6 +559,33 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         // Update local expression value when user edits in the ExpressionEditor
         setLocalExpressionValue(updatedValue);
 
+        // If the expression is empty, deselect all checkboxes
+        if (updatedValue.trim() === '') {
+            // Use ref to get the latest recordModel value
+            const currentRecordModel = recordModelRef.current;
+            // Deselect all fields in the record model
+            if (currentRecordModel.length > 0 && currentRecordModel[0]) {
+                const recordConfig = currentRecordModel[0];
+                // Deselect the record itself
+                recordConfig.selected = false;
+                // Deselect all fields recursively
+                if (recordConfig.fields && recordConfig.fields.length > 0) {
+                    updateFieldsSelection(recordConfig.fields as any, false);
+                }
+                // Update source code to empty to prevent sync issues
+                sourceCode.current = '';
+                // Update latest expression ref to prevent sync
+                latestExpressionToSyncRef.current = '';
+                // Trigger re-render by updating recordModel state with a new array reference
+                const updatedModel = [...currentRecordModel];
+                setRecordModel(updatedModel);
+                recordModelRef.current = updatedModel;
+            }
+            // Clear diagnostics when expression is empty
+            setFormDiagnostics([]);
+            return;
+        }
+
         // Fetch diagnostics (debounced) - this will update formDiagnostics state
         // The sync will be triggered by the useEffect that watches localExpressionValue
         fetchDiagnostics(updatedValue);
@@ -585,6 +648,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         label: member.type,
                                         value: member.type
                                     }))}
+                                    sx={{ width: '100%' }}
+                                    containerSx={{ width: '100%' }}
                                     onValueChange={(value) => handleMemberChange(value)}
                                 />
                             </LabelContainer>

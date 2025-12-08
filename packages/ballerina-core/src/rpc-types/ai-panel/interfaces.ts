@@ -121,7 +121,7 @@ export interface ProjectImports {
 // Data-mapper related interfaces
 export interface MetadataWithAttachments {
     metadata: ExtendedDataMapperMetadata;
-    attachments?: Attachment[];
+    attachments: Attachment[];
 }
 
 export interface InlineMappingsSourceResult {

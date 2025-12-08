@@ -17,33 +17,37 @@
  */
 
 import React from "react";
-import { EditorContainer } from "./styles";
-import { Divider, Dropdown, OptionProps, Typography } from "@wso2/ui-toolkit";
-import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps } from "@wso2/ballerina-core";
+import { EditorContainer, ProgressRingWrapper } from "./styles";
+import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
+import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
 import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useQuery } from "@tanstack/react-query";
 
 export interface ClauseEditorProps {
+    index: number;
+    targetField: string;
     clause?: IntermediateClause;
     onSubmitText?: string;
     isSaving: boolean;
     onSubmit: (clause: IntermediateClause) => void;
     onCancel: () => void;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
 export function ClauseEditor(props: ClauseEditorProps) {
-    const { clause, onSubmitText, isSaving, onSubmit, onCancel, generateForm } = props;
+    const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
     const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
     const [clauseType, setClauseType] = React.useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
     const clauseTypeItems: OptionProps[] = [
-        { content: "condition", value: IntermediateClauseType.WHERE },
-        { content: "local variable", value: IntermediateClauseType.LET },
-        { content: "sort by", value: IntermediateClauseType.ORDER_BY },
-        { content: "limit", value: IntermediateClauseType.LIMIT },
-        { content: "from", value: IntermediateClauseType.FROM },
-        { content: "join", value: IntermediateClauseType.JOIN },
+        { content: "Condition", value: IntermediateClauseType.WHERE },
+        { content: "Local variable", value: IntermediateClauseType.LET },
+        { content: "Sort by", value: IntermediateClauseType.ORDER_BY },
+        { content: "Limit", value: IntermediateClauseType.LIMIT },
+        { content: "From", value: IntermediateClauseType.FROM },
+        { content: "Join", value: IntermediateClauseType.JOIN }
     ]
 
     const nameField: DMFormField = {
@@ -72,11 +76,15 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const expressionField: DMFormField = {
         key: "expression",
-        label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" : "Expression",
+        label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" :
+            clauseType === IntermediateClauseType.GROUP_BY ? "Grouping Key" :
+                "Expression",
         type: "EXPRESSION",
         optional: false,
         editable: true,
-        documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" : "Enter the expression of the clause",
+        documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" :
+            clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
+                "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
         valueTypeConstraint: "Global",
         enabled: true,
@@ -110,7 +118,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const rhsExpressionField: DMFormField = {
         key: "rhsExpression",
         label: "RHS Expression",
-        type: "EXPRESSION",
+        type: "DM_JOIN_CLAUSE_RHS_EXPRESSION",
         optional: false,
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
@@ -125,10 +133,6 @@ export function ClauseEditor(props: ClauseEditorProps) {
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
         };
-        if (clauseType === IntermediateClauseType.JOIN) {
-            clause.properties.type = "var";
-            clause.properties.isOuter = false;
-        }
         onSubmit(clause);
     }
 
@@ -147,13 +151,24 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 return [expressionField, orderField];
             case IntermediateClauseType.JOIN:
                 return [expressionField, nameField, lhsExpressionField, rhsExpressionField];
+            case IntermediateClauseType.GROUP_BY:
+                return [expressionField];
             default:
                 return [expressionField];
         }
     }
 
+    const { 
+        data: clausePosition, 
+        isFetching: isFetchingTargetLineRange
+    } = useQuery({
+        queryKey: ['getClausePosition', targetField, index],
+        queryFn: async () => await getClausePosition(targetField, index),
+        networkMode: 'always'
+    });
+
     const formProps: DMFormProps = {
-        targetLineRange:{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } },
+        targetLineRange: { startLine: clausePosition, endLine: clausePosition },
         fields: generateFields(),
         submitText: onSubmitText || "Add",
         cancelText: "Cancel",
@@ -179,7 +194,12 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 value={clauseType}
             />
 
-            {generateForm(formProps)}
+            {isFetchingTargetLineRange ?
+                <ProgressRingWrapper>
+                    <ProgressRing sx={{ height: "20px", width: "20px" }} />
+                </ProgressRingWrapper> :
+                generateForm(formProps)
+            }
             
         </EditorContainer >
     );

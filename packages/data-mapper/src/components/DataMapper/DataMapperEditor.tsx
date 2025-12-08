@@ -128,7 +128,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         applyModifications,
         onClose,
         onRefresh,
-        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -139,10 +138,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         deleteClause,
+        getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
         enrichChildFields,
+        genUniqueName,
         undoRedoGroup
     } = props;
     const {
@@ -190,6 +191,19 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         dispatch({ type: ActionType.RESET_VIEW, payload: { view: newData } });
     }, [resetSearchStore]);
 
+    const handleOnReset = useCallback(async () => {
+        const targetField = views[views.length - 1].targetField;
+        const outputIds = targetField.split('.');
+
+        let output: string;
+        while ((output = outputIds.pop()) === '0');
+        
+        await deleteMapping(
+            { output, expression: undefined },
+            targetField
+        );
+    }, [views, deleteMapping]);
+
     useEffect(() => {
         const lastView = views[views.length - 1];
         handleView(lastView.targetField, !!lastView?.subMappingInfo);
@@ -235,10 +249,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
+                addClauses,
                 mapWithCustomFn,
                 mapWithTransformFn,
                 goToFunction,
-                enrichChildFields
+                enrichChildFields,
+                genUniqueName
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
@@ -334,7 +350,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                         onClose={handleOnClose}
                         onBack={handleOnBack}
                         onRefresh={onRefresh}
-                        onReset={onReset}
+                        onReset={handleOnReset}
                         onEdit={onEdit}
                         autoMapWithAI={autoMapWithAI}
                         undoRedoGroup={undoRedoGroup}
@@ -361,7 +377,9 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                                 targetField={views[views.length - 1].targetField}
                                 addClauses={addClauses}
                                 deleteClause={deleteClause}
+                                getClausePosition={getClausePosition}
                                 generateForm={generateForm}
+                                genUniqueName={genUniqueName}
                             />
                         )}
                     </>
