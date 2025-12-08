@@ -547,24 +547,36 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+
+            // Handle the primitive input types
             boolean success = handlePrimitiveType(rawType, ballerinaType);
 
+            // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
                 List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-                boolean allSingletons = typeSymbols.stream()
-                        .map(CommonUtil::getRawType)
-                        .allMatch(type -> type.typeKind() == TypeDescKind.SINGLETON);
+                List<String> options = new ArrayList<>();
+                boolean allSingletons = true;
+                for (TypeSymbol symbol : typeSymbols) {
+                    if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
+                        options.add(CommonUtils.removeQuotes(symbol.signature()));
+                    } else {
+                        allSingletons = false;
+                        break;
+                    }
+                }
+
+                // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
-                    List<String> options = typeSymbols.stream()
-                            .map(symbol -> CommonUtils.removeQuotes(symbol.signature()))
-                            .toList();
                     type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
+                    // Handle union of primitive types by defining an input type for each primitive type
                     for (TypeSymbol ts : typeSymbols) {
                         handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo));
                     }
                 }
             }
+
+            // All the ballerina types will have a default to expression type
             type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
                     .stepOut();
