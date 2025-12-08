@@ -89,7 +89,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "A",
                 "optional": false,
                 "editable": false,
@@ -114,7 +118,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string|error",
                 "optional": true,
                 "editable": true,
@@ -151,7 +159,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"A\"",
                     "optional": true,
                     "editable": true,
@@ -188,7 +200,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "B",
                 "optional": false,
                 "editable": false,
@@ -213,7 +229,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string|error",
                 "optional": true,
                 "editable": true,
@@ -250,7 +270,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"B\"",
                     "optional": true,
                     "editable": true,
@@ -287,7 +311,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "C",
                 "optional": false,
                 "editable": false,
@@ -312,7 +340,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string|error",
                 "optional": true,
                 "editable": true,
@@ -349,7 +381,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"C\"",
                     "optional": true,
                     "editable": true,
@@ -392,7 +428,11 @@
               "label": "Wait All",
               "description": "Wait for all tasks to complete"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": false,
             "optional": false,
             "editable": true,
@@ -404,21 +444,33 @@
               "label": "Futures",
               "description": "The futures to wait for"
             },
-            "valueType": "REPEATABLE_PROPERTY",
+            "types": [
+              {
+                "fieldType": "REPEATABLE_PROPERTY"
+              }
+            ],
             "value": {
               "future1": {
                 "metadata": {
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "",
                     "optional": false,
                     "editable": true,
@@ -433,7 +485,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "A ",
                     "optional": false,
                     "editable": true,
@@ -451,14 +507,22 @@
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "",
                     "optional": false,
                     "editable": true,
@@ -473,7 +537,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "B ",
                     "optional": false,
                     "editable": true,
@@ -491,14 +559,22 @@
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "",
                     "optional": false,
                     "editable": true,
@@ -513,7 +589,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "C",
                     "optional": false,
                     "editable": true,
@@ -537,7 +617,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "result",
             "optional": false,
             "editable": false,
@@ -562,7 +646,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -602,7 +690,11 @@
               "label": "Expression",
               "description": "Return value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "result",
             "optional": true,
             "editable": true,

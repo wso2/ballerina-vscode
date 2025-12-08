@@ -88,7 +88,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "WA",
                 "optional": false,
                 "editable": false,
@@ -113,7 +117,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "int",
                 "optional": true,
                 "editable": true,
@@ -156,8 +164,16 @@
                       "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "decimal",
+                    "types": [
+                      {
+                        "fieldType": "NUMBER",
+                        "ballerinaType": "decimal"
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "decimal"
+                      }
+                    ],
                     "value": "1",
                     "placeholder": "0.0d",
                     "optional": false,
@@ -209,7 +225,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "42",
                     "optional": true,
                     "editable": true,
@@ -246,7 +266,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "WB",
                 "optional": false,
                 "editable": false,
@@ -271,7 +295,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string",
                 "optional": true,
                 "editable": true,
@@ -314,8 +342,16 @@
                       "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "decimal",
+                    "types": [
+                      {
+                        "fieldType": "NUMBER",
+                        "ballerinaType": "decimal"
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "decimal"
+                      }
+                    ],
                     "value": "2",
                     "placeholder": "0.0d",
                     "optional": false,
@@ -367,7 +403,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"Hello\"",
                     "optional": true,
                     "editable": true,
@@ -404,7 +444,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "WC",
                 "optional": false,
                 "editable": false,
@@ -429,7 +473,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "boolean",
                 "optional": true,
                 "editable": true,
@@ -472,8 +520,16 @@
                       "label": "Seconds",
                       "description": "An amount of time to sleep in seconds"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "decimal",
+                    "types": [
+                      {
+                        "fieldType": "NUMBER",
+                        "ballerinaType": "decimal"
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "decimal"
+                      }
+                    ],
                     "value": "1",
                     "placeholder": "0.0d",
                     "optional": false,
@@ -525,7 +581,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "true",
                     "optional": true,
                     "editable": true,
@@ -568,7 +628,11 @@
               "label": "Wait All",
               "description": "Wait for all tasks to complete"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -580,21 +644,33 @@
               "label": "Futures",
               "description": "The futures to wait for"
             },
-            "valueType": "REPEATABLE_PROPERTY",
+            "types": [
+              {
+                "fieldType": "REPEATABLE_PROPERTY"
+              }
+            ],
             "value": {
               "future1": {
                 "metadata": {
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "a",
                     "optional": false,
                     "editable": true,
@@ -609,7 +685,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "WA",
                     "optional": false,
                     "editable": true,
@@ -627,14 +707,22 @@
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "b",
                     "optional": false,
                     "editable": true,
@@ -649,7 +737,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "WB",
                     "optional": false,
                     "editable": true,
@@ -667,14 +759,22 @@
                   "label": "Future",
                   "description": "The worker/async function to wait for"
                 },
-                "valueType": "FIXED_PROPERTY",
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY"
+                  }
+                ],
                 "value": {
                   "variable": {
                     "metadata": {
                       "label": "Variable Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "c",
                     "optional": false,
                     "editable": true,
@@ -689,7 +789,11 @@
                       "label": "Expression",
                       "description": "Expression"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "WC",
                     "optional": false,
                     "editable": true,
@@ -713,7 +817,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "mapResult",
             "optional": false,
             "editable": false,
@@ -738,7 +846,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "MixedResult",
             "placeholder": "var",
             "optional": false,
@@ -778,7 +890,11 @@
               "label": "Expression",
               "description": "Return value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "mapResult",
             "optional": true,
             "editable": true,

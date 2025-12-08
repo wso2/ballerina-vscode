@@ -77,7 +77,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "mysqlClient",
             "optional": false,
             "editable": false,
@@ -89,10 +93,13 @@
               "label": "SQL Query",
               "description": "The SQL query (e.g., `` `SELECT * FROM Album WHERE name=${albumName}` ``)"
             },
-            "valueType": "RAW_TEMPLATE",
-            "valueTypeConstraint": "sql:ParameterizedQuery",
+            "types": [
+              {
+                "fieldType": "RAW_TEMPLATE"
+              }
+            ],
             "value": "``",
-            "placeholder": "``",
+            "placeholder": "object {}",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -104,7 +111,7 @@
             "typeMembers": [
               {
                 "type": "ParameterizedQuery",
-                "packageInfo": "ballerina:sql:1.16.0",
+                "packageInfo": "ballerina:sql:1.17.1",
                 "packageName": "sql",
                 "kind": "OBJECT_TYPE",
                 "selected": true
@@ -112,15 +119,18 @@
             ],
             "imports": {
               "sql": "ballerina/sql"
-            },
-            "defaultValue": "``"
+            }
           },
           "checkError": {
             "metadata": {
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -132,8 +142,12 @@
               "label": "Return Type",
               "description": "The `typedesc` of the record to which the result should be mapped.\nIt can be a basic type if the query result contains only one column"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "anydata"
+              }
+            ],
             "value": "Row",
             "placeholder": "anydata",
             "optional": false,
@@ -151,7 +165,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "queryRow",
             "optional": false,
             "editable": false,
@@ -176,7 +194,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "Row",
             "placeholder": "var",
             "optional": false,
@@ -223,8 +245,16 @@
               "label": "Host",
               "description": "MySQL server hostname"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "placeholder": "\"\"",
             "optional": true,
             "editable": true,
@@ -250,8 +280,16 @@
               "label": "User",
               "description": "Database username"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -263,14 +301,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -284,8 +322,16 @@
               "label": "Password",
               "description": "Database password (optional)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -297,14 +343,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -318,8 +364,16 @@
               "label": "Database",
               "description": "Database name to connect to (optional)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -331,14 +385,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -352,8 +406,16 @@
               "label": "Port",
               "description": "MySQL server port"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "placeholder": "0",
             "optional": true,
             "editable": true,
@@ -379,8 +441,12 @@
               "label": "Options",
               "description": "Advanced connection options (optional)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "mysql:Options|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "mysql:Options?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -392,17 +458,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "Options",
                 "packageInfo": "ballerinax:mysql:1.16.1",
                 "packageName": "mysql",
                 "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -413,8 +479,12 @@
               "label": "Connection Pool",
               "description": "Connection pool for connection reuse. If not provided, the global connection pool (shared by all clients) will be used"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "sql:ConnectionPool|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "sql:ConnectionPool?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -426,17 +496,17 @@
             },
             "typeMembers": [
               {
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.17.1",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.16.0",
-                "packageName": "sql",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -450,7 +520,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -462,7 +536,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -474,7 +552,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "mysqlClient",
             "optional": false,
             "editable": false,
@@ -499,7 +581,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "mysql:Client",
             "placeholder": "var",
             "optional": false,

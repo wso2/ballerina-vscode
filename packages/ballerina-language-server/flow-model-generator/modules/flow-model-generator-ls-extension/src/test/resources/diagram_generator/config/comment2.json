@@ -88,8 +88,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "true ",
                 "placeholder": "true",
                 "optional": false,
@@ -127,7 +131,11 @@
                       "label": "Comment",
                       "description": "Comment to describe the flow"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "This is a comment for a statement",
                     "optional": false,
                     "editable": true,
@@ -165,7 +173,11 @@
                       "label": "Expression",
                       "description": "Initialize with value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "0",
                     "optional": true,
                     "editable": true,
@@ -177,7 +189,11 @@
                       "label": "Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "i",
                     "optional": false,
                     "editable": false,
@@ -202,7 +218,11 @@
                       "label": "Type",
                       "description": "Type of the variable"
                     },
-                    "valueType": "TYPE",
+                    "types": [
+                      {
+                        "fieldType": "TYPE"
+                      }
+                    ],
                     "value": "int",
                     "placeholder": "var",
                     "optional": false,
@@ -242,7 +262,11 @@
                       "label": "Expression",
                       "description": "Initialize with value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "68",
                     "optional": true,
                     "editable": true,
@@ -254,7 +278,11 @@
                       "label": "Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "x",
                     "optional": false,
                     "editable": false,
@@ -279,7 +307,11 @@
                       "label": "Type",
                       "description": "Type of the variable"
                     },
-                    "valueType": "TYPE",
+                    "types": [
+                      {
+                        "fieldType": "TYPE"
+                      }
+                    ],
                     "value": "int",
                     "placeholder": "var",
                     "optional": false,
@@ -319,7 +351,11 @@
                       "label": "Comment",
                       "description": "Comment to describe the flow"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "This is a comment to generate flow",
                     "optional": false,
                     "editable": true,

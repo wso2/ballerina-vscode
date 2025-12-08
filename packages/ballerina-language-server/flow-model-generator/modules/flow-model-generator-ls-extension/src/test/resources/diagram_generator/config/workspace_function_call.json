@@ -78,7 +78,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "functions.bal",
               "startLine": {
@@ -99,8 +103,12 @@
             "metadata": {
               "label": "Customer"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "pkgB:Customer",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "pkgB:Customer"
+              }
+            ],
             "value": "customer",
             "placeholder": "{id: \"\", name: \"\", email: \"\", phoneNumber: \"\", address: \"\"}",
             "optional": false,
@@ -125,8 +133,16 @@
             "metadata": {
               "label": "Order Amount"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "decimal",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal"
+              }
+            ],
             "value": "250.75",
             "placeholder": "0.0d",
             "optional": false,
@@ -152,7 +168,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -164,7 +184,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "result",
             "optional": false,
             "editable": false,
@@ -189,7 +213,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -235,8 +263,11 @@
               "label": "values",
               "description": "The value(s) to be printed"
             },
-            "valueType": "EXPRESSION_SET",
-            "valueTypeConstraint": "io:Printable",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET"
+              }
+            ],
             "value": [
               "result"
             ],

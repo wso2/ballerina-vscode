@@ -79,7 +79,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/western/apples",
             "optional": false,
             "editable": true,
@@ -94,7 +98,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -106,7 +114,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res1",
             "optional": false,
             "editable": false,
@@ -131,8 +143,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"western red apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -146,7 +166,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -158,8 +178,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -171,17 +199,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -192,8 +220,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -205,14 +241,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -226,8 +262,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -245,7 +284,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -257,10 +300,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -269,14 +316,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -325,7 +376,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -340,7 +395,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -352,7 +411,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res2",
             "optional": false,
             "editable": false,
@@ -377,8 +440,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "{\"type\": \"red apple\"}",
             "placeholder": "{}",
             "optional": false,
@@ -392,7 +463,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -404,8 +475,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -417,17 +496,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -438,8 +517,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "value": "\"application/json\"",
             "placeholder": "()",
             "optional": true,
@@ -452,18 +539,18 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": true
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
             ],
             "defaultValue": "()"
@@ -473,8 +560,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -492,7 +582,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -504,10 +598,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -516,14 +614,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -572,7 +674,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/",
             "optional": false,
             "editable": true,
@@ -587,7 +693,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -599,7 +709,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res3",
             "optional": false,
             "editable": false,
@@ -624,8 +738,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"green apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -639,7 +761,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -651,8 +773,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -664,17 +794,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -685,8 +815,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -698,14 +836,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -719,8 +857,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -738,7 +879,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -750,10 +895,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -762,14 +911,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -818,7 +971,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -833,7 +990,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -845,7 +1006,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res4",
             "optional": false,
             "editable": false,
@@ -870,8 +1035,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"green apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -885,7 +1058,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -897,8 +1070,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -910,17 +1091,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -931,8 +1112,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -944,14 +1133,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -965,8 +1154,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [
               {
                 "targetType": "json"
@@ -988,7 +1180,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -1000,10 +1196,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1012,14 +1212,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -1068,7 +1272,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -1083,7 +1291,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -1095,7 +1307,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res5",
             "optional": false,
             "editable": false,
@@ -1120,8 +1336,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"red apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -1135,7 +1359,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -1147,8 +1371,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "value": "{\n            \"first-header\": \"first\",\n            \"second-header\": \"second\"\n        }",
             "placeholder": "()",
             "optional": true,
@@ -1161,18 +1393,18 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
                 "selected": true
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
+                "selected": false
               }
             ],
             "defaultValue": "()"
@@ -1182,8 +1414,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1195,14 +1435,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -1216,8 +1456,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -1235,7 +1478,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -1247,10 +1494,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1259,14 +1510,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -1315,7 +1570,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/apples",
             "optional": false,
             "editable": true,
@@ -1330,7 +1589,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -1342,7 +1605,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res6",
             "optional": false,
             "editable": false,
@@ -1367,8 +1634,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"red apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -1382,7 +1657,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -1394,8 +1669,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1407,17 +1690,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -1428,8 +1711,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1441,14 +1732,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -1462,8 +1753,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -1481,7 +1775,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -1493,10 +1791,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "Food",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1505,14 +1807,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "Food",
             "placeholder": "var",
             "optional": false,
@@ -1561,7 +1867,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/apples/[varRef]/[12 + 3]",
             "optional": false,
             "editable": true,
@@ -1576,7 +1886,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -1588,7 +1902,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "res7",
             "optional": false,
             "editable": false,
@@ -1613,8 +1931,16 @@
               "label": "Message",
               "description": "An HTTP outbound request or any allowed payload"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RequestMessage",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "mime:Entity[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RequestMessage"
+              }
+            ],
             "value": "\"green apple\"",
             "placeholder": "{}",
             "optional": false,
@@ -1628,7 +1954,7 @@
             "typeMembers": [
               {
                 "type": "RequestMessage",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "OTHER",
                 "selected": false
@@ -1640,8 +1966,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1653,17 +1987,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -1674,8 +2008,16 @@
               "label": "Media Type",
               "description": "The MIME type header of the request entity"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string|()",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1687,14 +2029,14 @@
             },
             "typeMembers": [
               {
-                "type": "()",
+                "type": "string",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
                 "selected": false
               },
               {
-                "type": "string",
+                "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
@@ -1708,8 +2050,11 @@
               "label": "Additional Values",
               "description": "Capture key value pairs"
             },
-            "valueType": "MAPPING_EXPRESSION_SET",
-            "valueTypeConstraint": "http:QueryParamType",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": [],
             "placeholder": "[]",
             "optional": true,
@@ -1727,7 +2072,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -1739,10 +2088,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -1751,14 +2104,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "type": {
             "metadata": {
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -1777,7 +2134,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -1805,8 +2162,16 @@
               "label": "Url",
               "description": "URL of the target service"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"/food\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -1832,8 +2197,20 @@
               "label": "HTTP Version",
               "description": "HTTP protocol version supported by the client"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:HttpVersion",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "2.0",
+                  "1.1",
+                  "1.0"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:HttpVersion"
+              }
+            ],
             "placeholder": "\"2.0\"",
             "optional": true,
             "editable": true,
@@ -1846,7 +2223,7 @@
             "typeMembers": [
               {
                 "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -1859,8 +2236,12 @@
               "label": "HTTP1 Settings",
               "description": "HTTP/1.x specific settings"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientHttp1Settings",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1873,7 +2254,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1886,8 +2267,12 @@
               "label": "HTTP2 Settings",
               "description": "HTTP/2 specific settings"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientHttp2Settings",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1900,7 +2285,7 @@
             "typeMembers": [
               {
                 "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -1913,8 +2298,16 @@
               "label": "Timeout",
               "description": "Maximum time(in seconds) to wait for a response before the request times out"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "decimal",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal"
+              }
+            ],
             "placeholder": "0.0d",
             "optional": true,
             "editable": true,
@@ -1940,8 +2333,16 @@
               "label": "Forwarded",
               "description": "The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "placeholder": "\"\"",
             "optional": true,
             "editable": true,
@@ -1967,8 +2368,12 @@
               "label": "Follow Redirects",
               "description": "HTTP redirect handling configurations (with 3xx status codes)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:FollowRedirects|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:FollowRedirects?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -1980,17 +2385,17 @@
             },
             "typeMembers": [
               {
+                "type": "FollowRedirects",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2001,8 +2406,12 @@
               "label": "Pool Config",
               "description": "Configurations associated with the request connection pool"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:PoolConfiguration|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2014,17 +2423,17 @@
             },
             "typeMembers": [
               {
+                "type": "PoolConfiguration",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2035,8 +2444,12 @@
               "label": "Cache",
               "description": "HTTP response caching related configurations"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CacheConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CacheConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -2049,7 +2462,7 @@
             "typeMembers": [
               {
                 "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -2062,8 +2475,20 @@
               "label": "Compression",
               "description": "Enable request/response compression (using `accept-encoding` header)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:Compression",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "AUTO",
+                  "ALWAYS",
+                  "NEVER"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:Compression"
+              }
+            ],
             "placeholder": "\"AUTO\"",
             "optional": true,
             "editable": true,
@@ -2076,7 +2501,7 @@
             "typeMembers": [
               {
                 "type": "Compression",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -2089,8 +2514,12 @@
               "label": "Auth",
               "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientAuthConfig?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2102,59 +2531,59 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "BearerTokenConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "type": "CredentialsConfig",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
-                "type": "CredentialsConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "type": "BearerTokenConfig",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "JwtIssuerConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2ClientCredentialsGrantConfig",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2PasswordGrantConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2RefreshTokenGrantConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "OAuth2JwtBearerGrantConfig",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -2165,8 +2594,12 @@
               "label": "Circuit Breaker",
               "description": "Circuit breaker configurations to prevent cascading failures"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CircuitBreakerConfig|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2178,17 +2611,17 @@
             },
             "typeMembers": [
               {
+                "type": "CircuitBreakerConfig",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2199,8 +2632,12 @@
               "label": "Retry Config",
               "description": "Automatic retry settings for failed requests"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RetryConfig|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RetryConfig?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2212,17 +2649,17 @@
             },
             "typeMembers": [
               {
+                "type": "RetryConfig",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2233,8 +2670,12 @@
               "label": "Cookie Config",
               "description": "Cookie handling settings for session management"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CookieConfig|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CookieConfig?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2246,17 +2687,17 @@
             },
             "typeMembers": [
               {
+                "type": "CookieConfig",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2267,8 +2708,12 @@
               "label": "Response Limits",
               "description": "Limits for response size and headers (to prevent memory issues)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ResponseLimitConfigs",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -2281,7 +2726,7 @@
             "typeMembers": [
               {
                 "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -2294,8 +2739,12 @@
               "label": "Proxy",
               "description": "Proxy server settings if requests need to go through a proxy"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ProxyConfig|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ProxyConfig?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2307,17 +2756,17 @@
             },
             "typeMembers": [
               {
+                "type": "ProxyConfig",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2328,8 +2777,16 @@
               "label": "Validation",
               "description": "Enable automatic payload validation for request/response data against constraints"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "placeholder": "false",
             "optional": true,
             "editable": true,
@@ -2355,8 +2812,12 @@
               "label": "Socket Config",
               "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientSocketConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientSocketConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -2369,7 +2830,7 @@
             "typeMembers": [
               {
                 "type": "ClientSocketConfig",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -2382,8 +2843,16 @@
               "label": "Lax Data Binding",
               "description": "Enable relaxed data binding on the client side.\nWhen enabled:\n- `null` values in JSON are allowed to be mapped to optional fields\n- missing fields in JSON are allowed to be mapped as `null` values"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "placeholder": "false",
             "optional": true,
             "editable": true,
@@ -2409,8 +2878,12 @@
               "label": "Secure Socket",
               "description": "SSL/TLS security settings for HTTPS connections"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientSecureSocket|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -2422,17 +2895,17 @@
             },
             "typeMembers": [
               {
+                "type": "ClientSecureSocket",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              },
+              {
                 "type": "()",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.14.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
                 "selected": false
               }
             ],
@@ -2443,7 +2916,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -2455,7 +2932,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -2467,7 +2948,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "foodClient",
             "optional": false,
             "editable": false,
@@ -2492,7 +2977,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "http:Client",
             "placeholder": "var",
             "optional": false,

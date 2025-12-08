@@ -77,7 +77,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "moduleCl",
             "optional": false,
             "editable": false,
@@ -89,8 +93,16 @@
               "label": "Path",
               "description": "Request path"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"/hello\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -116,8 +128,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -129,17 +149,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -150,7 +170,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -162,10 +186,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -174,14 +202,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "variable": {
             "metadata": {
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "moduleVal",
             "optional": false,
             "editable": false,
@@ -206,7 +238,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -252,7 +288,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "    myModuleCl",
             "optional": false,
             "editable": false,
@@ -267,7 +307,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -295,8 +335,16 @@
               "label": "Url",
               "description": "URL of the target service"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"http://localhost:8080\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -322,8 +370,12 @@
               "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientConfiguration",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration"
+              }
+            ],
             "value": "{}",
             "placeholder": "{}",
             "optional": true,
@@ -337,7 +389,7 @@
             "typeMembers": [
               {
                 "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -349,7 +401,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -361,7 +417,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Local",
             "optional": false,
             "editable": true,
@@ -373,7 +433,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "localCl",
             "optional": false,
             "editable": false,
@@ -398,7 +462,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "http:Client",
             "placeholder": "var",
             "optional": false,
@@ -446,7 +514,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "localCl",
             "optional": false,
             "editable": false,
@@ -458,8 +530,16 @@
               "label": "Path",
               "description": "Request path"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"/hello\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -485,8 +565,16 @@
               "label": "Headers",
               "description": "The entity headers"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<string|string[]>|()",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<string|string[]>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<string|string[]>?"
+              }
+            ],
             "placeholder": "()",
             "optional": true,
             "editable": true,
@@ -498,17 +586,17 @@
             },
             "typeMembers": [
               {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
                 "type": "map<string|string[]>",
                 "packageInfo": "",
                 "packageName": "",
                 "kind": "MAP_TYPE",
+                "selected": false
+              },
+              {
+                "type": "()",
+                "packageInfo": "",
+                "packageName": "",
+                "kind": "BASIC_TYPE",
                 "selected": false
               }
             ],
@@ -519,7 +607,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -531,10 +623,14 @@
               "label": "Target Type",
               "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
             },
-            "valueType": "TYPE",
-            "valueTypeConstraint": "anydata",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+              }
+            ],
             "value": "json",
-            "placeholder": "anydata",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -543,14 +639,18 @@
               "kind": "PARAM_FOR_TYPE_INFER",
               "originalName": "targetType"
             },
-            "defaultValue": "anydata"
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "variable": {
             "metadata": {
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "localVal",
             "optional": false,
             "editable": false,
@@ -575,7 +675,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "json",
             "placeholder": "var",
             "optional": false,
@@ -620,7 +724,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Local",
             "optional": false,
             "editable": true,
@@ -632,7 +740,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -644,7 +756,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "myLocalCl",
             "optional": false,
             "editable": false,
@@ -669,7 +785,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "MyClient",
             "placeholder": "var",
             "optional": false,
@@ -715,7 +835,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "    myLocalCl",
             "optional": false,
             "editable": false,
@@ -753,7 +877,11 @@
               "label": "Comment",
               "description": "Comment to describe the flow"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "\nvar myObj = object {\n    MyClient myObjCl = new;\n    http:Client|http:ClientError objCl = new (\"http://localhost:5005\");\n};\n(myObj.myObjCl)->myRemoteFn();\njson objVal = check (check myObj.objCl)->get(\"/hello\");",
             "optional": false,
             "editable": true,
@@ -770,7 +898,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -798,8 +926,16 @@
               "label": "Url",
               "description": "URL of the target service"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"http://localhost:9090\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -825,8 +961,12 @@
               "label": "Config",
               "description": "The configurations to be used when initializing the `client`"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientConfiguration",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration"
+              }
+            ],
             "value": "{}",
             "placeholder": "{}",
             "optional": true,
@@ -840,7 +980,7 @@
             "typeMembers": [
               {
                 "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.14.2",
+                "packageInfo": "ballerina:http:2.15.3",
                 "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -852,7 +992,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -864,7 +1008,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -876,7 +1024,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "moduleCl",
             "optional": false,
             "editable": false,
@@ -901,7 +1053,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "http:Client",
             "placeholder": "var",
             "optional": false,
@@ -946,7 +1102,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -958,7 +1118,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -970,7 +1134,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "myExplicitModuleCl",
             "optional": false,
             "editable": false,
@@ -995,7 +1163,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "MyClient",
             "placeholder": "var",
             "optional": false,
@@ -1040,7 +1212,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -1052,7 +1228,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -1064,7 +1244,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "myModuleCl",
             "optional": false,
             "editable": false,
@@ -1089,7 +1273,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "MyClient",
             "placeholder": "var",
             "optional": false,

@@ -93,14 +93,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "var obj",
                     "optional": false,
                     "editable": true,
@@ -119,7 +127,11 @@
                   "label": "Expression",
                   "description": "Guard expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "obj is record {|int quantity; string 'type;|} ",
                 "optional": false,
                 "editable": true,
@@ -156,7 +168,11 @@
                       "label": "Expression",
                       "description": "Initialize with value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "obj.quantity",
                     "optional": true,
                     "editable": true,
@@ -168,7 +184,11 @@
                       "label": "Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "quantity",
                     "optional": false,
                     "editable": false,
@@ -193,7 +213,11 @@
                       "label": "Type",
                       "description": "Type of the variable"
                     },
-                    "valueType": "TYPE",
+                    "types": [
+                      {
+                        "fieldType": "TYPE"
+                      }
+                    ],
                     "value": "int",
                     "placeholder": "var",
                     "optional": false,
@@ -233,7 +257,11 @@
                       "label": "Expression",
                       "description": "Initialize with value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "obj.'type",
                     "optional": true,
                     "editable": true,
@@ -245,7 +273,11 @@
                       "label": "Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "'type",
                     "optional": false,
                     "editable": false,
@@ -270,7 +302,11 @@
                       "label": "Type",
                       "description": "Type of the variable"
                     },
-                    "valueType": "TYPE",
+                    "types": [
+                      {
+                        "fieldType": "TYPE"
+                      }
+                    ],
                     "value": "string",
                     "placeholder": "var",
                     "optional": false,
@@ -310,7 +346,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "string `Order for ${quantity} ${'type} cherries placed`",
                     "optional": true,
                     "editable": true,
@@ -347,14 +387,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "_",
                     "optional": false,
                     "editable": true,
@@ -398,7 +446,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "error(\"Invalid data format\")",
                     "optional": true,
                     "editable": true,
@@ -435,7 +487,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -447,7 +503,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "e ",
                 "placeholder": "err",
                 "optional": false,
@@ -460,7 +520,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -518,8 +582,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "e is error ",
                         "placeholder": "true",
                         "optional": false,
@@ -557,7 +625,11 @@
                               "label": "Expression",
                               "description": "Return value"
                             },
-                            "valueType": "ACTION_OR_EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION"
+                              }
+                            ],
                             "value": "error(\"Data processing failed\", e)",
                             "optional": true,
                             "editable": true,
@@ -581,8 +653,12 @@
               "label": "Target",
               "description": "Match target expression"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "any|error",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "any|error"
+              }
+            ],
             "value": "data ",
             "placeholder": "true",
             "optional": false,

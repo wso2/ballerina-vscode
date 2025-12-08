@@ -79,7 +79,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "diagnostics1.bal",
               "startLine": {
@@ -136,7 +140,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "\"12\"",
             "optional": true,
             "editable": true,
@@ -157,7 +165,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "i",
             "optional": false,
             "editable": false,
@@ -182,7 +194,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -225,7 +241,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "\"12\"",
             "optional": true,
             "editable": true,
@@ -237,7 +257,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "s",
             "optional": false,
             "editable": false,
@@ -262,7 +286,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -307,7 +335,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "diagnostics1.bal",
               "startLine": {
@@ -328,8 +360,16 @@
             "metadata": {
               "label": "S"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "i",
             "placeholder": "\"\"",
             "optional": false,
@@ -363,8 +403,16 @@
             "metadata": {
               "label": "I"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "value": "s",
             "placeholder": "0",
             "optional": false,
@@ -398,8 +446,16 @@
             "metadata": {
               "label": "B"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "value": "true",
             "placeholder": "false",
             "optional": false,
@@ -424,8 +480,16 @@
             "metadata": {
               "label": "J"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "map<json>",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "ballerinaType": "map<json>"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<json>"
+              }
+            ],
             "value": "[]",
             "placeholder": "{}",
             "optional": false,
@@ -489,7 +553,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "12",
             "optional": true,
             "editable": true,
@@ -501,7 +569,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "j",
             "optional": false,
             "editable": false,
@@ -526,7 +598,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -566,7 +642,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "i j",
             "optional": true,
             "editable": true,
@@ -587,7 +667,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "k",
             "optional": false,
             "editable": false,
@@ -612,7 +696,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -655,7 +743,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "1.5 \"b\"",
             "optional": true,
             "editable": true,
@@ -676,7 +768,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "l",
             "optional": false,
             "editable": false,
@@ -701,7 +797,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -764,8 +864,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "(s == 12) ",
                 "placeholder": "true",
                 "optional": false,
@@ -832,8 +936,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "(i == \"12\") ",
                         "placeholder": "true",
                         "optional": false,
@@ -886,8 +994,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "(s == 12) ",
                 "placeholder": "true",
                 "optional": false,
@@ -941,7 +1053,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "-9223372036854775808",
             "optional": true,
             "editable": true,
@@ -962,7 +1078,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "num2",
             "optional": false,
             "editable": false,
@@ -987,7 +1107,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -1030,7 +1154,11 @@
               "label": "Expression",
               "description": "Return value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "i == s",
             "optional": true,
             "editable": true,
@@ -1080,7 +1208,11 @@
               "label": "Expression",
               "description": "Update value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "\"h\"",
             "optional": false,
             "editable": true,
@@ -1092,7 +1224,11 @@
               "label": "Variable",
               "description": "Name of the variable/field"
             },
-            "valueType": "LV_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "LV_EXPRESSION"
+              }
+            ],
             "value": "c",
             "optional": false,
             "editable": true,
@@ -1133,7 +1269,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "12",
             "optional": true,
             "editable": true,
@@ -1145,7 +1285,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "i",
             "optional": false,
             "editable": false,
@@ -1179,7 +1323,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -1222,7 +1370,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "4",
             "optional": true,
             "editable": true,
@@ -1234,7 +1386,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "val",
             "optional": false,
             "editable": false,
@@ -1259,7 +1415,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "Unknown Type",
             "placeholder": "var",
             "optional": false,

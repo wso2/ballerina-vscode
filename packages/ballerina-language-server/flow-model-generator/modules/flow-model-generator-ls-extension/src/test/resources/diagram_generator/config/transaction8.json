@@ -135,8 +135,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "i is () ",
                         "placeholder": "true",
                         "optional": false,
