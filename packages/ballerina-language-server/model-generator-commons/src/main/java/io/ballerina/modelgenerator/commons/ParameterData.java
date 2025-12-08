@@ -19,7 +19,6 @@
 package io.ballerina.modelgenerator.commons;
 
 import io.ballerina.compiler.api.symbols.ParameterKind;
-import io.ballerina.compiler.api.symbols.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.List;
  * @param importStatements import statements of the dependent types
  * @param typeMembers      the member types of the parameter
  * @param unionTypes       the union member types for AI model parameters
- * @param symbol           the symbol of the parameter
+ * @param typeSymbol       the type symbol of the parameter
  * @since 1.0.0
  */
 public record ParameterData(
@@ -55,7 +54,7 @@ public record ParameterData(
         String importStatements,
         List<ParameterMemberTypeData> typeMembers,
         List<String> unionTypes,
-        Symbol symbol) {
+        io.ballerina.compiler.api.symbols.TypeSymbol typeSymbol) {
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
@@ -63,24 +62,19 @@ public record ParameterData(
                 null, new ArrayList<>(), null, null);
     }
 
-public static ParameterData from(String name, String type, Kind kind, String placeholder,
-                                 String description, boolean optional, Symbol symbol) {
-    return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
-            null, new ArrayList<>(), null, symbol);
-}
+    public static ParameterData from(String name, String type, Kind kind, String placeholder,
+                                     String description, boolean optional,
+                                     io.ballerina.compiler.api.symbols.TypeSymbol typeSymbol) {
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
+                null, new ArrayList<>(), null, typeSymbol);
+    }
 
-public static ParameterData from(String name, String description, String label, String type, String placeholder,
-        String defaultValue, Kind kind, boolean optional, String importStatements, Symbol symbol) {
-    return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-            importStatements, new ArrayList<>(), null, symbol);
-}
-
-public static ParameterData from(String name, String description, String label, String type, String placeholder,
-        String defaultValue, Kind kind, boolean optional, String importStatements,
-        List<String> unionTypes, Symbol symbol) {
-    return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-            importStatements, new ArrayList<>(), unionTypes, symbol);
-}
+    public static ParameterData from(String name, String description, String label, String type, String placeholder,
+                                     String defaultValue, Kind kind, boolean optional, String importStatements,
+                                     List<String> unionTypes, io.ballerina.compiler.api.symbols.TypeSymbol typeSymbol) {
+        return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
+                importStatements, new ArrayList<>(), unionTypes, typeSymbol);
+    }
 
     public enum Kind {
         REQUIRED,

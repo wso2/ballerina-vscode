@@ -154,7 +154,7 @@ public class VectorStoreBuilder extends CallBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.typeExpression(paramResult.symbol(), moduleInfo);
+                        customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
                     }
                 }
             }

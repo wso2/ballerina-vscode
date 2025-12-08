@@ -548,68 +548,68 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeExpression(Symbol symbol, io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
-            if (symbol == null) {
+        public Builder<T> typeExpression(TypeSymbol typeSymbol, io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
+            if (typeSymbol == null) {
                 return this;
             }
-            TypeSymbol typeSymbol = null;
-
-            switch (symbol.kind()) {
-                case TYPE_DEFINITION -> {
-                    if (symbol instanceof TypeDefinitionSymbol typeDefSymbol) {
-                        TypeSymbol typeRefSymbol = typeDefSymbol.typeDescriptor();
-                        if (typeRefSymbol instanceof TypeReferenceTypeSymbol) {
-                            typeSymbol = CommonUtil.getRawType(typeRefSymbol);
-                        } else {
-                            typeSymbol = typeRefSymbol;
-                        }
-                    }
-                }
-                case TYPE -> {
-                    if (symbol instanceof TypeSymbol ts) {
-                        typeSymbol = ts;
-                    }
-                }
-                case VARIABLE -> {
-                    if (symbol instanceof VariableSymbol vs) {
-                        typeSymbol = vs.typeDescriptor();
-                    }
-                }
-                case ENUM -> {
-                    if (symbol instanceof EnumSymbol enumSymbol) {
-                        // For ENUM, add the members as options
-                        List<String> enumOptions = enumSymbol.members().stream()
-                                .map(member -> member.getName().orElse(""))
-                                .filter(name -> !name.isEmpty())
-                                .toList();
-                        type().fieldType(Property.ValueType.SINGLE_SELECT).options(enumOptions).stepOut();
-                        typeSymbol = enumSymbol.typeDescriptor();
-                    }
-                }
-                case PARAMETER -> {
-                    if (symbol instanceof ParameterSymbol ps) {
-                        typeSymbol = ps.typeDescriptor();
-                    }
-                }
-                case PATH_PARAMETER -> {
-                    if (symbol instanceof PathParameterSymbol pps) {
-                        typeSymbol = pps.typeDescriptor();
-                    }
-                }
-                case RECORD_FIELD -> {
-                    if (symbol instanceof RecordFieldSymbol rfs) {
-                        typeSymbol = rfs.typeDescriptor();
-                    }
-                }
-                case OBJECT_FIELD -> {
-                    if (symbol instanceof ObjectFieldSymbol ofs) {
-                        typeSymbol = ofs.typeDescriptor();
-                    }
-                }
-                default -> {
-                    return this;
-                }
-            }
+//            TypeSymbol typeSymbol = null;
+//
+//            switch (symbol.kind()) {
+//                case TYPE_DEFINITION -> {
+//                    if (symbol instanceof TypeDefinitionSymbol typeDefSymbol) {
+//                        TypeSymbol typeRefSymbol = typeDefSymbol.typeDescriptor();
+//                        if (typeRefSymbol instanceof TypeReferenceTypeSymbol) {
+//                            typeSymbol = CommonUtil.getRawType(typeRefSymbol);
+//                        } else {
+//                            typeSymbol = typeRefSymbol;
+//                        }
+//                    }
+//                }
+//                case TYPE -> {
+//                    if (symbol instanceof TypeSymbol ts) {
+//                        typeSymbol = ts;
+//                    }
+//                }
+//                case VARIABLE -> {
+//                    if (symbol instanceof VariableSymbol vs) {
+//                        typeSymbol = vs.typeDescriptor();
+//                    }
+//                }
+//                case ENUM -> {
+//                    if (symbol instanceof EnumSymbol enumSymbol) {
+//                        // For ENUM, add the members as options
+//                        List<String> enumOptions = enumSymbol.members().stream()
+//                                .map(member -> member.getName().orElse(""))
+//                                .filter(name -> !name.isEmpty())
+//                                .toList();
+//                        type().fieldType(Property.ValueType.SINGLE_SELECT).options(enumOptions).stepOut();
+//                        typeSymbol = enumSymbol.typeDescriptor();
+//                    }
+//                }
+//                case PARAMETER -> {
+//                    if (symbol instanceof ParameterSymbol ps) {
+//                        typeSymbol = ps.typeDescriptor();
+//                    }
+//                }
+//                case PATH_PARAMETER -> {
+//                    if (symbol instanceof PathParameterSymbol pps) {
+//                        typeSymbol = pps.typeDescriptor();
+//                    }
+//                }
+//                case RECORD_FIELD -> {
+//                    if (symbol instanceof RecordFieldSymbol rfs) {
+//                        typeSymbol = rfs.typeDescriptor();
+//                    }
+//                }
+//                case OBJECT_FIELD -> {
+//                    if (symbol instanceof ObjectFieldSymbol ofs) {
+//                        typeSymbol = ofs.typeDescriptor();
+//                    }
+//                }
+//                default -> {
+//                    return this;
+//                }
+//            }
 
             if (typeSymbol != null) {
                 Property.ValueType valueType = getValueTypeFromTypeKind(CommonUtil.getRawType(typeSymbol).typeKind());

@@ -47,6 +47,7 @@ import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAUL
  * @since 1.1.0
  */
 public class ModelProviderBuilder extends CallBuilder {
+
     public static final String LABEL = "Model Provider";
     public static final String DESCRIPTION = "Model providers available within the integration " +
             "for connecting to an LLM";
@@ -175,7 +176,7 @@ public class ModelProviderBuilder extends CallBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                         customPropBuilder.typeExpression(paramResult.symbol(), moduleInfo);
+                        customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
                     }
                 }
             }

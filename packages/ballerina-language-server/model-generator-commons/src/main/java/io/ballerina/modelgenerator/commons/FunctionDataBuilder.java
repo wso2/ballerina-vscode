@@ -333,12 +333,12 @@ public class FunctionDataBuilder {
         }
 
         // Check if the function is in the index
-        if (!disableIndex) {
-            Optional<FunctionData> indexedResult = getFunctionFromIndex();
-            if (indexedResult.isPresent()) {
-                return indexedResult.get();
-            }
-        }
+//        if (!disableIndex) {
+//            Optional<FunctionData> indexedResult = getFunctionFromIndex();
+//            if (indexedResult.isPresent()) {
+//                return indexedResult.get();
+//            }
+//        }
 
         // Fetch the semantic model if not provided
         if (semanticModel == null) {
@@ -760,7 +760,7 @@ public class FunctionDataBuilder {
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, paramSymbol));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, typeSymbol));
                     return parameters;
                 }
             }
@@ -771,7 +771,7 @@ public class FunctionDataBuilder {
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                 parameterKind, optional,
-                importStatements, unionTypes, paramSymbol);
+                importStatements, unionTypes, typeSymbol);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
         return parameters;
@@ -897,7 +897,7 @@ public class FunctionDataBuilder {
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
-                    getImportStatements(typeSymbol), null, recordFieldSymbol);
+                    getImportStatements(typeSymbol), null, typeSymbol);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
@@ -1016,17 +1016,17 @@ public class FunctionDataBuilder {
                 for (Symbol pathSegment : pathSegmentList.list()) {
                     pathBuilder.append("/");
                     if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
-                        String defaultValue = DefaultValueGeneratorUtil
-                                .getDefaultValueForType(pathParameterSymbol.typeDescriptor());
+                        TypeSymbol typeSymbol = pathParameterSymbol.typeDescriptor();
+                        String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
                         String type =
-                                CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
+                                CommonUtils.getTypeSignature(semanticModel, typeSymbol,
                                         true);
                         String paramName = pathParameterSymbol.getName().orElse("");
                         String paramDescription = documentationMap.get(paramName);
                         pathBuilder.append("[").append(paramName).append("]");
                         pathParams.add(
                                 ParameterData.from(paramName, type, ParameterData.Kind.PATH_PARAM, defaultValue,
-                                        paramDescription, false, pathParameterSymbol));
+                                        paramDescription, false, typeSymbol));
                     } else {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }
