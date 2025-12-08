@@ -93,13 +93,11 @@ export interface DataMapperProps extends DataMapperEditorProps {
 
 export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper" issueUrl={ISSUES_URL}>
-            <QueryClientProvider client={queryClient}>
-                <Global styles={globalStyles} />
-                <ExpressionProvider {...expressionBar}>
-                    <DataMapperEditor {...props} />
-                </ExpressionProvider>
-            </QueryClientProvider>
-        </ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+            <Global styles={globalStyles} />
+            <ExpressionProvider {...expressionBar}>
+                <DataMapperEditor {...props} />
+            </ExpressionProvider>
+        </QueryClientProvider>
     );
 }

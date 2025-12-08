@@ -39,7 +39,7 @@ export function DataMapper(props: DataMapperProps) {
     return (
         <>
             <TopNavigationBar projectPath={props.projectPath}/>
-            <DataMapperErrorBoundary>
+            <DataMapperErrorBoundary onClose={props.onClose}>
                 <DataMapperView {...props} />
             </DataMapperErrorBoundary>
         </>
