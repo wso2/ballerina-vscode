@@ -24,6 +24,7 @@ import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../l
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
 import { checkCompilationErrors } from "../libs/diagnostics_utils";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
+import { sendAgentDidOpenForProjects } from "../libs/agent_ls_notification_utils";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { Library } from "../libs/libs_types";
@@ -64,6 +65,10 @@ export async function generateDesignCore(
     const shouldCleanup = !process.env.AI_TEST_ENV;
 
     const projects: ProjectSource[] = await getProjectSource(params.operationType); // TODO: Fix multi project
+
+    // Send didOpen for all initial project files
+    sendAgentDidOpenForProjects(tempProjectPath, projects);
+
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
     const cacheOptions = await getProviderCacheControl();
