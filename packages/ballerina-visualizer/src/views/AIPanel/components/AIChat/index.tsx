@@ -367,14 +367,14 @@ const AIChat: React.FC = () => {
                                 newMessages.length - 1
                             ].content.replace(
                                 `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolcall>No relevant libraries found.</toolcall>`
+                                `<toolresult>No relevant libraries found.</toolresult>`
                             );
                         } else {
                             newMessages[newMessages.length - 1].content = newMessages[
                                 newMessages.length - 1
                             ].content.replace(
                                 `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                                `<toolresult>Fetched libraries: [${libraryNames.join(", ")}]</toolresult>`
                             );
                         }
                     }
@@ -455,12 +455,12 @@ const AIChat: React.FC = () => {
                             const resultText = action === 'updated' ? 'Updated' : 'Created';
                             updatedContent = lastMessageContent.replace(
                                 creatingPattern,
-                                (_match, fileName) => `<toolcall>${resultText} ${fileName}</toolcall>`
+                                (_match, fileName) => `<toolresult>${resultText} ${fileName}</toolresult>`
                             );
                         } else if (editingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
                                 editingPattern,
-                                (_match, fileName) => `<toolcall>Edited ${fileName}</toolcall>`
+                                (_match, fileName) => `<toolresult>Edited ${fileName}</toolresult>`
                             );
                         }
 
@@ -486,7 +486,7 @@ const AIChat: React.FC = () => {
 
                         const updatedContent = lastMessageContent.replace(
                             checkingPattern,
-                            `<toolcall>${message}</toolcall>`
+                            `<toolresult>${message}</toolresult>`
                         );
 
                         newMessages[newMessages.length - 1].content = updatedContent;
