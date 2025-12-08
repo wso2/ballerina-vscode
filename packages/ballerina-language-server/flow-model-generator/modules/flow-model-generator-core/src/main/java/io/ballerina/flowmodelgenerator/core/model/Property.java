@@ -21,17 +21,9 @@ package io.ballerina.flowmodelgenerator.core.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.compiler.api.symbols.EnumSymbol;
-import io.ballerina.compiler.api.symbols.ObjectFieldSymbol;
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
-import io.ballerina.compiler.api.symbols.PathParameterSymbol;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -548,96 +540,60 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeExpression(TypeSymbol typeSymbol, io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
+        public Builder<T> typeExpression(TypeSymbol typeSymbol,
+                                         io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
             if (typeSymbol == null) {
                 return this;
             }
-//            TypeSymbol typeSymbol = null;
-//
-//            switch (symbol.kind()) {
-//                case TYPE_DEFINITION -> {
-//                    if (symbol instanceof TypeDefinitionSymbol typeDefSymbol) {
-//                        TypeSymbol typeRefSymbol = typeDefSymbol.typeDescriptor();
-//                        if (typeRefSymbol instanceof TypeReferenceTypeSymbol) {
-//                            typeSymbol = CommonUtil.getRawType(typeRefSymbol);
-//                        } else {
-//                            typeSymbol = typeRefSymbol;
-//                        }
-//                    }
-//                }
-//                case TYPE -> {
-//                    if (symbol instanceof TypeSymbol ts) {
-//                        typeSymbol = ts;
-//                    }
-//                }
-//                case VARIABLE -> {
-//                    if (symbol instanceof VariableSymbol vs) {
-//                        typeSymbol = vs.typeDescriptor();
-//                    }
-//                }
-//                case ENUM -> {
-//                    if (symbol instanceof EnumSymbol enumSymbol) {
-//                        // For ENUM, add the members as options
-//                        List<String> enumOptions = enumSymbol.members().stream()
-//                                .map(member -> member.getName().orElse(""))
-//                                .filter(name -> !name.isEmpty())
-//                                .toList();
-//                        type().fieldType(Property.ValueType.SINGLE_SELECT).options(enumOptions).stepOut();
-//                        typeSymbol = enumSymbol.typeDescriptor();
-//                    }
-//                }
-//                case PARAMETER -> {
-//                    if (symbol instanceof ParameterSymbol ps) {
-//                        typeSymbol = ps.typeDescriptor();
-//                    }
-//                }
-//                case PATH_PARAMETER -> {
-//                    if (symbol instanceof PathParameterSymbol pps) {
-//                        typeSymbol = pps.typeDescriptor();
-//                    }
-//                }
-//                case RECORD_FIELD -> {
-//                    if (symbol instanceof RecordFieldSymbol rfs) {
-//                        typeSymbol = rfs.typeDescriptor();
-//                    }
-//                }
-//                case OBJECT_FIELD -> {
-//                    if (symbol instanceof ObjectFieldSymbol ofs) {
-//                        typeSymbol = ofs.typeDescriptor();
-//                    }
-//                }
-//                default -> {
-//                    return this;
-//                }
-//            }
+            TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
+            String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+            boolean success = handlePrimitiveType(rawType, ballerinaType);
 
-            if (typeSymbol != null) {
-                Property.ValueType valueType = getValueTypeFromTypeKind(CommonUtil.getRawType(typeSymbol).typeKind());
-                if (valueType == ValueType.EXPRESSION) {
-                    type().fieldType(ValueType.EXPRESSION)
-                            .ballerinaType(CommonUtils.getTypeSignature(typeSymbol, moduleInfo))
-                            .stepOut();
+            if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
+                List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
+                boolean allSingletons = typeSymbols.stream()
+                        .map(CommonUtil::getRawType)
+                        .allMatch(type -> type.typeKind() == TypeDescKind.SINGLETON);
+                if (allSingletons) {
+                    List<String> options = typeSymbols.stream()
+                            .map(symbol -> CommonUtils.removeQuotes(symbol.signature()))
+                            .toList();
+                    type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
-                    type().fieldType(valueType).stepOut();
-                    type().fieldType(ValueType.EXPRESSION)
-                            .ballerinaType(CommonUtils.getTypeSignature(typeSymbol, moduleInfo))
-                            .stepOut();
+                    for (TypeSymbol ts : typeSymbols) {
+                        handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo));
+                    }
                 }
             }
-
+            type().fieldType(ValueType.EXPRESSION)
+                    .ballerinaType(ballerinaType)
+                    .stepOut();
             return this;
         }
 
-        private Property.ValueType getValueTypeFromTypeKind(TypeDescKind typeKind) {
-            return switch (typeKind) {
+        private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
+            switch (typeSymbol.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
-                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> Property.ValueType.NUMBER;
-                case STRING, STRING_CHAR -> Property.ValueType.TEXT;
-                case BOOLEAN -> Property.ValueType.FLAG;
-                case ARRAY -> Property.ValueType.EXPRESSION_SET;
-                case MAP -> Property.ValueType.MAPPING_EXPRESSION_SET;
-                default -> Property.ValueType.EXPRESSION;
-            };
+                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> {
+                    type(ValueType.NUMBER, ballerinaType);
+                }
+                case STRING, STRING_CHAR -> {
+                    type(ValueType.TEXT, ballerinaType);
+                }
+                case BOOLEAN -> {
+                    type(ValueType.FLAG, ballerinaType);
+                }
+                case ARRAY -> {
+                    type(ValueType.EXPRESSION_SET, ballerinaType);
+                }
+                case MAP -> {
+                    type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
+                }
+                default -> {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {
