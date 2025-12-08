@@ -296,7 +296,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         ACTION_PATH,
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
-        STRING,
+        TEXT,
         TYPE,
         ENUM,
         VIEW,
@@ -632,7 +632,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return switch (typeKind) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
                      INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> Property.ValueType.NUMBER;
-                case STRING, STRING_CHAR -> Property.ValueType.STRING;
+                case STRING, STRING_CHAR -> Property.ValueType.TEXT;
                 case BOOLEAN -> Property.ValueType.FLAG;
                 case ARRAY -> Property.ValueType.EXPRESSION_SET;
                 case MAP -> Property.ValueType.MAPPING_EXPRESSION_SET;

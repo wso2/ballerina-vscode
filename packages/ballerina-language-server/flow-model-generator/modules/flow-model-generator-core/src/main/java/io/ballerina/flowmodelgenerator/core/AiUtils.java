@@ -271,7 +271,7 @@ public class AiUtils {
                     .stepOut()
                 .value(value != null && !value.isEmpty() ? value : "")
                 .defaultValue("")
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
                 .editable()

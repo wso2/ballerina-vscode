@@ -260,7 +260,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.DESCRIPTION_TYPE_DOC)
                 .stepOut()
                 .value(value == null ? "" : value)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable();
 
@@ -275,7 +275,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.RETURN_DESCRIPTION_TYPE_DOC)
                 .stepOut()
                 .value(value == null ? "" : value)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable();
 
@@ -804,7 +804,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.CONFIG_VAR_DOC_DOC)
                 .stepOut()
                 .value(concatDocLines(docNode))
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable(editable)
                 .modified(false);
@@ -834,7 +834,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(ExpressionBuilder.STATEMENT_DOC)
                     .stepOut()
                 .value(node == null ? "" : node.toSourceCode().strip())
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .editable();
         addProperty(ExpressionBuilder.STATEMENT_KEY, node);
         return this;
@@ -860,7 +860,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(Property.COMMENT_DOC)
                     .stepOut()
                 .value(comment)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .editable();
         addProperty(Property.COMMENT_KEY);
         return this;
@@ -1021,7 +1021,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .optional(optional)
                 .advanced(advanced)
                 .value(value)
-                .type(Property.ValueType.STRING);
+                .type(Property.ValueType.TEXT);
         addProperty(Property.DESCRIPTION_KEY);
         return this;
     }
@@ -1051,7 +1051,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .optional(optional)
                 .advanced(advanced)
                 .value(value)
-                .type(Property.ValueType.STRING);
+                .type(Property.ValueType.TEXT);
         addProperty(Property.ARRAY_SIZE);
         return this;
     }
@@ -1256,7 +1256,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .label(Property.DESCRIPTION_LABEL)
                 .description(Property.PARAMETER_DESCRIPTION_TYPE_DOC)
                 .stepOut()
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .value(description)
                 .optional(true)
                 .editable();
