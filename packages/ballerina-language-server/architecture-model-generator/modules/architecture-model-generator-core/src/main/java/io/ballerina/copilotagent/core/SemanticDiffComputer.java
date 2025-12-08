@@ -41,7 +41,7 @@ public class SemanticDiffComputer {
         this.modifiedProject = modifiedProject;
         this.originalWorkspaceManager = originalWorkspaceManager;
         this.shadowWorkspaceManager = shadowWorkspaceManager;
-        this.rootProjectPath = "ai://" + originalProject.sourceRoot().toString();
+        this.rootProjectPath = originalProject.sourceRoot().toString();
     }
 
     public List<SemanticDiff> computeSemanticDiffs() {
@@ -338,6 +338,6 @@ public class SemanticDiffComputer {
 
     private String resolveUri(String fileName) {
         Path filePath = Path.of(rootProjectPath).resolve(fileName);
-        return filePath.toUri().toString();
+        return "ai"+ filePath.toUri().toString().substring(4);
     }
 }

@@ -1,0 +1,136 @@
+{
+  "description": "Get diff from two non workspace projects",
+  "projectPath": "non_workspace",
+  "output": {
+    "semanticDiffs": [
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "LISTENER_DECLARATION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 51
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 48,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 84,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 9,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 46,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 48,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 84,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 9,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 46,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 11,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 15,
+            "offset": 2
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 1,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 8,
+            "offset": 2
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 17,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 21,
+            "offset": 2
+          }
+        }
+      }
+    ]
+  }
+}

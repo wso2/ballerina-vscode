@@ -65,7 +65,8 @@ public final class PathUtil {
         URI uri = URI.create(fileUri);
         String scheme = uri.getScheme();
         try {
-            if (CommonUtil.EXPR_SCHEME.equals(uri.getScheme()) || CommonUtil.URI_SCHEME_BALA.equals(uri.getScheme())) {
+            if (CommonUtil.AI_SCHEME.equals(uri.getScheme()) || CommonUtil.EXPR_SCHEME.equals(uri.getScheme())
+                    || CommonUtil.URI_SCHEME_BALA.equals(uri.getScheme())) {
                 scheme = CommonUtil.URI_SCHEME_FILE;
             }
             URI converted = new URI(scheme, uri.getUserInfo(), uri.getHost(), uri.getPort(),

@@ -21,14 +21,12 @@ package io.ballerina.copilotagent.extension;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.ballerina.copilotagent.core.SemanticDiffComputer;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.Package;
+import io.ballerina.copilotagent.extension.request.SemanticDiffRequest;
+import io.ballerina.copilotagent.extension.response.SemanticDiffResponse;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
-import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -59,9 +57,9 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<JsonElement> getSemanticDiff(String projectPath) {
+    public CompletableFuture<SemanticDiffResponse> getSemanticDiff(SemanticDiffRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = Path.of(projectPath);
+            Path path = Path.of(request.projectPath());
             Project originalProject;
             Project shadowProject;
             try {
@@ -74,9 +72,9 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
                         this.workspaceManager,
                         this.aiWorkspaceManager
                 );
-                return new Gson().toJsonTree(diffComputer.computeSemanticDiffs());
+                return new SemanticDiffResponse(diffComputer.computeSemanticDiffs());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                return new SemanticDiffResponse(null);
             }
         });
     }
