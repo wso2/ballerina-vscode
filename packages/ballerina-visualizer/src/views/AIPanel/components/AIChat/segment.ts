@@ -35,13 +35,16 @@ function getCommand(command: string) {
 function splitHalfGeneratedCode(content: string): Segment[] {
     const segments: Segment[] = [];
     // Regex to capture filename and optional test attribute
-    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
-    let match;
+    // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
+    const regexPattern = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
+
+    // Convert to array to avoid stateful regex iteration issues
+    const matches = Array.from(content.matchAll(regexPattern));
     let lastIndex = 0;
 
-    while ((match = regex.exec(content)) !== null) {
-        const [fullMatch, fileName, type, language, code] = match;
-        if (match.index > lastIndex) {
+    for (const match of matches) {
+        const [, fileName, type, language, code] = match;
+        if (match.index! > lastIndex) {
             // Non-code segment before the current code block
             segments.push({
                 type: SegmentType.Text,
@@ -61,7 +64,7 @@ function splitHalfGeneratedCode(content: string): Segment[] {
             command: getCommand(type),
         });
 
-        lastIndex = regex.lastIndex;
+        lastIndex = match.index! + match[0].length;
     }
 
     if (lastIndex < content.length) {
@@ -80,9 +83,12 @@ export function splitContent(content: string): Segment[] {
     const segments: Segment[] = [];
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
-    const regex =
+    // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
+    const regexPattern =
         /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
-    let match;
+
+    // Convert to array to avoid stateful regex iteration issues
+    const matches = Array.from(content.matchAll(regexPattern));
     let lastIndex = 0;
 
     function updateLastProgressSegmentLoading(failed: boolean = false) {
@@ -93,7 +99,7 @@ export function splitContent(content: string): Segment[] {
         }
     }
 
-    while ((match = regex.exec(content)) !== null) {
+    for (const match of matches) {
         // Handle text before the current match
         if (match.index > lastIndex) {
             updateLastProgressSegmentLoading();
@@ -226,7 +232,7 @@ export function splitContent(content: string): Segment[] {
         }
 
         // Update lastIndex to the end of the current match
-        lastIndex = regex.lastIndex;
+        lastIndex = match.index + match[0].length;
     }
 
     // Handle any remaining text after the last match
