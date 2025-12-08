@@ -19,7 +19,7 @@
 import React from "react";
 
 import { CodeData, LinePosition } from "@wso2/ballerina-core";
-import { ErrorBoundary } from "@wso2/ui-toolkit";
+import { DataMapperErrorBoundary } from "@wso2/ballerina-data-mapper";
 
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { DataMapperView } from "./DataMapperView";
@@ -39,9 +39,9 @@ export function DataMapper(props: DataMapperProps) {
     return (
         <>
             <TopNavigationBar projectPath={props.projectPath}/>
-            <ErrorBoundary errorMsg="Error while loading the Data Mapper" issueUrl={BALLERINA_INTEGRATOR_ISSUES_URL}>
+            <DataMapperErrorBoundary>
                 <DataMapperView {...props} />
-            </ErrorBoundary>
+            </DataMapperErrorBoundary>
         </>
     );
 };
