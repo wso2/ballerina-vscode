@@ -132,7 +132,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
 
                 // Obtain the semantic model and the document
                 Project project = workspaceManager.loadProject(filePath);
