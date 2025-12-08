@@ -1,5 +1,5 @@
 {
-  "source": "query20.bal",
+  "source": "query20_new.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "VARIABLE",
@@ -28,10 +28,10 @@
         "fields": [],
         "name": "u",
         "displayName": "u",
-        "typeName": "User",
+        "typeName": "User_New",
         "kind": "record",
         "category": "variable",
-        "ref": "1373151159"
+        "ref": "1890602232"
       },
       {
         "name": "secondaryPhonesItem",
@@ -90,7 +90,22 @@
       }
     },
     "refs": {
-      "1372788890": {
+      "1890602232": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "info",
+            "displayName": "info",
+            "typeName": "Info_New",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1959945125"
+          }
+        ],
+        "typeName": "User_New",
+        "kind": "record"
+      },
+      "-1959945125": {
         "fields": [
           {
             "member": {
@@ -138,22 +153,7 @@
             "optional": false
           }
         ],
-        "typeName": "Info",
-        "kind": "record"
-      },
-      "1373151159": {
-        "fields": [
-          {
-            "fields": [],
-            "name": "info",
-            "displayName": "info",
-            "typeName": "Info",
-            "kind": "record",
-            "optional": false,
-            "ref": "1372788890"
-          }
-        ],
-        "typeName": "User",
+        "typeName": "Info_New",
         "kind": "record"
       }
     }

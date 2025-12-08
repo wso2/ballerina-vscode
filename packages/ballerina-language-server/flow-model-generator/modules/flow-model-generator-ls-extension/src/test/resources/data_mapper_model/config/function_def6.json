@@ -1,10 +1,10 @@
 {
-  "source": "function_def1.bal",
+  "source": "function_def1New.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "DATA_MAPPER_DEFINITION",
     "lineRange": {
-      "fileName": "function_def1.bal",
+      "fileName": "function_def1New.bal",
       "startLine": {
         "line": 25,
         "offset": 0
@@ -38,7 +38,7 @@
         "typeName": "Input[]",
         "kind": "array",
         "category": "parameter",
-        "ref": "-1703435696"
+        "ref": "-1328115665"
       }
     ],
     "output": {
@@ -70,22 +70,7 @@
       }
     ],
     "refs": {
-      "-393207458": {
-        "fields": [
-          {
-            "fields": [],
-            "name": "user",
-            "displayName": "user",
-            "typeName": "User",
-            "kind": "record",
-            "optional": true,
-            "ref": "1373151159"
-          }
-        ],
-        "typeName": "Input",
-        "kind": "record"
-      },
-      "1373151159": {
+      "1890602232": {
         "fields": [
           {
             "name": "firstName",
@@ -95,7 +80,22 @@
             "optional": false
           }
         ],
-        "typeName": "User",
+        "typeName": "User_New",
+        "kind": "record"
+      },
+      "-393207458": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user",
+            "displayName": "user",
+            "typeName": "User_New",
+            "kind": "record",
+            "optional": true,
+            "ref": "1890602232"
+          }
+        ],
+        "typeName": "Input",
         "kind": "record"
       },
       "873824749": {
