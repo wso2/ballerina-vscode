@@ -16,12 +16,15 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "targetField": "userInfo",
   "fieldId": "userInfo.username",
   "property": {
-    "valueType": "EXPRESSION",
-    "valueTypeConstraint": "string",
+    "types": [
+      {
+        "fieldType": "EXPRESSION",
+        "ballerinaType": "string"
+      }
+    ],
     "optional": false,
     "editable": false,
     "advanced": false,

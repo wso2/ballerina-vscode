@@ -16,12 +16,15 @@
     },
     "sourceCode": ""
   },
-  "propertyKey": "expression",
   "targetField": "persons.0",
   "fieldId": "0.id",
   "property": {
-    "valueType": "EXPRESSION",
-    "valueTypeConstraint": "string",
+    "types": [
+      {
+        "fieldType": "EXPRESSION",
+        "ballerinaType": "string"
+      }
+    ],
     "optional": false,
     "editable": false,
     "advanced": false,
