@@ -21,6 +21,7 @@ package io.ballerina.persist.extension;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
@@ -29,6 +30,7 @@ import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
@@ -51,6 +53,7 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
+import io.ballerina.tools.text.TextLine;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -77,7 +80,9 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBinding
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createImplicitNewExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createPositionalArgumentNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
@@ -218,10 +223,38 @@ public class PersistClient {
             // and other details
             entityModule = reloadEntityFromSyntaxTree(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
+            addTextEditForConfigurations(textEditsMap);
             addTextEditForConnectionClient(module, textEditsMap);
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
+        }
+    }
+
+    private void addTextEditForConfigurations(Map<Path, List<TextEdit>> textEditsMap) {
+        Path configFilePath = projectPath.resolve("config.bal");
+        boolean isConfigFileExist = Files.exists(configFilePath);
+        Optional<Document> document = isConfigFileExist ? workspaceManager.document(configFilePath)
+                : Optional.empty();
+        String config = LS + "configurable string " + this.name + "Host = \"" + this.host + "\";" + LS;
+        config += "configurable int " + this.name + "Port = " + this.port + ";" + LS;
+        config += "configurable string " + this.name + "User = \"" + this.user + "\";" + LS;
+        config += "configurable string " + this.name + "Password = ?;" + LS;
+        config += "configurable string " + this.name + "Database = \"" + this.database + "\";" + LS;
+
+        // If the config file is not present or empty, get the start range to add the content
+        // Else append at the end of the file
+        if (document.isEmpty() || document.get().textDocument().textLines().isEmpty()) {
+            List<TextEdit> textEdits = new ArrayList<>();
+            textEdits.add(new TextEdit(START_RANGE, config));
+            textEditsMap.put(configFilePath, textEdits);
+        } else {
+            List<TextEdit> textEdits = new ArrayList<>();
+            TextDocument doc = document.get().textDocument();
+            TextLine lastLine = doc.line(doc.textLines().size() - 1);
+            Range endRange = CommonUtils.toRange(LinePosition.from(lastLine.lineNo(), lastLine.length()));
+            textEdits.add(new TextEdit(endRange, config));
+            textEditsMap.put(configFilePath, textEdits);
         }
     }
 
@@ -240,7 +273,9 @@ public class PersistClient {
             if (document.isEmpty() || document.get().textDocument().textLines().isEmpty()) {
                 List<TextEdit> textEdits = new ArrayList<>();
                 String importStmt = "import " + packageName + "." + module + ";" + LS;
-                String clientDeclaration = "final " + module + ":Client " + name + " = check new ();" + LS;
+                String clientDeclaration = "final " + module + ":Client " + this.name + " = check new (" +
+                        this.name + "Host, " + this.name + "Port, " + this.name + "User, " +
+                        this.name + "Password, " + this.name + "Database" + ");" + LS;
                 textEdits.add(new TextEdit(START_RANGE, importStmt + LS + clientDeclaration + LS));
                 textEditsMap.put(connectionsFilePath, textEdits);
             } else {
@@ -277,12 +312,29 @@ public class PersistClient {
                 createToken(COLON_TOKEN),
                 createIdentifierToken("Client"));
         CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
-                createIdentifierToken(name));
+                createIdentifierToken(this.name));
         TypedBindingPatternNode clientTypeBindingNode = createTypedBindingPatternNode(
                 moduleRefNode,
                 bindingPattern);
+        PositionalArgumentNode hostRefNode = createPositionalArgumentNode(createSimpleNameReferenceNode(
+                createIdentifierToken(this.name + "Host")));
+        PositionalArgumentNode portRefNode = createPositionalArgumentNode(createSimpleNameReferenceNode(
+                createIdentifierToken(this.name + "Port")));
+        PositionalArgumentNode userRefNode = createPositionalArgumentNode(createSimpleNameReferenceNode(
+                createIdentifierToken(this.name + "User")));
+        PositionalArgumentNode passwordRefNode = createPositionalArgumentNode(createSimpleNameReferenceNode(
+                createIdentifierToken(this.name + "Password")));
+        PositionalArgumentNode databaseRefNode = createPositionalArgumentNode(createSimpleNameReferenceNode(
+                createIdentifierToken(this.name + "Database")));
+        SeparatedNodeList<FunctionArgumentNode> nodeList = createSeparatedNodeList(
+                hostRefNode,
+                portRefNode,
+                userRefNode,
+                passwordRefNode,
+                databaseRefNode
+        );
         ParenthesizedArgList parenthesizedArgList = createParenthesizedArgList(createToken(OPEN_PAREN_TOKEN),
-                createSeparatedNodeList(new ArrayList<>()),
+                nodeList,
                 createToken(CLOSE_PAREN_TOKEN));
         NewExpressionNode clientInitNode = createImplicitNewExpressionNode(
                 createToken(NEW_KEYWORD),
@@ -341,17 +393,12 @@ public class PersistClient {
             throw new PersistClientException("A database connector with the same name already exists: " + outputPath);
         }
 
-        SyntaxTree configFile = dbSyntaxTree.getDataStoreConfigSyntax(datastore);
-        List<TextEdit> configTextEdits = new ArrayList<>();
-        configTextEdits.add(new TextEdit(START_RANGE, Formatter.format(configFile.toSourceCode())));
-        textEditsMap.put(outputPath.resolve("persist_db_config.bal"), configTextEdits);
-
         SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
         List<TextEdit> dataTypesTextEdits = new ArrayList<>();
         dataTypesTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataTypesFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
 
-        SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true);
+        SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true, true);
         List<TextEdit> clientTextEdits = new ArrayList<>();
         clientTextEdits.add(new TextEdit(START_RANGE, Formatter.format(clientFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
@@ -447,7 +494,8 @@ public class PersistClient {
                 "targetModule" + " = " + moduleWithQuotes + LS +
                 "filePath" + " = \"" + PERSIST_DIR + "/" + MODEL_FILE_NAME + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
-                "options.eagerLoading" + " = true" + LS;
+                "options.eagerLoading" + " = true" + LS +
+                "options.initParams" + " = true" + LS;
     }
 
     /**
