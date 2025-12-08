@@ -105,6 +105,9 @@ Once the task is done, Always use ${DIAGNOSTICS_TOOL_NAME} tool to check for com
 You can use this tool multiple times after making changes to ensure there are no compilation errors.
 If you think you can't fix the error after multiple attempts, make sure to keep bring the code into a good state and finish off the task.
 
+### Step 5: Provide a consise summary
+Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and making documentations via ${FILE_WRITE_TOOL_NAME} unless explicitly asked in the user query.
+
 # Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
 
@@ -118,6 +121,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - A submodule MUST BE imported before being used. The import statement should only contain the package name and submodule name. For package my_pkg, folder structure generated/fooApi, the import should be \`import my_pkg.fooApi;\`.
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
+- Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
+- You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
 
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
@@ -143,7 +148,7 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - Mention types EXPLICITLY in variable declarations and foreach statements.
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-### File modifications
+# File modifications
 - You must apply changes to the existing source code using the provided ${[
         FILE_BATCH_EDIT_TOOL_NAME,
         FILE_SINGLE_EDIT_TOOL_NAME,
@@ -152,8 +157,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
         ", "
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
-- Do not modify documentation such as .md files unless explicitly asked to be modified in the query.
-- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
+- Do not add/modify documentation such as .md files unless explicitly asked to be modified in the query.
+- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 `;
 }
