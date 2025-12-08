@@ -171,27 +171,8 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
                 Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
             }
         } else {
-            // If no expected output is provided, just verify that files were generated
-            log.info("Generated files: " + actualTextEdits.keySet());
-
-            // Verify expected files are present
-            boolean hasModelFile = actualTextEdits.keySet().stream()
-                    .anyMatch(path -> path.contains("persist") && path.endsWith("model.bal"));
-            boolean hasClientFile = actualTextEdits.keySet().stream()
-                    .anyMatch(path -> path.contains("generated") && path.endsWith("persist_client.bal"));
-            boolean hasTypesFile = actualTextEdits.keySet().stream()
-                    .anyMatch(path -> path.contains("generated") && path.endsWith("persist_types.bal"));
-            boolean hasConfigFile = actualTextEdits.keySet().stream()
-                    .anyMatch(path -> path.contains("generated") && path.endsWith("persist_db_config.bal"));
-
-            if (!hasModelFile || !hasClientFile || !hasTypesFile || !hasConfigFile) {
-                log.error("Missing expected generated files.");
-                log.error("Has model file: " + hasModelFile);
-                log.error("Has client file: " + hasClientFile);
-                log.error("Has types file: " + hasTypesFile);
-                log.error("Has config file: " + hasConfigFile);
-                Assert.fail("Not all expected files were generated");
-            }
+            Assert.fail("No expected output defined for test: " +
+                    String.format("'%s' (%s)", testConfig.description(), configJsonPath) + " but got text edits.");
         }
     }
 

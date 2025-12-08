@@ -86,6 +86,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameRefe
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOT_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.FINAL_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.IMPORT_KEYWORD;
@@ -328,9 +329,13 @@ public class PersistClient {
                 createIdentifierToken(this.name + "Database")));
         SeparatedNodeList<FunctionArgumentNode> nodeList = createSeparatedNodeList(
                 hostRefNode,
+                createToken(COMMA_TOKEN),
                 portRefNode,
+                createToken(COMMA_TOKEN),
                 userRefNode,
+                createToken(COMMA_TOKEN),
                 passwordRefNode,
+                createToken(COMMA_TOKEN),
                 databaseRefNode
         );
         ParenthesizedArgList parenthesizedArgList = createParenthesizedArgList(createToken(OPEN_PAREN_TOKEN),
