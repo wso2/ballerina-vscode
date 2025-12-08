@@ -440,6 +440,16 @@ public class SemanticDiffComputer {
         return serviceBasePaths;
     }
 
+    /**
+     * Compares the design models of the original and modified projects to determine
+     * if design diagrams need to be reloaded.
+     *
+     * <p>This method generates design models for both the original and modified projects
+     * using the DesignModelGenerator. It then compares the connections and listeners
+     * within the design models to detect structural changes. If any differences are found,
+     * the {@code loadDesignDiagrams} flag is set to true, indicating that the architecture
+     * diagram should be regenerated.
+     */
     private void compareUsingDesignDiagrams() {
         DesignModelGenerator original = new DesignModelGenerator(originalProject.currentPackage());
         DesignModelGenerator modified = new DesignModelGenerator(modifiedProject.currentPackage());
@@ -454,6 +464,13 @@ public class SemanticDiffComputer {
         loadDesignDiagrams = compareDesignModels(originalDesignModel, modifiedDesignModel);
     }
 
+    /**
+     * Compares two design models to identify differences in connections and listeners.
+     *
+     * @param original the original design model
+     * @param modified the modified design model
+     * @return true if differences are found, false otherwise
+     */
     private boolean compareDesignModels(DesignModel original, DesignModel modified) {
         if (compareConnections(original.connections(), modified.connections())) {
             return true;
@@ -462,6 +479,13 @@ public class SemanticDiffComputer {
         return compareListeners(original.listeners(), modified.listeners());
     }
 
+    /**
+     * Compares two lists of connections to identify differences.
+     *
+     * @param originalConnections original list of connections
+     * @param modifiedConnections modified list of connections
+     * @return true if differences are found, false otherwise
+     */
     private boolean compareConnections(List<Connection> originalConnections, List<Connection> modifiedConnections) {
         if (originalConnections.size() != modifiedConnections.size()) {
             return true;
@@ -497,6 +521,14 @@ public class SemanticDiffComputer {
         return false;
     }
 
+    /**
+     * Compares two lists of listeners to identify differences.
+     *
+     * @param originalListeners original list of listeners
+     * @param modifiedListeners modified list of listeners
+     *
+     * @return true if differences are found, false otherwise
+     */
     private boolean compareListeners(List<Listener> originalListeners, List<Listener> modifiedListeners) {
         if (originalListeners.size() != modifiedListeners.size()) {
             return true;
@@ -518,6 +550,12 @@ public class SemanticDiffComputer {
         return false;
     }
 
+    /**
+     * Extracts a map of connection symbols to their corresponding connection objects.
+     *
+     * @param connections list of connections
+     * @return map of connection symbols to connection objects
+     */
     private Map<String, List<Connection>> extractConnectionMap(List<Connection> connections) {
         Map<String, List<Connection>> connectionMap = new HashMap<>();
         for (Connection connection : connections) {
