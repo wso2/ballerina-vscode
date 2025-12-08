@@ -63,10 +63,14 @@ export async function prepareAndGenerateConfig(
             }
 
             const selectedPackageInfo = packages?.find((child) => child.projectPath === selectedPackage);
-            if (selectedPackageInfo) {
-                packagePath = selectedPackageInfo.projectPath;
-                packageName = selectedPackageInfo.name;
+
+            if (!selectedPackageInfo) {
+                throw new Error("Failed to find selected package information.");
             }
+
+            packagePath = selectedPackageInfo.projectPath;
+            packageName = selectedPackageInfo.name;
+            
             if (isBi) {
                 openView(
                     EVENT_TYPE.OPEN_VIEW,
