@@ -253,7 +253,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     // Compatibility method for backward compatibility
     public String valueType() {
         if (types != null && !types.isEmpty()) {
-            return types.getFirst().fieldType().name();
+            return types.getLast().fieldType().name();
         }
         return null;
     }

@@ -45,7 +45,7 @@ public record AnnotationAttachment(String modulePrefix, String name, Map<String,
     }
 
     private String handleProperty(Map<?, ?> map) {
-        if (map.containsKey("valueType") && map.containsKey("value")) {
+        if (map.containsKey("types") && map.containsKey("value")) {
             Property prop = gson.fromJson(gson.toJson(map), Property.class);
             return handleProperty(prop);
         }
