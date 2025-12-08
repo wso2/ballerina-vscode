@@ -1,0 +1,151 @@
+{
+  "source": "variable49.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable49.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 10
+      }
+    },
+    "sourceCode": "Bar[] bars = [\n            {a: 1, b: 3},\n            (from var baz in bazs\n                select {a: baz.x, b: baz.y})[0]\n        ];"
+  },
+  "position": {
+    "line": 15,
+    "offset": 8
+  },
+  "targetField": "bars",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "bazs",
+          "displayName": "<bazsItem>",
+          "typeName": "Baz",
+          "kind": "record",
+          "ref": "44276399"
+        },
+        "name": "bazs",
+        "displayName": "bazs",
+        "typeName": "Baz[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1101933982"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "bars",
+        "displayName": "<barsItem>",
+        "typeName": "Bar",
+        "kind": "record",
+        "ref": "44276391"
+      },
+      "name": "bars",
+      "displayName": "bars",
+      "typeName": "Bar[]",
+      "kind": "array",
+      "ref": "1572556170"
+    },
+    "mappings": [
+      {
+        "output": "bars",
+        "inputs": [],
+        "expression": "[\n            {a: 1, b: 3},\n            (from var baz in bazs\n                select {a: baz.x, b: baz.y})[0]\n        ]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "bars.0.a",
+                "inputs": [],
+                "expression": "1",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              },
+              {
+                "output": "bars.0.b",
+                "inputs": [],
+                "expression": "3",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "bars.1",
+                "inputs": [
+                  "bazs"
+                ],
+                "expression": "            (from var baz in bazs\n                select {a: baz.x, b: baz.y})[0]\n",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "refs": {
+      "44276399": {
+        "fields": [
+          {
+            "name": "x",
+            "displayName": "x",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "y",
+            "displayName": "y",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Baz",
+        "kind": "record"
+      },
+      "44276391": {
+        "fields": [
+          {
+            "name": "a",
+            "displayName": "a",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "b",
+            "displayName": "b",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Bar",
+        "kind": "record"
+      }
+    }
+  }
+}

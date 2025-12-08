@@ -3214,11 +3214,21 @@ public class DataMapManager {
 
         @Override
         public void visit(IndexedExpressionNode node) {
-            String source = node.toSourceCode().trim();
-            String openBraceRemoved = source.replace("[", ".");
-            String middleBracesRemoved = openBraceRemoved.replace("][", ".");
-            String closedBraceRemoved = middleBracesRemoved.replace("]", "");
-            addInput(closedBraceRemoved);
+            ExpressionNode containerExpr = node.containerExpression();
+            SyntaxKind containerKind = containerExpr.kind();
+            boolean isQueryExp = containerKind == SyntaxKind.QUERY_EXPRESSION ||
+                    (containerKind == SyntaxKind.BRACED_EXPRESSION &&
+                     ((BracedExpressionNode) containerExpr).expression().kind() == SyntaxKind.QUERY_EXPRESSION);
+
+            if (isQueryExp) {
+                containerExpr.accept(this);
+            } else {
+                String source = node.toSourceCode().trim();
+                String openBraceRemoved = source.replace("[", ".");
+                String middleBracesRemoved = openBraceRemoved.replace("][", ".");
+                String closedBraceRemoved = middleBracesRemoved.replace("]", "");
+                addInput(closedBraceRemoved);
+            }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
