@@ -22,17 +22,19 @@ import { closeAIWebview, openAIWebview } from './aiMachine';
 import { BallerinaExtension } from '../../core';
 import { notifyAiWebview } from '../../RPCLayer';
 import { openView, StateMachine } from '../../stateMachine';
+import { VisualizerWebview } from '../visualizer/webview';
 
 export function activateAiPanel(ballerinaExtInstance: BallerinaExtension) {
     ballerinaExtInstance.context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_AI_PANEL, async (defaultPrompt?: AIPanelPrompt) => {
             const context = StateMachine.context();
             const { workspacePath, view, projectPath, projectInfo } = context;
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
 
             // Determine if package selection is required
             const requiresPackageSelection = 
                 workspacePath && 
-                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath);
+                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath || !isWebviewOpen);
 
             if (requiresPackageSelection) {
                 const availablePackages = projectInfo?.children.map((child) => child.projectPath) ?? [];
