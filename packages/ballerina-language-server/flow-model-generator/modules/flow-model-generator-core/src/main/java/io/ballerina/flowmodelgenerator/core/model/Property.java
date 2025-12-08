@@ -21,15 +21,21 @@ package io.ballerina.flowmodelgenerator.core.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.compiler.api.symbols.EnumSymbol;
+import io.ballerina.compiler.api.symbols.ObjectFieldSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.PathParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -543,22 +549,95 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeExpression(Symbol symbol) {
-            if (symbol instanceof TypeSymbol typeSymbol) {
-                type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
-            } else if (symbol != null) {
-                // Extract type from other symbol types if needed
-                TypeSymbol typeSymbol = switch (symbol) {
-                    case ParameterSymbol ps -> ps.typeDescriptor();
-                    case RecordFieldSymbol rfs -> rfs.typeDescriptor();
-                    case PathParameterSymbol pps -> pps.typeDescriptor();
-                    case VariableSymbol vs -> vs.typeDescriptor();
-                    default -> null;
-                };
-                if (typeSymbol != null) {
-                    type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
+            if (symbol == null) {
+                return this;
+            }
+            TypeSymbol typeSymbol = null;
+
+            switch (symbol.kind()) {
+                case TYPE_DEFINITION -> {
+                    if (symbol instanceof TypeDefinitionSymbol typeDefSymbol) {
+                        TypeSymbol typeRefSymbol = typeDefSymbol.typeDescriptor();
+                        if (typeRefSymbol instanceof TypeReferenceTypeSymbol) {
+                            typeSymbol = CommonUtil.getRawType(typeRefSymbol);
+                        } else {
+                            typeSymbol = typeRefSymbol;
+                        }
+                    }
+                }
+                case TYPE -> {
+                    if (symbol instanceof TypeSymbol ts) {
+                        typeSymbol = ts;
+                    }
+                }
+                case VARIABLE -> {
+                    if (symbol instanceof VariableSymbol vs) {
+                        typeSymbol = vs.typeDescriptor();
+                    }
+                }
+                case ENUM -> {
+                    if (symbol instanceof EnumSymbol enumSymbol) {
+                        // For ENUM, add the members as options
+                        List<String> enumOptions = enumSymbol.members().stream()
+                                .map(member -> member.getName().orElse(""))
+                                .filter(name -> !name.isEmpty())
+                                .toList();
+                        type().fieldType(Property.ValueType.SINGLE_SELECT).options(enumOptions).stepOut();
+                        typeSymbol = enumSymbol.typeDescriptor();
+                    }
+                }
+                case PARAMETER -> {
+                    if (symbol instanceof ParameterSymbol ps) {
+                        typeSymbol = ps.typeDescriptor();
+                    }
+                }
+                case PATH_PARAMETER -> {
+                    if (symbol instanceof PathParameterSymbol pps) {
+                        typeSymbol = pps.typeDescriptor();
+                    }
+                }
+                case RECORD_FIELD -> {
+                    if (symbol instanceof RecordFieldSymbol rfs) {
+                        typeSymbol = rfs.typeDescriptor();
+                    }
+                }
+                case OBJECT_FIELD -> {
+                    if (symbol instanceof ObjectFieldSymbol ofs) {
+                        typeSymbol = ofs.typeDescriptor();
+                    }
+                }
+                default -> {
+                    return this;
                 }
             }
+
+            if (typeSymbol != null) {
+                Property.ValueType valueType = getValueTypeFromTypeKind(CommonUtil.getRawType(typeSymbol).typeKind());
+                if (valueType == ValueType.EXPRESSION) {
+                    type().fieldType(ValueType.EXPRESSION)
+                            .ballerinaType(CommonUtils.getTypeSignature(null, typeSymbol, false))
+                            .stepOut();
+                } else {
+                    type().fieldType(valueType).stepOut();
+                    type().fieldType(ValueType.EXPRESSION)
+                            .ballerinaType(CommonUtils.getTypeSignature(null, typeSymbol, false))
+                            .stepOut();
+                }
+            }
+
             return this;
+        }
+
+        private Property.ValueType getValueTypeFromTypeKind(TypeDescKind typeKind) {
+            return switch (typeKind) {
+                case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
+                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> Property.ValueType.NUMBER;
+                case STRING, STRING_CHAR -> Property.ValueType.STRING;
+                case BOOLEAN -> Property.ValueType.FLAG;
+                case ARRAY -> Property.ValueType.EXPRESSION_SET;
+                case MAP -> Property.ValueType.MAPPING_EXPRESSION_SET;
+                default -> Property.ValueType.EXPRESSION;
+            };
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {

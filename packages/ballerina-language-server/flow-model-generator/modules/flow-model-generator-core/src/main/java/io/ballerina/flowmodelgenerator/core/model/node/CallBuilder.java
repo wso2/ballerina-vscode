@@ -39,7 +39,6 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -179,7 +178,6 @@ public abstract class CallBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-.typeExpression(paramResult.symbol())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
