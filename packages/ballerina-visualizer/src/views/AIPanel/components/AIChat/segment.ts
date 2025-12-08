@@ -35,13 +35,16 @@ function getCommand(command: string) {
 function splitHalfGeneratedCode(content: string): Segment[] {
     const segments: Segment[] = [];
     // Regex to capture filename and optional test attribute
-    const regex = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
-    let match;
+    // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
+    const regexPattern = /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)$/g;
+
+    // Convert to array to avoid stateful regex iteration issues
+    const matches = Array.from(content.matchAll(regexPattern));
     let lastIndex = 0;
 
-    while ((match = regex.exec(content)) !== null) {
-        const [fullMatch, fileName, type, language, code] = match;
-        if (match.index > lastIndex) {
+    for (const match of matches) {
+        const [, fileName, type, language, code] = match;
+        if (match.index! > lastIndex) {
             // Non-code segment before the current code block
             segments.push({
                 type: SegmentType.Text,
@@ -61,7 +64,7 @@ function splitHalfGeneratedCode(content: string): Segment[] {
             command: getCommand(type),
         });
 
-        lastIndex = regex.lastIndex;
+        lastIndex = match.index! + match[0].length;
     }
 
     if (lastIndex < content.length) {
@@ -80,9 +83,12 @@ export function splitContent(content: string): Segment[] {
     const segments: Segment[] = [];
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
-    const regex =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
-    let match;
+    // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
+    const regexPattern =
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<toolresult>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
+
+    // Convert to array to avoid stateful regex iteration issues
+    const matches = Array.from(content.matchAll(regexPattern));
     let lastIndex = 0;
 
     function updateLastProgressSegmentLoading(failed: boolean = false) {
@@ -93,7 +99,7 @@ export function splitContent(content: string): Segment[] {
         }
     }
 
-    while ((match = regex.exec(content)) !== null) {
+    for (const match of matches) {
         // Handle text before the current match
         if (match.index > lastIndex) {
             updateLastProgressSegmentLoading();
@@ -138,8 +144,18 @@ export function splitContent(content: string): Segment[] {
                 text: toolcallText,
             });
         } else if (match[7]) {
+            // <toolresult> block matched
+            const toolresultText = match[7];
+
+            updateLastProgressSegmentLoading();
+            segments.push({
+                type: SegmentType.ToolCall,
+                loading: false,
+                text: toolresultText,
+            });
+        } else if (match[8]) {
             // <todo> block matched
-            const todoData = match[7];
+            const todoData = match[8];
 
             updateLastProgressSegmentLoading();
             try {
@@ -155,9 +171,9 @@ export function splitContent(content: string): Segment[] {
                 // If parsing fails, show as text
                 console.error("Failed to parse todo data:", error);
             }
-        } else if (match[8]) {
+        } else if (match[9]) {
             // <attachment> block matched
-            const attachmentName = match[8].trim();
+            const attachmentName = match[9].trim();
 
             updateLastProgressSegmentLoading();
 
@@ -172,9 +188,9 @@ export function splitContent(content: string): Segment[] {
                     text: attachmentName,
                 });
             }
-        } else if (match[9]) {
+        } else if (match[10]) {
             // <scenario> block matched
-            const scenarioContent = match[9].trim();
+            const scenarioContent = match[10].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -182,10 +198,10 @@ export function splitContent(content: string): Segment[] {
                 loading: false,
                 text: scenarioContent,
             });
-        } else if (match[10]) {
+        } else if (match[11]) {
             // <button> block matched
-            const buttonType = match[10].trim();
-            const buttonContent = match[11].trim();
+            const buttonType = match[11].trim();
+            const buttonContent = match[12].trim();
 
             updateLastProgressSegmentLoading(true);
             segments.push({
@@ -194,21 +210,21 @@ export function splitContent(content: string): Segment[] {
                 text: buttonContent,
                 buttonType: buttonType,
             });
-        } else if (match[12]) {
-            segments.push({
-                type: SegmentType.InlineCode,
-                text: match[12].trim(),
-                loading: false,
-            });
         } else if (match[13]) {
             segments.push({
-                type: SegmentType.References,
+                type: SegmentType.InlineCode,
                 text: match[13].trim(),
                 loading: false,
             });
         } else if (match[14]) {
+            segments.push({
+                type: SegmentType.References,
+                text: match[14].trim(),
+                loading: false,
+            });
+        } else if (match[15]) {
             // <connectorgenerator> block matched
-            const connectorData = match[14];
+            const connectorData = match[15];
 
             updateLastProgressSegmentLoading();
             try {
@@ -226,7 +242,7 @@ export function splitContent(content: string): Segment[] {
         }
 
         // Update lastIndex to the end of the current match
-        lastIndex = regex.lastIndex;
+        lastIndex = match.index + match[0].length;
     }
 
     // Handle any remaining text after the last match
