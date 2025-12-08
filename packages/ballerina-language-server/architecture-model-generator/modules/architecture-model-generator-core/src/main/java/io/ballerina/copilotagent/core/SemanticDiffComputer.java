@@ -18,14 +18,29 @@
 
 package io.ballerina.copilotagent.core;
 
+import io.ballerina.compiler.syntax.tree.BlockStatementNode;
+import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.ForEachStatementNode;
+import io.ballerina.compiler.syntax.tree.ForkStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.LockStatementNode;
+import io.ballerina.compiler.syntax.tree.MatchClauseNode;
+import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.NamedWorkerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
+import io.ballerina.compiler.syntax.tree.TransactionStatementNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.copilotagent.core.models.ChangeType;
 import io.ballerina.copilotagent.core.models.NodeKind;
 import io.ballerina.copilotagent.core.models.Result;
@@ -47,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -258,16 +274,124 @@ public class SemanticDiffComputer {
                 return;
             }
 
-            // TODO: analyze the do statement block for changes
             for (int i = 0; i < originalBodyNode.statements().size(); i++) {
-                if (!originalBodyNode.statements().get(i).toSourceCode().equals(
-                        modifiedBodyNode.statements().get(i).toSourceCode())) {
+                StatementNode orginalStmtNode = originalBodyNode.statements().get(i);
+                StatementNode modifiedStmtNode = modifiedBodyNode.statements().get(i);
+
+                if (orginalStmtNode.toSourceCode().equals(modifiedStmtNode.toSourceCode())) {
+                    continue;
+                }
+
+                List<Node> allOriginalStmtNodes = new ArrayList<>();
+                extractStatementNodes(orginalStmtNode, allOriginalStmtNodes);
+                List<Node> allModifiedStmtNodes = new ArrayList<>();
+                extractStatementNodes(modifiedStmtNode, allModifiedStmtNodes);
+
+                if (allOriginalStmtNodes.size() != allModifiedStmtNodes.size()) {
                     LineRange lineRange = modifiedFunction.lineRange();
                     SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
                             resolveUri(lineRange.fileName()), lineRange);
                     this.semanticDiffs.add(diff);
                     return;
                 }
+
+                for (int j = 0; j < allOriginalStmtNodes.size(); j++) {
+                    Node originalNode = allOriginalStmtNodes.get(j);
+                    Node modifiedNode = allModifiedStmtNodes.get(j);
+                    // need to change weather both nodes have the same type
+                    if (!originalNode.getClass().equals(modifiedNode.getClass())) {
+                        LineRange lineRange = modifiedNode.lineRange();
+                        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
+                                resolveUri(lineRange.fileName()), lineRange);
+                        this.semanticDiffs.add(diff);
+                        return;
+                    } else {
+                        if (!originalNode.toSourceCode().trim().equals(modifiedNode.toSourceCode().trim())) {
+                            LineRange lineRange = modifiedNode.lineRange();
+                            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
+                                    resolveUri(lineRange.fileName()), lineRange);
+                            this.semanticDiffs.add(diff);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void extractStatementNodes(Node statementNode, List<Node> nodes) {
+        nodes.add(statementNode);
+        if (statementNode instanceof BlockStatementNode blockStatementNode) {
+            NodeList<StatementNode> statements = blockStatementNode.statements();
+            for (StatementNode stmt : statements) {
+                extractStatementNodes(stmt, nodes);
+            }
+        } else if (statementNode instanceof DoStatementNode doStatementNode) {
+            BlockStatementNode doBlock = doStatementNode.blockStatement();
+            NodeList<StatementNode> statements = doBlock.statements();
+            for (StatementNode stmt : statements) {
+                extractStatementNodes(stmt, nodes);
+            }
+            Optional<OnFailClauseNode> onFailClauseNode = doStatementNode.onFailClause();
+            if (onFailClauseNode.isPresent()) {
+                BlockStatementNode onFailBlock = onFailClauseNode.get().blockStatement();
+                NodeList<StatementNode> onFailStatements = onFailBlock.statements();
+                for (StatementNode stmt : onFailStatements) {
+                    extractStatementNodes(stmt, nodes);
+                }
+            }
+        } else if (statementNode instanceof ForkStatementNode forkStatementNode) {
+            NodeList<NamedWorkerDeclarationNode> namedWorkers = forkStatementNode.namedWorkerDeclarations();
+            for (NamedWorkerDeclarationNode worker : namedWorkers) {
+                BlockStatementNode workerBlock = worker.workerBody();
+                NodeList<StatementNode> workerStatements = workerBlock.statements();
+                for (StatementNode stmt : workerStatements) {
+                    extractStatementNodes(stmt, nodes);
+                }
+            }
+        } else if (statementNode instanceof ForEachStatementNode forEachStatementNode) {
+            BlockStatementNode forEachBlock = forEachStatementNode.blockStatement();
+            NodeList<StatementNode> forEachStatements = forEachBlock.statements();
+            for (StatementNode stmt : forEachStatements) {
+                extractStatementNodes(stmt, nodes);
+            }
+        } else if (statementNode instanceof IfElseStatementNode ifElseStatementNode) {
+            ifElseStatementNode.ifBody().statements().forEach(stmt -> extractStatementNodes(stmt, nodes));
+            ifElseStatementNode.elseBody().ifPresent(elseBody -> extractStatementNodes(elseBody, nodes));
+        } else if (statementNode instanceof LockStatementNode lockStatementNode) {
+            BlockStatementNode lockBlock = lockStatementNode.blockStatement();
+            NodeList<StatementNode> lockStatements = lockBlock.statements();
+            for (StatementNode stmt : lockStatements) {
+                extractStatementNodes(stmt, nodes);
+            }
+        } else if (statementNode instanceof WhileStatementNode whileStatementNode) {
+            BlockStatementNode whileBlock = whileStatementNode.whileBody();
+            NodeList<StatementNode> whileStatements = whileBlock.statements();
+            for (StatementNode stmt : whileStatements) {
+                extractStatementNodes(stmt, nodes);
+            }
+            Optional<OnFailClauseNode> onFailClauseNode = whileStatementNode.onFailClause();
+            if (onFailClauseNode.isPresent()) {
+                BlockStatementNode onFailBlock = onFailClauseNode.get().blockStatement();
+                NodeList<StatementNode> onFailStatements = onFailBlock.statements();
+                for (StatementNode stmt : onFailStatements) {
+                    extractStatementNodes(stmt, nodes);
+                }
+            }
+        } else if (statementNode instanceof MatchStatementNode matchNode) {
+            NodeList<MatchClauseNode> matchClauses = matchNode.matchClauses();
+            for (MatchClauseNode clause : matchClauses) {
+                BlockStatementNode clauseBlock = clause.blockStatement();
+                NodeList<StatementNode> clauseStatements = clauseBlock.statements();
+                for (StatementNode stmt : clauseStatements) {
+                    extractStatementNodes(stmt, nodes);
+                }
+            }
+        } else if (statementNode instanceof TransactionStatementNode transactionNode) {
+            BlockStatementNode transactionBlock = transactionNode.blockStatement();
+            NodeList<StatementNode> transactionStatements = transactionBlock.statements();
+            for (StatementNode stmt : transactionStatements) {
+                extractStatementNodes(stmt, nodes);
             }
         }
     }

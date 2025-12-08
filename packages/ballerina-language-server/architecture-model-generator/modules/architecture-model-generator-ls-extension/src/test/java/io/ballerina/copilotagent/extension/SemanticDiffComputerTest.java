@@ -82,7 +82,7 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
                     .filter(path -> path.toString().endsWith(".bal"))
                     .forEach(filePath -> {
                         try {
-                            notifyCustomDidChange(filePath.toString(), "ai");
+                            notifyCustomDidChange(filePath.toString());
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -113,8 +113,8 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
         sendNotification("textDocument/didOpen", new DidOpenTextDocumentParams(textDocumentItem));
     }
 
-    private void notifyCustomDidChange(String sourcePath, String schema) throws IOException {
-        String exprUriString = schema + Paths.get(sourcePath).toUri().toString().substring(4)
+    private void notifyCustomDidChange(String sourcePath) throws IOException {
+        String exprUriString = "ai" + Paths.get(sourcePath).toUri().toString().substring(4)
                 .replace("modified", "original");
         String fileUri = URI.create(exprUriString).toString();
         String content = this.getText(sourcePath);
