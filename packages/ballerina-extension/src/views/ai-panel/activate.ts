@@ -22,12 +22,18 @@ import { closeAIWebview, openAIWebview } from './aiMachine';
 import { BallerinaExtension } from '../../core';
 import { notifyAiWebview } from '../../RPCLayer';
 import { openView, StateMachine } from '../../stateMachine';
+import { MESSAGES } from '../../features/project/cmds/cmd-runner';
 
 export function activateAiPanel(ballerinaExtInstance: BallerinaExtension) {
     ballerinaExtInstance.context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_AI_PANEL, async (defaultPrompt?: AIPanelPrompt) => {
             const context = StateMachine.context();
             const { workspacePath, view, projectPath, projectInfo } = context;
+
+            if (!projectInfo) {
+                vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                return;
+            }
 
             // Determine if package selection is required
             const requiresPackageSelection = 
