@@ -33,7 +33,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "ai:InMemoryVectorStore",
           "placeholder": "var",
           "optional": false,
@@ -50,7 +54,11 @@
             "label": "Vector Store Name",
             "description": "Vector store instance name"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "aiInmemoryvectorstore",
           "optional": false,
           "editable": true,
@@ -62,8 +70,20 @@
             "label": "Top K",
             "description": "The maximum number of top similar vectors to return in query results"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -89,8 +109,24 @@
             "label": "Similarity Metric",
             "description": "The metric used for vector similarity"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:SimilarityMetric",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:SimilarityMetric"
+            },
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "DOT_PRODUCT",
+                "EUCLIDEAN",
+                "COSINE"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:SimilarityMetric"
+            }
+          ],
           "placeholder": "\"DOT_PRODUCT\"",
           "optional": true,
           "editable": true,
@@ -116,7 +152,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -128,7 +168,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

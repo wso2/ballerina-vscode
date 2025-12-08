@@ -34,7 +34,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "openai:EmbeddingProvider",
           "placeholder": "var",
           "optional": false,
@@ -51,7 +55,11 @@
             "label": "Embedding Provider Name",
             "description": "Name of the embedding-provider connection"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "openaiEmbeddingprovider",
           "optional": false,
           "editable": true,
@@ -63,8 +71,16 @@
             "label": "API Key",
             "description": "The OpenAI API key"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": false,
           "editable": true,
@@ -89,11 +105,19 @@
             "label": "Embedding Model Type",
             "description": "The OpenAI embedding model name"
           },
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": [
-            "\"text-embedding-ada-002\"",
-            "\"text-embedding-3-large\"",
-            "\"text-embedding-3-small\""
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "text-embedding-ada-002",
+                "text-embedding-3-large",
+                "text-embedding-3-small"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "openai:OPEN_AI_EMBEDDING_MODEL_NAMES"
+            }
           ],
           "placeholder": "\"text-embedding-ada-002\"",
           "optional": false,
@@ -119,8 +143,16 @@
             "label": "Service URL",
             "description": "The base URL of OpenAI API endpoint"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": true,
           "editable": true,
@@ -146,8 +178,20 @@
             "label": "HTTP Version",
             "description": "The HTTP version understood by the client"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpVersion",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "2.0",
+                "1.1",
+                "1.0"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:HttpVersion"
+            }
+          ],
           "placeholder": "\"2.0\"",
           "optional": true,
           "editable": true,
@@ -176,8 +220,12 @@
             "label": "HTTP1 Settings",
             "description": "Configurations related to HTTP/1.x protocol"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientHttp1Settings",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp1Settings"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -206,8 +254,12 @@
             "label": "HTTP2 Settings",
             "description": "Configurations related to HTTP/2 protocol"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientHttp2Settings",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp2Settings"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -236,8 +288,16 @@
             "label": "Timeout",
             "description": "The maximum time to wait (in seconds) for a response before closing the connection"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal"
+            }
+          ],
           "placeholder": "0.0d",
           "optional": true,
           "editable": true,
@@ -263,8 +323,16 @@
             "label": "Forwarded",
             "description": "The choice of setting `forwarded`/`x-forwarded` header"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": true,
           "editable": true,
@@ -290,8 +358,12 @@
             "label": "Pool Configuration",
             "description": "Configurations associated with request pooling"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:PoolConfiguration",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:PoolConfiguration"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -320,8 +392,12 @@
             "label": "Cache Configuration",
             "description": "HTTP caching related configurations"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:CacheConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CacheConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -350,8 +426,20 @@
             "label": "Compression",
             "description": "Specifies the way of handling compression (`accept-encoding`) header"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:Compression",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "AUTO",
+                "ALWAYS",
+                "NEVER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:Compression"
+            }
+          ],
           "placeholder": "\"AUTO\"",
           "optional": true,
           "editable": true,
@@ -380,8 +468,12 @@
             "label": "Circuit Breaker Configuration",
             "description": "Configurations associated with the behaviour of the Circuit Breaker"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:CircuitBreakerConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CircuitBreakerConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -410,8 +502,12 @@
             "label": "Retry Configuration",
             "description": "Configurations associated with retrying"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:RetryConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:RetryConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -440,8 +536,12 @@
             "label": "Response Limit Configuration",
             "description": "Configurations associated with inbound response size limits"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ResponseLimitConfigs",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ResponseLimitConfigs"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -470,8 +570,12 @@
             "label": "Secure Socket Configuration",
             "description": "SSL/TLS-related options"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientSecureSocket",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientSecureSocket"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -500,8 +604,12 @@
             "label": "Proxy Configuration",
             "description": "Proxy server related options"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ProxyConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ProxyConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -530,8 +638,16 @@
             "label": "Payload Validation",
             "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean"
+            }
+          ],
           "placeholder": "false",
           "optional": true,
           "editable": true,
@@ -557,7 +673,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -569,7 +689,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

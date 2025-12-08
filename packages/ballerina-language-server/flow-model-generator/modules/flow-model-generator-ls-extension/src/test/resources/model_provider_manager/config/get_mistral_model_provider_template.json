@@ -34,7 +34,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "mistral:ModelProvider",
           "placeholder": "var",
           "optional": false,
@@ -51,7 +55,11 @@
             "label": "Model Provider Name",
             "description": "Name of the model-provider connection"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "mistralModelprovider",
           "optional": false,
           "editable": true,
@@ -63,8 +71,16 @@
             "label": "API Key",
             "description": "The Mistral AI API key"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": false,
           "editable": true,
@@ -89,40 +105,48 @@
             "label": "Model Type",
             "description": "The Mistral AI model name"
           },
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": [
-            "\"open-codestral-mamba\"",
-            "\"pixtral-12b-2409\"",
-            "\"pixtral-large-2411\"",
-            "\"open-mixtral-8x22b\"",
-            "\"open-mixtral-8x7b\"",
-            "\"open-mistral-nemo\"",
-            "\"open-mistral-7b\"",
-            "\"devstral-small-2505\"",
-            "\"codestral-mamba-2407\"",
-            "\"codestral-2501\"",
-            "\"codestral-2405\"",
-            "\"mistral-saba-2502\"",
-            "\"mistral-large-2411\"",
-            "\"mistral-large-2407\"",
-            "\"mistral-large-2402\"",
-            "\"mistral-medium-2505\"",
-            "\"mistral-medium-2312\"",
-            "\"ministral-8b-2410\"",
-            "\"ministral-3b-2410\"",
-            "\"mistral-small-2503\"",
-            "\"mistral-small-2501\"",
-            "\"mistral-small-2409\"",
-            "\"mistral-small-2402\"",
-            "\"codestral-latest\"",
-            "\"mistral-saba-latest\"",
-            "\"ministral-8b-latest\"",
-            "\"ministral-3b-latest\"",
-            "\"pixtral-large-latest\"",
-            "\"devstral-small-latest\"",
-            "\"mistral-large-latest\"",
-            "\"mistral-medium-latest\"",
-            "\"mistral-small-latest\""
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "open-codestral-mamba",
+                "pixtral-12b-2409",
+                "pixtral-large-2411",
+                "open-mixtral-8x22b",
+                "open-mixtral-8x7b",
+                "open-mistral-nemo",
+                "open-mistral-7b",
+                "devstral-small-2505",
+                "codestral-mamba-2407",
+                "codestral-2501",
+                "codestral-2405",
+                "mistral-saba-2502",
+                "mistral-large-2411",
+                "mistral-large-2407",
+                "mistral-large-2402",
+                "mistral-medium-2505",
+                "mistral-medium-2312",
+                "ministral-8b-2410",
+                "ministral-3b-2410",
+                "mistral-small-2503",
+                "mistral-small-2501",
+                "mistral-small-2409",
+                "mistral-small-2402",
+                "codestral-latest",
+                "mistral-saba-latest",
+                "ministral-8b-latest",
+                "ministral-3b-latest",
+                "pixtral-large-latest",
+                "devstral-small-latest",
+                "mistral-large-latest",
+                "mistral-medium-latest",
+                "mistral-small-latest"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "mistral:MISTRAL_AI_MODEL_NAMES"
+            }
           ],
           "placeholder": "\"open-codestral-mamba\"",
           "optional": false,
@@ -148,8 +172,16 @@
             "label": "Service URL",
             "description": "The base URL of Mistral AI API endpoint"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": true,
           "editable": true,
@@ -175,8 +207,16 @@
             "label": "Maximum Tokens",
             "description": "The upper limit for the number of tokens in the response generated by the model"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -202,8 +242,16 @@
             "label": "Temperature",
             "description": "The temperature for controlling randomness in the model's output"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal"
+            }
+          ],
           "placeholder": "0.0d",
           "optional": true,
           "editable": true,
@@ -229,8 +277,20 @@
             "label": "HTTP Version",
             "description": "The HTTP version understood by the client"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpVersion",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "2.0",
+                "1.1",
+                "1.0"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:HttpVersion"
+            }
+          ],
           "placeholder": "\"2.0\"",
           "optional": true,
           "editable": true,
@@ -256,8 +316,12 @@
             "label": "HTTP1 Settings",
             "description": "Configurations related to HTTP/1.x protocol"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientHttp1Settings",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp1Settings"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -283,8 +347,12 @@
             "label": "HTTP2 Settings",
             "description": "Configurations related to HTTP/2 protocol"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientHttp2Settings",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp2Settings"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -310,8 +378,16 @@
             "label": "Timeout",
             "description": "The maximum time to wait (in seconds) for a response before closing the connection"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal"
+            }
+          ],
           "placeholder": "0.0d",
           "optional": true,
           "editable": true,
@@ -337,8 +413,16 @@
             "label": "Forwarded",
             "description": "The choice of setting `forwarded`/`x-forwarded` header"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": true,
           "editable": true,
@@ -364,8 +448,12 @@
             "label": "Pool Configuration",
             "description": "Configurations associated with request pooling"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:PoolConfiguration",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:PoolConfiguration"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -391,8 +479,12 @@
             "label": "Cache Configuration",
             "description": "HTTP caching related configurations"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:CacheConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CacheConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -418,8 +510,20 @@
             "label": "Compression",
             "description": "Specifies the way of handling compression (`accept-encoding`) header"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:Compression",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "AUTO",
+                "ALWAYS",
+                "NEVER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:Compression"
+            }
+          ],
           "placeholder": "\"AUTO\"",
           "optional": true,
           "editable": true,
@@ -445,8 +549,12 @@
             "label": "Circuit Breaker Configuration",
             "description": "Configurations associated with the behaviour of the Circuit Breaker"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:CircuitBreakerConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CircuitBreakerConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -472,8 +580,12 @@
             "label": "Retry Configuration",
             "description": "Configurations associated with retrying"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:RetryConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:RetryConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -499,8 +611,12 @@
             "label": "Response Limit Configuration",
             "description": "Configurations associated with inbound response size limits"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ResponseLimitConfigs",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ResponseLimitConfigs"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -526,8 +642,12 @@
             "label": "Secure Socket Configuration",
             "description": "SSL/TLS-related options"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ClientSecureSocket",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientSecureSocket"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -553,8 +673,12 @@
             "label": "Proxy Configuration",
             "description": "Proxy server related options"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ProxyConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ProxyConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -580,8 +704,16 @@
             "label": "Payload Validation",
             "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean"
+            }
+          ],
           "placeholder": "false",
           "optional": true,
           "editable": true,
@@ -607,7 +739,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -619,7 +755,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,
