@@ -542,9 +542,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-
-        // Method to add existing PropertyType list directly
-        public Builder<T> addTypes(List<PropertyType> existingTypes) {
+        public Builder<T> types(List<PropertyType> existingTypes) {
             if (existingTypes != null) {
                 this.types.addAll(existingTypes);
             }

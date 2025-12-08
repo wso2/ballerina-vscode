@@ -191,7 +191,7 @@ public class AiUtils {
         }
 
         Property.Builder<T> builder = new Property.Builder<T>(null)
-                .addTypes(originalProperty.types())
+                .types(originalProperty.types())
                 .value(newValue);
 
         if (originalProperty.codedata() != null) {
@@ -231,7 +231,7 @@ public class AiUtils {
                     .label(property.metadata().label())
                     .description(property.metadata().description())
                     .stepOut()
-                .addTypes(property.types())
+                .types(property.types())
                 .placeholder(property.placeholder())
                 .value(valueToUse)
                 .defaultValue(property.defaultValue())
