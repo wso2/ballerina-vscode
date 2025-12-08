@@ -43,8 +43,12 @@
             "label": "System Prompt",
             "description": "The system prompt assigned to the agent"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:SystemPrompt",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:SystemPrompt"
+            }
+          ],
           "value": "{role: \"\", instructions: string ``}",
           "placeholder": "{role: \"\", instructions: \"\"}",
           "optional": false,
@@ -71,8 +75,12 @@
             "label": "Model",
             "description": "The model used by the agent"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:ModelProvider",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:ModelProvider"
+            }
+          ],
           "value": "self._salesAgentModel",
           "placeholder": "object {}",
           "optional": false,
@@ -99,8 +107,16 @@
             "label": "Tools",
             "description": "The tools available for the agent"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+          "types": [
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+            }
+          ],
           "value": "[]",
           "placeholder": "[]",
           "optional": true,
@@ -127,8 +143,16 @@
             "label": "Maximum Iterations",
             "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "\"INFER_TOOL_COUNT\"|int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "\"INFER_TOOL_COUNT\"|int"
+            }
+          ],
           "placeholder": "\"INFER_TOOL_COUNT\"",
           "optional": true,
           "editable": true,
@@ -161,8 +185,16 @@
             "label": "Verbose",
             "description": "Specifies whether verbose logging is enabled"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean"
+            }
+          ],
           "placeholder": "false",
           "optional": true,
           "editable": true,
@@ -188,8 +220,12 @@
             "label": "Memory",
             "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:Memory|()",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:Memory?"
+            }
+          ],
           "placeholder": "()",
           "optional": true,
           "editable": true,
@@ -222,8 +258,19 @@
             "label": "Tool Loading Strategy",
             "description": "Defines the strategies for loading tool schemas into an Agent. \nBy default, all tools are loaded without any filtering."
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:ToolLoadingStrategy",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "LLM_FILTER",
+                "NO_FILTER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:ToolLoadingStrategy"
+            }
+          ],
           "placeholder": "\"LLM_FILTER\"",
           "optional": true,
           "editable": true,
@@ -249,7 +296,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,
@@ -261,7 +312,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "ServiceInit",
           "optional": false,
           "editable": true,
@@ -273,7 +328,11 @@
             "label": "Variable",
             "description": "Name of the variable/field"
           },
-          "valueType": "LV_EXPRESSION",
+          "types": [
+            {
+              "fieldType": "LV_EXPRESSION"
+            }
+          ],
           "value": "self._salesAgentAgent",
           "optional": false,
           "editable": true,

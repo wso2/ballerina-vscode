@@ -112,8 +112,12 @@
               "label": "System Prompt",
               "description": "The system prompt assigned to the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:SystemPrompt",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt"
+              }
+            ],
             "value": "{role: \"Math tutor\", instructions: \"Help the students with their questions.\"}",
             "placeholder": "{role: \"\", instructions: \"\"}",
             "optional": false,
@@ -130,8 +134,12 @@
               "label": "Model",
               "description": "The model used by the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:ModelProvider",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:ModelProvider"
+              }
+            ],
             "value": "myModel",
             "placeholder": "object {}",
             "optional": false,
@@ -148,8 +156,16 @@
               "label": "Tools",
               "description": "The tools available for the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              }
+            ],
             "value": "[set, sum, mutiply]",
             "placeholder": "[]",
             "optional": true,
@@ -166,8 +182,19 @@
               "label": "Agent Type",
               "description": "Type of the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:AgentType",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "FUNCTION_CALL_AGENT",
+                  "REACT_AGENT"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:AgentType"
+              }
+            ],
             "value": "ai:REACT_AGENT",
             "placeholder": "\"FUNCTION_CALL_AGENT\"",
             "optional": true,
@@ -184,8 +211,16 @@
               "label": "Maximum Iterations",
               "description": "The maximum number of iterations the agent performs to complete the task"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "placeholder": "0",
             "optional": true,
             "editable": true,
@@ -201,8 +236,16 @@
               "label": "Verbose",
               "description": "Specifies whether verbose logging is enabled"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "placeholder": "false",
             "optional": true,
             "editable": true,
@@ -218,8 +261,12 @@
               "label": "Memory",
               "description": "The memory used by the agent to store and manage conversation history"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:Memory|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:Memory?"
+              }
+            ],
             "value": "new ai:MessageWindowChatMemory(20)",
             "placeholder": "()",
             "optional": true,
@@ -236,7 +283,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -250,7 +301,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "result",
             "optional": false,
             "editable": false,
@@ -275,7 +330,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -287,7 +346,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -302,7 +365,11 @@
               "label": "Role",
               "description": "Define the agent's primary function"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "\"Math tutor\"",
             "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
             "optional": true,
@@ -319,7 +386,11 @@
               "label": "Instructions",
               "description": "Detailed instructions for the agent"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "\"Help the students with their questions.\"",
             "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
             "optional": true,
@@ -336,7 +407,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "agent",
             "optional": false,
             "editable": false,
@@ -348,8 +423,16 @@
               "label": "Query",
               "description": "The natural language input provided to the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"What is the sum of 1 and 2?\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -375,8 +458,16 @@
               "label": "Session ID",
               "description": "The ID associated with the agent memory"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "placeholder": "\"\"",
             "optional": true,
             "editable": true,
@@ -435,8 +526,12 @@
               "label": "Model",
               "description": "The model used by the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:ModelProvider",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:ModelProvider"
+              }
+            ],
             "value": "myModel",
             "placeholder": "object {}",
             "optional": false,
@@ -463,8 +558,12 @@
               "label": "System Prompt",
               "description": "The system prompt assigned to the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:SystemPrompt",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt"
+              }
+            ],
             "value": "{role: \"Math tutor\", instructions: \"Help the students with their questions.\"}",
             "placeholder": "{role: \"\", instructions: \"\"}",
             "optional": false,
@@ -491,8 +590,19 @@
               "label": "Agent Type",
               "description": "Type of the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:AgentType",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "FUNCTION_CALL_AGENT",
+                  "REACT_AGENT"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:AgentType"
+              }
+            ],
             "value": "ai:REACT_AGENT",
             "placeholder": "\"FUNCTION_CALL_AGENT\"",
             "optional": true,
@@ -519,8 +629,12 @@
               "label": "Memory",
               "description": "The memory used by the agent to store and manage conversation history"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ai:Memory|()",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:Memory?"
+              }
+            ],
             "value": "new ai:MessageWindowChatMemory(20)",
             "placeholder": "()",
             "optional": true,
@@ -554,8 +668,16 @@
               "label": "Tools",
               "description": "The tools available for the agent"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              }
+            ],
             "value": "[set, sum, mutiply]",
             "placeholder": "[]",
             "optional": true,
@@ -582,8 +704,16 @@
               "label": "Maximum Iterations",
               "description": "The maximum number of iterations the agent performs to complete the task"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "placeholder": "0",
             "optional": true,
             "editable": true,
@@ -609,8 +739,16 @@
               "label": "Verbose",
               "description": "Specifies whether verbose logging is enabled"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "placeholder": "false",
             "optional": true,
             "editable": true,
@@ -636,7 +774,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -648,7 +790,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -660,7 +806,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "agent",
             "optional": false,
             "editable": false,
@@ -685,7 +835,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "ai:Agent",
             "placeholder": "var",
             "optional": false,
@@ -730,8 +884,16 @@
               "label": "Service URL",
               "description": "The base URL of Azure OpenAI API endpoint"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "{auth: {apiKey}}",
             "placeholder": "\"\"",
             "optional": false,
@@ -766,8 +928,16 @@
               "label": "API Key",
               "description": "The Azure OpenAI API key"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "serviceUrl",
             "placeholder": "\"\"",
             "optional": false,
@@ -793,8 +963,16 @@
               "label": "Deployment ID",
               "description": "The deployment identifier for the specific model deployment in Azure  "
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "deploymentId",
             "placeholder": "\"\"",
             "optional": false,
@@ -820,8 +998,16 @@
               "label": "API Version",
               "description": "The Azure OpenAI API version (e.g., \"2023-07-01-preview\")"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "apiVersion",
             "placeholder": "\"\"",
             "optional": false,
@@ -847,8 +1033,16 @@
               "label": "Maximum Tokens",
               "description": "The upper limit for the number of tokens in the response generated by the model"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "placeholder": "0",
             "optional": true,
             "editable": true,
@@ -874,8 +1068,16 @@
               "label": "Temperature",
               "description": "The temperature for controlling randomness in the model's output  "
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "decimal",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal"
+              }
+            ],
             "placeholder": "0.0d",
             "optional": true,
             "editable": true,
@@ -901,8 +1103,20 @@
               "label": "HTTP Version",
               "description": "The HTTP version understood by the client"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:HttpVersion",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "2.0",
+                  "1.1",
+                  "1.0"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:HttpVersion"
+              }
+            ],
             "placeholder": "\"2.0\"",
             "optional": true,
             "editable": true,
@@ -931,8 +1145,12 @@
               "label": "HTTP1 Settings",
               "description": "Configurations related to HTTP/1.x protocol"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientHttp1Settings",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -961,8 +1179,12 @@
               "label": "HTTP2 Settings",
               "description": "Configurations related to HTTP/2 protocol"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientHttp2Settings",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -991,8 +1213,16 @@
               "label": "Timeout",
               "description": "The maximum time to wait (in seconds) for a response before closing the connection"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "decimal",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal"
+              }
+            ],
             "placeholder": "0.0d",
             "optional": true,
             "editable": true,
@@ -1018,8 +1248,16 @@
               "label": "Forwarded",
               "description": "The choice of setting `forwarded`/`x-forwarded` header"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "placeholder": "\"\"",
             "optional": true,
             "editable": true,
@@ -1045,8 +1283,12 @@
               "label": "Pool Configuration",
               "description": "Configurations associated with request pooling"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:PoolConfiguration",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1075,8 +1317,12 @@
               "label": "Cache Configuration",
               "description": "HTTP caching related configurations"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CacheConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CacheConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1105,8 +1351,20 @@
               "label": "Compression",
               "description": "Specifies the way of handling compression (`accept-encoding`) header"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:Compression",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  "AUTO",
+                  "ALWAYS",
+                  "NEVER"
+                ]
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:Compression"
+              }
+            ],
             "placeholder": "\"AUTO\"",
             "optional": true,
             "editable": true,
@@ -1135,8 +1393,12 @@
               "label": "Circuit Breaker Configuration",
               "description": "Configurations associated with the behaviour of the Circuit Breaker"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:CircuitBreakerConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1165,8 +1427,12 @@
               "label": "Retry Configuration",
               "description": "Configurations associated with retrying"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:RetryConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RetryConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1195,8 +1461,12 @@
               "label": "Response Limit Configuration",
               "description": "Configurations associated with inbound response size limits"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ResponseLimitConfigs",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1225,8 +1495,12 @@
               "label": "Secure Socket Configuration",
               "description": "SSL/TLS-related options"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ClientSecureSocket",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1255,8 +1529,12 @@
               "label": "Proxy Configuration",
               "description": "Proxy server related options"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "http:ProxyConfig",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ProxyConfig"
+              }
+            ],
             "placeholder": "{}",
             "optional": true,
             "editable": true,
@@ -1285,8 +1563,16 @@
               "label": "Payload Validation",
               "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "boolean",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean"
+              }
+            ],
             "placeholder": "false",
             "optional": true,
             "editable": true,
@@ -1312,7 +1598,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -1324,7 +1614,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Global",
             "optional": false,
             "editable": true,
@@ -1336,7 +1630,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "myModel",
             "optional": false,
             "editable": false,
@@ -1361,7 +1659,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "ai:AzureOpenAiProvider",
             "placeholder": "var",
             "optional": false,

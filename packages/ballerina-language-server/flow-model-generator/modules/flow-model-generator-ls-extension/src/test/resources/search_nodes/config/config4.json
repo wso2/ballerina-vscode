@@ -39,8 +39,16 @@
             "label": "Url",
             "description": "The server URL"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "value": "\"http://example.com\"",
           "placeholder": "\"\"",
           "optional": false,
@@ -66,8 +74,16 @@
             "label": "Timeout",
             "description": "The maximum time to wait(in seconds) for a response before closing the connection"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal"
+            }
+          ],
           "placeholder": "0.0d",
           "optional": true,
           "editable": true,
@@ -93,8 +109,12 @@
             "label": "Pool Config",
             "description": "Connection pool configuration"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "grpc:PoolConfiguration|()",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:PoolConfiguration?"
+            }
+          ],
           "placeholder": "()",
           "optional": true,
           "editable": true,
@@ -106,17 +126,17 @@
           },
           "typeMembers": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            },
-            {
               "type": "PoolConfiguration",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "()",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
               "selected": false
             }
           ],
@@ -127,8 +147,12 @@
             "label": "Secure Socket",
             "description": "SSL/TLS related options"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "grpc:ClientSecureSocket|()",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:ClientSecureSocket?"
+            }
+          ],
           "placeholder": "()",
           "optional": true,
           "editable": true,
@@ -140,17 +164,17 @@
           },
           "typeMembers": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            },
-            {
               "type": "ClientSecureSocket",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "()",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
               "selected": false
             }
           ],
@@ -161,8 +185,20 @@
             "label": "Compression",
             "description": "Specifies the way of handling compression (`accept-encoding`) header"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "grpc:Compression",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "AUTO",
+                "ALWAYS",
+                "NEVER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:Compression"
+            }
+          ],
           "placeholder": "\"AUTO\"",
           "optional": true,
           "editable": true,
@@ -188,8 +224,12 @@
             "label": "Retry Configuration",
             "description": "Configures the retry functionality"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "grpc:RetryConfiguration|()",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:RetryConfiguration?"
+            }
+          ],
           "placeholder": "()",
           "optional": true,
           "editable": true,
@@ -201,17 +241,17 @@
           },
           "typeMembers": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            },
-            {
               "type": "RetryConfiguration",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "()",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
               "selected": false
             }
           ],
@@ -222,8 +262,12 @@
             "label": "Auth",
             "description": "Configurations related to client authentication"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "grpc:CredentialsConfig|grpc:BearerTokenConfig|grpc:JwtIssuerConfig|grpc:OAuth2ClientCredentialsGrantConfig|grpc:OAuth2PasswordGrantConfig|grpc:OAuth2RefreshTokenGrantConfig|grpc:OAuth2JwtBearerGrantConfig|()",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:ClientAuthConfig?"
+            }
+          ],
           "placeholder": "()",
           "optional": true,
           "editable": true,
@@ -235,21 +279,14 @@
           },
           "typeMembers": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            },
-            {
-              "type": "BearerTokenConfig",
+              "type": "CredentialsConfig",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
               "selected": false
             },
             {
-              "type": "CredentialsConfig",
+              "type": "BearerTokenConfig",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
@@ -270,13 +307,6 @@
               "selected": false
             },
             {
-              "type": "OAuth2JwtBearerGrantConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
               "type": "OAuth2PasswordGrantConfig",
               "packageInfo": "ballerina:grpc:1.14.0",
               "packageName": "grpc",
@@ -289,6 +319,20 @@
               "packageName": "grpc",
               "kind": "RECORD_TYPE",
               "selected": false
+            },
+            {
+              "type": "OAuth2JwtBearerGrantConfig",
+              "packageInfo": "ballerina:grpc:1.14.0",
+              "packageName": "grpc",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "()",
+              "packageInfo": "",
+              "packageName": "",
+              "kind": "BASIC_TYPE",
+              "selected": false
             }
           ],
           "defaultValue": "()"
@@ -298,8 +342,16 @@
             "label": "Max Inbound Message Size",
             "description": "The maximum message size to be permitted for inbound messages. Default value is 4 MB"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -325,7 +377,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,
@@ -337,7 +393,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -349,7 +409,11 @@
             "label": "Connection Name",
             "description": "Name of the variable"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "grpcClient",
           "optional": false,
           "editable": false,
@@ -374,7 +438,11 @@
             "label": "Connection Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "grpc:Client",
           "placeholder": "var",
           "optional": false,
