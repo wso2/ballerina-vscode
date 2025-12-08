@@ -85,7 +85,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"testdb\"\ntargetModule = \"testdb\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.initParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"testdb\"\ntargetModule = \"testdb\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project/config.bal": [

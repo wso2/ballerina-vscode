@@ -100,7 +100,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"orders\"\ntargetModule = \"orders\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.initParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"orders\"\ntargetModule = \"orders\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ]
   },

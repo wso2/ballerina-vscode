@@ -25,7 +25,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"employees\"\ntargetModule = \"employees\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.initParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"employees\"\ntargetModule = \"employees\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project-with-config/persist/model.bal": [

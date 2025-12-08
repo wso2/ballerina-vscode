@@ -40,7 +40,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"departments\"\ntargetModule = \"departments\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.initParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"departments\"\ntargetModule = \"departments\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project-with-config/persist/model.bal": [

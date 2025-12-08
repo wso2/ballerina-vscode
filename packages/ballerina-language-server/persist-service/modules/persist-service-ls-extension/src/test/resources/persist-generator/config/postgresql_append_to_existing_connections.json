@@ -100,7 +100,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"products\"\ntargetModule = \"products\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.initParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"products\"\ntargetModule = \"products\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ]
   },

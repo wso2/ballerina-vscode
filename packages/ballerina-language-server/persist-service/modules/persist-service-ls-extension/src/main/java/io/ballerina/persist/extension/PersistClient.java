@@ -500,7 +500,7 @@ public class PersistClient {
                 "filePath" + " = \"" + PERSIST_DIR + "/" + MODEL_FILE_NAME + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
-                "options.initParams" + " = true" + LS;
+                "options.withInitParams" + " = true" + LS;
     }
 
     /**
