@@ -14,6 +14,10 @@ import io.ballerina.copilotagent.core.models.Result;
 import io.ballerina.copilotagent.core.models.STNodeRefMap;
 import io.ballerina.copilotagent.core.models.SemanticDiff;
 import io.ballerina.copilotagent.core.models.ServiceMemberMap;
+import io.ballerina.designmodelgenerator.core.DesignModelGenerator;
+import io.ballerina.designmodelgenerator.core.model.Connection;
+import io.ballerina.designmodelgenerator.core.model.DesignModel;
+import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
@@ -25,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public class SemanticDiffComputer {
     private final Project originalProject;
@@ -436,9 +441,90 @@ public class SemanticDiffComputer {
     }
 
     private void compareUsingDesignDiagrams() {
-        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.TYPE_DEFINITION,
-                "", null);
-        this.semanticDiffs.add(diff);
+        DesignModelGenerator original = new DesignModelGenerator(originalProject.currentPackage());
+        DesignModelGenerator modified = new DesignModelGenerator(modifiedProject.currentPackage());
+
+        // use future task to generate the design models in parallel
+        CompletableFuture<DesignModel> originalFuture = CompletableFuture.supplyAsync(original::generate);
+        CompletableFuture<DesignModel> modifiedFuture = CompletableFuture.supplyAsync(modified::generate);
+
+        DesignModel originalDesignModel = originalFuture.join();
+        DesignModel modifiedDesignModel = modifiedFuture.join();
+
+        loadDesignDiagrams = compareDesignModels(originalDesignModel, modifiedDesignModel);
+    }
+
+    private boolean compareDesignModels(DesignModel original, DesignModel modified) {
+        if (compareConnections(original.connections(), modified.connections())) {
+            return true;
+        }
+
+        return compareListeners(original.listeners(), modified.listeners());
+    }
+
+    private boolean compareConnections(List<Connection> originalConnections, List<Connection> modifiedConnections) {
+        if (originalConnections.size() != modifiedConnections.size()) {
+            return true;
+        }
+
+        Map<String, List<Connection>> originalConnectionMap = extractConnectionMap(originalConnections);
+        Map<String, List<Connection>> modifiedConnectionMap = extractConnectionMap(modifiedConnections);
+
+        for (String key : originalConnectionMap.keySet()) {
+            if (!modifiedConnectionMap.containsKey(key)) {
+                return true;
+            }
+            List<Connection> originalConnList = originalConnectionMap.get(key);
+            List<Connection> modifiedConnList = modifiedConnectionMap.get(key);
+            if (originalConnList.size() != modifiedConnList.size()) {
+                return true;
+            }
+
+            // find the global scope connection
+            Connection originalGlobalConn = originalConnList.stream()
+                    .filter(c -> c.getScope().equals(Connection.Scope.GLOBAL))
+                    .findFirst().orElse(null);
+            Connection modifiedGlobalConn = modifiedConnList.stream()
+                    .filter(c -> c.getScope().equals(Connection.Scope.GLOBAL))
+                    .findFirst().orElse(null);
+            if (originalGlobalConn != null && modifiedGlobalConn != null) {
+                if (originalGlobalConn.getDependentFunctions().size()
+                        != modifiedGlobalConn.getDependentFunctions().size()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean compareListeners(List<Listener> originalListeners, List<Listener> modifiedListeners) {
+        if (originalListeners.size() != modifiedListeners.size()) {
+            return true;
+        }
+
+        for (Listener originalListener : originalListeners) {
+            for (Listener modifiedListener : modifiedListeners) {
+                if (modifiedListener.getSymbol() != null
+                        && modifiedListener.getSymbol().equals(originalListener.getSymbol())) {
+                    if (modifiedListener.getAttachedServices().size()
+                            != originalListener.getAttachedServices().size()) {
+                        return true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private Map<String, List<Connection>> extractConnectionMap(List<Connection> connections) {
+        Map<String, List<Connection>> connectionMap = new HashMap<>();
+        for (Connection connection : connections) {
+            String key = connection.getSymbol();
+            connectionMap.computeIfAbsent(key, k -> new ArrayList<>()).add(connection);
+        }
+        return connectionMap;
     }
 
     private String resolveUri(String fileName) {
