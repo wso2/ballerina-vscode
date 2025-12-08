@@ -1,5 +1,5 @@
 {
-  "description": "Convert float to string using type toString()",
+  "description": "Convert float to string using toString()",
   "output": "output.stringField",
   "outputType": "string",
   "expression": "input.floatField",
