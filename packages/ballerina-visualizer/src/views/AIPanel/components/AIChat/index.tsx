@@ -139,8 +139,6 @@ const AIChat: React.FC = () => {
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
-    const [isRepairMode, setIsRepairMode] = useState(false);
-    const [errorCount, setErrorCount] = useState(0);
     const functionsRef = useRef<any>([]);
     const lastAttatchmentsRef = useRef<any>([]);
     const aiChatInputRef = useRef<AIChatInputRef>(null);
@@ -338,15 +336,9 @@ const AIChat: React.FC = () => {
                 });
             } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
-                let message: string;
-
-                if (isRepairMode && errorCount > 0) {
-                    message = `Repairing ${fileName}...`;
-                } else if (response.toolName === "file_write") {
-                    message = `Creating ${fileName}...`;
-                } else {
-                    message = `Editing ${fileName}...`;
-                }
+                const message = response.toolName === "file_write"
+                    ? `Creating ${fileName}...`
+                    : `Editing ${fileName}...`;
 
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
@@ -375,14 +367,14 @@ const AIChat: React.FC = () => {
                                 newMessages.length - 1
                             ].content.replace(
                                 `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolcall>No relevant libraries found.</toolcall>`
+                                `<toolresult>No relevant libraries found.</toolresult>`
                             );
                         } else {
                             newMessages[newMessages.length - 1].content = newMessages[
                                 newMessages.length - 1
                             ].content.replace(
                                 `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolcall>Fetched libraries: [${libraryNames.join(", ")}]</toolcall>`
+                                `<toolresult>Fetched libraries: [${libraryNames.join(", ")}]</toolresult>`
                             );
                         }
                     }
@@ -454,27 +446,21 @@ const AIChat: React.FC = () => {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
                         const creatingPattern = /<toolcall>Creating (.+?)\.\.\.<\/toolcall>/;
                         const editingPattern = /<toolcall>Editing (.+?)\.\.\.<\/toolcall>/;
-                        const repairingPattern = /<toolcall>Repairing (.+?)\.\.\.<\/toolcall>/;
 
                         let updatedContent = lastMessageContent;
 
-                        if (repairingPattern.test(lastMessageContent)) {
-                            updatedContent = lastMessageContent.replace(
-                                repairingPattern,
-                                (_match, fileName) => `<toolcall>Repaired ${fileName}</toolcall>`
-                            );
-                        } else if (creatingPattern.test(lastMessageContent)) {
+                        if (creatingPattern.test(lastMessageContent)) {
                             // For file_write, check if it was an update or create
                             const action = response.toolOutput?.action;
                             const resultText = action === 'updated' ? 'Updated' : 'Created';
                             updatedContent = lastMessageContent.replace(
                                 creatingPattern,
-                                (_match, fileName) => `<toolcall>${resultText} ${fileName}</toolcall>`
+                                (_match, fileName) => `<toolresult>${resultText} ${fileName}</toolresult>`
                             );
                         } else if (editingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
                                 editingPattern,
-                                (_match, fileName) => `<toolcall>Edited ${fileName}</toolcall>`
+                                (_match, fileName) => `<toolresult>Edited ${fileName}</toolresult>`
                             );
                         }
 
@@ -488,28 +474,19 @@ const AIChat: React.FC = () => {
                 const errors = diagnosticsOutput?.diagnostics || [];
                 const errorCount = errors.length;
 
-                setErrorCount(errorCount);
-                if (errorCount > 0) {
-                    setIsRepairMode(true);
-                }
-
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
                         const checkingPattern = /<toolcall>Checking for errors\.\.\.<\/toolcall>/;
 
-                        let message: string;
-                        if (errorCount === 0) {
-                            message = "No errors found";
-                            setIsRepairMode(false);
-                        } else {
-                            message = `Found ${errorCount} error${errorCount > 1 ? 's' : ''}`;
-                        }
+                        const message = errorCount === 0
+                            ? "No errors found"
+                            : `Found ${errorCount} error${errorCount > 1 ? 's' : ''}`;
 
                         const updatedContent = lastMessageContent.replace(
                             checkingPattern,
-                            `<toolcall>${message}</toolcall>`
+                            `<toolresult>${message}</toolresult>`
                         );
 
                         newMessages[newMessages.length - 1].content = updatedContent;
@@ -616,6 +593,7 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "diagnostics") {
+            //TODO: Handle this in review mode
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
         } else if (type === "messages") {
@@ -625,8 +603,6 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
-            setIsRepairMode(false);
-            setErrorCount(0);
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -637,8 +613,6 @@ const AIChat: React.FC = () => {
             });
             setIsCodeLoading(false);
             setIsLoading(false);
-            setIsRepairMode(false);
-            setErrorCount(0);
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const messageId = response.messageId;
@@ -1504,6 +1478,8 @@ const AIChat: React.FC = () => {
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
 
+                            // Note: Cannot use useMemo here as it's inside map() callback
+                            // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
                             const areTestsGenerated = segmentedContent.some(
                                 (segment) => segment.type === SegmentType.Progress
