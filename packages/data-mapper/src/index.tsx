@@ -30,6 +30,7 @@ import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
 import { ExpressionProvider } from "./context/ExpressionContext";
 import { ISSUES_URL } from "./components/Diagram/utils/constants";
+export { DataMapperErrorBoundary } from "./components/DataMapper/ErrorBoundary";
 
 const queryClient = new QueryClient({
     defaultOptions: {

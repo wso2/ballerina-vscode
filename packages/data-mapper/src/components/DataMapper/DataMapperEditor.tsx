@@ -27,7 +27,7 @@ import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
-import { DataMapperErrorBoundaryLegacy } from "./ErrorBoundary";
+import { DataMapperErrorBoundaryLegacy } from "./ErrorBoundaryLegacy";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
 import {
