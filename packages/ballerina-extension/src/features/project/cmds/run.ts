@@ -27,6 +27,7 @@ import { prepareAndGenerateConfig } from '../../config-generator/configGenerator
 import { LANGUAGE } from "../../../core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
 
 function activateRunCmdCommand() {
 
@@ -42,11 +43,14 @@ function activateRunCmdCommand() {
         const isActiveTextEditor = window.activeTextEditor;
 
         if (!actualFilePath && !isActiveTextEditor) {    
+        
             const context = StateMachine.context();
-            const { workspacePath, view, projectPath, projectInfo, isBI } = context;
+            const { workspacePath, view, projectPath, projectInfo } = context;
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+
             isAtWorkspaceLevel = 
                 workspacePath && 
-                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath);
+                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath || !isWebviewOpen);
             
             if (isAtWorkspaceLevel && projectInfo?.children.length === 0) {
                 window.showErrorMessage("No packages found in the workspace.");

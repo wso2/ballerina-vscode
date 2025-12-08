@@ -31,6 +31,7 @@ import { startDebugging } from "../editor-support/activator";
 import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 import { TracerMachine } from "../tracing";
+import { VisualizerWebview } from "../../views/visualizer/webview";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -56,10 +57,22 @@ export async function prepareAndGenerateConfig(
                 ignoreFocusOut: false,
             });
 
+            // User cancelled selection
+            if (!selectedPackage) {
+                return;
+            }
+
             const selectedPackageInfo = packages?.find((child) => child.projectPath === selectedPackage);
             if (selectedPackageInfo) {
                 packagePath = selectedPackageInfo.projectPath;
                 packageName = selectedPackageInfo.name;
+            }
+            if (isBi) {
+                openView(
+                    EVENT_TYPE.OPEN_VIEW,
+                    { view: MACHINE_VIEW.PackageOverview, projectPath: selectedPackage },
+                    true
+                );
             }
         } catch (error) {
             console.error("Error selecting package:", error);
@@ -75,6 +88,15 @@ export async function prepareAndGenerateConfig(
 
         packagePath = currentProject.path;
         packageName = currentProject.packageName;
+
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        if (isBi && !isWebviewOpen) {
+            openView(
+                EVENT_TYPE.OPEN_VIEW,
+                { view: MACHINE_VIEW.PackageOverview, projectPath: packagePath },
+                true
+            );
+        }
     }
 
     const ignoreFile = path.join(packagePath, ".gitignore");
