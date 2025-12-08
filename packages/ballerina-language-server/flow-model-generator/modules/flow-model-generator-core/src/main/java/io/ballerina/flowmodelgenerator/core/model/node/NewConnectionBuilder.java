@@ -212,7 +212,7 @@ public class NewConnectionBuilder extends CallBuilder {
                     .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeExpression(paramResult.typeSymbol())
+                    .typeExpression(paramResult.symbol())
                     .typeMembers(paramResult.typeMembers())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -235,7 +235,7 @@ public class NewConnectionBuilder extends CallBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.typeExpression(paramResult.typeSymbol());
+                        customPropBuilder.typeExpression(paramResult.symbol());
                     }
                 }
             }

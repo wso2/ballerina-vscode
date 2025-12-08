@@ -76,7 +76,7 @@ public class NPFunctionCall extends FunctionCall {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
-                default -> customPropBuilder.typeExpression(paramResult.typeSymbol());
+                default -> customPropBuilder.typeExpression(paramResult.symbol());
             }
 
             customPropBuilder

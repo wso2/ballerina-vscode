@@ -1,4 +1,4 @@
- /*
+/*
  *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
@@ -21,7 +21,12 @@ package io.ballerina.flowmodelgenerator.core.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.PathParameterSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -537,8 +542,22 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeExpression(TypeSymbol typeSymbol) {
-            type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
+        public Builder<T> typeExpression(Symbol symbol) {
+            if (symbol instanceof TypeSymbol typeSymbol) {
+                type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
+            } else if (symbol != null) {
+                // Extract type from other symbol types if needed
+                TypeSymbol typeSymbol = switch (symbol) {
+                    case ParameterSymbol ps -> ps.typeDescriptor();
+                    case RecordFieldSymbol rfs -> rfs.typeDescriptor();
+                    case PathParameterSymbol pps -> pps.typeDescriptor();
+                    case VariableSymbol vs -> vs.typeDescriptor();
+                    default -> null;
+                };
+                if (typeSymbol != null) {
+                    type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(typeSymbol).stepOut();
+                }
+            }
             return this;
         }
 

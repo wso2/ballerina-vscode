@@ -812,7 +812,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .originalName(paramResult.name())
                                 .stepOut()
                             .value(expr.toSourceCode())
-                            .typeExpression(paramResult.typeSymbol())
+                            .typeExpression(paramResult.symbol())
                             .typeMembers(paramResult.typeMembers())
                             .editable()
                             .defaultable(paramResult.optional())
@@ -872,7 +872,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeExpression(paramResult.typeSymbol())
+                    .typeExpression(paramResult.symbol())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -890,7 +890,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
             } else {
-                customPropBuilder.typeExpression(paramResult.typeSymbol());
+                customPropBuilder.typeExpression(paramResult.symbol());
             }
             customPropBuilder
                     .stepOut()
@@ -949,7 +949,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
-                        .typeExpression(paramResult.typeSymbol())
+                        .typeExpression(paramResult.symbol())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
                         .editable()
@@ -969,7 +969,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.typeExpression(paramResult.typeSymbol());
+                        customPropBuilder.typeExpression(paramResult.symbol());
                     }
                 }
                 customPropBuilder
@@ -1178,7 +1178,8 @@ public class CodeAnalyzer extends NodeVisitor {
                                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                             .description(paramResult.description())
                                             .stepOut()
-                                        .type(getPropertyTypeFromParam(parameterSymbol, paramResult), paramResult.type())
+                                        .type(getPropertyTypeFromParam(parameterSymbol, paramResult),
+                                                paramResult.type())
                                         .typeMembers(paramResult.typeMembers(), selectedType)
                                         .imports(paramResult.importStatements())
                                         .value(value)

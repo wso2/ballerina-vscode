@@ -295,7 +295,7 @@ public class FunctionDataBuilder {
             Optional<Project> workspaceProject = compilerApi.getWorkspaceProject(project);
             if (workspaceProject.isPresent()) {
                 List<Project> childProjects = compilerApi.getWorkspaceProjectsInOrder(workspaceProject.get());
-                for (Project childProject: childProjects) {
+                for (Project childProject : childProjects) {
                     Package currentPackage = childProject.currentPackage();
                     String currentPackageName = currentPackage.packageName().value();
                     if (currentPackage.packageOrg().value().equals(moduleInfo.org()) &&
@@ -760,7 +760,7 @@ public class FunctionDataBuilder {
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, typeSymbol));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, null, paramSymbol));
                     return parameters;
                 }
             }
@@ -771,7 +771,7 @@ public class FunctionDataBuilder {
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                 parameterKind, optional,
-                importStatements, unionTypes, typeSymbol);
+                importStatements, unionTypes, paramSymbol);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
         return parameters;
@@ -897,7 +897,7 @@ public class FunctionDataBuilder {
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
                     paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
-                    getImportStatements(typeSymbol), null, typeSymbol);
+                    getImportStatements(typeSymbol), null, recordFieldSymbol);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
         }
@@ -1026,7 +1026,7 @@ public class FunctionDataBuilder {
                         pathBuilder.append("[").append(paramName).append("]");
                         pathParams.add(
                                 ParameterData.from(paramName, type, ParameterData.Kind.PATH_PARAM, defaultValue,
-                                        paramDescription, false, pathParameterSymbol.typeDescriptor()));
+                                        paramDescription, false, pathParameterSymbol));
                     } else {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }
@@ -1196,8 +1196,8 @@ public class FunctionDataBuilder {
                 (functionKind == FunctionData.Kind.MODEL_PROVIDER
                         || functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
                         || (isAiModelModule(moduleInfo.org(), moduleInfo.moduleName())
-                                && (functionKind == FunctionData.Kind.CLASS_INIT
-                                || functionKind == FunctionData.Kind.CONNECTOR)));
+                        && (functionKind == FunctionData.Kind.CLASS_INIT
+                        || functionKind == FunctionData.Kind.CONNECTOR)));
     }
 
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
