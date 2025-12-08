@@ -51,8 +51,8 @@ function activateRunCmdCommand() {
             if (isAtWorkspaceLevel && projectInfo?.children.length === 0) {
                 window.showErrorMessage("No packages found in the workspace.");
                 return;
-            } else if (!isAtWorkspaceLevel) {
-                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            } else if (!isAtWorkspaceLevel && !projectPath) {
+                window.showErrorMessage("No project found.");
                 return;
             }
 
