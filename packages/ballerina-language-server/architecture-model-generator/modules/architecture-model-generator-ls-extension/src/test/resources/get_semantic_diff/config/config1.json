@@ -2,26 +2,11 @@
   "description": "Get diff from two non workspace projects",
   "projectPath": "non_workspace",
   "output": {
+    "loadDesignDiagrams": true,
     "semanticDiffs": [
       {
-        "changeType": "ADDITION",
-        "nodeKind": "LISTENER_DECLARATION",
-        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
-        "lineRange": {
-          "fileName": "main.bal",
-          "startLine": {
-            "line": 4,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 4,
-            "offset": 51
-          }
-        }
-      },
-      {
         "changeType": "MODIFICATION",
-        "nodeKind": "MODULE_FUNCTION",
+        "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
         "lineRange": {
           "fileName": "main.bal",
@@ -37,7 +22,7 @@
       },
       {
         "changeType": "MODIFICATION",
-        "nodeKind": "MODULE_FUNCTION",
+        "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
         "lineRange": {
           "fileName": "main.bal",
@@ -53,7 +38,7 @@
       },
       {
         "changeType": "MODIFICATION",
-        "nodeKind": "MODULE_FUNCTION",
+        "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
         "lineRange": {
           "fileName": "main.bal",
@@ -69,7 +54,7 @@
       },
       {
         "changeType": "MODIFICATION",
-        "nodeKind": "MODULE_FUNCTION",
+        "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/non_workspace/original/main.bal",
         "lineRange": {
           "fileName": "main.bal",

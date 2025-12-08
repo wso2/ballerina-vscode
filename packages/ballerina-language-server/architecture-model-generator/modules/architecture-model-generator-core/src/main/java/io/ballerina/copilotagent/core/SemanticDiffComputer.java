@@ -10,6 +10,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.copilotagent.core.models.ChangeType;
 import io.ballerina.copilotagent.core.models.NodeKind;
+import io.ballerina.copilotagent.core.models.Result;
 import io.ballerina.copilotagent.core.models.STNodeRefMap;
 import io.ballerina.copilotagent.core.models.SemanticDiff;
 import io.ballerina.copilotagent.core.models.ServiceMemberMap;
@@ -28,10 +29,9 @@ import java.util.Objects;
 public class SemanticDiffComputer {
     private final Project originalProject;
     private final Project modifiedProject;
-    private final WorkspaceManager originalWorkspaceManager;
-    private final WorkspaceManager shadowWorkspaceManager;
     private final List<SemanticDiff> semanticDiffs = new ArrayList<>();
     private final String rootProjectPath;
+    private boolean loadDesignDiagrams = false;
 
     public SemanticDiffComputer(Project originalProject,
                                 Project modifiedProject,
@@ -39,12 +39,10 @@ public class SemanticDiffComputer {
                                 WorkspaceManager shadowWorkspaceManager) {
         this.originalProject = originalProject;
         this.modifiedProject = modifiedProject;
-        this.originalWorkspaceManager = originalWorkspaceManager;
-        this.shadowWorkspaceManager = shadowWorkspaceManager;
         this.rootProjectPath = originalProject.sourceRoot().toString();
     }
 
-    public List<SemanticDiff> computeSemanticDiffs() {
+    public Result computeSemanticDiffs() {
         Map<String, Document> originalDocumentMap = collectDocumentMap(originalProject);
         Map<String, Document> modifiedDocumentMap = collectDocumentMap(modifiedProject);
 
@@ -78,32 +76,51 @@ public class SemanticDiffComputer {
         }
 
         computeListenerDiffs(originalNodeRefMap.getListenerNodeMap(), modifiedNodeRefMap.getListenerNodeMap());
-        computeFunctionDiffs(originalNodeRefMap.getFunctionNodeMap(), modifiedNodeRefMap.getFunctionNodeMap());
         computeServiceDiffs(originalNodeRefMap.getServiceNodeMap(), modifiedNodeRefMap.getServiceNodeMap());
+        computeFunctionDiffs(originalNodeRefMap.getFunctionNodeMap(), modifiedNodeRefMap.getFunctionNodeMap());
         computeTypeDefDiffs(originalNodeRefMap.getTypeDefNodeMap(), modifiedNodeRefMap.getTypeDefNodeMap());
-        return this.semanticDiffs;
+
+        if (!loadDesignDiagrams) {
+            compareUsingDesignDiagrams();
+        }
+
+        return new Result(loadDesignDiagrams, this.semanticDiffs);
     }
 
+    /**
+     * Computes listener differences between original and modified projects to determine
+     * if design diagrams need to be reloaded.
+     *
+     * <p>This method performs a shallow comparison of listener declarations to detect
+     * structural changes such as listener additions or removals. It sets the
+     * {@code loadDesignDiagrams} flag if any differences are found, which indicates
+     * that the architecture diagram should be regenerated.
+     *
+     * <p>Note: This method does not analyze the expression content of listeners since
+     * only structural changes affect the design diagram. The comparison terminates
+     * early if a difference is already detected to optimize performance.
+     *
+     * @param originalListenerMap map of listener names to their declaration nodes
+     *                           from the original project
+     * @param modifiedListenerMap map of listener names to their declaration nodes
+     *                           from the modified project
+     */
     private void computeListenerDiffs(Map<String, ListenerDeclarationNode> originalListenerMap,
                                       Map<String, ListenerDeclarationNode> modifiedListenerMap) {
+        if (loadDesignDiagrams) {
+            return;
+        }
+
         for (String listenerName : originalListenerMap.keySet()) {
             if (!modifiedListenerMap.containsKey(listenerName)) {
-                // Listener removed in modified project
-                SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.LISTENER_DECLARATION,
-                        "", null);
-                this.semanticDiffs.add(diff);
-                continue;
+                loadDesignDiagrams = true;
+                return;
             }
             modifiedListenerMap.remove(listenerName);
         }
 
-        // Handle newly added listeners in modified project
-        for (String listenerName : modifiedListenerMap.keySet()) {
-            ListenerDeclarationNode listenerDeclarationNode = modifiedListenerMap.get(listenerName);
-            LineRange lineRange = listenerDeclarationNode.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.LISTENER_DECLARATION,
-                    resolveUri(lineRange.fileName()), lineRange);
-            this.semanticDiffs.add(diff);
+        if (!modifiedListenerMap.isEmpty()) {
+            loadDesignDiagrams = true;
         }
     }
 
@@ -130,6 +147,13 @@ public class SemanticDiffComputer {
         }
     }
 
+    /**
+     * Computes function differences between original and modified projects to identify
+     * changes and update semantic diffs accordingly.
+     *
+     * @param originalFunctionMap original map of function names to their definition nodes
+     * @param modifiedFunctionMap modified map of function names to their definition nodes
+     */
     private void computeFunctionDiffs(Map<String, FunctionDefinitionNode> originalFunctionMap,
                                       Map<String, FunctionDefinitionNode> modifiedFunctionMap) {
         for (String functionName : originalFunctionMap.keySet()) {
@@ -141,7 +165,8 @@ public class SemanticDiffComputer {
                 continue;
             }
             modifiedFunctionMap.remove(functionName);
-            compareFunctionBodies(originalFunctionMap.get(functionName), modifiedFunctionMap.get(functionName));
+            compareFunctionBodies(originalFunctionMap.get(functionName),
+                    modifiedFunctionMap.get(functionName), NodeKind.MODULE_FUNCTION);
         }
 
         // Handle newly added functions in modified project
@@ -154,16 +179,35 @@ public class SemanticDiffComputer {
         }
     }
 
+    /**
+     * Compares the bodies of two functions to identify modifications and update
+     * semantic diffs accordingly.
+     *
+     * @param originalFunction original function node
+     * @param modifiedFunction modified function node
+     * @param kind the kind of node being compared
+     */
     private void compareFunctionBodies(FunctionDefinitionNode originalFunction,
-                                      FunctionDefinitionNode modifiedFunction) {
+                                       FunctionDefinitionNode modifiedFunction,
+                                       NodeKind kind) {
         FunctionBodyNode originalFunctionBody = originalFunction.functionBody();
         FunctionBodyNode modifiedFunctionBody = modifiedFunction.functionBody();
-        compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody);
+        compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind);
     }
 
+    /**
+     * Compares the bodies of two functions to identify modifications and update
+     * semantic diffs accordingly.
+     *
+     * @param modifiedFunction modified function node
+     * @param originalFunctionBody original function body node
+     * @param modifiedFunctionBody modified function body node
+     * @param kind the kind of node being compared
+     */
     private void compareFunctionBodies(NonTerminalNode modifiedFunction,
                                        FunctionBodyNode originalFunctionBody,
-                                       FunctionBodyNode modifiedFunctionBody) {
+                                       FunctionBodyNode modifiedFunctionBody,
+                                       NodeKind kind) {
         if (originalFunctionBody.toSourceCode().equals(modifiedFunctionBody.toSourceCode())) {
             return;
         }
@@ -176,20 +220,22 @@ public class SemanticDiffComputer {
             return;
         }
 
-        if (originalFunctionBody instanceof FunctionBodyBlockNode body
-                && modifiedFunctionBody instanceof FunctionBodyBlockNode modBody) {
-            if (body.statements().size() != modBody.statements().size()) {
+        if (originalFunctionBody instanceof FunctionBodyBlockNode originalBodyNode
+                && modifiedFunctionBody instanceof FunctionBodyBlockNode modifiedBodyNode) {
+            if (originalBodyNode.statements().size() != modifiedBodyNode.statements().size()) {
                 LineRange lineRange = modifiedFunction.lineRange();
-                SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.MODULE_FUNCTION,
+                SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
                         resolveUri(lineRange.fileName()), lineRange);
                 this.semanticDiffs.add(diff);
                 return;
             }
 
-            for (int i = 0; i < body.statements().size(); i++) {
-                if (!body.statements().get(i).toSourceCode().equals(modBody.statements().get(i).toSourceCode())) {
+            // TODO: analyze the do statement block for changes
+            for (int i = 0; i < originalBodyNode.statements().size(); i++) {
+                if (!originalBodyNode.statements().get(i).toSourceCode().equals(
+                        modifiedBodyNode.statements().get(i).toSourceCode())) {
                     LineRange lineRange = modifiedFunction.lineRange();
-                    SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.MODULE_FUNCTION,
+                    SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
                             resolveUri(lineRange.fileName()), lineRange);
                     this.semanticDiffs.add(diff);
                     return;
@@ -198,6 +244,27 @@ public class SemanticDiffComputer {
         }
     }
 
+
+    /**
+     * Computes service differences between original and modified projects to identify
+     * changes and update semantic diffs accordingly.
+     *
+     * <p>This method performs a detailed comparison of service declarations between the
+     * original and modified projects. It identifies added, removed, and modified services,
+     * and updates the semantic diffs list accordingly.
+     * <p>The comparison process includes:
+     * <ul>
+     *     <li>Identifying services present in both projects and comparing their members</li>
+     *     <li>Detecting newly added services in the modified project</li>
+     *     <li>Setting the {@code loadDesignDiagrams} flag when structural changes are detected</li>
+     * </ul>
+     *
+     * <p>Note: This method only detects additions and modifications. Service deletions
+     * are not explicitly tracked in the current implementation.
+     *
+     * @param originalServiceMap original map of service names to their declaration nodes
+     * @param modifiedServiceMap modified map of service names to their declaration nodes
+     */
     private void computeServiceDiffs(Map<String, ServiceDeclarationNode> originalServiceMap,
                                      Map<String, ServiceDeclarationNode> modifiedServiceMap) {
         List<String> foundServices = new ArrayList<>();
@@ -215,18 +282,8 @@ public class SemanticDiffComputer {
         foundServices.forEach(originalServiceMap::remove);
 
         // Split keys by # and check if there is a match between first parts
-        Map<String, String> originalServiceBasePaths = new HashMap<>();
-        Map<String, String> modifiedServiceBasePaths = new HashMap<>();
-
-        for (String serviceName : originalServiceMap.keySet()) {
-            String basePath = serviceName.split("#")[0];
-            originalServiceBasePaths.put(basePath, serviceName);
-        }
-
-        for (String serviceName : modifiedServiceMap.keySet()) {
-            String basePath = serviceName.split("#")[0];
-            modifiedServiceBasePaths.put(basePath, serviceName);
-        }
+        Map<String, String> originalServiceBasePaths = extractServiceBasePaths(originalServiceMap);
+        Map<String, String> modifiedServiceBasePaths = extractServiceBasePaths(modifiedServiceMap);
 
         // Check for matches and handle differences
         for (String basePath : originalServiceBasePaths.keySet()) {
@@ -240,11 +297,13 @@ public class SemanticDiffComputer {
                 analyzeServiceModifications(originalService, modifiedService);
             }
         }
-
         foundServices.forEach(modifiedServiceMap::remove);
-        foundServices.forEach(originalServiceMap::remove);
 
-        // Handle whats in left modifiedServiceMap as additions
+        if (modifiedServiceMap.isEmpty()) {
+            return;
+        }
+
+        loadDesignDiagrams = true;
         modifiedServiceMap.forEach((serviceName, modifiedService) -> {
             ServiceMemberMap modifiedServiceMemberMap = new ServiceMemberMap();
             ServiceMethodExtractor modifiedServiceMethodExtractor =
@@ -275,56 +334,81 @@ public class SemanticDiffComputer {
 
     }
 
+    /**
+     * Analyzes modifications between two service declarations to identify changes
+     * and update semantic diffs accordingly.
+     *
+     * <p>This method performs a detailed comparison of service members between the original
+     * and modified service declarations. It extracts service members (remote methods,
+     * resource methods, and object methods) from both services using the ServiceMethodExtractor
+     * and compares them to detect structural and behavioral changes.
+     *
+     * <p>The comparison process includes:
+     * <ul>
+     * <li>Extracting all service members from both original and modified services</li>
+     * <li>Comparing function bodies of existing members to detect modifications</li>
+     * <li>Identifying newly added members in the modified service</li>
+     * <li>Setting the {@code loadDesignDiagrams} flag when structural changes are detected</li>
+     * </ul>
+     *
+     * <p>Note: This method only detects additions and modifications. Service member
+     * deletions are not explicitly tracked in the current implementation.
+     *
+     * @param originalService the service declaration from the original project
+     * @param modifiedService the service declaration from the modified project
+     */
     private void analyzeServiceModifications(ServiceDeclarationNode originalService,
                                              ServiceDeclarationNode modifiedService) {
-        ServiceMemberMap originalServiceMemberMap = new ServiceMemberMap();
-        ServiceMemberMap modifiedServiceMemberMap = new ServiceMemberMap();
+        ServiceMemberMap original = extractServiceMembers(originalService);
+        ServiceMemberMap modified = extractServiceMembers(modifiedService);
 
-        ServiceMethodExtractor originalServiceMethodExtractor = new ServiceMethodExtractor(originalServiceMemberMap);
-        ServiceMethodExtractor modifiedServiceMethodExtractor = new ServiceMethodExtractor(modifiedServiceMemberMap);
-        originalService.accept(originalServiceMethodExtractor);
-        modifiedService.accept(modifiedServiceMethodExtractor);
+        analyzeMethodChanges(original.getRemoteMethods(), modified.getRemoteMethods());
+        analyzeMethodChanges(original.getResourceMethods(), modified.getResourceMethods());
+        analyzeMethodChanges(original.getObjectMethods(), modified.getObjectMethods());
+    }
 
-        modifiedServiceMemberMap.getRemoteMethods().forEach((key, modifiedMethod) -> {
-            if (originalServiceMemberMap.getRemoteMethods().containsKey(key)) {
-                FunctionDefinitionNode originalMethod = originalServiceMemberMap.getRemoteMethods().get(key);
-                compareFunctionBodies(originalMethod, modifiedMethod);
-                return;
+    /**
+     * Analyzes method changes between original and modified method maps.
+     *
+     * @param originalMethods Map of original method names to their definition nodes
+     * @param modifiedMethods Map of modified method names to their definition nodes
+     */
+    private void analyzeMethodChanges(Map<String, FunctionDefinitionNode> originalMethods,
+                                      Map<String, FunctionDefinitionNode> modifiedMethods) {
+        modifiedMethods.forEach((key, modifiedMethod) -> {
+            if (originalMethods.containsKey(key)) {
+                FunctionDefinitionNode originalMethod = originalMethods.get(key);
+                compareFunctionBodies(originalMethod, modifiedMethod, NodeKind.OBJECT_FUNCTION);
+            } else {
+                // New method added
+                LineRange lineRange = modifiedMethod.lineRange();
+                SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
+                        resolveUri(lineRange.fileName()), lineRange);
+                this.semanticDiffs.add(diff);
+                loadDesignDiagrams = true;
             }
-            // New remote method added
-            LineRange lineRange = modifiedMethod.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange);
-            this.semanticDiffs.add(diff);
-        });
-
-        modifiedServiceMemberMap.getResourceMethods().forEach((key, modifiedMethod) -> {
-            if (originalServiceMemberMap.getResourceMethods().containsKey(key)) {
-                FunctionDefinitionNode originalMethod = originalServiceMemberMap.getResourceMethods().get(key);
-                compareFunctionBodies(originalMethod, modifiedMethod);
-                return;
-            }
-            // New resource method added
-            LineRange lineRange = modifiedMethod.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange);
-            this.semanticDiffs.add(diff);
-        });
-
-        modifiedServiceMemberMap.getObjectMethods().forEach((key, modifiedMethod) -> {
-            if (originalServiceMemberMap.getObjectMethods().containsKey(key)) {
-                FunctionDefinitionNode originalMethod = originalServiceMemberMap.getObjectMethods().get(key);
-                compareFunctionBodies(originalMethod, modifiedMethod);
-                return;
-            }
-            // New object method added
-            LineRange lineRange = modifiedMethod.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange);
-            this.semanticDiffs.add(diff);
         });
     }
 
+    /**
+     * Extracts service members from a given service declaration node.
+     *
+     * @param service the service declaration node to extract members from
+     * @return a ServiceMemberMap containing the extracted service members
+     */
+    private ServiceMemberMap extractServiceMembers(ServiceDeclarationNode service) {
+        ServiceMemberMap serviceMemberMap = new ServiceMemberMap();
+        ServiceMethodExtractor extractor = new ServiceMethodExtractor(serviceMemberMap);
+        service.accept(extractor);
+        return serviceMemberMap;
+    }
+
+    /**
+     * Collects a map of document names to Document objects from the given project.
+     *
+     * @param project the Ballerina project to collect documents from
+     * @return a map of document names to Document objects
+     */
     private Map<String, Document> collectDocumentMap(Project project) {
         Map<String, Document> documentMap = new HashMap<>();
         project.currentPackage().getDefaultModule().documentIds().stream()
@@ -334,6 +418,27 @@ public class SemanticDiffComputer {
                     documentMap.put(document.name(), document);
                 });
         return documentMap;
+    }
+
+    /**
+     * Extracts base paths from service names in the given service map.
+     *
+     * @param serviceMap map of service names to their declaration nodes
+     * @return a map of service base paths to full service names
+     */
+    private Map<String, String> extractServiceBasePaths(Map<String, ServiceDeclarationNode> serviceMap) {
+        Map<String, String> serviceBasePaths = new HashMap<>();
+        for (String serviceName : serviceMap.keySet()) {
+            String basePath = serviceName.split("#")[0];
+            serviceBasePaths.put(basePath, serviceName);
+        }
+        return serviceBasePaths;
+    }
+
+    private void compareUsingDesignDiagrams() {
+        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.TYPE_DEFINITION,
+                "", null);
+        this.semanticDiffs.add(diff);
     }
 
     private String resolveUri(String fileName) {

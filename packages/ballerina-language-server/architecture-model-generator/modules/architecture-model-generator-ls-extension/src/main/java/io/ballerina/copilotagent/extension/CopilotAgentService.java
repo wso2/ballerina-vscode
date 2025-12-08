@@ -18,9 +18,8 @@
 
 package io.ballerina.copilotagent.extension;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import io.ballerina.copilotagent.core.SemanticDiffComputer;
+import io.ballerina.copilotagent.core.models.Result;
 import io.ballerina.copilotagent.extension.request.SemanticDiffRequest;
 import io.ballerina.copilotagent.extension.response.SemanticDiffResponse;
 import io.ballerina.projects.Project;
@@ -59,6 +58,7 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
     @JsonRequest
     public CompletableFuture<SemanticDiffResponse> getSemanticDiff(SemanticDiffRequest request) {
         return CompletableFuture.supplyAsync(() -> {
+            SemanticDiffResponse response = new SemanticDiffResponse();
             Path path = Path.of(request.projectPath());
             Project originalProject;
             Project shadowProject;
@@ -72,10 +72,13 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
                         this.workspaceManager,
                         this.aiWorkspaceManager
                 );
-                return new SemanticDiffResponse(diffComputer.computeSemanticDiffs());
+                Result result = diffComputer.computeSemanticDiffs();
+                response.setLoadDesignDiagrams(result.loadDesignDiagrams());
+                response.setSemanticDiffs(result.semanticDiffs());
             } catch (Exception e) {
-                return new SemanticDiffResponse(null);
+                response.setError(e);
             }
+            return response;
         });
     }
 }
