@@ -38,6 +38,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
@@ -65,9 +66,9 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         return CompletableFuture.supplyAsync(() -> {
             GetDesignModelResponse response = new GetDesignModelResponse();
             try {
-                Path projectPath = Path.of(request.projectPath());
-                WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.projectPath());
-                Project project = workspaceManager.loadProject(projectPath);
+                URI uriPath = URI.create(request.projectPath());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(uriPath.toString());
+                Project project = workspaceManager.loadProject(Path.of(uriPath.getPath()));
                 DesignModelGenerator designModelGenerator = new DesignModelGenerator(project.currentPackage());
                 DesignModel designModel = designModelGenerator.generate();
                 response.setDesignModel(designModel);

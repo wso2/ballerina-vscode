@@ -60,6 +60,9 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
     @Override
     public WorkspaceManager get(String fileUri) {
         String scheme = URI.create(fileUri).getScheme();
+        if (scheme == null) {
+            return this.baseWorkspaceManager;
+        }
         if (scheme.equals(CommonUtil.AI_SCHEME)) {
             return this.aiWorkspaceManager;
         } else if (scheme.equals(CommonUtil.EXPR_SCHEME)) {

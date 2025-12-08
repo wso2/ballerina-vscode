@@ -92,6 +92,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -131,10 +132,11 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
-                Path filePath = Path.of(request.filePath());
-                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
+                URI uriPath = URI.create(request.filePath());
+                Path filePath = Path.of(uriPath.getPath());
 
                 // Obtain the semantic model and the document
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(uriPath.toString());
                 Project project = workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
