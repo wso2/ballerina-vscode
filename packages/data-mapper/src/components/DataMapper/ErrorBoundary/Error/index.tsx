@@ -63,7 +63,7 @@ export default function ErrorScreen(props: ErrorScreenProps) {
                     </svg>
                 </div>
                 <Typography variant="h4" className={classes.errorTitle}>
-                    A problem occurred while rendering the Data Mapper.
+                    This mapping cannot be visualized.
                 </Typography>
                 <div className={classes.iconContainer}>
                     <Button appearance="icon" onClick={handleReset}>

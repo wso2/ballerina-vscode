@@ -617,7 +617,7 @@ export function DataMapperView(props: DataMapperProps) {
         } else if (isFileUpdateError) {
             throw new Error("Error while updating file content");
         }
-    }, [isError]);
+    }, [isError, isFileUpdateError]);
 
     const retrieveCompeletions = useCallback(
         debounce(async (outputId: string, viewId: string, value: string, cursorPosition?: number) => {

@@ -284,7 +284,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             ]);
         } catch (error) {
             console.error("Error generating nodes:", error);
-            setHasInternalError(true);
+            throw new Error("Error generating nodes: " + error);
         }
     };
 
@@ -339,53 +339,50 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }
 
     return (
-        <DataMapperErrorBoundaryLegacy hasError={hasInternalError} onClose={onClose}>
-            <div className={classes.root}>
-                {model && (
-                    <DataMapperHeader
-                        views={views}
-                        reusable={reusable}
-                        switchView={switchView}
-                        hasEditDisabled={!!errorKind}
-                        onClose={handleOnClose}
-                        onBack={handleOnBack}
-                        onRefresh={onRefresh}
-                        onReset={handleOnReset}
-                        onEdit={onEdit}
-                        autoMapWithAI={autoMapWithAI}
-                        undoRedoGroup={undoRedoGroup}
+        <div className={classes.root}>
+            {model && (
+                <DataMapperHeader
+                    views={views}
+                    reusable={reusable}
+                    switchView={switchView}
+                    hasEditDisabled={!!errorKind}
+                    onClose={handleOnClose}
+                    onBack={handleOnBack}
+                    onRefresh={onRefresh}
+                    onReset={handleOnReset}
+                    onEdit={onEdit}
+                    autoMapWithAI={autoMapWithAI}
+                    undoRedoGroup={undoRedoGroup}
+                />
+            )}
+            {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
+            {nodes.length > 0 && !errorKind && (
+                <>
+                    <DataMapperDiagram
+                        nodes={nodes}
+                        onError={handleErrors}
                     />
-                )}
-                {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-                {nodes.length > 0 && !errorKind && (
-                    <>
-                        <DataMapperDiagram
-                            nodes={nodes}
-                            onError={handleErrors}
+                    {isSMConfigPanelOpen && (
+                        <SubMappingConfigForm
+                            views={views}
+                            updateView={editView}
+                            addSubMapping={addNewSubMapping}
+                            generateForm={generateForm}
                         />
-                        {isSMConfigPanelOpen && (
-                            <SubMappingConfigForm
-                                views={views}
-                                updateView={editView}
-                                addSubMapping={addNewSubMapping}
-                                generateForm={generateForm}
-                            />
-                        )}
-                        {isQueryClausesPanelOpen && (
-                            <ClausesPanel
-                                query={model.query}
-                                targetField={views[views.length - 1].targetField}
-                                addClauses={addClauses}
-                                deleteClause={deleteClause}
-                                getClausePosition={getClausePosition}
-                                generateForm={generateForm}
-                                genUniqueName={genUniqueName}
-                            />
-                        )}
-                    </>
-                )}
-                
-            </div>
-        </DataMapperErrorBoundaryLegacy>
-    )
+                    )}
+                    {isQueryClausesPanelOpen && (
+                        <ClausesPanel
+                            query={model.query}
+                            targetField={views[views.length - 1].targetField}
+                            addClauses={addClauses}
+                            deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
+                            generateForm={generateForm}
+                            genUniqueName={genUniqueName}
+                        />
+                    )}
+                </>
+            )}
+        </div>
+    );
 }
