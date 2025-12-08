@@ -478,8 +478,8 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Finds the initialization expression for a field by searching through its references.
-     * Currently looks for assignments in the init method.
+     * Finds the initialization expression for a field by searching through its references. Currently looks for
+     * assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
      * @return Optional containing the initialization expression if found, empty otherwise
@@ -812,7 +812,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .originalName(paramResult.name())
                                 .stepOut()
                             .value(expr.toSourceCode())
-                            .typeExpression(paramResult.symbol())
+                             .typeExpression(paramResult.symbol(), moduleInfo)
                             .typeMembers(paramResult.typeMembers())
                             .editable()
                             .defaultable(paramResult.optional())
@@ -872,7 +872,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeExpression(paramResult.symbol())
+                     .typeExpression(paramResult.symbol(), moduleInfo)
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -890,7 +890,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
             } else {
-                customPropBuilder.typeExpression(paramResult.symbol());
+                customPropBuilder.typeExpression(paramResult.symbol(), moduleInfo);
             }
             customPropBuilder
                     .stepOut()
@@ -949,7 +949,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
-                        .typeExpression(paramResult.symbol())
+                             .typeExpression(paramResult.symbol(), moduleInfo)
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
                         .editable()
@@ -969,7 +969,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.typeExpression(paramResult.symbol());
+                        customPropBuilder.typeExpression(paramResult.symbol(), moduleInfo);
                     }
                 }
                 customPropBuilder

@@ -201,7 +201,7 @@ public abstract class CallBuilder extends NodeBuilder {
                     if (paramResult.unionTypes() != null && !paramResult.unionTypes().isEmpty()) {
                         customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
                     } else {
-                        customPropBuilder.typeExpression(paramResult.symbol());
+                        customPropBuilder.typeExpression(paramResult.symbol(), moduleInfo);
                     }
                 }
             }

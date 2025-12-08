@@ -548,7 +548,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeExpression(Symbol symbol) {
+        public Builder<T> typeExpression(Symbol symbol, io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
             if (symbol == null) {
                 return this;
             }
@@ -615,12 +615,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 Property.ValueType valueType = getValueTypeFromTypeKind(CommonUtil.getRawType(typeSymbol).typeKind());
                 if (valueType == ValueType.EXPRESSION) {
                     type().fieldType(ValueType.EXPRESSION)
-                            .ballerinaType(CommonUtils.getTypeSignature(null, typeSymbol, false))
+                            .ballerinaType(CommonUtils.getTypeSignature(typeSymbol, moduleInfo))
                             .stepOut();
                 } else {
                     type().fieldType(valueType).stepOut();
                     type().fieldType(ValueType.EXPRESSION)
-                            .ballerinaType(CommonUtils.getTypeSignature(null, typeSymbol, false))
+                            .ballerinaType(CommonUtils.getTypeSignature(typeSymbol, moduleInfo))
                             .stepOut();
                 }
             }
