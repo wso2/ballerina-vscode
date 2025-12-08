@@ -13,7 +13,8 @@ import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import FormGenerator from "../Forms/FormGenerator";
-import { McpToolsSelection } from "./McpToolsSelection";
+import { McpToolsSelection } from "./Mcp/McpToolsSelection";
+import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
 import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, parseToolsString, resolveVariableValue, resolveAuthConfig } from "./utils";
@@ -40,6 +41,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
     const [serverUrl, setServerUrl] = useState("");
     const [auth, setAuth] = useState("");
+    const [requiresAuth, setRequiresAuth] = useState(false);
+    const [toolsInclude, setToolsInclude] = useState<string>("all");
 
     const [availableMcpTools, setAvailableMcpTools] = useState<Tool[]>([]);
     const [selectedMcpTools, setSelectedMcpTools] = useState<Set<string>>(new Set());
@@ -210,8 +213,36 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     );
 
     useEffect(() => {
-        debouncedFetchTools(serverUrl, auth);
-    }, [serverUrl, auth, debouncedFetchTools]);
+        // Only fetch tools when "Selected" mode is active
+        if (toolsInclude === "selected") {
+            debouncedFetchTools(serverUrl, auth);
+        } else {
+            // Clear tools and reset state when "All" is selected
+            setAvailableMcpTools([]);
+            setSelectedMcpTools(new Set());
+            setLoadingMcpTools(false);
+            setMcpToolsError("");
+        }
+    }, [serverUrl, auth, toolsInclude, debouncedFetchTools, requiresAuth]);
+
+    useEffect(() => {
+        if (!isLoading && editMode && mcpToolKitNodeRef.current) {
+            const authValue = mcpToolKitNodeRef.current.properties?.auth?.value;
+            if (authValue && typeof authValue === 'string' && authValue.trim()) {
+                setRequiresAuth(true);
+            }
+        }
+    }, [isLoading, editMode]);
+
+    useEffect(() => {
+        // Clear auth field value when requiresAuth is unchecked
+        if (!requiresAuth && auth) {
+            setAuth("");
+            if (formRef.current?.setFieldValue) {
+                formRef.current.setFieldValue(AUTH_FIELD_KEY, "");
+            }
+        }
+    }, [requiresAuth, auth]);
 
     const handleToolSelectionChange = useCallback((toolName: string, isSelected: boolean) => {
         setSelectedMcpTools(prev => {
@@ -257,23 +288,35 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     }, [availableMcpTools.length, selectedMcpTools.size]);
 
     const injectedComponents = useMemo(() => {
-        return [{
-            component: (
-                <McpToolsSelection
-                    key="mcp-tools-selection"
-                    tools={availableMcpTools}
-                    selectedTools={selectedMcpTools}
-                    loading={loadingMcpTools}
-                    error={mcpToolsError}
-                    onToolSelectionChange={handleToolSelectionChange}
-                    onSelectAll={handleSelectAllTools}
-                    serviceUrl={serverUrl}
-                    showValidationError={isSaveDisabled}
-                />
-            ),
-            index: 1
-        }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled]);
+        return [
+            {
+                component: (
+                    <RequiresAuthCheckbox
+                        checked={requiresAuth}
+                        onChange={setRequiresAuth}
+                    />
+                ),
+                index: 1
+            },
+            {
+                component: (
+                    <McpToolsSelection
+                        key="mcp-tools-selection"
+                        tools={availableMcpTools}
+                        selectedTools={selectedMcpTools}
+                        loading={loadingMcpTools}
+                        error={mcpToolsError}
+                        onToolSelectionChange={handleToolSelectionChange}
+                        onSelectAll={handleSelectAllTools}
+                        serviceUrl={serverUrl}
+                        showValidationError={isSaveDisabled}
+                        toolsInclude={toolsInclude}
+                        onToolsIncludeChange={setToolsInclude}
+                    />
+                ),
+                index: 2
+            }];
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude]);
 
     return (
         <Container>
@@ -303,7 +346,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     showProgressIndicator={isSaving}
                     disableSaveButton={isSaveDisabled}
                     injectedComponents={injectedComponents}
-                    fieldPriority={{ auth: 1 }}
+                    fieldOverrides={useMemo(() => ({
+                        auth: {
+                            advanced: false,
+                            hidden: !requiresAuth
+                        },
+                        toolKitName: {
+                            advanced: true,
+                        }
+                    }), [requiresAuth])}
                 />
             )}
         </Container>

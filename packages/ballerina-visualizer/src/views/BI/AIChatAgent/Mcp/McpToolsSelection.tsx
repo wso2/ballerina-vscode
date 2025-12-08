@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { Button, CheckBox, ThemeColors, SearchBox, Codicon, Divider, Typography } from "@wso2/ui-toolkit";
+import { Button, CheckBox, ThemeColors, SearchBox, Codicon, Divider, Typography, Dropdown } from "@wso2/ui-toolkit";
+import type { OptionProps } from "@wso2/ui-toolkit";
 
 export interface McpTool {
     name: string;
@@ -29,7 +30,7 @@ export interface McpTool {
 // Utility function to clean up error messages
 const formatErrorMessage = (error: string): string => {
     if (!error) return error;
-    
+
     // Check if it's an HTML response (GitHub 404, etc.)
     if (error.includes('<!DOCTYPE') || error.includes('<html>')) {
         // Try to extract meaningful info from HTML
@@ -46,17 +47,17 @@ const formatErrorMessage = (error: string): string => {
         }
         return 'The server returned an HTML page instead of MCP tools. Please verify the URL is correct.';
     }
-    
+
     // Check for network errors
     if (error.includes('Network error') || error.includes('Failed to fetch')) {
         return 'Network error. Please check your connection and the server URL.';
     }
-    
+
     // Truncate very long error messages
     if (error.length > 500) {
         return error.substring(0, 500) + '...';
     }
-    
+
     return error;
 };
 
@@ -69,6 +70,8 @@ interface McpToolsSelectionProps {
     onSelectAll: () => void;
     serviceUrl?: string;
     showValidationError?: boolean;
+    toolsInclude?: string;
+    onToolsIncludeChange?: (value: string) => void;
 }
 
 interface ToolsListProps {
@@ -418,80 +421,107 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     onToolSelectionChange,
     onSelectAll,
     serviceUrl,
-    showValidationError = false
+    showValidationError = false,
+    toolsInclude = "all",
+    onToolsIncludeChange
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const formattedError = useMemo(() => formatErrorMessage(error), [error]);
 
+    const toolsIncludeOptions: OptionProps[] = [
+        { id: "all", content: "All", value: "all" },
+        { id: "selected", content: "Selected", value: "selected" }
+    ];
+
+    useEffect(() => {
+        if (toolsInclude === "all" && selectedTools.size > 0) {
+            // Clear all selections
+            selectedTools.forEach(toolName => {
+                onToolSelectionChange(toolName, false);
+            });
+        }
+    }, [toolsInclude, selectedTools, onToolSelectionChange]);
+
     return (
         <>
-            <ToolsContainer>
-                <ToolsHeader>
-                    <ToolsTitle>Available Tools</ToolsTitle>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {tools.length > 0 && (
-                            <>
-                                <ExpandButton
-                                    onClick={() => setIsModalOpen(true)}
-                                    title="Expand view"
-                                    aria-label="Expand tools selection"
-                                >
-                                    <Codicon name="screen-full" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
-                                </ExpandButton>
-                                <Button
-                                    onClick={onSelectAll}
-                                    disabled={loading}
-                                >
-                                    {selectedTools.size === tools.length ? "Deselect All" : "Select All"}
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </ToolsHeader>
-                {loading && (
-                    <LoadingMessage>
-                        <InlineSpinner />
-                        Loading tools from MCP server...
-                    </LoadingMessage>
-                )}
-                {error && (
-                    <>
-                        <InfoMessage>
-                            Unable to load tools from MCP server.
-                        </InfoMessage>
-                        <ErrorMessage>{formattedError}</ErrorMessage>
-                    </>
-                )}
-                {!loading && tools.length > 0 && (
-                    <>
-                        {showValidationError && selectedTools.size === 0 ? (
-                            <WarningMessage style={{ marginBottom: "6px" }}>
-                                Select at least one tool to continue
-                            </WarningMessage>
-                        ) : (
-                            <InfoMessage style={{ marginBottom: "6px" }}>
-                                {selectedTools.size} of {tools.length} selected
+            <Dropdown
+                id="tools-include-dropdown"
+                label="Tools to Include"
+                items={toolsIncludeOptions}
+                value={toolsInclude}
+                onValueChange={(value: string) => onToolsIncludeChange?.(value)}
+                containerSx={{ width: "100%" }}
+            />
+
+            {toolsInclude === "selected" && (
+                <ToolsContainer>
+                    <ToolsHeader>
+                        <ToolsTitle>Available Tools</ToolsTitle>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            {tools.length > 0 && (
+                                <>
+                                    <ExpandButton
+                                        onClick={() => setIsModalOpen(true)}
+                                        title="Expand view"
+                                        aria-label="Expand tools selection"
+                                    >
+                                        <Codicon name="screen-full" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
+                                    </ExpandButton>
+                                    <Button
+                                        onClick={onSelectAll}
+                                        disabled={loading}
+                                    >
+                                        {selectedTools.size === tools.length ? "Deselect All" : "Select All"}
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    </ToolsHeader>
+                    {loading && (
+                        <LoadingMessage>
+                            <InlineSpinner />
+                            Loading tools from MCP server...
+                        </LoadingMessage>
+                    )}
+                    {error && (
+                        <>
+                            <InfoMessage>
+                                Unable to load tools from MCP server.
                             </InfoMessage>
-                        )}
-                        <ToolsList
-                            tools={tools}
-                            selectedTools={selectedTools}
-                            loading={loading}
-                            onToolSelectionChange={onToolSelectionChange}
-                        />
-                    </>
-                )}
-                {!loading && !error && tools.length === 0 && serviceUrl?.trim() && (
-                    <InfoMessage style={{ marginBottom: "12px" }}>
-                        No tools available from this MCP server
-                    </InfoMessage>
-                )}
-                {!loading && !error && tools.length === 0 && !serviceUrl?.trim() && (
-                    <InfoMessage style={{ marginBottom: "12px" }}>
-                        Enter a server URL to view available tools
-                    </InfoMessage>
-                )}
-            </ToolsContainer>
+                            <ErrorMessage>{formattedError}</ErrorMessage>
+                        </>
+                    )}
+                    {!loading && tools.length > 0 && (
+                        <>
+                            {showValidationError && selectedTools.size === 0 ? (
+                                <WarningMessage style={{ marginBottom: "6px" }}>
+                                    Select at least one tool to continue
+                                </WarningMessage>
+                            ) : (
+                                <InfoMessage style={{ marginBottom: "6px" }}>
+                                    {selectedTools.size} of {tools.length} selected
+                                </InfoMessage>
+                            )}
+                            <ToolsList
+                                tools={tools}
+                                selectedTools={selectedTools}
+                                loading={loading}
+                                onToolSelectionChange={onToolSelectionChange}
+                            />
+                        </>
+                    )}
+                    {!loading && !error && tools.length === 0 && serviceUrl?.trim() && (
+                        <InfoMessage style={{ marginBottom: "12px" }}>
+                            No tools available from this MCP server
+                        </InfoMessage>
+                    )}
+                    {!loading && !error && tools.length === 0 && !serviceUrl?.trim() && (
+                        <InfoMessage style={{ marginBottom: "12px" }}>
+                            Enter a server URL to view available tools
+                        </InfoMessage>
+                    )}
+                </ToolsContainer>
+            )}
 
             <ToolsSelectionModal
                 isOpen={isModalOpen}

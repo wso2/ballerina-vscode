@@ -566,7 +566,7 @@ export const getEndOfFileLineRange = async (
  */
 export const isStringLiteral = (value: string): boolean => {
     const trimmed = value.trim();
-    return trimmed.startsWith('"') && trimmed.endsWith('"');
+    return (trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("string `") && trimmed.endsWith("`"));
 };
 
 /**
@@ -575,6 +575,9 @@ export const isStringLiteral = (value: string): boolean => {
 export const removeQuotes = (value: string): string => {
     const trimmed = value.trim();
     if (isStringLiteral(trimmed)) {
+        if (trimmed.startsWith("string `") && trimmed.endsWith("`")) {
+            return trimmed.substring(8, trimmed.length - 1);
+        }
         return trimmed.substring(1, trimmed.length - 1);
     }
     return trimmed;
