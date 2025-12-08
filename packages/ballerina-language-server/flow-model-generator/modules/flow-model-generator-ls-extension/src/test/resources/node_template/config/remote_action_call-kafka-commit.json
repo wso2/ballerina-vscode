@@ -40,8 +40,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "kafka:Consumer",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "kafka:Consumer"
+          }
+        ],
         "value": "kafkaConsumer",
         "optional": false,
         "editable": false,
@@ -53,7 +57,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

@@ -40,8 +40,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:Caller",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "rabbitmq:Caller"
+          }
+        ],
         "value": "caller",
         "optional": false,
         "editable": false,
@@ -53,8 +57,16 @@
           "label": "Multiple",
           "description": "Set to `true` to acknowledge all messages up to and including the called on message and\n`false` to acknowledge just the called on message"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -80,7 +92,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

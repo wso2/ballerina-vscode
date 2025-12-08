@@ -57,7 +57,6 @@ public class NPFunctionCall extends FunctionCall {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .type(Property.ValueType.EXPRESSION, paramResult.type())
                     .imports(paramResult.importStatements())
                     .editable()
                     .defaultable(paramResult.optional());

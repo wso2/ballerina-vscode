@@ -36,8 +36,16 @@
           "label": "Msg",
           "description": "The message to be logged"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|log:PrintableRawTemplate",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string|log:PrintableRawTemplate"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -49,17 +57,17 @@
         },
         "typeMembers": [
           {
-            "type": "PrintableRawTemplate",
-            "packageInfo": "ballerina:log:2.12.0",
-            "packageName": "log",
-            "kind": "OBJECT_TYPE",
-            "selected": false
-          },
-          {
             "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
+            "selected": false
+          },
+          {
+            "type": "PrintableRawTemplate",
+            "packageInfo": "ballerina:log:2.12.0",
+            "packageName": "log",
+            "kind": "OBJECT_TYPE",
             "selected": false
           }
         ]
@@ -69,8 +77,12 @@
           "label": "Error",
           "description": "The error struct to be logged"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "error|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -82,17 +94,17 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "error",
             "packageInfo": "ballerina:lang.annotations:0.0.0",
             "packageName": "lang.annotations",
             "kind": "ERROR_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
@@ -103,8 +115,16 @@
           "label": "Stack Trace",
           "description": "The error stack trace to be logged"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "error:StackFrame[]|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "error:StackFrame[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error:StackFrame[]?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -116,17 +136,17 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "StackFrame",
             "packageInfo": "ballerina:lang.error:0.0.0",
             "packageName": "lang.error",
             "kind": "ARRAY_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
@@ -137,8 +157,12 @@
           "label": "Additional Values",
           "description": "Capture key value pairs"
         },
-        "valueType": "MAPPING_EXPRESSION_SET",
-        "valueTypeConstraint": "log:Value",
+        "types": [
+          {
+            "fieldType": "MAPPING_EXPRESSION_SET",
+            "ballerinaType": "log:Value"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,

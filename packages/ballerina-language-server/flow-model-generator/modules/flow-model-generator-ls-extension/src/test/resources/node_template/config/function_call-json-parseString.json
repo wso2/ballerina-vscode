@@ -37,8 +37,16 @@
           "label": "S",
           "description": "Source JSON string value or byte[] or byte-block-stream"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -63,8 +71,12 @@
           "label": "Options",
           "description": "Options to be used for filtering in the projection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "jsondata:Options",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "jsondata:Options"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -90,8 +102,12 @@
           "label": "T",
           "description": "Target type"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata"
+          }
+        ],
         "placeholder": "anydata",
         "optional": false,
         "editable": true,
@@ -108,7 +124,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "t",
         "placeholder": "var",
         "optional": false,
@@ -122,7 +142,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "t",
         "optional": false,
         "editable": true,
@@ -134,7 +158,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

@@ -39,8 +39,16 @@
         "metadata": {
           "label": "Service Url"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -66,8 +74,16 @@
           "label": "Allow Headers",
           "description": "The array of allowed headers by the service"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "string[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": true,
         "editable": true,
@@ -93,8 +109,16 @@
           "label": "Allow Methods",
           "description": "The array of allowed methods by the service"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "string[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": true,
         "editable": true,
@@ -120,8 +144,16 @@
           "label": "Allow Origins",
           "description": "The array of origins with which the response is shared by the service"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "string[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": true,
         "editable": true,
@@ -147,8 +179,16 @@
           "label": "Expose Headers",
           "description": "The allowlisted headers, which clients are allowed to access"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "string[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": true,
         "editable": true,
@@ -174,8 +214,16 @@
           "label": "Allow Credentials",
           "description": "Specifies whether credentials are required to access the service"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -201,8 +249,16 @@
           "label": "Max Age",
           "description": "The maximum duration to cache the preflight from client side"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -228,7 +284,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "mod:Client",
         "placeholder": "var",
         "optional": false,
@@ -245,7 +305,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "modClient",
         "optional": false,
         "editable": true,
@@ -257,7 +321,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -269,7 +337,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

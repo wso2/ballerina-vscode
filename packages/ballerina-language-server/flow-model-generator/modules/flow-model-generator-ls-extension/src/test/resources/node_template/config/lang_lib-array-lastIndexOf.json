@@ -36,8 +36,16 @@
           "label": "Arr",
           "description": "the array"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(anydata|error)[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "array:AnydataType[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "array:AnydataType[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": false,
         "editable": true,
@@ -62,8 +70,12 @@
           "label": "Val",
           "description": "member to search for"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(anydata|error)",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "array:AnydataType"
+          }
+        ],
         "placeholder": "{}",
         "optional": false,
         "editable": true,
@@ -88,8 +100,16 @@
           "label": "Start Index",
           "description": "index to start searching backwards from"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int"
+          }
+        ],
         "placeholder": "0",
         "optional": true,
         "editable": true,
@@ -115,7 +135,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "int|()",
         "placeholder": "var",
         "optional": false,
@@ -129,7 +153,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "intResult",
         "optional": false,
         "editable": true,

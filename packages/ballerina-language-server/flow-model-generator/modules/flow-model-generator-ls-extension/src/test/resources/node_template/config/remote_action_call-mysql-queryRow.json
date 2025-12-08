@@ -21,8 +21,8 @@
     "id": "31",
     "metadata": {
       "label": "queryRow",
-      "description": "Executes a SQL query that is expected to return a single row or value as the result.\nIf the query returns no results, `sql:NoRowsError` is returned.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png"
+      "description": "Executes the query, which is expected to return at most one row of the result.\nIf the query does not return any results, `sql:NoRowsError` is returned.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.14.0.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -42,8 +42,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "mysql:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "mysql:Client"
+          }
+        ],
         "value": "mysqlClient",
         "optional": false,
         "editable": false,
@@ -53,11 +57,15 @@
       "sqlQuery": {
         "metadata": {
           "label": "SQL Query",
-          "description": "The SQL query (e.g., `` `SELECT * FROM Album WHERE name=${albumName}` ``)"
+          "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "sql:ParameterizedQuery",
-        "placeholder": "``",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery"
+          }
+        ],
+        "placeholder": "object {}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -69,7 +77,7 @@
         "typeMembers": [
           {
             "type": "ParameterizedQuery",
-            "packageInfo": "ballerina:sql:1.16.0",
+            "packageInfo": "ballerina:sql:1.15.0",
             "packageName": "sql",
             "kind": "OBJECT_TYPE",
             "selected": false
@@ -77,16 +85,19 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        },
-        "defaultValue": "``"
+        }
       },
       "returnType": {
         "metadata": {
           "label": "Return Type",
-          "description": "The `typedesc` of the record to which the result should be mapped.\nIt can be a basic type if the query result contains only one column"
+          "description": "The `typedesc` of the record to which the result needs to be returned.\nIt can be a basic type if the query result contains only one column"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata"
+          }
+        ],
         "placeholder": "anydata",
         "optional": false,
         "editable": true,
@@ -103,7 +114,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "returnType",
         "placeholder": "var",
         "optional": false,
@@ -120,7 +135,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "returnType",
         "optional": false,
         "editable": true,
@@ -132,7 +151,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,
