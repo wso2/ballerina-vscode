@@ -45,8 +45,12 @@
           "label": "System Prompt",
           "description": "The system prompt assigned to the agent"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:SystemPrompt",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:SystemPrompt"
+          }
+        ],
         "placeholder": "{role: \"\", instructions: \"\"}",
         "optional": false,
         "editable": true,
@@ -72,8 +76,12 @@
           "label": "Model",
           "description": "The model used by the agent"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:ModelProvider",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ModelProvider"
+          }
+        ],
         "placeholder": "object {}",
         "optional": false,
         "editable": true,
@@ -99,8 +107,16 @@
           "label": "Tools",
           "description": "The tools available for the agent"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": true,
         "editable": true,
@@ -126,8 +142,19 @@
           "label": "Agent Type",
           "description": "Type of the agent"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:AgentType",
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "FUNCTION_CALL_AGENT",
+              "REACT_AGENT"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:AgentType"
+          }
+        ],
         "placeholder": "\"FUNCTION_CALL_AGENT\"",
         "optional": true,
         "editable": true,
@@ -153,8 +180,16 @@
           "label": "Maximum Iterations",
           "description": "The maximum number of iterations the agent performs to complete the task"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int"
+          }
+        ],
         "placeholder": "0",
         "optional": true,
         "editable": true,
@@ -180,8 +215,16 @@
           "label": "Verbose",
           "description": "Specifies whether verbose logging is enabled"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -207,8 +250,12 @@
           "label": "Memory",
           "description": "The memory used by the agent to store and manage conversation history"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ai:Memory|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Memory?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -241,7 +288,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "ai:Agent",
         "placeholder": "var",
         "optional": false,
@@ -258,7 +309,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "aiAgent",
         "optional": false,
         "editable": true,
@@ -270,7 +325,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,
@@ -282,7 +341,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
