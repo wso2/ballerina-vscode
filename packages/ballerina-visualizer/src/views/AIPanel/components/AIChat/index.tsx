@@ -1478,6 +1478,8 @@ const AIChat: React.FC = () => {
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
 
+                            // Note: Cannot use useMemo here as it's inside map() callback
+                            // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
                             const areTestsGenerated = segmentedContent.some(
                                 (segment) => segment.type === SegmentType.Progress
