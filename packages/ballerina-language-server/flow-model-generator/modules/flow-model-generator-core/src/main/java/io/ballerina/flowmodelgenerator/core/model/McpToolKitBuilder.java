@@ -170,7 +170,6 @@ public class McpToolKitBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(param.placeholder())
                     .defaultValue(param.defaultValue())
-                    .type(Property.ValueType.EXPRESSION, param.type())
                     .typeMembers(param.typeMembers())
                     .editable()
                     .defaultable(param.optional());
