@@ -19,6 +19,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
+import { FieldType } from "..";
 
 export type { NodePosition };
 
@@ -120,6 +121,34 @@ export type MemoryData = {
 export type Imports = {
     [prefix: string]: string;
 };
+
+export type FormFieldInputType = "TEXT" | "NUMBER" | "BOOLEAN" | "IDENTIFIER" | "SINGLE_SELECT" | "MULTI_SELECT" | "TEXTAREA" | "TEMPLATE";
+
+export interface BaseType {
+    fieldType: FormFieldInputType;
+    ballerinaType?: string;
+}
+
+export interface DropdownType extends BaseType {
+    fieldType: "SINGLE_SELECT" | "MULTI_SELECT";
+    options: string[];
+}
+
+export interface TemplateType extends BaseType {
+    fieldType: "TEMPLATE";
+    template: Property;
+}
+
+export interface IdentifierType extends BaseType {
+    fieldType: "IDENTIFIER";
+    scope: Scope;
+}
+
+export type Type =
+    | BaseType
+    | DropdownType
+    | TemplateType
+    | IdentifierType;
 
 export type Property = {
     metadata: Metadata;
