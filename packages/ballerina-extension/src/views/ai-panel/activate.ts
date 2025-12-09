@@ -68,8 +68,10 @@ async function handleOpenAIPanel(defaultPrompt?: AIPanelPrompt): Promise<void> {
     }
 
     if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
-        await handleProjectDiscoveryForAIPanel();
-        return;
+        const success = await handleProjectDiscoveryForAIPanel();
+        if (!success) {
+            return;
+        }
     }
 
     openAIWebviewWithPrompt(defaultPrompt);
@@ -101,14 +103,17 @@ async function handleWorkspaceLevelAIPanel(projectInfo: any): Promise<boolean> {
     }
 }
 
-async function handleProjectDiscoveryForAIPanel(): Promise<void> {
+async function handleProjectDiscoveryForAIPanel(): Promise<boolean> {
     try {
         const success = await tryOpenPackageOverviewForDiscoveredProject();
         if (!success) {
             vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return false;
         }
+        return true;
     } catch {
         vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return false;
     }
 }
 
