@@ -18,7 +18,7 @@
   },
   "name": "transform",
   "output": {
-    "node": "VARIABLE",
+    "node": "DATA_MAPPER",
     "lineRange": {
       "fileName": "function_definition1.bal",
       "startLine": {

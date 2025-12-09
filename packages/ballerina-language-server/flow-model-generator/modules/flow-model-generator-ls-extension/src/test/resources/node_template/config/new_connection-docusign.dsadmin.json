@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "NEW_CONNECTION",
@@ -32,8 +33,16 @@
           "label": "Service Url",
           "description": "URL of the target service "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -58,8 +67,12 @@
           "label": "Auth",
           "description": "Configurations related to client authentication"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig"
+          }
+        ],
         "placeholder": "{token: \"\"}",
         "optional": false,
         "editable": true,
@@ -92,8 +105,20 @@
           "label": "HTTP Version",
           "description": "The HTTP version understood by the client"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:HttpVersion",
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "2.0",
+              "1.1",
+              "1.0"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:HttpVersion"
+          }
+        ],
         "placeholder": "\"2.0\"",
         "optional": true,
         "editable": true,
@@ -119,8 +144,12 @@
           "label": "HTTP1 Settings",
           "description": "Configurations related to HTTP/1.x protocol"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "dsadmin:ClientHttp1Settings",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "dsadmin:ClientHttp1Settings"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -146,8 +175,12 @@
           "label": "HTTP2 Settings",
           "description": "Configurations related to HTTP/2 protocol"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:ClientHttp2Settings",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:ClientHttp2Settings"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -173,8 +206,16 @@
           "label": "Timeout",
           "description": "The maximum time to wait (in seconds) for a response before closing the connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -200,8 +241,16 @@
           "label": "Forwarded",
           "description": "The choice of setting `forwarded`/`x-forwarded` header"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -227,8 +276,12 @@
           "label": "Pool Config",
           "description": "Configurations associated with request pooling"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:PoolConfiguration",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:PoolConfiguration"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -254,8 +307,12 @@
           "label": "Cache",
           "description": "HTTP caching related configurations"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:CacheConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:CacheConfig"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -281,8 +338,20 @@
           "label": "Compression",
           "description": "Specifies the way of handling compression (`accept-encoding`) header"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:Compression",
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "AUTO",
+              "ALWAYS",
+              "NEVER"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:Compression"
+          }
+        ],
         "placeholder": "\"AUTO\"",
         "optional": true,
         "editable": true,
@@ -308,8 +377,12 @@
           "label": "Circuit Breaker",
           "description": "Configurations associated with the behaviour of the Circuit Breaker"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:CircuitBreakerConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:CircuitBreakerConfig"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -335,8 +408,12 @@
           "label": "Retry Config",
           "description": "Configurations associated with retrying"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:RetryConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:RetryConfig"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -362,8 +439,12 @@
           "label": "Response Limits",
           "description": "Configurations associated with inbound response size limits"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:ResponseLimitConfigs",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:ResponseLimitConfigs"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -389,8 +470,12 @@
           "label": "Secure Socket",
           "description": "SSL/TLS-related options"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:ClientSecureSocket",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:ClientSecureSocket"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -416,8 +501,12 @@
           "label": "Proxy",
           "description": "Proxy server related options"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:ProxyConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:ProxyConfig"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -443,8 +532,16 @@
           "label": "Validation",
           "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -470,7 +567,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "dsadmin:Client",
         "placeholder": "var",
         "optional": false,
@@ -487,7 +588,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "dsadminClient",
         "optional": false,
         "editable": true,
@@ -499,7 +604,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -511,7 +620,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

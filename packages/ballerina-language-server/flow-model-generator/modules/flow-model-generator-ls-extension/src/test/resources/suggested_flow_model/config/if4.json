@@ -50,7 +50,7 @@
         "id": "38827",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -74,7 +74,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "10",
             "optional": true,
             "editable": true,
@@ -86,7 +90,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "x",
             "optional": false,
             "editable": false,
@@ -111,7 +119,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -128,7 +140,7 @@
         "id": "39819",
         "metadata": {
           "label": "Declare Variable",
-          "description": "Assign a value to a variable"
+          "description": "Create a new variable"
         },
         "codedata": {
           "node": "VARIABLE",
@@ -152,7 +164,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "20",
             "optional": true,
             "editable": true,
@@ -164,7 +180,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "y",
             "optional": false,
             "editable": false,
@@ -189,7 +209,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -250,8 +274,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "(x > y) ",
                 "placeholder": "true",
                 "optional": false,
@@ -294,7 +322,11 @@
                       "label": "View",
                       "description": "Function definition location"
                     },
-                    "valueType": "VIEW",
+                    "types": [
+                      {
+                        "fieldType": "VIEW"
+                      }
+                    ],
                     "value": {
                       "fileName": "if.bal",
                       "startLine": {
@@ -315,8 +347,16 @@
                     "metadata": {
                       "label": "Val"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "string",
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string"
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string"
+                      }
+                    ],
                     "value": "\"x is greater than y\"",
                     "placeholder": "\"\"",
                     "optional": false,
@@ -396,7 +436,11 @@
                       "label": "View",
                       "description": "Function definition location"
                     },
-                    "valueType": "VIEW",
+                    "types": [
+                      {
+                        "fieldType": "VIEW"
+                      }
+                    ],
                     "value": {
                       "fileName": "if.bal",
                       "startLine": {
@@ -417,8 +461,16 @@
                     "metadata": {
                       "label": "Val"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "string",
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string"
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string"
+                      }
+                    ],
                     "value": "\"x is equal to y\"",
                     "placeholder": "\"\"",
                     "optional": false,
@@ -491,8 +543,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "(x == 10) ",
                         "placeholder": "true",
                         "optional": false,
@@ -535,7 +591,11 @@
                               "label": "View",
                               "description": "Function definition location"
                             },
-                            "valueType": "VIEW",
+                            "types": [
+                              {
+                                "fieldType": "VIEW"
+                              }
+                            ],
                             "value": {
                               "fileName": "if.bal",
                               "startLine": {
@@ -556,8 +616,16 @@
                             "metadata": {
                               "label": "Val"
                             },
-                            "valueType": "EXPRESSION",
-                            "valueTypeConstraint": "string",
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string"
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string"
+                              }
+                            ],
                             "value": "\"x is equal to 10\"",
                             "placeholder": "\"\"",
                             "optional": false,
@@ -637,7 +705,11 @@
                               "label": "View",
                               "description": "Function definition location"
                             },
-                            "valueType": "VIEW",
+                            "types": [
+                              {
+                                "fieldType": "VIEW"
+                              }
+                            ],
                             "value": {
                               "fileName": "if.bal",
                               "startLine": {
@@ -658,8 +730,16 @@
                             "metadata": {
                               "label": "Val"
                             },
-                            "valueType": "EXPRESSION",
-                            "valueTypeConstraint": "string",
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string"
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string"
+                              }
+                            ],
                             "value": "\"x is not equal to 10\"",
                             "placeholder": "\"\"",
                             "optional": false,

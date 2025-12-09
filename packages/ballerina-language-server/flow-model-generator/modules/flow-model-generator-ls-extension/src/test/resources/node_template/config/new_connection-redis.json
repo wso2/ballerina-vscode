@@ -37,8 +37,12 @@
           "label": "Connection Type",
           "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -71,8 +75,16 @@
           "label": "Connection Pooling Enabled",
           "description": "Flag to indicate whether connection pooling is enabled"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -98,8 +110,16 @@
           "label": "Cluster Mode Enabled",
           "description": "Flag to indicate whether the connection is a cluster connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -125,8 +145,12 @@
           "label": "Secure Socket Configurations",
           "description": "Configurations related to SSL/TLS encryption"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "redis:SecureSocket",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "redis:SecureSocket"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -152,7 +176,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "redis:Client",
         "placeholder": "var",
         "optional": false,
@@ -169,7 +197,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "redisClient",
         "optional": false,
         "editable": true,
@@ -181,7 +213,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -193,7 +229,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

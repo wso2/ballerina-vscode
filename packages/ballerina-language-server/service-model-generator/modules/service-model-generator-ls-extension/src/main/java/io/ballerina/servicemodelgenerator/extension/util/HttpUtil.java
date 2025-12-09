@@ -841,7 +841,7 @@ public final class HttpUtil {
         }
 
         Value headers = response.getHeaders();
-        if (Objects.nonNull(headers) && headers.isEnabledWithValue()) {
+        if (Objects.nonNull(headers) && Objects.nonNull(headers.getValueAsObject())) {
             List<Object> values = headers.getValuesAsObjects();
             StringBuilder headersRecordDef = new StringBuilder("record {|%n".formatted());
             if (Objects.nonNull(values) && !values.isEmpty()) {
@@ -864,7 +864,7 @@ public final class HttpUtil {
             }
             headersRecordDef.append("\t\t(string|int|boolean|string[]|int[]|boolean[])...;%n".formatted());
             headersRecordDef.append("\t|}");
-            template += "\t%s headers;%n".formatted(headersRecordDef);
+            template += "\t%s headers?;%n".formatted(headersRecordDef);
         }
 
         template += "|}";

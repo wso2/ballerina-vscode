@@ -1,0 +1,178 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject5",
+  "typeSymbolName": "Outer",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "products",
+        "type": {
+          "elementType": {
+            "dependentTypeKeys": [],
+            "hashCode": "-1966649113",
+            "key": "-1027446987",
+            "name": "Inner1",
+            "typeName": "record",
+            "moduleInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "health.ccda.r1",
+              "packageName": "health.ccda.r1",
+              "version": "0.1.0",
+              "modulePrefix": "r1"
+            }
+          },
+          "dependentTypeKeys": [
+            "1310198466",
+            "-1966649113",
+            "-1027446986",
+            "-1027446987"
+          ],
+          "hashCode": "-1966649113",
+          "key": "-1027446987",
+          "name": "",
+          "typeName": "array",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeKeys": [
+      "1310198466",
+      "-1966649113",
+      "-1027446986",
+      "-1027446987"
+    ],
+    "hashCode": "66336515",
+    "key": "803895969",
+    "name": "Outer",
+    "typeName": "record",
+    "dependentTypes": {
+      "-1027446986": {
+        "fields": [
+          {
+            "fieldName": "products",
+            "type": {
+              "elementType": {
+                "dependentTypeKeys": [],
+                "hashCode": "-1966649113",
+                "key": "-1027446987",
+                "name": "Inner1",
+                "typeName": "record",
+                "moduleInfo": {
+                  "orgName": "ballerinax",
+                  "moduleName": "health.ccda.r1",
+                  "packageName": "health.ccda.r1",
+                  "version": "0.1.0",
+                  "modulePrefix": "r1"
+                }
+              },
+              "dependentTypeKeys": [
+                "-1027446987"
+              ],
+              "hashCode": "-1966649113",
+              "key": "-1027446987",
+              "name": "",
+              "typeName": "array",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [
+          "-1966649113",
+          "-1027446987"
+        ],
+        "hashCode": "1310198466",
+        "key": "-1027446986",
+        "name": "Inner2",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      },
+      "-1027446987": {
+        "fields": [
+          {
+            "fieldName": "bundles",
+            "type": {
+              "elementType": {
+                "dependentTypeKeys": [],
+                "hashCode": "1310198466",
+                "key": "-1027446986",
+                "name": "Inner2",
+                "typeName": "record",
+                "moduleInfo": {
+                  "orgName": "ballerinax",
+                  "moduleName": "health.ccda.r1",
+                  "packageName": "health.ccda.r1",
+                  "version": "0.1.0",
+                  "modulePrefix": "r1"
+                }
+              },
+              "dependentTypeKeys": [
+                "-1966649113",
+                "-1027446986",
+                "-1027446987"
+              ],
+              "hashCode": "1310198466",
+              "key": "-1027446986",
+              "name": "",
+              "typeName": "array",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [
+          "1310198466",
+          "-1966649113",
+          "-1027446986",
+          "-1027446987"
+        ],
+        "hashCode": "-1966649113",
+        "key": "-1027446987",
+        "name": "Inner1",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
+    }
+  }
+}

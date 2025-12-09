@@ -30,8 +30,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "itemCode",
               "optional": false,
               "editable": true,
@@ -43,21 +47,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "string",
               "placeholder": "var",
               "optional": false,
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "\"item12393\"",
               "optional": true,
               "editable": true,
@@ -70,7 +90,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "\"item12393\"",
               "optional": true,
               "editable": true,
@@ -83,7 +107,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -121,8 +149,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "discount",
               "optional": false,
               "editable": true,
@@ -134,21 +166,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "float",
               "placeholder": "var",
               "optional": false,
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "float",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "4.5",
               "optional": true,
               "editable": true,
@@ -161,7 +209,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "4.5",
               "optional": true,
               "editable": true,
@@ -174,7 +226,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -212,8 +268,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "testMode",
               "optional": false,
               "editable": true,
@@ -225,21 +285,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "boolean",
               "placeholder": "var",
               "optional": false,
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -252,7 +328,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -265,7 +345,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -305,8 +389,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "nameVal",
               "optional": false,
               "editable": true,
@@ -318,21 +406,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "string",
               "placeholder": "var",
               "optional": false,
               "editable": true,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "string",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "\"User\"",
               "optional": true,
               "editable": true,
@@ -345,7 +449,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "\"hello new\"",
               "optional": true,
               "editable": true,
@@ -358,7 +466,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -400,8 +512,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "format",
               "optional": false,
               "editable": false,
@@ -413,21 +529,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "LogFormat",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "LogFormat",
+                  "packageInfo": "ballerina:log:2.14.0",
+                  "packageName": "log",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "LOGFMT",
               "optional": true,
               "editable": false,
@@ -440,7 +572,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -453,7 +589,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "Root logger default log format.",
               "optional": true,
               "editable": false,
@@ -491,8 +631,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "level",
               "optional": false,
               "editable": false,
@@ -504,21 +648,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "Level",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "Level",
+                  "packageInfo": "ballerina:log:2.14.0",
+                  "packageName": "log",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "INFO",
               "optional": true,
               "editable": false,
@@ -531,7 +691,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -544,7 +708,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "Root logger default log level.",
               "optional": true,
               "editable": false,
@@ -582,8 +750,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "modules",
               "optional": false,
               "editable": false,
@@ -595,21 +767,29 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "table<Module> key(name) & readonly",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "table []",
               "optional": true,
               "editable": false,
@@ -622,7 +802,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -635,7 +819,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "Modules with their log levels.",
               "optional": true,
               "editable": false,
@@ -673,8 +861,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "keyValues",
               "optional": false,
               "editable": false,
@@ -686,21 +878,29 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "AnydataKeyValues & readonly",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "{}",
               "optional": true,
               "editable": false,
@@ -713,7 +913,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -726,7 +930,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "Default key-values to add to the root logger.",
               "optional": true,
               "editable": false,
@@ -764,8 +972,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "destinations",
               "optional": false,
               "editable": false,
@@ -777,21 +989,29 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "readonly & OutputDestination[]",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": []
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "[{'type: STDERR}]",
               "optional": true,
               "editable": false,
@@ -804,7 +1024,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -817,7 +1041,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "Destinations is a list of file destinations or standard output/error.",
               "optional": true,
               "editable": false,
@@ -855,8 +1083,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "enableSensitiveDataMasking",
               "optional": false,
               "editable": false,
@@ -868,21 +1100,37 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "boolean",
               "placeholder": "var",
               "optional": false,
               "editable": false,
               "advanced": false,
               "hidden": false,
-              "codedata": {}
+              "typeMembers": [
+                {
+                  "type": "boolean",
+                  "packageInfo": "",
+                  "packageName": "",
+                  "kind": "BASIC_TYPE",
+                  "selected": false
+                }
+              ]
             },
             "defaultValue": {
               "metadata": {
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": false,
@@ -895,7 +1143,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -908,7 +1160,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": false,

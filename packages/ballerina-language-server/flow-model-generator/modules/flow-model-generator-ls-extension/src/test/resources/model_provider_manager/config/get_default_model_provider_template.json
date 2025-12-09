@@ -32,7 +32,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "ai:Wso2ModelProvider",
           "placeholder": "var",
           "optional": false,
@@ -49,7 +53,11 @@
             "label": "Model Provider Name",
             "description": "Name of the model-provider connection"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "aiWso2modelprovider",
           "optional": false,
           "editable": true,
@@ -61,7 +69,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -73,7 +85,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

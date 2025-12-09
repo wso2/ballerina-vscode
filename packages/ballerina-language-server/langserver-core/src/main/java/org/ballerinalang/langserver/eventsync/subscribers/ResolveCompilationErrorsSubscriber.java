@@ -68,7 +68,7 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
                 client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
                     if (action != null && PULL_MODULES_ACTION.equals(action.getTitle())) {
                         PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
-                                context.languageServercontext());
+                                context.languageServercontext(), true);
                     }
                 });
             }

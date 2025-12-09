@@ -32,7 +32,11 @@
           "label": "Type name",
           "description": "Unique name to identify the type"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "Student",
         "optional": false,
         "editable": false,
@@ -44,7 +48,11 @@
           "label": "public",
           "description": "Is this public"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -56,7 +64,11 @@
           "label": "Type description",
           "description": "Detailed description about the type"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,
@@ -68,7 +80,11 @@
           "label": "Is array type",
           "description": "Is this type an array or list value"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -80,7 +96,11 @@
           "label": "Size of the array",
           "description": "Array dimensions"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,
@@ -98,7 +118,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -108,7 +129,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -118,7 +140,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -134,7 +157,11 @@
                 "label": "Is array type",
                 "description": "Is this type an array or list value"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "true",
               "optional": true,
               "editable": true,
@@ -146,7 +173,11 @@
                 "label": "Size of the array",
                 "description": "Array dimensions"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -173,7 +204,8 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       },
       {
         "kind": "FIELD",
@@ -185,12 +217,14 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "annotationAttachments": []
       }
     ],
     "includes": [
       "Person"
     ],
+    "annotationAttachments": [],
     "allowAdditionalFields": false
   },
   "refs": [
@@ -221,7 +255,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "Address",
           "optional": false,
           "editable": false,
@@ -233,7 +271,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -245,7 +287,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": false,
           "editable": true,
@@ -257,7 +303,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -269,7 +319,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -286,7 +340,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -296,7 +351,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -306,7 +362,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -316,7 +373,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -326,10 +384,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -359,7 +419,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "ballerina/time:Utc",
           "optional": false,
           "editable": false,
@@ -371,7 +435,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "true",
           "optional": true,
           "editable": true,
@@ -383,7 +451,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "Point on UTC time-scale.\nThis is represented by a tuple of length 2.\nThe tuple is an ordered type and so the values can be\ncompared using the Ballerina <, <=, >, >= operators.\nThe first member of the tuple is int representing an integral number of\nseconds from the epoch.\nEpoch is the traditional UNIX epoch of `1970-01-01T00:00:00Z`.\nThe second member of the tuple is a decimal giving the fraction of\na second.\nFor times before the epoch, n is negative and f is\nnon-negative. In other words, the UTC time represented\nis on or after the second specified by n.\nLeap seconds are handled as follows. The first member\nof the tuple ignores leap seconds: it assumes that every day\nhas 86400 seconds. The second member of the tuple is >= 0.\nand is < 1 except during positive leaps seconds in which it\nis >= 1 and < 2. So given a tuple [n,f] after the epoch,\nn / 86400 gives the day number, and (n % 86400) + f gives the\ntime in seconds since midnight UTC (for which the limit is\n86401 on day with a positive leap second).",
           "optional": false,
           "editable": true,
@@ -395,7 +467,11 @@
             "label": "readonly",
             "description": "Is this readonly"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "true",
           "optional": true,
           "editable": true,
@@ -407,7 +483,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -419,7 +499,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": false,
           "editable": false,
@@ -447,6 +531,7 @@
           "isGraphqlId": false
         }
       ],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -476,7 +561,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "Person",
           "optional": false,
           "editable": false,
@@ -488,7 +577,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -500,7 +593,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "Person record\nUsed to represent person object",
           "optional": false,
           "editable": true,
@@ -512,7 +609,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -524,7 +625,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -542,7 +647,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "id of the person"
+          "docs": "id of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -553,7 +659,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "name of the person"
+          "docs": "name of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -569,7 +676,11 @@
                   "label": "Is array type",
                   "description": "Is this type an array or list value"
                 },
-                "valueType": "FLAG",
+                "types": [
+                  {
+                    "fieldType": "FLAG"
+                  }
+                ],
                 "value": "true",
                 "optional": true,
                 "editable": true,
@@ -581,7 +692,11 @@
                   "label": "Size of the array",
                   "description": "Array dimensions"
                 },
-                "valueType": "STRING",
+                "types": [
+                  {
+                    "fieldType": "TEXT"
+                  }
+                ],
                 "value": "",
                 "optional": true,
                 "editable": true,
@@ -609,7 +724,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "addresses of the person"
+          "docs": "addresses of the person",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -622,10 +738,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": "date of birth"
+          "docs": "date of birth",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]

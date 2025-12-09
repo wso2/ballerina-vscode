@@ -68,8 +68,12 @@
               "label": "Expression",
               "description": "Panic value"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "error",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "error"
+              }
+            ],
             "value": "error AssertionError(ASSERTION_ERROR_REASON, message = \"Assertion error\")",
             "optional": false,
             "editable": true,

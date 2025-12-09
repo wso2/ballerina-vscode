@@ -85,7 +85,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -117,7 +118,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -149,7 +151,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -197,8 +200,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       },
       "header": {
         "metadata": {
@@ -254,8 +258,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "Header"
       },
       "payload": {
         "metadata": {
@@ -287,58 +292,60 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
       }
     },
     "returnType": {
       "responses": [
         {
           "statusCode": {
+            "imports": {},
             "valueType": "SINGLE_SELECT",
             "value": "201",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "body": {
+            "imports": {},
             "valueType": "TYPE",
             "value": "string",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "mediaType": {
+            "imports": {},
             "valueType": "EXPRESSION",
             "value": "application/text",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": false,
             "advanced": false
           },
           "name": {
+            "imports": {},
             "valueType": "IDENTIFIER",
             "value": "CustomCreated",
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "type": {
-            "valueType": "TYPE",
             "imports": {},
+            "valueType": "TYPE",
             "enabled": true,
             "editable": false,
             "optional": true,
             "advanced": false
           },
           "headers": {
+            "imports": {},
             "valueType": "HEADER_SET",
             "value": [
               {
@@ -347,7 +354,6 @@
                 "name": "x\\-path"
               }
             ],
-            "imports": {},
             "enabled": true,
             "editable": false,
             "optional": true,
@@ -441,6 +447,7 @@
         }
       },
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return type",
         "description": "Return type of the function"
@@ -514,7 +521,7 @@
             "character": 5
           }
         },
-        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"application/text\";\n\t|} {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"application/text\";\n\t\trecord {|\n\t\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t\t|} headers?;\n\t|} {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
       }
     ]
   }

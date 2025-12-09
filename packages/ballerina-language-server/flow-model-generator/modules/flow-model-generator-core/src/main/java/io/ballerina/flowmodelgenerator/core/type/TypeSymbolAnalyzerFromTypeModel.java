@@ -114,6 +114,14 @@ public class TypeSymbolAnalyzerFromTypeModel {
                         updateUnionTypeConfig(ut, mapping);
                     }
                 } else {
+                    if (matchingType instanceof UnionType ut) {
+                        for (Type memberType : ut.members) {
+                            if (memberType.typeName.equals(sanitizeValue(expr.toSourceCode()))) {
+                                memberType.selected = true;
+                                break;
+                            }
+                        }
+                    }
                     matchingType.value = expr.toSourceCode();
                     matchingType.selected = true;
                 }
@@ -139,5 +147,9 @@ public class TypeSymbolAnalyzerFromTypeModel {
                 reset(field);
             }
         }
+    }
+
+    private static String sanitizeValue(String value) {
+        return value.replace("\"", "").trim();
     }
 }

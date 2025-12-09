@@ -71,7 +71,7 @@
     "id": "39960",
     "metadata": {
       "label": "Declare Variable",
-      "description": "Assign a value to a variable"
+      "description": "Create a new variable"
     },
     "codedata": {
       "node": "VARIABLE",
@@ -95,7 +95,11 @@
           "label": "Expression",
           "description": "Initialize with value"
         },
-        "valueType": "ACTION_OR_EXPRESSION",
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION"
+          }
+        ],
         "value": "\"S\"\n",
         "optional": true,
         "editable": true,
@@ -116,7 +120,11 @@
           "label": "Name",
           "description": "Name of the variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "var1",
         "optional": false,
         "editable": false,
@@ -141,7 +149,11 @@
           "label": "Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "int",
         "placeholder": "var",
         "optional": false,

@@ -32,7 +32,11 @@
           "label": "Type name",
           "description": "Unique name to identify the type"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "Users",
         "optional": false,
         "editable": false,
@@ -44,7 +48,11 @@
           "label": "public",
           "description": "Is this public"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -56,7 +64,11 @@
           "label": "Type description",
           "description": "Detailed description about the type"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "Readonly and array type",
         "optional": false,
         "editable": true,
@@ -68,7 +80,11 @@
           "label": "readonly",
           "description": "Is this readonly"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "true",
         "optional": true,
         "editable": true,
@@ -80,7 +96,11 @@
           "label": "Is array type",
           "description": "Is this type an array or list value"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "true",
         "optional": true,
         "editable": true,
@@ -92,7 +112,11 @@
           "label": "Size of the array",
           "description": "Array dimensions"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,
@@ -113,6 +137,7 @@
         "isGraphqlId": false
       }
     ],
+    "annotationAttachments": [],
     "allowAdditionalFields": false
   },
   "refs": [
@@ -143,7 +168,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "User1",
           "optional": false,
           "editable": false,
@@ -155,7 +184,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -167,7 +200,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "Record with readonly field",
           "optional": false,
           "editable": true,
@@ -179,7 +216,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -191,7 +232,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -208,7 +253,8 @@
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -218,10 +264,12 @@
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]

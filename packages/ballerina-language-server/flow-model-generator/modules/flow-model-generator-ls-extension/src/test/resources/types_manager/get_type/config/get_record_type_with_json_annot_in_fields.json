@@ -1,0 +1,192 @@
+{
+  "filePath": "test_pack4/types.bal",
+  "position": {
+    "line": 50,
+    "offset": 5
+  },
+  "description": "Get type information of a record type with XML annotations",
+  "type": {
+    "name": "School",
+    "editable": true,
+    "metadata": {
+      "label": "School",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD",
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 50,
+          "offset": 5
+        },
+        "endLine": {
+          "line": 50,
+          "offset": 11
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "School",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "Name",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ],
+                "value": "\"_name\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "name": "state",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [
+          {
+            "modulePrefix": "jsondata",
+            "name": "Name",
+            "properties": {
+              "value": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ],
+                "value": "\"$state\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            }
+          }
+        ],
+        "imports": {
+          "jsondata": "ballerina/data.jsondata"
+        }
+      }
+    ],
+    "includes": [],
+    "annotationAttachments": [],
+    "allowAdditionalFields": true
+  },
+  "refs": []
+}

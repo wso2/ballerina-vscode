@@ -1,5 +1,5 @@
 {
-  "source": "chunker/chunker.bal",
+  "source": "chunker.bal",
   "codedata": {
     "node": "CHUNKER",
     "module": "ai",
@@ -35,7 +35,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "ai:HtmlChunker",
           "placeholder": "var",
           "optional": false,
@@ -52,7 +56,11 @@
             "label": "Chunker Name",
             "description": "Chunker instance name"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "aiHtmlchunker",
           "optional": false,
           "editable": true,
@@ -64,8 +72,16 @@
             "label": "Max Chunk Size",
             "description": "Maximum number of characters allowed per chunk"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -91,8 +107,16 @@
             "label": "Max Overlap Size",
             "description": "Maximum number of characters to reuse from the end of the previous chunk when creating\nthe next one"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -118,8 +142,23 @@
             "label": "Strategy",
             "description": "The HTML chunking strategy to use. Defaults to `HTML_HEADER`."
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:HtmlChunkStrategy",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "CHARACTER",
+                "WORD",
+                "SENTENCE",
+                "HTML_LINE",
+                "HTML_PARAGRAPH",
+                "HTML_HEADER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:HtmlChunkStrategy"
+            }
+          ],
           "placeholder": "\"CHARACTER\"",
           "optional": true,
           "editable": true,
@@ -145,7 +184,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -157,7 +200,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

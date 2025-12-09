@@ -1,0 +1,8 @@
+[package]
+org = "mule_migrator"
+name = "apiKitProject_ballerina"
+version = "0.1.0"
+distribution = "2201.12.3"
+
+[build-options]
+observabilityIncluded = true

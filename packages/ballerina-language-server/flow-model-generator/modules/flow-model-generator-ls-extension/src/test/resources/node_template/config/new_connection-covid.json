@@ -37,8 +37,12 @@
           "label": "Config",
           "description": "The configurations to be used when initializing the `connector` "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "covid19:ConnectionConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "covid19:ConnectionConfig"
+          }
+        ],
         "placeholder": "{}",
         "optional": true,
         "editable": true,
@@ -64,8 +68,16 @@
           "label": "Service Url",
           "description": "URL of the target service "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -91,7 +103,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "covid19:Client",
         "placeholder": "var",
         "optional": false,
@@ -108,7 +124,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "covid19Client",
         "optional": false,
         "editable": true,
@@ -120,7 +140,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -132,7 +156,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

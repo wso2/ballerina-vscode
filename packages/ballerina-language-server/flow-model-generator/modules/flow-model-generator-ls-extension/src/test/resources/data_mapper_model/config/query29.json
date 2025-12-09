@@ -1,0 +1,218 @@
+{
+  "source": "query27.bal",
+  "description": "Query with group by clause and sequence variable array conversion",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 29,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 25,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "groupedItems.items",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "sales",
+          "displayName": "<salesItem>",
+          "typeName": "Sale",
+          "kind": "record",
+          "ref": "1373074483"
+        },
+        "name": "sales",
+        "displayName": "sales",
+        "typeName": "Sale[]",
+        "kind": "array",
+        "category": "variable",
+        "ref": "1849278691"
+      },
+      {
+        "fields": [],
+        "name": "salesItem",
+        "displayName": "salesItem",
+        "typeName": "Sale",
+        "kind": "record",
+        "focusExpression": "sales",
+        "ref": "1373074483",
+        "isSeq": true
+      },
+      {
+        "name": "quantity",
+        "displayName": "quantity",
+        "typeName": "int",
+        "kind": "int",
+        "focusExpression": "salesItem.quantity",
+        "isSeq": true
+      },
+      {
+        "name": "item",
+        "displayName": "item",
+        "typeName": "string",
+        "kind": "string",
+        "focusExpression": "salesItem.item"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "items",
+        "displayName": "<itemsItem>",
+        "typeName": "GroupedItems",
+        "kind": "record",
+        "ref": "-1090680082"
+      },
+      "name": "items",
+      "displayName": "items",
+      "typeName": "GroupedItems[]",
+      "kind": "array",
+      "ref": "-1370309134"
+    },
+    "mappings": [
+      {
+        "output": "items.item",
+        "inputs": [
+          "item"
+        ],
+        "expression": "item",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "items.quantityArray",
+        "inputs": [
+          "quantity"
+        ],
+        "expression": "[quantity]",
+        "diagnostics": [],
+        "elements": []
+      }
+    ],
+    "query": {
+      "output": "items",
+      "inputs": [
+        "sales"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "salesItem",
+          "type": "Sale",
+          "expression": "sales",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [
+        {
+          "type": "let",
+          "properties": {
+            "name": "quantity",
+            "type": "var",
+            "expression": "salesItem.quantity",
+            "isOuter": false
+          }
+        },
+        {
+          "type": "group-by",
+          "properties": {
+            "name": "item",
+            "type": "var",
+            "expression": "salesItem.item",
+            "isOuter": false
+          }
+        }
+      ],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{item: item, quantityArray: [quantity]}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "1373074483": {
+        "fields": [
+          {
+            "name": "item",
+            "displayName": "item",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "quantity",
+            "displayName": "quantity",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "price",
+            "displayName": "price",
+            "typeName": "decimal",
+            "kind": "decimal",
+            "optional": false
+          }
+        ],
+        "typeName": "Sale",
+        "kind": "record"
+      },
+      "-1090680082": {
+        "fields": [
+          {
+            "name": "item",
+            "displayName": "item",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "totalQuantity",
+            "displayName": "totalQuantity",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "totalPrice",
+            "displayName": "totalPrice",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "quantityArray",
+              "displayName": "<quantityArrayItem>",
+              "typeName": "int",
+              "kind": "int"
+            },
+            "name": "quantityArray",
+            "displayName": "quantityArray",
+            "typeName": "int[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "GroupedItems",
+        "kind": "record"
+      }
+    }
+  }
+}

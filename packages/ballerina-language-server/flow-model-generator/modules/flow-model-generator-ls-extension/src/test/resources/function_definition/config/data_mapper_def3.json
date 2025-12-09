@@ -30,8 +30,12 @@
           "label": "Name",
           "description": "Name of the function"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global"
+          }
+        ],
         "value": "mapNames",
         "optional": false,
         "editable": false,
@@ -56,8 +60,12 @@
           "label": "Output",
           "description": "Output type of the data mapper"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata"
+          }
+        ],
         "value": "Summary",
         "optional": false,
         "editable": true,
@@ -69,60 +77,84 @@
           "label": "Inputs",
           "description": "Input variables of the data mapper"
         },
-        "valueType": "REPEATABLE_PROPERTY",
-        "valueTypeConstraint": {
-          "metadata": {
-            "label": "Parameter",
-            "description": "Function parameter"
-          },
-          "valueType": "FIXED_PROPERTY",
-          "value": {
-            "type": {
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
               "metadata": {
-                "label": "Type",
-                "description": "Type of the parameter"
+                "label": "Parameter",
+                "description": "Function parameter"
               },
-              "valueType": "TYPE",
-              "valueTypeConstraint": "anydata",
-              "value": "",
-              "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "variable": {
-              "metadata": {
-                "label": "Name",
-                "description": "Name of the parameter"
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY"
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
               },
-              "valueType": "IDENTIFIER",
-              "value": "",
               "optional": false,
-              "editable": true,
+              "editable": false,
               "advanced": false,
               "hidden": false
             }
-          },
-          "optional": false,
-          "editable": false,
-          "advanced": false,
-          "hidden": false
-        },
+          }
+        ],
         "value": {
           "employees": {
             "metadata": {
               "label": "Parameter",
               "description": "Function parameter"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "type": {
                 "metadata": {
                   "label": "Type",
                   "description": "Type of the parameter"
                 },
-                "valueType": "TYPE",
-                "valueTypeConstraint": "anydata",
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "ballerinaType": "anydata"
+                  }
+                ],
                 "value": "Employee[]",
                 "optional": false,
                 "editable": true,
@@ -134,7 +166,11 @@
                   "label": "Name",
                   "description": "Name of the parameter"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "employees",
                 "optional": false,
                 "editable": true,

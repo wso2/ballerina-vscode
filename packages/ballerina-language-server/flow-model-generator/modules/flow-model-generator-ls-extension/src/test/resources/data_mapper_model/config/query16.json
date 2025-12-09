@@ -173,14 +173,16 @@
         "properties": {
           "name": "myType3",
           "type": "MyType[]",
-          "expression": "myTypes3"
+          "expression": "myTypes3",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "from var y in myType3 select y"
+          "expression": "from var y in myType3 select y",
+          "isOuter": false
         }
       }
     },

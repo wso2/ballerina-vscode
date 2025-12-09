@@ -146,7 +146,12 @@ public class AiUtils {
         ));
 
         dependentModules.put("1.7.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.3.0")
+                new Module("ballerinax", "ai.azure", "1.4.0"),
+                new Module("ballerinax", "ai.openai", "1.3.0"),
+                new Module("ballerinax", "ai.ollama", "1.2.0"),
+                new Module("ballerinax", "ai.mistral", "1.2.0"),
+                new Module("ballerinax", "ai.deepseek", "1.1.0"),
+                new Module("ballerinax", "ai.anthropic", "1.2.0")
         ));
     }
 
@@ -186,8 +191,7 @@ public class AiUtils {
         }
 
         Property.Builder<T> builder = new Property.Builder<T>(null)
-                .type(Property.ValueType.valueOf(originalProperty.valueType()))
-                .typeConstraint(originalProperty.valueTypeConstraint())
+                .types(originalProperty.types())
                 .value(newValue);
 
         if (originalProperty.codedata() != null) {
@@ -227,11 +231,10 @@ public class AiUtils {
                     .label(property.metadata().label())
                     .description(property.metadata().description())
                     .stepOut()
-                .type(Property.ValueType.valueOf(property.valueType()))
+                .types(property.types())
                 .placeholder(property.placeholder())
                 .value(valueToUse)
                 .defaultValue(property.defaultValue())
-                .typeConstraint(property.valueTypeConstraint())
                 .imports(property.imports() != null ? property.imports().toString() : null)
                 .optional(property.optional())
                 .editable(property.editable())
@@ -268,7 +271,7 @@ public class AiUtils {
                     .stepOut()
                 .value(value != null && !value.isEmpty() ? value : "")
                 .defaultValue("")
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
                 .editable()

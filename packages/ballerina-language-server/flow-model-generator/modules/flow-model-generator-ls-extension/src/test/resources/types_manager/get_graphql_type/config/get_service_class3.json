@@ -32,7 +32,11 @@
           "label": "Type name",
           "description": "Unique name to identify the type"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "/graphql",
         "optional": false,
         "editable": false,
@@ -44,7 +48,11 @@
           "label": "Type Qualifiers",
           "description": "Qualifiers of the type"
         },
-        "valueType": "MULTIPLE_SELECT",
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT"
+          }
+        ],
         "value": [],
         "optional": true,
         "editable": true,
@@ -56,7 +64,11 @@
           "label": "readonly",
           "description": "Is this readonly"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -68,7 +80,11 @@
           "label": "Is array type",
           "description": "Is this type an array or list value"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -80,7 +96,11 @@
           "label": "Size of the array",
           "description": "Array dimensions"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": false,
@@ -110,7 +130,11 @@
               "label": "private",
               "description": "Is this private"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -122,7 +146,11 @@
               "label": "public",
               "description": "Is this public"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -134,7 +162,11 @@
               "label": "isolated",
               "description": "Is this isolated"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -163,7 +195,11 @@
               "label": "private",
               "description": "Is this private"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -175,7 +211,11 @@
               "label": "public",
               "description": "Is this public"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -187,7 +227,11 @@
               "label": "isolated",
               "description": "Is this isolated"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -227,7 +271,11 @@
               "label": "private",
               "description": "Is this private"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -239,7 +287,11 @@
               "label": "public",
               "description": "Is this public"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -251,7 +303,11 @@
               "label": "isolated",
               "description": "Is this isolated"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": "false",
             "optional": true,
             "editable": true,
@@ -291,7 +347,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "Address",
           "optional": false,
           "editable": false,
@@ -303,7 +363,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "true",
           "optional": true,
           "editable": true,
@@ -315,7 +379,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": false,
           "editable": true,
@@ -327,7 +395,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -339,7 +411,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -356,7 +432,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -366,7 +443,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -376,10 +454,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     },
     {
@@ -409,7 +489,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "UserProfile",
           "optional": false,
           "editable": false,
@@ -421,7 +505,11 @@
             "label": "Type Qualifiers",
             "description": "Qualifiers of the type"
           },
-          "valueType": "MULTIPLE_SELECT",
+          "types": [
+            {
+              "fieldType": "MULTIPLE_SELECT"
+            }
+          ],
           "value": [
             "service"
           ],
@@ -435,7 +523,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -447,7 +539,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": false,
           "editable": false,
@@ -459,7 +555,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -471,7 +571,11 @@
             "label": "distinct",
             "description": "Is this distinct"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -483,7 +587,11 @@
             "label": "isolated",
             "description": "Is this isolated"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -495,7 +603,11 @@
             "label": "readonly",
             "description": "Is this readonly"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -507,10 +619,14 @@
             "label": "Network Qualifier",
             "description": "Network qualifier"
           },
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": [
-            "service",
-            "client"
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "service",
+                "client"
+              ]
+            }
           ],
           "value": "service",
           "optional": true,
@@ -561,7 +677,11 @@
                 "label": "private",
                 "description": "Is this private"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -573,7 +693,11 @@
                 "label": "public",
                 "description": "Is this public"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -585,7 +709,11 @@
                 "label": "isolated",
                 "description": "Is this isolated"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -612,7 +740,11 @@
                 "label": "private",
                 "description": "Is this private"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -624,7 +756,11 @@
                 "label": "public",
                 "description": "Is this public"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -636,7 +772,11 @@
                 "label": "isolated",
                 "description": "Is this isolated"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -663,7 +803,11 @@
                 "label": "private",
                 "description": "Is this private"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -675,7 +819,11 @@
                 "label": "public",
                 "description": "Is this public"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -687,7 +835,11 @@
                 "label": "isolated",
                 "description": "Is this isolated"
               },
-              "valueType": "FLAG",
+              "types": [
+                {
+                  "fieldType": "FLAG"
+                }
+              ],
               "value": "false",
               "optional": true,
               "editable": true,
@@ -726,7 +878,11 @@
             "label": "Type name",
             "description": "Unique name to identify the type"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "AbstractProfile",
           "optional": false,
           "editable": false,
@@ -738,7 +894,11 @@
             "label": "public",
             "description": "Is this public"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "true",
           "optional": true,
           "editable": true,
@@ -750,7 +910,11 @@
             "label": "Type description",
             "description": "Detailed description about the type"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": false,
           "editable": true,
@@ -762,7 +926,11 @@
             "label": "Is array type",
             "description": "Is this type an array or list value"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": "false",
           "optional": true,
           "editable": true,
@@ -774,7 +942,11 @@
             "label": "Size of the array",
             "description": "Array dimensions"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -791,7 +963,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -801,7 +974,8 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         },
         {
           "kind": "FIELD",
@@ -813,10 +987,12 @@
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "annotationAttachments": []
         }
       ],
       "includes": [],
+      "annotationAttachments": [],
       "allowAdditionalFields": false
     }
   ]

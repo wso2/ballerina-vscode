@@ -38,8 +38,16 @@
           "label": "Host",
           "description": "The host used for establishing the connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -64,8 +72,16 @@
           "label": "Port",
           "description": "The port used for establishing the connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int"
+          }
+        ],
         "placeholder": "0",
         "optional": false,
         "editable": true,
@@ -90,8 +106,16 @@
           "label": "Username",
           "description": "The username used for establishing the connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -117,8 +141,16 @@
           "label": "Password",
           "description": "The password used for establishing the connection"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -144,8 +176,16 @@
           "label": "Virtual Host",
           "description": "The virtual host to use when connecting to the broker"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -171,8 +211,16 @@
           "label": "Connection Timeout",
           "description": "Connection TCP establishment timeout in seconds and zero for infinite"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -198,8 +246,16 @@
           "label": "Handshake Timeout",
           "description": "The AMQP 0-9-1 protocol handshake timeout in seconds"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -225,8 +281,16 @@
           "label": "Shutdown Timeout",
           "description": "Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed\nthis timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -252,8 +316,16 @@
           "label": "Heartbeat",
           "description": "The initially-requested heartbeat timeout in seconds and zero for none"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "decimal",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal"
+          }
+        ],
         "placeholder": "0.0d",
         "optional": true,
         "editable": true,
@@ -279,8 +351,16 @@
           "label": "Validation",
           "description": "Configuration related to constraint validation check"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "boolean",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean"
+          }
+        ],
         "placeholder": "false",
         "optional": true,
         "editable": true,
@@ -306,8 +386,12 @@
           "label": "Secure Socket",
           "description": "Configurations for facilitating secure connections"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:SecureSocket",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "rabbitmq:SecureSocket"
+          }
+        ],
         "placeholder": "{cert: {path: \"\", password: \"\"}}",
         "optional": true,
         "editable": true,
@@ -333,8 +417,12 @@
           "label": "Auth",
           "description": "Configurations related to authentication"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:Credentials",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "rabbitmq:Credentials"
+          }
+        ],
         "placeholder": "{username: \"\", password: \"\"}",
         "optional": true,
         "editable": true,
@@ -360,7 +448,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "rabbitmq:Client",
         "placeholder": "var",
         "optional": false,
@@ -377,7 +469,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "rabbitmqClient",
         "optional": false,
         "editable": true,
@@ -389,7 +485,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -401,7 +501,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

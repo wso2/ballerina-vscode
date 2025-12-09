@@ -20,6 +20,7 @@ import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.PathUtil;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -29,6 +30,7 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -71,6 +73,12 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
             project.ifPresent(this.clonedWorkspaceManager::open);
         } else {
             this.baseWorkspaceManager.didOpen(path.get(), params);
+
+            // Send didOpen if the project is already opened in the cloned workspace
+            Optional<Project> project = this.clonedWorkspaceManager.project(path.get());
+            if (project.isPresent()) {
+                this.clonedWorkspaceManager.didOpen(path.get(), params);
+            }
         }
     }
 
@@ -85,6 +93,12 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
             this.clonedWorkspaceManager.didChange(path.get(), params);
         } else {
             this.baseWorkspaceManager.didChange(path.get(), params);
+
+            // Send didChange if the project is already opened in the cloned workspace
+            Optional<Project> project = this.clonedWorkspaceManager.project(path.get());
+            if (project.isPresent()) {
+                this.clonedWorkspaceManager.didChange(path.get(), params);
+            }
         }
     }
 
@@ -108,6 +122,18 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
         }
 
         public void open(Project project) {
+            BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+            Optional<Project> workspaceProject = compilerApi.getWorkspaceProject(project);
+            if (workspaceProject.isPresent()) {
+                Project workspaceProjectDuplicate = workspaceProject.get().duplicate();
+                List<Project> workspacePackages = compilerApi.getWorkspaceProjectsInOrder(workspaceProjectDuplicate);
+                for (Project workspacePackage : workspacePackages) {
+                    Path packageRoot = workspacePackage.sourceRoot();
+                    sourceRootToProject.put(packageRoot, ProjectContext.from(workspacePackage));
+                }
+                return;
+            }
+
             this.sourceRootToProject.put(project.sourceRoot(), ProjectContext.from(project.duplicate()));
         }
 

@@ -58,7 +58,12 @@ public class ExpressionContextTest extends CompletionTest {
                 "conditional_expr_ctx_config12.json", //#34145
 
                 // TODO ContextTypeResolver's context type for method call expressions should be revisited
-                "method_call_expression_ctx_config9.json"
+                "method_call_expression_ctx_config9.json",
+
+                // TODO: Tracked with: https://github.com/wso2/product-ballerina-integrator/issues/1622
+                "mapping_constructor_expr_ctx_config7.json",
+                "mapping_constructor_expr_ctx_config8.json",
+                "mapping_expr_ctx_config37.json"
         );
     }
 }

@@ -92,14 +92,16 @@
         "properties": {
           "name": "n",
           "type": "var",
-          "expression": "userInfo.username"
+          "expression": "userInfo.username",
+          "isOuter": false
         }
       },
       "intermediateClauses": [],
       "resultClause": {
         "type": "select",
         "properties": {
-          "expression": "n"
+          "expression": "n",
+          "isOuter": false
         }
       }
     },

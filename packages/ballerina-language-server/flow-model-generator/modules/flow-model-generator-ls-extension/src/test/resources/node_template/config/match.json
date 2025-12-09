@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "MATCH"
@@ -28,7 +29,11 @@
               "label": "Patterns",
               "description": "List of binding patterns"
             },
-            "valueType": "SINGLE_SELECT",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT"
+              }
+            ],
             "value": [],
             "optional": false,
             "editable": true,
@@ -51,7 +56,11 @@
               "label": "Ignore",
               "description": "Ignore the error value"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "true",
             "optional": false,
             "editable": true,
@@ -63,7 +72,11 @@
               "label": "Error Variable",
               "description": "Name of the error variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "",
             "placeholder": "err",
             "optional": false,
@@ -76,7 +89,11 @@
               "label": "Error Type",
               "description": "Type of the error"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "",
             "placeholder": "error",
             "optional": false,
@@ -94,8 +111,12 @@
           "label": "Target",
           "description": "Match target expression"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "any|error",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "any|error"
+          }
+        ],
         "value": "",
         "placeholder": "true",
         "optional": false,

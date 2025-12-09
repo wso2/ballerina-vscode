@@ -36,8 +36,16 @@
           "label": "M",
           "description": "the map"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "map<map<any|error>>",
+        "types": [
+          {
+            "fieldType": "MAPPING_EXPRESSION_SET",
+            "ballerinaType": "map<map:Type>"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<map:Type>"
+          }
+        ],
         "placeholder": "{}",
         "optional": false,
         "editable": true,
@@ -62,8 +70,12 @@
           "label": "Func",
           "description": "combining function"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "function (map<any|error> accum, map<any|error> val) returns map<any|error>",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function (map:Type1 accum, map:Type val) returns map:Type1"
+          }
+        ],
         "placeholder": "",
         "optional": false,
         "editable": true,
@@ -88,8 +100,12 @@
           "label": "Initial",
           "description": "initial value for the first argument of combining parameter `func`"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "map<any|error>",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map:Type1"
+          }
+        ],
         "placeholder": "()",
         "optional": false,
         "editable": true,
@@ -114,8 +130,12 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
-        "value": "map<any|error>",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "map:Type1",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -128,8 +148,12 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
-        "value": "mapAnyError",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "mapType1",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -140,7 +164,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

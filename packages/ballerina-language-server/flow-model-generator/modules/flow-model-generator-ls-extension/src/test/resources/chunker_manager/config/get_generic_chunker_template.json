@@ -1,5 +1,5 @@
 {
-  "source": "chunker/chunker.bal",
+  "source": "chunker.bal",
   "codedata": {
     "node": "CHUNKER",
     "module": "ai",
@@ -35,7 +35,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "ai:GenericRecursiveChunker",
           "placeholder": "var",
           "optional": false,
@@ -52,7 +56,11 @@
             "label": "Chunker Name",
             "description": "Chunker instance name"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "aiGenericrecursivechunker",
           "optional": false,
           "editable": true,
@@ -64,8 +72,16 @@
             "label": "Max Chunk Size",
             "description": "Maximum number of characters allowed per chunk"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -91,8 +107,16 @@
             "label": "Max Overlap Size",
             "description": "Maximum number of characters to reuse from the end of the previous chunk when creating the next one.\nThis overlap is made of complete sentences taken in reverse from the previous chunk, without exceeding\nthis limit. It helps maintain context between chunks during splitting."
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
           "placeholder": "0",
           "optional": true,
           "editable": true,
@@ -118,8 +142,22 @@
             "label": "Strategy",
             "description": "The recursive chunking strategy to use. Defaults to `PARAGRAPH`"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:RecursiveChunkStrategy",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "PARAGRAPH",
+                "SENTENCE",
+                "LINE",
+                "WORD",
+                "CHARACTER"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:RecursiveChunkStrategy"
+            }
+          ],
           "placeholder": "\"PARAGRAPH\"",
           "optional": true,
           "editable": true,
@@ -145,7 +183,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -157,7 +199,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

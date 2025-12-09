@@ -47,6 +47,7 @@ import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAUL
  * @since 1.1.0
  */
 public class ModelProviderBuilder extends CallBuilder {
+
     public static final String LABEL = "Model Provider";
     public static final String DESCRIPTION = "Model providers available within the integration " +
             "for connecting to an LLM";
@@ -152,7 +153,6 @@ public class ModelProviderBuilder extends CallBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -172,11 +172,7 @@ public class ModelProviderBuilder extends CallBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
                 default -> {
-                    if (paramResult.type() instanceof List<?>) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
-                    }
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 

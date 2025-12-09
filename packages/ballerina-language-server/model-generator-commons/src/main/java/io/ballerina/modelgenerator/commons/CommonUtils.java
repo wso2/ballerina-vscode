@@ -1107,4 +1107,78 @@ public class CommonUtils {
                 nodeKind == SyntaxKind.MARKDOWN_REFERENCE_DOCUMENTATION_LINE ||
                 nodeKind == SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE;
     }
+
+    /**
+     * Gets the view line range for a symbol if it belongs to the current package or a workspace project.
+     *
+     * <p>
+     * TODO: The API currently relies on the syntax tree to determine the corresponding line range. The communication
+     * between the extension and the LS should be improved so it can reuse the go-to-def implementation and use the
+     * symbol location instead.
+     *
+     * @param symbol     the symbol to get the view line range for
+     * @param moduleInfo the module descriptor of the current module
+     * @param project    the current project
+     * @return Optional containing the line range if the symbol is viewable, empty otherwise
+     */
+    public static Optional<LineRange> getViewLineRange(Symbol symbol, ModuleInfo moduleInfo, Project project) {
+        Optional<Location> symbolLocation = symbol.getLocation();
+        if (symbolLocation.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<ModuleID> moduleId = symbol.getModule().map(ModuleSymbol::id);
+        if (moduleId.isEmpty()) {
+            return Optional.empty();
+        }
+
+        String symbolOrg = moduleId.get().orgName();
+        String symbolPackage = moduleId.get().packageName();
+        Location location = symbolLocation.get();
+
+        // Only check if the organization matches
+        if (!symbolOrg.equals(moduleInfo.org())) {
+            return Optional.empty();
+        }
+
+        // Check if it's the default package
+        if (symbolPackage.equals(moduleInfo.packageName())) {
+            return CommonUtil.findNode(symbol, CommonUtils.getDocument(project, location).syntaxTree())
+                    .map(Node::lineRange);
+        }
+
+        // Check if the symbol is from a sibling workspace project
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        Optional<Project> workspaceProject = compilerApi.getWorkspaceProject(project);
+        if (workspaceProject.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<Project> workspaceProjects = compilerApi.getWorkspaceProjectsInOrder(workspaceProject.get());
+
+        for (Project wsProject : workspaceProjects) {
+            String wsPackageName = wsProject.currentPackage().packageName().value();
+            if (wsPackageName.equals(symbolPackage)) {
+                // Use the sibling project to get the document
+                return CommonUtil.findNode(symbol, CommonUtils.getDocument(wsProject, location).syntaxTree())
+                        .map(Node::lineRange);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Removes a leading single quote from the given identifier, if present.
+     *
+     * <p>
+     * TODO: The utility assumes that every leading `'` is an escaped identifier. This does not correctly handle
+     * inputs where `'` is part of the identifier, such as `\'value`.
+     *
+     * @param identifier the identifier to process
+     * @return the identifier without the leading single quote, or the original identifier if no leading quote exists
+     */
+    public static String removeQuotedIdentifier(String identifier) {
+        return identifier.startsWith("'") ? identifier.substring(1) : identifier;
+    }
 }

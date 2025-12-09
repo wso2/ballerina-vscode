@@ -40,8 +40,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "snowflake:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "snowflake:Client"
+          }
+        ],
         "value": "snowflakeCl",
         "optional": false,
         "editable": false,
@@ -53,9 +57,13 @@
           "label": "SQL Query",
           "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "sql:ParameterizedQuery",
-        "placeholder": "``",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery"
+          }
+        ],
+        "placeholder": "object {}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -75,16 +83,19 @@
         ],
         "imports": {
           "sql": "ballerina/sql"
-        },
-        "defaultValue": "``"
+        }
       },
       "rowType": {
         "metadata": {
           "label": "Row Type",
           "description": "The `typedesc` of the record to which the result needs to be returned"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "record {|anydata...;|}",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "record {|anydata...;|}"
+          }
+        ],
         "placeholder": "record {|anydata...;|}",
         "optional": false,
         "editable": true,
@@ -101,7 +112,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "stream<rowType, sql:Error?>",
         "placeholder": "var",
         "optional": false,
@@ -118,7 +133,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "streamRowtypeSqlError",
         "optional": false,
         "editable": true,

@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "kind": "ROLLBACK"
@@ -20,7 +21,11 @@
           "label": "Statement",
           "description": "Ballerina statement"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,

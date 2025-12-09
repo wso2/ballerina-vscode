@@ -41,4 +41,7 @@ public interface ExtendedLanguageClient extends LanguageClient {
 
     @JsonNotification("projectService/logCallback")
     void logCallback(Object artifacts);
+
+    @JsonNotification("projectService/pushMigratedProject")
+    void pushMigratedProject(Object notification);
 }

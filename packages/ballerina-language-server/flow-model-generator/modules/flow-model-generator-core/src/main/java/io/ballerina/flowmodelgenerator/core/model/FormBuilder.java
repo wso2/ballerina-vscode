@@ -245,8 +245,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(Property.RETURN_TYPE_DOC)
                     .stepOut()
                 .value(value == null ? "" : value)
-                .type(Property.ValueType.TYPE)
-                .typeConstraint(typeConstraint)
+                .type(Property.ValueType.TYPE, typeConstraint)
                 .optional(optional)
                 .editable();
 
@@ -261,7 +260,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.DESCRIPTION_TYPE_DOC)
                 .stepOut()
                 .value(value == null ? "" : value)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable();
 
@@ -276,7 +275,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.RETURN_DESCRIPTION_TYPE_DOC)
                 .stepOut()
                 .value(value == null ? "" : value)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable();
 
@@ -355,8 +354,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.VARIABLE_DOC)
                 .stepOut()
                 .value(name)
-                .type(Property.ValueType.IDENTIFIER)
-                .typeConstraint(Property.GLOBAL_SCOPE)
+                .typeWithScope(Property.ValueType.IDENTIFIER, Property.GLOBAL_SCOPE)
                 .editable(editable)
                 .modified(modified);
         addProperty(Property.VARIABLE_KEY);
@@ -632,8 +630,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .stepOut()
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
                 .placeholder("true")
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(CONDITION_TYPE_CONSTRAINT)
+                .type(Property.ValueType.EXPRESSION, CONDITION_TYPE_CONSTRAINT)
                 .editable();
         addProperty(Property.CONDITION_KEY, expressionNode);
         return this;
@@ -647,8 +644,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .stepOut()
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
                 .placeholder("true")
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(MATCH_TARGET_TYPE_CONSTRAINT)
+                .type(Property.ValueType.EXPRESSION, MATCH_TARGET_TYPE_CONSTRAINT)
                 .editable();
         addProperty(Property.MATCH_TARGET_KEY, expressionNode);
     }
@@ -682,8 +678,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(expressionDoc)
                     .stepOut()
                 .value(expr)
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(typeConstraint)
+                .type(Property.ValueType.EXPRESSION, typeConstraint)
                 .optional(optional)
                 .editable();
         addProperty(Property.EXPRESSION_KEY);
@@ -711,8 +706,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(expressionDoc)
                     .stepOut()
                 .value(expressionNode == null ? "" : expressionNode.toSourceCode())
-                .type(Property.ValueType.EXPRESSION)
-                .typeConstraint(typeConstraint)
+                .type(Property.ValueType.EXPRESSION, typeConstraint)
                 .optional(optional)
                 .editable();
         addProperty(Property.EXPRESSION_KEY, expressionNode);
@@ -810,7 +804,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.CONFIG_VAR_DOC_DOC)
                 .stepOut()
                 .value(concatDocLines(docNode))
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .optional(true)
                 .editable(editable)
                 .modified(false);
@@ -840,7 +834,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(ExpressionBuilder.STATEMENT_DOC)
                     .stepOut()
                 .value(node == null ? "" : node.toSourceCode().strip())
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .editable();
         addProperty(ExpressionBuilder.STATEMENT_KEY, node);
         return this;
@@ -866,7 +860,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(Property.COMMENT_DOC)
                     .stepOut()
                 .value(comment)
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .editable();
         addProperty(Property.COMMENT_KEY);
         return this;
@@ -914,8 +908,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(FunctionDefinitionBuilder.FUNCTION_NAME_LABEL)
                     .description(FunctionDefinitionBuilder.FUNCTION_NAME_DOC)
                     .stepOut()
-                .type(Property.ValueType.IDENTIFIER)
-                .typeConstraint(Property.GLOBAL_SCOPE)
+                .typeWithScope(Property.ValueType.IDENTIFIER, Property.GLOBAL_SCOPE)
                 .value(functionName);
 
         if (!functionName.equals(Constants.MAIN_FUNCTION_NAME)) {
@@ -955,8 +948,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .description(description)
                     .stepOut()
                 .value(generatedName)
-                .type(Property.ValueType.IDENTIFIER)
-                .typeConstraint(Property.GLOBAL_SCOPE)
+                .typeWithScope(Property.ValueType.IDENTIFIER, Property.GLOBAL_SCOPE)
                 .editable();
         addProperty(Property.FUNCTION_NAME_KEY);
         return this;
@@ -999,8 +991,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .placeholder("[]")
                 .value(expressionNode == null ? "" : expressionNode.kind() == SyntaxKind.CHECK_EXPRESSION ?
                         ((CheckExpressionNode) expressionNode).expression().toString() : expressionNode.toString())
-                .type(Property.ValueType.ACTION_OR_EXPRESSION)
-                .typeConstraint(COLLECTION_TYPE_CONSTRAINT);
+                .type(Property.ValueType.ACTION_OR_EXPRESSION, COLLECTION_TYPE_CONSTRAINT);
         addProperty(Property.COLLECTION_KEY, expressionNode);
         return this;
     }
@@ -1030,7 +1021,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .optional(optional)
                 .advanced(advanced)
                 .value(value)
-                .type(Property.ValueType.STRING);
+                .type(Property.ValueType.TEXT);
         addProperty(Property.DESCRIPTION_KEY);
         return this;
     }
@@ -1060,7 +1051,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .optional(optional)
                 .advanced(advanced)
                 .value(value)
-                .type(Property.ValueType.STRING);
+                .type(Property.ValueType.TEXT);
         addProperty(Property.ARRAY_SIZE);
         return this;
     }
@@ -1170,8 +1161,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .optional(optional)
                 .advanced(advanced)
                 .value(value)
-                .typeConstraint(List.of("service", "client"))
-                .type(Property.ValueType.SINGLE_SELECT);
+                .typeWithOptions(Property.ValueType.SINGLE_SELECT, List.of("service", "client"));
         addProperty(Property.NETWORK_QUALIFIER_KEY);
         return this;
     }
@@ -1190,7 +1180,18 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
-                                    Object typeConstraint) {
+                                    List<String> options) {
+        propertyBuilder.typeWithOptions(valueType, options);
+        return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
+                                    String fieldType) {
+        propertyBuilder.type(valueType, fieldType);
+        return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> parameter(String type, String name, Token token) {
         nestedProperty();
 
         // Build the parameter type property
@@ -1199,8 +1200,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.IMPLICIT_TYPE_LABEL)
                     .description(Property.PARAMETER_TYPE_DOC)
                     .stepOut()
-                .type(valueType)
-                .typeConstraint(typeConstraint)
                 .value(type)
                 .editable();
         addProperty(Property.TYPE_KEY);
@@ -1229,7 +1228,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameterWithDescription(String type, String name, Token token, Property.ValueType valueType,
-                                                   Object typeConstraint, String description) {
+                                                   String description) {
         nestedProperty();
 
         // Build the parameter type property
@@ -1239,7 +1238,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.PARAMETER_TYPE_DOC)
                 .stepOut()
                 .type(valueType)
-                .typeConstraint(typeConstraint)
                 .value(type)
                 .editable();
         addProperty(Property.TYPE_KEY);
@@ -1268,7 +1266,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .label(Property.DESCRIPTION_LABEL)
                 .description(Property.PARAMETER_DESCRIPTION_TYPE_DOC)
                 .stepOut()
-                .type(Property.ValueType.STRING)
+                .type(Property.ValueType.TEXT)
                 .value(description)
                 .optional(true)
                 .editable();
@@ -1286,15 +1284,14 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> endNestedProperty(Property.ValueType valueType, String key, String label, String doc,
-                                            Object typeConstraint, boolean optional, boolean advanced) {
+                                            Property template, boolean optional, boolean advanced) {
         propertyBuilder
                 .metadata()
                     .label(label)
                     .description(doc)
                     .stepOut()
                 .value(nodeProperties)
-                .typeConstraint(typeConstraint)
-                .type(valueType)
+                .typeWithTemplate(valueType, template)
                 .optional(optional)
                 .advanced(advanced);
         if (!nodePropertiesStack.isEmpty()) {
