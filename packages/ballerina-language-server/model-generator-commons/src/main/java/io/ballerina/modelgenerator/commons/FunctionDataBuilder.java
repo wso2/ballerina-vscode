@@ -131,7 +131,7 @@ public class FunctionDataBuilder {
     private LSClientLogger lsClientLogger;
     private Project project;
     private boolean isCurrentModule;
-    private boolean disableIndex;
+    private boolean enableIndex;
 
     public static final String REST_RESOURCE_PATH = "/path/to/subdirectory";
     public static final String REST_PARAM_PATH = "/path/to/resource";
@@ -249,8 +249,8 @@ public class FunctionDataBuilder {
         return this;
     }
 
-    public FunctionDataBuilder disableIndex() {
-        this.disableIndex = true;
+    public FunctionDataBuilder enableIndex() {
+        this.enableIndex = true;
         return this;
     }
 
@@ -332,12 +332,12 @@ public class FunctionDataBuilder {
         }
 
         // Check if the function is in the index
-//        if (!disableIndex) {
-//            Optional<FunctionData> indexedResult = getFunctionFromIndex();
-//            if (indexedResult.isPresent()) {
-//                return indexedResult.get();
-//            }
-//        }
+        if (enableIndex) {
+            Optional<FunctionData> indexedResult = getFunctionFromIndex();
+            if (indexedResult.isPresent()) {
+                return indexedResult.get();
+            }
+        }
 
         // Fetch the semantic model if not provided
         if (semanticModel == null) {
