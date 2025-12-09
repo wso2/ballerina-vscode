@@ -23,7 +23,6 @@ import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
-import { Position, Range } from 'vscode';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -35,15 +34,16 @@ export function activateSubscriptions() {
                 return;
             }
 
-            let selection: Range | undefined;
+            const showOptions: vscode.TextDocumentShowOptions = { viewColumn: vscode.ViewColumn.Beside };
+
             const position = context.position;
             if (position) {
-                const startPosition: Position = new Position(position.startLine, position.startColumn);
-                const endPosition: Position = new Position(position.endLine, position.endColumn);
-                selection = new Range(startPosition, endPosition);
+                const startPosition = new vscode.Position(position.startLine, position.startColumn);
+                const endPosition = new vscode.Position(position.endLine, position.endColumn);
+                showOptions.selection = new vscode.Range(startPosition, endPosition);
             }
 
-            vscode.window.showTextDocument(vscode.Uri.file(path), { viewColumn: vscode.ViewColumn.Beside, selection: selection });
+            vscode.window.showTextDocument(vscode.Uri.file(path), showOptions);
         })
     );
 
