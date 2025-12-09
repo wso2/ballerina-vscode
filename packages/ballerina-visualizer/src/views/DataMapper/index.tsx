@@ -39,28 +39,22 @@ export interface DataMapperProps {
 export function DataMapper(props: DataMapperProps) {
 
     const {rpcClient} = useRpcContext();
-    const goToSource = () => {
-        // const lineRange = props.codedata.lineRange;
-        // if (lineRange) {
-        //     const position: NodePosition = {
-        //         startLine: lineRange.startLine?.line,
-        //         startColumn: lineRange.startLine?.offset,
-        //         endLine: lineRange.endLine?.line,
-        //         endColumn: lineRange.endLine?.offset,
-        //     };
-        //     rpcClient.getCommonRpcClient().goToSource({ position, fileName: lineRange.fileName });
-        // }
 
-        rpcClient.getCommonRpcClient().executeCommand({
+    const goToSource = () => {
+        rpcClient.getCommonRpcClient()?.executeCommand({
             commands: ["ballerina.show.source"]
         });
     };
 
+    const onClose = props.onClose || (() => {
+        rpcClient.getVisualizerRpcClient()?.goBack();
+    });
+
     return (
         <>
             <TopNavigationBar projectPath={props.projectPath}/>
-            <DataMapperErrorBoundary onClose={props.onClose} goToSource={goToSource} >
-                <DataMapperView {...props} goToSource={goToSource} />
+            <DataMapperErrorBoundary onClose={onClose} goToSource={goToSource} >
+                <DataMapperView {...props} goToSource={goToSource} onClose={onClose} />
             </DataMapperErrorBoundary>
         </>
     );
