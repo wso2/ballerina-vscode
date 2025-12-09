@@ -19,9 +19,15 @@
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit } from "@wso2/ballerina-core";
+import { TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
+import {
+    checkIsBallerinaPackage,
+    checkIsBallerinaWorkspace,
+    getBallerinaPackages,
+    hasMultipleBallerinaPackages
+} from '../../utils';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
@@ -190,3 +196,45 @@ export async function handleDownloadFile(rawFileLink: string, defaultDownloadsPa
     progress.report({ message: "Download finished" });
 }
 
+export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<WorkspaceTypeResponse> {
+    const workspaceFolders = workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        throw new Error("No workspaces found.");
+    }
+
+    if (workspaceFolders.length > 1) {
+        let balPackagesCount = 0;
+        for (const folder of workspaceFolders) {
+            const packages = await getBallerinaPackages(folder.uri);
+            balPackagesCount += packages.length;
+        }
+
+        const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
+        if (balPackagesCount > 1) {
+            return isWorkspaceFile
+                ? { type: "VSCODE_WORKSPACE" }
+                : { type: "MULTIPLE_PROJECTS" };
+        }
+    } else if (workspaceFolders.length === 1) {
+        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+        const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
+        if (isBallerinaWorkspace) {
+            return { type: "BALLERINA_WORKSPACE" };
+        }
+
+        const isBallerinaPackage = await checkIsBallerinaPackage(Uri.file(workspaceFolderPath));
+        if (isBallerinaPackage) {
+            return { type: "SINGLE_PROJECT" };
+        }
+
+        const hasMultiplePackages = await hasMultipleBallerinaPackages(Uri.file(workspaceFolderPath));
+        if (hasMultiplePackages) {
+            return { type: "MULTIPLE_PROJECTS" };
+        }
+
+        return { type: "UNKNOWN" };
+    }
+
+    return { type: "UNKNOWN" };
+}
