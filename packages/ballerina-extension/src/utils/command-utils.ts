@@ -19,7 +19,7 @@
 import { window } from "vscode";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 
-export function isAtWorkspaceLevel(
+export function requiresPackageSelection(
     workspacePath: string | undefined,
     view: MACHINE_VIEW | undefined,
     projectPath: string | undefined,
