@@ -158,8 +158,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
 
     const [views, dispatch] = useReducer(viewsReducer, initialView);
     const [nodes, setNodes] = useState<DataMapperNodeModel[]>([]);
-    const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
-    const [hasInternalError, setHasInternalError] = useState(false);
 
     const { isSMConfigPanelOpen, resetSubMappingConfig } = useDMSubMappingConfigPanelStore(
         useShallow(state => ({
@@ -284,7 +282,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             ]);
         } catch (error) {
             console.error("Error generating nodes:", error);
-            throw new Error("Error generating nodes: " + error);
+            throw error;
         }
     };
 
@@ -320,7 +318,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const handleErrors = (kind: ErrorNodeKind) => {
-        setErrorKind(kind);
+        throw new Error("Diagram rendering error:" + kind);
     };
 
     const autoMapWithAI = async () => {
@@ -345,7 +343,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                     views={views}
                     reusable={reusable}
                     switchView={switchView}
-                    hasEditDisabled={!!errorKind}
                     onClose={handleOnClose}
                     onBack={handleOnBack}
                     onRefresh={onRefresh}
@@ -355,8 +352,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                     undoRedoGroup={undoRedoGroup}
                 />
             )}
-            {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-            {nodes.length > 0 && !errorKind && (
+            {nodes.length > 0 && (
                 <>
                     <DataMapperDiagram
                         nodes={nodes}
