@@ -15,7 +15,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { css } from "@emotion/css";
+import { css, keyframes } from "@emotion/css";
+
+const fadeIn = keyframes`
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+`;
 
 export const useStyles = () => ({
     root: css({
@@ -65,5 +70,50 @@ export const useStyles = () => ({
             color: "var(--vscode-editor-selectionBackground)",
             textDecoration: "underline",
         }
+    }),
+    overlay: css({
+        zIndex: 1,
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        background: "var(--vscode-input-background)",
+        opacity: 0.5,
+        cursor: 'not-allowed'
+    }),
+    errorBanner: css({
+        borderColor: "var(--vscode-errorForeground)"
+    }),
+    errorMessage: css({
+        zIndex: 1,
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '500px',
+        animation: `${fadeIn} 0.5s ease-in-out`
+    }),
+    warningContainer: css({
+        marginTop: 20,
+        marginLeft: 16,
+        marginRight: 16,
+        backgroundColor: 'var(--vscode-editorWidget-background)',
+        color: 'var(--vscode-sideBarSectionHeader-foreground)',
+        padding: 10,
+        minWidth: 120,
+        width: 'fit-content',
+        textAlign: 'left',
+        display: 'flex',
+        flexDirection: 'row',
+        height: 'fit-content',
+    }),
+    warningIcon: css({
+        display: 'flex',
+        alignItems: 'center',
+        position: 'absolute',
+        top: '50%',
+        color: 'var(--vscode-editorWarning-foreground)'
+    }),
+    warningBody: css({
+        marginLeft: 35
     })
 });
