@@ -250,28 +250,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         return value.toString();
     }
 
-    // Compatibility method for backward compatibility
-    public String valueType() {
-        if (types != null && !types.isEmpty()) {
-            return types.getLast().fieldType().name();
-        }
-        return null;
-    }
-
-    // Compatibility method for backward compatibility
-    public Object valueTypeConstraint() {
-        if (types != null && !types.isEmpty()) {
-            PropertyType firstType = types.getFirst();
-            return switch (firstType.fieldType()) {
-                case IDENTIFIER -> firstType.scope();
-                case SINGLE_SELECT, MULTI_SELECT, MULTIPLE_SELECT -> firstType.options();
-                case REPEATABLE_PROPERTY -> firstType.template();
-                default -> firstType.ballerinaType();
-            };
-        }
-        return null;
-    }
-
     // Enum for backward compatibility
     public enum ValueType {
         EXPRESSION,
