@@ -72,10 +72,6 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "int"
-            },
-            {
               "fieldType": "NUMBER",
               "ballerinaType": "int"
             },
@@ -110,10 +106,6 @@
             "description": "The metric used for vector similarity"
           },
           "types": [
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:SimilarityMetric"
-            },
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
