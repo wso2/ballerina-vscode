@@ -28,11 +28,22 @@ export function activateSubscriptions() {
     const context = extension.context;
     context.subscriptions.push(
         vscode.commands.registerCommand(PALETTE_COMMANDS.SHOW_SOURCE, () => {
-            const path = StateMachine.context().documentUri;
+            const context = StateMachine.context();
+            const path = context.documentUri;
             if (!path) {
                 return;
             }
-            vscode.window.showTextDocument(vscode.Uri.file(path), { viewColumn: vscode.ViewColumn.Beside });
+
+            const showOptions: vscode.TextDocumentShowOptions = { viewColumn: vscode.ViewColumn.Beside };
+
+            const position = context.position;
+            if (position) {
+                const startPosition = new vscode.Position(position.startLine, position.startColumn);
+                const endPosition = new vscode.Position(position.endLine, position.endColumn);
+                showOptions.selection = new vscode.Range(startPosition, endPosition);
+            }
+
+            vscode.window.showTextDocument(vscode.Uri.file(path), showOptions);
         })
     );
 
