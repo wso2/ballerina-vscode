@@ -23,10 +23,11 @@ import ErrorScreen from "./Error";
 export interface DataMapperErrorBoundaryProps {
     children: React.ReactNode;
     onClose?: () => void;
+    goToSource: () => void;
 }
 
 export function DataMapperErrorBoundary(props: DataMapperErrorBoundaryProps) {
-    const { children, onClose } = props;
+    const { children, onClose, goToSource } = props;
 
     const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
         console.error("Error caught by DataMapperErrorBoundary:", error, errorInfo);
@@ -34,7 +35,7 @@ export function DataMapperErrorBoundary(props: DataMapperErrorBoundaryProps) {
 
     return (
         <ReactErrorBoundary
-            FallbackComponent={(fallbackProps) => <ErrorScreen onClose={onClose} {...fallbackProps} />}
+            FallbackComponent={(fallbackProps) => <ErrorScreen onClose={onClose} goToSource={goToSource} {...fallbackProps} />}
             onError={handleError}
         >
             {children}
