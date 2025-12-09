@@ -95,7 +95,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.FunctionData.Kind.isAiClassKind;
 import static io.ballerina.modelgenerator.commons.FunctionData.Kind.isConnector;
 
@@ -1180,14 +1179,7 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
-    private boolean isAiModelTypeParameter(String paramName, FunctionData.Kind functionKind) {
-        return MODEL_TYPE_PARAMETER_NAME.equals(paramName) &&
-                (functionKind == FunctionData.Kind.MODEL_PROVIDER
-                        || functionKind == FunctionData.Kind.EMBEDDING_PROVIDER
-                        || (isAiModelModule(moduleInfo.org(), moduleInfo.moduleName())
-                        && (functionKind == FunctionData.Kind.CLASS_INIT
-                        || functionKind == FunctionData.Kind.CONNECTOR)));
-    }
+
 
     private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
     }

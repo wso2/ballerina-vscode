@@ -23,13 +23,14 @@ import java.util.List;
 /**
  * Represents the type configuration of a property in the flow model.
  *
- * @param fieldType         the field type
- * @param ballerinaType     the associated Ballerina type (optional)
- * @param scope             the scope for identifier types (optional)
- * @param options           the available options for selection types (optional)
- * @param template          the template property for complex types (optional)
+ * @param fieldType     the field type
+ * @param ballerinaType the associated Ballerina type (optional)
+ * @param scope         the scope for identifier types (optional)
+ * @param options       the available options for selection types (optional)
+ * @param template      the template property for complex types (optional)
  * @since 1.5.0
  */
-public record PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<String> options, Property template) {
+public record PropertyType(Property.ValueType fieldType, String ballerinaType, String scope,
+                           List<String> options, Property template) {
 
 }

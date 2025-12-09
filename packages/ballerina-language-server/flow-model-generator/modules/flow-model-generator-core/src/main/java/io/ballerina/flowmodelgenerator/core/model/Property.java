@@ -603,7 +603,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-
         public Property build() {
             List<PropertyType> finalTypes = types.isEmpty() ? null : new ArrayList<>(types);
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), finalTypes,
