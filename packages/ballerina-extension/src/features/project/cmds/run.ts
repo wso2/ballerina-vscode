@@ -21,11 +21,13 @@ import { commands, Uri, window } from "vscode";
 import {
     TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN, sendTelemetryEvent, sendTelemetryException
 } from "../../telemetry";
-import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGES, getRunCommand } from "./cmd-runner";
+import { runCommand, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGES, getRunCommand } from "./cmd-runner";
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
 import { prepareAndGenerateConfig } from '../../config-generator/configGenerator';
 import { LANGUAGE } from "../../../core";
-import { TracerMachine } from "../../../features/tracing";
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { StateMachine } from "../../../stateMachine";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
 
 function activateRunCmdCommand() {
 
@@ -36,15 +38,40 @@ function activateRunCmdCommand() {
         } else if (filePath instanceof Uri) {
             actualFilePath = filePath.fsPath;
         }
-        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath);
+
+        let isAtWorkspaceLevel = false;
+        const isActiveTextEditor = window.activeTextEditor;
+
+        if (!actualFilePath && !isActiveTextEditor) {    
+        
+            const context = StateMachine.context();
+            const { workspacePath, view, projectPath, projectInfo } = context;
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+
+            isAtWorkspaceLevel = 
+                workspacePath && 
+                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath || !isWebviewOpen);
+            
+            if (isAtWorkspaceLevel && projectInfo?.children.length === 0) {
+                window.showErrorMessage("No packages found in the workspace.");
+                return;
+            } else if (!isAtWorkspaceLevel && !projectPath) {
+                window.showErrorMessage("No project found.");
+                return;
+            }
+
+            actualFilePath = isAtWorkspaceLevel ? workspacePath : projectPath;
+        }
+
+        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath, false, false, true, isAtWorkspaceLevel);
     });
 
     // register ballerina run handler
-    commands.registerCommand(PALETTE_COMMANDS.RUN_CMD, async (...args: any[]) => {
-        await run(args);
+    commands.registerCommand(PALETTE_COMMANDS.RUN_CMD, async (filePath: string) => {
+        await run(filePath);
     });
 
-    async function run(args: any[]) {
+    async function run(filePath: string) {
         try {
 
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
@@ -58,7 +85,7 @@ function activateRunCmdCommand() {
                     window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                     return;
                 }
-                currentProject = await getCurrentBallerinaProject();
+                currentProject = await getCurrentBallerinaProject(filePath);
             } else {
                 const document = extension.ballerinaExtInstance.getDocumentContext().getLatestDocument();
                 if (document) {
@@ -70,6 +97,9 @@ function activateRunCmdCommand() {
                             break;
                         }
                     }
+                }
+                if (!currentProject) {
+                    currentProject = await getCurrentBallerinaProject(filePath);
                 }
             }
 
@@ -83,7 +113,8 @@ function activateRunCmdCommand() {
                 extension.ballerinaExtInstance.setBallerinaConfigPath('');
                 runCommandWithConf(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
                     getRunCommand(),
-                    configPath, currentProject.path!, ...args);
+                    configPath, currentProject.path!
+                );
             } else {
                 runCurrentFile();
             }
