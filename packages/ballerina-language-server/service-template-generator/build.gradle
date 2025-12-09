@@ -38,10 +38,6 @@ dependencies {
     implementation project(":langserver-core")
     implementation project(":flow-model-generator:flow-model-central-client")
     implementation "com.google.code.gson:gson:${gsonVersion}"
-
-
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 compileJava {

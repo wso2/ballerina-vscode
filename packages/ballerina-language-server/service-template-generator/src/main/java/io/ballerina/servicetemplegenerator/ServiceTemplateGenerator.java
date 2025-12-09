@@ -39,6 +39,11 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Service Template Generator the generates service templates for each module.
+ *
+ * @since 1.5.0
+ */
 public class ServiceTemplateGenerator {
 
     private static final java.lang.reflect.Type typeToken =
@@ -68,7 +73,7 @@ public class ServiceTemplateGenerator {
             Map<String, Map<String, Map<String, List<ListenerData>>>> listenersMap = new HashMap<>();
             for (Map.Entry<String, List<PackageMetadataInfo>> pkgMap : packagesMap.entrySet()) {
                 String orgName = pkgMap.getKey();
-                if (orgName.equals("ballerinax")) {
+                if (!orgName.equals("ballerina")) {
                     continue;
                 }
                 for (PackageMetadataInfo pkgInfo : pkgMap.getValue()) {
@@ -88,7 +93,7 @@ public class ServiceTemplateGenerator {
                             .computeIfAbsent(moduleName, k -> new HashMap<>())
                             .put(version, listenerDataList);
 
-//                    Thread.sleep(6000);
+                    Thread.sleep(6000);
                 }
             }
 
@@ -103,9 +108,9 @@ public class ServiceTemplateGenerator {
         } catch (IOException e) {
             Logger.getGlobal().log(Level.SEVERE, "Error reading packages JSON file: " + e.getMessage());
         }
-//        catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static List<ListenerData> genListenerData(Listeners listeners) {

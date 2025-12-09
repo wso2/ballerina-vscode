@@ -18,5 +18,13 @@
 
 package io.ballerina.centralconnector.response;
 
+/**
+ * Represents a listener.
+ *
+ * @param name       The name of the listener
+ * @param initMethod The initialization method of the listener
+ *
+ * @since 1.1.0
+ */
 public record Listener(String name, Function initMethod) {
 }

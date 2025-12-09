@@ -155,7 +155,7 @@ public class LSPackageLoader {
                             listenerData, skippedLangLibs, Collections.emptySet()));
                     lsClientLogger.logTrace("Successfully loaded packages from Ballerina distribution");
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Failed to load listener metadata from " + SERVICE_TEMPLATES, e);
                 }
 
                 this.getDistributionRepoModules().forEach(packageInfo ->
@@ -337,21 +337,6 @@ public class LSPackageLoader {
         return packages;
     }
 
-    private List<ListenerData> getListenerDataForPackage(
-            Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData, String org,
-            String module, String version) {
-        if (listenerData.containsKey(org)) {
-            Map<String, Map<String, List<ListenerData>>> modules = listenerData.get(org);
-            if (modules.containsKey(module)) {
-                Map<String, List<ListenerData>> versions = modules.get(module);
-                if (versions.containsKey(version)) {
-                    return versions.get(version);
-                }
-            }
-        }
-        return Collections.emptyList();
-    }
-
     private List<ServiceTemplateGenerator.ListenerMetaData> getListenerMetadata(
             Map<String, Map<String, Map<String, List<ListenerData>>>> listenerData, String org,
             String module, String version, Path sourceRoot) {
@@ -364,9 +349,10 @@ public class LSPackageLoader {
         }
         Map<String, List<ListenerData>> versions = modules.get(module);
         List<ServiceTemplateGenerator.ListenerMetaData> listenerMetaData = new ArrayList<>();
-        if (versions.containsKey(version)) {
+        List<ListenerData> listerDataForVersion = getListerDataForVersion(versions, version);
+        if (listerDataForVersion != null) {
             ModuleID moduleID = CodeActionModuleId.from(org, module, version);
-            for (ListenerData listener : versions.get(version)) {
+            for (ListenerData listener : listerDataForVersion) {
                 listenerMetaData.add(ServiceTemplateGenerator.generateServiceSnippetMetaData(listener.symbolName(),
                         listener.args(), listener.index(), moduleID));
             }
@@ -382,6 +368,30 @@ public class LSPackageLoader {
                                     .ifPresent(listenerMetaData::add));
         }
         return listenerMetaData;
+    }
+
+    private List<ListenerData> getListerDataForVersion(Map<String, List<ListenerData>> listeners, String version) {
+        List<ListenerData> listenerData = listeners.get(version);
+        if (listenerData != null && !listenerData.isEmpty()) {
+            return listenerData;
+        }
+
+        String majorVersion = getMajorVersion(version);
+        for (Map.Entry<String, List<ListenerData>> listenerMap : listeners.entrySet()) {
+            String listenersVersion = listenerMap.getKey();
+            if (listenersVersion.startsWith(majorVersion)) {
+                return listenerMap.getValue();
+            }
+        }
+        return null;
+    }
+
+    private String getMajorVersion(String version) {
+        String[] versionParts = version.split("\\.");
+        if (versionParts.length > 0) {
+            return versionParts[0];
+        }
+        return version;
     }
 
     public List<ModuleInfo> updatePackageMap(DocumentServiceContext context) {

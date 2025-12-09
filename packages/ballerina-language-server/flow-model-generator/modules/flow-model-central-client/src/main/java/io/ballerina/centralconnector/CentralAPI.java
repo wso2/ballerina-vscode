@@ -40,6 +40,7 @@ public interface CentralAPI {
     SymbolResponse searchSymbols(Map<String, String> queryMap);
 
     FunctionsResponse functions(String organization, String name, String version);
+
     Listeners listeners(String organization, String name, String version);
 
     FunctionResponse function(String organization, String name, String version, String functionName);

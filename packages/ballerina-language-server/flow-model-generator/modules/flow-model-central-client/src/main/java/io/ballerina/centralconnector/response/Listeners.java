@@ -20,5 +20,15 @@ package io.ballerina.centralconnector.response;
 
 import java.util.List;
 
+/**
+ * Represents a list of listeners for a specific module version.
+ *
+ * @param orgName    The organization name
+ * @param moduleName The module name
+ * @param version    The module version
+ * @param listeners  The list of listeners
+ *
+ * @since 1.5.0
+ */
 public record Listeners(String orgName, String moduleName, String version, List<Listener> listeners) {
 }
