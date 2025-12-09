@@ -185,7 +185,7 @@ async function getCurrentProjectRoot(): Promise<string> {
  * Safely attempts to get the current Ballerina file without throwing errors.
  * @returns The current Ballerina file path or undefined if not available
  */
-function tryGetCurrentBallerinaFile(): string | undefined {
+export function tryGetCurrentBallerinaFile(): string | undefined {
     try {
         return getCurrentBallerinaFile();
     } catch {
