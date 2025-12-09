@@ -37,22 +37,27 @@ export default function ErrorScreen(props: ErrorScreenProps) {
     return (
         <>
             <div className={classes.overlay} />
-            <div className={classes.errorMessage}>
-                <div className={classNames(classes.warningContainer, classes.errorBanner)}>
-                    <div className={classes.warningIcon}>
+            <div className={classes.errorBody}>
+                <div className={classes.errorContainer}>
+                    <div className={classes.infoIcon}>
                         <Codicon iconSx={{ fontSize: 25 }} name="info" />
                     </div>
                     <div className={classes.iconContainer}>
-                    <Button appearance="icon" onClick={resetBoundary}>
-                        <Icon name="refresh" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
-                    </Button>
-                </div>
-                <div className={classes.iconContainer}>
-                    <Button appearance="icon" onClick={goToSource}>
-                        <Icon name="code" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
-                    </Button>
-                </div>
-                    <div data-test-id={"error-message"} className={classes.warningBody} >
+                        <Button appearance="icon" onClick={onClose}>
+                            <Icon name="close" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
+                        </Button>
+                    </div>
+                    <div className={classes.iconContainer}>
+                        <Button appearance="icon" onClick={resetBoundary}>
+                            <Icon name="refresh" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
+                        </Button>
+                    </div>
+                    <div className={classes.iconContainer}>
+                        <Button appearance="icon" onClick={goToSource}>
+                            <Icon name="code" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
+                        </Button>
+                    </div>
+                    <div data-test-id={"error-message"} className={classes.errorMessage} >
                         <p>This mapping cannot be visualized.</p>
                         <p>
                             Please raise an issue with the <a>sample code</a> in our <a href={ISSUES_URL}>issue tracker</a>

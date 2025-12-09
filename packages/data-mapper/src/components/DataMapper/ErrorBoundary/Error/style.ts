@@ -29,31 +29,13 @@ export const useStyles = () => ({
         margin: '25vh auto',
         width: 'fit-content'
     }),
-    errorContainer: css({
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column" 
-    }),
-    errorTitle: css({
-        color: "var(--vscode-badge-background)",
-        textAlign: "center"
-    }),
-    errorMsg: css({
-        paddingTop: "16px",
-        color: "var(--vscode-checkbox-border)",
-        textAlign: "center"
-    }),
+   
     closeButtonContainer: css({
         position: 'absolute',
         top: '16px',
         right: '16px'
     }),
-    errorImg: css({
-        display: 'flex',
-        justifyContent: 'center',
-        width: '100%'
-    }),
+    
     iconContainer: css({
         display: 'flex',
         gap: '8px',
@@ -80,10 +62,9 @@ export const useStyles = () => ({
         opacity: 0.5,
         cursor: 'not-allowed'
     }),
-    errorBanner: css({
-        borderColor: "var(--vscode-errorForeground)"
-    }),
-    errorMessage: css({
+
+   
+    errorBody: css({
         zIndex: 1,
         position: 'absolute',
         top: '50%',
@@ -92,7 +73,8 @@ export const useStyles = () => ({
         width: '500px',
         animation: `${fadeIn} 0.5s ease-in-out`
     }),
-    warningContainer: css({
+   
+    errorContainer: css({
         marginTop: 20,
         marginLeft: 16,
         marginRight: 16,
@@ -105,15 +87,16 @@ export const useStyles = () => ({
         display: 'flex',
         flexDirection: 'row',
         height: 'fit-content',
+        borderColor: "var(--vscode-errorForeground)"
     }),
-    warningIcon: css({
+    infoIcon: css({
         display: 'flex',
         alignItems: 'center',
         position: 'absolute',
         top: '50%',
-        color: 'var(--vscode-editorWarning-foreground)'
+        color: 'var(--vscode-editorInfo-foreground)'
     }),
-    warningBody: css({
+    errorMessage: css({
         marginLeft: 35
     })
 });
