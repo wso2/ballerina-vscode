@@ -21,6 +21,7 @@ import { useErrorBoundary } from "react-error-boundary";
 import { useStyles } from "./style";
 import { Button, Codicon, Icon, Typography } from "@wso2/ui-toolkit";
 import { ISSUES_URL } from "../../../Diagram/utils/constants";
+import classNames from "classnames";
 
 interface ErrorScreenProps {
     onClose?: () => void;
@@ -28,7 +29,7 @@ interface ErrorScreenProps {
     resetErrorBoundary?: () => void;
 }
 
-export default function ErrorScreen(props: ErrorScreenProps) {
+export function ErrorScreen2(props: ErrorScreenProps) {
     const classes = useStyles();
     const { resetBoundary } = useErrorBoundary();
 
@@ -73,6 +74,29 @@ export default function ErrorScreen(props: ErrorScreenProps) {
                 <Typography variant="body2" className={classes.errorMsg}>
                     Please raise an issue with the sample code in our <a href={ISSUES_URL}>issue tracker</a>
                 </Typography>
+            </div>
+        </>
+    );
+}
+
+export default function ErrorScreen(props: ErrorScreenProps) {
+    const classes = useStyles();
+
+    return (
+        <>
+            <div className={classes.overlay} />
+            <div className={classes.errorMessage}>
+                <div className={classNames(classes.warningContainer, classes.errorBanner)}>
+                    <div className={classes.warningIcon}>
+                        <Codicon iconSx={{ fontSize: 25 }} name="info" />
+                    </div>
+                    <div data-test-id={"error-message"} className={classes.warningBody} >
+                        <p>This mapping cannot be visualized.</p>
+                        <p>
+                            Please raise an issue with the <a>sample code</a> in our <a href={ISSUES_URL}>issue tracker</a>
+                        </p>
+                    </div>
+                </div>
             </div>
         </>
     );
