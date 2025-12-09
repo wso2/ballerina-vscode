@@ -144,7 +144,7 @@ public abstract class AbstractLSTest {
         listenersMap.computeIfAbsent("ballerina", k -> new HashMap<>())
                 .computeIfAbsent("module1", k -> new HashMap<>())
                 .computeIfAbsent("0.0.0", k -> new ArrayList<>())
-                .add(new LSPackageLoader.ListenerData("Listener", "args1", 1));
+                .add(new LSPackageLoader.ListenerData("Listener", "${2:0}", 3));
         return lsPackageLoader.checkAndResolvePackagesFromRepository(packageRepository, listenersMap, skippedLangLibs,
                 Collections.emptySet());
     }

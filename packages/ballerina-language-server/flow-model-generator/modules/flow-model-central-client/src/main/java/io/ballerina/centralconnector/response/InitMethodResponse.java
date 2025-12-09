@@ -18,5 +18,12 @@
 
 package io.ballerina.centralconnector.response;
 
+/**
+ * Response record for init method.
+ *
+ * @param initMethod Init method function
+ *
+ * @since 1.5.0
+ */
 public record InitMethodResponse(Function initMethod) {
 }

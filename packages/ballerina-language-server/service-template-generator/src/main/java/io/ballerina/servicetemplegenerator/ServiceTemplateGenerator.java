@@ -93,7 +93,7 @@ public class ServiceTemplateGenerator {
                             .computeIfAbsent(moduleName, k -> new HashMap<>())
                             .put(version, listenerDataList);
 
-                    Thread.sleep(6000);
+                    Thread.sleep(1000);
                 }
             }
 
@@ -107,8 +107,7 @@ public class ServiceTemplateGenerator {
             }
         } catch (IOException e) {
             Logger.getGlobal().log(Level.SEVERE, "Error reading packages JSON file: " + e.getMessage());
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
