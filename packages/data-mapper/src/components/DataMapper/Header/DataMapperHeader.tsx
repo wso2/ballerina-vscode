@@ -52,7 +52,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
     return (
         <HeaderContainer>
             <HeaderContent>
-                <IconButton onClick={onBack}>
+                <IconButton onClick={onBack} data-testid="back-button">
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
                 <BreadCrumb>
