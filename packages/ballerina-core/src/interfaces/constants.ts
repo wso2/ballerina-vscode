@@ -55,4 +55,5 @@ export const BI_COMMANDS = {
     CREATE_BI_MIGRATION_PROJECT: 'BI.project.createBIProjectMigration',
     ADD_INTEGRATION: 'BI.project-explorer.add-integration',
     NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify',
+    REVIEW_CHANGES: 'BI.review.changes',
 };
