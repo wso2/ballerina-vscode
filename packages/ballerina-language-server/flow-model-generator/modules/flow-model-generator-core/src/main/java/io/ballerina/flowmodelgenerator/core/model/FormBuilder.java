@@ -1180,7 +1180,18 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
-                                    Object typeConstraint) {
+                                    List<String> options) {
+        propertyBuilder.typeWithOptions(valueType, options);
+        return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
+                                    String fieldType) {
+        propertyBuilder.type(valueType, fieldType);
+        return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> parameter(String type, String name, Token token) {
         nestedProperty();
 
         // Build the parameter type property
@@ -1189,7 +1200,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.IMPLICIT_TYPE_LABEL)
                     .description(Property.PARAMETER_TYPE_DOC)
                     .stepOut()
-                .type(valueType, typeConstraint != null ? typeConstraint.toString() : null)
                 .value(type)
                 .editable();
         addProperty(Property.TYPE_KEY);
@@ -1218,7 +1228,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameterWithDescription(String type, String name, Token token, Property.ValueType valueType,
-                                                   Object typeConstraint, String description) {
+                                                   String description) {
         nestedProperty();
 
         // Build the parameter type property
@@ -1227,7 +1237,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .label(Property.IMPLICIT_TYPE_LABEL)
                 .description(Property.PARAMETER_TYPE_DOC)
                 .stepOut()
-                .type(valueType, typeConstraint != null ? typeConstraint.toString() : null)
+                .type(valueType)
                 .value(type)
                 .editable();
         addProperty(Property.TYPE_KEY);

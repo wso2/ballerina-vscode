@@ -60,7 +60,13 @@
                   "types": [
                     {
                       "fieldType": "SINGLE_SELECT",
-                      "ballerinaType": "[string, int, float, decimal, byte]"
+                      "options": [
+                        "string",
+                        "int",
+                        "float",
+                        "decimal",
+                        "byte"
+                      ]
                     }
                   ],
                   "value": "",

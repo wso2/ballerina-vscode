@@ -69,7 +69,13 @@
                   "types": [
                     {
                       "fieldType": "SINGLE_SELECT",
-                      "ballerinaType": "[string, int, float, decimal, byte]"
+                      "options": [
+                        "string",
+                        "int",
+                        "float",
+                        "decimal",
+                        "byte"
+                      ]
                     }
                   ],
                   "value": "",
@@ -122,7 +128,13 @@
                 "types": [
                   {
                     "fieldType": "SINGLE_SELECT",
-                    "ballerinaType": "[string, int, float, decimal, byte]"
+                    "options": [
+                      "string",
+                      "int",
+                      "float",
+                      "decimal",
+                      "byte"
+                    ]
                   }
                 ],
                 "value": "string",
@@ -185,7 +197,13 @@
                 "types": [
                   {
                     "fieldType": "SINGLE_SELECT",
-                    "ballerinaType": "[string, int, float, decimal, byte]"
+                    "options": [
+                      "string",
+                      "int",
+                      "float",
+                      "decimal",
+                      "byte"
+                    ]
                   }
                 ],
                 "value": "int?",
