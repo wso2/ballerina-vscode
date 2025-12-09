@@ -23,36 +23,8 @@ const fadeIn = keyframes`
 `;
 
 export const useStyles = () => ({
-    root: css({
-        position: 'relative',
-        flexGrow: 1,
-        margin: '25vh auto',
-        width: 'fit-content'
-    }),
    
-    closeButtonContainer: css({
-        position: 'absolute',
-        top: '16px',
-        right: '16px'
-    }),
-    
-    iconContainer: css({
-        display: 'flex',
-        gap: '8px',
-        justifyContent: 'center',
-        marginTop: '16px'
-    }),
-    gridContainer: css({
-        height: "100%"
-    }),
-    link: css({
-        color: "var(--vscode-editor-selectionBackground)",
-        textDecoration: "underline",
-        "&:hover, &:focus, &:active": {
-            color: "var(--vscode-editor-selectionBackground)",
-            textDecoration: "underline",
-        }
-    }),
+   
     overlay: css({
         zIndex: 1,
         position: 'absolute',
@@ -63,40 +35,62 @@ export const useStyles = () => ({
         cursor: 'not-allowed'
     }),
 
-   
-    errorBody: css({
-        zIndex: 1,
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '500px',
-        animation: `${fadeIn} 0.5s ease-in-out`
-    }),
-   
     errorContainer: css({
-        marginTop: 20,
-        marginLeft: 16,
-        marginRight: 16,
-        backgroundColor: 'var(--vscode-editorWidget-background)',
-        color: 'var(--vscode-sideBarSectionHeader-foreground)',
-        padding: 10,
-        minWidth: 120,
-        width: 'fit-content',
-        textAlign: 'left',
-        display: 'flex',
-        flexDirection: 'row',
-        height: 'fit-content',
-        borderColor: "var(--vscode-errorForeground)"
-    }),
-    infoIcon: css({
+           position: 'absolute',
+           top: '50%',
+           left: '50%',
+           transform: 'translate(-50%, -50%)',
+           width: '90%',
+           maxWidth: '500px',
+           animation: `${fadeIn} 0.5s ease-in-out`,
+           zIndex: 2
+       }),
+      
+       errorBody: css({
+           backgroundColor: 'var(--vscode-editorWidget-background)',
+           color: 'var(--vscode-sideBarSectionHeader-foreground)',
+           padding: '16px',
+           borderColor: "var(--vscode-errorForeground)",
+           border: '1px solid',
+           borderRadius: '4px',
+           display: 'flex',
+           flexDirection: 'column',
+           gap: '12px'
+       }),
+
+        headerContainer: css({
         display: 'flex',
         alignItems: 'center',
-        position: 'absolute',
-        top: '50%',
+        justifyContent: 'space-between',
+        gap: '12px'
+    }),
+
+    infoIconContainer: css({
+        display: 'flex',
+        alignItems: 'center',
         color: 'var(--vscode-editorInfo-foreground)'
     }),
+    
+    actionButtons: css({
+        display: 'flex',
+        gap: '4px',
+        alignItems: 'center'
+    }),
+
     errorMessage: css({
-        marginLeft: 35
-    })
+        paddingLeft: '8px',
+        '& p': {
+            margin: '8px 0'
+        }
+    }),
+
+    link: css({
+        color: "var(--vscode-editor-selectionBackground)",
+        textDecoration: "underline",
+        "&:hover, &:focus, &:active": {
+            color: "var(--vscode-editor-selectionBackground)",
+            textDecoration: "underline",
+        }
+    }),
+
 });

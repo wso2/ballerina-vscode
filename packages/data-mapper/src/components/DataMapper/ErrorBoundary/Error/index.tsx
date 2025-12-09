@@ -15,18 +15,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as React from "react";
+
+import React from "react";
 import { useErrorBoundary } from "react-error-boundary";
 
 import { useStyles } from "./style";
-import { Button, Codicon, Icon, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 import { ISSUES_URL } from "../../../Diagram/utils/constants";
-import classNames from "classnames";
-
 interface ErrorScreenProps {
-    onClose?: () => void;
-    error?: Error;
+    onClose: () => void;
     goToSource: () => void;
+}
+
+function IconButton(props: { icon: string, onClick: () => void, tooltip?: string }) {
+    const { icon, onClick, tooltip } = props;
+    return (
+        <Button appearance="icon" onClick={onClick} tooltip={tooltip}>
+            <Icon name={icon} isCodicon sx={{ width: 22, height: 22 }} iconSx={{ fontSize: 20 }} />
+        </Button>
+    );
 }
 
 export default function ErrorScreen(props: ErrorScreenProps) {
@@ -37,30 +44,22 @@ export default function ErrorScreen(props: ErrorScreenProps) {
     return (
         <>
             <div className={classes.overlay} />
-            <div className={classes.errorBody}>
-                <div className={classes.errorContainer}>
-                    <div className={classes.infoIcon}>
-                        <Codicon iconSx={{ fontSize: 25 }} name="info" />
+            <div className={classes.errorContainer}>
+                <div className={classes.errorBody}>
+                    <div className={classes.headerContainer}>
+                        <div className={classes.infoIconContainer}>
+                            <Codicon iconSx={{ fontSize: 25 }} name="info" />
+                        </div>
+                        <div className={classes.actionButtons}>
+                            <IconButton icon="code" onClick={goToSource} tooltip="Show source" />
+                            <IconButton icon="refresh" onClick={resetBoundary} tooltip="Refresh" />
+                            <IconButton icon="close" onClick={onClose} tooltip="Close" />
+                        </div>
                     </div>
-                    <div className={classes.iconContainer}>
-                        <Button appearance="icon" onClick={onClose}>
-                            <Icon name="close" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
-                        </Button>
-                    </div>
-                    <div className={classes.iconContainer}>
-                        <Button appearance="icon" onClick={resetBoundary}>
-                            <Icon name="refresh" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
-                        </Button>
-                    </div>
-                    <div className={classes.iconContainer}>
-                        <Button appearance="icon" onClick={goToSource}>
-                            <Icon name="code" isCodicon sx={{ width: 24, height: 24 }} iconSx={{ fontSize: 24 }} />
-                        </Button>
-                    </div>
-                    <div data-test-id={"error-message"} className={classes.errorMessage} >
+                    <div data-test-id={"error-message"} className={classes.errorMessage}>
                         <p>This mapping cannot be visualized.</p>
                         <p>
-                            Please raise an issue with the <a>sample code</a> in our <a href={ISSUES_URL}>issue tracker</a>
+                            Please raise an issue with the sample code in our <a className={classes.link} href={ISSUES_URL}>issue tracker.</a>
                         </p>
                     </div>
                 </div>
