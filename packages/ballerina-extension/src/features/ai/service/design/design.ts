@@ -27,10 +27,11 @@ import { createBatchEditTool, createEditExecute, createEditTool, createMultiEdit
 import { sendAgentDidOpenForProjects } from "../libs/agent_ls_notification_utils";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
+import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../libs/healthcareLibraryProviderTool";
 import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 import { getTempProject as createTempProjectOfWorkspace, cleanupTempProject } from "../../utils/project-utils";
-import { formatCodebaseStructure, integrateCodeToWorkspace } from "./utils";
+import { integrateCodeToWorkspace } from "./utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { LangfuseExporter } from 'langfuse-vercel';
@@ -98,6 +99,7 @@ export async function generateDesignCore(
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
+        [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions),
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
@@ -141,7 +143,7 @@ export async function generateDesignCore(
                 const toolName = part.toolName;
                 accumulateToolCall(currentAssistantContent, part);
 
-                if (toolName === "LibraryProviderTool") {
+                if (toolName === "LibraryProviderTool" || toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL) {
                     selectedLibraries = (part.input as any)?.libraryNames || [];
                     eventHandler({ type: "tool_call", toolName });
 
@@ -180,7 +182,7 @@ export async function generateDesignCore(
                             allTasks: taskResult.tasks,
                         },
                     });
-                } else if (toolName === "LibraryProviderTool") {
+                } else if (toolName === "LibraryProviderTool" || toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL) {
                     const libraryNames = (part.output as Library[]).map((lib) => lib.name);
                     const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
                     eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });

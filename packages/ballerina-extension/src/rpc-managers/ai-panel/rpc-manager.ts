@@ -82,7 +82,7 @@ import { extension } from "../../BalExtensionContext";
 import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
 // import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
-import { GenerationType, getSelectedLibraries } from "../../features/ai/service/libs/libs";
+import { GenerationType } from "../../features/ai/service/libs/libs";
 import { Library } from "../../features/ai/service/libs/libs_types";
 import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
 import { generateTestPlan } from "../../features/ai/service/test/test_plan";
@@ -105,6 +105,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 import { getWorkspaceTomlValues } from "./../../../src/utils/config";
+import { getSelectedLibraries } from "../../../src/features/ai/service/libs/healthcareLibraryProviderTool";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 

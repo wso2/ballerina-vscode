@@ -17,12 +17,13 @@
 import { generateText, stepCountIs } from "ai";
 import { BACKEND_URL } from "../../utils";
 import { selectRequiredFunctions } from "../libs/funcs";
-import { GenerationType, getSelectedLibraries } from "../libs/libs";
+import { GenerationType } from "../libs/libs";
 import { Library, LibraryWithUrl } from "../libs/libs_types";
 import { getAnthropicClient, ANTHROPIC_HAIKU, fetchWithAuth } from "../connection";
 import { z } from 'zod';
 import { tool } from 'ai';
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+import { getSelectedLibraries } from "../libs/healthcareLibraryProviderTool";
 
 interface Document {
     document: string;
