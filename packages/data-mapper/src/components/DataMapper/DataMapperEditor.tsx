@@ -27,7 +27,6 @@ import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
-import { DataMapperErrorBoundaryLegacy } from "./ErrorBoundaryLegacy";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
 import {
@@ -41,7 +40,6 @@ import {
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
 import { DataMapperEditorProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
-import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
 import {
     LinkConnectorNode,
