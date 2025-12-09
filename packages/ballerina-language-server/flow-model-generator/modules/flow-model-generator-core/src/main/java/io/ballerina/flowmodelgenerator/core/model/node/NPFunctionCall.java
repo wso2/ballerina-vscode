@@ -57,7 +57,6 @@ public class NPFunctionCall extends FunctionCall {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .imports(paramResult.importStatements())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -76,7 +75,7 @@ public class NPFunctionCall extends FunctionCall {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
-                default -> customPropBuilder.type(Property.ValueType.EXPRESSION);
+                default -> customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
 
             customPropBuilder

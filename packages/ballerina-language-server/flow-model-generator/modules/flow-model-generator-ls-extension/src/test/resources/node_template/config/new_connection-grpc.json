@@ -38,8 +38,12 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
-        "value": "grpc:StreamingClient",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "StreamingClient",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -52,8 +56,12 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
-        "value": "grpcStreamingclient",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "streamingClient",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -64,7 +72,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -76,7 +88,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

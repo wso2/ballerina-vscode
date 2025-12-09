@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -30,7 +31,11 @@ public class NodeTemplateGenerator {
     public JsonElement getNodeTemplate(WorkspaceManager workspaceManager, Path filePath, LinePosition position,
                                        JsonObject id) {
         Codedata codedata = gson.fromJson(id, Codedata.class);
-        FlowNode flowNode = NodeBuilder.getNodeFromKind(codedata.node())
+        NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(codedata.node());
+        workspaceManager.document(filePath)
+                .map(doc -> ModuleInfo.from(doc.module().descriptor()))
+                .ifPresent(nodeBuilder::defaultModuleName);
+        FlowNode flowNode = nodeBuilder
                 .setConstData()
                 .setTemplateData(
                         new NodeBuilder.TemplateContext(workspaceManager, filePath, position, codedata, lsClientLogger))

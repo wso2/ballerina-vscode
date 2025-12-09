@@ -33,8 +33,12 @@
         "metadata": {
           "label": "Address"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "Address",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Address"
+          }
+        ],
         "placeholder": "{houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}",
         "optional": false,
         "editable": true,
@@ -58,8 +62,12 @@
         "metadata": {
           "label": "Person"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "Person",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Person"
+          }
+        ],
         "placeholder": "{name: \"\", email: \"\", address: {houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}}",
         "optional": false,
         "editable": true,
@@ -84,7 +92,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "Location",
         "placeholder": "var",
         "optional": false,
@@ -98,7 +110,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "location",
         "optional": false,
         "editable": true,

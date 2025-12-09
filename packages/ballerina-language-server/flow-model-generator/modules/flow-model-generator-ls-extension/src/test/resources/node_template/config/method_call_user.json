@@ -37,8 +37,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "Cart",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Cart"
+          }
+        ],
         "value": "cart",
         "optional": false,
         "editable": false,
@@ -49,8 +53,16 @@
         "metadata": {
           "label": "Item"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -75,7 +87,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "string",
         "placeholder": "var",
         "optional": false,
@@ -89,7 +105,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "stringResult",
         "optional": false,
         "editable": true,

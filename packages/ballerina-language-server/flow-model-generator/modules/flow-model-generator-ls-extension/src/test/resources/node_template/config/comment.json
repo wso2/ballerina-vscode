@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "COMMENT"
@@ -19,7 +20,11 @@
           "label": "Comment",
           "description": "Comment to describe the flow"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,

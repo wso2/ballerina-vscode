@@ -478,8 +478,8 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Finds the initialization expression for a field by searching through its references.
-     * Currently looks for assignments in the init method.
+     * Finds the initialization expression for a field by searching through its references. Currently looks for
+     * assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
      * @return Optional containing the initialization expression if found, empty otherwise
@@ -812,9 +812,8 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .originalName(paramResult.name())
                                 .stepOut()
                             .value(expr.toSourceCode())
-                            .typeConstraint(paramResult.type())
+                            .typeWithExpression(paramResult.typeSymbol(), moduleInfo)
                             .typeMembers(paramResult.typeMembers())
-                            .type(Property.ValueType.EXPRESSION)
                             .editable()
                             .defaultable(paramResult.optional())
                             .stepOut()
@@ -873,7 +872,6 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -891,7 +889,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
             } else {
-                customPropBuilder.type(Property.ValueType.EXPRESSION);
+                customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
             customPropBuilder
                     .stepOut()
@@ -950,7 +948,6 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
-                        .typeConstraint(paramResult.type())
                         .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
                         .editable()
@@ -967,11 +964,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 } else {
-                    if (paramResult.type() instanceof List<?>) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
-                    }
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
                 customPropBuilder
                         .stepOut()
@@ -1021,26 +1014,25 @@ public class CodeAnalyzer extends NodeVisitor {
                         }
                     }
                     String label = paramResult.label();
+                    buildPropertyType(customPropBuilder, paramResult);
                     customPropBuilder
                             .metadata()
                                 .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                 .description(paramResult.description())
                                 .stepOut()
-                            .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
-                            .typeConstraint(paramResult.type())
-                            .typeMembers(paramResult.typeMembers(), selectedType)
-                            .imports(paramResult.importStatements())
-                            .value(value)
-                            .placeholder(paramResult.placeholder())
-                            .defaultValue(paramResult.defaultValue())
-                            .editable()
-                            .defaultable(paramResult.optional())
-                            .codedata()
-                                .kind(paramResult.kind().name())
-                                .originalName(paramResult.name())
-                                .stepOut()
-                            .stepOut()
-                            .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
+                               .typeMembers(paramResult.typeMembers(), selectedType)
+                               .imports(paramResult.importStatements())
+                               .value(value)
+                               .placeholder(paramResult.placeholder())
+                               .defaultValue(paramResult.defaultValue())
+                               .editable()
+                               .defaultable(paramResult.optional())
+                               .codedata()
+                                   .kind(paramResult.kind().name())
+                                   .originalName(paramResult.name())
+                                   .stepOut()
+                               .stepOut()
+                               .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
@@ -1056,13 +1048,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 funcParamMap.remove(restParamSymbol.getName().get());
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
+                buildPropertyType(customPropBuilder, restParamResult);
                 customPropBuilder
                         .metadata()
                             .label(unescapedParamName)
                             .description(restParamResult.description())
                             .stepOut()
-                        .type(getPropertyTypeFromParam(restParamSymbol, restParamResult))
-                        .typeConstraint(restParamResult.type())
                         .typeMembers(restParamResult.typeMembers())
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
@@ -1128,13 +1119,12 @@ public class CodeAnalyzer extends NodeVisitor {
                                 }
                             }
                             String label = paramResult.label();
+                            buildPropertyType(customPropBuilder, paramResult);
                             customPropBuilder
                                     .metadata()
                                         .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                         .description(paramResult.description())
                                         .stepOut()
-                                    .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
-                                    .typeConstraint(paramResult.type())
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
@@ -1177,26 +1167,26 @@ public class CodeAnalyzer extends NodeVisitor {
 
                                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                                 String label = paramResult.label();
+                                buildPropertyType(customPropBuilder, paramResult);
                                 customPropBuilder
                                         .metadata()
                                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                             .description(paramResult.description())
                                             .stepOut()
-                                        .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
-                                        .typeConstraint(paramResult.type())
                                         .typeMembers(paramResult.typeMembers(), selectedType)
-                                        .imports(paramResult.importStatements())
-                                        .value(value)
-                                        .placeholder(paramResult.placeholder())
-                                        .defaultValue(paramResult.defaultValue())
-                                        .editable()
-                                        .defaultable(paramResult.optional())
-                                        .codedata()
-                                            .kind(paramResult.kind().name())
-                                            .originalName(paramResult.name())
-                                            .stepOut()
-                                        .stepOut()
-                                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                                                       .imports(paramResult.importStatements())
+                                                       .value(value)
+                                                       .placeholder(paramResult.placeholder())
+                                                       .defaultValue(paramResult.defaultValue())
+                                                       .editable()
+                                                       .defaultable(paramResult.optional())
+                                                       .codedata()
+                                                           .kind(paramResult.kind().name())
+                                                           .originalName(paramResult.name())
+                                                           .stepOut()
+                                                       .stepOut()
+                                                       .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName),
+                                                paramValue);
 
                             }
                         }
@@ -1220,13 +1210,12 @@ public class CodeAnalyzer extends NodeVisitor {
                                 }
                             }
                             String label = paramResult.label();
+                            buildPropertyType(customPropBuilder, paramResult);
                             customPropBuilder
                                     .metadata()
                                         .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                         .description(paramResult.description())
                                         .stepOut()
-                                    .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
-                                    .typeConstraint(paramResult.type())
                                     .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
@@ -1268,14 +1257,13 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                 }
                 String label = paramResult.label();
+                buildPropertyType(customPropBuilder, paramResult);
                 customPropBuilder
-                        .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                            .description(paramResult.description())
-                            .stepOut()
-                        .type(getPropertyTypeFromParam(parameterSymbol, paramResult))
-                        .typeConstraint(paramResult.type())
-                        .typeMembers(paramResult.typeMembers(), selectedType)
+                         .metadata()
+                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                             .description(paramResult.description())
+                             .stepOut()
+                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1318,14 +1306,13 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                 }
                 String label = paramResult.label();
+                buildPropertyType(customPropBuilder, paramResult);
                 customPropBuilder
-                        .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                        .description(paramResult.description())
-                        .stepOut()
-                        .type(getPropertyTypeFromParam(null, paramResult))
-                        .typeConstraint(paramResult.type())
-                        .typeMembers(paramResult.typeMembers(), selectedType)
+                         .metadata()
+                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                             .description(paramResult.description())
+                             .stepOut()
+                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1345,13 +1332,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(includedRecordRest.name());
+                buildPropertyType(customPropBuilder, includedRecordRest);
                 customPropBuilder
                         .metadata()
                             .label(unescapedParamName)
                             .description(includedRecordRest.description())
                             .stepOut()
-                        .type(getPropertyTypeFromParam(null, includedRecordRest))
-                        .typeConstraint(includedRecordRest.type())
                         .typeMembers(includedRecordRest.typeMembers())
                         .imports(includedRecordRest.importStatements())
                         .value(includedRecordRestArgs)
@@ -1388,19 +1374,16 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private Property.ValueType getPropertyTypeFromParam(ParameterSymbol paramSymbol, ParameterData paramData) {
+    private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData) {
         ParameterData.Kind kind = paramData.kind();
         if (kind == ParameterData.Kind.REST_PARAMETER) {
-            return Property.ValueType.EXPRESSION_SET;
+            builder.type(Property.ValueType.EXPRESSION_SET);
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
-            return Property.ValueType.MAPPING_EXPRESSION_SET;
-        } else if (paramSymbol != null && isSubTypeOfRawTemplate(paramSymbol.typeDescriptor())) {
-            return Property.ValueType.RAW_TEMPLATE;
+            builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
+            builder.type(Property.ValueType.RAW_TEMPLATE);
         } else {
-            if (paramData.type() instanceof List<?>) {
-                return Property.ValueType.SINGLE_SELECT;
-            }
-            return Property.ValueType.EXPRESSION;
+            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo);
         }
     }
 
@@ -2679,6 +2662,10 @@ public class CodeAnalyzer extends NodeVisitor {
 
     // Check whether a type symbol is subType of `RawTemplate`
     private boolean isSubTypeOfRawTemplate(TypeSymbol typeSymbol) {
+        if (typeSymbol == null) {
+            return false;
+        }
+
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
         TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)

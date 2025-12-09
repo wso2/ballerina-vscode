@@ -36,8 +36,16 @@
           "label": "Arr",
           "description": "the array"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(any|error)[]",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "array:Type[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "array:Type[]"
+          }
+        ],
         "placeholder": "[]",
         "optional": false,
         "editable": true,
@@ -62,8 +70,12 @@
           "label": "Func",
           "description": "combining function"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "function ((any|error) accum, (any|error) val) returns (any|error)",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function (array:Type1 accum, array:Type val) returns array:Type1"
+          }
+        ],
         "placeholder": "",
         "optional": false,
         "editable": true,
@@ -88,8 +100,12 @@
           "label": "Initial",
           "description": "initial value for the first argument of combining parameter `func`"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(any|error)",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "array:Type1"
+          }
+        ],
         "placeholder": "()",
         "optional": false,
         "editable": true,
@@ -114,8 +130,12 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
-        "value": "(any|error)",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "array:Type1",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -128,8 +148,12 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
-        "value": "anyError",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "arrayType1",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -140,7 +164,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

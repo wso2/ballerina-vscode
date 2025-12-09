@@ -32,8 +32,12 @@
           "label": "Name",
           "description": "Name of the function"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global"
+          }
+        ],
         "value": "rateMovie",
         "optional": false,
         "editable": false,
@@ -58,7 +62,11 @@
           "label": "Return Type",
           "description": "Type of the return value"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "int|error",
         "optional": true,
         "editable": true,
@@ -70,70 +78,98 @@
           "label": "Parameters",
           "description": "Function parameters"
         },
-        "valueType": "REPEATABLE_PROPERTY",
-        "valueTypeConstraint": {
-          "metadata": {
-            "label": "Parameter",
-            "description": "Function parameter"
-          },
-          "valueType": "FIXED_PROPERTY",
-          "value": {
-            "type": {
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
               "metadata": {
-                "label": "Type",
-                "description": "Type of the parameter"
+                "label": "Parameter",
+                "description": "Function parameter"
               },
-              "valueType": "TYPE",
-              "value": "",
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY"
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "parameterDescription": {
+                  "metadata": {
+                    "label": "Description",
+                    "description": "Description of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TEXT"
+                    }
+                  ],
+                  "value": "",
+                  "optional": true,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
               "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "variable": {
-              "metadata": {
-                "label": "Name",
-                "description": "Name of the parameter"
-              },
-              "valueType": "IDENTIFIER",
-              "value": "",
-              "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "parameterDescription": {
-              "metadata": {
-                "label": "Description",
-                "description": "Description of the parameter"
-              },
-              "valueType": "STRING",
-              "value": "",
-              "optional": true,
-              "editable": true,
+              "editable": false,
               "advanced": false,
               "hidden": false
             }
-          },
-          "optional": false,
-          "editable": false,
-          "advanced": false,
-          "hidden": false
-        },
+          }
+        ],
         "value": {
           "movieName": {
             "metadata": {
               "label": "Parameter",
               "description": "Function parameter"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "type": {
                 "metadata": {
                   "label": "Type",
                   "description": "Type of the parameter"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string",
                 "optional": false,
                 "editable": true,
@@ -145,7 +181,11 @@
                   "label": "Name",
                   "description": "Name of the parameter"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "movieName",
                 "optional": false,
                 "editable": true,
@@ -170,7 +210,11 @@
                   "label": "Description",
                   "description": "Description of the parameter"
                 },
-                "valueType": "STRING",
+                "types": [
+                  {
+                    "fieldType": "TEXT"
+                  }
+                ],
                 "value": "",
                 "optional": true,
                 "editable": true,
@@ -194,7 +238,11 @@
           "label": "Prompt",
           "description": "Prompt for the function"
         },
-        "valueType": "RAW_TEMPLATE",
+        "types": [
+          {
+            "fieldType": "RAW_TEMPLATE"
+          }
+        ],
         "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Give rating for the movie ${movieName} out of 10 based on your opinion",
         "optional": false,
         "editable": true,
@@ -224,8 +272,12 @@
             "module": "ai.openai"
           }
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "ModelProvider",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ModelProvider"
+          }
+        ],
         "value": "_rateMovieModel",
         "optional": false,
         "editable": true,
@@ -236,7 +288,11 @@
         }
       },
       "modelProviderAsParameter": {
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": false,
         "optional": false,
         "editable": true,

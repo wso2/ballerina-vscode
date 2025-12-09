@@ -29,7 +29,7 @@ public class NodeTemplateTest extends AbstractLSTest {
                 testConfig.source() == null ? "" : sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
         FlowModelNodeTemplateRequest request =
                 new FlowModelNodeTemplateRequest(filePath, testConfig.position(), testConfig.codedata());
-        JsonElement nodeTemplate = getResponse(request).get("flowNode");
+        JsonElement nodeTemplate = getResponseAndCloseFile(request, testConfig.source()).get("flowNode");
 
         if (!nodeTemplate.equals(testConfig.output())) {
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.position(),

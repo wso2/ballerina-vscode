@@ -71,7 +71,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "{}",
             "optional": true,
             "editable": true,
@@ -83,7 +87,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "bm1",
             "optional": false,
             "editable": false,
@@ -108,7 +116,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "map<boolean>",
             "placeholder": "var",
             "optional": false,
@@ -191,7 +203,11 @@
                       "label": "Expression",
                       "description": "Update value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "[bm1]",
                     "optional": false,
                     "editable": true,
@@ -216,7 +232,11 @@
                       "label": "Variable",
                       "description": "Name of the variable/field"
                     },
-                    "valueType": "LV_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "LV_EXPRESSION"
+                      }
+                    ],
                     "value": "f",
                     "optional": false,
                     "editable": true,

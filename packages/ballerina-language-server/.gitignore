@@ -27,6 +27,17 @@ replay_pid*
 .idea/
 .vscode/
 
+# Eclipse IDE files
+.project
+.classpath
+.settings/
+.metadata/
+*.launch
+.loadpath
+.apt_generated/
+.factorypath
+.recommenders/
+
 # Build directories
 .gradle/
 build/

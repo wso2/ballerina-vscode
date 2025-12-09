@@ -67,15 +67,16 @@ public class ParamUtils {
                 for (Symbol pathSegment : pathSegmentList.list()) {
                     pathBuilder.append("/");
                     if (pathSegment instanceof PathParameterSymbol pathParameterSymbol) {
+                        TypeSymbol typeSymbol = pathParameterSymbol.typeDescriptor();
                         String defaultValue = DefaultValueGeneratorUtil
-                                .getDefaultValueForType(pathParameterSymbol.typeDescriptor());
-                        String type = CommonUtils.getTypeSignature(semanticModel, pathParameterSymbol.typeDescriptor(),
+                                .getDefaultValueForType(typeSymbol);
+                        String type = CommonUtils.getTypeSignature(semanticModel, typeSymbol,
                                 true);
                         String paramName = pathParameterSymbol.getName().orElse("");
                         String paramDescription = documentationMap.get(paramName);
                         pathBuilder.append("[").append(paramName).append("]");
                         pathParams.add(ParameterData.from(paramName, type, ParameterData.Kind.PATH_PARAM, defaultValue,
-                                paramDescription, false));
+                                paramDescription, false, typeSymbol));
                     } else {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }

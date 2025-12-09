@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Test generating template for xml payload node",
   "codedata": {
     "node": "XML_PAYLOAD"
@@ -19,7 +20,11 @@
           "label": "Variable Name",
           "description": "Name of the variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "var1",
         "optional": false,
         "editable": true,
@@ -31,7 +36,11 @@
           "label": "Variable Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "xml",
         "optional": false,
         "editable": true,
@@ -43,7 +52,11 @@
           "label": "Expression",
           "description": "Create new XML payload"
         },
-        "valueType": "EXPRESSION",
+        "types": [
+          {
+            "fieldType": "EXPRESSION"
+          }
+        ],
         "value": "xml `<dummy>Dummy XML value</dummy>`",
         "optional": false,
         "editable": true,
