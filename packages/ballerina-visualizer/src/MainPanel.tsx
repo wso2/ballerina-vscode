@@ -82,6 +82,7 @@ import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 import { SamplesView } from "./views/BI/SamplesView";
+import { ReviewMode } from "./views/ReviewMode";
 
 const globalStyles = css`
     *,
@@ -614,6 +615,21 @@ const MainPanel = () => {
                                 projectPath={value.projectPath}
                             />
                         );
+                        break;
+                    case MACHINE_VIEW.ReviewMode:
+                        console.log('[Review Mode] Received value:', value);
+                        console.log('[Review Mode] reviewData:', value?.reviewData);
+                        if (value?.reviewData) {
+                            setViewComponent(
+                                <ReviewMode
+                                    reviewData={value.reviewData}
+                                    projectPath={value.projectPath}
+                                />
+                            );
+                        } else {
+                            console.error("ReviewMode requires reviewData. Received value:", value);
+                            setViewComponent(<LoadingRing />);
+                        }
                         break;
                     default:
                         setNavActive(false);
