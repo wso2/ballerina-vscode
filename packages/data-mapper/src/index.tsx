@@ -88,16 +88,17 @@ export interface DataMapperEditorProps {
 }
 
 export interface DataMapperProps extends DataMapperEditorProps {
+    goToSource: () => void;
     expressionBar: ExpressionBarProps;
 }
 
-export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
+export function DataMapper({ goToSource, expressionBar, ...props }: DataMapperProps) {
     return (
-        <DataMapperErrorBoundary onClose={props.onClose}>
+        <DataMapperErrorBoundary onClose={props.onClose} goToSource={goToSource}>
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <ExpressionProvider {...expressionBar}>
-                    <DataMapperEditor {...props} />
+                    <DataMapperEditor {...props}/>
                 </ExpressionProvider>
             </QueryClientProvider>
         </DataMapperErrorBoundary>
