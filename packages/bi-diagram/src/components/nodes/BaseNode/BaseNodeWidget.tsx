@@ -63,10 +63,10 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
-                : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? ThemeColors.SECONDARY
+                        : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
@@ -171,7 +171,7 @@ export interface BaseNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<BaseNodeWidgetProps, "children"> { }
 
 export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -262,13 +262,17 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.(fileName);
+        const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
-            openView(filePath, {
-                startLine: startLine.line,
-                startColumn: startLine.offset,
-                endLine: endLine.line,
-                endColumn: endLine.offset,
+            openView({
+                documentUri: response.filePath,
+                position: {
+                    startLine: startLine.line,
+                    startColumn: startLine.offset,
+                    endLine: endLine.line,
+                    endColumn: endLine.offset,
+                },
+                projectPath: response.projectPath,
             });
     };
 
@@ -277,13 +281,17 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const filePath = await project?.getProjectPath?.(fileName);
+        const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
         openView &&
-            openView(filePath, {
-                startLine: startLine.line,
-                startColumn: startLine.offset,
-                endLine: endLine.line,
-                endColumn: endLine.offset,
+            openView({
+                documentUri: response.filePath,
+                position: {
+                    startLine: startLine.line,
+                    startColumn: startLine.offset,
+                    endLine: endLine.line,
+                    endColumn: endLine.offset,
+                },
+                projectPath: response.projectPath,
             });
     };
 

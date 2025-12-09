@@ -53,6 +53,7 @@ import {
     CurrentBreakpointsResponse,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -130,6 +131,7 @@ import {
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteProject,
     deleteType,
     deployProject,
     formDidClose,
@@ -147,6 +149,7 @@ import {
     getConfigVariableNodeTemplate,
     getConfigVariables,
     getConfigVariablesV2,
+    getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
     getEnclosedFunction,
@@ -199,6 +202,7 @@ import {
     getExpressionTokens,
     ExpressionTokensRequest,
     AddProjectToWorkspaceRequest,
+    OpenReadmeRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -270,6 +274,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
     }
 
+    deleteProject(params: DeleteProjectRequest): void {
+        return this._messenger.sendNotification(deleteProject, HOST_EXTENSION, params);
+    }
+
     addProjectToWorkspace(params: AddProjectToWorkspaceRequest): void {
         return this._messenger.sendNotification(addProjectToWorkspace, HOST_EXTENSION, params);
     }
@@ -300,6 +308,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
         return this._messenger.sendRequest(getExpressionCompletions, HOST_EXTENSION, params);
+    }
+
+    getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return this._messenger.sendRequest(getDataMapperCompletions, HOST_EXTENSION, params);
     }
 
     getConfigVariables(): Promise<ConfigVariableResponse> {
@@ -334,12 +346,12 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(getModuleNodes, HOST_EXTENSION);
     }
 
-    getReadmeContent(): Promise<ReadmeContentResponse> {
-        return this._messenger.sendRequest(getReadmeContent, HOST_EXTENSION);
+    getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
+        return this._messenger.sendRequest(getReadmeContent, HOST_EXTENSION, params);
     }
 
-    openReadme(): void {
-        return this._messenger.sendNotification(openReadme, HOST_EXTENSION);
+    openReadme(params: OpenReadmeRequest): void {
+        return this._messenger.sendNotification(openReadme, HOST_EXTENSION, params);
     }
 
     renameIdentifier(params: RenameIdentifierRequest): Promise<void> {
