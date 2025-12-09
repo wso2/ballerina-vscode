@@ -73,7 +73,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
         const context = node.context;
 	    const lastView = context.views[context.views.length - 1];
         const mapping = node.targetMappedPort.attributes.value; 
-        expandArrayFn(context, mapping.inputs[0], mapping.output, lastView.targetField);
+        expandArrayFn(context, mapping.inputs, mapping.output, lastView.targetField);
     };
 
     const loadingScreen = (
@@ -83,7 +83,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
     );
 
     return (!node.hidden && (
-            <div className={classes.root} data-testid={`link-connector-node-${node?.value}`}>
+            <div className={classes.root} data-testid={`link-connector-node-${node?.targetPort?.getName()}`}>
                 <div className={classes.header}>
                     {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
                     {renderEditButton(onClickEdit, node?.value)}

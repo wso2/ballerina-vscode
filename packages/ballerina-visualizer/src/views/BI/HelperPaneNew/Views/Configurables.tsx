@@ -33,6 +33,8 @@ import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder";
 import { HelperPaneCustom } from "@wso2/ui-toolkit";
 import { useHelperPaneNavigation } from "../hooks/useHelperPaneNavigation";
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation";
+import { InputMode } from "@wso2/ballerina-side-panel";
+import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -52,11 +54,12 @@ type ConfigurablesPageProps = {
     fileName: string;
     targetLineRange: LineRange;
     onClose?: () => void;
+    inputMode?: InputMode;
 }
 
 
 export const Configurables = (props: ConfigurablesPageProps) => {
-    const { onChange, onClose, fileName, targetLineRange } = props;
+    const { onChange, onClose, fileName, targetLineRange, inputMode } = props;
 
     const { rpcClient } = useRpcContext();
     const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Configurables");
@@ -116,7 +119,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         let errorMsg: string = '';
 
         setIsLoading(true);
-        
+
         // Only apply minimum loading time if we don't have any config variables yet
         const shouldShowMinLoader = Object.keys(configVariables).length === 0 && !showContent;
         const minLoadingTime = shouldShowMinLoader ? new Promise(resolve => setTimeout(resolve, 500)) : Promise.resolve();
@@ -146,6 +149,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         closeModal(POPUP_IDS.CONFIGURABLES);
         //TODO: Need to disable the form before saving and move form close to finally block
         setIsSaving(true);
+        node.properties.defaultValue.modified = true;
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: Utils.joinPath(URI.file(projectPathUri), 'config.bal').fsPath,
             configVariable: node,
@@ -169,7 +173,9 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleItemClicked = (name: string) => {
-        onChange(name, false)
+        // Wrap in template interpolation if in template mode
+        const wrappedName = wrapInTemplateInterpolation(name, inputMode);
+        onChange(wrappedName, false)
         onClose && onClose();
     }
 
@@ -204,7 +210,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         }}>
             <BreadcrumbNavigation
                 breadCrumbSteps={breadCrumbSteps}
-                onNavigateToBreadcrumb={(step) => navigateToBreadcrumb(step, onChange)}
+                onNavigateToBreadcrumb={(step) => navigateToBreadcrumb(step)}
             />
             {(() => {
                 const filteredCategories = translateToArrayFormat(configVariables)
@@ -212,7 +218,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                         Array.isArray(category.items) &&
                         category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
                     );
-                
+
                 // Count total items across all categories
                 const totalItemsCount = filteredCategories.reduce((total, category) => {
                     return total + category.items.reduce((subTotal, subCategory) => {
@@ -230,7 +236,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                     </>
                 );
             })()}
-            
+
             <ScrollableContainer style={{ margin: '8px 0px' }}>
                 {isLoading || !showContent ? (
                     <HelperPaneCustom.Loader />
@@ -255,11 +261,11 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                     })).filter(subCategory => subCategory.items.length > 0)
                                 })).filter(category => category.items.length > 0);
                             }
-                            
+
                             if (filteredCategories.length === 0) {
                                 return <EmptyItemsPlaceHolder message={searchValue ? "No configurables found for your search" : "No configurables found"} />;
                             }
-                            
+
                             return (
                                 <>
                                     {filteredCategories.map(category => (
@@ -294,7 +300,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                                         ) : (
                                                             <div>
                                                                 {subCategory.items.map((item: ConfigVariable) => (
-                                                                    <HelperPaneListItem 
+                                                                    <HelperPaneListItem
                                                                         key={item.id}
                                                                         onClick={() => { handleItemClicked(item?.properties?.variable?.value as string) }}
                                                                     >

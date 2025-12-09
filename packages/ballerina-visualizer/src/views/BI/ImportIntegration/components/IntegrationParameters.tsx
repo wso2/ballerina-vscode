@@ -21,6 +21,40 @@ import { CheckBox, Dropdown, OptionProps, TextField, Typography } from "@wso2/ui
 import React from "react";
 import { ParameterItem, ParametersSection } from "../styles";
 import { BodyText } from "../../../styles";
+import styled from "@emotion/styled";
+
+const Label = styled.div`
+    font-family: var(--font-family);
+    color: var(--vscode-editor-foreground);
+    text-align: left;
+    text-transform: capitalize;
+`;
+
+const Description = styled.div`
+    font-family: var(--font-family);
+    color: var(--vscode-list-deemphasizedForeground);
+    text-align: left;
+`;
+
+const LabelGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+`;
+
+const BoxGroup = styled.div`
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: flex-start;
+`;
+
+const ParametersContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+`;
 
 interface IntegrationParametersProps {
     selectedIntegration: MigrationTool;
@@ -35,54 +69,68 @@ export const IntegrationParameters: React.FC<IntegrationParametersProps> = ({
 }) => {
     if (!selectedIntegration || !selectedIntegration.parameters.length) return null;
 
+    const getBooleanValue = (value: any): boolean => {
+        if (typeof value === "string") {
+            return value === "true";
+        }
+        return value === true;
+    };
+
     return (
         <ParametersSection>
             <Typography variant="h3" sx={{ marginBottom: 12 }}>
                 Configure {selectedIntegration.title} Settings
             </Typography>
             <BodyText>{`Configure additional settings for ${selectedIntegration.title} migration.`}</BodyText>
-            {selectedIntegration.parameters.map((param) => (
-                <ParameterItem key={param.key}>
-                    {param.valueType === "boolean" ? (
-                        <CheckBox
-                            checked={integrationParams[param.key] || false}
-                            onChange={(checked) => onParameterChange(param.key, checked)}
-                            label={param.label}
-                        />
-                    ) : param.valueType === "enum" && param.options ? (
-                        <Dropdown
-                            id={`${param.key}-dropdown`}
-                            label={param.label}
-                            description={param.description}
-                            value={integrationParams[param.key] || param.defaultValue || param.options[0]}
-                            items={param.options.map(option => ({ 
-                                id: option, 
-                                content: option 
-                            } as OptionProps))}
-                            onChange={(e) => onParameterChange(param.key, e.target.value)}
-                            containerSx={{
-                                position: 'relative',
-                                marginBottom: '60px',
-                                '& vscode-dropdown::part(listbox)': {
-                                    position: 'absolute !important',
-                                    top: '100% !important',
-                                    bottom: 'auto !important',
-                                    transform: 'none !important',
-                                    marginTop: '2px !important'
-                                }
-                            }}
-                        />
-                    ) : (
-                        <TextField
-                            value={integrationParams[param.key] || ""}
-                            description={param.description}
-                            onTextChange={(value) => onParameterChange(param.key, value)}
-                            label={param.label}
-                            placeholder={`Enter ${param.label.toLowerCase()}`}
-                        />
-                    )}
-                </ParameterItem>
-            ))}
+            <ParametersContainer>
+                {selectedIntegration.parameters.map((param) => (
+                    <ParameterItem key={param.key}>
+                        {param.valueType === "boolean" ? (
+                            <BoxGroup>
+                                <CheckBox
+                                    checked={getBooleanValue(integrationParams[param.key])}
+                                    onChange={(checked) => onParameterChange(param.key, checked)}
+                                    label=""
+                                />
+                                <LabelGroup>
+                                    <Label>{param.label}</Label>
+                                    {param.description && <Description>{param.description}</Description>}
+                                </LabelGroup>
+                            </BoxGroup>
+                        ) : param.valueType === "enum" && param.options ? (
+                            <Dropdown
+                                id={`${param.key}-dropdown`}
+                                label={param.label}
+                                description={param.description}
+                                value={integrationParams[param.key] || param.defaultValue || param.options[0]}
+                                items={param.options.map(option => ({
+                                    id: option,
+                                    content: option
+                                } as OptionProps))}
+                                onChange={(e) => onParameterChange(param.key, e.target.value)}
+                                containerSx={{
+                                    position: 'relative',
+                                    '& vscode-dropdown::part(listbox)': {
+                                        position: 'absolute !important',
+                                        top: '100% !important',
+                                        bottom: 'auto !important',
+                                        transform: 'none !important',
+                                        marginTop: '2px !important'
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <TextField
+                                value={integrationParams[param.key] || ""}
+                                description={param.description}
+                                onTextChange={(value) => onParameterChange(param.key, value)}
+                                label={param.label}
+                                placeholder={`Enter ${param.label.toLowerCase()}`}
+                            />
+                        )}
+                    </ParameterItem>
+                ))}
+            </ParametersContainer>
         </ParametersSection>
     );
 };

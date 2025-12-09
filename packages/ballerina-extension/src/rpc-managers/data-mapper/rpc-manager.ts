@@ -21,6 +21,8 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
@@ -34,6 +36,7 @@ import {
     DMModelRequest,
     ExpandedDMModel,
     ExpandedDMModelResponse,
+    FieldPropertyRequest,
     GetDataMapperCodedataRequest,
     GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
@@ -48,7 +51,7 @@ import {
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
 
-import { StateMachine } from "../../stateMachine";
+import { StateMachine, undoRedoManager } from "../../stateMachine";
 
 import {
     expandDMModel,
@@ -69,6 +72,7 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     const varName = params.flowNode.properties?.variable?.value as string ?? null;
                     updateSource(model.textEdits, params.filePath, params.flowNode.codedata, varName)
                         .then(codeData => {
+                            undoRedoManager?.reset();
                             resolve({ textEdits: model.textEdits, codedata: codeData });
                         });
                 })
@@ -233,6 +237,26 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getFieldProperty(params: FieldPropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine
+                .langClient()
+                .getFieldProperty(params) as PropertyResponse;
+
+            resolve(property);
+        });
+    }
+
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return new Promise(async (resolve) => {
+            const position: any = await StateMachine
+                .langClient()
+                .getClausePosition(params);
+
+            resolve(position);
+        });
+    }
+
     async deleteMapping(params: DeleteMappingRequest): Promise<DataMapperSourceResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -394,4 +418,5 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 });
         });
     }
+
 }

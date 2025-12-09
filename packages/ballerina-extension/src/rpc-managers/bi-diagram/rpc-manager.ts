@@ -65,6 +65,7 @@ import {
     DIRECTORY_MAP,
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
+    DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -145,6 +146,7 @@ import {
     ExpressionTokensRequest,
     ExpressionTokensResponse,
     AddProjectToWorkspaceRequest,
+    OpenReadmeRequest,
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -167,10 +169,10 @@ import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
-import { openView, StateMachine, updateView } from "../../stateMachine";
+import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
@@ -229,7 +231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params) });
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
                         resolve({ artifacts });
                     }
                 })
@@ -596,18 +598,54 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    async deleteProject(params: DeleteProjectRequest): Promise<void> {
+        const projectInfo = StateMachine.context().projectInfo;
+        const targetProject = projectInfo?.children.find((child) => child.projectPath === params.projectPath);
+        const projectName = targetProject?.title || targetProject?.name;
+        if (!projectName) {
+            return;
+        }
+        // Confirm destructive action with user
+        const response = await window.showWarningMessage(
+            `Delete Integration '${projectName}'?`,
+            {
+                modal: true,
+                detail: "This action cannot be undone. The integration will be permanently removed from the workspace."
+            },
+            { title: "Delete", isCloseAffordance: false },
+            { title: "Cancel", isCloseAffordance: true }
+        );
+        
+        if (response?.title !== "Delete") {
+            return;
+        }
+
+        const projectPath = params.projectPath;
+        const workspacePath = projectInfo?.projectPath;
+        await deleteProjectFromWorkspace(workspacePath, projectPath);
+
+        // Refresh project info to update UI with newly added project
+        StateMachine.refreshProjectInfo();
+    }
+
     async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
         if (params.convertToWorkspace) {
             try {
                 await convertProjectToWorkspace(params);
+                // Refresh project info to update UI with newly added project
+                StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error converting project to workspace");
+                window.showErrorMessage("Error converting integration to workspace");
+                console.error("Error converting integration to workspace:", error);
             }
         } else {
             try {
                 await addProjectToExistingWorkspace(params);
+                // Refresh project info to update UI with newly added project
+                StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error adding project to existing workspace");
+                window.showErrorMessage("Error adding integration to existing workspace");
+                console.error("Error adding integration to existing workspace:", error);
             }
         }
     }
@@ -813,10 +851,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
-        // console.log(">>> Savineadme.md", params);
         return new Promise((resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-            const readmePath = path.join(projectPath, README_FILE);
+            const projectPath = params.projectPath;
+            const readmePath = projectPath ? path.join(projectPath, README_FILE) : undefined;
+            if (!readmePath) {
+                resolve({ content: "" });
+                return;
+            }
             if (params.read) {
                 if (!fs.existsSync(readmePath)) {
                     resolve({ content: "" });
@@ -849,6 +890,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     reject("Error fetching expression completions from ls");
+                });
+        });
+    }
+
+    async getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient()
+                .getDataMapperCompletions(params)
+                .then((completions) => {
+                    resolve(completions);
+                })
+                .catch((error) => {
+                    reject("Error fetching data mapper completions from ls");
                 });
         });
     }
@@ -993,16 +1047,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
 
-    async getReadmeContent(): Promise<ReadmeContentResponse> {
+    async getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {
-            const workspaceFolders = workspace.workspaceFolders;
-            if (!workspaceFolders || workspaceFolders.length === 0) {
-                resolve({ content: "" });
-                return;
-            }
-
-            const projectRoot = workspaceFolders[0].uri.fsPath;
-            const readmePath = path.join(projectRoot, "README.md");
+            const projectPath = params.projectPath;
+            const readmePath = path.join(projectPath, "README.md");
 
             if (!fs.existsSync(readmePath)) {
                 resolve({ content: "" });
@@ -1020,19 +1068,28 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    openReadme(): void {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            window.showErrorMessage("No workspace folder is open.");
-            return;
-        }
-
-        const projectRoot = workspaceFolders[0].uri.fsPath;
+    openReadme(params: OpenReadmeRequest): void {
+        const projectRoot = params.projectPath;
         const readmePath = path.join(projectRoot, "README.md");
 
         if (!fs.existsSync(readmePath)) {
             // Create README.md if it doesn't exist
-            fs.writeFileSync(readmePath, "# Project Overview\n\nAdd your project description here.");
+
+            const projectInfo = StateMachine.context().projectInfo;
+            let content = "";
+
+            if (params.isWorkspaceReadme) {
+                const workspaceName = projectInfo?.title || projectInfo?.name;
+                content = `# ${workspaceName} Workspace\n\nAdd your workspace description here.`;
+            } else {
+                const project = projectInfo?.children && projectInfo?.children.length > 0
+                    ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
+                    : projectInfo;
+                const projectName = project?.title || project?.name;
+                content = `# ${projectName} Integration\n\nAdd your integration description here.`;
+            }
+
+            fs.writeFileSync(readmePath, content);
         }
 
         // Open README.md in the editor
@@ -1040,8 +1097,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showTextDocument(doc, ViewColumn.Beside);
         });
     }
-
-
 
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
@@ -1053,7 +1108,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             // Show a quick pick to select deployment option
             const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have different types of artifacts within this project. Select the artifact type to be deployed'
+                placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
             });
             integrationType = selectedScope as SCOPE;
         }
@@ -2018,6 +2073,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         });
     }
+
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {

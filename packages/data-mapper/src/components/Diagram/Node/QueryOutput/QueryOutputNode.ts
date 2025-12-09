@@ -115,7 +115,6 @@ export class QueryOutputNode extends DataMapperNodeModel {
 
         const views = this.context.views;
         const lastViewIndex = views.length - 1;
-        const { inputs: queryInputs, output: queryOutput} = this.context.model.query;
 
         mappings.forEach((mapping) => {
             
@@ -163,30 +162,6 @@ export class QueryOutputNode extends DataMapperNodeModel {
                 this.getModel().addAll(lm as any);
             }
         });
-
-        const inputNode = findInputNode(queryInputs[0], this, views, lastViewIndex);
-        let inPort: InputOutputPortModel;
-        if (inputNode) {
-            inPort = getInputPort(inputNode, queryInputs[0].replace(/\.\d+/g, ''));
-        }
-
-        const [_, mappedOutPort] = getOutputPort(this, queryOutput + ".#");
-
-        if (inPort && mappedOutPort) {
-            const lm = new DataMapperLinkModel(undefined, undefined, true, undefined, true);
-
-            lm.setTargetPort(mappedOutPort);
-            lm.setSourcePort(inPort);
-            inPort.addLinkedPort(mappedOutPort);
-
-            lm.addLabel(new ExpressionLabelModel({
-                isQuery: true
-            }));
-
-            this.getModel().addAll(lm as any);
-        }
-
-
     }
 
     async deleteField(mapping: Mapping) {
