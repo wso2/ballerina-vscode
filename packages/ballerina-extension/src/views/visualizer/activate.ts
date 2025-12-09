@@ -26,7 +26,7 @@ import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } f
 import { VisualizerWebview } from './webview';
 import { findWorkspaceTypeFromWorkspaceFolders } from '../../rpc-managers/common/utils';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
-import { isAtWorkspaceLevel, needsProjectDiscovery, promptPackageSelection } from '../../utils/command-utils';
+import { requiresPackageSelection, needsProjectDiscovery, promptPackageSelection } from '../../utils/command-utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -229,7 +229,7 @@ async function handleOpenTypeDiagram(): Promise<void> {
     const currentBallerinaFile = tryGetCurrentBallerinaFile();
     const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
 
-    if (isAtWorkspaceLevel(workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+    if (requiresPackageSelection(workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor)) {
         await openTypeDiagramForWorkspace(projectInfo);
         return;
     }
