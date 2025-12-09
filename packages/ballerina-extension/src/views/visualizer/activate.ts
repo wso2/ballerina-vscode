@@ -17,12 +17,15 @@
  */
 
 import * as vscode from 'vscode';
-import { PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
+import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
+import { VisualizerWebview } from './webview';
+import { findWorkspaceTypeFromWorkspaceFolders } from '../../rpc-managers/common/utils';
+import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -163,8 +166,67 @@ export function activateSubscriptions() {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(BI_COMMANDS.OPEN_TYPE_DIAGRAM, () => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram });
+        vscode.commands.registerCommand(BI_COMMANDS.OPEN_TYPE_DIAGRAM, async () => {
+            const { projectInfo, projectPath, view, workspacePath } = StateMachine.context();
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+            const isActiveTextEditor = vscode.window.activeTextEditor;
+
+            const isAtWorkspaceLevel = 
+                workspacePath && 
+                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath || !isWebviewOpen) &&
+                !isActiveTextEditor;
+
+            const currentBallerinaFile = tryGetCurrentBallerinaFile();
+            const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+            if (isAtWorkspaceLevel) {
+                const availablePackages = projectInfo?.children.map((child) => child.projectPath) ?? [];
+                const selectedPackage = await vscode.window.showQuickPick(availablePackages, {
+                    placeHolder: "Select a package to open type diagram",
+                    ignoreFocusOut: false
+                });
+
+                // User cancelled selection
+                if (!selectedPackage) {
+                    return;
+                }
+
+                openView(
+                    EVENT_TYPE.OPEN_VIEW,
+                    { view: MACHINE_VIEW.TypeDiagram, projectPath: selectedPackage }
+                );
+            } else if (!projectInfo || (projectRoot && projectPath !== projectRoot)) {
+                try {
+                    const workspaceType = await findWorkspaceTypeFromWorkspaceFolders();
+                    const packageRoot = await getCurrentProjectRoot();
+                    if (packageRoot) {
+                        if (workspaceType.type === "MULTIPLE_PROJECTS") {
+                            const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                            await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                            openView(
+                                EVENT_TYPE.OPEN_VIEW,
+                                { view: MACHINE_VIEW.TypeDiagram, projectPath: packageRoot },
+                                true
+                            );
+                            return;
+                        } else if (workspaceType.type === "BALLERINA_WORKSPACE") {
+                            openView(
+                                EVENT_TYPE.OPEN_VIEW,
+                                { view: MACHINE_VIEW.TypeDiagram, projectPath: packageRoot },
+                                true
+                            );
+                            return;
+                        }
+                    }
+                    vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                } catch (error) {
+                    vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+            } else {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram });
+            }
         })
     );
 
