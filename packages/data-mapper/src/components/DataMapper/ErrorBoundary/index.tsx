@@ -15,14 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as React from "react";
+import React from "react";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
 import ErrorScreen from "./Error";
 
 export interface DataMapperErrorBoundaryProps {
     children: React.ReactNode;
-    onClose?: () => void;
+    onClose: () => void;
     goToSource: () => void;
 }
 
@@ -35,7 +35,7 @@ export function DataMapperErrorBoundary(props: DataMapperErrorBoundaryProps) {
 
     return (
         <ReactErrorBoundary
-            FallbackComponent={(fallbackProps) => <ErrorScreen onClose={onClose} goToSource={goToSource} {...fallbackProps} />}
+            FallbackComponent={() => <ErrorScreen onClose={onClose} goToSource={goToSource} />}
             onError={handleError}
         >
             {children}
