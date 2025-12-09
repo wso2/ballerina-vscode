@@ -1,0 +1,182 @@
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import { generateObject, ModelMessage, tool } from "ai";
+import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "./libs";
+import { jsonSchema } from "ai";
+import { Library } from "./libs_types";
+import { selectRequiredFunctions } from "./funcs";
+import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest } from "@wso2/ballerina-core";
+import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../connection";
+import { z } from "zod";
+import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
+
+export const HEALTHCARE_LIBRARY_PROVIDER_TOOL = "HealthcareLibraryProviderTool";
+
+const HealthcareLibraryProviderToolSchema = jsonSchema<{
+    userPrompt: string;
+}>({
+    type: "object",
+    properties: {
+        userPrompt: {
+            type: "string",
+            description: "User query to determine which functions and type definitions are needed from the libraries",
+        },
+    },
+    required: ["userPrompt"],
+});
+
+export async function HealthcareLibraryProviderTool(params: {
+    userPrompt: string;
+}): Promise<Library[]> {
+    try {
+        const startTime = Date.now();
+
+        const libraries = await getRelevantLibrariesAndFunctions({
+            query: params.userPrompt,
+        }, GenerationType.HEALTHCARE_GENERATION);
+
+        console.log(
+            `[HealthcareLibraryProviderTool] Fetched ${libraries.length} libraries: ${libraries
+                .map((lib) => lib.name)
+                .join(", ")}, took ${(Date.now() - startTime) / 1000}s`
+        );
+        return libraries;
+    } catch (error) {
+        console.error(`[HealthcareLibraryProviderTool] Error fetching libraries: ${error}`);
+        return [];
+    }
+}
+
+//TODO: Improve this description
+export function getHealthcareLibraryProviderTool(_libraryDescriptions: string) {
+    return tool({
+        description: `Fetches detailed information about healthcare-specific Ballerina libraries along with their API documentation, including services, clients, functions, and filtered type definitions.
+
+** NOTE: 
+1. This Tool only has knowledge on healthcare libraries, you want general libraries, use ${LIBRARY_PROVIDER_TOOL} to retrieve those.
+
+This tool is specifically designed for healthcare integration use cases (FHIR, HL7v2, etc.) and provides:
+1. **Automatically includes mandatory healthcare libraries** (FHIR R4, HL7v2 commons, etc.) even if not explicitly requested
+2. Filters functions based on the user query to include only relevant APIs
+
+**When to use this tool:**
+You should only use this tool if the user query mentions,
+- healthcare standards (FHIR, HL7, CDA, clinical data)
+- Query involves patient data, medical records, or clinical workflows
+- Query requires healthcare interoperability between systems
+
+**Before calling this tool:**
+- Analyze the user quer, identify healthcare-specific requirements, and call this tool using that question so this tool can provide all the relevant healthcare libraries and functions.
+
+** What this tool returns: **
+- Detailed information about healthcare Ballerina libraries including services, clients, functions, and filtered type definitions relevant to the user query.
+`,
+        inputSchema: HealthcareLibraryProviderToolSchema,
+        execute: async (input: {
+            userPrompt: string;
+        }) => {
+            console.log(
+                `[HealthcareLibraryProviderTool] Called with prompt: ${input.userPrompt}`
+            );
+            return await HealthcareLibraryProviderTool(input);
+        },
+    });
+}
+
+export function ensureMandatoryHealthcareLibraries(libNames: string[]): string[] {
+    const librarySet = new Set(libNames);
+    MANDATORY_HEALTHCARE_LIBRARIES.forEach(lib => librarySet.add(lib));
+    return Array.from(librarySet);
+}
+
+
+export const MANDATORY_HEALTHCARE_LIBRARIES = [
+    'ballerinax/health.fhir.r4.international401',
+    'ballerinax/health.fhir.r4',
+    'ballerinax/health.fhir.r4.parser',
+    'ballerinax/health.fhir.r4utils',
+    'ballerinax/health.hl7v2',
+    'ballerinax/health.hl7v2commons',
+    'ballerinax/health.base'
+];
+
+const LibraryListSchema = z.object({
+    libraries: z.array(z.string()),
+});
+
+export async function getRelevantLibrariesAndFunctions(
+    params: RelevantLibrariesAndFunctionsRequest,
+    generationType: GenerationType
+): Promise<Library[]> {
+    const selectedLibs: string[] = await getSelectedLibraries(params.query, generationType);
+    const allLibraries = ensureMandatoryHealthcareLibraries(selectedLibs);
+    const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, allLibraries, generationType);
+    return relevantTrimmedFuncs;
+}
+
+export async function getSelectedLibraries(prompt: string, generationType: GenerationType): Promise<string[]> {
+    const allLibraries = await getAllLibraries(generationType);
+    if (allLibraries.length === 0) {
+        return [];
+    }
+    const cacheOptions = await getProviderCacheControl();
+    const messages: ModelMessage[] = [
+        {
+            role: "system",
+            content: getSystemPrompt(allLibraries),
+            providerOptions: cacheOptions,
+        },
+        {
+            role: "user",
+            content: getUserPrompt(prompt),
+        },
+    ];
+
+    //TODO: Add thinking and test with claude haiku
+    const startTime = Date.now();
+    const { object } = await generateObject({
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        maxOutputTokens: 4096,
+        temperature: 0,
+        messages: messages,
+        schema: LibraryListSchema,
+        abortSignal: AIPanelAbortController.getInstance().signal,
+    });
+    const endTime = Date.now();
+    console.log(`Library selection took ${endTime - startTime}ms`);
+
+    console.log("Selected libraries:", object.libraries);
+    return object.libraries;
+}
+
+function getSystemPrompt(libraryList: MinifiedLibrary[]): string {
+    return `You are an assistant tasked with selecting all the Ballerina libraries needed to answer a healthcare specific question from a given set of libraries provided in the context as a JSON. RESPOND ONLY WITH A JSON.
+# Library Context JSON
+${JSON.stringify(libraryList)}`;
+}
+
+
+//TODO: Fill with examples
+function getUserPrompt(prompt: string): string {
+    return `
+# QUESTION
+${prompt}
+
+${
+" ALWAYS include `ballerinax/health.base`, `ballerinax/health.fhir.r4`, `ballerinax/health.fhir.r4.parser`, `ballerinax/health.fhir.r4utils`, `ballerinax/health.fhir.r4.international401`, `ballerinax/health.hl7v2commons` and `ballerinax/health.hl7v2` libraries in the selection in addition to what you selected."
+}`;
+}

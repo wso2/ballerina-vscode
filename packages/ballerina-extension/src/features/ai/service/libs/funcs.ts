@@ -26,7 +26,7 @@ import {
     MinifiedResourceFunction,
     PathParameter,
 } from "./funcs_inter_types";
-import { Client, GetTypeResponse, Library, RemoteFunction, ResourceFunction } from "./libs_types";
+import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction } from "./libs_types";
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./libs_types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../connection";
 import { GenerationType } from "./libs";
@@ -43,10 +43,10 @@ export async function selectRequiredFunctions(prompt: string, selectedLibNames: 
     const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
     const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs);
     let typeLibraries: Library[] = [];
-    // if (generationType === GenerationType.HEALTHCARE_GENERATION) {
-    //     const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
-    //     typeLibraries = toTypesToLibraries(resp, selectedLibs);
-    // }
+    if (generationType === GenerationType.HEALTHCARE_GENERATION) {
+        const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
+        typeLibraries = toTypesToLibraries(resp, selectedLibs);
+    }
     const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
 
     // Merge typeLibraries and maximizedLibraries without duplicates
@@ -746,4 +746,90 @@ async function getExternalRecords(
             }
         }
     }
+}
+
+export async function getRequiredTypesFromLibJson(
+    libraries: string[],
+    prompt: string,
+    librariesJson: Library[]
+): Promise<GetTypeResponse[]> {
+    if (librariesJson.length === 0) {
+        return [];
+    }
+
+    const typeDefs: GetTypesRequest[] = librariesJson
+        .filter((lib) => libraryContains(lib.name, libraries))
+        .map((lib) => ({
+            name: lib.name,
+            description: lib.description,
+            types: filteredTypes(lib.typeDefs),
+        }));
+
+    if (typeDefs.length === 0) {
+        return [];
+    }
+
+    const getLibSystemPrompt = `You are an assistant tasked with selecting the Ballerina types needed to solve a given question based on a set of Ballerina libraries given in the context as a JSON.
+
+Objective: Create a JSON output that includes a minimized version of the context JSON, containing only the selected libraries and types necessary to achieve a given question.
+
+Context Format: A JSON Object that represents a library with its name and types.
+
+Library Context JSON:
+\`\`\`json
+${JSON.stringify(typeDefs)}
+\`\`\`
+
+Think step-by-step to choose the required types in order to solve the given question.
+1. Identify the unique entities that are required to answer the question. Create a small description for each identified entitiy to better explain their role.
+2. When selecting the necessary Ballerina types that represents those entities, consider the following factors:
+2.1 Take the description of the types from the context as a way to understand the entity represented by it.
+2.2 Compare the types descriptions against the descriptions you generated for each identity and find the mapping types for each entity.
+2.3 Find the Ballerina libraries of the selected types using the given context. Use ONLY the given context to find the libraries. 
+3. For each selected type, find which fields of those types are required to answer the given question by referring to the given context. For each selected field; 
+3.1 Understands the types of those fields by referring to the context. 
+3.2 Context json has a link element which indicates the library name.
+3.3 Make sure that you select those types and add to the output. When selecting those types pay attention to following:
+3.3.1 For each new type, search the context and find the library which defines the new type. Use ONLY the given context to find the libraries. 
+3.3.2 Add the found library and the types to the output. 
+4. Once you select the types, please cross check and make sure they are placed under the correct library.
+4.1 Go through each library and make sure they exist in the given context json.
+4.2 Go through each library and verify the types by referring to the context.
+4.2 Fix any issues found and try to re-identify the correct library the problematic type belongs to by referring to the context.
+4.3 IT IS A MUST that you do these verification steps.
+5. Simplify the type details as per the below rules.
+5.1 Include only the type name in the context object. 
+5.2 Include the name of the type as SAME as the original context.
+6. For each selected type, Quote the original type from the context in the thinking field.
+7. Respond using the Output format with the selected functions.
+
+`;
+    const getLibUserPrompt = "QUESTION\n```\n" + prompt + "\n```";
+
+    const messages: ModelMessage[] = [
+        { role: "system", content: getLibSystemPrompt },
+        { role: "user", content: getLibUserPrompt },
+    ];
+    try {
+        const { object } = await generateObject({
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
+            maxOutputTokens: 8192,
+            temperature: 0,
+            messages: messages,
+            schema: getTypesResponseSchema,
+            abortSignal: AIPanelAbortController.getInstance().signal,
+        });
+
+        const libList = object as GetTypesResponse;
+        return libList.libraries;
+    } catch (error) {
+        throw new Error(`Failed to parse bulk functions response: ${error}`);
+    }
+}
+
+function filteredTypes(typeDefinitions: TypeDefinition[]): MiniType[] {
+    return typeDefinitions.map((typeDef) => ({
+        name: typeDef.name,
+        description: typeDef.description,
+    }));
 }
