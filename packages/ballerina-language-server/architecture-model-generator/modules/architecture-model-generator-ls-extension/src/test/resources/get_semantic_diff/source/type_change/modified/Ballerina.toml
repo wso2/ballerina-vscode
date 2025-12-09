@@ -1,8 +1,8 @@
 [package]
 org = "wso2"
-name = "non_workspace"
+name = "type_change"
 version = "0.1.0"
-title = "non workspace"
+title = "type_change"
 
 [build-options]
 sticky = true

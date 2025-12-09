@@ -168,18 +168,32 @@ public class SemanticDiffComputer {
         }
     }
 
+    /**
+     * Computes type definition differences between original and modified projects to identify
+     * changes and update semantic diffs accordingly.
+     *
+     * @param originalTypeDefMap original map of type definition names to their definition nodes
+     * @param modifiedTypeDefMap modified map of type definition names to their definition nodes
+     */
     private void computeTypeDefDiffs(Map<String, TypeDefinitionNode> originalTypeDefMap,
                                      Map<String, TypeDefinitionNode> modifiedTypeDefMap) {
         for (String typeDefName : originalTypeDefMap.keySet()) {
             if (!modifiedTypeDefMap.containsKey(typeDefName)) {
-                // Type definition removed in modified project
-                SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.TYPE_DEFINITION,
-                        "", null);
-                this.semanticDiffs.add(diff);
                 continue;
             }
-            modifiedTypeDefMap.remove(typeDefName); // TODO: Handle modifications
+            TypeDefinitionNode originalTypeDef = originalTypeDefMap.get(typeDefName);
+            TypeDefinitionNode modifiedTypeDef = modifiedTypeDefMap.remove(typeDefName);
+            if (originalTypeDef.toSourceCode().equals(modifiedTypeDef.toSourceCode())) {
+                continue;
+            }
+
+            // TODO: Need to use the semantic types and compare the types
+            LineRange lineRange = modifiedTypeDef.lineRange();
+            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.TYPE_DEFINITION,
+                    resolveUri(lineRange.fileName()), lineRange);
+            this.semanticDiffs.add(diff);
         }
+        originalTypeDefMap.keySet().forEach(modifiedTypeDefMap::remove);
 
         // Handle newly added type definitions in modified project
         for (String typeDefName : modifiedTypeDefMap.keySet()) {
