@@ -231,7 +231,7 @@ public class NewConnectionBuilder extends CallBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
                 default -> {
-                    customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 

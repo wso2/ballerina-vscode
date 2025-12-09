@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 
@@ -513,13 +514,22 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> type(Property.ValueType valueType, String ballerinaType, String scope) {
-            type().fieldType(valueType).ballerinaType(ballerinaType).scope(scope).stepOut();
+        public Builder<T> typeWithScope(ValueType valueType, String scope) {
+            type().fieldType(valueType).scope(scope).stepOut();
             return this;
         }
 
-        public Builder<T> typeExpression(TypeSymbol typeSymbol,
-                                         io.ballerina.modelgenerator.commons.ModuleInfo moduleInfo) {
+        public Builder<T> typeWithOptions(Property.ValueType valueType, List<String> options) {
+            type().fieldType(valueType).options(options).stepOut();
+            return this;
+        }
+
+        public Builder<T> typeWithTemplate(Property.ValueType valueType, Property template) {
+            type().fieldType(valueType).template(template).stepOut();
+            return this;
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -593,17 +603,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        // Convenience method for SINGLE_SELECT/MULTI_SELECT/MULTIPLE_SELECT with options
-        public Builder<T> typeWithOptions(Property.ValueType valueType, List<String> options) {
-            type().fieldType(valueType).options(options).stepOut();
-            return this;
-        }
-
-        // Convenience method for REPEATABLE_PROPERTY with template
-        public Builder<T> typeWithTemplate(Property.ValueType valueType, Property template) {
-            type().fieldType(valueType).template(template).stepOut();
-            return this;
-        }
 
         public Property build() {
             List<PropertyType> finalTypes = types.isEmpty() ? null : new ArrayList<>(types);

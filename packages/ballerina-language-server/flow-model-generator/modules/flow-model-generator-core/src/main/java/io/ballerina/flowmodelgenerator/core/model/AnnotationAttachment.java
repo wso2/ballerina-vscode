@@ -85,7 +85,6 @@ public record AnnotationAttachment(String modulePrefix, String name, Map<String,
         return null;
     }
 
-
     @Override
     public String toString() {
         if (name == null || name.isEmpty()) {

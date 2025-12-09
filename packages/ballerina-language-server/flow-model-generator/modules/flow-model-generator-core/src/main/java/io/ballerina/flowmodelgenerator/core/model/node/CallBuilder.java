@@ -198,7 +198,7 @@ public abstract class CallBuilder extends NodeBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET, paramResult.type());
                 }
                 default -> {
-                    customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 

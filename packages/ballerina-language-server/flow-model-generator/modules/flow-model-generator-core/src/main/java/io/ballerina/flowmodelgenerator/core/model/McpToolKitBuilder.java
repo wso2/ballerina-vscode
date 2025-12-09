@@ -129,7 +129,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     public static void setToolKitNameProperty(NodeBuilder nodeBuilder, String toolKitName) {
         nodeBuilder.properties().custom()
                 .metadata().label(TOOL_KIT_NAME_PROPERTY_LABEL).description(TOOL_KIT_NAME_DESCRIPTION).stepOut()
-                .type(ValueType.IDENTIFIER, null, GLOBAL_SCOPE).value(toolKitName)
+                .typeWithScope(ValueType.IDENTIFIER, GLOBAL_SCOPE).value(toolKitName)
                 .editable().stepOut().addProperty(TOOL_KIT_NAME_PROPERTY);
     }
 
@@ -185,7 +185,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                     applyRestDefaultability(builder, onlyRestParams);
                     builder.type(ValueType.EXPRESSION_SET);
                 }
-                default -> builder.typeExpression(param.typeSymbol(), moduleInfo);
+                default -> builder.typeWithExpression(param.typeSymbol(), moduleInfo);
             }
             builder.stepOut().addProperty(FlowNodeUtil.getPropertyKey(unescapedName));
         }

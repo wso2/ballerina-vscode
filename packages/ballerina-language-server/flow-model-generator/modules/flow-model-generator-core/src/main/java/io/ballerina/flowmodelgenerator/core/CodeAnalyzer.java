@@ -812,7 +812,7 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .originalName(paramResult.name())
                                 .stepOut()
                             .value(expr.toSourceCode())
-                            .typeExpression(paramResult.typeSymbol(), moduleInfo)
+                            .typeWithExpression(paramResult.typeSymbol(), moduleInfo)
                             .typeMembers(paramResult.typeMembers())
                             .editable()
                             .defaultable(paramResult.optional())
@@ -889,7 +889,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
             } else {
-                customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
+                customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
             customPropBuilder
                     .stepOut()
@@ -964,7 +964,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 } else {
-                    customPropBuilder.typeExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
                 customPropBuilder
                         .stepOut()
@@ -1383,7 +1383,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
             builder.type(Property.ValueType.RAW_TEMPLATE);
         } else {
-            builder.typeExpression(paramData.typeSymbol(), moduleInfo);
+            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo);
         }
     }
 
