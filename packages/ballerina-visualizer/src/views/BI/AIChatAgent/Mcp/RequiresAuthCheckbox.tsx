@@ -43,6 +43,7 @@ const AuthCheckboxLabel = styled.div`
 
 const AuthCheckboxDescription = styled.div`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
+    margin-top: 4px;
 `;
 
 export interface RequiresAuthCheckboxProps {

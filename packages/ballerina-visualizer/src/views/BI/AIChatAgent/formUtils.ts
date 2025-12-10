@@ -225,5 +225,6 @@ export function createToolParameters(): ToolParameters {
 }
 
 export const cleanServerUrl = (url: string): string => {
+    if (url === null || url === undefined) return null;
     return url.replace(/^"|"$/g, '').trim();
 };

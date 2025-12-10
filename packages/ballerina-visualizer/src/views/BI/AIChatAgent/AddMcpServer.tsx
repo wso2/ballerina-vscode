@@ -14,10 +14,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./Mcp/McpToolsSelection";
+import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
+import { attemptValueResolution, createMockTools, extractOriginalValues } from "./Mcp/mcpEditModeUtils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, parseToolsString, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
 
 interface Tool {
     name: string;
@@ -51,6 +53,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [showDiscoverModal, setShowDiscoverModal] = useState<boolean>(false);
+
+    // Edit mode tracking
+    // Guards edit mode initialization - prevents fetch effect from running too early
+    const [resolutionAttempted, setResolutionAttempted] = useState<boolean>(false);
+    // Tracks resolution errors - used to show "Discover Tools" button when variables can't be resolved
+    const [resolutionError, setResolutionError] = useState<string>("");
+    // Tracks where tools came from - used by McpToolsSelection for UI logic
+    const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -121,35 +132,48 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         setIsLoading(false);
     }, [editMode, rpcClient]);
 
-    const fetchToolListFromMcpServer = useCallback(async (url: string, authValue: string = "") => {
-        // Resolve the URL variable if needed
-        const resolvedUrl = await resolveVariableValue(
-            url,
-            moduleVariablesRef.current,
-            rpcClient,
-            projectPathUriRef.current
-        );
+    const fetchToolsFromServer = useCallback(async (
+        url: string,
+        authValue: string = "",
+        options?: {
+            preselectTools?: string[], // If provided, only these tools will be selected; otherwise all tools are selected
+            skipResolution?: boolean // If true, skip variable resolution (already resolved)
+        }
+    ) => {
+        // Resolve the URL variable if needed (unless already resolved)
+        const resolvedUrl = options?.skipResolution
+            ? url
+            : await resolveVariableValue(url, moduleVariablesRef.current, rpcClient, projectPathUriRef.current);
 
         const cleanUrl = cleanServerUrl(resolvedUrl);
-        if (!cleanUrl) {
+        if (cleanUrl === null) {
+            setMcpToolsError("");
+            if (url === resolvedUrl && url.trim()) {
+                setResolutionError("Unable to resolve Server URL at design time. Tools cannot be auto-fetched with the current configuration.");
+            }
+            setLoadingMcpTools(false);
             return [];
         }
 
-        // Reset state
+        // Resolve auth config variables if needed (unless already resolved)
+        const resolvedAuthValue = options?.skipResolution
+            ? authValue
+            : await resolveAuthConfig(authValue, moduleVariablesRef.current, rpcClient, projectPathUriRef.current);
+
+        const accessToken = extractAccessToken(resolvedAuthValue);
+
+        if (requiresAuth && accessToken === null) {
+            setMcpToolsError("");
+            setResolutionError("Unable to resolve authentication configuration at design time. Tools cannot be auto-fetched with the current configuration.");
+            setLoadingMcpTools(false);
+            return [];
+        }
+
         setAvailableMcpTools([]);
         setSelectedMcpTools(new Set());
         setLoadingMcpTools(true);
         setMcpToolsError("");
-
-        // Resolve auth config variables if needed
-        const resolvedAuthValue = await resolveAuthConfig(
-            authValue,
-            moduleVariablesRef.current,
-            rpcClient,
-            projectPathUriRef.current
-        );
-
-        const accessToken = extractAccessToken(resolvedAuthValue);
+        setResolutionError("");
 
         try {
             const response = await rpcClient.getAIAgentRpcClient().getMcpTools({
@@ -172,18 +196,20 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             setAvailableMcpTools(response.tools);
 
-            // Restore previously selected tools if in edit mode and URL matches
-            const shouldRestoreTools = editMode && url === mcpToolKitNodeRef.current?.properties?.serverUrl?.value;
-            const permittedToolsValue = mcpToolKitNodeRef.current?.properties?.permittedTools?.value;
-            if (shouldRestoreTools && permittedToolsValue) {
-                const permittedTools = parseToolsString(permittedToolsValue as string, true);
-                setSelectedMcpTools(new Set(permittedTools));
+            // Select tools based on options
+            if (options?.preselectTools) {
+                // Only select tools that match the preselected names and exist in the fetched tools
+                const toolsToSelect = response.tools
+                    .filter(tool => options.preselectTools.includes(tool.name))
+                    .map(tool => tool.name);
+                setSelectedMcpTools(new Set(toolsToSelect));
             } else {
-                // Select all tools by default when not in edit mode or when URL changed
+                // Select all tools by default
                 setSelectedMcpTools(new Set(response.tools.map(tool => tool.name)));
             }
 
             setLoadingMcpTools(false);
+            setToolSource('auto-fetched');
             return response.tools;
         } catch (error) {
             console.error(`Failed to fetch tools from MCP server: ${error || 'Unknown error'}`);
@@ -192,7 +218,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             setLoadingMcpTools(false);
             return [];
         }
-    }, [editMode, rpcClient]);
+    }, [rpcClient, requiresAuth]);
 
     useEffect(() => {
         initPanel();
@@ -201,7 +227,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const debouncedFetchTools = useMemo(
         () => debounce((url: string, authValue: string) => {
             if (url.trim()) {
-                fetchToolListFromMcpServer(url, authValue);
+                fetchToolsFromServer(url, authValue);
             } else {
                 setAvailableMcpTools([]);
                 setSelectedMcpTools(new Set());
@@ -209,30 +235,36 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 setMcpToolsError("");
             }
         }, 500),
-        [fetchToolListFromMcpServer]
+        [fetchToolsFromServer]
     );
 
     useEffect(() => {
-        // Only fetch tools when "Selected" mode is active
-        if (toolsInclude === "selected") {
-            debouncedFetchTools(serverUrl, auth);
-        } else {
+        // Guard 1: Only when "selected" mode
+        if (toolsInclude !== "selected") {
             // Clear tools and reset state when "All" is selected
             setAvailableMcpTools([]);
             setSelectedMcpTools(new Set());
             setLoadingMcpTools(false);
             setMcpToolsError("");
+            setResolutionError("");
+            setToolSource(null);
+            return;
         }
-    }, [serverUrl, auth, toolsInclude, debouncedFetchTools, requiresAuth]);
 
-    useEffect(() => {
-        if (!isLoading && editMode && mcpToolKitNodeRef.current) {
-            const authValue = mcpToolKitNodeRef.current.properties?.auth?.value;
-            if (authValue && typeof authValue === 'string' && authValue.trim()) {
-                setRequiresAuth(true);
-            }
+        // Guard 2: Skip during edit mode initialization (before resolution is attempted)
+        if (editMode && !resolutionAttempted) {
+            return;
         }
-    }, [isLoading, editMode]);
+
+        // Guard 3: Skip if tools were just loaded from initialization (user hasn't modified form yet)
+        // This prevents re-fetching when edit mode loads existing tools or tools were manually discovered
+        if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
+            return;
+        }
+
+        // If all guards pass, fetch tools based on current form values
+        debouncedFetchTools(serverUrl, auth);
+    }, [serverUrl, auth, toolsInclude, requiresAuth, debouncedFetchTools, editMode, resolutionAttempted, toolSource]);
 
     useEffect(() => {
         // Clear auth field value when requiresAuth is unchecked
@@ -243,6 +275,84 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             }
         }
     }, [requiresAuth, auth]);
+
+    // Edit mode initialization - comprehensive loading of saved values
+    useEffect(() => {
+        if (isLoading || !editMode || !mcpToolKitNodeRef.current || resolutionAttempted) {
+            return;
+        }
+
+        initializeEditMode();
+    }, [isLoading, editMode, resolutionAttempted]);
+
+    const initializeEditMode = async () => {
+        setResolutionAttempted(true);
+
+        const node = mcpToolKitNodeRef.current;
+        if (!node) return;
+
+        const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
+
+        // Step 1: Update form state so FormGenerator displays values
+        setServerUrl(savedUrl);
+        setAuth(savedAuth);
+        setRequiresAuth(savedRequiresAuth);
+
+        // Step 2: If no tools saved, exit early
+        if (permittedTools.length === 0) {
+            return;
+        }
+
+        // Step 3: Attempt to resolve variables
+        const resolution = await attemptValueResolution(
+            savedUrl,
+            savedAuth,
+            moduleVariablesRef.current,
+            rpcClient,
+            projectPathUriRef.current
+        );
+
+        // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
+        setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
+        setToolsInclude("selected");
+
+        if (resolution.canResolve) {
+            // Case 1: Values CAN be resolved - fetch tools from server and preselect saved tools
+            const tools = await fetchToolsFromServer(resolution.resolvedUrl, resolution.resolvedAuth, {
+                preselectTools: permittedTools,
+                skipResolution: true // Already resolved
+            });
+
+            // If fetch failed, fall back to mock tools
+            if (!tools || tools.length === 0) {
+                if (resolution.error) {
+                    setResolutionError(resolution.error);
+                }
+                displayMockTools(permittedTools);
+            }
+        } else {
+            // Case 2: Values CANNOT be resolved - show mock tools
+            if (resolution.error) {
+                setResolutionError(resolution.error);
+            }
+            displayMockTools(permittedTools);
+        }
+    };
+
+    const displayMockTools = (toolNames: string[]) => {
+        if (toolNames.length === 0) {
+            setAvailableMcpTools([]);
+            setSelectedMcpTools(new Set());
+            setToolSource(null);
+            return;
+        }
+
+        const mockTools = createMockTools(toolNames);
+        setAvailableMcpTools(mockTools);
+        setSelectedMcpTools(new Set(toolNames)); // All ticked
+        setToolSource('saved-mock');
+        setMcpToolsError(""); // Clear any connection errors when showing mock tools
+    };
 
     const handleToolSelectionChange = useCallback((toolName: string, isSelected: boolean) => {
         setSelectedMcpTools(prev => {
@@ -263,6 +373,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             setSelectedMcpTools(new Set(availableMcpTools.map(t => t.name)));
         }
     }, [selectedMcpTools.size, availableMcpTools]);
+
+    const handleDiscoveredTools = useCallback((tools: Tool[], selectedNames: Set<string>) => {
+        setAvailableMcpTools(tools);
+        setSelectedMcpTools(selectedNames);
+        setToolSource('manual-discovery');
+        setShowDiscoverModal(false);
+        setMcpToolsError("");
+        setResolutionError(""); // Clear resolution error
+    }, []);
 
     const handleSave = async (node?: FlowNode) => {
         setIsSaving(true);
@@ -288,12 +407,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     }, [availableMcpTools.length, selectedMcpTools.size]);
 
     const injectedComponents = useMemo(() => {
+        const shouldShowDiscoverButton = toolsInclude === "selected"
+            && !loadingMcpTools && (resolutionError !== "" || mcpToolsError !== "");
+
         return [
             {
                 component: (
                     <RequiresAuthCheckbox
                         checked={requiresAuth}
-                        onChange={setRequiresAuth}
+                        onChange={() => setRequiresAuth(prev => !prev)}
                     />
                 ),
                 index: 1
@@ -312,11 +434,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         showValidationError={isSaveDisabled}
                         toolsInclude={toolsInclude}
                         onToolsIncludeChange={setToolsInclude}
+                        showDiscoverButton={shouldShowDiscoverButton}
+                        onDiscoverClick={() => setShowDiscoverModal(true)}
+                        resolutionError={resolutionError}
+                        toolSource={toolSource}
                     />
                 ),
                 index: 2
             }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError]);
 
     return (
         <Container>
@@ -338,9 +464,17 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     onChange={(fieldKey, value) => {
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
                             setServerUrl(value);
+                            // Clear tool source when user manually changes URL to allow re-fetching
+                            if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
+                                setToolSource(null);
+                            }
                         }
                         if (fieldKey === AUTH_FIELD_KEY) {
                             setAuth(value);
+                            // Clear tool source when user manually changes auth to allow re-fetching
+                            if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
+                                setToolSource(null);
+                            }
                         }
                     }}
                     showProgressIndicator={isSaving}
@@ -357,6 +491,14 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     }), [requiresAuth])}
                 />
             )}
+
+            <DiscoverToolsModal
+                isOpen={showDiscoverModal}
+                onClose={() => setShowDiscoverModal(false)}
+                onToolsSelected={handleDiscoveredTools}
+                rpcClient={rpcClient}
+                existingToolNames={selectedMcpTools}
+            />
         </Container>
     );
 }

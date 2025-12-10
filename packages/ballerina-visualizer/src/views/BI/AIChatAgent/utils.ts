@@ -515,8 +515,8 @@ export const parseToolsString = (toolsStr: string, removeQuotes: boolean = false
  * Extracts access token from auth value string.
  * Expected format: {token: "..."}
  */
-export const extractAccessToken = (authValue: string): string => {
-    if (!authValue) return "";
+export const extractAccessToken = (authValue: string): string | null => {
+    if (authValue === null) return null;
 
     try {
         const tokenMatch = authValue.match(/token:\s*"([^"]*)"/);
@@ -641,8 +641,8 @@ export const findValueInConfigVariables = async (
                 if (variable) {
                     // Return the value from configValue or defaultValue
                     const configValue = variable.properties?.configValue?.value as string;
-                    const defaultValue = variable.properties?.defaultValue?.value as string;
-                    return configValue || defaultValue || null;
+                    if (configValue === "" || configValue === null) return null;
+                    return configValue;
                 }
             }
         }
@@ -674,9 +674,9 @@ export const resolveVariableValue = async (
     moduleVariables: FlowNode[],
     rpcClient?: BallerinaRpcClient,
     projectPathUri?: string
-): Promise<string> => {
+): Promise<string | null> => {
     if (!value) {
-        return "";
+        return null;
     }
 
     const trimmed = value.trim();
@@ -705,8 +705,7 @@ export const resolveVariableValue = async (
         }
     }
 
-    // Treat as literal value
-    return trimmed;
+    return null;
 };
 
 /**
@@ -718,7 +717,7 @@ export const resolveAuthConfig = async (
     moduleVariables: FlowNode[],
     rpcClient?: BallerinaRpcClient,
     projectPathUri?: string
-): Promise<string> => {
+): Promise<string | null> => {
     if (!authValue) {
         return "";
     }
@@ -745,6 +744,11 @@ export const resolveAuthConfig = async (
             rpcClient,
             projectPathUri
         );
+
+        // Return null if the variable cannot be resolved
+        if (resolvedValue === null) {
+            return null;
+        }
 
         // Replace in the auth string with quoted value
         resolvedAuth = resolvedAuth.replace(
