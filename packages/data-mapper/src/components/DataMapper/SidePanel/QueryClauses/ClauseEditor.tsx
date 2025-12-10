@@ -58,7 +58,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
         enabled: true,
     }
 
@@ -70,7 +70,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "TYPE", ballerinaType: "Global" }],
         enabled: true,
     }
 
@@ -86,7 +86,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
         enabled: true,
     }
 
@@ -98,7 +98,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the order",
         value: clauseProps?.order ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
         enabled: true,
         items: ["ascending", "descending"]
     }
@@ -111,7 +111,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
         enabled: true,
     }
 
@@ -123,7 +123,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
         enabled: true,
     }
 
@@ -158,8 +158,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
         }
     }
 
-    const { 
-        data: clausePosition, 
+    const {
+        data: clausePosition,
         isFetching: isFetchingTargetLineRange
     } = useQuery({
         queryKey: ['getClausePosition', targetField, index],
@@ -200,7 +200,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 </ProgressRingWrapper> :
                 generateForm(formProps)
             }
-            
+
         </EditorContainer >
     );
 }

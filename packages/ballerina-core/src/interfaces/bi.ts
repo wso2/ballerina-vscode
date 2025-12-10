@@ -19,7 +19,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
-import { FieldType } from "..";
+import { FieldType, ValueType } from "..";
 
 export type { NodePosition };
 
@@ -122,7 +122,25 @@ export type Imports = {
     [prefix: string]: string;
 };
 
-export type FormFieldInputType = "TEXT" | "NUMBER" | "BOOLEAN" | "IDENTIFIER" | "SINGLE_SELECT" | "MULTI_SELECT" | "TEXTAREA" | "TEMPLATE";
+export type FormFieldInputType = "TEXT" |
+    "BOOLEAN" |
+    "IDENTIFIER" |
+    "SINGLE_SELECT" |
+    "MULTIPLE_SELECT" |
+    "TEXTAREA" |
+    "TEMPLATE" |
+    "TYPE" |
+    "EXPRESSION" |
+    "REPEATABLE_PROPERTY" |
+    "PARAM_MANAGER" |
+    "STRING" |
+    "FILE_SELECT" |
+    "ACTION_OR_EXPRESSION" |
+    "MULTIPLE_SELECT_LISTENER" |
+    "SINGLE_SELECT_LISTENER" |
+    "EXPRESSION_SET" |
+    "FLAG" |
+    "CHOICE" ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -130,12 +148,11 @@ export interface BaseType {
 }
 
 export interface DropdownType extends BaseType {
-    fieldType: "SINGLE_SELECT" | "MULTI_SELECT";
+    fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
     options: string[];
 }
 
 export interface TemplateType extends BaseType {
-    fieldType: "TEMPLATE";
     template: Property;
 }
 
@@ -144,7 +161,7 @@ export interface IdentifierType extends BaseType {
     scope: Scope;
 }
 
-export type Type =
+export type InputType =
     | BaseType
     | DropdownType
     | TemplateType
@@ -153,7 +170,6 @@ export type Type =
 export type Property = {
     metadata: Metadata;
     diagnostics?: Diagnostic;
-    valueType: string;
     value: string | string[] | ELineRange | NodeProperties | Property[];
     advanceProperties?: NodeProperties;
     optional: boolean;
@@ -161,7 +177,7 @@ export type Property = {
     advanced?: boolean;
     hidden?: boolean;
     placeholder?: string;
-    valueTypeConstraint?: string | string[];
+    types?: InputType[];
     codedata?: CodeData;
     typeMembers?: PropertyTypeMemberInfo[];
     imports?: Imports;

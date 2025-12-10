@@ -18,7 +18,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable, DIRECTORY_MAP, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -439,10 +439,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         for (const key in service.properties) {
             const expression = service.properties[key];
             if (
-                expression.valueType === "MULTIPLE_SELECT_LISTENER" ||
-                expression.valueType === "SINGLE_SELECT_LISTENER"
+                getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT_LISTENER" ||
+                getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER"
             ) {
-                detectedType = expression.valueType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
+                detectedType = getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
                 // Check if only one property is enabled
                 const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
                 if (enabledCount === 1) {

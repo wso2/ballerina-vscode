@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { ListenerModel, LineRange, RecordTypeField, PropertyModel, PropertyTypeMemberInfo, Property } from "@wso2/ballerina-core";
+import { ListenerModel, LineRange, RecordTypeField, PropertyModel, PropertyTypeMemberInfo, Property, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
@@ -83,7 +83,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                         label: property.metadata?.label || key,
                         description: property.metadata?.description || ''
                     },
-                    valueType: property?.valueType || 'string',
+                    types: property?.inputTypes || [{ fieldType: 'STRING' }],
                     diagnostics: {
                         hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                         diagnostics: property.diagnostics
@@ -194,14 +194,13 @@ function convertConfig(listener: ListenerModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: expression.valueType,
+            type: getPrimaryInputType(expression.inputTypes)?.fieldType,
             documentation: expression?.metadata.description || "",
-            valueType: expression.valueTypeConstraint,
             editable: expression.editable,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
             value: expression.value,
-            valueTypeConstraint: expression.valueTypeConstraint,
+            inputTypes: expression.inputTypes,
             advanced: expression.advanced,
             diagnostics: [],
             items: expression.items,

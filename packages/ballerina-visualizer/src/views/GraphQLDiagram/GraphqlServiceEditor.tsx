@@ -352,19 +352,19 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                 type: {
                     ...param.type,
                     value: param.type.value || "",
-                    valueType: param.type.valueType || "TYPE",
+                    inputTypes: param.type.inputTypes || [{fieldType: "TYPE"}],
                     isType: param.type.isType !== undefined ? param.type.isType : true,
                 },
                 name: {
                     ...param.name,
                     value: param.name.value || "",
-                    valueType: param.name.valueType || "IDENTIFIER",
+                    inputTypes: param.name.inputTypes || [{fieldType: "IDENTIFIER"}],
                     isType: param.name.isType !== undefined ? param.name.isType : false,
                 },
                 defaultValue: {
                     ...(param.defaultValue as PropertyModel),
                     value: (param.defaultValue as PropertyModel)?.value || "",
-                    valueType: (param.defaultValue as PropertyModel)?.valueType || "EXPRESSION",
+                    inputTypes: (param.defaultValue as PropertyModel)?.inputTypes || [{fieldType: "EXPRESSION"}],
                     isType: (param.defaultValue as PropertyModel)?.isType !== undefined ? (param.defaultValue as PropertyModel).isType : false,
                 },
             })),

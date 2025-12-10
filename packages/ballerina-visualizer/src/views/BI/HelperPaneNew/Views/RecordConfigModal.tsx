@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind } from "@wso2/ballerina-core";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 import { Dropdown, HelperPane, Typography, Button, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
@@ -46,7 +46,7 @@ type ConfigureRecordPageProps = {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultValueTypeConstraint?: string,
+        defaultInputTypes?: InputType[],
     ) => React.ReactNode;
     field?: FormField;
     triggerCharacters: readonly string[];
@@ -167,13 +167,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Create a default property from recordTypeField
             const defaultProperty: ExpressionProperty = {
                 metadata: recordTypeField.property?.metadata,
-                valueType: recordTypeField.property?.valueType,
                 value: value,
                 optional: recordTypeField.property?.optional,
                 editable: recordTypeField.property?.editable,
                 advanced: recordTypeField.property?.advanced,
                 placeholder: recordTypeField.property?.placeholder,
-                valueTypeConstraint: recordTypeField.property?.valueTypeConstraint,
+                types: recordTypeField.property?.types,
                 codedata: recordTypeField.property?.codedata,
                 imports: recordTypeField.property?.imports,
                 diagnostics: recordTypeField.property?.diagnostics
@@ -433,13 +432,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             const fieldKey = field?.key || "expression";
             const property: ExpressionProperty = {
                 metadata: recordTypeField?.property?.metadata,
-                valueType: recordTypeField?.property?.valueType,
                 value: value,
                 optional: recordTypeField?.property?.optional || false,
                 editable: recordTypeField?.property?.editable !== false,
                 advanced: recordTypeField?.property?.advanced,
                 placeholder: recordTypeField?.property?.placeholder,
-                valueTypeConstraint: recordTypeField?.property?.valueTypeConstraint,
+                types: recordTypeField?.property?.types,
                 codedata: recordTypeField?.property?.codedata,
                 imports: recordTypeField?.property?.imports,
                 diagnostics: recordTypeField?.property?.diagnostics
@@ -481,13 +479,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const fieldKey = field?.key || "expression";
         const property: ExpressionProperty = {
             metadata: recordTypeField?.property?.metadata,
-            valueType: recordTypeField?.property?.valueType,
             value: expressionValue,
             optional: recordTypeField?.property?.optional || false,
             editable: recordTypeField?.property?.editable !== false,
             advanced: recordTypeField?.property?.advanced,
             placeholder: recordTypeField?.property?.placeholder,
-            valueTypeConstraint: recordTypeField?.property?.valueTypeConstraint,
+            types: recordTypeField?.property?.types,
             codedata: recordTypeField?.property?.codedata,
             imports: recordTypeField?.property?.imports,
             diagnostics: recordTypeField?.property?.diagnostics
@@ -621,8 +618,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 helperPaneHeight,
                 recordTypeField,
                 false, // isAssignIdentifier
-                typeof recordTypeField?.property?.valueTypeConstraint === 'string'
-                    ? recordTypeField.property.valueTypeConstraint
+                typeof getPrimaryInputType(recordTypeField?.property?.types).ballerinaType === 'string'
+                    ? recordTypeField.property.types
                     : undefined
             );
         }
@@ -686,9 +683,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         type: "EXPRESSION",
                                         value: localExpressionValue,
                                         optional: false,
-                                        valueTypeConstraint: typeof recordTypeField?.property?.valueTypeConstraint === 'string'
-                                            ? recordTypeField.property.valueTypeConstraint
-                                            : "",
+                                        inputTypes: typeof getPrimaryInputType(recordTypeField?.property?.types).ballerinaType === 'string'
+                                            ? recordTypeField.property.types
+                                            : [],
                                         metadata: recordTypeField?.property?.metadata,
                                         editable: true,
                                         documentation: "",

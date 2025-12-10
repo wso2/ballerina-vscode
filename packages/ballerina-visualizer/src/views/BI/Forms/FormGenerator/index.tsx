@@ -39,7 +39,9 @@ import {
     Member,
     TypeNodeKind,
     NodeKind,
-    DataMapperDisplayMode
+    DataMapperDisplayMode,
+    InputType,
+    getPrimaryInputType
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -691,8 +693,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, inputTypes?: InputType[]) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, getPrimaryInputType(inputTypes)?.ballerinaType);
         },
         [debouncedGetVisibleTypes]
     );
@@ -898,7 +900,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultValueTypeConstraint?: string,
+        defaultInputTypes?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -926,7 +928,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: isInModal,
-            valueTypeConstraint: defaultValueTypeConstraint,
+            inputTypes: defaultInputTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
             forcedValueTypeConstraint: valueTypeConstraints,
             handleValueTypeConstChange: handleValueTypeConstChange,
@@ -936,7 +938,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -959,7 +961,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            valueTypeConstraint: valueTypeConstraint,
+            inputTypes: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
@@ -1038,10 +1040,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
             onOpenRecordConfigPage: openRecordConfigPage,
-            helperPaneOrigin: "vertical",
-            helperPaneHeight: "default",
-            helperPaneZIndex: isInModal ? 40001 : undefined,
-        } as FormExpressionEditorProps;
+            helperPaneOrigin: "vertical" as const,
+            helperPaneHeight: "default" as const,
+        } satisfies FormExpressionEditorProps;
     }, [
         filteredCompletions,
         types,

@@ -170,7 +170,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             editable: true,
             documentation: "Name of the header",
             value: headerSetToEdit?.name || "",
-            valueTypeConstraint: "string",
+            inputTypes: [{ fieldType: "TEXT", ballerinaType: "string" }],
             label: "Name",
             type: "text"
         },
@@ -181,7 +181,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             editable: true,
             documentation: "Type of the header",
             value: headerSetToEdit?.type || "",
-            valueTypeConstraint: "string",
+            inputTypes: [{ fieldType: "TEXT", ballerinaType: "string" }],
             label: "Type",
             type: "SINGLE_SELECT",
             items: field.items,
@@ -193,7 +193,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             editable: true,
             documentation: "Required or Optional",
             value: headerSetToEdit?.optional ?? false as any,
-            valueTypeConstraint: "boolean",
+            inputTypes: [{ fieldType: "BOOLEAN", ballerinaType: "boolean" }],
             label: "Optional",
             type: "FLAG",
         }

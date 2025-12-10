@@ -156,13 +156,13 @@ export function ResourcePath(props: ResourcePathProps) {
 		const newPathParam: ParameterModel = {
 			name: {
 				value: 'param',
-				valueType: 'IDENTIFIER',
+				inputTypes: [{ fieldType: 'IDENTIFIER' }],
 				placeholder: 'param',
 				enabled: true
 			},
 			type: {
 				value: 'string',
-				valueType: 'EXPRESSION',
+				inputTypes: [{ fieldType: 'EXPRESSION' }],
 				placeholder: 'string',
 				enabled: true
 			},

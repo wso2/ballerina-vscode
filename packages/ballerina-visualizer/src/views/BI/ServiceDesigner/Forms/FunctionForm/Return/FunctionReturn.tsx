@@ -19,7 +19,7 @@
 import React, { useState } from 'react';
 import { TextField } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { PropertyModel } from '@wso2/ballerina-core';
+import { getPrimaryInputType, PropertyModel } from '@wso2/ballerina-core';
 import { ReadonlyField } from '../../../components/ReadonlyField';
 
 const NameContainer = styled.div`
@@ -55,7 +55,7 @@ export function FunctionReturn(props: FunctionReturnProps) {
                             const trimmedInput = e.target.value.trim();
                             handleNameChange(trimmedInput);
                         }}
-                        placeholder={returnType.valueTypeConstraint}
+                        placeholder={getPrimaryInputType(returnType.inputTypes)?.ballerinaType}
                         value={returnType.value}
                     />
                 }

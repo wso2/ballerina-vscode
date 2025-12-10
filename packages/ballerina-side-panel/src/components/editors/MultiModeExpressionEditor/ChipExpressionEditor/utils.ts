@@ -18,6 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
+import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
 export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -39,30 +40,14 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): InputMode => {
-    if (!valueTypeConstraint) return;
-    let types: string[];
-    if (typeof valueTypeConstraint === 'string') {
-        if (valueTypeConstraint.includes('|')) {
-            types = valueTypeConstraint.split('|').map(t => t.trim());
-        } else {
-            types = [valueTypeConstraint];
-        }
-    } else {
-        types = valueTypeConstraint;
-    }
-
-    for (let i = 0; i < types.length; i++) {
-        if (INPUT_MODE_MAP[types[i]]) {
-            return INPUT_MODE_MAP[types[i]];
-        }
-    }
-    return;
+export const getInputModeFromTypes = (inputType: InputType): InputMode => {
+    if (!inputType || !inputType.ballerinaType) return;
+    return INPUT_MODE_MAP[inputType.ballerinaType];
 };
 
-export const getDefaultExpressionMode = (valueTypeConstraint: string | string[]): InputMode => {
-    if (!valueTypeConstraint) throw new Error("Value type constraint is undefined");
-    return getInputModeFromTypes(valueTypeConstraint);
+export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
+    const primaryInputType = getPrimaryInputType(inputTypes);
+    return getInputModeFromTypes(primaryInputType);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
