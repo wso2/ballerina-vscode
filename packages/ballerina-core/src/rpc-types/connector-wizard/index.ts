@@ -16,8 +16,20 @@
  * under the License.
  */
 
-import { ConnectorRequest, ConnectorResponse, ConnectorsRequest, ConnectorsResponse } from "./interfaces";
+import {
+    ConnectorRequest,
+    ConnectorResponse,
+    ConnectorsRequest,
+    ConnectorsResponse,
+    PersistClientGenerateRequest,
+    IntrospectDatabaseResponse,
+    PersistClientGenerateResponse,
+    IntrospectDatabaseRequest
+} from "./interfaces";
+
 export interface ConnectorWizardAPI {
     getConnector: (params: ConnectorRequest) => Promise<ConnectorResponse>;
     getConnectors: (params: ConnectorsRequest) => Promise<ConnectorsResponse>;
+    introspectDatabase: (params: IntrospectDatabaseRequest) => Promise<IntrospectDatabaseResponse>;
+    persistClientGenerate: (params: PersistClientGenerateRequest) => Promise<PersistClientGenerateResponse>;
 }

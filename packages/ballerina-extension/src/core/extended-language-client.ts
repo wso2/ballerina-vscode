@@ -275,7 +275,11 @@ import {
     ProjectMigrationResult,
     FieldPropertyRequest,
     ClausePositionResponse,
-    ClausePositionRequest
+    ClausePositionRequest,
+    IntrospectDatabaseRequest,
+    IntrospectDatabaseResponse,
+    PersistClientGenerateRequest,
+    PersistClientGenerateResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -459,6 +463,8 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
+    PERSIST_DATABASE_INTROSPECTION = 'persistService/introspectDatabase',
+    PERSIST_CLIENT_GENERATE = 'persistService/generatePersistClient',
     GET_PROJECT_INFO = 'designModelService/projectInfo',
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
@@ -696,6 +702,14 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
             return Promise.resolve(NOT_SUPPORTED);
         }
         return this.sendRequest<Connector>(EXTENDED_APIS.CONNECTOR_CONNECTOR, params);
+    }
+
+    async introspectDatabase(params: IntrospectDatabaseRequest): Promise<IntrospectDatabaseResponse> {
+        return this.sendRequest<IntrospectDatabaseResponse>(EXTENDED_APIS.PERSIST_DATABASE_INTROSPECTION, params);
+    }
+
+    async generatePersistClient(params: PersistClientGenerateRequest): Promise<PersistClientGenerateResponse> {
+        return this.sendRequest<PersistClientGenerateResponse>(EXTENDED_APIS.PERSIST_CLIENT_GENERATE, params);
     }
 
     async getRecord(params: RecordParams): Promise<BallerinaRecord | NOT_SUPPORTED_TYPE> {

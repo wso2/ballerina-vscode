@@ -21,7 +21,11 @@ import {
     ConnectorRequest,
     ConnectorsRequest,
     getConnector,
-    getConnectors
+    getConnectors,
+    introspectDatabase,
+    IntrospectDatabaseRequest,
+    persistClientGenerate,
+    PersistClientGenerateRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { ConnectorWizardRpcManager } from "./rpc-manager";
@@ -30,4 +34,6 @@ export function registerConnectorWizardRpcHandlers(messenger: Messenger) {
     const rpcManger = new ConnectorWizardRpcManager();
     messenger.onRequest(getConnector, (args: ConnectorRequest) => rpcManger.getConnector(args));
     messenger.onRequest(getConnectors, (args: ConnectorsRequest) => rpcManger.getConnectors(args));
+    messenger.onRequest(introspectDatabase, (args: IntrospectDatabaseRequest) => rpcManger.introspectDatabase(args));
+    messenger.onRequest(persistClientGenerate, (args: PersistClientGenerateRequest) => rpcManger.persistClientGenerate(args));
 }
