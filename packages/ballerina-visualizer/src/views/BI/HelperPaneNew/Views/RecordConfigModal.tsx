@@ -684,7 +684,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         value: localExpressionValue,
                                         optional: false,
                                         inputTypes: typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
-                                            ? recordTypeField.property.types
+                                            ? recordTypeField.property?.types ?? []
                                             : [],
                                         metadata: recordTypeField?.property?.metadata,
                                         editable: true,

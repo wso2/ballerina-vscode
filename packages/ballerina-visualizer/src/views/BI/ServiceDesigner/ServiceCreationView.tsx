@@ -366,7 +366,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                             // Set value from form data if available
                             if (data[nestedKey] !== undefined) {
                                 // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-                                if (getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.inputTypes).fieldType === "EXPRESSION_SET") {
+                                if (getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "EXPRESSION_SET") {
                                     const value = data[nestedKey];
                                     nestedProperty.values = normalizeValueToArray(value);
                                 } else {
