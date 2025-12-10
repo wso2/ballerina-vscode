@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
 import { VisualizerWebview } from './webview';
@@ -186,8 +186,14 @@ function openTypeDiagramView(projectPath?: string, resetHistory = false): void {
     );
 }
 
-async function openTypeDiagramForWorkspace(projectInfo: any): Promise<boolean> {
+async function openTypeDiagramForWorkspace(projectInfo: ProjectInfo): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+
+    if (availablePackages.length === 0) {
+        vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return false;
+    }
+
     const selectedPackage = await promptPackageSelection(availablePackages, "Select a package to open type diagram");
 
     if (!selectedPackage) {

@@ -17,7 +17,7 @@
  */
 
 import * as vscode from 'vscode';
-import { AIPanelPrompt, EVENT_TYPE, MACHINE_VIEW, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { AIPanelPrompt, EVENT_TYPE, MACHINE_VIEW, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { closeAIWebview, openAIWebview } from './aiMachine';
 import { BallerinaExtension } from '../../core';
 import { notifyAiWebview } from '../../RPCLayer';
@@ -77,12 +77,12 @@ async function handleOpenAIPanel(defaultPrompt?: AIPanelPrompt): Promise<void> {
     openAIWebviewWithPrompt(defaultPrompt);
 }
 
-async function handleWorkspaceLevelAIPanel(projectInfo: any): Promise<boolean> {
-    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+async function handleWorkspaceLevelAIPanel(projectInfo: ProjectInfo): Promise<boolean> {
+    const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
     if (availablePackages.length === 0) {
-        openAIWebview(null);
-        return true;
+        vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return false;
     }
 
     try {
