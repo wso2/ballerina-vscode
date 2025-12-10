@@ -27,7 +27,7 @@ import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
-    max-width: 600px;
+    max-width: 800px;
     height: calc(100% - 32px);
 `;
 
