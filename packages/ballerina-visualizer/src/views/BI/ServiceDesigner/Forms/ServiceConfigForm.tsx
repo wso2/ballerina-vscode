@@ -102,7 +102,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                         label: choiceProperty.metadata?.label || choicePropertyKey,
                                         description: choiceProperty.metadata?.description || ''
                                     },
-                                    types: choiceProperty?.inputTypes || [{ fieldType: 'STRING' }],
+                                    types: choiceProperty?.types || [{ fieldType: 'STRING' }],
                                     diagnostics: {
                                         hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
                                         diagnostics: choiceProperty.diagnostics
@@ -129,7 +129,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        types: property?.inputTypes || [{ fieldType: 'STRING' }],
+                        types: property?.types || [{ fieldType: 'STRING' }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
@@ -256,7 +256,7 @@ function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in service.properties) {
         const expression = service.properties[key];
-        if (getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT_LISTENER" || getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER") {
+        if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT_LISTENER" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER") {
             continue
         }
         // Skip readOnlyMetadata as it's a special property that doesn't have standard form fields
@@ -266,13 +266,13 @@ function convertConfig(service: ServiceModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: getPrimaryInputType(expression.inputTypes)?.fieldType,
+            type: getPrimaryInputType(expression.types)?.fieldType,
             documentation: expression?.metadata.description || "",
             editable: true,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
-            value: getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
-            inputTypes: expression.inputTypes,
+            value: getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
+            types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
             items: expression.items,

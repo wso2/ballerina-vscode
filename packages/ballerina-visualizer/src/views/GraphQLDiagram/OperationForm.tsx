@@ -81,7 +81,7 @@ export function OperationForm(props: OperationFormProps) {
                 isGraphqlId: isGraphqlId,
                 type: {
                     value: param.formValues['type'] as string,
-                    inputTypes: typeField?.inputTypes,
+                    types: typeField?.types,
                     isType: true,
                     optional: typeField?.optional,
                     advanced: typeField?.advanced,
@@ -92,7 +92,7 @@ export function OperationForm(props: OperationFormProps) {
                 },
                 name: {
                     value: param.formValues['variable'] as string,
-                    inputTypes: nameField?.inputTypes,
+                    types: nameField?.types,
                     isType: false,
                     optional: nameField?.optional,
                     advanced: nameField?.advanced,
@@ -102,7 +102,7 @@ export function OperationForm(props: OperationFormProps) {
                 },
                 defaultValue: {
                     value: param.formValues['defaultable'],
-                    inputTypes: defaultField?.inputTypes,
+                    types: defaultField?.types,
                     isType: false,
                     optional: defaultField?.optional,
                     advanced: defaultField?.advanced,
@@ -120,7 +120,7 @@ export function OperationForm(props: OperationFormProps) {
                     advanced: documentationField?.advanced,
                     enabled: documentationField?.enabled,
                     editable: documentationField?.editable,
-                    inputTypes: documentationField?.inputTypes
+                    types: documentationField?.types
                 };
             }
 
@@ -144,7 +144,7 @@ export function OperationForm(props: OperationFormProps) {
             enabled: model.name.enabled,
             documentation: model.name.metadata?.description || '',
             value: model.name.value,
-            inputTypes: model.name?.inputTypes,
+            types: model.name?.types,
             lineRange: model?.name?.codedata?.lineRange
         });
 
@@ -153,14 +153,14 @@ export function OperationForm(props: OperationFormProps) {
             initialFields.push({
                 key: 'documentation',
                 label: model.documentation.metadata?.label || 'Documentation',
-                type: getPrimaryInputType(model.documentation?.inputTypes)?.fieldType || 'string',
+                type: getPrimaryInputType(model.documentation?.types)?.fieldType || 'string',
                 optional: model.documentation.optional,
                 enabled: model.documentation.enabled,
                 editable: model.documentation.editable,
                 advanced: model.documentation.advanced,
                 documentation: model.documentation.metadata?.description || '',
                 value: model.documentation.value,
-                inputTypes: model.documentation?.inputTypes
+                types: model.documentation?.types
             });
         }
 
@@ -180,12 +180,12 @@ export function OperationForm(props: OperationFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                inputTypes: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }]
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }]
             },
             {
                 key: 'returnType',
                 label: model.returnType.metadata?.label || 'Return Type',
-                type: isGraphqlView ? 'ACTION_TYPE' : (getPrimaryInputType(model.returnType?.inputTypes)?.fieldType || 'TYPE'),
+                type: isGraphqlView ? 'ACTION_TYPE' : (getPrimaryInputType(model.returnType?.types)?.fieldType || 'TYPE'),
                 optional: model.returnType.optional,
                 enabled: model.returnType.enabled,
                 editable: model.returnType.editable,
@@ -193,7 +193,7 @@ export function OperationForm(props: OperationFormProps) {
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
                 properties: model.returnType.properties,
-                inputTypes: model.returnType?.inputTypes,
+                types: model.returnType?.types,
                 isGraphqlId: isGraphqlView ? (model.returnType as any).isGraphqlId : undefined
             }
         );
@@ -215,7 +215,7 @@ export function OperationForm(props: OperationFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        types: property?.inputTypes || [{ fieldType: "STRING", ballerinaType: "" }],
+                        types: property?.types || [{ fieldType: "STRING", ballerinaType: "" }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
@@ -303,13 +303,13 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-            type: getPrimaryInputType(param.inputTypes)?.fieldType || 'TYPE',
+            type: getPrimaryInputType(param.types)?.fieldType || 'TYPE',
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
-        inputTypes: param.inputTypes,
+        types: param.types,
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange,
         isGraphqlId: key === "type" ? (param as any).isGraphqlId : undefined
@@ -324,9 +324,9 @@ function convertConfigToFormFields(model: FunctionModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: property?.metadata.label || key,
-            type: getPrimaryInputType(property.inputTypes)?.fieldType || 'TYPE',
+            type: getPrimaryInputType(property.types)?.fieldType || 'TYPE',
             documentation: property?.metadata.description || "",
-            inputTypes: property.inputTypes,
+            types: property.types,
             editable: property.editable,
             enabled: property.enabled ?? true,
             optional: property.optional,

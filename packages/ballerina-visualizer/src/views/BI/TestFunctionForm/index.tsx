@@ -157,7 +157,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     formFields: paramFiels,
                     handleParameter: handleParamChange
                 },
-                inputTypes: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }]
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }]
             });
         }
         if (testFunction.returnType) {
@@ -214,14 +214,14 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         return {
             key: key,
             label: property.metadata.label,
-            type: getPrimaryInputType(property.inputTypes)?.fieldType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             optional: property.optional,
             editable: property.editable,
             advanced: property.advanced,
             enabled: true,
             documentation: property.metadata.description,
             value: property.value,
-            inputTypes: [{ fieldType: getPrimaryInputType(property.inputTypes)?.fieldType, ballerinaType: "" }]
+            types: [{ fieldType: getPrimaryInputType(property.types)?.fieldType, ballerinaType: "" }]
         }
     }
 
@@ -285,21 +285,21 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: false,
                 editable: true,
                 advanced: false,
-                inputTypes: [{fieldType: "TYPE"}]
+                types: [{fieldType: "TYPE"}]
             },
             variable: {
                 value: "b",
                 optional: false,
                 editable: true,
                 advanced: false,
-                inputTypes: [{fieldType: "IDENTIFIER"}]
+                types: [{fieldType: "IDENTIFIER"}]
             },
             defaultValue: {
                 value: "\"default\"",
                 optional: false,
                 editable: true,
                 advanced: false,
-                inputTypes: [{fieldType: "EXPRESSION"}]
+                types: [{fieldType: "EXPRESSION"}]
             },
             optional: false,
             editable: true,
@@ -319,7 +319,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: false,
                 editable: true,
                 advanced: false,
-                inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "" }]
+                types: [{ fieldType: "IDENTIFIER", ballerinaType: "" }]
             },
             returnType: {
                 metadata: {
@@ -329,7 +329,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: true,
                 editable: true,
                 advanced: true,
-                inputTypes: [{ fieldType: "TYPE", ballerinaType: "" }],
+                types: [{ fieldType: "TYPE", ballerinaType: "" }],
             },
             parameters: [],
             annotations: [
@@ -347,7 +347,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 label: "Groups",
                                 description: "Groups to run"
                             },
-                            inputTypes: [{ fieldType: "EXPRESSION_SET"}],
+                            types: [{ fieldType: "EXPRESSION_SET"}],
                             originalName: "groups",
                             value: [],
                             optional: true,
@@ -364,7 +364,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             optional: true,
                             editable: true,
                             advanced: false,
-                            inputTypes: [{ fieldType: "FLAG"}]
+                            types: [{ fieldType: "FLAG"}]
                         }
                     ]
                 }
@@ -383,7 +383,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            inputTypes: [{ fieldType: "IDENTIFIER", ballerinaType: "" }]
+            types: [{ fieldType: "IDENTIFIER", ballerinaType: "" }]
         },
         {
             key: `type`,
@@ -394,7 +394,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            inputTypes: [{ fieldType: "TYPE", ballerinaType: "" }]
+            types: [{ fieldType: "TYPE", ballerinaType: "" }]
         },
         {
             key: `defaultable`,
@@ -406,7 +406,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            inputTypes: [{ fieldType: "STRING", ballerinaType: "" }]
+            types: [{ fieldType: "STRING", ballerinaType: "" }]
         }
     ];
 

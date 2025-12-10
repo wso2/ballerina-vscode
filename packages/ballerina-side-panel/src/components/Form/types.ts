@@ -47,7 +47,7 @@ export type FormField = {
     choices?: PropertyModel[];
     dynamicFormFields?: { [key: string]: FormField[] }
     paramManagerProps?: ParamConfig;
-    inputTypes: InputType[];
+    types: InputType[];
     groupNo?: number;
     groupName?: string;
     addNewButton?: boolean;

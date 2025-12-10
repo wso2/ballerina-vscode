@@ -29,7 +29,7 @@ import {
 export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfig> = {
     MODEL_PROVIDER: {
         displayName: "Model Provider",
-        inputTypes: [{ fieldType: "TEXT", ballerinaType: "ai:ModelProvider" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:ModelProvider" }],
         nodePropertyKey: ["model", "modelProvider"],
         categoryConverter: convertModelProviderCategoriesToSidePanelCategories,
         searchConfig: (aiModuleOrg?: string): ConnectionSearchConfig => ({
@@ -39,25 +39,25 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
     },
     VECTOR_STORE: {
         displayName: "Vector Store",
-        inputTypes: [{ fieldType: "TEXT", ballerinaType: "ai:VectorStore" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:VectorStore" }],
         nodePropertyKey: "vectorStore",
         categoryConverter: convertVectorStoreCategoriesToSidePanelCategories,
     },
     EMBEDDING_PROVIDER: {
         displayName: "Embedding Provider",
-        inputTypes: [{ fieldType: "TEXT", ballerinaType: "ai:EmbeddingProvider" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:EmbeddingProvider" }],
         nodePropertyKey: "embeddingModel",
         categoryConverter: convertEmbeddingProviderCategoriesToSidePanelCategories,
     },
     CHUNKER: {
         displayName: "Chunker",
-        inputTypes: [{ fieldType: "TEXT", ballerinaType: "ai:Chunker" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:Chunker" }],
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     },
     MEMORY_STORE: {
         displayName: "Memory Store",
-        inputTypes: [{ fieldType: "TEXT", ballerinaType: "ai:MemoryStore" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:MemoryStore" }],
         nodePropertyKey: "store",
         categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
         searchConfig: (): ConnectionSearchConfig => ({

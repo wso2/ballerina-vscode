@@ -439,10 +439,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         for (const key in service.properties) {
             const expression = service.properties[key];
             if (
-                getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT_LISTENER" ||
-                getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER"
+                getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT_LISTENER" ||
+                getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER"
             ) {
-                detectedType = getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
+                detectedType = getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
                 // Check if only one property is enabled
                 const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
                 if (enabledCount === 1) {

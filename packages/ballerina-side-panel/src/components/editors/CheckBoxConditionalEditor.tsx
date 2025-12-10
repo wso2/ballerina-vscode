@@ -175,7 +175,7 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
 
         // Determine value for MULTIPLE_SELECT
         let value: any = property.value;
-        if (getPrimaryInputType(property.inputTypes).fieldType === "MULTIPLE_SELECT") {
+        if (getPrimaryInputType(property.types).fieldType === "MULTIPLE_SELECT") {
             if (property.values && property.values.length > 0) {
                 value = property.values;
             } else if (property.value) {
@@ -188,21 +188,20 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (getPrimaryInputType(property.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.inputTypes)?.fieldType === "SINGLE_SELECT") {
+        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.types)?.fieldType === "SINGLE_SELECT") {
             items = property.items;
         }
 
         return {
             key,
             label: property?.metadata?.label,
-            type: getPrimaryInputType(property.inputTypes)?.fieldType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             documentation: property?.metadata?.description || "",
-            valueType: getPrimaryInputType(property.inputTypes)?.ballerinaType,
             editable: true,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value,
-            inputTypes: property.inputTypes,
+            types: property.types,
             advanced: property.advanced,
             diagnostics: [],
             items,

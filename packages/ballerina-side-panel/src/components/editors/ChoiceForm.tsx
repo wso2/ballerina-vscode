@@ -80,15 +80,15 @@ export function ChoiceForm(props: ChoiceFormProps) {
         for (const key in model.properties) {
             const expression = model.properties[key];
             let items = undefined;
-            if (getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT") {
+            if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
                 items = expression.items;
             }
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-                type: getPrimaryInputType(expression.inputTypes)?.fieldType,
+                type: getPrimaryInputType(expression.types)?.fieldType,
                 documentation: expression?.metadata.description || "",
-                inputTypes: expression.inputTypes,
+                types: expression.types,
                 editable: expression.editable,
                 enabled: expression?.enabled ?? true,
                 optional: expression.optional,

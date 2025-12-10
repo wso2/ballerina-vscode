@@ -47,7 +47,7 @@ const getTemplateConfig = (inputTypes?: InputType[]): TemplateConfig => {
 
 export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEditorProps) => {
     const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
-    const templateConfig = getTemplateConfig(props.field.inputTypes);
+    const templateConfig = getTemplateConfig(props.field.types);
 
     const getSanitizedExp = (value: string) => {
         if (!value) {

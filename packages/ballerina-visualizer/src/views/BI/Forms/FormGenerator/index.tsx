@@ -693,8 +693,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, inputTypes?: InputType[]) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, getPrimaryInputType(inputTypes)?.ballerinaType);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, types?: InputType[]) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, getPrimaryInputType(types)?.ballerinaType);
         },
         [debouncedGetVisibleTypes]
     );
@@ -900,7 +900,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultInputTypes?: InputType[],
+        defaultTypes?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -928,7 +928,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: isInModal,
-            inputTypes: defaultInputTypes,
+            types: defaultTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
             forcedValueTypeConstraint: valueTypeConstraints,
             handleValueTypeConstChange: handleValueTypeConstChange,
@@ -961,7 +961,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            inputTypes: types,
+            types: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),

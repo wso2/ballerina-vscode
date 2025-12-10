@@ -57,7 +57,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             type: {
                 value: param.formValues['type'] as string,
                 isType: true,
-                inputTypes: typeField?.inputTypes,
+                types: typeField?.types,
                 optional: typeField?.optional,
                 advanced: typeField?.advanced,
                 addNewButton: false,
@@ -67,7 +67,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             name: {
                 value: param.formValues['variable'] as string,
-                inputTypes: nameField?.inputTypes,
+                types: nameField?.types,
                 isType: false,
                 optional: nameField?.optional,
                 advanced: nameField?.advanced,
@@ -77,7 +77,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             defaultValue: {
                 value: param.formValues['defaultable'],
-                inputTypes: defaultField?.inputTypes,
+                types: defaultField?.types,
                 isType: false,
                 optional: defaultField?.optional,
                 advanced: defaultField?.advanced,
@@ -94,13 +94,13 @@ function convertParameterToFormField(key: string, param: ParameterModel): FormFi
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-        type: getPrimaryInputType(param.inputTypes)?.fieldType || 'string',
+        type: getPrimaryInputType(param.types)?.fieldType || 'string',
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
-        inputTypes: param?.inputTypes || [],
+        types: param?.types || [],
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };

@@ -24,7 +24,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         id: idx,
         icon: "",
         key: field.key,
-        value: `${getPrimaryInputType(field.inputTypes)?.fieldType} ${field.key}`,
+        value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
         identifierEditable: true,
         identifierRange: {
             fileName: "functions.bal",
@@ -33,7 +33,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         },
         formValues: {
             variable: field.key,
-            type: getPrimaryInputType(field.inputTypes)?.ballerinaType,
+            type: getPrimaryInputType(field.types)?.ballerinaType,
             parameterDescription: field.documentation || ""
         }
     }));
@@ -53,7 +53,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Type", description: "Type of the parameter" },
-            inputTypes: [{fieldType: "TYPE", ballerinaType: ""}],
+            types: [{fieldType: "TYPE", ballerinaType: ""}],
         },
         {
             key: "variable",
@@ -69,7 +69,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Name", description: "Name of the parameter" },
-            inputTypes: [{fieldType: "IDENTIFIER", ballerinaType: ""}],
+            types: [{fieldType: "IDENTIFIER", ballerinaType: ""}],
         },
         {
             key: "parameterDescription",
@@ -85,7 +85,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Description", description: "Description of the parameter" },
-            inputTypes: [{fieldType: "STRING", ballerinaType: ""}]
+            types: [{fieldType: "STRING", ballerinaType: ""}]
         }
     ];
 
@@ -103,7 +103,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             value: paramManagerValues,
             advanceProps: [],
             diagnostics: [],
-            inputTypes: [{fieldType: "PARAM_MANAGER", ballerinaType: ""}],
+            types: [{fieldType: "PARAM_MANAGER", ballerinaType: ""}],
             paramManagerProps: {
                 paramValues: paramManagerValues,
                 formFields: paramManagerFormFields,

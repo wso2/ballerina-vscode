@@ -26,15 +26,15 @@ interface ModeSwitcherProps {
     value: InputMode;
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
-    inputTypes: InputType[];
+    types: InputType[];
 }
 
-const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, inputTypes }) => {
+const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
     const isChecked = value === InputMode.EXP;
 
     const defaultMode = useMemo(
-        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(inputTypes),
-        [inputTypes, isRecordTypeField]
+        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(types),
+        [types, isRecordTypeField]
     );
 
     const handlePrimaryModeClick = () => {

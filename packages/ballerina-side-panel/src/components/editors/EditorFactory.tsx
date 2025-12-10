@@ -157,7 +157,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
-    } else if (!field.items && (field.type === "RAW_TEMPLATE" || getPrimaryInputType(field.inputTypes)?.ballerinaType === "ai:Prompt") && field.editable) {
+    } else if (!field.items && (field.type === "RAW_TEMPLATE" || getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt") && field.editable) {
         return (
             <ContextAwareRawExpressionEditor
                 field={field}

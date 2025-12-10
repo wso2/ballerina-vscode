@@ -69,7 +69,7 @@ export function getPropertyFromFormField(field: FormField): ExpressionProperty {
         editable: field.editable,
         advanced: field.advanced,
         placeholder: field.placeholder,
-        types: field.inputTypes,
+        types: field.types,
         codedata: field.codedata,
         imports: field.imports,
         diagnostics: {

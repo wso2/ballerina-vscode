@@ -275,7 +275,7 @@ export function convertNodePropertyToFormField(
         items: getFormFieldItems(property, connections),
         itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
-        inputTypes: property.types,
+        types: property.types,
         lineRange: property?.codedata?.lineRange,
         metadata: property.metadata,
         codedata: property.codedata,
@@ -914,8 +914,8 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     }
 
     // Set up parameter manager properties
-    formField.inputTypes
-    formField.inputTypes[0].fieldType = "PARAM_MANAGER";
+    formField.types
+    formField.types[0].fieldType = "PARAM_MANAGER";
     formField.type = "PARAM_MANAGER";
 
     // Create existing parameter values

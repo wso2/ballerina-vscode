@@ -534,7 +534,7 @@ export function FormGeneratorNew(props: FormProps) {
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                inputTypes?: InputType[],
+                types?: InputType[],
                 fieldKey?: string
             ) => {
                 let context: TypeHelperContext | undefined;
@@ -545,22 +545,22 @@ export function FormGeneratorNew(props: FormProps) {
                 let visibleTypes = typesCache.current.get(typesCacheKey);
 
                 if (!visibleTypes) {
-                    let types;
+                    let visibleTypesResponse;
                     if (isGraphqlEditor && fieldKey && context) {
-                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                        visibleTypesResponse = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: fileName,
                             context: context,
                         });
                     } else {
-                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                        visibleTypesResponse = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                             filePath: fileName,
                             position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                            ...(getPrimaryInputType(inputTypes)?.ballerinaType && { typeConstraint: getPrimaryInputType(inputTypes)?.ballerinaType })
+                            ...(getPrimaryInputType(types)?.ballerinaType && { typeConstraint: getPrimaryInputType(types)?.ballerinaType })
                         });
                     }
 
-                    const isFetchingTypesForDM = getPrimaryInputType(inputTypes)?.ballerinaType === "json";
-                    visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
+                    const isFetchingTypesForDM = getPrimaryInputType(types)?.ballerinaType === "json";
+                    visibleTypes = convertToVisibleTypes(visibleTypesResponse, isFetchingTypesForDM);
                     typesCache.current.set(typesCacheKey, visibleTypes);
                 }
                 setTypes(visibleTypes);
@@ -582,8 +582,8 @@ export function FormGeneratorNew(props: FormProps) {
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, inputTypes?: InputType[], fieldKey?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, inputTypes, fieldKey);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, types?: InputType[], fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, types, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -676,7 +676,7 @@ export function FormGeneratorNew(props: FormProps) {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        inputTypes?: InputType[],
+        types?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -703,7 +703,7 @@ export function FormGeneratorNew(props: FormProps) {
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
-            inputTypes: inputTypes,
+            types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
             handleValueTypeConstChange: handleValueTypeConstChange,
             forcedValueTypeConstraint: valueTypeConstraints,
@@ -713,7 +713,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        inputTypes: InputType[],
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -745,7 +745,7 @@ export function FormGeneratorNew(props: FormProps) {
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            inputTypes: inputTypes,
+            types: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,

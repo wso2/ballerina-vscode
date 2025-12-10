@@ -443,7 +443,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        let newInputMode = getInputModeFromTypes(getPrimaryInputType(field.inputTypes))
+        let newInputMode = getInputModeFromTypes(getPrimaryInputType(field.types))
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
@@ -460,7 +460,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 }
         }
         setInputMode(newInputMode)
-    }, [field?.inputTypes, recordTypeField]);
+    }, [field?.types, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
@@ -530,7 +530,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             helperPaneHeight,
             recordTypeField,
             field.type === "LV_EXPRESSION",
-            field.inputTypes,
+            field.types,
             inputModeRef.current,
         );
     };
@@ -550,7 +550,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(value);
             return;
         }
-        const primaryInputType = getPrimaryInputType(field.inputTypes);
+        const primaryInputType = getPrimaryInputType(field.types);
         const primaryInputMode = getInputModeFromTypes(primaryInputType);
         switch (primaryInputMode) {
             case (InputMode.BOOLEAN):
@@ -609,7 +609,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (recordTypeField) return true;
         if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
-        if (!getInputModeFromTypes(getPrimaryInputType(field.inputTypes))) return false;
+        if (!getInputModeFromTypes(getPrimaryInputType(field.types))) return false;
         return true;
     }
 
@@ -631,9 +631,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.LabelContainer>
                                         <S.Label>{field.label}</S.Label>
                                         {(required ?? !field.optional) && <RequiredFormInput />}
-                                        {getPrimaryInputType(field.inputTypes)?.ballerinaType && (
-                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.inputTypes)?.ballerinaType}>
-                                                {sanitizeType(getPrimaryInputType(field.inputTypes)?.ballerinaType)}
+                                        {getPrimaryInputType(field.types)?.ballerinaType && (
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
                                             </S.Type>
                                         )}
                                     </S.LabelContainer>
@@ -649,7 +649,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         value={inputMode}
                                         isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
-                                        inputTypes={field.inputTypes}
+                                        types={field.types}
                                     />
                                 )}
                             </S.FieldInfoSection>
@@ -665,7 +665,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             <ExpressionField
                                 field={field}
                                 inputMode={inputMode}
-                                primaryMode={getInputModeFromTypes(getPrimaryInputType(field.inputTypes))}
+                                primaryMode={getInputModeFromTypes(getPrimaryInputType(field.types))}
                                 name={name}
                                 value={value}
                                 completions={completions}

@@ -65,7 +65,7 @@ export type HelperPaneNewProps = {
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
-    inputTypes?: InputType[];
+    types?: InputType[];
     forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
@@ -92,14 +92,14 @@ const HelperPaneNewEl = ({
     selectedType,
     filteredCompletions,
     isInModal,
-    inputTypes,
+    types,
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
     handleValueTypeConstChange,
     inputMode
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = inputTypes ?
+    const currentMenuItemCount = types ?
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
 
@@ -109,10 +109,10 @@ const HelperPaneNewEl = ({
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
-        if (inputTypes?.length > 0) {
-            handleValueTypeConstChange(getPrimaryInputType(inputTypes)?.ballerinaType);
+        if (types?.length > 0) {
+            handleValueTypeConstChange(getPrimaryInputType(types)?.ballerinaType);
         }
-    }, [inputTypes, forcedValueTypeConstraint])
+    }, [types, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -394,7 +394,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={getPrimaryInputType(inputTypes)?.ballerinaType || forcedValueTypeConstraint || ''}
+                            selectedType={getPrimaryInputType(types)?.ballerinaType || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
                             valueCreationOptions={valueCreationOptions}
                             anchorRef={anchorRef} />
@@ -500,7 +500,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         isInModal,
-        inputTypes,
+        types,
         forcedValueTypeConstraint,
         handleValueTypeConstChange,
     } = props;
@@ -525,7 +525,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             selectedType={selectedType}
             filteredCompletions={filteredCompletions}
             isInModal={isInModal}
-            inputTypes={inputTypes}
+            types={types}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}

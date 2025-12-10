@@ -649,7 +649,7 @@ export interface Codedata {
 export interface ValueProperty {
     metadata?: TestFunctionMetadata;
     codedata?: Codedata;
-    inputTypes: InputType[];
+    types: InputType[];
     originalName?: string;
     value?: any;
     placeholder?: string;

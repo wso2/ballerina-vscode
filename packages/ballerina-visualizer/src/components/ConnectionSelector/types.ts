@@ -22,7 +22,7 @@ export type ConnectionKind = 'MODEL_PROVIDER' | 'VECTOR_STORE' | 'EMBEDDING_PROV
 
 export interface ConnectionKindConfig {
     displayName: string;
-    inputTypes: InputType[];
+    types: InputType[];
     nodePropertyKey: string | string[];
     categoryConverter: (categories: any[]) => any[];
     searchConfig?: (aiModuleOrg?: string) => ConnectionSearchConfig;

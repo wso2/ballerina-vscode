@@ -183,13 +183,13 @@ export function ParamEditor(props: ParamProps) {
                 fields.push({
                     key: `name`,
                     label: 'Name',
-                    type: getPrimaryInputType(param.name.inputTypes)?.fieldType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    inputTypes: [{fieldType: getPrimaryInputType(param.name.inputTypes)?.fieldType, ballerinaType: ""}]
+                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, ballerinaType: ""}]
                 });
                 fields.push({
                     key: `type`,
@@ -203,7 +203,7 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    inputTypes: [{fieldType: getPrimaryInputType(param.type.inputTypes)?.fieldType, ballerinaType: ""}]
+                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, ballerinaType: ""}]
                 });
                 break;
             case "HEADER":
@@ -217,7 +217,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: true,
                     value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
-                    inputTypes: [{fieldType: getPrimaryInputType(param.headerName?.inputTypes)?.fieldType, ballerinaType: ""}],
+                    types: [{fieldType: getPrimaryInputType(param.headerName?.types)?.fieldType, ballerinaType: ""}],
                     onValueChange: (value: string | boolean) => {
                         const sanitizeValue = (value as string)
                             .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
@@ -237,13 +237,13 @@ export function ParamEditor(props: ParamProps) {
                     key: `name`,
                     label: 'Variable Name',
                     advanced: isNew,
-                    type: getPrimaryInputType(param.name.inputTypes)?.fieldType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value || "contentType",
-                    inputTypes: [{fieldType: getPrimaryInputType(param.name.inputTypes)?.fieldType, ballerinaType: ""}]
+                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, ballerinaType: ""}]
                 });
                 fields.push({
                     key: `type`,
@@ -257,32 +257,32 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    inputTypes: [{fieldType: getPrimaryInputType(param.type.inputTypes)?.fieldType, ballerinaType: ""}]
+                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, ballerinaType: ""}]
                 });
                 break;
             case "PAYLOAD":
                 fields.push({
                     key: `name`,
                     label: 'Name',
-                    type: getPrimaryInputType(param.name.inputTypes)?.fieldType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    inputTypes: [{fieldType: getPrimaryInputType(param.name.inputTypes)?.fieldType, ballerinaType: ""}]
+                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, ballerinaType: ""}]
                 });
                 fields.push({
                     key: `type`,
                     label: 'Type',
-                    type: getPrimaryInputType(param.type.inputTypes)?.fieldType,
+                    type: getPrimaryInputType(param.type.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: param?.type?.metadata?.description || '',
                     enabled: param.type?.enabled,
                     value: param.type.value || "json",
                     defaultValue: "json",
-                    inputTypes: [{fieldType: getPrimaryInputType(param.type.inputTypes)?.fieldType, ballerinaType: ""}],
+                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, ballerinaType: ""}],
                     // isContextTypeSupported: true // Enable this to support context typeEditor
                 });
                 break;
@@ -293,14 +293,14 @@ export function ParamEditor(props: ParamProps) {
             fields.push({
                 key: `defaultValue`,
                 label: 'Default Value',
-                type: getPrimaryInputType((param.defaultValue as PropertyModel)?.inputTypes)?.fieldType,
+                type: getPrimaryInputType((param.defaultValue as PropertyModel)?.types)?.fieldType,
                 optional: true,
                 advanced: isNew,
                 editable: true,
                 documentation: '',
                 enabled: true,
                 value: (param.defaultValue as PropertyModel)?.value,
-                inputTypes: [{fieldType: getPrimaryInputType((param.defaultValue as PropertyModel).inputTypes)?.fieldType, ballerinaType: ""}]
+                types: [{fieldType: getPrimaryInputType((param.defaultValue as PropertyModel).types)?.fieldType, ballerinaType: ""}]
             });
         }
         setCurrentFields(fields);
