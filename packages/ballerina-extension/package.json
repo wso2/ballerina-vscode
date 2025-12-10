@@ -383,12 +383,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.new.module",
-                "title": "Add Module",
-                "category": "Ballerina",
-                "icon": "$(distro-new-module)"
-            },
-            {
                 "command": "ballerina.refreshPackageTree",
                 "title": "Refresh",
                 "icon": "$(distro-refresh)"
@@ -922,10 +916,6 @@
                 }
             ],
             "commandPalette": [
-                {
-                    "command": "ballerina.new.module",
-                    "when": "editorLangId != ballerina && !isBallerinaDiagram"
-                },
                 {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"

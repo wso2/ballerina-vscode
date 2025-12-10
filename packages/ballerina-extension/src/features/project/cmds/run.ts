@@ -25,9 +25,9 @@ import { runCommand, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGE
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
 import { prepareAndGenerateConfig } from '../../config-generator/configGenerator';
 import { LANGUAGE } from "../../../core";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
 import { VisualizerWebview } from "../../../views/visualizer/webview";
+import { requiresPackageSelection } from "../../../utils/command-utils";
 
 function activateRunCmdCommand() {
 
@@ -39,7 +39,7 @@ function activateRunCmdCommand() {
             actualFilePath = filePath.fsPath;
         }
 
-        let isAtWorkspaceLevel = false;
+        let needsPackageSelection = false;
         const isActiveTextEditor = window.activeTextEditor;
 
         if (!actualFilePath && !isActiveTextEditor) {    
@@ -48,22 +48,22 @@ function activateRunCmdCommand() {
             const { workspacePath, view, projectPath, projectInfo } = context;
             const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
 
-            isAtWorkspaceLevel = 
-                workspacePath && 
-                (view === MACHINE_VIEW.WorkspaceOverview || !projectPath || !isWebviewOpen);
+            needsPackageSelection = requiresPackageSelection(
+                workspacePath, view, projectPath, isWebviewOpen, !!isActiveTextEditor
+            );
             
-            if (isAtWorkspaceLevel && projectInfo?.children.length === 0) {
+            if (needsPackageSelection && projectInfo?.children.length === 0) {
                 window.showErrorMessage("No packages found in the workspace.");
                 return;
-            } else if (!isAtWorkspaceLevel && !projectPath) {
+            } else if (!needsPackageSelection && !projectPath) {
                 window.showErrorMessage("No project found.");
                 return;
             }
 
-            actualFilePath = isAtWorkspaceLevel ? workspacePath : projectPath;
+            actualFilePath = needsPackageSelection ? workspacePath : projectPath;
         }
 
-        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath, false, false, true, isAtWorkspaceLevel);
+        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath, false, false, true, needsPackageSelection);
     });
 
     // register ballerina run handler
