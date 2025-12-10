@@ -326,7 +326,9 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
             if (lsResponse.function.accessor) {
                 lsResponse.function.accessor.value = 'get';
-                lsResponse.function.accessor.inputTypes[0].fieldType = 'IDENTIFIER';
+                if (lsResponse.function.accessor.inputTypes?.[0]) {
+                    lsResponse.function.accessor.inputTypes[0].fieldType = 'IDENTIFIER';
+                }
             }
 
             setIsNew(true);
