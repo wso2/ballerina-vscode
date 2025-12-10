@@ -29,10 +29,11 @@ import { DefaultableParam, FunctionDefinition, IncludedRecordParam, ModulePart, 
 import { addMissingRequiredFields, attemptRepairProject, checkProjectDiagnostics } from "../../../src/rpc-managers/ai-panel/repair-utils";
 import { NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "./constants";
 import { INVALID_RECORD_REFERENCE } from "../../../src/views/ai-panel/errorCodes";
-import { PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
+import { CodeRepairResult, PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
 import { URI } from "vscode-uri";
 import { getAllDataMapperSource } from "./service/datamapper/datamapper";
 import { StateMachine } from "../../stateMachine";
+import { CopilotEventHandler } from "./service/event";
 
 // Set to false to include mappings with default values
 const OMIT_DEFAULT_MAPPINGS_ENABLED = true;
@@ -241,7 +242,7 @@ export async function repairCodeWithLLM(codeRepairRequest: repairCodeRequest): P
     }
   }
 
-  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "" };
+  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "", packagePath: "", isActive: true };
   return projectSourceResponse;
 }
 
@@ -473,13 +474,15 @@ export async function createTempFileAndGenerateMetadata(params: CreateTempFileRe
 
 export async function generateMappings(
   metadataWithAttachments: MetadataWithAttachments,
-  context: any
+  context: any,
+  eventHandler: CopilotEventHandler
 ): Promise<AllDataMapperSourceRequest> {
   const targetFilePath = metadataWithAttachments.metadata.codeData.lineRange.fileName || context.documentUri;
 
   const generatedMappings = await generateMappingExpressionsFromModel(
     metadataWithAttachments.metadata.mappingsModel as DMModel,
-    metadataWithAttachments.attachments || []
+    metadataWithAttachments.attachments || [],
+    eventHandler
   );
 
   const customFunctionMappings = generatedMappings.filter(mapping => mapping.isFunctionCall);
@@ -1060,6 +1063,7 @@ export async function generateInlineMappingsSource(
   inlineMappingRequest: MetadataWithAttachments,
   langClient: ExtendedLangClient,
   context: any,
+  eventHandler: CopilotEventHandler
 ): Promise<InlineMappingsSourceResult> {
   if (!inlineMappingRequest) {
     throw new Error("Inline mapping request is required");
@@ -1096,16 +1100,18 @@ export async function generateInlineMappingsSource(
 
   // Prepare mapping request payload
   const mappingRequestPayload: MetadataWithAttachments = {
-    metadata: tempFileMetadata
+    metadata: tempFileMetadata,
+    attachments: []
   };
-  if (inlineMappingRequest.attachments && inlineMappingRequest.attachments.length > 0) {
+  if (inlineMappingRequest.attachments.length > 0) {
     mappingRequestPayload.attachments = inlineMappingRequest.attachments;
   }
 
   // Generate mappings and source code
   const allMappingsRequest = await generateMappings(
     mappingRequestPayload,
-    context
+    context,
+    eventHandler
   );
 
   const generatedSourceResponse = await getAllDataMapperSource(allMappingsRequest);
@@ -1315,7 +1321,7 @@ export async function repairCodeAndGetUpdatedContent(
   params: RepairCodeParams,
   langClient: ExtendedLangClient,
   projectRoot: string
-): Promise<{ finalContent: string; customFunctionsContent: string }> {
+): Promise<CodeRepairResult> {
   
   // Read main file content
   let finalContent = fs.readFileSync(params.tempFileMetadata.codeData.lineRange.fileName, 'utf8');

@@ -24,7 +24,7 @@ import { Codicon, Dropdown, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { TypeProps } from "../../ParameterBranch";
 import { useHelperPaneStyles } from "../../styles";
 import { ParameterBranch } from "../../ParameterBranch";
-import { getSelectedUnionMember, isRequiredParam, updateFieldsSelection } from "../../utils";
+import { getSelectedUnionMember, isRequiredParam, updateFieldsSelection, resetFieldValues } from "../../utils";
 
 export default function UnionType(props: TypeProps) {
     const { param, depth, onChange } = props;
@@ -40,13 +40,69 @@ export default function UnionType(props: TypeProps) {
     const [paramSelected, setParamSelected] = useState(param.selected || requiredParam);
     const [selectedMemberType, setSelectedMemberType] = useState(getUnionParamName(initSelectedMember));
     const [parameter, setParameter] = useState<TypeField>(initSelectedMember);
+    const isInitialized = useRef(false);
 
-    // Initialize: If the union is selected, ensure the selected member and its required fields are also selected
+    // Initialize union member selection when param becomes selected
+    const initializeUnionMember = () => {
+        if (!param.members || param.members.length === 0) {
+            return false;
+        }
+
+        // Check if a member is already selected
+        const hasSelectedMember = param.members.some(member => member.selected === true);
+        if (hasSelectedMember) {
+            return true; // Already initialized
+        }
+
+        // Get the member to select (use initSelectedMember if available, otherwise first member)
+        const memberToSelect = initSelectedMember || param.members[0];
+
+        if (memberToSelect) {
+            const memberTypeName = getUnionParamName(memberToSelect);
+            if (memberTypeName) {
+                const selectedMember = param.members.find((field) => getUnionParamName(field) === memberTypeName);
+
+                if (selectedMember) {
+                    updateFormFieldMemberSelection(selectedMember);
+
+                    if (selectedMember.fields && selectedMember.fields.length > 0) {
+                        updateFieldsSelection(selectedMember.fields, true);
+                    }
+
+                    setSelectedMemberType(memberTypeName);
+                    setParameter(selectedMember);
+
+                    return true;
+                }
+            }
+        }
+
+        return false; // Failed to initialize
+    };
+
+    // Initialize: Always ensure a member is selected if union param is selected
     useEffect(() => {
-        if (paramSelected && initSelectedMember) {
-            handleMemberType(paramSelected ? selectedMemberType : "");
+        // Only run initialization once
+        if (isInitialized.current) {
+            return;
+        }
+        isInitialized.current = true;
+
+        // If union param is selected (or required), ensure a member is selected
+        if (paramSelected && param.members && param.members.length > 0) {
+            initializeUnionMember();
         }
     }, []);
+
+    useEffect(() => {
+        // If param becomes selected but we haven't initialized the member yet
+        if (param.selected && !isInitialized.current && param.members && param.members.length > 0) {
+            const initialized = initializeUnionMember();
+            if (initialized) {
+                isInitialized.current = true;
+            }
+        }
+    }, [param.selected]);
 
     if (!(param.members && param.members.length > 0)) {
         return <></>;
@@ -68,17 +124,41 @@ export default function UnionType(props: TypeProps) {
         });
     };
 
-    const handleMemberType = (type: string) => {
-        const selectedMember = param.members.find((field) => getUnionParamName(field) === type);
-        updateFormFieldMemberSelection(selectedMember);
-        setSelectedMemberType(type);
-        setParameter(selectedMember);
+    const handleMemberType = (type: string, inCheckboxTrigger: boolean = true) => {
+        if (!type) {
+            return;
+        }
 
-        // If the parent is selected and the selected member has fields, ensure required fields are selected
-        if (param.selected && selectedMember && selectedMember.fields && selectedMember.fields.length > 0) {
+        const selectedMember = param.members?.find((field) => getUnionParamName(field) === type);
+
+        if (!selectedMember) {
+            return;
+        }
+
+        // Ensure the union param itself is selected when selecting a member
+        if (!param.selected) {
+            param.selected = true;
+            setParamSelected(true);
+        }
+
+        updateFormFieldMemberSelection(selectedMember);
+
+        if (selectedMember.fields && selectedMember.fields.length > 0) {
             updateFieldsSelection(selectedMember.fields, true);
         }
 
+        setSelectedMemberType(type);
+        setParameter(selectedMember);
+
+        // Till the LS issue is fixed to generate proper source based on the selected member,
+        // we need to clear the value of the param.
+        if (inCheckboxTrigger) {
+            if (param?.value !== undefined) {
+                param.value = "";
+            }
+        }
+
+        // Call onChange only after all selections are complete
         onChange();
     };
 
@@ -88,6 +168,12 @@ export default function UnionType(props: TypeProps) {
 
         // When checkbox is checked, ensure the currently selected member is also marked as selected
         if (newSelectedState) {
+            // Ensure member is initialized before proceeding
+            if (!isInitialized.current) {
+                initializeUnionMember();
+                isInitialized.current = true;
+            }
+
             const selectedMember = param.members.find((field) => getUnionParamName(field) === selectedMemberType);
             if (selectedMember) {
                 updateFormFieldMemberSelection(selectedMember);
@@ -98,7 +184,8 @@ export default function UnionType(props: TypeProps) {
                 }
             }
         } else {
-            // When unchecking, clear all member selections
+            // When unchecking, reset values and clear all member selections
+            resetFieldValues(param);
             param.members.forEach((field) => {
                 field.selected = false;
 

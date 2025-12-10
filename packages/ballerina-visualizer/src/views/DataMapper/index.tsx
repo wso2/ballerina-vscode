@@ -23,6 +23,7 @@ import { ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { DataMapperView } from "./DataMapperView";
+import { BALLERINA_INTEGRATOR_ISSUES_URL } from "../../utils/bi";
 
 export interface DataMapperProps {
     filePath: string;
@@ -37,8 +38,8 @@ export interface DataMapperProps {
 export function DataMapper(props: DataMapperProps) {
     return (
         <>
-            <TopNavigationBar />
-            <ErrorBoundary errorMsg="Error while loading the Data Mapper">
+            <TopNavigationBar projectPath={props.projectPath}/>
+            <ErrorBoundary errorMsg="Error while loading the Data Mapper" issueUrl={BALLERINA_INTEGRATOR_ISSUES_URL}>
                 <DataMapperView {...props} />
             </ErrorBoundary>
         </>

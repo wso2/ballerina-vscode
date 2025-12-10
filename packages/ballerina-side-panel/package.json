@@ -28,7 +28,16 @@
         "lodash": "~4.17.21",
         "react-hook-form": "7.56.4",
         "react-markdown": "~10.1.0",
-        "@github/markdown-toolbar-element": "^2.2.3"
+        "rehype-raw": "^7.0.0",
+        "remark-gfm": "^4.0.1",
+        "@github/markdown-toolbar-element": "^2.2.3",
+        "@codemirror/commands": "~6.10.0",
+        "@codemirror/state": "~6.5.2",
+        "@codemirror/view": "~6.38.6",
+        "@codemirror/autocomplete": "~6.19.1",
+        "@codemirror/lang-sql": "~6.10.0",
+        "@codemirror/language": "~6.11.3",
+        "@lezer/highlight": "~1.2.3"
     },
     "devDependencies": {
         "@storybook/react": "^6.5.16",
