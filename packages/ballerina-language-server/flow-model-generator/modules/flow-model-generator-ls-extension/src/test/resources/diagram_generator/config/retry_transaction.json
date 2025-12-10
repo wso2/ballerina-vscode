@@ -88,7 +88,11 @@
                       "label": "View",
                       "description": "Function definition location"
                     },
-                    "valueType": "VIEW",
+                    "types": [
+                      {
+                        "fieldType": "VIEW"
+                      }
+                    ],
                     "value": {
                       "fileName": "retry_transaction.bal",
                       "startLine": {
@@ -110,7 +114,11 @@
                       "label": "Check Error",
                       "description": "Trigger error flow"
                     },
-                    "valueType": "FLAG",
+                    "types": [
+                      {
+                        "fieldType": "FLAG"
+                      }
+                    ],
                     "value": true,
                     "optional": false,
                     "editable": true,
@@ -153,7 +161,11 @@
               "label": "Retry Count",
               "description": "Number of retries"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "3",
             "optional": false,
             "editable": true,
@@ -239,7 +251,11 @@
                       "label": "View",
                       "description": "Function definition location"
                     },
-                    "valueType": "VIEW",
+                    "types": [
+                      {
+                        "fieldType": "VIEW"
+                      }
+                    ],
                     "value": {
                       "fileName": "retry_transaction.bal",
                       "startLine": {
@@ -261,7 +277,11 @@
                       "label": "Check Error",
                       "description": "Trigger error flow"
                     },
-                    "valueType": "FLAG",
+                    "types": [
+                      {
+                        "fieldType": "FLAG"
+                      }
+                    ],
                     "value": true,
                     "optional": false,
                     "editable": true,
@@ -322,7 +342,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -334,7 +358,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "err ",
                 "placeholder": "err",
                 "optional": false,
@@ -347,7 +375,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -385,7 +417,11 @@
                       "label": "Statement",
                       "description": "Ballerina statement"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "check err;",
                     "optional": false,
                     "editable": true,
@@ -404,7 +440,11 @@
               "label": "Retry Count",
               "description": "Number of retries"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "3",
             "optional": false,
             "editable": true,
@@ -490,7 +530,11 @@
                       "label": "View",
                       "description": "Function definition location"
                     },
-                    "valueType": "VIEW",
+                    "types": [
+                      {
+                        "fieldType": "VIEW"
+                      }
+                    ],
                     "value": {
                       "fileName": "retry_transaction.bal",
                       "startLine": {
@@ -512,7 +556,11 @@
                       "label": "Check Error",
                       "description": "Trigger error flow"
                     },
-                    "valueType": "FLAG",
+                    "types": [
+                      {
+                        "fieldType": "FLAG"
+                      }
+                    ],
                     "value": true,
                     "optional": false,
                     "editable": true,
@@ -573,7 +621,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -585,7 +637,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "err ",
                 "placeholder": "err",
                 "optional": false,
@@ -598,7 +654,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -636,7 +696,11 @@
                       "label": "Statement",
                       "description": "Ballerina statement"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "check err;",
                     "optional": false,
                     "editable": true,
@@ -655,7 +719,11 @@
               "label": "Retry Count",
               "description": "Number of retries"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "4",
             "optional": false,
             "editable": true,
@@ -756,8 +824,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "true ",
                         "placeholder": "true",
                         "optional": false,
@@ -824,8 +896,12 @@
                       "label": "Expression",
                       "description": "Fail value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "error(\"failed retry\")",
                     "optional": false,
                     "editable": true,
@@ -862,7 +938,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -874,7 +954,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "err ",
                 "placeholder": "err",
                 "optional": false,
@@ -887,7 +971,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -925,7 +1013,11 @@
                       "label": "Statement",
                       "description": "Ballerina statement"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "check err;",
                     "optional": false,
                     "editable": true,
@@ -944,7 +1036,11 @@
               "label": "Retry Count",
               "description": "Number of retries"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "4",
             "optional": false,
             "editable": true,
@@ -1045,8 +1141,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "true ",
                         "placeholder": "true",
                         "optional": false,
@@ -1113,8 +1213,12 @@
                       "label": "Expression",
                       "description": "Fail value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "error(\"failed retry\")",
                     "optional": false,
                     "editable": true,
@@ -1151,7 +1255,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -1163,7 +1271,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "err ",
                 "placeholder": "err",
                 "optional": false,
@@ -1176,7 +1288,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -1214,7 +1330,11 @@
                       "label": "Statement",
                       "description": "Ballerina statement"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "check err;",
                     "optional": false,
                     "editable": true,
@@ -1233,7 +1353,11 @@
               "label": "Retry Count",
               "description": "Number of retries"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "4",
             "optional": false,
             "editable": true,

@@ -390,8 +390,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelNodeTemplateResponse response = new FlowModelNodeTemplateResponse();
             try {
-                NodeTemplateGenerator generator = new NodeTemplateGenerator(lsClientLogger);
                 Path filePath = Path.of(request.filePath());
+                workspaceManagerProxy.get().loadProject(filePath);
+                NodeTemplateGenerator generator = new NodeTemplateGenerator(lsClientLogger);
                 JsonElement nodeTemplate = generator.getNodeTemplate(this.workspaceManagerProxy.get(),
                         filePath, request.position(), request.id());
                 response.setFlowNode(nodeTemplate);

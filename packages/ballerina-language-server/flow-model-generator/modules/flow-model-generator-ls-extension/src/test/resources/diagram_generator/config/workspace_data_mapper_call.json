@@ -68,7 +68,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "{\n        id: \"CUST200\",\n        name: \"Foo Bar\",\n        email: \"foo@example.com\",\n        phoneNumber: \"+1122334455\",\n        address: \"Foo St\"\n    }",
             "optional": true,
             "editable": true,
@@ -80,7 +84,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "customer",
             "optional": false,
             "editable": false,
@@ -105,7 +113,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "pkgB:Customer",
             "placeholder": "var",
             "optional": false,
@@ -151,7 +163,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "data_mappings.bal",
               "startLine": {
@@ -172,8 +188,12 @@
             "metadata": {
               "label": "Customer"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "pkgB:Customer",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "pkgB:Customer"
+              }
+            ],
             "value": "customer",
             "placeholder": "{id: \"\", name: \"\", email: \"\", phoneNumber: \"\", address: \"\"}",
             "optional": false,
@@ -199,7 +219,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "externalCustomer",
             "optional": false,
             "editable": false,
@@ -224,7 +248,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "pkgB:ExternalCustomer",
             "placeholder": "var",
             "optional": false,
@@ -270,8 +298,11 @@
               "label": "values",
               "description": "The value(s) to be printed"
             },
-            "valueType": "EXPRESSION_SET",
-            "valueTypeConstraint": "io:Printable",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET"
+              }
+            ],
             "value": [
               "string `Mapped customer: ${externalCustomer.fullName} (${externalCustomer.customerId})`"
             ],

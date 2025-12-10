@@ -384,7 +384,8 @@ public class AvailableNodesGenerator {
                     .parentSymbol(classSymbol)
                     .parentSymbolType(className)
                     .project(pkg.project())
-                    .moduleInfo(moduleInfo);
+                    .moduleInfo(moduleInfo)
+                    .enableIndex();
 
             // Obtain methods of the classes
             List<FunctionData> methodFunctionsData = functionDataBuilder.buildChildNodes();

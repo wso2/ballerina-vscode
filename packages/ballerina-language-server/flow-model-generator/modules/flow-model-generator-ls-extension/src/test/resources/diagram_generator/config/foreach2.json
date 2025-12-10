@@ -68,7 +68,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "[1, 2, 3]",
             "optional": true,
             "editable": true,
@@ -80,7 +84,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "intArr",
             "optional": false,
             "editable": false,
@@ -105,7 +113,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int[]",
             "placeholder": "var",
             "optional": false,
@@ -188,7 +200,11 @@
                       "label": "Expression",
                       "description": "Update value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "item",
                     "optional": false,
                     "editable": true,
@@ -200,7 +216,11 @@
                       "label": "Variable",
                       "description": "Name of the variable/field"
                     },
-                    "valueType": "LV_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "LV_EXPRESSION"
+                      }
+                    ],
                     "value": "_",
                     "optional": false,
                     "editable": true,
@@ -219,7 +239,11 @@
               "label": "Variable Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "item",
             "optional": false,
             "editable": false,
@@ -244,7 +268,11 @@
               "label": "Variable Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -258,8 +286,12 @@
               "label": "Collection",
               "description": "Collection to iterate"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
-            "valueTypeConstraint": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json"
+              }
+            ],
             "value": "intArr ",
             "placeholder": "[]",
             "optional": false,

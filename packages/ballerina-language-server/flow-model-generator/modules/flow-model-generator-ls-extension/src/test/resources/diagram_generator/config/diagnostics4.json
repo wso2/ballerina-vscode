@@ -72,7 +72,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "\"John\"",
             "optional": true,
             "editable": true,
@@ -84,7 +88,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "var1",
             "optional": false,
             "editable": false,
@@ -109,7 +117,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -154,7 +166,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "data_mappings.bal",
               "startLine": {
@@ -175,8 +191,12 @@
             "metadata": {
               "label": "Src"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "Source",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "Source"
+              }
+            ],
             "value": "{firstName: \"John\", lastName: \"Doe\", age: 30}",
             "placeholder": "{firstName: \"\", lastName: \"\", age: 0}",
             "optional": false,
@@ -202,7 +222,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "var1",
             "optional": false,
             "editable": false,
@@ -236,7 +260,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "Target",
             "placeholder": "var",
             "optional": false,
@@ -284,7 +312,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "data_mappings.bal",
               "startLine": {
@@ -305,8 +337,12 @@
             "metadata": {
               "label": "Src"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "Source",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "Source"
+              }
+            ],
             "value": "{firstName: \"John\", age: 30}",
             "placeholder": "{firstName: \"\", lastName: \"\", age: 0}",
             "optional": false,
@@ -341,7 +377,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "var2",
             "optional": false,
             "editable": false,
@@ -366,7 +406,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "Target",
             "placeholder": "var",
             "optional": false,
@@ -414,7 +458,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "main.bal",
               "startLine": {
@@ -435,8 +483,16 @@
             "metadata": {
               "label": "I"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "value": "10",
             "placeholder": "0",
             "optional": false,
@@ -462,7 +518,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "var1",
             "optional": false,
             "editable": false,
@@ -496,7 +556,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "int",
             "placeholder": "var",
             "optional": false,
@@ -545,8 +609,12 @@
               "label": "Value",
               "description": "The `json` value to be prettified"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "json",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "json"
+              }
+            ],
             "value": "{name: \"John\", age: 30}",
             "placeholder": "()",
             "optional": false,
@@ -572,8 +640,16 @@
               "label": "Indentation",
               "description": "The number of spaces for an indentation"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "placeholder": "0",
             "optional": true,
             "editable": true,
@@ -599,7 +675,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "var1",
             "optional": false,
             "editable": false,
@@ -633,7 +713,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,

@@ -74,7 +74,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -96,7 +100,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -139,7 +147,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -161,7 +173,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -204,7 +220,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -226,7 +246,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -238,7 +262,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "_",
             "optional": false,
             "editable": false,
@@ -263,7 +291,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "boolean",
             "placeholder": "var",
             "optional": false,
@@ -308,7 +340,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -330,7 +366,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -342,7 +382,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "_",
             "optional": false,
             "editable": false,
@@ -367,7 +411,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "boolean",
             "placeholder": "var",
             "optional": false,
@@ -412,7 +460,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -434,7 +486,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -446,7 +502,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "_",
             "optional": false,
             "editable": false,
@@ -471,7 +531,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "boolean",
             "placeholder": "var",
             "optional": false,
@@ -516,7 +580,11 @@
               "label": "View",
               "description": "Function definition location"
             },
-            "valueType": "VIEW",
+            "types": [
+              {
+                "fieldType": "VIEW"
+              }
+            ],
             "value": {
               "fileName": "flags.bal",
               "startLine": {
@@ -538,7 +606,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -550,7 +622,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "_",
             "optional": false,
             "editable": false,
@@ -575,7 +651,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "boolean",
             "placeholder": "var",
             "optional": false,

@@ -33,7 +33,11 @@
             "label": "Result Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "pinecone:VectorStore",
           "placeholder": "var",
           "optional": false,
@@ -50,7 +54,11 @@
             "label": "Vector Store Name",
             "description": "Vector store instance name"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER"
+            }
+          ],
           "value": "pineconeVectorstore",
           "optional": false,
           "editable": true,
@@ -62,8 +70,16 @@
             "label": "Service URL",
             "description": "URL of the Pinecone API service"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": false,
           "editable": true,
@@ -88,8 +104,16 @@
             "label": "API Key",
             "description": "Pinecone API key for authentication"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
           "placeholder": "\"\"",
           "optional": false,
           "editable": true,
@@ -114,8 +138,20 @@
             "label": "Query Mode",
             "description": "Vector query mode (defaults to ai:DENSE)"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "ai:VectorStoreQueryMode",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "HYBRID",
+                "SPARSE",
+                "DENSE"
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:VectorStoreQueryMode"
+            }
+          ],
           "placeholder": "\"HYBRID\"",
           "optional": true,
           "editable": true,
@@ -140,8 +176,12 @@
           "metadata": {
             "label": "Pinecone Configuration"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "pinecone:Configuration",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "pinecone:Configuration"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -167,8 +207,12 @@
             "label": "HTTP Configuration",
             "description": "HTTP client configuration for the Pinecone connection\n"
           },
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "vector:ConnectionConfig",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "vector:ConnectionConfig"
+            }
+          ],
           "placeholder": "{}",
           "optional": true,
           "editable": true,
@@ -194,7 +238,11 @@
             "label": "Connection Scope",
             "description": "Scope of the connection, Global or Local"
           },
-          "valueType": "ENUM",
+          "types": [
+            {
+              "fieldType": "ENUM"
+            }
+          ],
           "value": "Global",
           "optional": false,
           "editable": true,
@@ -206,7 +254,11 @@
             "label": "Check Error",
             "description": "Terminate on error"
           },
-          "valueType": "FLAG",
+          "types": [
+            {
+              "fieldType": "FLAG"
+            }
+          ],
           "value": true,
           "optional": false,
           "editable": false,

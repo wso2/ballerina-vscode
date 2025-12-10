@@ -75,7 +75,11 @@
               "label": "Check Error",
               "description": "Trigger error flow"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": true,
@@ -87,7 +91,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "timeZone",
             "optional": false,
             "editable": false,
@@ -112,7 +120,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "time:Zone",
             "placeholder": "var",
             "optional": false,
@@ -152,7 +164,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "timeZone.fixedOffset()",
             "optional": true,
             "editable": true,
@@ -164,7 +180,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "offeset",
             "optional": false,
             "editable": false,
@@ -189,7 +209,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "time:ZoneOffset|()",
             "placeholder": "var",
             "optional": false,

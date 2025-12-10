@@ -18,7 +18,11 @@
   },
   "targetField": "persons.0",
   "property": {
-    "valueType": "EXPRESSION",
+    "types": [
+      {
+        "fieldType": "EXPRESSION"
+      }
+    ],
     "optional": false,
     "editable": false,
     "advanced": false,

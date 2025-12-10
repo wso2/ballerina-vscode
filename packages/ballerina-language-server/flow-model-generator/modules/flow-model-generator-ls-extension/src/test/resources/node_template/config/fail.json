@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "FAIL"
@@ -20,8 +21,12 @@
           "label": "Expression",
           "description": "Fail value"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "error",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,

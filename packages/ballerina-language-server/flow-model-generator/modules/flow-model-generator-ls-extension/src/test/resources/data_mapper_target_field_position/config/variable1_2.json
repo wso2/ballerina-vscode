@@ -18,7 +18,11 @@
   },
   "targetField": "userInfo",
   "property": {
-    "valueType": "EXPRESSION",
+    "types": [
+      {
+        "fieldType": "EXPRESSION"
+      }
+    ],
     "optional": false,
     "editable": false,
     "advanced": false,

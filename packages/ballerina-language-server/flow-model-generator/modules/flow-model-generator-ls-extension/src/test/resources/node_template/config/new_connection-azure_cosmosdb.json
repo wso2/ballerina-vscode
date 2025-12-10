@@ -37,8 +37,12 @@
         "metadata": {
           "label": "Config"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "azure_cosmosdb:ConnectionConfig",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:ConnectionConfig"
+          }
+        ],
         "placeholder": "{baseUrl: \"\", primaryKeyOrResourceToken: \"\"}",
         "optional": false,
         "editable": true,
@@ -63,7 +67,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "azure_cosmosdb:DataPlaneClient",
         "placeholder": "var",
         "optional": false,
@@ -80,7 +88,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "azureCosmosdbDataplaneclient",
         "optional": false,
         "editable": true,
@@ -92,7 +104,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -104,7 +120,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

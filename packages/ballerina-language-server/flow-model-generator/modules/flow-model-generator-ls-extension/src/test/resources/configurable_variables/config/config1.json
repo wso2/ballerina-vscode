@@ -28,7 +28,11 @@
             "label": "Variable Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "string",
           "placeholder": "var",
           "optional": false,
@@ -42,8 +46,12 @@
             "label": "Variable Name",
             "description": "Name of the variable"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "scope": "Global"
+            }
+          ],
           "value": "config1",
           "optional": false,
           "editable": true,
@@ -55,7 +63,11 @@
             "label": "Default Value",
             "description": "Default value of the variable"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,
@@ -93,7 +105,11 @@
             "label": "Variable Type",
             "description": "Type of the variable"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE"
+            }
+          ],
           "value": "string",
           "placeholder": "var",
           "optional": false,
@@ -107,8 +123,12 @@
             "label": "Variable Name",
             "description": "Name of the variable"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "scope": "Global"
+            }
+          ],
           "value": "config2",
           "optional": false,
           "editable": true,
@@ -120,7 +140,11 @@
             "label": "Default Value",
             "description": "Default value of the variable"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION"
+            }
+          ],
           "value": "",
           "optional": true,
           "editable": true,

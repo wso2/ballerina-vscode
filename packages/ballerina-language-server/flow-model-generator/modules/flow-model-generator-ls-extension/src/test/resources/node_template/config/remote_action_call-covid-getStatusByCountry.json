@@ -39,8 +39,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "covid19:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "covid19:Client"
+          }
+        ],
         "value": "covid19Client",
         "optional": false,
         "editable": false,
@@ -52,8 +56,16 @@
           "label": "Country",
           "description": "A country name, iso2, iso3, or country ID code "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -78,8 +90,16 @@
           "label": "Yesterday",
           "description": "Enter `true`(1) to receive data reported a day ago. Default is `false`(0) "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -91,14 +111,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -112,8 +132,16 @@
           "label": "Two Days Ago",
           "description": "Enter `true`(1) to receive data reported two days ago. Default is `false`(0) "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -125,14 +153,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -146,8 +174,16 @@
           "label": "Strict",
           "description": "Setting to false gives you the ability to fuzzy search countries (i.e. Oman vs. rOMANia) "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": true,
         "editable": true,
@@ -173,8 +209,16 @@
           "label": "Allow Null",
           "description": "By default, value is 0. Enter `1` to allow nulls to be returned "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -186,14 +230,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -207,7 +251,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "covid19:CovidCountry",
         "placeholder": "var",
         "optional": false,
@@ -221,7 +269,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "covid19Covidcountry",
         "optional": false,
         "editable": true,
@@ -233,7 +285,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

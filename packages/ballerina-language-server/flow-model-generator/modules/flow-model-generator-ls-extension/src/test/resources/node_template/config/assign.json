@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "ASSIGN"
@@ -20,7 +21,11 @@
           "label": "Variable",
           "description": "Name of the variable/field"
         },
-        "valueType": "LV_EXPRESSION",
+        "types": [
+          {
+            "fieldType": "LV_EXPRESSION"
+          }
+        ],
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -31,7 +36,11 @@
           "label": "Expression",
           "description": "Update value"
         },
-        "valueType": "ACTION_OR_EXPRESSION",
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,

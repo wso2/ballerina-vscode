@@ -212,7 +212,6 @@ public class NewConnectionBuilder extends CallBuilder {
                     .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -232,11 +231,7 @@ public class NewConnectionBuilder extends CallBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
                 default -> {
-                    if (paramResult.type() instanceof List<?>) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
-                    }
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 

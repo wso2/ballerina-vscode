@@ -43,3 +43,8 @@ function customFn(Address address, Person Person) returns Location {
 function customFnWithImportedType(http:ClientConfiguration config, Address address) returns http:HttpServiceConfig {
     return {};
 }
+
+function processEmployeeStatus(Status status, Department dept, Priority priority, MixedValue value) returns string {
+    string statusMsg = string `Status: ${status}, Department: ${dept}, Priority: ${priority}, Value: ${value.toString()}`;
+    return statusMsg;
+}

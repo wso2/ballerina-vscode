@@ -112,7 +112,11 @@
                       "label": "Expression",
                       "description": "Initialize with value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "error AssertionError(ASSERTION_ERROR_REASON, message = \"Assertion error\")",
                     "optional": true,
                     "editable": true,
@@ -124,7 +128,11 @@
                       "label": "Name",
                       "description": "Name of the variable"
                     },
-                    "valueType": "IDENTIFIER",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER"
+                      }
+                    ],
                     "value": "e",
                     "optional": false,
                     "editable": false,
@@ -149,7 +157,11 @@
                       "label": "Type",
                       "description": "Type of the variable"
                     },
-                    "valueType": "TYPE",
+                    "types": [
+                      {
+                        "fieldType": "TYPE"
+                      }
+                    ],
                     "value": "AssertionError",
                     "placeholder": "var",
                     "optional": false,
@@ -189,8 +201,12 @@
                       "label": "Expression",
                       "description": "Fail value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "e",
                     "optional": false,
                     "editable": true,
@@ -227,7 +243,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -239,7 +259,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "e ",
                 "placeholder": "err",
                 "optional": false,
@@ -252,7 +276,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -290,7 +318,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "e",
                     "optional": true,
                     "editable": true,

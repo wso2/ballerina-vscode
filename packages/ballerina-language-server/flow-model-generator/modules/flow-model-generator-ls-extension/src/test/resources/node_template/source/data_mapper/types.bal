@@ -30,3 +30,15 @@ type Admission record {
 };
 
 type Persons Person[];
+
+enum Status {
+    ACTIVE,
+    INACTIVE,
+    PENDING
+}
+
+type Department "Engineering"|"Sales"|"HR"|"Marketing";
+
+type Priority 1|2|3|4|5;
+
+type MixedValue string|int|boolean|decimal;

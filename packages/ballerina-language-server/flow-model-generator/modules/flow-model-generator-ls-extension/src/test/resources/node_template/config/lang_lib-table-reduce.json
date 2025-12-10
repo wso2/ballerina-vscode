@@ -36,8 +36,12 @@
           "label": "T",
           "description": "the table"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "table<map<any|error>>",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "table<table:MapType>"
+          }
+        ],
         "placeholder": "table []",
         "optional": false,
         "editable": true,
@@ -62,8 +66,12 @@
           "label": "Func",
           "description": "combining function"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "function ((any|error) accum, map<any|error> val) returns (any|error)",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function (table:Type accum, table:MapType val) returns table:Type"
+          }
+        ],
         "placeholder": "",
         "optional": false,
         "editable": true,
@@ -88,8 +96,12 @@
           "label": "Initial",
           "description": "initial value for the first argument of combining parameter `func`"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "(any|error)",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "table:Type"
+          }
+        ],
         "placeholder": "()",
         "optional": false,
         "editable": true,
@@ -114,8 +126,12 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
-        "value": "(any|error)",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "table:Type",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -128,8 +144,12 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
-        "value": "anyError",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "tableType",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -140,7 +160,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

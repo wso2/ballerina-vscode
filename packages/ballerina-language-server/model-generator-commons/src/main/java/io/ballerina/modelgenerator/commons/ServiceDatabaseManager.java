@@ -700,7 +700,8 @@ public class ServiceDatabaseManager {
                     null,
                     optional,
                     importStatements,
-                    typeMembers
+                    typeMembers,
+                    null
             );
         }
     }

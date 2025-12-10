@@ -90,8 +90,7 @@ public class AutomationBuilder extends FunctionDefinitionBuilder {
                     .description(FUNCTION_NAME_DOC)
                     .stepOut()
                 .value(MAIN_FUNCTION_NAME)
-                .type(Property.ValueType.IDENTIFIER)
-                .typeConstraint(Property.GLOBAL_SCOPE)
+                .typeWithScope(Property.ValueType.IDENTIFIER, Property.GLOBAL_SCOPE)
                 .hidden()
                 .stepOut()
                 .addProperty(Property.FUNCTION_NAME_KEY);

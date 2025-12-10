@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "RETURN"
@@ -19,7 +20,11 @@
           "label": "Expression",
           "description": "Return value"
         },
-        "valueType": "ACTION_OR_EXPRESSION",
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,

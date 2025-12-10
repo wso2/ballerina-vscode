@@ -45,6 +45,7 @@ import java.util.Set;
  * @since 1.1.0
  */
 public class VectorStoreBuilder extends CallBuilder {
+
     public static final String LABEL = "Vector Store";
     public static final String DESCRIPTION = "Vector stores available in the integration";
 
@@ -85,7 +86,7 @@ public class VectorStoreBuilder extends CallBuilder {
 
         FunctionData functionData = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
-                .moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
+                .moduleInfo(codedataModuleInfo)
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.VECTOR_STORE)
                 .build();
 
@@ -130,7 +131,6 @@ public class VectorStoreBuilder extends CallBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -150,11 +150,7 @@ public class VectorStoreBuilder extends CallBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
                 }
                 default -> {
-                    if (paramResult.type() instanceof List<?>) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
-                    }
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 

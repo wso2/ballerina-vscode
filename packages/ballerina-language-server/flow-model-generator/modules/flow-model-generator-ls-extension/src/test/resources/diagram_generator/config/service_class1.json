@@ -113,8 +113,12 @@
                       "label": "Expression",
                       "description": "Panic value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "error(\"Unimplemented function\")",
                     "optional": false,
                     "editable": true,
@@ -151,7 +155,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -163,7 +171,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "err ",
                 "placeholder": "err",
                 "optional": false,
@@ -176,7 +188,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -214,7 +230,11 @@
                       "label": "Comment",
                       "description": "Comment to describe the flow"
                     },
-                    "valueType": "STRING",
+                    "types": [
+                      {
+                        "fieldType": "TEXT"
+                      }
+                    ],
                     "value": "",
                     "optional": false,
                     "editable": true,
@@ -252,8 +272,12 @@
                       "label": "Expression",
                       "description": "Panic value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "error(\"Unhandled error\")",
                     "optional": false,
                     "editable": true,

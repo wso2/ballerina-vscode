@@ -93,14 +93,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "[var quantity, var ripeness]",
                     "optional": false,
                     "editable": true,
@@ -119,7 +127,11 @@
                   "label": "Expression",
                   "description": "Guard expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "quantity is int && ripeness is int ",
                 "optional": false,
                 "editable": true,
@@ -176,8 +188,12 @@
                           "label": "Condition",
                           "description": "Boolean Condition"
                         },
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "boolean",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean"
+                          }
+                        ],
                         "value": "quantity < 0 || ripeness < 1 || ripeness > 5 ",
                         "placeholder": "true",
                         "optional": false,
@@ -215,8 +231,12 @@
                               "label": "Expression",
                               "description": "Panic value"
                             },
-                            "valueType": "EXPRESSION",
-                            "valueTypeConstraint": "error",
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "error"
+                              }
+                            ],
                             "value": "error(\"Invalid input values\")",
                             "optional": false,
                             "editable": true,
@@ -259,7 +279,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "string `Order for ${quantity} peaches with ripeness ${ripeness}`",
                     "optional": true,
                     "editable": true,
@@ -296,14 +320,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "_",
                     "optional": false,
                     "editable": true,
@@ -347,8 +379,12 @@
                       "label": "Expression",
                       "description": "Panic value"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error"
+                      }
+                    ],
                     "value": "error(\"Invalid data format\")",
                     "optional": false,
                     "editable": true,
@@ -385,7 +421,11 @@
                   "label": "Ignore",
                   "description": "Ignore the error value"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "false",
                 "optional": false,
                 "editable": true,
@@ -397,7 +437,11 @@
                   "label": "Error Variable",
                   "description": "Name of the error variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "e ",
                 "placeholder": "err",
                 "optional": false,
@@ -410,7 +454,11 @@
                   "label": "Error Type",
                   "description": "Type of the error"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "error",
                 "placeholder": "error",
                 "optional": false,
@@ -448,7 +496,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "string `Error processing peach order: ${e.message()}`",
                     "optional": true,
                     "editable": true,
@@ -467,8 +519,12 @@
               "label": "Target",
               "description": "Match target expression"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "any|error",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "any|error"
+              }
+            ],
             "value": "data ",
             "placeholder": "true",
             "optional": false,
