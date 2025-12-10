@@ -27,6 +27,7 @@ import {
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
+    undo,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -203,6 +204,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
         undoRedoManager.commitBatchOperation(params.description);
     }
 
+    resetUndoRedoStack(): void {
+        undoRedoManager.reset();
+    }
+
     async getThemeKind(): Promise<ColorThemeKind> {
         return new Promise((resolve) => {
             resolve(window.activeColorTheme.kind);
@@ -285,10 +290,5 @@ export class VisualizerRpcManager implements VisualizerAPI {
             }
             resolve(currentArtifact);
         });
-    }
-
-    resetUndoRedoStack(): void {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 }
