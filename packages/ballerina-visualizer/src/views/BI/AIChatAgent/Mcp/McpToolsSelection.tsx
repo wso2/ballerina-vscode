@@ -19,7 +19,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { Button, CheckBox, ThemeColors, SearchBox, Codicon, Divider, Typography, Dropdown } from "@wso2/ui-toolkit";
+import { Button, CheckBox, ThemeColors, SearchBox, Codicon, Divider, Typography, Dropdown, Tooltip, Icon } from "@wso2/ui-toolkit";
 import type { OptionProps } from "@wso2/ui-toolkit";
 
 export interface McpTool {
@@ -48,11 +48,6 @@ const formatErrorMessage = (error: string): string => {
         return 'The server returned an HTML page instead of MCP tools. Please verify the URL is correct.';
     }
 
-    // Check for network errors
-    if (error.includes('Network error') || error.includes('Failed to fetch')) {
-        return 'Network error. Please check your connection and the server URL.';
-    }
-
     // Truncate very long error messages
     if (error.length > 500) {
         return error.substring(0, 500) + '...';
@@ -72,6 +67,10 @@ interface McpToolsSelectionProps {
     showValidationError?: boolean;
     toolsInclude?: string;
     onToolsIncludeChange?: (value: string) => void;
+    showDiscoverButton?: boolean;
+    onDiscoverClick?: () => void;
+    toolSource?: 'auto-fetched' | 'manual-discovery' | 'saved-mock' | null;
+    resolutionError?: string;
 }
 
 interface ToolsListProps {
@@ -239,7 +238,6 @@ const ModalContent = styled.div`
 
 const SearchContainer = styled.div`
     padding: 12px 16px;
-    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
 
 const ExpandButton = styled.button`
@@ -247,7 +245,7 @@ const ExpandButton = styled.button`
     border: none;
     color: ${ThemeColors.ON_SURFACE};
     cursor: pointer;
-    padding: 4px;
+    padding: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -413,6 +411,9 @@ const ToolsSelectionModal: React.FC<{
     );
 };
 
+export { ToolsList, formatErrorMessage };
+export type { ToolsListProps };
+
 export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     tools,
     selectedTools,
@@ -423,7 +424,11 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     serviceUrl,
     showValidationError = false,
     toolsInclude = "all",
-    onToolsIncludeChange
+    onToolsIncludeChange,
+    showDiscoverButton = false,
+    onDiscoverClick,
+    resolutionError = "",
+    toolSource = null
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const formattedError = useMemo(() => formatErrorMessage(error), [error]);
@@ -457,31 +462,54 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                 <ToolsContainer>
                     <ToolsHeader>
                         <ToolsTitle>Available Tools</ToolsTitle>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            {tools.length > 0 && (
-                                <>
+                        {tools.length > 0 && (
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                {showDiscoverButton && toolSource === 'saved-mock' && (
                                     <ExpandButton
-                                        onClick={() => setIsModalOpen(true)}
-                                        title="Expand view"
-                                        aria-label="Expand tools selection"
+                                        onClick={onDiscoverClick}
+                                        title="Discover Tools"
+                                        aria-label="Discover tools"
                                     >
-                                        <Codicon name="screen-full" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} />
+                                        <Icon name="bi-ai-search" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: 18, height: 18, fontSize: 18 }} />
                                     </ExpandButton>
-                                    <Button
-                                        onClick={onSelectAll}
-                                        disabled={loading}
-                                    >
-                                        {selectedTools.size === tools.length ? "Deselect All" : "Select All"}
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                                )}
+                                <ExpandButton
+                                    onClick={() => setIsModalOpen(true)}
+                                    title="Expand view"
+                                    aria-label="Expand tools selection"
+                                >
+                                    <Icon name="bi-expand-modal" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: 18, height: 18, fontSize: 18 }} />
+                                </ExpandButton>
+                                <Button
+                                    onClick={onSelectAll}
+                                    disabled={loading}
+                                >
+                                    {selectedTools.size === tools.length ? "Deselect All" : "Select All"}
+                                </Button>
+                            </div>
+                        )}
                     </ToolsHeader>
                     {loading && (
                         <LoadingMessage>
                             <InlineSpinner />
                             Loading tools from MCP server...
                         </LoadingMessage>
+                    )}
+                    {showDiscoverButton && toolSource !== 'saved-mock' && toolSource !== 'manual-discovery' && toolSource !== 'auto-fetched' && !error && (
+                        <>
+                            <InfoMessage style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                {resolutionError || "Tools cannot be loaded. Server URL or authentication configuration cannot be resolved."}
+                            </InfoMessage>
+                            <div style={{ padding: '0 12px 12px 12px', display: 'flex', alignItems: 'center' }}>
+                                <Button
+                                    onClick={onDiscoverClick}
+                                >
+                                    <Icon name="bi-ai-search" sx={{ marginRight: '6px', width: 16, height: 16, fontSize: 16 }} />
+                                    Discover Tools
+                                </Button>
+                                <Icon tooltip="Manually connect to the MCP server to retrieve available tools." name="bi-info" sx={{ fontSize: 18, width: 18, height: 18, marginLeft: '6px', verticalAlign: 'middle', color: ThemeColors.ON_SURFACE_VARIANT }} />
+                            </div>
+                        </>
                     )}
                     {error && (
                         <>
@@ -491,7 +519,12 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                             <ErrorMessage>{formattedError}</ErrorMessage>
                         </>
                     )}
-                    {!loading && tools.length > 0 && (
+                    {resolutionError && toolSource === 'saved-mock' && !error && (
+                        <InfoMessage style={{ color: ThemeColors.HIGHLIGHT, marginBottom: "6px" }}>
+                            {resolutionError}. Using saved tool selections.
+                        </InfoMessage>
+                    )}
+                    {!loading && tools.length > 0 && (!showDiscoverButton || toolSource === 'saved-mock' || toolSource === 'manual-discovery' || toolSource === 'auto-fetched') && (
                         <>
                             {showValidationError && selectedTools.size === 0 ? (
                                 <WarningMessage style={{ marginBottom: "6px" }}>
@@ -510,12 +543,12 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                             />
                         </>
                     )}
-                    {!loading && !error && tools.length === 0 && serviceUrl?.trim() && (
+                    {!loading && !error && !showDiscoverButton && tools.length === 0 && serviceUrl?.trim() && (
                         <InfoMessage style={{ marginBottom: "12px" }}>
                             No tools available from this MCP server
                         </InfoMessage>
                     )}
-                    {!loading && !error && tools.length === 0 && !serviceUrl?.trim() && (
+                    {!loading && !error && !showDiscoverButton && tools.length === 0 && !serviceUrl?.trim() && (
                         <InfoMessage style={{ marginBottom: "12px" }}>
                             Enter a server URL to view available tools
                         </InfoMessage>
