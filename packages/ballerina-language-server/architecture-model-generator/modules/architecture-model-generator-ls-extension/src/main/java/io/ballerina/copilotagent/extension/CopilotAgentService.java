@@ -66,12 +66,7 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
                 originalProject = this.workspaceManager.loadProject(path);
                 shadowProject = this.aiWorkspaceManager.loadProject(path);
 
-                SemanticDiffComputer diffComputer = new SemanticDiffComputer(
-                        originalProject,
-                        shadowProject,
-                        this.workspaceManager,
-                        this.aiWorkspaceManager
-                );
+                SemanticDiffComputer diffComputer = new SemanticDiffComputer(originalProject, shadowProject);
                 Result result = diffComputer.computeSemanticDiffs();
                 response.setLoadDesignDiagrams(result.loadDesignDiagrams());
                 response.setSemanticDiffs(result.semanticDiffs());

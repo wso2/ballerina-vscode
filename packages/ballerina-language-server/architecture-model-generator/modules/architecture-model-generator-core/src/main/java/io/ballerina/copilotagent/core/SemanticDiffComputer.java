@@ -78,9 +78,7 @@ public class SemanticDiffComputer {
     private boolean loadDesignDiagrams = false;
 
     public SemanticDiffComputer(Project originalProject,
-                                Project modifiedProject,
-                                WorkspaceManager originalWorkspaceManager,
-                                WorkspaceManager shadowWorkspaceManager) {
+                                Project modifiedProject) {
         this.originalProject = originalProject;
         this.modifiedProject = modifiedProject;
         this.rootProjectPath = originalProject.sourceRoot().toString();
@@ -723,6 +721,6 @@ public class SemanticDiffComputer {
 
     private String resolveUri(String fileName) {
         Path filePath = Path.of(rootProjectPath).resolve(fileName);
-        return "ai"+ filePath.toUri().toString().substring(4);
+        return "ai" + filePath.toUri().toString().substring(4);
     }
 }
