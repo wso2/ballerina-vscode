@@ -115,7 +115,7 @@ export function FunctionForm(props: FunctionFormProps) {
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }
-            if (field.key === "parameters" && isTemplateType(primaryInputType)) {
+            if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
                 if ((primaryInputType.template as any).value.parameterDescription) {
                     (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                 }
