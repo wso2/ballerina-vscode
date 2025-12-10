@@ -38,6 +38,7 @@ import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEdit
 import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
 import { TupleEditor } from './MultiModeExpressionEditor/TupleEditor/TupleEditor';
 import { UnionEditor } from './MultiModeExpressionEditor/UnionEditor/UnionEditor';
+import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 
 export interface ExpressionField {
     field: FormField;
@@ -133,7 +134,11 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 }) => {
     if (inputMode === InputMode.BOOLEAN) {
         return (
-            <UnionEditor
+            <EnumEditor
+                value={value}
+                field={field}
+                onChange={(val) => onChange(val, val.length)}
+                items={[]}
                
             />
         );
