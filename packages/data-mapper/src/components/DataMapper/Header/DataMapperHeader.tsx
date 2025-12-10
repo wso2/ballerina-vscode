@@ -67,6 +67,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
                     <ActionGroupContaner>
+                        {undoRedoGroup && undoRedoGroup()}
                         <ActionIconButton
                             onClick={onReset}
                             iconName="clear-all"
