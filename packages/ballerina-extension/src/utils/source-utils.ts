@@ -23,7 +23,8 @@ import { Uri } from 'vscode';
 import { ArtifactData, EVENT_TYPE, MACHINE_VIEW, ProjectStructureArtifactResponse, STModification, TextEdit } from '@wso2/ballerina-core';
 import { openView, StateMachine, undoRedoManager } from '../stateMachine';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './project-artifacts-handler';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync, mkdirSync } from 'fs';
+import * as path from 'path';
 import { notifyCurrentWebview } from '../RPCLayer';
 import { applyBallerinaTomlEdit } from '../rpc-managers/bi-diagram/utils';
 
@@ -49,6 +50,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             const fileUri = key.startsWith("file:") ? Uri.parse(key) : Uri.file(key);
             const fileUriString = fileUri.toString();
             if (!existsSync(fileUri.fsPath)) {
+                // Ensure parent directory exists before creating the file
+                const dirPath = path.dirname(fileUri.fsPath);
+                if (!existsSync(dirPath)) {
+                    mkdirSync(dirPath, { recursive: true });
+                }
                 writeFileSync(fileUri.fsPath, '');
                 await new Promise(resolve => setTimeout(resolve, 500)); // Add small delay to ensure file is created
                 await StateMachine.langClient().didOpen({
