@@ -21,6 +21,7 @@ package io.ballerina.persist.extension;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -77,6 +78,7 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createCheckExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createImplicitNewExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
@@ -84,6 +86,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createPositionalArgu
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.CHECK_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
@@ -344,13 +347,15 @@ public class PersistClient {
         NewExpressionNode clientInitNode = createImplicitNewExpressionNode(
                 createToken(NEW_KEYWORD),
                 parenthesizedArgList);
+        CheckExpressionNode checkClientInitNode = createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
+                clientInitNode);
         ModuleMemberDeclarationNode clientDeclarationNode = createModuleVariableDeclarationNode(
                 null,
                 null,
                 createNodeList(NodeFactory.createToken(FINAL_KEYWORD)),
                 clientTypeBindingNode,
                 NodeFactory.createToken(io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN),
-                clientInitNode,
+                checkClientInitNode,
                 NodeFactory.createToken(SEMICOLON_TOKEN));
         modulePartNode = modulePartNode.modify()
                 .withMembers(modulePartNode.members().add(clientDeclarationNode)).apply();
