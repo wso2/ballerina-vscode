@@ -38,6 +38,8 @@ import { startDebugging } from "../editor-support/activator";
 import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
 import { createVersionNumber, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
+import { VisualizerWebview } from "../../views/visualizer/webview";
+import { requiresPackageSelection } from "../../utils/command-utils";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -101,7 +103,20 @@ export function activate(context: BallerinaExtension) {
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
     commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
-        prepareAndGenerateConfig(context, StateMachine.context().projectPath, false, true);
+        const stateMachineContext = StateMachine.context();
+        const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        const hasActiveTextEditor = !!window.activeTextEditor;
+
+        const needsPackageSelection = requiresPackageSelection(
+            workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
+        );
+        
+        if (needsPackageSelection && projectInfo?.children.length === 0) {
+            window.showErrorMessage("No packages found in the workspace.");
+            return;
+        }
+        prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
     });
 
     commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
