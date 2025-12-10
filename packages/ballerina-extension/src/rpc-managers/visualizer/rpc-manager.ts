@@ -286,4 +286,9 @@ export class VisualizerRpcManager implements VisualizerAPI {
             resolve(currentArtifact);
         });
     }
+
+    resetUndoRedoStack(): void {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }
