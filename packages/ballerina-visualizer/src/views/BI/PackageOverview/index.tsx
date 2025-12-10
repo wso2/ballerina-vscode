@@ -608,10 +608,11 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant, devantMet
 
 interface PackageOverviewProps {
     projectPath: string;
+    isInDevant: boolean;
 }
 
 export function PackageOverview(props: PackageOverviewProps) {
-    const { projectPath } = props;
+    const { projectPath, isInDevant } = props;
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = useState<string>("");
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
@@ -624,7 +625,6 @@ export function PackageOverview(props: PackageOverviewProps) {
         refetchInterval: 5000
     });
     const [showAlert, setShowAlert] = useState(false);
-    const isDevantEditor = (window as any).isDevantEditor !== undefined ? true : false;
 
     const fetchContext = () => {
         rpcClient
@@ -941,7 +941,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </FooterPanel>
                     </LeftContent>
                     <SidePanel>
-                        {!isDevantEditor &&
+                        {!isInDevant &&
                             <>
                                 <DeploymentOptions
                                     handleDockerBuild={handleDockerBuild}
@@ -955,7 +955,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
                             </>
                         }
-                        {isDevantEditor &&
+                        {isInDevant &&
                             <DevantDashboard
                                 projectStructure={projectStructure}
                                 handleDeploy={handleDeploy}
