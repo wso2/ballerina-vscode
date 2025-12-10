@@ -7,7 +7,7 @@
       {
         "changeType": "MODIFICATION",
         "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/type_change/original/types.bal",
+        "uri": "ai:///types.bal",
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
@@ -23,7 +23,7 @@
       {
         "changeType": "ADDITION",
         "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/type_change/original/types.bal",
+        "uri": "ai:///types.bal",
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {
@@ -39,7 +39,7 @@
       {
         "changeType": "ADDITION",
         "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///Users/lakshanweerasinghe/Documents/repos/ballerina-platform/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_semantic_diff/source/type_change/original/types.bal",
+        "uri": "ai:///types.bal",
         "lineRange": {
           "fileName": "types.bal",
           "startLine": {

@@ -216,15 +216,10 @@ public class SemanticDiffComputer {
                                       Map<String, FunctionDefinitionNode> modifiedFunctionMap) {
         for (String functionName : originalFunctionMap.keySet()) {
             if (!modifiedFunctionMap.containsKey(functionName)) {
-                // Function removed in modified project
-                SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.MODULE_FUNCTION,
-                        "", null);
-                this.semanticDiffs.add(diff);
                 continue;
             }
-            modifiedFunctionMap.remove(functionName);
-            compareFunctionBodies(originalFunctionMap.get(functionName),
-                    modifiedFunctionMap.get(functionName), NodeKind.MODULE_FUNCTION);
+            FunctionDefinitionNode modifiedFunction = modifiedFunctionMap.remove(functionName);
+            compareFunctionBodies(originalFunctionMap.get(functionName), modifiedFunction, NodeKind.MODULE_FUNCTION);
         }
 
         // Handle newly added functions in modified project

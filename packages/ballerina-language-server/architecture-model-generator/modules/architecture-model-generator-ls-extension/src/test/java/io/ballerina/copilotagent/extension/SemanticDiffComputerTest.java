@@ -63,16 +63,11 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
         Path modifiedProjectPath = sourceDir.resolve(testConfig.projectPath()).resolve("modified");
 
         // send a did change notification -> ai://originalFilePath
-        try (Stream<Path> originalFiles = Files.walk(originalProjectPath)) {
-            Optional<Path> balFile = Files.walk(originalProjectPath).filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".bal")).findFirst();
-            if (balFile.isPresent()) {
-                notifyCustomDidOpen(balFile.get().toString(), "file");
-                Thread.sleep(1000);
-                notifyCustomDidOpen(balFile.get().toString(), "ai");
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        Optional<Path> balFile = Files.walk(originalProjectPath).filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".bal")).findFirst();
+        if (balFile.isPresent()) {
+            notifyCustomDidOpen(balFile.get().toString(), "file");
+            notifyCustomDidOpen(balFile.get().toString(), "ai");
         }
 
         // read all the modified files in the modified project path
@@ -88,15 +83,12 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
                         }
                     });
         }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
         SemanticDiffRequest request = new SemanticDiffRequest(originalProjectPath.toString());
         JsonObject jsonResponse = getResponseAndCloseFile(request, originalProjectPath.toString());
         JsonElement actualOutput = gson.toJsonTree(jsonResponse);
+        String outputJsonStr = actualOutput.toString().replaceAll(originalProjectPath.toString(), "");
+        actualOutput = gson.fromJson(outputJsonStr, JsonElement.class);
         // assert the results
         if (!actualOutput.equals(testConfig.output())) {
             TestConfig updatedConfig = new TestConfig(testConfig.description(), 
