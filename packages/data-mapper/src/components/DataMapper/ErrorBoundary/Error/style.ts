@@ -15,16 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { css, keyframes } from "@emotion/css";
 
-const fadeIn = keyframes`
-    from { opacity: 0.5; }
-    to { opacity: 1; }
-`;
+import { css } from "@emotion/css";
 
 export const useStyles = () => ({
-   
-   
+
     overlay: css({
         zIndex: 1,
         position: 'absolute',
@@ -36,29 +31,27 @@ export const useStyles = () => ({
     }),
 
     errorContainer: css({
-           position: 'absolute',
-           top: '50%',
-           left: '50%',
-           transform: 'translate(-50%, -50%)',
-           width: '90%',
-           maxWidth: '500px',
-           animation: `${fadeIn} 0.5s ease-in-out`,
-           zIndex: 2
-       }),
-      
-       errorBody: css({
-           backgroundColor: 'var(--vscode-editorWidget-background)',
-           color: 'var(--vscode-sideBarSectionHeader-foreground)',
-           padding: '16px',
-           borderColor: "var(--vscode-errorForeground)",
-           border: '1px solid',
-           borderRadius: '4px',
-           display: 'flex',
-           flexDirection: 'column',
-           gap: '12px'
-       }),
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '500px',
+        zIndex: 2
+    }),
 
-        headerContainer: css({
+    errorBody: css({
+        backgroundColor: 'var(--vscode-editorWidget-background)',
+        color: 'var(--vscode-editor-foreground)',
+        padding: '16px',
+        border: '1px solid',
+        borderRadius: '4px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px'
+    }),
+
+    headerContainer: css({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -70,11 +63,12 @@ export const useStyles = () => ({
         alignItems: 'center',
         color: 'var(--vscode-editorInfo-foreground)'
     }),
-    
+
     actionButtons: css({
         display: 'flex',
         gap: '4px',
-        alignItems: 'center'
+        alignItems: 'center',
+        alignSelf: 'flex-end'
     }),
 
     errorMessage: css({

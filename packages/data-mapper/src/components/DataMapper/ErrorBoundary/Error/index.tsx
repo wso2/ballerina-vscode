@@ -22,18 +22,10 @@ import { useErrorBoundary } from "react-error-boundary";
 import { useStyles } from "./style";
 import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 import { ISSUES_URL } from "../../../Diagram/utils/constants";
+
 interface ErrorScreenProps {
     onClose: () => void;
     goToSource: () => void;
-}
-
-function IconButton(props: { icon: string, onClick: () => void, tooltip?: string }) {
-    const { icon, onClick, tooltip } = props;
-    return (
-        <Button appearance="icon" onClick={onClick} tooltip={tooltip}>
-            <Icon name={icon} isCodicon sx={{ width: 22, height: 22 }} iconSx={{ fontSize: 20 }} />
-        </Button>
-    );
 }
 
 export default function ErrorScreen(props: ErrorScreenProps) {
@@ -51,16 +43,27 @@ export default function ErrorScreen(props: ErrorScreenProps) {
                             <Codicon iconSx={{ fontSize: 25 }} name="info" />
                         </div>
                         <div className={classes.actionButtons}>
-                            <IconButton icon="code" onClick={goToSource} tooltip="Show source" />
-                            <IconButton icon="refresh" onClick={resetBoundary} tooltip="Refresh" />
-                            <IconButton icon="close" onClick={onClose} tooltip="Close" />
+                            <Button appearance="icon" onClick={onClose} tooltip="Close">
+                                <Icon name="close" isCodicon sx={{ width: 22, height: 22 }} iconSx={{ fontSize: 20 }} />
+                            </Button>
                         </div>
                     </div>
                     <div data-test-id={"error-message"} className={classes.errorMessage}>
-                        <p>This mapping cannot be visualized.</p>
+                        <p>This mapping cannot be visualized. Please switch to the source view to continue editing.</p>
                         <p>
                             Please raise an issue with the sample code in our <a className={classes.link} href={ISSUES_URL}>issue tracker.</a>
                         </p>
+                    </div>
+                    <div className={classes.actionButtons}>
+                       
+                        <Button appearance="secondary" onClick={resetBoundary}>
+                            <Icon name="refresh" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
+                            Refresh
+                        </Button>
+                         <Button appearance="primary" onClick={goToSource}>
+                            <Icon name="code" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
+                            Show source
+                        </Button>
                     </div>
                 </div>
             </div>
