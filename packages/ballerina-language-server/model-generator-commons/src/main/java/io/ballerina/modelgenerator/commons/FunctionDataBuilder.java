@@ -53,6 +53,7 @@ import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
@@ -528,7 +529,7 @@ public class FunctionDataBuilder {
             for (String paramName : paramNameList) {
                 if (returnTypeMap.containsKey(paramName)) {
                     TypeSymbol typeDescriptor = returnTypeMap.get(paramName);
-                    String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeDescriptor);
+                    String defaultValue = getTypeSignature(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
                     paramForTypeInfer = new ParamForTypeInfer(paramName, defaultValue,
                             CommonUtils.getTypeSignature(semanticModel, CommonUtils.getRawType(typeDescriptor), true));
                     break;
@@ -743,8 +744,8 @@ public class FunctionDataBuilder {
         } else {
             if (paramForTypeInfer != null) {
                 if (paramForTypeInfer.paramName().equals(paramName)) {
-                    placeholder = paramForTypeInfer.type();
-                    defaultValue = paramForTypeInfer.type();
+                    placeholder = paramForTypeInfer.defaultValue();
+                    defaultValue = paramForTypeInfer.defaultValue();
                     paramType = paramForTypeInfer.type();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
