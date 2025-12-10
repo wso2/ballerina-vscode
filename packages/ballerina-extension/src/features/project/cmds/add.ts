@@ -27,9 +27,8 @@ import {
     getCurrentBallerinaProject,
     getCurrentProjectRoot
 } from "../../../utils/project-utils";
-import { BallerinaProject, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
-import { getBallerinaPackages } from "../../../utils";
 
 function activateAddCommand() {
     // register ballerina add handler
@@ -48,6 +47,10 @@ function activateAddCommand() {
             let targetPath = projectPath ?? "";
             if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
                 const packages = projectInfo?.children;
+                if (!packages || packages.length === 0) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
                 const selection = await getPackage(packages.map((pkg) => pkg.projectPath));
                 if (!selection) {
                     return;
@@ -58,8 +61,12 @@ function activateAddCommand() {
                 try {
                     targetPath = await getCurrentProjectRoot();
                 } catch (error) {
-                    const packages = await getBallerinaPackages(Uri.file(workspacePath));
-                    const selection  = await getPackage(packages);
+                    const packages = projectInfo?.children;
+                    if (!packages || packages.length === 0) {
+                        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                        return;
+                    }
+                    const selection = await getPackage(packages.map((pkg) => pkg.projectPath));
                     if (!selection) {
                         return;
                     }
