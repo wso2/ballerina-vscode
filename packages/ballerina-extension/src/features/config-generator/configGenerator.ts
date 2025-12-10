@@ -32,6 +32,7 @@ import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 import { TracerMachine } from "../tracing";
 import { VisualizerWebview } from "../../views/visualizer/webview";
+import { promptPackageSelection } from "../../utils/command-utils";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -41,21 +42,18 @@ export async function prepareAndGenerateConfig(
     isCommand?: boolean,
     isBi?: boolean,
     executeRun: boolean = true,
-    runningOnWorkspace: boolean = false
+    needsPackageSelection: boolean = false
 ): Promise<void> {
 
     let packagePath: string;
     let packageName: string;
 
-    if (runningOnWorkspace) {
+    if (needsPackageSelection) {
         try {
             const packages = StateMachine.context().projectInfo?.children;
             const packageList = packages?.map((child) => child.projectPath) ?? [];
 
-            const selectedPackage = await window.showQuickPick(packageList, {
-                placeHolder: "Select a package",
-                ignoreFocusOut: false,
-            });
+            const selectedPackage = await promptPackageSelection(packageList, "Select a package to run");
 
             // User cancelled selection
             if (!selectedPackage) {
