@@ -19,7 +19,7 @@
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
 import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
+import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
 import {
@@ -194,6 +194,18 @@ export async function handleDownloadFile(rawFileLink: string, defaultDownloadsPa
         window.showErrorMessage(`Failed to download file: ${error}`);
     }
     progress.report({ message: "Download finished" });
+}
+
+export function findWorkspaceTypeFromProjectInfo(projectInfo: ProjectInfo): WorkspaceTypeResponse {
+    const projectType = projectInfo.projectKind;
+    switch (projectType) {
+        case PROJECT_KIND.WORKSPACE_PROJECT:
+            return { type: "BALLERINA_WORKSPACE" };
+        case PROJECT_KIND.BUILD_PROJECT:
+            return { type: "SINGLE_PROJECT" };
+        default:
+            return { type: "UNKNOWN" };
+    }
 }
 
 export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<WorkspaceTypeResponse> {

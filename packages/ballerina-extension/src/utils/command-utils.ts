@@ -17,7 +17,7 @@
  */
 
 import { window } from "vscode";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
 
 export function requiresPackageSelection(
     workspacePath: string | undefined,
@@ -44,7 +44,7 @@ export async function promptPackageSelection(
 }
 
 export function needsProjectDiscovery(
-    projectInfo: any,
+    projectInfo: ProjectInfo,
     projectRoot: string | undefined,
     projectPath: string | undefined
 ): boolean {
