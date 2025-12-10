@@ -473,6 +473,12 @@ async function handleCommandWithPackageSelection(
     additionalViewParams: Record<string, any> = {}
 ): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+
+    if (availablePackages.length === 0) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return false;
+    }
+
     const selectedPackage = await promptPackageSelection(availablePackages);
 
     if (!selectedPackage) {
