@@ -616,6 +616,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         >
             <S.Container
                 id={id}
+                data-testid={`ex-editor-${field.key}`}
                 onMouseEnter={() => setIsExpressionEditorHovered(true)}
                 onMouseLeave={() => setIsExpressionEditorHovered(false)}
             >
