@@ -87,7 +87,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
-    const isExpressionField = field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION" || field.type === "TEXT";
+    const isExpressionField = field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type === "ACTION_OR_EXPRESSION" || field.type === "TEXT";
 
     if (!field.enabled || field.hidden) {
         return <></>;
