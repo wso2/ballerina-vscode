@@ -125,19 +125,19 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    private async initProjectPathWatcher(context: VisualizerLocation) {
+    private async initProjectPathWatcher(projectPath: string) {
         const platformExt = await this.getPlatformExt();
         let components: ComponentKind[] = [];
         let matchingComponent: ComponentKind;
         let hasLocalChanges = false;
         let hasProjectYaml = false;
-        if (context.projectPath) {
-            components = platformExt.getDirectoryComponents(context.projectPath);
+        if (projectPath) {
+            components = platformExt.getDirectoryComponents(projectPath);
             matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
             );
-            hasLocalChanges = await platformExt.localRepoHasChanges(context.projectPath);
-            hasProjectYaml = hasContextYaml(context.projectPath);
+            hasLocalChanges = await platformExt.localRepoHasChanges(projectPath);
+            hasProjectYaml = hasContextYaml(projectPath);
             await this.debouncedRefreshConnectionList();
         }
 
@@ -148,8 +148,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             hasPossibleComponent: components.length > 0 || hasProjectYaml,
         });
 
-        const unsubscribeDirCompWatcher = platformExt.subscribeDirComponents(context.projectPath, (components) => {
-            const hasProjectYaml = hasContextYaml(context.projectPath);
+        const unsubscribeDirCompWatcher = platformExt.subscribeDirComponents(projectPath, (components) => {
+            const hasProjectYaml = hasContextYaml(projectPath);
             const matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
             );
@@ -202,21 +202,25 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     public async initStateSubscription(messenger: Messenger) {
         await platformExtStore.persist.rehydrate();
         await this.initAuthState();
-        let disposeProjectPathWatcher = await this.initProjectPathWatcher(StateMachine.context());
-        if (StateMachine.context().projectPath) {
+        let projectPath = StateMachine.context()?.projectPath;
+        let disposeProjectPathWatcher = await this.initProjectPathWatcher(projectPath);
+        if (projectPath) {
             this.debouncedRefreshConnectionList();
         }
         await this.initFileWatcher();
         const debouncedInitProjectPathWatcher = debounce(
-            async (context: VisualizerLocation) => await this.initProjectPathWatcher(context),
+            async (projectPath: string) => await this.initProjectPathWatcher(projectPath),
             250
         );
         StateMachine.service().subscribe(async (state) => {
-            if (disposeProjectPathWatcher) {
-                disposeProjectPathWatcher();
-            }
+            if (state.context?.projectPath && state.context?.projectPath !== projectPath) {
+                projectPath = state.context?.projectPath;
+                if (disposeProjectPathWatcher) {
+                    disposeProjectPathWatcher();
+                }
 
-            disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(state.context);
+                disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(projectPath);
+            }
         });
 
         await this.initSelfStoreSubscription(messenger);
