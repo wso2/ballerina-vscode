@@ -245,7 +245,8 @@ export function FunctionForm(props: FunctionFormProps) {
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
                     if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = getPrimaryInputType(property.types).ballerinaType;
+                        const primaryType = getPrimaryInputType(property.types);
+                        const baseConstraint = primaryType?.ballerinaType;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {

@@ -256,7 +256,7 @@ function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in service.properties) {
         const expression = service.properties[key];
-        if (getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT_LISTENER" || getPrimaryInputType(expression.inputTypes).fieldType === "SINGLE_SELECT_LISTENER") {
+        if (getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT_LISTENER" || getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT_LISTENER") {
             continue
         }
         // Skip readOnlyMetadata as it's a special property that doesn't have standard form fields

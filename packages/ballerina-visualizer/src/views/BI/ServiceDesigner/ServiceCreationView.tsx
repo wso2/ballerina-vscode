@@ -126,7 +126,7 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (getPrimaryInputType(property.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.inputTypes).fieldType === "SINGLE_SELECT") {
+        if (getPrimaryInputType(property.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.inputTypes)?.fieldType === "SINGLE_SELECT") {
             items = property.items;
         }
 

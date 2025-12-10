@@ -618,7 +618,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 helperPaneHeight,
                 recordTypeField,
                 false, // isAssignIdentifier
-                typeof getPrimaryInputType(recordTypeField?.property?.types).ballerinaType === 'string'
+                typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
                     ? recordTypeField.property.types
                     : undefined
             );
@@ -683,7 +683,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         type: "EXPRESSION",
                                         value: localExpressionValue,
                                         optional: false,
-                                        inputTypes: typeof getPrimaryInputType(recordTypeField?.property?.types).ballerinaType === 'string'
+                                        inputTypes: typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
                                             ? recordTypeField.property.types
                                             : [],
                                         metadata: recordTypeField?.property?.metadata,
