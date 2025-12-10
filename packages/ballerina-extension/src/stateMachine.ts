@@ -2,12 +2,39 @@
 import { ExtendedLangClient } from './core';
 import { createMachine, assign, interpret } from 'xstate';
 import { activateBallerina } from './extension';
-import { EVENT_TYPE, SyntaxTree, History, MachineStateValue, IUndoRedoManager, VisualizerLocation, webviewReady, MACHINE_VIEW, DIRECTORY_MAP, SCOPE, ProjectStructureResponse, ProjectStructureArtifactResponse, CodeData, ProjectDiagnosticsResponse, Type, dependencyPullProgress } from "@wso2/ballerina-core";
+import {
+    EVENT_TYPE,
+    SyntaxTree,
+    History,
+    MachineStateValue,
+    IUndoRedoManager,
+    VisualizerLocation,
+    webviewReady,
+    MACHINE_VIEW,
+    DIRECTORY_MAP,
+    SCOPE,
+    ProjectStructureResponse,
+    ProjectStructureArtifactResponse,
+    CodeData,
+    ProjectDiagnosticsResponse,
+    Type,
+    dependencyPullProgress,
+    BI_COMMANDS,
+    NodePosition,
+    ProjectInfo
+} from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
-import { generateUid, getComponentIdentifier, getNodeByIndex, getNodeByName, getNodeByUid, getView } from './utils/state-machine-utils';
+import {
+    generateUid,
+    getComponentIdentifier,
+    getNodeByIndex,
+    getNodeByName,
+    getNodeByUid,
+    getView
+} from './utils/state-machine-utils';
 import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine } from './views/ai-panel/aiMachine';
@@ -17,21 +44,19 @@ import {
     checkIsBallerinaWorkspace,
     checkIsBI,
     fetchScope,
-    filterPackagePaths,
     getOrgPackageName,
     UndoRedoManager,
-    getProjectTomlValues,
-    getWorkspaceTomlValues
+    getOrgAndPackageName
 } from './utils';
-import { buildProjectArtifactsStructure } from './utils/project-artifacts';
 import { activateDevantFeatures } from './features/devant/activator';
+import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
 import { buildOutputChannel } from './utils/logger';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
-    readonly projectPath: string;
     readonly workspacePath?: string;
+    readonly projectPath?: string;
     readonly scope?: SCOPE;
     readonly orgName?: string;
     readonly packageName?: string;
@@ -58,12 +83,12 @@ const stateMachine = createMachine<MachineContext>(
             langClient: null,
             errorCode: null,
             isBISupported: false,
-            view: MACHINE_VIEW.Overview,
+            view: MACHINE_VIEW.PackageOverview,
             dependenciesResolved: false
         },
         on: {
             RESET_TO_EXTENSION_READY: {
-                target: "extensionReady",
+                target: "extensionReady"
             },
             UPDATE_PROJECT_STRUCTURE: {
                 actions: [
@@ -76,21 +101,62 @@ const stateMachine = createMachine<MachineContext>(
                             console.log('Refreshing BI project explorer');
                             commands.executeCommand("BI.project-explorer.refresh");
                             console.log('Notifying current webview');
-                            notifyCurrentWebview();
+                            // Check if the current view is Service desginer and if so don't notify the webview
+                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
+                                notifyCurrentWebview();
+                            }
                         });
                     }
                 ]
             },
-            UPDATE_PROJECT_ROOT: {
+            UPDATE_PROJECT_ROOT_AND_INFO: {
                 actions: [
                     assign({
-                        projectPath: (context, event) => event.projectPath
+                        projectPath: (context, event) => event.projectPath,
+                        projectInfo: (context, event) => event.projectInfo
                     }),
                     async (context, event) => {
-                        await buildProjectArtifactsStructure(event.projectPath, StateMachine.langClient(), true);
+                        await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
                         notifyCurrentWebview();
+                        notifyTreeView(event.projectPath, context.documentUri, context.position, context.view);
                         // Resolve the next pending promise waiting for project root update completion
                         pendingProjectRootUpdateResolvers.shift()?.();
+                    }
+                ]
+            },
+            REFRESH_PROJECT_INFO: {
+                actions: [
+                    async (context, event) => {
+                        try {
+                            const projectPath = context.workspacePath || context.projectPath;
+                            if (!projectPath) {
+                                console.warn("No project path available for refreshing project info");
+                                return;
+                            }
+
+                            // Fetch updated project info from language server
+                            const projectInfo = await context.langClient.getProjectInfo({ projectPath });
+
+                            // Update context with new project info
+                            stateService.send({
+                                type: 'UPDATE_PROJECT_INFO',
+                                projectInfo
+                            });
+                        } catch (error) {
+                            console.error("Error refreshing project info:", error);
+                        }
+                    }
+                ]
+            },
+            UPDATE_PROJECT_INFO: {
+                actions: [
+                    assign({
+                        projectInfo: (context, event) => event.projectInfo
+                    }),
+                    async (context, event) => {
+                        // Rebuild project structure with updated project info
+                        await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
+                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
                     }
                 ]
             },
@@ -101,20 +167,24 @@ const stateMachine = createMachine<MachineContext>(
                         position: (context, event) => event.viewLocation.position ? event.viewLocation.position : context.position,
                         identifier: (context, event) => event.viewLocation.identifier ? event.viewLocation.identifier : context.identifier,
                         addType: (context, event) => event.viewLocation?.addType !== undefined ? event.viewLocation.addType : context?.addType,
-                    })
+                    }),
+                    (context, event) => notifyTreeView(
+                        context.projectPath,
+                        event.viewLocation.documentUri || context.documentUri,
+                        event.viewLocation.position || context.position,
+                        context.view
+                    )
                 ]
-            },
-            SWITCH_PROJECT: {
-                target: "switch_project"
             }
         },
         states: {
-            switch_project: {
+            initialize: {
                 invoke: {
-                    src: (context, event) => checkForProjects(true),
+                    src: (context, event) => checkForProjects,
                     onDone: [
                         {
-                            target: "viewActive.viewReady",
+                            target: "renderInitialView",
+                            cond: (context, event) => event.data && event.data.isBI,
                             actions: [
                                 assign({
                                     isBI: (context, event) => event.data.isBI,
@@ -122,45 +192,35 @@ const stateMachine = createMachine<MachineContext>(
                                     workspacePath: (context, event) => event.data.workspacePath,
                                     scope: (context, event) => event.data.scope,
                                     org: (context, event) => event.data.orgName,
-                                    package: (context, event) => event.data.packageName,
+                                    package: (context, event) => event.data.packageName
                                 }),
-                                async (context, event) => {
-                                    await buildProjectArtifactsStructure(event.data.projectPath, StateMachine.langClient(), true);
-                                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
-                                    notifyCurrentWebview();
-                                }
+                                (context, event) => notifyTreeView(
+                                    event.data.projectPath,
+                                    context.documentUri,
+                                    context.position,
+                                    context.view
+                                )
                             ]
-                        }
-                    ],
-                }
-            },
-            initialize: {
-                invoke: {
-                    src: (context, event) => checkForProjects(false),
-                    onDone: [
-                        {
-                            target: "renderInitialView",
-                            cond: (context, event) => event.data && event.data.isBI,
-                            actions: assign({
-                                isBI: (context, event) => event.data.isBI,
-                                projectPath: (context, event) => event.data.projectPath,
-                                workspacePath: (context, event) => event.data.workspacePath,
-                                scope: (context, event) => event.data.scope,
-                                org: (context, event) => event.data.orgName,
-                                package: (context, event) => event.data.packageName,
-                            })
                         },
                         {
                             target: "activateLS",
                             cond: (context, event) => event.data && event.data.isBI === false,
-                            actions: assign({
-                                isBI: (context, event) => event.data.isBI,
-                                projectPath: (context, event) => event.data.projectPath,
-                                workspacePath: (context, event) => event.data.workspacePath,
-                                scope: (context, event) => event.data.scope,
-                                org: (context, event) => event.data.orgName,
-                                package: (context, event) => event.data.packageName,
-                            })
+                            actions: [
+                                assign({
+                                    isBI: (context, event) => event.data.isBI,
+                                    projectPath: (context, event) => event.data.projectPath,
+                                    workspacePath: (context, event) => event.data.workspacePath,
+                                    scope: (context, event) => event.data.scope,
+                                    org: (context, event) => event.data.orgName,
+                                    package: (context, event) => event.data.packageName
+                                }),
+                                (context, event) => notifyTreeView(
+                                    event.data.projectPath,
+                                    context.documentUri,
+                                    context.position,
+                                    context.view
+                                )
+                            ]
                         }
                     ],
                     onError: {
@@ -183,7 +243,7 @@ const stateMachine = createMachine<MachineContext>(
                 invoke: {
                     src: 'activateLanguageServer',
                     onDone: {
-                        target: "fetchProjectStructure",
+                        target: "fetchProjectInfo",
                         actions: assign({
                             langClient: (context, event) => event.data.langClient,
                             isBISupported: (context, event) => event.data.isBISupported
@@ -193,6 +253,23 @@ const stateMachine = createMachine<MachineContext>(
                         target: "lsError",
                         actions: () => {
                             console.error("Error occurred while activating Language Server.");
+                        }
+                    }
+                }
+            },
+            fetchProjectInfo: {
+                invoke: {
+                    src: 'fetchProjectInfo',
+                    onDone: {
+                        target: "fetchProjectStructure",
+                        actions: assign({
+                            projectInfo: (context, event) => event.data.projectInfo
+                        })
+                    },
+                    onError: {
+                        target: "lsError",
+                        actions: () => {
+                            console.error("Error occurred while fetching project info.");
                         }
                     }
                 }
@@ -223,20 +300,31 @@ const stateMachine = createMachine<MachineContext>(
                 on: {
                     OPEN_VIEW: {
                         target: "viewActive",
-                        actions: assign({
-                            view: (context, event) => event.viewLocation.view,
-                            documentUri: (context, event) => event.viewLocation.documentUri,
-                            position: (context, event) => event.viewLocation.position,
-                            identifier: (context, event) => event.viewLocation.identifier,
-                            serviceType: (context, event) => event.viewLocation.serviceType,
-                            type: (context, event) => event.viewLocation?.type,
-                            isGraphql: (context, event) => event.viewLocation?.isGraphql,
-                            metadata: (context, event) => event.viewLocation?.metadata,
-                            addType: (context, event) => event.viewLocation?.addType,
-                            dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
-                            artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
-                            rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
-                        })
+                        actions: [
+                            assign({
+                                org: (context, event) => event.viewLocation?.org,
+                                package: (context, event) => event.viewLocation?.package,
+                                view: (context, event) => event.viewLocation.view,
+                                documentUri: (context, event) => event.viewLocation.documentUri,
+                                position: (context, event) => event.viewLocation.position,
+                                projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
+                                identifier: (context, event) => event.viewLocation.identifier,
+                                serviceType: (context, event) => event.viewLocation.serviceType,
+                                type: (context, event) => event.viewLocation?.type,
+                                isGraphql: (context, event) => event.viewLocation?.isGraphql,
+                                metadata: (context, event) => event.viewLocation?.metadata,
+                                addType: (context, event) => event.viewLocation?.addType,
+                                dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                                rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
+                            }),
+                            (context, event) => notifyTreeView(
+                                context.projectPath,
+                                event.viewLocation?.documentUri,
+                                event.viewLocation?.position,
+                                event.viewLocation?.view
+                            )
+                        ]
                     }
                 }
             },
@@ -297,36 +385,53 @@ const stateMachine = createMachine<MachineContext>(
                         on: {
                             OPEN_VIEW: {
                                 target: "viewInit",
-                                actions: assign({
-                                    view: (context, event) => event.viewLocation.view,
-                                    documentUri: (context, event) => event.viewLocation.documentUri,
-                                    position: (context, event) => event.viewLocation.position,
-                                    identifier: (context, event) => event.viewLocation.identifier,
-                                    serviceType: (context, event) => event.viewLocation.serviceType,
-                                    projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
-                                    package: (context, event) => event.viewLocation?.package || context?.package,
-                                    type: (context, event) => event.viewLocation?.type,
-                                    isGraphql: (context, event) => event.viewLocation?.isGraphql,
-                                    metadata: (context, event) => event.viewLocation?.metadata,
-                                    addType: (context, event) => event.viewLocation?.addType,
-                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
-                                    artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
-                                    rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
-                                })
+                                actions: [
+                                    assign({
+                                        view: (context, event) => event.viewLocation.view,
+                                        documentUri: (context, event) => event.viewLocation.documentUri,
+                                        position: (context, event) => event.viewLocation.position,
+                                        identifier: (context, event) => event.viewLocation.identifier,
+                                        serviceType: (context, event) => event.viewLocation.serviceType,
+                                        projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
+                                        org: (context, event) => event.viewLocation?.org || context?.org,
+                                        package: (context, event) => event.viewLocation?.package || context?.package,
+                                        type: (context, event) => event.viewLocation?.type,
+                                        isGraphql: (context, event) => event.viewLocation?.isGraphql,
+                                        metadata: (context, event) => event.viewLocation?.metadata,
+                                        addType: (context, event) => event.viewLocation?.addType,
+                                        dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                        artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
+                                        rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
+                                    }),
+                                    (context, event) => notifyTreeView(
+                                        event.viewLocation?.projectPath || context?.projectPath,
+                                        event.viewLocation?.documentUri,
+                                        event.viewLocation?.position,
+                                        event.viewLocation?.view
+                                    )
+                                ]
                             },
                             VIEW_UPDATE: {
                                 target: "webViewLoaded",
-                                actions: assign({
-                                    documentUri: (context, event) => event.viewLocation.documentUri,
-                                    position: (context, event) => event.viewLocation.position,
-                                    view: (context, event) => event.viewLocation.view,
-                                    identifier: (context, event) => event.viewLocation.identifier,
-                                    serviceType: (context, event) => event.viewLocation.serviceType,
-                                    type: (context, event) => event.viewLocation?.type,
-                                    isGraphql: (context, event) => event.viewLocation?.isGraphql,
-                                    addType: (context, event) => event.viewLocation?.addType,
-                                    dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
-                                })
+                                actions: [
+                                    assign({
+                                        documentUri: (context, event) => event.viewLocation.documentUri,
+                                        position: (context, event) => event.viewLocation.position,
+                                        view: (context, event) => event.viewLocation.view,
+                                        identifier: (context, event) => event.viewLocation.identifier,
+                                        serviceType: (context, event) => event.viewLocation.serviceType,
+                                        type: (context, event) => event.viewLocation?.type,
+                                        isGraphql: (context, event) => event.viewLocation?.isGraphql,
+                                        addType: (context, event) => event.viewLocation?.addType,
+                                        dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                                    }),
+                                    (context, event) => notifyTreeView(
+                                        context.projectPath,
+                                        event.viewLocation?.documentUri,
+                                        event.viewLocation?.position,
+                                        event.viewLocation?.view
+                                    )
+                                ]
                             },
                             FILE_EDIT: {
                                 target: "viewEditing"
@@ -364,18 +469,33 @@ const stateMachine = createMachine<MachineContext>(
                 }
             });
         },
+        fetchProjectInfo: (context, event) => {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const projectPath = context.workspacePath || context.projectPath;
+                    if (!projectPath) {
+                        resolve({ projectInfo: undefined });
+                    } else {
+                        const projectInfo = await context.langClient.getProjectInfo({ projectPath });
+                        resolve({ projectInfo });
+                    }
+                } catch (error) {
+                    throw new Error("Error occurred while fetching project info.", error);
+                }
+            });
+        },
         registerProjectArtifactsStructure: (context, event) => {
             return new Promise(async (resolve, reject) => {
                 try {
                     // Register the event driven listener to get the artifact changes
                     context.langClient.registerPublishArtifacts();
-                    // If the project uri or workspace path is not set, we don't need to build the project structure
-                    if (context.projectPath || context.workspacePath) {
+                    // IF the project info is not set, we don't need to build the project structure
+                    if (context.projectInfo) {
 
                         // Add a 2 second delay before registering artifacts
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         // Initial Project Structure
-                        const projectStructure = await buildProjectArtifactsStructure(context.projectPath, context.langClient);
+                        const projectStructure = await buildProjectsStructure(context.projectInfo, context.langClient);
                         resolve({ projectStructure });
                     } else {
                         resolve({ projectStructure: undefined });
@@ -461,7 +581,7 @@ const stateMachine = createMachine<MachineContext>(
 
                         if (result.success) {
                             console.log('Build task completed successfully');
-                        
+
                             // Retry resolving missing dependencies after build is successful. This is a temporary solution to ensure the project is reloaded with new dependencies.
                             const projectUri = Uri.file(context.projectPath).toString();
                             await StateMachine.langClient().resolveMissingDependencies({
@@ -470,7 +590,7 @@ const stateMachine = createMachine<MachineContext>(
                                 }
                             });
 
-                            
+
                             // Close the output panel on successful completion
                             commands.executeCommand('workbench.action.closePanel');
                         } else {
@@ -491,17 +611,25 @@ const stateMachine = createMachine<MachineContext>(
         },
         findView(context, event): Promise<void> {
             return new Promise(async (resolve, reject) => {
-                const projectTomlValues = await getProjectTomlValues(context.projectPath);
-                const packageName = projectTomlValues?.package?.name;
+                const { orgName, packageName } = getOrgAndPackageName(context.projectInfo, context.projectPath);
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        history.push({
-                            location: {
-                                view: MACHINE_VIEW.Overview,
-                                documentUri: context.documentUri,
-                                package: packageName || context.package
-                            }
-                        });
+                        if (!context.projectPath && context.workspacePath) {
+                            history.push({
+                                location: {
+                                    view: MACHINE_VIEW.WorkspaceOverview
+                                }
+                            });
+                        } else {
+                            history.push({
+                                location: {
+                                    view: MACHINE_VIEW.PackageOverview,
+                                    documentUri: context.documentUri,
+                                    org: orgName || context.org,
+                                    package: packageName || context.package,
+                                }
+                            });
+                        }
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
@@ -516,6 +644,7 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            org: orgName || context.org,
                             package: packageName || context.package,
                             type: context?.type,
                             isGraphql: context?.isGraphql,
@@ -533,9 +662,13 @@ const stateMachine = createMachine<MachineContext>(
                 const selectedEntry = getLastHistory();
                 if (!context.langClient) {
                     if (!selectedEntry) {
-                        return resolve({ view: MACHINE_VIEW.Overview, documentUri: context.documentUri });
+                        return resolve(
+                            context.workspacePath
+                                ? { view: MACHINE_VIEW.WorkspaceOverview }
+                                : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
+                        );
                     }
-                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.Overview });
+                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.PackageOverview });
                 }
 
                 if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
@@ -561,7 +694,11 @@ const stateMachine = createMachine<MachineContext>(
                 }) as SyntaxTree;
 
                 if (!selectedEntry?.location.view) {
-                    return resolve({ view: MACHINE_VIEW.Overview, documentUri: context.documentUri });
+                    return resolve(
+                        context.workspacePath
+                            ? { view: MACHINE_VIEW.WorkspaceOverview }
+                            : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
+                    );
                 }
 
                 let selectedST;
@@ -669,11 +806,14 @@ export const StateMachine = {
     },
     sendEvent: (eventType: EVENT_TYPE) => { stateService.send({ type: eventType }); },
     updateProjectStructure: (payload: ProjectStructureResponse) => { stateService.send({ type: "UPDATE_PROJECT_STRUCTURE", payload }); },
-    updateProjectRoot: (projectPath: string): Promise<void> => {
+    updateProjectRootAndInfo: (projectPath: string, projectInfo: ProjectInfo): Promise<void> => {
         return new Promise<void>((resolve) => {
             pendingProjectRootUpdateResolvers.push(resolve);
-            stateService.send({ type: "UPDATE_PROJECT_ROOT", projectPath });
+            stateService.send({ type: "UPDATE_PROJECT_ROOT_AND_INFO", projectPath, projectInfo });
         });
+    },
+    refreshProjectInfo: () => {
+        stateService.send({ type: 'REFRESH_PROJECT_INFO' });
     },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
@@ -687,6 +827,10 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     }
     extension.hasPullModuleResolved = false;
     extension.hasPullModuleNotification = false;
+    const projectPath = viewLocation.projectPath || StateMachine.context().projectPath;
+    const { orgName, packageName } = getOrgAndPackageName(StateMachine.context().projectInfo, projectPath);
+    viewLocation.org = orgName;
+    viewLocation.package = packageName;
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
@@ -711,8 +855,11 @@ export function updateView(refreshTreeView?: boolean) {
             targetedArtifactType = DIRECTORY_MAP.SERVICE;
         }
 
+        const projectPath = StateMachine.context().projectPath;
+        const project = StateMachine.context().projectStructure.projects.find(project => project.projectPath === projectPath);
+
         // These changes will be revisited in the revamp
-        StateMachine.context().projectStructure.directoryMap[targetedArtifactType].forEach((artifact) => {
+        project.directoryMap[targetedArtifactType].forEach((artifact) => {
             if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
                 currentArtifact = artifact;
             }
@@ -738,7 +885,11 @@ export function updateView(refreshTreeView?: boolean) {
     // Check for service class model in the new location
     if (!newLocationFound && lastView?.location?.type) {
         let currentArtifact: ProjectStructureArtifactResponse;
-        StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
+
+        const projectPath = StateMachine.context().projectPath;
+        const project = StateMachine.context().projectStructure.projects.find(project => project.projectPath === projectPath);
+
+        project.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
             if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
                 currentArtifact = artifact;
             }
@@ -767,7 +918,7 @@ export function updateView(refreshTreeView?: boolean) {
 
     stateService.send({ type: "VIEW_UPDATE", viewLocation: lastView ? newLocation : { view: "Overview" } });
     if (refreshTreeView) {
-        buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
+        buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
     }
     notifyCurrentWebview();
 }
@@ -802,18 +953,18 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects(isSwitching: boolean = false): Promise<ProjectMetadata> {
+async function checkForProjects() {
     const workspaceFolders = workspace.workspaceFolders;
 
     if (!workspaceFolders) {
-        return { isBI: false, projectPath: '' };
+        return { isBI: false, projects: [] };
     }
 
     if (workspaceFolders.length > 1) {
         return await handleMultipleWorkspaceFolders(workspaceFolders);
     }
 
-    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri, isSwitching);
+    return await handleSingleWorkspaceFolder(workspaceFolders[0].uri);
 }
 
 async function handleMultipleWorkspaceFolders(workspaceFolders: readonly WorkspaceFolder[]): Promise<ProjectMetadata> {
@@ -834,84 +985,32 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
             'Learn More'
         ).then(selection => {
             if (selection === 'Learn More') {
-                // TODO: Add a guide on how to use Ballerina workspaces
-                // Open documentation or guide about Ballerina workspaces
                 commands.executeCommand('vscode.open', Uri.parse('https://ballerina.io/learn/workspaces'));
             }
         });
 
         // Return empty result to indicate no project should be loaded
-        return { isBI: false, projectPath: '' };
+        return { isBI: false };
     } else if (balProjects.length === 1) {
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
         const { orgName, packageName } = getOrgPackageName(balProjects[0].uri.fsPath);
         setBIContext(isBI);
-        return { isBI, projectPath: balProjects[0].uri.fsPath, scope, orgName, packageName };
+        const projectPath = balProjects[0].uri.fsPath;
+        return { isBI, projectPath, scope, orgName, packageName };
     }
 
-    return { isBI: false, projectPath: '' };
+    return { isBI: false };
 }
 
-async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boolean = false): Promise<ProjectMetadata> {
+async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
-        // A workaround for supporting multiple packages in a workspace
-        // TODO: Once the artifacts API is updated to support multiple packages and the new API for detecting the
-        // most appropriate package to load the WSO2 Integrator is implemented, this workaround can be removed
-        // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
-        const workspaceTomlValues = await getWorkspaceTomlValues(workspaceURI.fsPath);
+        const isBI = checkIsBI(workspaceURI);
+        setBIContext(isBI);
 
-        if (!workspaceTomlValues) {
-            return { isBI: false, projectPath: '' };
-        }
-
-        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
-        const shouldShowBIQuickPick = isSwitching || (biExtension && checkIsBI(workspaceURI));
-        const packages = await filterPackagePaths(workspaceTomlValues.workspace.packages, workspaceURI.fsPath);
-        let targetPackage;
-
-        if (packages.length === 0) {
-            return { isBI: false, projectPath: '' };
-        } else if (shouldShowBIQuickPick && packages.length > 1) {
-            targetPackage = await window.showQuickPick(packages, {
-                title: 'Select Package for WSO2 Integrator: BI',
-                placeHolder: 'Choose a package from your workspace to load in BI mode',
-                ignoreFocusOut: true
-            });
-        } else if (!shouldShowBIQuickPick || packages.length === 1) {
-            targetPackage = packages[0];
-        }
-
-        if (!targetPackage && packages.length > 1) {
-            // If the user has not selected a package, select the first package
-            // This is a temporary solution until we provide the support for multi root workspaces
-            // Ref: https://github.com/wso2/product-ballerina-integrator/issues/1465
-            targetPackage = packages[0];
-        }
-
-        if (targetPackage) {
-            const packagePath = path.isAbsolute(targetPackage)
-                ? targetPackage
-                : path.join(workspaceURI.fsPath, targetPackage);
-            const packageUri = Uri.file(packagePath);
-
-            const isBallerinaPackage = await checkIsBallerinaPackage(packageUri);
-            const isBI = isBallerinaPackage && checkIsBI(packageUri);
-            const scope = fetchScope(packageUri);
-            const projectPath = isBallerinaPackage ? packagePath : "";
-            const { orgName, packageName } = getOrgPackageName(projectPath);
-
-            setBIContext(isBI);
-            if (!isBI) {
-                console.error("No BI enabled workspace found");
-            }
-
-            return { isBI, projectPath, workspacePath: workspaceURI.fsPath, scope, orgName, packageName };
-        } else {
-            return { isBI: false, projectPath: '' };
-        }
+        return { isBI, workspacePath: workspaceURI.fsPath };
     } else {
         const isBallerinaPackage = await checkIsBallerinaPackage(workspaceURI);
         const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
@@ -927,6 +1026,30 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri, isSwitching: boole
         return { isBI, projectPath, scope, orgName, packageName };
     }
 }
+
+function notifyTreeView(
+    projectPath?: string,
+    documentUri?: string,
+    position?: NodePosition,
+    view?: MACHINE_VIEW
+) {
+    try {
+        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
+        if (biExtension && !biExtension.isActive) {
+            return;
+        }
+        
+        commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
+            projectPath,
+            documentUri,
+            position,
+            view
+        });
+    } catch (error) {
+        console.error('Error notifying tree view:', error);
+    }
+}
+
 function setBIContext(isBI: boolean) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
 }

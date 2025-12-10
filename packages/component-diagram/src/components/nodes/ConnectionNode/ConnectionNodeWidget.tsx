@@ -25,19 +25,29 @@ import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
 import { ConnectorIcon } from "@wso2/bi-diagram";
+import { useClickWithDragTolerance } from "../../../hooks/useClickWithDragTolerance";
 
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
 };
 
-const Node = styled.div<NodeStyleProp>`
+const Node = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     height: ${CON_NODE_HEIGHT}px;
     color: ${ThemeColors.ON_SURFACE};
+`;
+
+const ClickableArea = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
     cursor: pointer;
 `;
 
@@ -111,15 +121,6 @@ const Description = styled(StyledText)`
     opacity: 0.7;
 `;
 
-const Row = styled.div<NodeStyleProp>`
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-`;
-
 interface ConnectionNodeWidgetProps {
     model: ConnectionNodeModel;
     engine: DiagramEngine;
@@ -152,6 +153,8 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
         onConnectionSelect(model.node);
     };
 
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
+
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         event.stopPropagation();
         setMenuAnchorEl(event.currentTarget);
@@ -159,6 +162,14 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+    };
+
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
     };
 
     const getNodeTitle = () => {
@@ -178,14 +189,14 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
     ];
 
     return (
-        <Node
-            hovered={isHovered}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={handleOnClick}
-        >
+        <Node>
             <LeftPortWidget port={model.getPort("in")!} engine={engine} />
-            <Row hovered={isHovered}>
+            <ClickableArea
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+            >
                 <Circle hovered={isHovered}>
                     <StyledConnectionIcon
                         url={model.node.icon || ""}
@@ -196,10 +207,15 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
                     <Title hovered={isHovered}>{getNodeTitle()}</Title>
                     <Description>{getNodeDescription()}</Description>
                 </Header>
-                <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                <MenuButton 
+                    appearance="icon" 
+                    onClick={handleOnMenuClick}
+                    onMouseDown={handleMenuMouseDown}
+                    onMouseUp={handleMenuMouseUp}
+                >
                     <MoreVertIcon />
                 </MenuButton>
-            </Row>
+            </ClickableArea>
             <Popover
                 open={isMenuOpen}
                 anchorEl={menuAnchorEl}

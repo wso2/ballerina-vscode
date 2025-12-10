@@ -39,7 +39,7 @@ export interface UpdateSourceCodeRequest {
     isRenameOperation?: boolean; // This is used to identify if the update is a rename operation.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
@@ -176,7 +176,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
-                        checkAndNotifyWebview(payload.data, updateSourceCodeRequest);
+                        checkAndNotifyWebview(payload.data, updateSourceCodeRequest, isChangeFromHelperPane);
                         unsubscribe();
                     }
                 });
@@ -186,7 +186,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     console.log("No artifact update notification received within 10 seconds");
                     unsubscribe();
                     StateMachine.setReadyMode();
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                     reject(new Error("Operation timed out. Please try again."));
                 }, 10000);
 
@@ -214,7 +214,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 //** 
 // Notify webview unless a new TYPE artifact is created outside the type diagram view
 // */
-function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[], request: UpdateSourceCodeRequest) {
+function checkAndNotifyWebview(
+    response: ProjectStructureArtifactResponse[], 
+    request: UpdateSourceCodeRequest,
+    isChangeFromHelperPane?: boolean
+) {
     const newArtifact = response.find(artifact => artifact.isNew);
     const selectedArtifact = response.find(artifact => artifact.id === request.identifier);
     const stateContext = StateMachine.context().view;
@@ -226,7 +230,7 @@ function checkAndNotifyWebview(response: ProjectStructureArtifactResponse[], req
 
     if ((selectedArtifact?.type === "TYPE " || newArtifact?.type === "TYPE") && stateContext !== MACHINE_VIEW.TypeDiagram) {
         return;
-    } else {
+    } else if (!isChangeFromHelperPane) {
         notifyCurrentWebview();
     }
 }

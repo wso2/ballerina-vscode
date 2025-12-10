@@ -26,6 +26,7 @@ import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
 import { VIEW_ALL_RESOURCES_PORT_NAME, BaseNodeWidgetProps, EntryNodeModel } from "../EntryNodeModel";
+import { useClickWithDragTolerance } from "../../../../hooks/useClickWithDragTolerance";
 import {
     Node,
     Box,
@@ -180,6 +181,8 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         }
     };
 
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
+
     const handleToggleExpansion = (event: React.MouseEvent) => {
         event.stopPropagation();
         onToggleNodeExpansion(model.node.uuid);
@@ -192,6 +195,14 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+    };
+
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
     };
 
     const menuItems: Item[] = [
@@ -240,14 +251,20 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                 <ServiceBox
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    onClick={handleOnClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
                 >
                     <IconWrapper>{nodeIcon}</IconWrapper>
                     <Header hovered={isHovered}>
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                    <MenuButton 
+                        appearance="icon" 
+                        onClick={handleOnMenuClick}
+                        onMouseDown={handleMenuMouseDown}
+                        onMouseUp={handleMenuMouseUp}
+                    >
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>
