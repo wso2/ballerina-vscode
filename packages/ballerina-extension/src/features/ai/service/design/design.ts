@@ -155,7 +155,7 @@ export async function generateDesignCore(
                     ].includes(toolName)
                 ) {
                     const input = part.input as any;
-                    const fileName = input?.file_path ? input.file_path.split('/').pop() : 'file';
+                    const fileName = input?.file_path || 'file';
                     eventHandler({
                         type: "tool_call",
                         toolName,
