@@ -35,6 +35,10 @@ import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigP
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
+import { TupleEditor } from './MultiModeExpressionEditor/TupleEditor/TupleEditor';
+import { UnionEditor } from './MultiModeExpressionEditor/UnionEditor/UnionEditor';
+import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
 
 export interface ExpressionField {
@@ -115,22 +119,15 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     targetLineRange,
     onChange,
     extractArgsFromFunction,
-    onCompletionSelect,
     onFocus,
     onBlur,
     onSave,
     onCancel,
     onRemove,
-    isHelperPaneOpen,
-    changeHelperPaneState,
     getHelperPane,
-    helperPaneHeight,
-    helperPaneWidth,
     growRange,
-    helperPaneZIndex,
     exprRef,
     anchorRef,
-    onToggleHelperPane,
     sanitizedExpression,
     rawExpression,
     onOpenExpandedMode,
@@ -138,10 +135,12 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 }) => {
     if (inputMode === InputMode.BOOLEAN) {
         return (
-            <BooleanEditor
-                field={field}
+            <EnumEditor
                 value={value}
-                onChange={onChange}
+                field={field}
+                onChange={(val) => onChange(val, val.length)}
+                items={[]}
+               
             />
         );
     }
