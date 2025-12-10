@@ -21,7 +21,7 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, NodeKind } from "../..";
 
 // ==================================
 // General Interfaces
@@ -483,4 +483,29 @@ export interface ExecutionContext {
 
     /** Optional absolute path to workspace root (if multi-package workspace) */
     readonly workspacePath?: string;
+
+}
+
+export interface SemanticDiffRequest {
+    projectPath: string;
+}
+
+export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
+
+export interface SemanticDiff {
+    changeType: ChangeType;
+    nodeKind: NodeKind;
+    uri: string;
+    lineRange: LineRange;
+}
+
+export interface SemanticDiffOutput {
+    loadDesignDiagrams: boolean;
+    semanticDiffs: SemanticDiff[];
+}
+
+export interface SemanticDiffResponse {
+    description: string;
+    projectPath: string;
+    output: SemanticDiffOutput;
 }

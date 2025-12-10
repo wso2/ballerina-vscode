@@ -51,12 +51,14 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
+    TestPlanGenerationRequest
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -769,16 +771,25 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const config = workspace.getConfiguration('ballerina');
         return config.get<boolean>('ai.planMode', false);
     }
-}
 
+    async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            console.log(">>> requesting semantic diff from ls", JSON.stringify(params));
+            try {
+                const res: SemanticDiffResponse = await context.langClient.getSemanticDiff(params);
+                console.log(">>> semantic diff response from ls", JSON.stringify(res));
+                resolve(res);
+            } catch (error) {
+                console.log(">>> error in getting semantic diff", error);
+                resolve(undefined);
+            }
+        });
+    }   
+}
 
 interface SummaryResponse {
     summary: string;
-}
-
-interface BalModification {
-    fileUri: string;
-    moduleName: string;
 }
 
 async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {
