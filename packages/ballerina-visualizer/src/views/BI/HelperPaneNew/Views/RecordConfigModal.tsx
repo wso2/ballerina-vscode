@@ -46,7 +46,7 @@ type ConfigureRecordPageProps = {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultInputTypes?: InputType[],
+        defaultTypes?: InputType[],
     ) => React.ReactNode;
     field?: FormField;
     triggerCharacters: readonly string[];
@@ -683,7 +683,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         type: "EXPRESSION",
                                         value: localExpressionValue,
                                         optional: false,
-                                        inputTypes: typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
+                                        types: typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
                                             ? recordTypeField.property?.types ?? []
                                             : [],
                                         metadata: recordTypeField?.property?.metadata,

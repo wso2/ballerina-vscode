@@ -326,8 +326,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
             if (lsResponse.function.accessor) {
                 lsResponse.function.accessor.value = 'get';
-                if (lsResponse.function.accessor.inputTypes?.[0]) {
-                    lsResponse.function.accessor.inputTypes[0].fieldType = 'IDENTIFIER';
+                if (lsResponse.function.accessor.types?.[0]) {
+                    lsResponse.function.accessor.types[0].fieldType = 'IDENTIFIER';
                 }
             }
 
@@ -426,7 +426,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: serviceClassModel.properties["name"].metadata.label || "",
                             description: serviceClassModel.properties["name"].metadata.description || ""
                         },
-                        types: serviceClassModel.properties["name"].inputTypes?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
+                        types: serviceClassModel.properties["name"].types?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
                         value: serviceClassModel.properties["name"].value || "",
                         optional: serviceClassModel.properties["name"].optional || false,
                         editable: serviceClassModel.properties["name"].editable || true

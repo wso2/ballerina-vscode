@@ -55,7 +55,7 @@ export function FunctionReturn(props: FunctionReturnProps) {
                             const trimmedInput = e.target.value.trim();
                             handleNameChange(trimmedInput);
                         }}
-                        placeholder={getPrimaryInputType(returnType.inputTypes)?.ballerinaType}
+                        placeholder={getPrimaryInputType(returnType.types)?.ballerinaType}
                         value={returnType.value}
                     />
                 }

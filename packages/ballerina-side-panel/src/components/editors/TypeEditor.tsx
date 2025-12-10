@@ -142,7 +142,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.inputTypes, field.key);
+        await retrieveVisibleTypes(value, value.length, true, field.types, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -214,7 +214,7 @@ export function TypeEditor(props: TypeEditorProps) {
     ) => {
         return getTypeHelper(
             field.key,
-            field.inputTypes,
+            field.types,
             typeBrowserRef,
             value,
             cursorPositionRef.current,
@@ -265,9 +265,9 @@ export function TypeEditor(props: TypeEditorProps) {
                             <S.LabelContainer>
                                 <S.Label>{field.label}</S.Label>
                                 {!field.optional && <RequiredFormInput />}
-                                {getPrimaryInputType(field.inputTypes)?.ballerinaType && (
-                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.inputTypes)?.ballerinaType}>
-                                        {sanitizeType(getPrimaryInputType(field.inputTypes)?.ballerinaType)}
+                                {getPrimaryInputType(field.types)?.ballerinaType && (
+                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                        {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
                                     </S.Type>
                                 )}
                             </S.LabelContainer>
@@ -339,7 +339,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                     updatedValue,
                                     updatedCursorPosition,
                                     false,
-                                    field.inputTypes,
+                                    field.types,
                                     field.key
                                 );
                             }}

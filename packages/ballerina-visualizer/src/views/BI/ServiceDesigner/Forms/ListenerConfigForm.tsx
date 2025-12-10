@@ -83,7 +83,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                         label: property.metadata?.label || key,
                         description: property.metadata?.description || ''
                     },
-                    types: property?.inputTypes || [{ fieldType: 'STRING' }],
+                    types: property?.types || [{ fieldType: 'STRING' }],
                     diagnostics: {
                         hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                         diagnostics: property.diagnostics
@@ -194,13 +194,13 @@ function convertConfig(listener: ListenerModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: getPrimaryInputType(expression.inputTypes)?.fieldType,
+            type: getPrimaryInputType(expression.types)?.fieldType,
             documentation: expression?.metadata.description || "",
             editable: expression.editable,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
             value: expression.value,
-            inputTypes: expression.inputTypes,
+            types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
             items: expression.items,

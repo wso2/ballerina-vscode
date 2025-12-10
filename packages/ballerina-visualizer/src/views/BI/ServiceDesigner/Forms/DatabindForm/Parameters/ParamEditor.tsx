@@ -59,14 +59,14 @@ export function ParamEditor(props: ParamProps) {
         fields.push({
             key: `type`,
             label: 'Type',
-            type: getPrimaryInputType(param.type.inputTypes)?.fieldType,
+            type: getPrimaryInputType(param.type.types)?.fieldType,
             optional: false,
             editable: true,
             documentation: '',
             enabled: param.type?.enabled,
             value: param.type.value || "json",
             defaultValue: "json",
-            inputTypes: [{fieldType: getPrimaryInputType(param.type.inputTypes)?.fieldType, ballerinaType: ""}],
+            types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, ballerinaType: ""}],
         });
 
         setCurrentFields(fields);

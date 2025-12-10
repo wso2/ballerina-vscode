@@ -122,7 +122,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                 enabled: nameProperty.enabled,
                 documentation: nameProperty.metadata?.description,
                 value: nameProperty.value || '',
-                inputTypes: nameProperty?.inputTypes,
+                types: nameProperty?.types,
                 lineRange: nameProperty.codedata?.lineRange
             });
         }
@@ -133,14 +133,14 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
             fields.push({
                 key: 'documentation',
                 label: docProperty.metadata?.label || 'Documentation',
-                type: getPrimaryInputType(docProperty?.inputTypes)?.fieldType || 'string',
+                type: getPrimaryInputType(docProperty?.types)?.fieldType || 'string',
                 optional: docProperty.optional,
                 editable: docProperty.editable,
                 advanced: docProperty.advanced,
                 enabled: docProperty.enabled,
                 documentation: docProperty.metadata?.description || '',
                 value: docProperty.value || '',
-                inputTypes: docProperty?.inputTypes,
+                types: docProperty?.types,
                 lineRange: docProperty.codedata?.lineRange
             });
         }

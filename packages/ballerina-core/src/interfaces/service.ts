@@ -158,7 +158,7 @@ export interface PropertyModel {
     isHttpResponseType?: boolean;
     value?: string;
     values?: string[];
-    inputTypes?: InputType[];
+    types?: InputType[];
     isType?: boolean;
     placeholder?: string;
     defaultValue?: string | PropertyModel;

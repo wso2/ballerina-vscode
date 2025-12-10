@@ -111,7 +111,7 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
-            const primaryInputType = getPrimaryInputType(field.inputTypes)
+            const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }

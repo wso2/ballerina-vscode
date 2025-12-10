@@ -289,7 +289,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
             if (type === 'resource' && lsResponse.function.accessor) {
                 lsResponse.function.accessor.value = 'get';
-                lsResponse.function.accessor.inputTypes[0].fieldType = 'IDENTIFIER';
+                lsResponse.function.accessor.types[0].fieldType = 'IDENTIFIER';
             }
 
             setIsNew(true);
@@ -335,7 +335,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                 enabled: true,
                 editable: true,
                 value: "",
-                inputTypes: [{ fieldType: "TYPE" }],
+                types: [{ fieldType: "TYPE" }],
                 isType: true,
                 optional: false,
                 advanced: false,
@@ -349,7 +349,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                 enabled: true,
                 editable: true,
                 value: "",
-                inputTypes: [{ fieldType: "IDENTIFIER" }],
+                types: [{ fieldType: "IDENTIFIER" }],
                 isType: false,
                 optional: false,
                 advanced: false,

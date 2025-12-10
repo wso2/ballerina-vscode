@@ -269,7 +269,7 @@ export interface DMFormField {
     editable: boolean;
     documentation: string;
     value: any;
-    inputTypes: InputType[];
+    types: InputType[];
     enabled: boolean;
     items?: string[];
 }

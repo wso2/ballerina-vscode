@@ -49,7 +49,7 @@ const LoadingContainer = styled.div`
 
 type TypeHelperProps = {
     fieldKey: string;
-    inputTypes: InputType[]
+    types: InputType[]
     typeBrowserRef: RefObject<HTMLDivElement>;
     filePath: string;
     exprRef: RefObject<FormExpressionEditorRef>;
@@ -69,7 +69,7 @@ type TypeHelperProps = {
 const TypeHelperEl = (props: TypeHelperProps) => {
     const {
         fieldKey,
-        inputTypes,
+        types,
         typeHelperState,
         filePath,
         targetLineRange,
@@ -99,7 +99,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
 
     const fetchedInitialTypes = useRef<boolean>(false);
 
-    const primaryBallerinaType = getPrimaryInputType(inputTypes)?.ballerinaType;
+    const primaryBallerinaType = getPrimaryInputType(types)?.ballerinaType;
 
     const debouncedSearchTypeHelper = useCallback(
         debounce(async (searchText: string, isType: boolean) => {

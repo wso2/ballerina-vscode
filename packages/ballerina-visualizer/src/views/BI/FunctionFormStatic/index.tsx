@@ -122,8 +122,8 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 field.type = "TEXTAREA";
             }
             if (field.key === "parameters") {
-                if ((field.inputTypes as any).value.parameterDescription) {
-                    (field.inputTypes as any).value.parameterDescription.type = "TEXTAREA";
+                if ((field.types as any).value.parameterDescription) {
+                    (field.types as any).value.parameterDescription.type = "TEXTAREA";
                 }
             }
         });

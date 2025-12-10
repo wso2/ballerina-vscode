@@ -69,7 +69,7 @@ export function ResponseEditor(props: ParamProps) {
         const converted: FormField = {
             key: "",
             label: property.metadata.label,
-            type: getPrimaryInputType(property.inputTypes)?.fieldType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             optional: property.optional,
             editable: property.editable,
             enabled: property.enabled,
@@ -78,7 +78,7 @@ export function ResponseEditor(props: ParamProps) {
             value: property.value,
             items: property.items || items,
             diagnostics: property.diagnostics,
-            inputTypes: property.inputTypes,
+            types: property.types,
         }
         return converted;
     }

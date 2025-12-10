@@ -323,7 +323,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
         setFocused(true);
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.inputTypes, field.key);
+        await retrieveVisibleTypes(value, value.length, true, field.types, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -382,7 +382,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
     ) => {
         return getTypeHelper(
             field.key,
-            field.inputTypes,
+            field.types,
             typeBrowserRef,
             value,
             cursorPositionRef.current,
@@ -590,12 +590,12 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                     })()
                     }
                 </S.Header>
-                {field.inputTypes &&
+                {field.types &&
                     <S.Type
                         isVisible={focused}
-                        title={getPrimaryInputType(field.inputTypes)?.ballerinaType}
+                        title={getPrimaryInputType(field.types)?.ballerinaType}
                     >
-                        {sanitizeType(getPrimaryInputType(field.inputTypes)?.ballerinaType)}
+                        {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
                     </S.Type>
                 }
             </S.HeaderContainer>
@@ -675,7 +675,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                         updatedValue,
                                         updatedCursorPosition,
                                         false,
-                                        field.inputTypes,
+                                        field.types,
                                         field.key
                                     );
                                 }}

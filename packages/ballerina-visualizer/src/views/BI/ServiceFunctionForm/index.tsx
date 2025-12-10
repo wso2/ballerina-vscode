@@ -144,7 +144,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                 enabled: model.name.enabled,
                 documentation: model.name.metadata?.description || '',
                 value: model.name.value,
-                inputTypes:  model.name.inputTypes,
+                types:  model.name.types,
                 lineRange: model?.name?.codedata?.lineRange,
             },
             {
@@ -161,7 +161,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                inputTypes: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }],
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }],
             },
             {
                 key: 'returnType',
@@ -173,7 +173,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                 advanced: model.returnType.advanced,
                 documentation: model.returnType.metadata?.description || '',
                 value: model.returnType.value,
-                inputTypes: model.returnType.inputTypes
+                types: model.returnType.types
             }
         ];
         const enabledFields = initialFields.filter(field => field.enabled);
