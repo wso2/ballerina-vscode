@@ -16,7 +16,7 @@
  * under the License.
  */
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest, SemanticDiffRequest, SemanticDiffResponse } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -84,4 +84,6 @@ export interface AIPanelAPI {
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
     isPlanModeFeatureEnabled: () => Promise<boolean>;
+    // AI schema related functions
+    getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
 }

@@ -64,6 +64,7 @@ import {
     getRelevantLibrariesAndFunctions,
     getResourceMethodAndPaths,
     getResourceSourceForMethodAndPath,
+    getSemanticDiff,
     getServiceNames,
     getServiceSourceForName,
     getShadowDiagnostics,
@@ -90,6 +91,7 @@ import {
     repairGeneratedCode,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
     showSignInAlert,
     submitFeedback,
     SubmitFeedbackRequest,
@@ -162,4 +164,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onNotification(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
+    messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
 }

@@ -45,6 +45,8 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGenerationRequest,
@@ -86,6 +88,7 @@ import {
     getRelevantLibrariesAndFunctions,
     getResourceMethodAndPaths,
     getResourceSourceForMethodAndPath,
+    getSemanticDiff,
     getServiceNames,
     getServiceSourceForName,
     getShadowDiagnostics,
@@ -345,5 +348,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     isPlanModeFeatureEnabled(): Promise<boolean> {
         return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
+    }
+    
+    getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
     }
 }
