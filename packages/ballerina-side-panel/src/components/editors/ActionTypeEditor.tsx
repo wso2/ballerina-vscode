@@ -43,7 +43,7 @@ import { getPropertyFromFormField, sanitizeType } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
-import { NodeProperties, PropertyModel } from "@wso2/ballerina-core";
+import { getPrimaryInputType, NodeProperties, PropertyModel } from "@wso2/ballerina-core";
 
 const isGraphQLScalarType = (type: string): boolean => {
     const scalarTypes = [
@@ -323,7 +323,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
         setFocused(true);
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string, field.key);
+        await retrieveVisibleTypes(value, value.length, true, field.inputTypes, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -382,7 +382,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
     ) => {
         return getTypeHelper(
             field.key,
-            field.valueTypeConstraint as string,
+            field.inputTypes,
             typeBrowserRef,
             value,
             cursorPositionRef.current,
@@ -590,12 +590,12 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                     })()
                     }
                 </S.Header>
-                {field.valueTypeConstraint &&
+                {field.inputTypes &&
                     <S.Type
                         isVisible={focused}
-                        title={field.valueTypeConstraint as string}
+                        title={getPrimaryInputType(field.inputTypes)?.ballerinaType}
                     >
-                        {sanitizeType(field.valueTypeConstraint as string)}
+                        {sanitizeType(getPrimaryInputType(field.inputTypes)?.ballerinaType)}
                     </S.Type>
                 }
             </S.HeaderContainer>
@@ -675,7 +675,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                         updatedValue,
                                         updatedCursorPosition,
                                         false,
-                                        field.valueTypeConstraint as string,
+                                        field.inputTypes,
                                         field.key
                                     );
                                 }}

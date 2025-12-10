@@ -16,10 +16,15 @@
  * under the License.
  */
 
-export * from './modification-utils';
-export * from './keyboard-navigation-manager';
-export * from "./diagram/identifier-util";
-export * from "./diagram/template-utils";
-export * from  "./diagram/modification-util";
-export * from "./diagram/utils";
-export * from './form-property-utils';
+import { InputType, TemplateType } from "../interfaces/bi";
+
+export const getPrimaryInputType = (types: InputType[]): InputType | undefined => {
+  if (!types || types.length === 0) return undefined;
+  return types[0];
+}
+
+export const isTemplateType = (
+  value: InputType
+): value is TemplateType => {
+  return value !== null && typeof value === "object" && "template" in value;
+};

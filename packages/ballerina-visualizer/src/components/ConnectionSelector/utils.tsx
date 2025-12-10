@@ -44,9 +44,8 @@ export const createConnectionSelectField = (
         "hidden": false,
         "documentation": description,
         "advanceProps": [],
-        "valueType": "EXPRESSION",
         "diagnostics": [],
-        "valueTypeConstraint": config.valueTypeConstraint,
+        "inputTypes": config.inputTypes,
         "metadata": {
             "label": selectLabel,
             "description": description

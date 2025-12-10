@@ -96,7 +96,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             placeholder: undefined,
             type: "IDENTIFIER",
             value: toolData?.name,
-            valueTypeConstraint: "string",
+            inputTypes: [{fieldType: "IDENTIFIER", ballerinaType: "string"}],
         },
         {
             key: "toolDescription",
@@ -106,7 +106,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             editable: true,
             documentation: "The description of the tool",
             value: toolData?.description,
-            valueTypeConstraint: "string",
+            inputTypes: [{fieldType: "TEXTAREA", ballerinaType: "string"}],
             enabled: true,
         },
     ];

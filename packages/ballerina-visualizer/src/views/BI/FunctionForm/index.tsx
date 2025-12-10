@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties, Property, NodePropertyKey, DIRECTORY_MAP, ProjectStructureArtifactResponse, MACHINE_VIEW, EVENT_TYPE } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties, Property, NodePropertyKey, DIRECTORY_MAP, ProjectStructureArtifactResponse, MACHINE_VIEW, EVENT_TYPE, getPrimaryInputType, isTemplateType } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -111,12 +111,13 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
+            const primaryInputType = getPrimaryInputType(field.inputTypes)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }
-            if (field.key === "parameters") {
-                if ((field.valueTypeConstraint as any).value.parameterDescription) {
-                    (field.valueTypeConstraint as any).value.parameterDescription.type = "TEXTAREA";
+            if (field.key === "parameters" && isTemplateType(primaryInputType)) {
+                if ((primaryInputType.template as any).value.parameterDescription) {
+                    (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                 }
             }
         });
@@ -243,8 +244,8 @@ export function FunctionForm(props: FunctionFormProps) {
             const properties = functionNodeCopy.properties as NodeProperties;
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
-                    if (property.valueType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = property.valueTypeConstraint;
+                    if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
+                        const baseConstraint = getPrimaryInputType(property.types).ballerinaType;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {

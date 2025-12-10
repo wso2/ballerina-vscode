@@ -64,13 +64,12 @@ export function sanitizeType(type: string) {
 export function getPropertyFromFormField(field: FormField): ExpressionProperty {
     return {
         metadata: field.metadata,
-        valueType: field.valueType,
         value: field.value as string,
         optional: field.optional,
         editable: field.editable,
         advanced: field.advanced,
         placeholder: field.placeholder,
-        valueTypeConstraint: field.valueTypeConstraint,
+        types: field.inputTypes,
         codedata: field.codedata,
         imports: field.imports,
         diagnostics: {

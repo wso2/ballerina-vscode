@@ -33,10 +33,13 @@ import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from 
 import { useFormContext } from '../../context';
 import {
     ExpressionProperty,
+    getPrimaryInputType,
+    InputType,
     LineRange,
     RecordTypeField,
     SubPanel,
-    SubPanelView
+    SubPanelView,
+    Type
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
@@ -50,7 +53,7 @@ import { ExpandedEditor } from './ExpandedEditor';
 export type ContextAwareExpressionEditorProps = {
     id?: string;
     fieldKey?: string;
-    valueTypeConstraint?: string;
+    inputTypes?: InputType[];
     placeholder?: string;
     required?: boolean;
     showHeader?: boolean;
@@ -440,7 +443,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        let newInputMode = getInputModeFromTypes(field.valueTypeConstraint)
+        let newInputMode = getInputModeFromTypes(getPrimaryInputType(field.inputTypes))
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
@@ -457,7 +460,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 }
         }
         setInputMode(newInputMode)
-    }, [field?.valueTypeConstraint, recordTypeField]);
+    }, [field?.inputTypes, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
@@ -527,7 +530,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             helperPaneHeight,
             recordTypeField,
             field.type === "LV_EXPRESSION",
-            field.valueTypeConstraint,
+            field.inputTypes,
             inputModeRef.current,
         );
     };
@@ -547,7 +550,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(value);
             return;
         }
-        const primaryInputMode = getInputModeFromTypes(field.valueTypeConstraint);
+        const primaryInputType = getPrimaryInputType(field.inputTypes);
+        const primaryInputMode = getInputModeFromTypes(primaryInputType);
         switch (primaryInputMode) {
             case (InputMode.BOOLEAN):
                 if (!isExpToBooleanSafe(currentValue)) {
@@ -605,7 +609,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (recordTypeField) return true;
         if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
-        if (!getInputModeFromTypes(field.valueTypeConstraint)) return false;
+        if (!getInputModeFromTypes(getPrimaryInputType(field.inputTypes))) return false;
         return true;
     }
 
@@ -627,9 +631,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.LabelContainer>
                                         <S.Label>{field.label}</S.Label>
                                         {(required ?? !field.optional) && <RequiredFormInput />}
-                                        {field.valueTypeConstraint && (
-                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
-                                                {sanitizeType(field.valueTypeConstraint as string)}
+                                        {getPrimaryInputType(field.inputTypes)?.ballerinaType && (
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.inputTypes)?.ballerinaType}>
+                                                {sanitizeType(getPrimaryInputType(field.inputTypes)?.ballerinaType)}
                                             </S.Type>
                                         )}
                                     </S.LabelContainer>
@@ -645,7 +649,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         value={inputMode}
                                         isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
-                                        valueTypeConstraint={field.valueTypeConstraint}
+                                        inputTypes={field.inputTypes}
                                     />
                                 )}
                             </S.FieldInfoSection>
@@ -661,7 +665,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             <ExpressionField
                                 field={field}
                                 inputMode={inputMode}
-                                primaryMode={getInputModeFromTypes(field.valueTypeConstraint)}
+                                primaryMode={getInputModeFromTypes(getPrimaryInputType(field.inputTypes))}
                                 name={name}
                                 value={value}
                                 completions={completions}

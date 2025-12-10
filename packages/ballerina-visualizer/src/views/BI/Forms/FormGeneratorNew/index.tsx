@@ -36,7 +36,9 @@ import {
     LinePosition,
     NodeProperties,
     ExpressionCompletionsRequest,
-    ExpressionCompletionsResponse
+    ExpressionCompletionsResponse,
+    InputType,
+    getPrimaryInputType
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -532,7 +534,7 @@ export function FormGeneratorNew(props: FormProps) {
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                valueTypeConstraint?: string,
+                inputTypes?: InputType[],
                 fieldKey?: string
             ) => {
                 let context: TypeHelperContext | undefined;
@@ -553,11 +555,11 @@ export function FormGeneratorNew(props: FormProps) {
                         types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                             filePath: fileName,
                             position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                            ...(getPrimaryInputType(inputTypes)?.ballerinaType && { typeConstraint: getPrimaryInputType(inputTypes)?.ballerinaType })
                         });
                     }
 
-                    const isFetchingTypesForDM = valueTypeConstraint === "json";
+                    const isFetchingTypesForDM = getPrimaryInputType(inputTypes)?.ballerinaType === "json";
                     visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
                     typesCache.current.set(typesCacheKey, visibleTypes);
                 }
@@ -580,8 +582,8 @@ export function FormGeneratorNew(props: FormProps) {
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string, fieldKey?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint, fieldKey);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, inputTypes?: InputType[], fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, inputTypes, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -674,7 +676,7 @@ export function FormGeneratorNew(props: FormProps) {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string,
+        inputTypes?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -701,7 +703,7 @@ export function FormGeneratorNew(props: FormProps) {
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
-            valueTypeConstraint: valueTypeConstraint,
+            inputTypes: inputTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
             handleValueTypeConstChange: handleValueTypeConstChange,
             forcedValueTypeConstraint: valueTypeConstraints,
@@ -711,7 +713,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        inputTypes: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -743,7 +745,7 @@ export function FormGeneratorNew(props: FormProps) {
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            valueTypeConstraint: valueTypeConstraint,
+            inputTypes: inputTypes,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
@@ -911,7 +913,6 @@ export function FormGeneratorNew(props: FormProps) {
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
-            fileName: fileName,
             referenceTypes: types,
             rpcManager: {
                 getExpressionTokens: getExpressionTokens
@@ -924,9 +925,9 @@ export function FormGeneratorNew(props: FormProps) {
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
             onOpenRecordConfigPage: openRecordConfigPage,
-            helperPaneOrigin: "vertical",
-            helperPaneHeight: "default",
-        } as FormExpressionEditorProps;
+            helperPaneOrigin: "vertical" as const,
+            helperPaneHeight: "default" as const,
+        } satisfies FormExpressionEditorProps;
     }, [
         filteredCompletions,
         filteredTypes,

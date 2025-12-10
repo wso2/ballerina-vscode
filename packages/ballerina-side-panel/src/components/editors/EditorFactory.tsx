@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { getPrimaryInputType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -86,6 +86,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         openFormTypeEditor,
         scopeFieldAddon
     } = props;
+
+    const isExpressionField = field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION" || field.type === "TEXT";
 
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -155,7 +157,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
-    } else if (!field.items && (field.type === "RAW_TEMPLATE" || field.valueTypeConstraint === "ai:Prompt") && field.editable) {
+    } else if (!field.items && (field.type === "RAW_TEMPLATE" || getPrimaryInputType(field.inputTypes)?.ballerinaType === "ai:Prompt") && field.editable) {
         return (
             <ContextAwareRawExpressionEditor
                 field={field}
@@ -167,7 +169,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
-    } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
+    } else if (!field.items && isExpressionField && field.editable) {
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor

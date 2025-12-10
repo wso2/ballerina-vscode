@@ -23,7 +23,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { isBetaModule } from "../ComponentListView/componentListUtils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { EVENT_TYPE, LineRange, Property, PropertyModel, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
+import { EVENT_TYPE, getPrimaryInputType, LineRange, Property, PropertyModel, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
@@ -113,7 +113,7 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
 
         // Determine value for MULTIPLE_SELECT
         let value: any = property.value;
-        if (property.valueType === "MULTIPLE_SELECT") {
+        if (getPrimaryInputType(property.inputTypes)?.fieldType === "MULTIPLE_SELECT") {
             if (property.values && property.values.length > 0) {
                 value = property.values;
             } else if (property.value) {
@@ -126,21 +126,21 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+        if (getPrimaryInputType(property.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.inputTypes).fieldType === "SINGLE_SELECT") {
             items = property.items;
         }
 
         return {
             key,
             label: property?.metadata?.label,
-            type: property.valueType,
+            type: getPrimaryInputType(property.inputTypes)?.fieldType,
             documentation: property?.metadata?.description || "",
-            valueType: property.valueTypeConstraint,
+            valueType: getPrimaryInputType(property.inputTypes)?.ballerinaType,
             editable: true,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value,
-            valueTypeConstraint: property.valueTypeConstraint,
+            inputTypes: property.inputTypes,
             advanced: property.advanced,
             diagnostics: [],
             items,
@@ -299,7 +299,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                             label: choiceProperty.metadata?.label || choicePropertyKey,
                                             description: choiceProperty.metadata?.description || ''
                                         },
-                                        valueType: choiceProperty?.valueType || 'string',
+                                        types: choiceProperty.inputTypes,
                                         diagnostics: {
                                             hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
                                             diagnostics: choiceProperty.diagnostics
@@ -326,7 +326,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                 label: property.metadata?.label || key,
                                 description: property.metadata?.description || ''
                             },
-                            valueType: property?.valueType || 'string',
+                            inputTypes: property.inputTypes,
                             diagnostics: {
                                 hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                                 diagnostics: property.diagnostics
@@ -349,7 +349,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
      */
     const processPropertyRecursively = (property: PropertyModel, data: FormValues): void => {
         // If this property is a CHOICE field, process it
-        if (property.valueType === "CHOICE" && property.choices) {
+        if (getPrimaryInputType(property.inputTypes)?.fieldType === "CHOICE" && property.choices) {
             property.choices.forEach((choice, index) => {
                 // Disable all choices first
                 choice.enabled = false;
@@ -366,7 +366,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                             // Set value from form data if available
                             if (data[nestedKey] !== undefined) {
                                 // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-                                if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                                if (getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.inputTypes).fieldType === "EXPRESSION_SET") {
                                     const value = data[nestedKey];
                                     nestedProperty.values = normalizeValueToArray(value);
                                 } else {
@@ -388,7 +388,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
                 // Set value from form data if available
                 if (data[nestedKey] !== undefined) {
-                    if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                    if (getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.inputTypes)?.fieldType === "EXPRESSION_SET") {
                         const value = data[nestedKey];
                         nestedProperty.values = normalizeValueToArray(value);
                     } else {

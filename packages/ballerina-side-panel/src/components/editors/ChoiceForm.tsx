@@ -24,7 +24,7 @@ import { FormField } from "../Form/types";
 import { capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
-import { PropertyModel, RecordTypeField } from "@wso2/ballerina-core";
+import { getPrimaryInputType, PropertyModel, RecordTypeField } from "@wso2/ballerina-core";
 import { EditorFactory } from "./EditorFactory";
 
 interface ChoiceFormProps {
@@ -80,20 +80,19 @@ export function ChoiceForm(props: ChoiceFormProps) {
         for (const key in model.properties) {
             const expression = model.properties[key];
             let items = undefined;
-            if (expression.valueType === "MULTIPLE_SELECT" || expression.valueType === "SINGLE_SELECT") {
+            if (getPrimaryInputType(expression.inputTypes)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.inputTypes)?.fieldType === "SINGLE_SELECT") {
                 items = expression.items;
             }
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-                type: expression.valueType,
+                type: getPrimaryInputType(expression.inputTypes)?.fieldType,
                 documentation: expression?.metadata.description || "",
-                valueType: expression.valueTypeConstraint,
+                inputTypes: expression.inputTypes,
                 editable: expression.editable,
                 enabled: expression?.enabled ?? true,
                 optional: expression.optional,
                 value: expression.value,
-                valueTypeConstraint: expression.valueTypeConstraint,
                 advanced: expression.advanced,
                 diagnostics: [],
                 items,

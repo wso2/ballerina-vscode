@@ -17,7 +17,7 @@
  */
 
 import { TypeInfo } from "./ballerina";
-import { CodeData } from "./bi";
+import { CodeData, InputType } from "./bi";
 import { LineRange } from "./common";
 
 export enum TypeKind {
@@ -269,7 +269,7 @@ export interface DMFormField {
     editable: boolean;
     documentation: string;
     value: any;
-    valueTypeConstraint: string;
+    inputTypes: InputType[];
     enabled: boolean;
     items?: string[];
 }

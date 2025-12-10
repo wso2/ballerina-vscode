@@ -17,7 +17,7 @@
  */
 
 
-import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP, getPrimaryInputType } from '@wso2/ballerina-core';
 import { FormField, Parameter, FormValues, FormImports } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../../utils/bi';
 import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
@@ -56,8 +56,8 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             optional: typeField?.optional ?? false,
             type: {
                 value: param.formValues['type'] as string,
-                valueType: typeField?.valueType,
                 isType: true,
+                inputTypes: typeField?.inputTypes,
                 optional: typeField?.optional,
                 advanced: typeField?.advanced,
                 addNewButton: false,
@@ -67,7 +67,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             name: {
                 value: param.formValues['variable'] as string,
-                valueType: nameField?.valueType,
+                inputTypes: nameField?.inputTypes,
                 isType: false,
                 optional: nameField?.optional,
                 advanced: nameField?.advanced,
@@ -77,7 +77,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             defaultValue: {
                 value: param.formValues['defaultable'],
-                valueType: defaultField?.valueType || 'string',
+                inputTypes: defaultField?.inputTypes,
                 isType: false,
                 optional: defaultField?.optional,
                 advanced: defaultField?.advanced,
@@ -94,14 +94,13 @@ function convertParameterToFormField(key: string, param: ParameterModel): FormFi
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-        type: param.valueType || 'string',
+        type: getPrimaryInputType(param.inputTypes)?.fieldType || 'string',
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
-        valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || '',
+        inputTypes: param?.inputTypes || [],
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };
