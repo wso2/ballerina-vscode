@@ -42,7 +42,7 @@ export const useStyles = () => ({
 
     errorBody: css({
         backgroundColor: 'var(--vscode-editorWidget-background)',
-        color: 'var(--vscode-editor-foreground)',
+        color: 'var(--vscode-foreground)',
         padding: '16px',
         border: '1px solid',
         borderRadius: '4px',
