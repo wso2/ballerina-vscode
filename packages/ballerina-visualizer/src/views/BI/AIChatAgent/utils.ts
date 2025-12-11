@@ -520,7 +520,7 @@ export const extractAccessToken = (authValue: string): string | null => {
 
     try {
         const tokenMatch = authValue.match(/token:\s*"([^"]*)"/);
-        return tokenMatch?.[1] ?? "";
+        return tokenMatch?.[1] ?? null;
     } catch (error) {
         console.error("Failed to parse auth token:", error);
         return "";
