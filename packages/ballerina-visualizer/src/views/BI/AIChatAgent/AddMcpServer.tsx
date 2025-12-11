@@ -72,7 +72,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const agentFilePathRef = useRef<string>("");
     const agentFileEndLineRangeRef = useRef<LineRange | null>(null);
     const formRef = useRef<any>(null);
-    const moduleVariablesRef = useRef<FlowNode[]>([]);
     const projectPathUriRef = useRef<string>("");
 
     const fetchAgentNode = async () => {
@@ -117,8 +116,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         projectPathUriRef.current = visualizerLocation.projectPath;
 
         const moduleNodes = await fetchModuleNodes();
-        // Store module variables for later use
-        moduleVariablesRef.current = moduleNodes.flowModel.variables || [];
 
         await fetchAgentNode();
         const template = await fetchMcpToolKitTemplate();
@@ -145,7 +142,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         // Resolve the URL variable if needed (unless already resolved)
         const resolvedUrl = options?.skipResolution
             ? url
-            : await resolveVariableValue(url, moduleVariablesRef.current, rpcClient, projectPathUriRef.current);
+            : await resolveVariableValue(url, rpcClient, projectPathUriRef.current, agentFilePathRef.current);
 
         const cleanUrl = cleanServerUrl(resolvedUrl);
         if (cleanUrl === null) {
@@ -160,7 +157,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         // Resolve auth config variables if needed (unless already resolved)
         const resolvedAuthValue = options?.skipResolution
             ? authValue
-            : await resolveAuthConfig(authValue, moduleVariablesRef.current, rpcClient, projectPathUriRef.current);
+            : await resolveAuthConfig(authValue, rpcClient, projectPathUriRef.current, agentFilePathRef.current);
 
         const accessToken = extractAccessToken(resolvedAuthValue);
 
@@ -309,9 +306,9 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const resolution = await attemptValueResolution(
             savedUrl,
             savedAuth,
-            moduleVariablesRef.current,
             rpcClient,
-            projectPathUriRef.current
+            projectPathUriRef.current,
+            agentFilePathRef.current
         );
 
         // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch

@@ -586,17 +586,23 @@ export const removeQuotes = (value: string): string => {
 /**
  * Finds a variable value in module variables.
  */
-export const findValueInModuleVariables = (
+export const findValueInModuleVariables = async (
     variableName: string,
-    moduleVariables: FlowNode[]
-): string | null => {
-    if (!moduleVariables || !Array.isArray(moduleVariables)) {
+    rpcClient: BallerinaRpcClient,
+    filePath: string
+): Promise<string | null> => {
+    const queryMap: SearchNodesQueryParams = {
+        kind: "VARIABLE",
+        exactMatch: variableName
+    };
+
+    const variables = await findFlowNode(rpcClient, filePath, undefined, queryMap);
+
+    if (!variables || variables.length === 0) {
         return null;
     }
 
-    const variable = moduleVariables.find(
-        (varNode) => varNode.properties?.variable?.value === variableName
-    );
+    const variable = variables[0];
 
     if (variable?.properties?.expression?.value && !variable?.codedata?.sourceCode?.includes("configurable")) {
         return variable.properties.expression.value as string;
@@ -671,9 +677,9 @@ export const isUrl = (value: string): boolean => {
 
 export const resolveVariableValue = async (
     value: string,
-    moduleVariables: FlowNode[],
-    rpcClient?: BallerinaRpcClient,
-    projectPathUri?: string
+    rpcClient: BallerinaRpcClient,
+    projectPathUri: string,
+    filePath: string
 ): Promise<string | null> => {
     if (!value) {
         return null;
@@ -687,7 +693,7 @@ export const resolveVariableValue = async (
         const interpolationMatch = content.match(/^\s*\$\{([^}]+)\}\s*$/);
         if (interpolationMatch) {
             const variableName = interpolationMatch[1];
-            return resolveVariableValue(variableName, moduleVariables, rpcClient, projectPathUri);
+            return resolveVariableValue(variableName, rpcClient, projectPathUri, filePath);
         }
         return content;
     }
@@ -698,17 +704,15 @@ export const resolveVariableValue = async (
     }
 
     // Check module variables
-    const moduleValue = findValueInModuleVariables(trimmed, moduleVariables);
+    const moduleValue = await findValueInModuleVariables(trimmed, rpcClient, filePath);
     if (moduleValue) {
         return removeQuotes(moduleValue);
     }
 
     // Check config variables
-    if (rpcClient && projectPathUri) {
-        const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
-        if (configValue) {
-            return removeQuotes(configValue);
-        }
+    const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
+    if (configValue) {
+        return removeQuotes(configValue);
     }
 
     return null;
@@ -720,9 +724,9 @@ export const resolveVariableValue = async (
  */
 export const resolveAuthConfig = async (
     authValue: string,
-    moduleVariables: FlowNode[],
-    rpcClient?: BallerinaRpcClient,
-    projectPathUri?: string
+    rpcClient: BallerinaRpcClient,
+    projectPathUri: string,
+    filePath: string
 ): Promise<string | null> => {
     if (!authValue) {
         return "";
@@ -746,9 +750,9 @@ export const resolveAuthConfig = async (
         // Resolve the variable
         const resolvedValue = await resolveVariableValue(
             variableOrValue,
-            moduleVariables,
             rpcClient,
-            projectPathUri
+            projectPathUri,
+            filePath
         );
 
         // Return null if the variable cannot be resolved
