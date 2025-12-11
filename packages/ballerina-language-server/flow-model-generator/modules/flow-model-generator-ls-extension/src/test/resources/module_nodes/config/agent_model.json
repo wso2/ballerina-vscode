@@ -382,7 +382,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The base client used in the generated client code to provide the capability for initiating the contact and executing remote calls with a remote gRPC service.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -498,7 +498,7 @@
             "typeMembers": [
               {
                 "type": "PoolConfiguration",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -536,7 +536,7 @@
             "typeMembers": [
               {
                 "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -582,7 +582,7 @@
             "typeMembers": [
               {
                 "type": "Compression",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "BASIC_TYPE",
                 "selected": false
@@ -613,7 +613,7 @@
             "typeMembers": [
               {
                 "type": "RetryConfiguration",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -651,49 +651,49 @@
             "typeMembers": [
               {
                 "type": "CredentialsConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "BearerTokenConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "JwtIssuerConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2ClientCredentialsGrantConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2PasswordGrantConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2RefreshTokenGrantConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
               },
               {
                 "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:grpc:1.14.0",
+                "packageInfo": "ballerina:grpc:1.14.2",
                 "packageName": "grpc",
                 "kind": "RECORD_TYPE",
                 "selected": false
