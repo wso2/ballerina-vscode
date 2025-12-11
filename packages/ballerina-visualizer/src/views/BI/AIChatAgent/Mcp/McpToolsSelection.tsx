@@ -464,7 +464,7 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                         <ToolsTitle>Available Tools</ToolsTitle>
                         {tools.length > 0 && (
                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                {showDiscoverButton && toolSource === 'saved-mock' && (
+                                {showDiscoverButton && (toolSource === 'saved-mock' || toolSource === 'manual-discovery') && (
                                     <ExpandButton
                                         onClick={onDiscoverClick}
                                         title="Discover Tools"
