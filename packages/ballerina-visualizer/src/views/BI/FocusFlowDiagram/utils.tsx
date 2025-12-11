@@ -61,7 +61,6 @@ export function createPromptHelperPane(params: CreatePromptHelperPaneParams): JS
         selectedNode,
         model,
         fieldKey,
-        exprRef,
         anchorRef,
         defaultValue,
         value,
