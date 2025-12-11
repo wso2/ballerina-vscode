@@ -82,6 +82,8 @@ import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 import { SamplesView } from "./views/BI/SamplesView";
+import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
+import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 
 const globalStyles = css`
     *,
@@ -538,7 +540,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
-                            <AddConnectionWizard
+                            <AddConnectionPopup
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                             />
@@ -546,7 +548,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
-                            <EditConnectionWizard
+                            <EditConnectionPopup
                                 connectionName={value?.identifier}
                             />
                         );
