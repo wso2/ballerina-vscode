@@ -1,0 +1,228 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "symbol": "processEmployeeStatus",
+    "org": "nipunaf",
+    "module": "new_connection1",
+    "packageName": "new_connection1"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "processEmployeeStatus",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_null.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "nipunaf",
+      "module": "new_connection1",
+      "packageName": "new_connection1",
+      "symbol": "processEmployeeStatus",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "status": {
+        "metadata": {
+          "label": "Status"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "PENDING",
+              "INACTIVE",
+              "ACTIVE"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Status"
+          }
+        ],
+        "placeholder": "\"PENDING\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "status"
+        },
+        "typeMembers": [
+          {
+            "type": "Status",
+            "packageInfo": "nipunaf:new_connection1:0.1.0",
+            "packageName": "new_connection1",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "dept": {
+        "metadata": {
+          "label": "Dept"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "Engineering",
+              "Sales",
+              "HR",
+              "Marketing"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Department"
+          }
+        ],
+        "placeholder": "\"Engineering\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "dept"
+        },
+        "typeMembers": [
+          {
+            "type": "Department",
+            "packageInfo": "nipunaf:new_connection1:0.1.0",
+            "packageName": "new_connection1",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "priority": {
+        "metadata": {
+          "label": "Priority"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ]
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Priority"
+          }
+        ],
+        "placeholder": "1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "priority"
+        },
+        "typeMembers": [
+          {
+            "type": "Priority",
+            "packageInfo": "nipunaf:new_connection1:0.1.0",
+            "packageName": "new_connection1",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "value": {
+        "metadata": {
+          "label": "Value"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean"
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "MixedValue"
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "value"
+        },
+        "typeMembers": [
+          {
+            "type": "MixedValue",
+            "packageInfo": "nipunaf:new_connection1:0.1.0",
+            "packageName": "new_connection1",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "string",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "stringResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

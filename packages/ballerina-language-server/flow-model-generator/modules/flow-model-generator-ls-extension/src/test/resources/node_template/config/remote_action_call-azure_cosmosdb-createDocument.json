@@ -35,8 +35,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "azure_cosmosdb:DataPlaneClient",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:DataPlaneClient"
+          }
+        ],
         "value": "covid19Client",
         "optional": false,
         "editable": false,
@@ -48,8 +52,16 @@
           "label": "Database ID",
           "description": "ID of the database to which the container belongs to"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -74,8 +86,16 @@
           "label": "Container ID",
           "description": "ID of the container where, document is created"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -100,8 +120,16 @@
           "label": "Document ID",
           "description": "ID of the document"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -126,8 +154,16 @@
           "label": "Document",
           "description": "A JSON document to be saved in the database"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "map<json>",
+        "types": [
+          {
+            "fieldType": "MAPPING_EXPRESSION_SET",
+            "ballerinaType": "map<json>"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<json>"
+          }
+        ],
         "placeholder": "{}",
         "optional": false,
         "editable": true,
@@ -152,8 +188,28 @@
           "label": "Partition Key",
           "description": "The specific value related to the partition key field of the container "
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int|float|decimal|string",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "float"
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal"
+          },
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int|float|decimal|string"
+          }
+        ],
         "placeholder": "0",
         "optional": false,
         "editable": true,
@@ -199,8 +255,12 @@
           "label": "Optional Header Parameters",
           "description": "The `cosmos_db:RequestOptions` which can be used to add additional capabilities that can \noverride client configuration provided in the inilization"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "azure_cosmosdb:RequestOptions|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:RequestOptions?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -233,7 +293,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "azure_cosmosdb:DocumentResponse",
         "placeholder": "var",
         "optional": false,
@@ -247,7 +311,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "azureCosmosdbDocumentresponse",
         "optional": false,
         "editable": true,
@@ -259,7 +327,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

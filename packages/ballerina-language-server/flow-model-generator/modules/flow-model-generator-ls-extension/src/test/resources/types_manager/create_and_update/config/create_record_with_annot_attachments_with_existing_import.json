@@ -17,7 +17,11 @@
           "label": "Type name",
           "description": "Unique name to identify the type"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "Person",
         "optional": false,
         "editable": false,
@@ -29,7 +33,11 @@
           "label": "public",
           "description": "Is this public"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -41,7 +49,11 @@
           "label": "Type description",
           "description": "Detailed description about the type"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "STRING"
+          }
+        ],
         "value": "",
         "optional": false,
         "editable": true,
@@ -53,7 +65,11 @@
           "label": "Is array type",
           "description": "Is this type an array or list value"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "false",
         "optional": true,
         "editable": true,
@@ -65,7 +81,11 @@
           "label": "Size of the array",
           "description": "Array dimensions"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "STRING"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,
@@ -113,8 +133,12 @@
         "name": "Url",
         "properties": {
           "protocol": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"Protocol\"",
             "optional": false,
             "editable": false,
@@ -122,8 +146,12 @@
             "hidden": false
           },
           "host": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"localhost\"",
             "optional": false,
             "editable": false,
@@ -131,8 +159,12 @@
             "hidden": false
           },
           "path": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"http://example.com/url\"",
             "optional": false,
             "editable": false,
@@ -146,8 +178,12 @@
         "name": "Module",
         "properties": {
           "__id": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "int",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int"
+              }
+            ],
             "value": "12",
             "optional": false,
             "editable": false,
@@ -155,8 +191,12 @@
             "hidden": false
           },
           "_namespace": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"http://example.com/gen\"",
             "optional": false,
             "editable": false,
@@ -164,11 +204,19 @@
             "hidden": false
           },
           "_module": {
-            "valueType": "MAPPING_EXPRESSION_SET",
+            "types": [
+              {
+                "fieldType": "MAPPING_EXPRESSION_SET"
+              }
+            ],
             "value": {
               "_uri": {
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ],
                 "value": "\"http://example.com/gen\"",
                 "optional": false,
                 "editable": false,
@@ -176,11 +224,19 @@
                 "hidden": false
               },
               "_moduleInfo": {
-                "valueType": "MAPPING_EXPRESSION_SET",
+                "types": [
+                  {
+                    "fieldType": "MAPPING_EXPRESSION_SET"
+                  }
+                ],
                 "value": {
                   "_moduleName": {
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "string",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string"
+                      }
+                    ],
                     "value": "\"types\"",
                     "optional": false,
                     "editable": false,
@@ -188,8 +244,12 @@
                     "hidden": false
                   },
                   "__uuid": {
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "string",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string"
+                      }
+                    ],
                     "value": "\"100272ydhdh\"",
                     "optional": false,
                     "editable": false,
@@ -215,8 +275,12 @@
         "name": "Namespace",
         "properties": {
           "uri": {
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"http://example.com/jsonpath\"",
             "optional": false,
             "editable": false,

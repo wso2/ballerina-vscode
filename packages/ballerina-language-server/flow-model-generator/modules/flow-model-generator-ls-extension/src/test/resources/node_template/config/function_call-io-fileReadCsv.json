@@ -37,8 +37,16 @@
           "label": "Path",
           "description": "The CSV file path"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -63,8 +71,16 @@
           "label": "Skip Headers",
           "description": "Number of headers, which should be skipped prior to reading records"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int"
+          }
+        ],
         "placeholder": "0",
         "optional": true,
         "editable": true,
@@ -90,8 +106,12 @@
           "label": "Return Type",
           "description": "The type of the return value (string[] or a Ballerina record)"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "string[]|map<anydata>",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "string[]|map<anydata>"
+          }
+        ],
         "placeholder": "string[]|map<anydata>",
         "optional": false,
         "editable": true,
@@ -108,7 +128,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "returnType[]",
         "placeholder": "var",
         "optional": false,
@@ -122,7 +146,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "returnType",
         "optional": false,
         "editable": true,
@@ -134,7 +162,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

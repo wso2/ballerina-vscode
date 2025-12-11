@@ -791,11 +791,6 @@ public class SourceBuilder {
             return this;
         }
 
-        public TokenBuilder expressionWithType(Property property) {
-            sb.append(property.valueType()).append(WHITE_SPACE).append(property.toSourceCode());
-            return this;
-        }
-
         public TokenBuilder whiteSpace() {
             sb.append(WHITE_SPACE);
             return this;

@@ -87,7 +87,7 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
 
     public static void setProperty(FormBuilder<?> formBuilder, String type, String name, String description,
                                    Token token) {
-        formBuilder.parameterWithDescription(type, name, token, Property.ValueType.TYPE, null, description);
+        formBuilder.parameterWithDescription(type, name, token, Property.ValueType.TYPE, description);
     }
 
     public static void setOptionalProperties(NodeBuilder nodeBuilder) {

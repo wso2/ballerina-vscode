@@ -28,8 +28,12 @@
           "label": "Name",
           "description": "Name of the function"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global"
+          }
+        ],
         "value": "mutiply",
         "optional": false,
         "editable": false,
@@ -54,7 +58,11 @@
           "label": "Description",
           "description": "Description of the function"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,
@@ -66,7 +74,11 @@
           "label": "Return Type",
           "description": "Type of the return value"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "string",
         "optional": true,
         "editable": true,
@@ -78,7 +90,11 @@
           "label": "Description",
           "description": "Description of the return value"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,
@@ -90,70 +106,98 @@
           "label": "Parameters",
           "description": "Function parameters"
         },
-        "valueType": "REPEATABLE_PROPERTY",
-        "valueTypeConstraint": {
-          "metadata": {
-            "label": "Parameter",
-            "description": "Function parameter"
-          },
-          "valueType": "FIXED_PROPERTY",
-          "value": {
-            "type": {
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
               "metadata": {
-                "label": "Type",
-                "description": "Type of the parameter"
+                "label": "Parameter",
+                "description": "Function parameter"
               },
-              "valueType": "TYPE",
-              "value": "",
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY"
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "parameterDescription": {
+                  "metadata": {
+                    "label": "Description",
+                    "description": "Description of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TEXT"
+                    }
+                  ],
+                  "value": "",
+                  "optional": true,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
               "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "variable": {
-              "metadata": {
-                "label": "Name",
-                "description": "Name of the parameter"
-              },
-              "valueType": "IDENTIFIER",
-              "value": "",
-              "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "parameterDescription": {
-              "metadata": {
-                "label": "Description",
-                "description": "Description of the parameter"
-              },
-              "valueType": "STRING",
-              "value": "",
-              "optional": true,
-              "editable": true,
+              "editable": false,
               "advanced": false,
               "hidden": false
             }
-          },
-          "optional": false,
-          "editable": false,
-          "advanced": false,
-          "hidden": false
-        },
+          }
+        ],
         "value": {
           "a": {
             "metadata": {
               "label": "Parameter",
               "description": "Function parameter"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "type": {
                 "metadata": {
                   "label": "Type",
                   "description": "Type of the parameter"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "int",
                 "optional": false,
                 "editable": true,
@@ -165,7 +209,11 @@
                   "label": "Name",
                   "description": "Name of the parameter"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "a",
                 "optional": false,
                 "editable": true,
@@ -190,7 +238,11 @@
                   "label": "Description",
                   "description": "Description of the parameter"
                 },
-                "valueType": "STRING",
+                "types": [
+                  {
+                    "fieldType": "TEXT"
+                  }
+                ],
                 "value": "",
                 "optional": true,
                 "editable": true,
@@ -208,14 +260,22 @@
               "label": "Parameter",
               "description": "Function parameter"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "type": {
                 "metadata": {
                   "label": "Type",
                   "description": "Type of the parameter"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "int",
                 "optional": false,
                 "editable": true,
@@ -227,7 +287,11 @@
                   "label": "Name",
                   "description": "Name of the parameter"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "b",
                 "optional": false,
                 "editable": true,
@@ -252,7 +316,11 @@
                   "label": "Description",
                   "description": "Description of the parameter"
                 },
-                "valueType": "STRING",
+                "types": [
+                  {
+                    "fieldType": "TEXT"
+                  }
+                ],
                 "value": "",
                 "optional": true,
                 "editable": true,
@@ -276,7 +344,11 @@
           "label": "Annotations",
           "description": "Annotations of the function"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "\n@ai:AgentTool\n\n",
         "optional": false,
         "editable": false,
@@ -288,7 +360,11 @@
           "label": "isolated",
           "description": "Is this isolated"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": "true",
         "optional": true,
         "editable": true,

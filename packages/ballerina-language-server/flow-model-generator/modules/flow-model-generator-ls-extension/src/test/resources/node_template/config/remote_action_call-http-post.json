@@ -19,8 +19,8 @@
     "id": "31",
     "metadata": {
       "label": "post",
-      "description": "Create a new resource or submit data to a resource for processing.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png"
+      "description": "The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.12.0.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -40,8 +40,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:Client"
+          }
+        ],
         "value": "httpClient",
         "optional": false,
         "editable": false,
@@ -53,8 +57,16 @@
           "label": "Path",
           "description": "Resource path"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -79,8 +91,16 @@
           "label": "Message",
           "description": "An HTTP outbound request or any allowed payload"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:RequestMessage",
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "mime:Entity[]"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:RequestMessage"
+          }
+        ],
         "placeholder": "{}",
         "optional": false,
         "editable": true,
@@ -93,7 +113,7 @@
         "typeMembers": [
           {
             "type": "RequestMessage",
-            "packageInfo": "ballerina:http:2.14.2",
+            "packageInfo": "ballerina:http:2.12.0",
             "packageName": "http",
             "kind": "OTHER",
             "selected": false
@@ -105,8 +125,16 @@
           "label": "Headers",
           "description": "The entity headers"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "map<string|string[]>|()",
+        "types": [
+          {
+            "fieldType": "MAPPING_EXPRESSION_SET",
+            "ballerinaType": "map<string|string[]>"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string|string[]>?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -118,17 +146,17 @@
         },
         "typeMembers": [
           {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
             "type": "map<string|string[]>",
             "packageInfo": "",
             "packageName": "",
             "kind": "MAP_TYPE",
+            "selected": false
+          },
+          {
+            "type": "()",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
             "selected": false
           }
         ],
@@ -139,8 +167,16 @@
           "label": "Media Type",
           "description": "The MIME type header of the request entity"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string|()",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -152,14 +188,14 @@
         },
         "typeMembers": [
           {
-            "type": "()",
+            "type": "string",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
             "selected": false
           },
           {
-            "type": "string",
+            "type": "()",
             "packageInfo": "",
             "packageName": "",
             "kind": "BASIC_TYPE",
@@ -171,11 +207,15 @@
       "targetType": {
         "metadata": {
           "label": "Target Type",
-          "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
         },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
-        "placeholder": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+          }
+        ],
+        "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -184,14 +224,18 @@
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "targetType"
         },
-        "defaultValue": "anydata"
+        "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
       },
       "type": {
         "metadata": {
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "targetType",
         "placeholder": "var",
         "optional": false,
@@ -205,7 +249,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "var2",
         "optional": false,
         "editable": true,
@@ -217,7 +265,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

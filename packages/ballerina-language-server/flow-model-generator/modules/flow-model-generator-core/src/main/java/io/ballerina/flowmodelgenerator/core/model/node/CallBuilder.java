@@ -39,7 +39,6 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -112,10 +111,9 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                    .typeConstraint(isLocalFunction ? codedata.object() :
+                    .type(Property.ValueType.EXPRESSION, isLocalFunction ? codedata.object() :
                             CommonUtils.getClassType(codedata.module(), codedata.object()))
                     .value(codedata.parentSymbol())
-                    .type(Property.ValueType.EXPRESSION)
                     .hidden()
                     .stepOut()
                     .addProperty(Property.CONNECTION_KEY);
@@ -146,8 +144,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .value(value)
                 .placeholder(paramData.placeholder())
                 .defaultValue(paramData.defaultValue())
-                .type(Property.ValueType.TYPE)
-                .typeConstraint(paramData.type())
+                .type(Property.ValueType.TYPE, paramData.type())
                 .imports(paramData.importStatements())
                 .editable()
                 .stepOut()
@@ -181,7 +178,6 @@ public abstract class CallBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeConstraint(paramResult.type())
                     .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
@@ -193,20 +189,16 @@ public abstract class CallBuilder extends NodeBuilder {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET, paramResult.type());
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET, paramResult.type());
                 }
                 default -> {
-                    if (paramResult.type() instanceof List<?>) {
-                        customPropBuilder.type(Property.ValueType.SINGLE_SELECT);
-                    } else {
-                        customPropBuilder.type(Property.ValueType.EXPRESSION);
-                    }
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }
 
@@ -230,9 +222,8 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                .typeConstraint(CommonUtils.getClassType(codedata.module(), codedata.object()))
+                .type(Property.ValueType.EXPRESSION, CommonUtils.getClassType(codedata.module(), codedata.object()))
                 .value(codedata.parentSymbol())
-                .type(Property.ValueType.EXPRESSION)
                 .hidden()
                 .stepOut()
                 .addProperty(Property.CONNECTION_KEY);

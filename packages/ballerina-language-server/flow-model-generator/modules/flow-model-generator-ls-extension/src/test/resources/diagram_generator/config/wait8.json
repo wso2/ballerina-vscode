@@ -91,7 +91,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "W1",
                 "optional": false,
                 "editable": false,
@@ -116,7 +120,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string|error",
                 "optional": true,
                 "editable": true,
@@ -153,7 +161,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "mockFetch(\"http://1.com\", 1)",
                     "optional": true,
                     "editable": true,
@@ -190,7 +202,11 @@
                   "label": "Worker Name",
                   "description": "Name of the worker"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "W2",
                 "optional": false,
                 "editable": false,
@@ -215,7 +231,11 @@
                   "label": "Return Type",
                   "description": "Type of the return value"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "string|error",
                 "optional": true,
                 "editable": true,
@@ -252,7 +272,11 @@
                       "label": "Expression",
                       "description": "Return value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "mockFetch(\"http://2.com\", 2)",
                     "optional": true,
                     "editable": true,
@@ -295,7 +319,11 @@
               "label": "Expression",
               "description": "Initialize with value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "",
             "optional": true,
             "editable": true,
@@ -307,7 +335,11 @@
               "label": "Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "value",
             "optional": false,
             "editable": false,
@@ -332,7 +364,11 @@
               "label": "Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "string",
             "placeholder": "var",
             "optional": false,
@@ -392,8 +428,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "condition ",
                 "placeholder": "true",
                 "optional": false,
@@ -431,7 +471,11 @@
                       "label": "Wait All",
                       "description": "Wait for all tasks to complete"
                     },
-                    "valueType": "FLAG",
+                    "types": [
+                      {
+                        "fieldType": "FLAG"
+                      }
+                    ],
                     "value": false,
                     "optional": false,
                     "editable": true,
@@ -443,21 +487,33 @@
                       "label": "Futures",
                       "description": "The futures to wait for"
                     },
-                    "valueType": "REPEATABLE_PROPERTY",
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_PROPERTY"
+                      }
+                    ],
                     "value": {
                       "future1": {
                         "metadata": {
                           "label": "Future",
                           "description": "The worker/async function to wait for"
                         },
-                        "valueType": "FIXED_PROPERTY",
+                        "types": [
+                          {
+                            "fieldType": "FIXED_PROPERTY"
+                          }
+                        ],
                         "value": {
                           "variable": {
                             "metadata": {
                               "label": "Variable Name",
                               "description": "Name of the variable"
                             },
-                            "valueType": "IDENTIFIER",
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER"
+                              }
+                            ],
                             "value": "",
                             "optional": false,
                             "editable": true,
@@ -472,7 +528,11 @@
                               "label": "Expression",
                               "description": "Expression"
                             },
-                            "valueType": "EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION"
+                              }
+                            ],
                             "value": "W1",
                             "optional": false,
                             "editable": true,
@@ -544,7 +604,11 @@
                       "label": "Wait All",
                       "description": "Wait for all tasks to complete"
                     },
-                    "valueType": "FLAG",
+                    "types": [
+                      {
+                        "fieldType": "FLAG"
+                      }
+                    ],
                     "value": false,
                     "optional": false,
                     "editable": true,
@@ -556,21 +620,33 @@
                       "label": "Futures",
                       "description": "The futures to wait for"
                     },
-                    "valueType": "REPEATABLE_PROPERTY",
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_PROPERTY"
+                      }
+                    ],
                     "value": {
                       "future1": {
                         "metadata": {
                           "label": "Future",
                           "description": "The worker/async function to wait for"
                         },
-                        "valueType": "FIXED_PROPERTY",
+                        "types": [
+                          {
+                            "fieldType": "FIXED_PROPERTY"
+                          }
+                        ],
                         "value": {
                           "variable": {
                             "metadata": {
                               "label": "Variable Name",
                               "description": "Name of the variable"
                             },
-                            "valueType": "IDENTIFIER",
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER"
+                              }
+                            ],
                             "value": "",
                             "optional": false,
                             "editable": true,
@@ -585,7 +661,11 @@
                               "label": "Expression",
                               "description": "Expression"
                             },
-                            "valueType": "EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION"
+                              }
+                            ],
                             "value": "W2",
                             "optional": false,
                             "editable": true,
@@ -646,8 +726,11 @@
               "label": "values",
               "description": "The value(s) to be printed"
             },
-            "valueType": "EXPRESSION_SET",
-            "valueTypeConstraint": "io:Printable",
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET"
+              }
+            ],
             "value": [
               "\"Value: \" + value"
             ],

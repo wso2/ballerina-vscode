@@ -45,7 +45,7 @@ public record AnnotationAttachment(String modulePrefix, String name, Map<String,
     }
 
     private String handleProperty(Map<?, ?> map) {
-        if (map.containsKey("valueType") && map.containsKey("value")) {
+        if (map.containsKey("types") && map.containsKey("value")) {
             Property prop = gson.fromJson(gson.toJson(map), Property.class);
             return handleProperty(prop);
         }
@@ -64,17 +64,25 @@ public record AnnotationAttachment(String modulePrefix, String name, Map<String,
     }
 
     private String handleProperty(Property prop) {
-        if (Property.ValueType.EXPRESSION.name().equals(prop.valueType())) {
+        if (Property.ValueType.EXPRESSION.name().equals(valueType(prop))) {
             return prop.value().toString();
         }
 
         // Object with attributes
-        if (Property.ValueType.MAPPING_EXPRESSION_SET.name().equals(prop.valueType())) {
+        if (Property.ValueType.MAPPING_EXPRESSION_SET.name().equals(valueType(prop))) {
             Map<String, Object> valueMap = (Map<String, Object>) prop.value();
             return handleProperty(valueMap);
         }
 
         return prop.value().toString(); // TODO: Return default values for each type
+    }
+
+    private String valueType(Property property) {
+        List<PropertyType> types = property.types();
+        if (types != null && !types.isEmpty()) {
+            return types.getLast().fieldType().name();
+        }
+        return null;
     }
 
     @Override

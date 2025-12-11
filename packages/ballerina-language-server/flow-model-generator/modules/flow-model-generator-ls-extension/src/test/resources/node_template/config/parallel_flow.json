@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "PARALLEL_FLOW"
@@ -28,7 +29,11 @@
               "label": "Return Type",
               "description": "Type of the return value"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "",
             "optional": true,
             "editable": true,
@@ -40,7 +45,11 @@
               "label": "Worker Name",
               "description": "Name of the worker"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "worker1",
             "optional": false,
             "editable": true,
@@ -63,7 +72,11 @@
               "label": "Return Type",
               "description": "Type of the return value"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "",
             "optional": true,
             "editable": true,
@@ -75,7 +88,11 @@
               "label": "Worker Name",
               "description": "Name of the worker"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "worker2",
             "optional": false,
             "editable": true,

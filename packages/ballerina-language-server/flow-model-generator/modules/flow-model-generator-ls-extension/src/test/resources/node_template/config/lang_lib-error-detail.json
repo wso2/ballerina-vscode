@@ -37,8 +37,12 @@
           "label": "E",
           "description": "the error value"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "error:error<error:Detail>",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error:error<error:DetailType>"
+          }
+        ],
         "placeholder": "error(\"\")",
         "optional": false,
         "editable": true,
@@ -63,8 +67,12 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
-        "value": "error:Detail & readonly",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
+        "value": "error:DetailType & readonly",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -77,8 +85,12 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
-        "value": "errorDetailReadonly",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
+        "value": "errorDetailtypeReadonly",
         "optional": false,
         "editable": true,
         "advanced": false,

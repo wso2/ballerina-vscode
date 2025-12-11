@@ -789,7 +789,7 @@ public class TypeTransformer {
             }
         }
         return propertyBuilder
-                .typeConstraint(typeDescKind.getName())
+                .type(Property.ValueType.EXPRESSION, typeDescKind.getName())
                 .build();
     }
 

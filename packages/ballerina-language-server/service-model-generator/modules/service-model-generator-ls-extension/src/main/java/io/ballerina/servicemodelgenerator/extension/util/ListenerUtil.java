@@ -367,7 +367,7 @@ public class ListenerUtil {
                     .value("")
                     .valueType("EXPRESSION")
                     .setPlaceholder(paramResult.placeholder())
-                    .setValueTypeConstraint(paramResult.type().toString())
+                    .setValueTypeConstraint(paramResult.type())
                     .editable(true)
                     .enabled(true)
                     .optional(paramResult.optional())

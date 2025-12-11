@@ -93,14 +93,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "var p",
                     "optional": false,
                     "editable": true,
@@ -119,7 +127,11 @@
                   "label": "Expression",
                   "description": "Guard expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "p < 100 ",
                 "optional": false,
                 "editable": true,
@@ -156,7 +168,11 @@
                       "label": "Expression",
                       "description": "Update value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"cheap\"",
                     "optional": false,
                     "editable": true,
@@ -168,7 +184,11 @@
                       "label": "Variable",
                       "description": "Name of the variable/field"
                     },
-                    "valueType": "LV_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "LV_EXPRESSION"
+                      }
+                    ],
                     "value": "fruit.quality",
                     "optional": false,
                     "editable": true,
@@ -205,14 +225,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "var p",
                     "optional": false,
                     "editable": true,
@@ -231,7 +259,11 @@
                   "label": "Expression",
                   "description": "Guard expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "p >= 100 && p < 200 ",
                 "optional": false,
                 "editable": true,
@@ -288,14 +320,22 @@
                           "label": "Patterns",
                           "description": "List of binding patterns"
                         },
-                        "valueType": "SINGLE_SELECT",
+                        "types": [
+                          {
+                            "fieldType": "SINGLE_SELECT"
+                          }
+                        ],
                         "value": [
                           {
                             "metadata": {
                               "label": "Pattern",
                               "description": "Binding pattern"
                             },
-                            "valueType": "EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION"
+                              }
+                            ],
                             "value": "var q",
                             "optional": false,
                             "editable": true,
@@ -314,7 +354,11 @@
                           "label": "Expression",
                           "description": "Guard expression"
                         },
-                        "valueType": "EXPRESSION",
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION"
+                          }
+                        ],
                         "value": "q is int && q > 0 ",
                         "optional": false,
                         "editable": true,
@@ -351,7 +395,11 @@
                               "label": "Expression",
                               "description": "Update value"
                             },
-                            "valueType": "ACTION_OR_EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION"
+                              }
+                            ],
                             "value": "\"fresh; moderate\"",
                             "optional": false,
                             "editable": true,
@@ -363,7 +411,11 @@
                               "label": "Variable",
                               "description": "Name of the variable/field"
                             },
-                            "valueType": "LV_EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "LV_EXPRESSION"
+                              }
+                            ],
                             "value": "fruit.quality",
                             "optional": false,
                             "editable": true,
@@ -400,14 +452,22 @@
                           "label": "Patterns",
                           "description": "List of binding patterns"
                         },
-                        "valueType": "SINGLE_SELECT",
+                        "types": [
+                          {
+                            "fieldType": "SINGLE_SELECT"
+                          }
+                        ],
                         "value": [
                           {
                             "metadata": {
                               "label": "Pattern",
                               "description": "Binding pattern"
                             },
-                            "valueType": "EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION"
+                              }
+                            ],
                             "value": "_",
                             "optional": false,
                             "editable": true,
@@ -451,7 +511,11 @@
                               "label": "Expression",
                               "description": "Update value"
                             },
-                            "valueType": "ACTION_OR_EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION"
+                              }
+                            ],
                             "value": "\"expired; moderate\"",
                             "optional": false,
                             "editable": true,
@@ -463,7 +527,11 @@
                               "label": "Variable",
                               "description": "Name of the variable/field"
                             },
-                            "valueType": "LV_EXPRESSION",
+                            "types": [
+                              {
+                                "fieldType": "LV_EXPRESSION"
+                              }
+                            ],
                             "value": "fruit.quality",
                             "optional": false,
                             "editable": true,
@@ -482,8 +550,12 @@
                       "label": "Target",
                       "description": "Match target expression"
                     },
-                    "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "any|error",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "any|error"
+                      }
+                    ],
                     "value": "fruit.quantity ",
                     "placeholder": "true",
                     "optional": false,
@@ -521,14 +593,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "var p",
                     "optional": false,
                     "editable": true,
@@ -547,7 +627,11 @@
                   "label": "Expression",
                   "description": "Guard expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "p >= 200 ",
                 "optional": false,
                 "editable": true,
@@ -582,14 +666,22 @@
                   "label": "Patterns",
                   "description": "List of binding patterns"
                 },
-                "valueType": "SINGLE_SELECT",
+                "types": [
+                  {
+                    "fieldType": "SINGLE_SELECT"
+                  }
+                ],
                 "value": [
                   {
                     "metadata": {
                       "label": "Pattern",
                       "description": "Binding pattern"
                     },
-                    "valueType": "EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION"
+                      }
+                    ],
                     "value": "_",
                     "optional": false,
                     "editable": true,
@@ -633,7 +725,11 @@
                       "label": "Expression",
                       "description": "Update value"
                     },
-                    "valueType": "ACTION_OR_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION"
+                      }
+                    ],
                     "value": "\"expensive\"",
                     "optional": false,
                     "editable": true,
@@ -645,7 +741,11 @@
                       "label": "Variable",
                       "description": "Name of the variable/field"
                     },
-                    "valueType": "LV_EXPRESSION",
+                    "types": [
+                      {
+                        "fieldType": "LV_EXPRESSION"
+                      }
+                    ],
                     "value": "fruit.quality",
                     "optional": false,
                     "editable": true,
@@ -664,8 +764,12 @@
               "label": "Target",
               "description": "Match target expression"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "any|error",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "any|error"
+              }
+            ],
             "value": "fruit.price ",
             "placeholder": "true",
             "optional": false,
@@ -704,7 +808,11 @@
               "label": "Expression",
               "description": "Return value"
             },
-            "valueType": "ACTION_OR_EXPRESSION",
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION"
+              }
+            ],
             "value": "fruit",
             "optional": true,
             "editable": true,

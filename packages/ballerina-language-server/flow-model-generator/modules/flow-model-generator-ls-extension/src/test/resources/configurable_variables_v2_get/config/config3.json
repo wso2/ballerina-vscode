@@ -30,8 +30,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "prices",
               "optional": false,
               "editable": true,
@@ -43,7 +47,11 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "int[]",
               "placeholder": "var",
               "optional": false,
@@ -57,7 +65,11 @@
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "[62, 58]",
               "optional": true,
               "editable": true,
@@ -70,7 +82,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "[748, 930]",
               "optional": true,
               "editable": true,
@@ -83,7 +99,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -121,8 +141,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "person",
               "optional": false,
               "editable": true,
@@ -134,7 +158,11 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "Person",
               "placeholder": "var",
               "optional": false,
@@ -156,7 +184,11 @@
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -169,7 +201,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "{name: \"john\", age: 25}",
               "optional": true,
               "editable": true,
@@ -182,7 +218,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -220,8 +260,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "myVal",
               "optional": false,
               "editable": true,
@@ -233,7 +277,11 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "int|string",
               "placeholder": "var",
               "optional": false,
@@ -247,7 +295,11 @@
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -260,7 +312,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "\"hello\"",
               "optional": true,
               "editable": true,
@@ -273,7 +329,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -311,8 +371,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "itemCodes",
               "optional": false,
               "editable": true,
@@ -324,7 +388,11 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "map<int>",
               "placeholder": "var",
               "optional": false,
@@ -338,7 +406,11 @@
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "{\"item1\": 11, \"item2\": 12, \"item3\": 45}",
               "optional": true,
               "editable": true,
@@ -351,7 +423,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -364,7 +440,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -402,8 +482,12 @@
                 "label": "Variable Name",
                 "description": "Name of the variable"
               },
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "Global",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global"
+                }
+              ],
               "value": "itemNames",
               "optional": false,
               "editable": true,
@@ -415,7 +499,11 @@
                 "label": "Variable Type",
                 "description": "Type of the variable"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE"
+                }
+              ],
               "value": "string[]",
               "placeholder": "var",
               "optional": false,
@@ -429,7 +517,11 @@
                 "label": "Default Value",
                 "description": "Default value of the variable"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "[\"item1\", \"item2\", \"item3\"]",
               "optional": true,
               "editable": true,
@@ -442,7 +534,11 @@
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION"
+                }
+              ],
               "value": "[\"item1\", \"item2\", \"item3\"]",
               "optional": true,
               "editable": true,
@@ -455,7 +551,11 @@
                 "label": "Documentation",
                 "description": "Variable documentation in Markdown format"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT"
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,

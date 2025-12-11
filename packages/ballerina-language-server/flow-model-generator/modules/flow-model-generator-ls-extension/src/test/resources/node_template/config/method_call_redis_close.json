@@ -39,8 +39,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "redis:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "redis:Client"
+          }
+        ],
         "value": "rc",
         "optional": false,
         "editable": false,
@@ -52,7 +56,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

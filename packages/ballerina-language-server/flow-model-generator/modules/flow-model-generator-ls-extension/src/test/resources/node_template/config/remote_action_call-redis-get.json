@@ -20,7 +20,7 @@
     "metadata": {
       "label": "get",
       "description": "Get value of key.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.0.2.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -39,8 +39,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "redis:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "redis:Client"
+          }
+        ],
         "value": "rc",
         "optional": false,
         "editable": false,
@@ -52,8 +56,16 @@
           "label": "Key",
           "description": "Key referring to a value"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -78,7 +90,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "string|()",
         "placeholder": "var",
         "optional": false,
@@ -92,7 +108,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "stringResult",
         "optional": false,
         "editable": true,
@@ -104,7 +124,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

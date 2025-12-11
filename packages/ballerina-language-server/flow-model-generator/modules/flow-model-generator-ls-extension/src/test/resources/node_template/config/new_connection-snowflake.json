@@ -1,4 +1,5 @@
 {
+  "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
     "node": "NEW_CONNECTION",
@@ -32,8 +33,16 @@
           "label": "Account Identifier",
           "description": "The Snowflake account identifier"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -58,8 +67,16 @@
           "label": "User",
           "description": "The username of the Snowflake account"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -84,8 +101,16 @@
           "label": "Password",
           "description": "The password of the Snowflake account"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -110,8 +135,12 @@
           "label": "Options",
           "description": "The Snowflake client properties"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "snowflake:Options|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "snowflake:Options?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -144,8 +173,12 @@
           "label": "Connection Pool",
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "sql:ConnectionPool|()",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ConnectionPool?"
+          }
+        ],
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -178,7 +211,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "snowflake:Client",
         "placeholder": "var",
         "optional": false,
@@ -195,7 +232,11 @@
           "label": "Connection Name",
           "description": "Name of the connection"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "snowflakeClient",
         "optional": false,
         "editable": true,
@@ -207,7 +248,11 @@
           "label": "Connection Scope",
           "description": "Scope of the connection, Global or Local"
         },
-        "valueType": "ENUM",
+        "types": [
+          {
+            "fieldType": "ENUM"
+          }
+        ],
         "value": "Global",
         "optional": false,
         "editable": true,
@@ -219,7 +264,11 @@
           "label": "Check Error",
           "description": "Terminate on error"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": false,

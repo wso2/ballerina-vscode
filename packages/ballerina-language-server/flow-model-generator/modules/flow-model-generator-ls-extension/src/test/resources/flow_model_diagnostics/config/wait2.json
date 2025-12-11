@@ -190,7 +190,11 @@
           "label": "Wait All",
           "description": "Wait for all tasks to complete"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": false,
         "optional": false,
         "editable": true,
@@ -202,21 +206,33 @@
           "label": "Futures",
           "description": "The futures to wait for"
         },
-        "valueType": "REPEATABLE_PROPERTY",
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY"
+          }
+        ],
         "value": {
           "future1": {
             "metadata": {
               "label": "Future",
               "description": "The worker/async function to wait for"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "variable": {
                 "metadata": {
                   "label": "Variable Name",
                   "description": "Name of the variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "",
                 "optional": false,
                 "editable": true,
@@ -231,7 +247,11 @@
                   "label": "Expression",
                   "description": "Expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "worker1 ",
                 "optional": false,
                 "editable": true,
@@ -249,14 +269,22 @@
               "label": "Future",
               "description": "The worker/async function to wait for"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "variable": {
                 "metadata": {
                   "label": "Variable Name",
                   "description": "Name of the variable"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "",
                 "optional": false,
                 "editable": true,
@@ -271,7 +299,11 @@
                   "label": "Expression",
                   "description": "Expression"
                 },
-                "valueType": "EXPRESSION",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION"
+                  }
+                ],
                 "value": "worker2",
                 "optional": false,
                 "editable": true,
@@ -304,7 +336,11 @@
           "label": "Variable Name",
           "description": "Name of the variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "waitResult",
         "optional": false,
         "editable": false,
@@ -329,7 +365,11 @@
           "label": "Variable Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "int",
         "placeholder": "var",
         "optional": false,

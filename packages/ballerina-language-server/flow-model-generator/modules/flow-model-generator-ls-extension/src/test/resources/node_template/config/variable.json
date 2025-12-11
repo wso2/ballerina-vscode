@@ -25,7 +25,11 @@
           "label": "Name",
           "description": "Name of the variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "var2",
         "optional": false,
         "editable": true,
@@ -37,7 +41,11 @@
           "label": "Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "",
         "placeholder": "var",
         "optional": false,
@@ -51,7 +59,11 @@
           "label": "Expression",
           "description": "Initialize with value"
         },
-        "valueType": "ACTION_OR_EXPRESSION",
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION"
+          }
+        ],
         "value": "",
         "optional": true,
         "editable": true,

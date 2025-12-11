@@ -19,6 +19,7 @@
 package io.ballerina.modelgenerator.commons;
 
 import io.ballerina.compiler.api.symbols.ParameterKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +38,13 @@ import java.util.List;
  * @param optional         whether the parameter is optional
  * @param importStatements import statements of the dependent types
  * @param typeMembers      the member types of the parameter
+ * @param typeSymbol       the type symbol of the parameter
  * @since 1.0.0
  */
 public record ParameterData(
         int parameterId,
         String name,
-        Object type,
+        String type,
         Kind kind,
         String placeholder,
         String defaultValue,
@@ -50,38 +52,26 @@ public record ParameterData(
         String label,
         boolean optional,
         String importStatements,
-        List<ParameterMemberTypeData> typeMembers) {
+        List<ParameterMemberTypeData> typeMembers,
+        io.ballerina.compiler.api.symbols.TypeSymbol typeSymbol) {
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
         return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
-                null, new ArrayList<>());
+                null, new ArrayList<>(), null);
     }
 
-    public static ParameterData from(String name, String description, Object type, String placeholder, Kind kind,
-                                     boolean optional, String importStatements) {
+    public static ParameterData from(String name, String type, Kind kind, String placeholder,
+                                     String description, boolean optional, TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
-                importStatements, new ArrayList<>());
+                null, new ArrayList<>(), typeSymbol);
     }
 
-    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
-                                     Kind kind, boolean optional, String importStatements) {
-        return new ParameterData(0, name, type, kind, placeholder, null, description, label, optional,
-                importStatements, new ArrayList<>());
-    }
-
-    public static ParameterData from(String name, String description, Object type, String placeholder,
-                                     String defaultValue,
-                                     Kind kind, boolean optional, String importStatements) {
-        return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, null, optional,
-                importStatements, new ArrayList<>());
-    }
-
-    public static ParameterData from(String name, String description, String label, Object type, String placeholder,
-                                     String defaultValue,
-                                     Kind kind, boolean optional, String importStatements) {
+    public static ParameterData from(String name, String description, String label, String type, String placeholder,
+                                     String defaultValue, Kind kind, boolean optional, String importStatements,
+                                     TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
-                importStatements, new ArrayList<>());
+                importStatements, new ArrayList<>(), typeSymbol);
     }
 
     public enum Kind {

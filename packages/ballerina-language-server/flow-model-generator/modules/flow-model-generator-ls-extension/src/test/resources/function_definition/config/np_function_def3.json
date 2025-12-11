@@ -32,8 +32,12 @@
           "label": "Name",
           "description": "Name of the function"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global"
+          }
+        ],
         "value": "summarizeBlog",
         "optional": false,
         "editable": false,
@@ -58,7 +62,11 @@
           "label": "Return Type",
           "description": "Type of the return value"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "Summary|error",
         "optional": true,
         "editable": true,
@@ -70,70 +78,98 @@
           "label": "Parameters",
           "description": "Function parameters"
         },
-        "valueType": "REPEATABLE_PROPERTY",
-        "valueTypeConstraint": {
-          "metadata": {
-            "label": "Parameter",
-            "description": "Function parameter"
-          },
-          "valueType": "FIXED_PROPERTY",
-          "value": {
-            "type": {
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
               "metadata": {
-                "label": "Type",
-                "description": "Type of the parameter"
+                "label": "Parameter",
+                "description": "Function parameter"
               },
-              "valueType": "TYPE",
-              "value": "",
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY"
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER"
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "parameterDescription": {
+                  "metadata": {
+                    "label": "Description",
+                    "description": "Description of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TEXT"
+                    }
+                  ],
+                  "value": "",
+                  "optional": true,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
               "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "variable": {
-              "metadata": {
-                "label": "Name",
-                "description": "Name of the parameter"
-              },
-              "valueType": "IDENTIFIER",
-              "value": "",
-              "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
-            "parameterDescription": {
-              "metadata": {
-                "label": "Description",
-                "description": "Description of the parameter"
-              },
-              "valueType": "STRING",
-              "value": "",
-              "optional": true,
-              "editable": true,
+              "editable": false,
               "advanced": false,
               "hidden": false
             }
-          },
-          "optional": false,
-          "editable": false,
-          "advanced": false,
-          "hidden": false
-        },
+          }
+        ],
         "value": {
           "blog": {
             "metadata": {
               "label": "Parameter",
               "description": "Function parameter"
             },
-            "valueType": "FIXED_PROPERTY",
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY"
+              }
+            ],
             "value": {
               "type": {
                 "metadata": {
                   "label": "Type",
                   "description": "Type of the parameter"
                 },
-                "valueType": "TYPE",
+                "types": [
+                  {
+                    "fieldType": "TYPE"
+                  }
+                ],
                 "value": "Blog",
                 "optional": false,
                 "editable": true,
@@ -145,7 +181,11 @@
                   "label": "Name",
                   "description": "Name of the parameter"
                 },
-                "valueType": "IDENTIFIER",
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER"
+                  }
+                ],
                 "value": "blog",
                 "optional": false,
                 "editable": true,
@@ -170,7 +210,11 @@
                   "label": "Description",
                   "description": "Description of the parameter"
                 },
-                "valueType": "STRING",
+                "types": [
+                  {
+                    "fieldType": "TEXT"
+                  }
+                ],
                 "value": "",
                 "optional": true,
                 "editable": true,
@@ -194,7 +238,11 @@
           "label": "Prompt",
           "description": "Prompt for the function"
         },
-        "valueType": "RAW_TEMPLATE",
+        "types": [
+          {
+            "fieldType": "RAW_TEMPLATE"
+          }
+        ],
         "value": "    Think yourself as a blog reviewer and summarize the following blog\n\n    **title**\n    ${blog.title}\n\n    **content**\n    ${blog.content}",
         "optional": false,
         "editable": true,
@@ -216,7 +264,11 @@
         }
       },
       "modelProviderAsParameter": {
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

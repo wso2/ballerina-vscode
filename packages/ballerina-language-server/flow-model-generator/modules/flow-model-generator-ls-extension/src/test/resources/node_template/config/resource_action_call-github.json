@@ -38,8 +38,12 @@
           "label": "Connection",
           "description": "Connection to use"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "github:Client",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "github:Client"
+          }
+        ],
         "value": "githubClient",
         "optional": false,
         "editable": false,
@@ -51,7 +55,11 @@
           "label": "Resource Path",
           "description": "Resource Path"
         },
-        "valueType": "ACTION_PATH",
+        "types": [
+          {
+            "fieldType": "ACTION_PATH"
+          }
+        ],
         "value": "/app-manifests/[code]/conversions",
         "optional": false,
         "editable": false,
@@ -65,8 +73,16 @@
         "metadata": {
           "label": "code"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string"
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string"
+          }
+        ],
         "placeholder": "\"\"",
         "optional": false,
         "editable": true,
@@ -83,7 +99,11 @@
           "label": "Result Type",
           "description": "Type of the variable"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE"
+          }
+        ],
         "value": "github:ManifestConversions",
         "placeholder": "var",
         "optional": false,
@@ -97,7 +117,11 @@
           "label": "Result",
           "description": "Name of the result variable"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER"
+          }
+        ],
         "value": "githubManifestconversions",
         "optional": false,
         "editable": true,
@@ -109,7 +133,11 @@
           "label": "Check Error",
           "description": "Trigger error flow"
         },
-        "valueType": "FLAG",
+        "types": [
+          {
+            "fieldType": "FLAG"
+          }
+        ],
         "value": true,
         "optional": false,
         "editable": true,

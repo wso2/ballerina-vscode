@@ -69,7 +69,11 @@
               "label": "Comment",
               "description": "Comment to describe the flow"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "Create new CustomerApiClient connection",
             "optional": false,
             "editable": true,
@@ -111,8 +115,16 @@
             "metadata": {
               "label": "Service Url"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"https://api.example.com\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -138,7 +150,11 @@
               "label": "Check Error",
               "description": "Terminate on error"
             },
-            "valueType": "FLAG",
+            "types": [
+              {
+                "fieldType": "FLAG"
+              }
+            ],
             "value": true,
             "optional": false,
             "editable": false,
@@ -150,7 +166,11 @@
               "label": "Connection Scope",
               "description": "Scope of the connection, Global or Local"
             },
-            "valueType": "ENUM",
+            "types": [
+              {
+                "fieldType": "ENUM"
+              }
+            ],
             "value": "Local",
             "optional": false,
             "editable": true,
@@ -162,7 +182,11 @@
               "label": "Connection Name",
               "description": "Name of the variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "apiClient",
             "optional": false,
             "editable": false,
@@ -187,7 +211,11 @@
               "label": "Connection Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "pkgB:CustomerApiClient",
             "placeholder": "var",
             "optional": false,
@@ -227,7 +255,11 @@
               "label": "Comment",
               "description": "Comment to describe the flow"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "Make remote call to get customer",
             "optional": false,
             "editable": true,
@@ -272,7 +304,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "apiClient",
             "optional": false,
             "editable": false,
@@ -283,8 +319,16 @@
             "metadata": {
               "label": "Id"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"CUST001\"",
             "placeholder": "\"\"",
             "optional": false,
@@ -310,7 +354,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "existingCustomer",
             "optional": false,
             "editable": false,
@@ -335,7 +383,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "pkgB:ExternalCustomer",
             "placeholder": "var",
             "optional": false,
@@ -395,8 +447,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "existingCustomer is pkgB:ExternalCustomer ",
                 "placeholder": "true",
                 "optional": false,
@@ -440,8 +496,11 @@
                       "label": "values",
                       "description": "The value(s) to be printed"
                     },
-                    "valueType": "EXPRESSION_SET",
-                    "valueTypeConstraint": "io:Printable",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION_SET"
+                      }
+                    ],
                     "value": [
                       "string `Retrieved customer via remote: ${existingCustomer.fullName}`"
                     ],
@@ -500,7 +559,11 @@
               "label": "Comment",
               "description": "Comment to describe the flow"
             },
-            "valueType": "STRING",
+            "types": [
+              {
+                "fieldType": "TEXT"
+              }
+            ],
             "value": "Make resource call to get customer",
             "optional": false,
             "editable": true,
@@ -546,7 +609,11 @@
               "label": "Resource Path",
               "description": "Resource Path"
             },
-            "valueType": "ACTION_PATH",
+            "types": [
+              {
+                "fieldType": "ACTION_PATH"
+              }
+            ],
             "value": "/customers/[id]",
             "optional": false,
             "editable": false,
@@ -560,8 +627,16 @@
             "metadata": {
               "label": "id"
             },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "string",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string"
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string"
+              }
+            ],
             "value": "\"CUST002\"",
             "optional": false,
             "editable": true,
@@ -578,7 +653,11 @@
               "label": "Connection",
               "description": "Connection to use"
             },
-            "valueType": "EXPRESSION",
+            "types": [
+              {
+                "fieldType": "EXPRESSION"
+              }
+            ],
             "value": "apiClient",
             "optional": false,
             "editable": false,
@@ -590,7 +669,11 @@
               "label": "Result",
               "description": "Name of the result variable"
             },
-            "valueType": "IDENTIFIER",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER"
+              }
+            ],
             "value": "customerViaResource",
             "optional": false,
             "editable": false,
@@ -615,7 +698,11 @@
               "label": "Result Type",
               "description": "Type of the variable"
             },
-            "valueType": "TYPE",
+            "types": [
+              {
+                "fieldType": "TYPE"
+              }
+            ],
             "value": "pkgB:ExternalCustomer",
             "placeholder": "var",
             "optional": false,
@@ -675,8 +762,12 @@
                   "label": "Condition",
                   "description": "Boolean Condition"
                 },
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "boolean",
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean"
+                  }
+                ],
                 "value": "customerViaResource is pkgB:ExternalCustomer ",
                 "placeholder": "true",
                 "optional": false,
@@ -720,8 +811,11 @@
                       "label": "values",
                       "description": "The value(s) to be printed"
                     },
-                    "valueType": "EXPRESSION_SET",
-                    "valueTypeConstraint": "io:Printable",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION_SET"
+                      }
+                    ],
                     "value": [
                       "string `Retrieved customer via resource: ${customerViaResource.fullName}`"
                     ],

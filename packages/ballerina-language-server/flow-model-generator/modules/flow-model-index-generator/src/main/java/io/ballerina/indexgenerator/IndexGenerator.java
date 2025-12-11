@@ -239,7 +239,7 @@ class IndexGenerator {
 
         // Use FunctionDataBuilder to create FunctionData
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
-                .disableIndex()
+                .enableIndex()
                 .semanticModel(semanticModel)
                 .functionSymbol(functionSymbol)
                 .moduleInfo(moduleInfo)
