@@ -529,8 +529,9 @@ public class FunctionDataBuilder {
             for (String paramName : paramNameList) {
                 if (returnTypeMap.containsKey(paramName)) {
                     TypeSymbol typeDescriptor = returnTypeMap.get(paramName);
-                    String defaultValue = getTypeSignature(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
-                    paramForTypeInfer = new ParamForTypeInfer(paramName, defaultValue,
+                    TypeSymbol typeSymbol = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+                    String defaultValue = getTypeSignature(typeSymbol);
+                    paramForTypeInfer = new ParamForTypeInfer(paramName, defaultValue, typeSymbol,
                             CommonUtils.getTypeSignature(semanticModel, CommonUtils.getRawType(typeDescriptor), true));
                     break;
                 }
@@ -747,6 +748,7 @@ public class FunctionDataBuilder {
                     placeholder = paramForTypeInfer.defaultValue();
                     defaultValue = paramForTypeInfer.defaultValue();
                     paramType = paramForTypeInfer.type();
+                    typeSymbol = paramForTypeInfer.typeSymbol();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                             ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, typeSymbol));
@@ -1182,7 +1184,7 @@ public class FunctionDataBuilder {
 
 
 
-    private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
+    private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
     }
 
     private record ReturnData(String returnType, ParamForTypeInfer paramForTypeInfer, boolean returnError,
