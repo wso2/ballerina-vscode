@@ -36,9 +36,9 @@ export interface ResolutionResult {
 export async function attemptValueResolution(
     serverUrl: string,
     auth: string,
-    moduleVariables: FlowNode[],
     rpcClient: BallerinaRpcClient,
-    projectPathUri: string
+    projectPathUri: string,
+    filePath: string
 ): Promise<ResolutionResult> {
     let error = "";
 
@@ -47,9 +47,9 @@ export async function attemptValueResolution(
     try {
         resolvedUrl = await resolveVariableValue(
             serverUrl,
-            moduleVariables,
             rpcClient,
-            projectPathUri
+            projectPathUri,
+            filePath
         );
 
         // Check if resolution actually worked (not just returned the variable name)
@@ -68,9 +68,9 @@ export async function attemptValueResolution(
         try {
             resolvedAuthValue = await resolveAuthConfig(
                 auth,
-                moduleVariables,
                 rpcClient,
-                projectPathUri
+                projectPathUri,
+                filePath
             );
             if (resolvedAuthValue === null) {
                 error = "Authentication configuration contains unresolvable variables";
