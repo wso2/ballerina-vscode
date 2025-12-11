@@ -17,6 +17,7 @@
  */
 
 import { css } from "@emotion/css";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 export const useStyles = () => ({
 
@@ -44,7 +45,7 @@ export const useStyles = () => ({
         backgroundColor: 'var(--vscode-editorWidget-background)',
         color: 'var(--vscode-foreground)',
         padding: '16px',
-        border: '1px solid',
+        border: `1px solid ${ThemeColors.OUTLINE_VARIANT}`,
         borderRadius: '4px',
         display: 'flex',
         flexDirection: 'column',
