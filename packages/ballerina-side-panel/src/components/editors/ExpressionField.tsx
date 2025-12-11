@@ -35,6 +35,7 @@ import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigP
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
 
 export interface ExpressionField {
     field: FormField;
@@ -142,8 +143,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 value={value}
                 onChange={onChange}
             />
-            );
-        }
+        );
+    }
     if (inputMode === InputMode.RECORD) {
         return (
             <RecordConfigPreviewEditor
@@ -208,6 +209,27 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 
         );
     }
+    if (inputMode === InputMode.PROMPT) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={field.valueTypeConstraint === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+            />
+
+        );
+    }
     if (inputMode === InputMode.NUMBER) {
         return (
             <NumberExpressionEditor
@@ -226,6 +248,25 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 isInExpandedMode={isInExpandedMode}
             />
 
+        );
+    }
+    if (inputMode === InputMode.SQL) {
+        return (
+            <SQLExpressionEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+            />
         );
     }
 
