@@ -53,7 +53,7 @@ interface TextProps {
     truncate?: boolean;
 }
 
-const Title = styled(Text)<TextProps>`
+const Title = styled(Text) <TextProps>`
     font-weight: bold;
     white-space: ${(props: TextProps) => (props.truncate ? "nowrap" : "normal")};
     overflow: ${(props: TextProps) => (props.truncate ? "hidden" : "visible")};
@@ -69,7 +69,7 @@ const Caption = styled(Text)`
     opacity: 0.6;
 `;
 
-const Description = styled(Text)<TextProps>`
+const Description = styled(Text) <TextProps>`
     opacity: 0.8;
     margin-top: 4px;
     overflow: hidden;
@@ -141,6 +141,7 @@ export function ButtonCard(props: ButtonCardProps) {
         <Tooltip content={tooltip}>
             <Card
                 id={props.id}
+                data-testid={`function-card-${title}`}
                 onClick={disabled ? undefined : onClick}
                 active={active ?? false}
                 appearance={appearance}
