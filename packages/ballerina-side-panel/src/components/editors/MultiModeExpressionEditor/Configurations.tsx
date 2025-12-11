@@ -20,6 +20,46 @@ import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
 import { InputMode } from "./ChipExpressionEditor/types";
+import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
+import { tags } from "@lezer/highlight";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { sql } from "@codemirror/lang-sql";
+
+
+const customSqlHighlightStyle = HighlightStyle.define([
+    {
+        tag: tags.keyword,
+        color: ThemeColors.PRIMARY
+    },
+
+    {
+        tag: tags.comment,
+        color: ThemeColors.ON_SURFACE_VARIANT,
+        fontStyle: "italic"
+    },
+
+    {
+        tag: tags.string,
+        color: ThemeColors.ERROR
+    },
+
+    {
+        tag: tags.number,
+        color: ThemeColors.SECONDARY
+    },
+    {
+        tag: tags.operator,
+        color: ThemeColors.ON_SURFACE
+    },
+    {
+        tag: tags.punctuation,
+        color: ThemeColors.ON_SURFACE
+    },
+    {
+        tag: tags.variableName,
+        color: ThemeColors.ON_SURFACE
+    }
+]);
 
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
@@ -85,6 +125,47 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
     }
 }
 
+export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    showHelperPane() {
+        return true;
+    }
+    getHelperValue(value: string, token?: ParsedToken): string {
+        if (token?.type === TokenType.FUNCTION) return value;
+        return `\$\{${value}\}`;
+    }
+    getAdornment() {
+        return () => null;
+    }
+    getSerializationPrefix(): string {
+        return "sql `";
+    }
+    getSerializationSuffix(): string {
+        return "`";
+    }
+    serializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value.trim().slice(prefix.length, value.trim().length - suffix.length);
+        }
+        return value;
+    }
+    deserializeValue(value: string): string {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
+            return value;
+        }
+        return `${prefix}${value}${suffix}`;
+    }
+    getPlugins() {
+        return [
+            sql(),
+            syntaxHighlighting(customSqlHighlightStyle)
+        ];
+    }
+}
+
 export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
@@ -101,8 +182,14 @@ export class PrimaryModeChipExpressionEditorConfig extends ChipExpressionEditorD
     }
 
     getHelperValue(value: string, token?: ParsedToken): string {
-        const isTextOrTemplateMode = this.primaryMode === InputMode.TEXT || this.primaryMode === InputMode.TEMPLATE;
-        if (isTextOrTemplateMode && (!token || token.type !== TokenType.FUNCTION)) {
+        const isTemplateEditor = (
+            this.primaryMode === InputMode.TEXT ||
+            this.primaryMode === InputMode.TEMPLATE ||
+            this.primaryMode === InputMode.SQL
+        );
+
+
+        if (isTemplateEditor && (!token || token.type !== TokenType.FUNCTION)) {
             return `\$\{${value}\}`;
         }
         return value;
