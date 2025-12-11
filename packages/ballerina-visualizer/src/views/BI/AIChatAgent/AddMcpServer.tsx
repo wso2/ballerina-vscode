@@ -382,7 +382,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         setToolSource('manual-discovery');
         setShowDiscoverModal(false);
         setMcpToolsError("");
-        setResolutionError(""); // Clear resolution error
+        setResolutionError("Loaded tools via manual discovery.");
     }, []);
 
     const handleSave = async (node?: FlowNode) => {
