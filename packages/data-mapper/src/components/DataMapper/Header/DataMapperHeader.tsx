@@ -66,7 +66,8 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     )}
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
-                    <ActionGroupContaner>
+                    <ActionGroupContainer>
+                        {undoRedoGroup && undoRedoGroup()}
                         <ActionIconButton
                             onClick={onReset}
                             iconName="clear-all"
@@ -77,7 +78,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                             iconName="refresh"
                             tooltip="Refresh all mappings"
                         />
-                    </ActionGroupContaner>
+                    </ActionGroupContainer>
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>
@@ -120,12 +121,6 @@ const Title = styled.h2`
     color: var(--vscode-foreground);
 `;
 
-const VerticalDivider = styled.div`
-    height: 20px;
-    width: 1px;
-    background-color: var(--dropdown-border);
-`;
-
 const RightContainer = styled.div<{ isClickable: boolean }>`
     display: flex;
     align-items: center;
@@ -134,7 +129,7 @@ const RightContainer = styled.div<{ isClickable: boolean }>`
     opacity: ${({ isClickable }) => (isClickable ? 1 : 0.5)};
 `;
 
-const ActionGroupContaner = styled.div`
+const ActionGroupContainer = styled.div`
     display: flex;
     gap: 2px;
 `;
