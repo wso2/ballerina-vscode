@@ -39,19 +39,19 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { getProjectSource } from "../../utils/project-utils";
 
-const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
-const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
+// const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
+// const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
 
-const langfuseExporter = new LangfuseExporter({
-    secretKey: LANGFUSE_SECRET,
-    publicKey: LANGFUSE_PUBLIC,
-    baseUrl: 'https://cloud.langfuse.com', // 🇪🇺 EU region
-});
-const sdk = new NodeSDK({
-    traceExporter: langfuseExporter,
-    instrumentations: [getNodeAutoInstrumentations()],
-});
-sdk.start();
+// const langfuseExporter = new LangfuseExporter({
+//     secretKey: LANGFUSE_SECRET,
+//     publicKey: LANGFUSE_PUBLIC,
+//     baseUrl: 'https://cloud.langfuse.com', // 🇪🇺 EU region
+// });
+// const sdk = new NodeSDK({
+//     traceExporter: langfuseExporter,
+//     instrumentations: [getNodeAutoInstrumentations()],
+// });
+// sdk.start();
 
 // TODO: Tool name, types and used in both ext and visualizer to display, either move to core or use visualizer as view only.
 
@@ -300,7 +300,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
-                await langfuseExporter.forceFlush();
+                // await langfuseExporter.forceFlush();
                 return tempProjectPath;
             }
         }
