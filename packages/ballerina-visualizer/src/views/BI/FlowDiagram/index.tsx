@@ -1439,7 +1439,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         label: "Comment",
                         description: "Comment to describe the flow",
                     },
-                    valueType: "STRING",
                     value: `\n${comment}\n\n`,
                     optional: false,
                     advanced: false,

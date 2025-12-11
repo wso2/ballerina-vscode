@@ -326,7 +326,9 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
             if (lsResponse.function.accessor) {
                 lsResponse.function.accessor.value = 'get';
-                lsResponse.function.accessor.valueType = 'IDENTIFIER';
+                if (lsResponse.function.accessor.types?.[0]) {
+                    lsResponse.function.accessor.types[0].fieldType = 'IDENTIFIER';
+                }
             }
 
             setIsNew(true);
@@ -424,9 +426,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: serviceClassModel.properties["name"].metadata.label || "",
                             description: serviceClassModel.properties["name"].metadata.description || ""
                         },
-                        valueType: serviceClassModel.properties["name"].valueType || "IDENTIFIER",
+                        types: serviceClassModel.properties["name"].types?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
                         value: serviceClassModel.properties["name"].value || "",
-                        valueTypeConstraint: "Global",
                         optional: serviceClassModel.properties["name"].optional || false,
                         editable: serviceClassModel.properties["name"].editable || true
                     } :
@@ -435,9 +436,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
+                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
                         value: "",
-                        valueTypeConstraint: "Global",
                         optional: false,
                         editable: true
                     }
