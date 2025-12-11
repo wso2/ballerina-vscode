@@ -41,7 +41,13 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
 };
 
 export const getInputModeFromTypes = (inputType: InputType): InputMode => {
-    if (!inputType || !inputType.ballerinaType) return;
+    if (!inputType || !inputType) return;
+
+    if (inputType.fieldType === "SINGLE_SELECT") {
+        return InputMode.ENUM;
+    }
+
+    //default behaviour
     return INPUT_MODE_MAP[inputType.ballerinaType];
 };
 
