@@ -1,0 +1,256 @@
+{
+    "source": "local_connector/main.bal",
+    "position": {
+        "line": 8,
+        "offset": 4
+    },
+    "description": "Resource function with inferred record type parameter - get albums",
+    "codedata": {
+        "node": "RESOURCE_ACTION_CALL",
+        "org": "nipunaf",
+        "module": "new_connection1.db",
+        "packageName": "new_connection1",
+        "object": "Client",
+        "symbol": "get",
+        "version": "0.1.0",
+        "parentSymbol": "dbClient",
+        "resourcePath": "/albums"
+    },
+    "output": {
+      "id" : "31",
+      "metadata" : {
+        "label" : "get",
+        "description" : "Get rows from albums table.\n",
+        "icon" : "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
+      },
+      "codedata" : {
+        "node" : "RESOURCE_ACTION_CALL",
+        "org" : "nipunaf",
+        "module" : "new_connection1.db",
+        "packageName" : "new_connection1",
+        "object" : "Client",
+        "symbol" : "get",
+        "isNew" : true,
+        "inferredReturnType" : "targetType[]"
+      },
+      "returning" : false,
+      "properties" : {
+        "connection" : {
+          "metadata" : {
+            "label" : "Connection",
+            "description" : "Connection to use"
+          },
+          "types" : [ {
+            "fieldType" : "EXPRESSION",
+            "ballerinaType" : "db:Client"
+          } ],
+          "value" : "dbClient",
+          "optional" : false,
+          "editable" : false,
+          "advanced" : false,
+          "hidden" : true
+        },
+        "resourcePath" : {
+          "metadata" : {
+            "label" : "Resource Path",
+            "description" : "Resource Path"
+          },
+          "types" : [ {
+            "fieldType" : "ACTION_PATH"
+          } ],
+          "value" : "/albums",
+          "optional" : false,
+          "editable" : false,
+          "advanced" : false,
+          "hidden" : true,
+          "codedata" : {
+            "originalName" : "/albums"
+          }
+        },
+        "genre" : {
+          "metadata" : {
+            "label" : "Genre",
+            "description" : "Genre filter (required)"
+          },
+          "types" : [ {
+            "fieldType" : "TEXT",
+            "ballerinaType" : "string"
+          }, {
+            "fieldType" : "EXPRESSION",
+            "ballerinaType" : "string"
+          } ],
+          "placeholder" : "\"\"",
+          "optional" : false,
+          "editable" : true,
+          "advanced" : false,
+          "hidden" : false,
+          "codedata" : {
+            "kind" : "REQUIRED",
+            "originalName" : "genre"
+          },
+          "typeMembers" : [ {
+            "type" : "string",
+            "packageInfo" : "",
+            "packageName" : "",
+            "kind" : "BASIC_TYPE",
+            "selected" : false
+          } ]
+        },
+        "maxPrice" : {
+          "metadata" : {
+            "label" : "Max Price",
+            "description" : "Maximum price filter (required)"
+          },
+          "types" : [ {
+            "fieldType" : "NUMBER",
+            "ballerinaType" : "decimal"
+          }, {
+            "fieldType" : "EXPRESSION",
+            "ballerinaType" : "decimal"
+          } ],
+          "placeholder" : "0.0d",
+          "optional" : false,
+          "editable" : true,
+          "advanced" : false,
+          "hidden" : false,
+          "codedata" : {
+            "kind" : "REQUIRED",
+            "originalName" : "maxPrice"
+          },
+          "typeMembers" : [ {
+            "type" : "decimal",
+            "packageInfo" : "",
+            "packageName" : "",
+            "kind" : "BASIC_TYPE",
+            "selected" : false
+          } ]
+        },
+        "minStock" : {
+          "metadata" : {
+            "label" : "Min Stock",
+            "description" : "Minimum stock filter (defaultable)"
+          },
+          "types" : [ {
+            "fieldType" : "NUMBER",
+            "ballerinaType" : "int"
+          }, {
+            "fieldType" : "EXPRESSION",
+            "ballerinaType" : "int"
+          } ],
+          "placeholder" : "0",
+          "optional" : true,
+          "editable" : true,
+          "advanced" : true,
+          "hidden" : false,
+          "codedata" : {
+            "kind" : "DEFAULTABLE",
+            "originalName" : "minStock"
+          },
+          "typeMembers" : [ {
+            "type" : "int",
+            "packageInfo" : "",
+            "packageName" : "",
+            "kind" : "BASIC_TYPE",
+            "selected" : false
+          } ],
+          "defaultValue" : "0"
+        },
+        "targetType" : {
+          "metadata" : {
+            "label" : "Target Type",
+            "description" : "Defines which fields to retrieve from the results"
+          },
+          "types" : [ {
+            "fieldType" : "TYPE",
+            "ballerinaType" : "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}"
+          } ],
+          "value" : "db:AlbumWithRelations",
+          "placeholder" : "db:AlbumWithRelations",
+          "optional" : false,
+          "editable" : true,
+          "advanced" : false,
+          "hidden" : false,
+          "codedata" : {
+            "kind" : "PARAM_FOR_TYPE_INFER",
+            "originalName" : "targetType"
+          },
+          "defaultValue" : "db:AlbumWithRelations"
+        },
+        "sortBy" : {
+          "metadata" : {
+            "label" : "Sort By",
+            "description" : "Sort field (defaultable)"
+          },
+          "types" : [ {
+            "fieldType" : "TEXT",
+            "ballerinaType" : "string"
+          }, {
+            "fieldType" : "EXPRESSION",
+            "ballerinaType" : "string"
+          } ],
+          "placeholder" : "\"\"",
+          "optional" : true,
+          "editable" : true,
+          "advanced" : true,
+          "hidden" : false,
+          "codedata" : {
+            "kind" : "DEFAULTABLE",
+            "originalName" : "sortBy"
+          },
+          "typeMembers" : [ {
+            "type" : "string",
+            "packageInfo" : "",
+            "packageName" : "",
+            "kind" : "BASIC_TYPE",
+            "selected" : false
+          } ],
+          "defaultValue" : "\"\""
+        },
+        "type" : {
+          "metadata" : {
+            "label" : "Result Type",
+            "description" : "Type of the variable"
+          },
+          "types" : [ {
+            "fieldType" : "TYPE"
+          } ],
+          "value" : "targetType[]",
+          "placeholder" : "var",
+          "optional" : false,
+          "editable" : false,
+          "advanced" : false,
+          "hidden" : true,
+          "codedata" : { }
+        },
+        "variable" : {
+          "metadata" : {
+            "label" : "Result",
+            "description" : "Name of the result variable"
+          },
+          "types" : [ {
+            "fieldType" : "IDENTIFIER"
+          } ],
+          "value" : "var2",
+          "optional" : false,
+          "editable" : true,
+          "advanced" : false,
+          "hidden" : false
+        },
+        "checkError" : {
+          "metadata" : {
+            "label" : "Check Error",
+            "description" : "Trigger error flow"
+          },
+          "types" : [ {
+            "fieldType" : "FLAG"
+          } ],
+          "value" : true,
+          "optional" : false,
+          "editable" : true,
+          "advanced" : true,
+          "hidden" : true
+        }
+      },
+      "flags" : 0
+    }
+}
