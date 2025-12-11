@@ -349,10 +349,10 @@ public class LSPackageLoader {
         }
         Map<String, List<ListenerData>> versions = modules.get(module);
         List<ServiceTemplateGenerator.ListenerMetaData> listenerMetaData = new ArrayList<>();
-        List<ListenerData> listerDataForVersion = getListerDataForVersion(versions, version);
-        if (listerDataForVersion != null) {
+        List<ListenerData> listenerDataForVersion = getListenerDataForVersion(versions, version);
+        if (listenerDataForVersion != null) {
             ModuleID moduleID = CodeActionModuleId.from(org, module, version);
-            for (ListenerData listener : listerDataForVersion) {
+            for (ListenerData listener : listenerDataForVersion) {
                 listenerMetaData.add(ServiceTemplateGenerator.generateServiceSnippetMetaData(listener.symbolName(),
                         listener.args(), listener.index(), moduleID));
             }
@@ -370,7 +370,7 @@ public class LSPackageLoader {
         return listenerMetaData;
     }
 
-    private List<ListenerData> getListerDataForVersion(Map<String, List<ListenerData>> listeners, String version) {
+    private List<ListenerData> getListenerDataForVersion(Map<String, List<ListenerData>> listeners, String version) {
         List<ListenerData> listenerData = listeners.get(version);
         if (listenerData != null && !listenerData.isEmpty()) {
             return listenerData;

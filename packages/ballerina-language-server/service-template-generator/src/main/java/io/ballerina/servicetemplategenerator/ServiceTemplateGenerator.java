@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.servicetemplegenerator;
+package io.ballerina.servicetemplategenerator;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -106,8 +106,10 @@ public class ServiceTemplateGenerator {
                 Logger.getGlobal().log(Level.SEVERE, "Failed to write packages to JSON file", e);
             }
         } catch (IOException e) {
-            Logger.getGlobal().log(Level.SEVERE, "Error reading packages JSON file: " + e.getMessage());
+            Logger.getGlobal().log(Level.SEVERE, "Error reading packages JSON file", e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Logger.getGlobal().log(Level.WARNING, "Thread was interrupted", e);
             throw new RuntimeException(e);
         }
     }
