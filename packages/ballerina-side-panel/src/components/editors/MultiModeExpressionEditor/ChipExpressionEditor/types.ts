@@ -23,15 +23,16 @@ export enum InputMode {
   TEMPLATE = "Template",
   NUMBER = "Number",
   BOOLEAN = "Boolean",
-  SQL = "SQL"
-}
+  SQL = "SQL",
+  PROMPT = "Prompt"
+};
 
 export const INPUT_MODE_MAP = {
   string: InputMode.TEXT,
-  "ai:Prompt": InputMode.TEMPLATE,
   int: InputMode.NUMBER,
   boolean: InputMode.BOOLEAN,
-  "sql:ParameterizedQuery": InputMode.SQL
+  "sql:ParameterizedQuery": InputMode.SQL,
+  "ai:Prompt": InputMode.PROMPT
 };
 
 export enum TokenType {
@@ -108,4 +109,13 @@ export type TokenPattern = {
   sequence: readonly TokenType[];
   extractor: (tokens: any[], startIndex: number, endIndex: number, docText: string) => TokenMetadata | null;
   priority: number;
+};
+
+// Helper pane state management
+export type HelperPaneState = {
+  isOpen: boolean;
+  top: number;
+  left: number;
+  clickedChipPos?: number;
+  clickedChipNode?: any;
 };
