@@ -376,6 +376,7 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "toolKitName"
     | "tools"
     | "type"
     | "typeDescription"

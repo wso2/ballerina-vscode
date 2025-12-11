@@ -16,7 +16,7 @@ import FormGenerator from "../Forms/FormGenerator";
 import { McpToolsSelection } from "./Mcp/McpToolsSelection";
 import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
-import { attemptValueResolution, createMockTools, extractOriginalValues } from "./Mcp/mcpEditModeUtils";
+import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
 import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
@@ -36,6 +36,8 @@ interface AddMcpServerProps {
 
 const SERVER_URL_FIELD_KEY = "serverUrl";
 const AUTH_FIELD_KEY = "auth";
+const RESULT_FIELD_KEY = "variable";
+const TOOLKIT_NAME_FIELD_KEY = "toolKitName";
 
 export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const { agentCallNode, onSave, editMode = false } = props;
@@ -477,6 +479,14 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                             }
                         }
                     }}
+                    derivedFields={editMode ? [] : [
+                        {
+                            sourceField: RESULT_FIELD_KEY,
+                            targetField: TOOLKIT_NAME_FIELD_KEY,
+                            deriveFn: generateToolKitName,
+                            breakOnManualEdit: true
+                        }
+                    ]}
                     showProgressIndicator={isSaving}
                     disableSaveButton={isSaveDisabled}
                     injectedComponents={injectedComponents}
