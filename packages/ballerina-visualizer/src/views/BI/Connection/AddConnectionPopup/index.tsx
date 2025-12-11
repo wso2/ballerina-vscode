@@ -448,6 +448,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 target={target}
                 onClose={handleCloseWizard}
                 onBack={handleBackToConnectorList}
+                onBrowseConnectors={handleBackToConnectorList}
             />
         );
     }

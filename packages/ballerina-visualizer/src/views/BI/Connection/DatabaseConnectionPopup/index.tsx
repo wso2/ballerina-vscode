@@ -18,7 +18,7 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, ThemeColors, Typography, Overlay, TextField, Dropdown, OptionProps } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors, Typography, Overlay, TextField, Dropdown, OptionProps, Icon } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
 import { LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -126,8 +126,20 @@ const FormField = styled.div`
 `;
 
 const ActionButton = styled(Button)`
-    width: 100%;
     margin-top: 24px;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    box-sizing: border-box;
+    
+    & > div {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
 `;
 
 const TablesGrid = styled.div`
@@ -169,7 +181,7 @@ const TableName = styled(Typography)`
 
 const SelectAllButton = styled(Button)`
     margin-top: 16px;
-    align-self: flex-start;
+    align-self: flex-end;
 `;
 
 const SelectionInfo = styled.div`
@@ -182,8 +194,77 @@ const SelectionInfo = styled.div`
 const ActionButtonsContainer = styled.div`
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 24px;
+    width: 100%;
+`;
+
+const ConfigurablesPanel = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    margin-top: 16px;
+`;
+
+const ConfigurablesDescription = styled(Typography)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    margin: 0;
+    line-height: 1.5;
+`;
+
+const ErrorContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border: 1px solid ${ThemeColors.ERROR};
+    margin-top: 16px;
+`;
+
+const ErrorHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const ErrorTitle = styled(Typography)`
+    font-size: 16px;
+    font-weight: 600;
+    color: ${ThemeColors.ERROR};
+    margin: 0;
+`;
+
+const SeparatorLine = styled.div`
+    width: 100%;
+    height: 1px;
+    background-color: ${ThemeColors.OUTLINE_VARIANT};
+    opacity: 0.5;
+`;
+
+const BrowseMoreButton = styled(Button)`
+    margin-top: 0;
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--vscode-button-secondaryBackground, #3c3c3c) !important;
+    color: var(--vscode-button-secondaryForeground, #ffffff) !important;
+    border-radius: 4px;
+    
+    &:hover {
+        background-color: var(--vscode-button-secondaryHoverBackground, #4a4a4a) !important;
+    }
+    
+    & > span {
+        color: var(--vscode-button-secondaryForeground, #ffffff) !important;
+    }
 `;
 
 interface DatabaseConnectionPopupProps {
@@ -191,6 +272,7 @@ interface DatabaseConnectionPopupProps {
     target?: LinePosition;
     onClose?: (data?: ParentPopupData) => void;
     onBack?: () => void;
+    onBrowseConnectors?: () => void;
 }
 
 type DatabaseType = "PostgreSQL" | "MySQL" | "MSSQL";
@@ -222,7 +304,7 @@ const DEFAULT_PORTS: Record<DatabaseType, string> = {
 };
 
 export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
-    const { fileName, target, onClose, onBack } = props;
+    const { fileName, target, onClose, onBack, onBrowseConnectors} = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -238,6 +320,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const [isIntrospecting, setIsIntrospecting] = useState(false);
     const [connectionName, setConnectionName] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
 
     const steps = ["Introspect Database", "Select Tables", "Create Connection"];
 
@@ -255,10 +338,15 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             ...credentials,
             [field]: value,
         });
+        // Clear error when user modifies credentials
+        if (connectionError) {
+            setConnectionError(null);
+        }
     };
 
     const handleIntrospect = async () => {
         setIsIntrospecting(true);
+        setConnectionError(null);
         try {
             // Map database type to dbSystem format expected by RPC
             const dbSystemMap: Record<DatabaseType, string> = {
@@ -282,7 +370,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error introspecting database", response.errorMsg);
-                // TODO: Show error message to user
+                setConnectionError(response.errorMsg);
                 return;
             }
 
@@ -293,13 +381,15 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 }));
                 setTables(databaseTables);
                 setCurrentStep(1);
+                setConnectionError(null);
             } else {
                 console.warn(">>> No tables found in database");
-                // TODO: Show message to user that no tables were found
+                setConnectionError("No tables found in the database.");
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
-            // TODO: Show error message to user
+            const errorMessage = error instanceof Error ? error.message : "Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.";
+            setConnectionError(errorMessage);
         } finally {
             setIsIntrospecting(false);
         }
@@ -378,8 +468,40 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         }
     };
 
+    const handleBrowseMoreConnectors = () => {
+        if (onBrowseConnectors) {
+            onBrowseConnectors();
+        } else {
+            // Fallback: close this popup and let parent handle navigation
+            onClose?.();
+        }
+    };
+
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
+
+    const renderErrorDisplay = () => {
+        if (!connectionError) return null;
+
+        return (
+            <ErrorContainer>
+                <ErrorHeader>
+                    <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: '20px', width: '20px', height: '20px' }} />
+                    <ErrorTitle variant="h4">Connection Failed</ErrorTitle>
+                </ErrorHeader>
+                <Typography variant="body2">
+                    Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.
+                </Typography>
+                <SeparatorLine />
+                <Typography variant="body2">
+                    Or try using a pre-built connector:
+                </Typography>
+                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors}>
+                    Browse Pre-built Connectors
+                </BrowseMoreButton>
+            </ErrorContainer>
+        );
+    };
 
     const renderStepContent = () => {
         switch (currentStep) {
@@ -392,6 +514,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 Enter credentials to connect and introspect the database
                             </SectionSubtitle>
                         </div>
+                        {renderErrorDisplay()}
                         <FormSection>
                             <FormField>
                                 <Dropdown
@@ -448,7 +571,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                             </FormField>
                             <ActionButton
                                 onClick={handleIntrospect}
-                                disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting}
+                                disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting || !!connectionError}
                             >
                                 {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
                             </ActionButton>
@@ -489,17 +612,12 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
                             Select All
                         </SelectAllButton>
-                        <ActionButtonsContainer>
-                            <Button appearance="secondary" onClick={() => setCurrentStep(0)}>
-                                Back
-                            </Button>
-                            <Button
+                            <ActionButton
                                 onClick={handleContinueToConnectionDetails}
                                 disabled={selectedTablesCount === 0}
                             >
                                 Continue to Connection Details
-                            </Button>
-                        </ActionButtonsContainer>
+                            </ActionButton>
                     </StepContent>
                 );
 
@@ -509,7 +627,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <div>
                             <SectionTitle variant="h3">Connection Details</SectionTitle>
                             <SectionSubtitle variant="body2">
-                                Name your connection to complete the setup
+                                Name your connection and configure default values for configurables
                             </SectionSubtitle>
                         </div>
                         <FormSection>
@@ -525,18 +643,53 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     This name will be used to reference this connection in your code
                                 </Typography>
                             </FormField>
-                            <ActionButtonsContainer>
-                                <Button appearance="secondary" onClick={() => setCurrentStep(1)}>
-                                    Back
-                                </Button>
-                                <Button
-                                    onClick={handleSaveConnection}
-                                    disabled={!connectionName || isSaving}
-                                >
-                                    {isSaving ? "Saving..." : "Save Connection"}
-                                </Button>
-                            </ActionButtonsContainer>
                         </FormSection>
+                        <ConfigurablesPanel>
+                            <SectionTitle variant="h3">Connection Configurables</SectionTitle>
+                            <ConfigurablesDescription variant="body2">
+                                Host, port, username, password, and database name will be created as configurables. Define default values below.
+                            </ConfigurablesDescription>
+                            <FormSection>
+                                <FormField>
+                                    <TextField
+                                        id="configurable-host"
+                                        label="Host"
+                                        value={credentials.host}
+                                        onTextChange={(value) => handleCredentialsChange("host", value)}
+                                    />
+                                </FormField>
+                                <FormField>
+                                    <TextField
+                                        id="configurable-port"
+                                        label="Port"
+                                        value={credentials.port}
+                                        onTextChange={(value) => handleCredentialsChange("port", value)}
+                                    />
+                                </FormField>
+                                <FormField>
+                                    <TextField
+                                        id="configurable-username"
+                                        label="Username"
+                                        value={credentials.username}
+                                        onTextChange={(value) => handleCredentialsChange("username", value)}
+                                    />
+                                </FormField>
+                                <FormField>
+                                    <TextField
+                                        id="configurable-database-name"
+                                        label="Database Name"
+                                        value={credentials.databaseName}
+                                        onTextChange={(value) => handleCredentialsChange("databaseName", value)}
+                                    />
+                                </FormField>
+                            </FormSection>
+                        </ConfigurablesPanel>
+                            <ActionButton
+                                onClick={handleSaveConnection}
+                                disabled={!connectionName || isSaving}
+                            >
+                                {isSaving ? "Saving..." : "Save Connection"}
+                            </ActionButton>
                     </StepContent>
                 );
 
