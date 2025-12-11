@@ -30,7 +30,8 @@
       "packageName": "http",
       "object": "Client",
       "symbol": "get",
-      "isNew": true
+      "isNew": true,
+      "inferredReturnType" : "targetType"
     },
     "returning": false,
     "properties": {
