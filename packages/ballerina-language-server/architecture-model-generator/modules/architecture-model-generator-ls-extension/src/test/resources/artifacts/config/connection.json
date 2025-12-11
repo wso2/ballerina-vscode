@@ -19,7 +19,7 @@
         "type": "CONNECTION",
         "name": "graphQlConnection",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
         "module": "graphql",
         "children": {}
       },
