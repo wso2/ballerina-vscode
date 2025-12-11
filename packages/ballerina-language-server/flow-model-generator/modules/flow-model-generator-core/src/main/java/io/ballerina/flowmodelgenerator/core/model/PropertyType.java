@@ -28,9 +28,10 @@ import java.util.List;
  * @param scope         the scope for identifier types (optional)
  * @param options       the available options for selection types (optional)
  * @param template      the template property for complex types (optional)
+ * @param typeMembers   the list of type member information for record types (optional)
  * @since 1.5.0
  */
 public record PropertyType(Property.ValueType fieldType, String ballerinaType, String scope,
-                           List<String> options, Property template) {
+                           List<String> options, Property template, List<PropertyTypeMemberInfo> typeMembers) {
 
 }

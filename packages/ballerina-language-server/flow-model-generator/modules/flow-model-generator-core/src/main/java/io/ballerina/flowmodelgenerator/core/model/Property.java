@@ -21,9 +21,12 @@ package io.ballerina.flowmodelgenerator.core.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.ballerina.compiler.api.ModuleID;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -52,7 +56,6 @@ import java.util.Set;
  * @param modified      Whether the property is modified in the UI.
  * @param diagnostics   diagnostics of the property
  * @param codedata      codedata of the property
- * @param typeMembers   member types of the type constraint
  * @param advancedValue advanced value of the property
  * @param imports       import statements of the dependent types in the format prefix -> moduleId
  * @param comment       leading and trailing comments of the property
@@ -60,9 +63,8 @@ import java.util.Set;
  */
 public record Property(Metadata metadata, List<PropertyType> types, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
-                       Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata,
-                       List<PropertyTypeMemberInfo> typeMembers, Object advancedValue, Map<String, String> imports,
-                       String defaultValue, CommentProperty comment) {
+                       Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata, Object advancedValue,
+                       Map<String, String> imports, String defaultValue, CommentProperty comment) {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -274,7 +276,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         CUSTOM,
         NUMBER,
         ACTION_TYPE,
-        DATA_MAPPING_EXPRESSION
+        DATA_MAPPING_EXPRESSION,
+        RECORD_MAP_EXPRESSION
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -291,7 +294,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         private Metadata.Builder<Builder<T>> metadataBuilder;
         private Diagnostics.Builder<Builder<T>> diagnosticsBuilder;
         private PropertyCodedata.Builder<Builder<T>> codedataBuilder;
-        private List<PropertyTypeMemberInfo> typeMembers;
         private Object advancedValue;
         private Map<String, String> imports;
         private String defaultValue;
@@ -369,19 +371,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this.metadataBuilder;
         }
 
-        public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData) {
-            this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.packageName(), memberType.kind(), false)).toList();
-            return this;
-        }
-
-        public Builder<T> typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
-            this.typeMembers = memberTypeData.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.packageName(), memberType.kind(),
-                    memberType.type().equals(selectedType))).toList();
-            return this;
-        }
-
         // TODO: Need to improve the index to obtain this structured information
         public Builder<T> imports(String importStatements) {
             if (importStatements == null) {
@@ -444,6 +433,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private String scope;
             private List<String> options;
             private Property template;
+            private List<PropertyTypeMemberInfo> typeMembers;
 
             private TypeBuilder() {
             }
@@ -483,9 +473,22 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder typeMembers(List<ParameterMemberTypeData> memberTypeData) {
+                this.typeMembers = memberTypeData.stream().map(m -> new PropertyTypeMemberInfo(m.type(),
+                        m.packageInfo(), m.packageName(), m.kind(), false)).toList();
+                return this;
+            }
+
+            public TypeBuilder typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
+                this.typeMembers = memberTypeData.stream().map(m -> new PropertyTypeMemberInfo(m.type(),
+                        m.packageInfo(), m.packageName(), m.kind(), m.type().equals(selectedType))).toList();
+                return this;
+            }
+
             public Builder<T> stepOut() {
                 if (fieldType != null) {
-                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template));
+                    Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template,
+                            typeMembers));
                 }
                 reset();
                 return Builder.this;
@@ -530,15 +533,20 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
+            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel) {
             if (typeSymbol == null) {
                 return this;
             }
-            TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
             // Handle the primitive input types
-            boolean success = handlePrimitiveType(rawType, ballerinaType);
+            boolean success = handlePrimitiveType(typeSymbol, ballerinaType);
 
+            TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
                 List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
@@ -564,6 +572,15 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 }
             }
 
+            // updated the selected type from the RECORD_MAP_EXPRESSION type members
+            if (value != null && type().typeMembers != null) {
+                String selectedType = getSelectedType(value, semanticModel);
+                if (selectedType != null) {
+                    type().typeMembers.stream().filter(typeMember ->
+                            typeMember.type().equals(selectedType)).forEach(typeMember -> typeMember.selected(true));
+                }
+            }
+
             // All the ballerina types will have a default to expression type
             type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
@@ -571,23 +588,50 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
+        private String getSelectedType(Node value, SemanticModel semanticModel) {
+            if (value != null) {
+                this.value = value.toSourceCode().strip();
+                Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
+                if (paramType.isPresent()) {
+                    if (paramType.get().getModule().isPresent()) {
+                        ModuleID id = paramType.get().getModule().get().id();
+                        return CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
+                    } else {
+                        return CommonUtils.getTypeSignature(paramType.get(), null);
+                    }
+                }
+            }
+            return null;
+        }
+
         private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
-            switch (typeSymbol.typeKind()) {
+            TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
+            switch (rawType.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
-                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> {
-                    type(ValueType.NUMBER, ballerinaType);
-                }
-                case STRING, STRING_CHAR -> {
-                    type(ValueType.TEXT, ballerinaType);
-                }
-                case BOOLEAN -> {
-                    type(ValueType.FLAG, ballerinaType);
-                }
-                case ARRAY -> {
-                    type(ValueType.EXPRESSION_SET, ballerinaType);
-                }
-                case MAP -> {
-                    type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
+                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
+                case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
+                case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
+                case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
+                case MAP -> type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
+                case RECORD -> {
+                    if (typeSymbol.typeKind() == TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
+                        // not an anonymous record
+                        String type = ballerinaType;
+                        String[] typeParts = ballerinaType.split(":");
+                        if (typeParts.length > 1) {
+                            type = typeParts[1];
+                        }
+                        ModuleID id = typeSymbol.getModule().get().id();
+                        String packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
+                        type()
+                                .fieldType(ValueType.RECORD_MAP_EXPRESSION)
+                                .ballerinaType(ballerinaType)
+                                .typeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
+                                        packageIdentifier, id.packageName())))
+                                .stepOut();
+                        return true;
+                    }
+                    return false;
                 }
                 default -> {
                     return false;
@@ -608,7 +652,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             Property property = new Property(metadataBuilder == null ? null : metadataBuilder.build(), finalTypes,
                     value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
-                    codedataBuilder == null ? null : codedataBuilder.build(), typeMembers, advancedValue,
+                    codedataBuilder == null ? null : codedataBuilder.build(), advancedValue,
                     imports == null ? null : imports, defaultValue, commentProperty);
             this.metadataBuilder = null;
             this.types = new ArrayList<>();
@@ -621,7 +665,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             this.hidden = false;
             this.diagnosticsBuilder = null;
             this.codedataBuilder = null;
-            this.typeMembers = null;
             this.advancedValue = null;
             this.defaultValue = null;
             this.commentProperty = null;
