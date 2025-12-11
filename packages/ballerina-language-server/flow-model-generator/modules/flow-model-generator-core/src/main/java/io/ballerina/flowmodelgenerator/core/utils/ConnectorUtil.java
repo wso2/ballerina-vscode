@@ -47,6 +47,9 @@ public class ConnectorUtil {
      * @return the formatted connector name
      */
     public static String getConnectorName(String connectorName, String rawPackageName) {
+        if (rawPackageName.equals(".")) {
+            return connectorName;
+        }
         String packageName = CONNECTOR_NAME_MAP.getOrDefault(rawPackageName, getLastPackagePrefix(rawPackageName));
         if (connectorName.equals(CLIENT)) {
             return packageName;
