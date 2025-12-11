@@ -37,6 +37,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
@@ -68,15 +69,9 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static final Type CONNECTION_CATEGORY_LIST_TYPE = new TypeToken<Map<String, List<String>>>() { }.getType();
     private static final Type AGENT_SUPPORT_CONNECTORS_LIST_TYPE = new TypeToken<Set<String>>() { }.getType();
 
-    // TODO: Remove this once the name is retrieved from the library module
-    private static final String CONNECTOR_NAME_CORRECTION_JSON = "connector_name_correction.json";
-    private static final Type CONNECTOR_NAME_MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
-    private static final Map<String, String> CONNECTOR_NAME_MAP =
-            LocalIndexCentral.getInstance().readJsonResource(CONNECTOR_NAME_CORRECTION_JSON, CONNECTOR_NAME_MAP_TYPE);
     private static final Set<String> AGENT_SUPPORT_CONNECTORS = LocalIndexCentral.getInstance()
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
-    public static final String CLIENT = "Client";
 
     public ConnectorSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -165,7 +160,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static AvailableNode generateAvailableNode(SearchResult searchResult, boolean isGenerated) {
         SearchResult.Package packageInfo = searchResult.packageInfo();
         Metadata metadata = new Metadata.Builder<>(null)
-                .label(getConnectorName(searchResult, packageInfo))
+                .label(ConnectorUtil.getConnectorName(searchResult.name(), packageInfo.moduleName()))
                 .description(searchResult.description())
                 .icon(CommonUtils.generateIcon(packageInfo.org(), packageInfo.packageName(), packageInfo.version()))
                 .addData(IS_AGENT_SUPPORT, AGENT_SUPPORT_CONNECTORS.contains(packageInfo.moduleName()))
@@ -181,25 +176,6 @@ public class ConnectorSearchCommand extends SearchCommand {
                 .isGenerated(isGenerated)
                 .build();
         return new AvailableNode(metadata, codedata, true);
-    }
-
-    private static String getConnectorName(SearchResult searchResult, SearchResult.Package packageInfo) {
-        String connectorName = searchResult.name();
-        String rawPackageName = packageInfo.moduleName();
-        String packageName = CONNECTOR_NAME_MAP.getOrDefault(rawPackageName, getLastPackagePrefix(rawPackageName));
-        if (connectorName.equals(CLIENT)) {
-            return packageName;
-        }
-
-        // TODO: Remove the replacement once a proper solution comes from the index
-        return packageName + " " + (connectorName.endsWith("Client") ?
-                connectorName.substring(0, connectorName.length() - 6) : connectorName);
-    }
-
-    private static String getLastPackagePrefix(String rawPackageName) {
-        String trimmedPackageName = rawPackageName.contains(".")
-                ? rawPackageName.substring(rawPackageName.lastIndexOf('.') + 1) : rawPackageName;
-        return trimmedPackageName.substring(0, 1).toUpperCase(Locale.ROOT) + trimmedPackageName.substring(1);
     }
 
     private List<SearchResult> getLocalConnectors() {
@@ -231,7 +207,7 @@ public class ConnectorSearchCommand extends SearchCommand {
                 }
                 SearchResult searchResult = SearchResult.from(id.orgName(),
                         id.packageName(), id.moduleName().substring(id.packageName().length() + 1),
-                        id.version(), classSymbol.getName().orElse(CLIENT), doc);
+                        id.version(), classSymbol.getName().orElse(ConnectorUtil.CLIENT), doc);
                 localConnections.add(searchResult);
             }
         }
