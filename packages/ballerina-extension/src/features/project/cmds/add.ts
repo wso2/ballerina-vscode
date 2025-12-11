@@ -18,7 +18,7 @@
 
 import { LANGUAGE } from "../../../core";
 import { extension } from "../../../BalExtensionContext";
-import { commands, QuickPickItem, Uri, window } from "vscode";
+import { commands, QuickPickItem, window } from "vscode";
 import {
     TM_EVENT_PROJECT_ADD, TM_EVENT_ERROR_EXECUTE_PROJECT_ADD, CMP_PROJECT_ADD, sendTelemetryEvent, sendTelemetryException, getMessageObject
 } from "../../telemetry";
@@ -27,7 +27,7 @@ import {
     getCurrentBallerinaProject,
     getCurrentProjectRoot
 } from "../../../utils/project-utils";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
 
 function activateAddCommand() {
@@ -46,12 +46,7 @@ function activateAddCommand() {
 
             let targetPath = projectPath ?? "";
             if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
-                const packages = projectInfo?.children;
-                if (!packages || packages.length === 0) {
-                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                    return;
-                }
-                const selection = await getPackage(packages.map((pkg) => pkg.projectPath));
+                const selection = await getPackage(projectInfo);
                 if (!selection) {
                     return;
                 }
@@ -60,13 +55,8 @@ function activateAddCommand() {
             } else if (workspacePath && !projectPath) {
                 try {
                     targetPath = await getCurrentProjectRoot();
-                } catch (error) {
-                    const packages = projectInfo?.children;
-                    if (!packages || packages.length === 0) {
-                        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                        return;
-                    }
-                    const selection = await getPackage(packages.map((pkg) => pkg.projectPath));
+                } catch (error){
+                    const selection = await getPackage(projectInfo);
                     if (!selection) {
                         return;
                     }
@@ -110,26 +100,18 @@ function activateAddCommand() {
 export { activateAddCommand };
 
 // Prompts user to select a package
-async function getPackage(packages: string[]): Promise<string | undefined> {
-    const options: PackageQuickPickItem[] = packages.map((pkg) => {
-        return {
-            label: pkg,
-            path: pkg
-        };
-    });
-    if (options.length === 0) {
+async function getPackage(projectInfo: ProjectInfo): Promise<string | undefined> {
+    const packages = projectInfo?.children;
+    if (!packages || packages.length === 0) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
         return undefined;
     }
-    else if (options.length === 1) {
-        return options[0].path;
+    else if (packages.length === 1) {
+        return packages[0].projectPath;
     }
-    let resultItem = await window.showQuickPick<PackageQuickPickItem>(options, {
+    const packagePaths = packages.map((pkg) => pkg.projectPath);
+    const resultItem = await window.showQuickPick<QuickPickItem>(packagePaths.map(path => ({ label: path })), {
                 placeHolder: `Select a Package to add the module to`,
             });
-    return resultItem ? resultItem.path : undefined;
-}
-
-interface PackageQuickPickItem extends QuickPickItem {
-    label: string,
-    path: string
+    return resultItem ? resultItem.label : undefined;
 }
