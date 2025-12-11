@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { ConfigProperties, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { ConfigProperties, getPrimaryInputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { FormField, FormValues } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -119,14 +119,13 @@ function convertConfig(properties: ConfigProperties, readonly: boolean): FormFie
 		const formField: FormField = {
 			key: key,
 			label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-			type: expression.valueType,
+			type: getPrimaryInputType(expression.types)?.fieldType,
 			documentation: expression?.metadata.description || "",
-			valueType: expression.valueTypeConstraint,
 			editable: expression.editable && !readonly,
 			enabled: expression.enabled ?? true,
 			optional: expression.optional,
 			value: expression.value,
-			valueTypeConstraint: expression.valueTypeConstraint,
+			types: expression.types,
 			advanced: expression.value ? false : true,
 			diagnostics: [],
 			items: expression.items,

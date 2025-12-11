@@ -26,6 +26,7 @@ import {
     RecordTypeField,
     Property,
     PropertyTypeMemberInfo,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { getImportsForProperty } from "../../../../../utils/bi";
@@ -59,8 +60,7 @@ export function McpToolForm(props: McpToolFormProps) {
                         description: "Description of what this MCP tool does",
                     },
                     placeholder: "Describe what this tool does...",
-                    valueType: "STRING",
-                    valueTypeConstraint: "string",
+                    types: [{ fieldType: "STRING", ballerinaType: "string" }],
                     value: "",
                     enabled: true,
                     editable: true,
@@ -116,7 +116,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 optional: typeField?.optional ?? false,
                 type: {
                     value: param.formValues["type"] as string,
-                    valueType: typeField?.valueType,
+                    types: typeField?.types,
                     isType: true,
                     optional: typeField?.optional,
                     advanced: typeField?.advanced,
@@ -127,7 +127,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 },
                 name: {
                     value: param.formValues["variable"] as string,
-                    valueType: nameField?.valueType,
+                    types: nameField?.types,
                     isType: false,
                     optional: nameField?.optional,
                     advanced: nameField?.advanced,
@@ -137,7 +137,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 },
                 defaultValue: {
                     value: param.formValues["defaultable"],
-                    valueType: defaultField?.valueType || "string",
+                    types: defaultField?.types || [{ fieldType: "STRING", ballerinaType: "string" }],
                     isType: false,
                     optional: defaultField?.optional,
                     advanced: defaultField?.advanced,
@@ -147,7 +147,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 },
                 documentation: {
                     value: param.formValues["documentation"] as string,
-                    valueType: documentationField?.valueType,
+                    types: documentationField?.types,
                     isType: false,
                     optional: documentationField?.optional,
                     advanced: documentationField?.advanced,
@@ -173,8 +173,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 enabled: model.name.enabled,
                 documentation: model.name.metadata?.description || "",
                 value: model.name.value,
-                valueType: model.name.valueType,
-                valueTypeConstraint: model.name.valueTypeConstraint || "",
+                types: model.name.types,
                 lineRange: model?.name?.codedata?.lineRange,
             },
             {
@@ -191,7 +190,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange,
                 },
-                valueTypeConstraint: "",
+                types: [{fieldType: "PARAM_MANAGER", ballerinaType: ""}],
             },
             {
                 key: "returnType",
@@ -203,8 +202,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 advanced: model.returnType.advanced,
                 documentation: model.returnType.metadata?.description || "",
                 value: model.returnType.value,
-                valueType: model.returnType.valueType,
-                valueTypeConstraint: model.returnType.valueTypeConstraint || "",
+                types: model.returnType.types,
             },
         ];
 
@@ -235,7 +233,7 @@ export function McpToolForm(props: McpToolFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || "",
                         },
-                        valueType: property?.valueType || "string",
+                        types: property?.types || [{ fieldType: "STRING", ballerinaType: "string" }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics,
@@ -303,7 +301,7 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
                     label: "Description",
                     description: "The description of the parameter",
                 },
-                valueType: "STRING",
+                types: [{ fieldType: "STRING", ballerinaType: "string" }],
                 enabled: true,
                 editable: true,
                 optional: true,
@@ -336,14 +334,13 @@ export function convertParameterToFormField(key: string, param: ParameterModel):
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-        type: param.valueType || "string",
+        type: getPrimaryInputType(param.types)?.fieldType || "string",
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || "",
         value: param.value || "",
-        valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || "",
+        types: param.types,
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange,
     };
@@ -356,14 +353,13 @@ function convertConfigToFormFields(model: FunctionModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: property?.metadata.label || key,
-            type: property.valueType,
+            type: getPrimaryInputType(property?.types)?.fieldType,
             documentation: property?.metadata.description || "",
-            valueType: property.valueTypeConstraint,
+            types: property.types,
             editable: property.editable,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value: property.value,
-            valueTypeConstraint: property.valueTypeConstraint,
             advanced: property.advanced,
             diagnostics: [],
             items: property.items,

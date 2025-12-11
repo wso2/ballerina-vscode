@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ValueTypeConstraint, ToolParameters } from "@wso2/ballerina-core";
+import { ValueTypeConstraint, ToolParameters, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
@@ -24,7 +24,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         id: idx,
         icon: "",
         key: field.key,
-        value: `${field.valueType} ${field.key}`,
+        value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
         identifierEditable: true,
         identifierRange: {
             fileName: "functions.bal",
@@ -33,7 +33,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         },
         formValues: {
             variable: field.key,
-            type: field.valueTypeConstraint,
+            type: getPrimaryInputType(field.types)?.ballerinaType,
             parameterDescription: field.documentation || ""
         }
     }));
@@ -51,10 +51,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Type of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "TYPE",
             diagnostics: [],
             metadata: { label: "Type", description: "Type of the parameter" },
-            valueTypeConstraint: ""
+            types: [{fieldType: "TYPE", ballerinaType: ""}],
         },
         {
             key: "variable",
@@ -68,10 +67,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Name of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "IDENTIFIER",
             diagnostics: [],
             metadata: { label: "Name", description: "Name of the parameter" },
-            valueTypeConstraint: ""
+            types: [{fieldType: "IDENTIFIER", ballerinaType: ""}],
         },
         {
             key: "parameterDescription",
@@ -85,10 +83,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Description of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "STRING",
             diagnostics: [],
             metadata: { label: "Description", description: "Description of the parameter" },
-            valueTypeConstraint: ""
+            types: [{fieldType: "STRING", ballerinaType: ""}]
         }
     ];
 
@@ -105,9 +102,8 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "",
             value: paramManagerValues,
             advanceProps: [],
-            valueType: "PARAM_MANAGER",
             diagnostics: [],
-            valueTypeConstraint: "",
+            types: [{fieldType: "PARAM_MANAGER", ballerinaType: ""}],
             paramManagerProps: {
                 paramValues: paramManagerValues,
                 formFields: paramManagerFormFields,
