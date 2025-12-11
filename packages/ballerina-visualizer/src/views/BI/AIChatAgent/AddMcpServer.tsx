@@ -58,11 +58,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [showDiscoverModal, setShowDiscoverModal] = useState<boolean>(false);
 
     // Edit mode tracking
-    // Guards edit mode initialization - prevents fetch effect from running too early
     const [resolutionAttempted, setResolutionAttempted] = useState<boolean>(false);
-    // Tracks resolution errors - used to show "Discover Tools" button when variables can't be resolved
     const [resolutionError, setResolutionError] = useState<string>("");
-    // Tracks where tools came from - used by McpToolsSelection for UI logic
     const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
@@ -102,6 +99,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         );
         if (!mcpToolKitVariable) return;
         mcpToolKitNodeRef.current = mcpToolKitVariable;
+        initializeEditMode();
     };
 
     const initPanel = useCallback(async () => {
@@ -238,9 +236,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     );
 
     useEffect(() => {
-        // Guard 1: Only when "selected" mode
         if (toolsInclude !== "selected") {
-            // Clear tools and reset state when "All" is selected
             setAvailableMcpTools([]);
             setSelectedMcpTools(new Set());
             setLoadingMcpTools(false);
@@ -250,20 +246,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             return;
         }
 
-        // Guard 2: Skip during edit mode initialization (before resolution is attempted)
         if (editMode && !resolutionAttempted) {
             return;
         }
 
-        // Guard 3: Skip if tools were just loaded from initialization (user hasn't modified form yet)
-        // This prevents re-fetching when edit mode loads existing tools or tools were manually discovered
-        if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
-            return;
-        }
-
-        // If all guards pass, fetch tools based on current form values
         debouncedFetchTools(serverUrl, auth);
-    }, [serverUrl, auth, toolsInclude, requiresAuth, debouncedFetchTools, editMode, resolutionAttempted, toolSource]);
+    }, [serverUrl, auth, toolsInclude]);
 
     useEffect(() => {
         // Clear auth field value when requiresAuth is unchecked
@@ -273,28 +261,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 formRef.current.setFieldValue(AUTH_FIELD_KEY, "");
             }
         }
-    }, [requiresAuth, auth]);
-
-    // Edit mode initialization - comprehensive loading of saved values
-    useEffect(() => {
-        if (isLoading || !editMode || !mcpToolKitNodeRef.current || resolutionAttempted) {
-            return;
-        }
-
-        initializeEditMode();
-    }, [isLoading, editMode, resolutionAttempted]);
+    }, [requiresAuth]);
 
     const initializeEditMode = async () => {
-        setResolutionAttempted(true);
-
         const node = mcpToolKitNodeRef.current;
         if (!node) return;
 
         const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
 
         // Step 1: Update form state so FormGenerator displays values
-        setServerUrl(savedUrl);
-        setAuth(savedAuth);
         setRequiresAuth(savedRequiresAuth);
 
         // Step 2: If no tools saved, exit early
@@ -336,6 +311,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             }
             displayMockTools(permittedTools);
         }
+        setResolutionAttempted(true);
     };
 
     const displayMockTools = (toolNames: string[]) => {
@@ -463,17 +439,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     onChange={(fieldKey, value) => {
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
                             setServerUrl(value);
-                            // Clear tool source when user manually changes URL to allow re-fetching
-                            if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
-                                setToolSource(null);
-                            }
-                        }
-                        if (fieldKey === AUTH_FIELD_KEY) {
+                        } else if (fieldKey === AUTH_FIELD_KEY) {
                             setAuth(value);
-                            // Clear tool source when user manually changes auth to allow re-fetching
-                            if (toolSource === 'saved-mock' || toolSource === 'auto-fetched' || toolSource === 'manual-discovery') {
-                                setToolSource(null);
-                            }
                         }
                     }}
                     derivedFields={editMode ? [] : [
