@@ -39,14 +39,18 @@ import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
 import { NodeProperties } from "@wso2/ballerina-core";
+import TypeModeSwitcher, { TypeInputMode } from "../TypeModeSwitcher";
 
 interface TypeEditorProps {
     field: FormField;
     openRecordEditor: (open: boolean, newType?: string | NodeProperties) => void;
+    openFormTypeEditor?: (open: boolean, newType?: string) => void;
     handleOnFieldFocus?: (key: string) => void;
     handleOnTypeChange?: (value?: string) => void;
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
+    isContextTypeEditorSupported?: boolean;
     autoFocus?: boolean;
+    onBlur?: () => void | Promise<void>;
 }
 
 const Ribbon = styled.div({
@@ -92,7 +96,14 @@ const getDefaultCompletion = (newType: string) => {
 }
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { field, openRecordEditor, handleOnFieldFocus, handleOnTypeChange, autoFocus, handleNewTypeSelected } = props;
+    const { field,
+        openRecordEditor,
+        openFormTypeEditor,
+        isContextTypeEditorSupported,
+        handleOnFieldFocus,
+        handleOnTypeChange, autoFocus,
+        handleNewTypeSelected
+    } = props;
     const { form, expressionEditor } = useFormContext();
     const { control } = form;
     const {
@@ -115,14 +126,23 @@ export function TypeEditor(props: TypeEditorProps) {
     const cursorPositionRef = useRef<number | undefined>(undefined);
     const [showDefaultCompletion, setShowDefaultCompletion] = useState<boolean>(false);
     const [focused, setFocused] = useState<boolean>(false);
+    const [isTypeEditorHovered, setIsTypeEditorHovered] = useState<boolean>(false);
+    const [typeInputMode, setTypeInputMode] = useState<TypeInputMode>(isContextTypeEditorSupported ? TypeInputMode.GUIDED : undefined);
 
     const [isTypeHelperOpen, setIsTypeHelperOpen] = useState<boolean>(false);
 
     const handleFocus = async (value: string) => {
         setFocused(true);
+
+        // In guided mode, open FormTypeEditor instead of TypeHelper
+        if (isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
+            openFormTypeEditor(true, value);
+            return;
+        }
+
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string);
+        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -133,6 +153,8 @@ export function TypeEditor(props: TypeEditorProps) {
         setShowDefaultCompletion(undefined);
         // Clean up memory
         cursorPositionRef.current = undefined;
+        // Trigger the on Blur from parent
+        await props.onBlur?.();
     };
 
     const handleCompletionSelect = async (value: string) => {
@@ -167,11 +189,22 @@ export function TypeEditor(props: TypeEditorProps) {
     };
 
     const toggleTypeHelperPaneState = () => {
+        // In guided mode, open FormTypeEditor
+        if (isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED && openFormTypeEditor) {
+            const currentValue = form.getValues(field.key);
+            openFormTypeEditor(true, currentValue);
+            return;
+        }
+
         if (!isTypeHelperOpen) {
             exprRef.current?.focus();
         } else {
             handleChangeTypeHelperState(false);
         }
+    };
+
+    const handleModeChange = (value: TypeInputMode) => {
+        setTypeInputMode(value);
     };
 
     const handleGetTypeHelper = (
@@ -221,19 +254,37 @@ export function TypeEditor(props: TypeEditorProps) {
     }, [exprRef.current]);
 
     return (
-        <S.Container>
+        <S.Container
+            onMouseEnter={() => setIsTypeEditorHovered(true)}
+            onMouseLeave={() => setIsTypeEditorHovered(false)}
+        >
             <S.HeaderContainer>
-                <S.Header>
-                    <S.LabelContainer>
-                        <S.Label>{field.label}</S.Label>
-                        {!field.optional && <RequiredFormInput />}
-                    </S.LabelContainer>
-                    <S.EditorMdContainer>
-                        {field.documentation && <ReactMarkdown>{field.documentation}</ReactMarkdown>}
-                    </S.EditorMdContainer>
+                <S.Header style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px', width: '100%' }}>
+                        <div style={{ flex: 1 }}>
+                            <S.LabelContainer>
+                                <S.Label>{field.label}</S.Label>
+                                {!field.optional && <RequiredFormInput />}
+                                {field.valueTypeConstraint && (
+                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
+                                        {sanitizeType(field.valueTypeConstraint as string)}
+                                    </S.Type>
+                                )}
+                            </S.LabelContainer>
+                            <S.EditorMdContainer>
+                                {field.documentation && <ReactMarkdown>{field.documentation}</ReactMarkdown>}
+                            </S.EditorMdContainer>
+                        </div>
+                        <div style={{ flexShrink: 0 }}>
+                            {(focused || isTypeEditorHovered) && isContextTypeEditorSupported && openFormTypeEditor && (
+                                <TypeModeSwitcher
+                                    value={typeInputMode}
+                                    onChange={handleModeChange}
+                                />
+                            )}
+                        </div>
+                    </div>
                 </S.Header>
-                {field.valueTypeConstraint &&
-                    <S.Type isVisible={focused} title={field.valueTypeConstraint as string}>{sanitizeType(field.valueTypeConstraint as string)}</S.Type>}
             </S.HeaderContainer>
             <Controller
                 control={control}
@@ -252,7 +303,12 @@ export function TypeEditor(props: TypeEditorProps) {
                             ref={exprRef}
                             anchorRef={typeBrowserRef}
                             name={name}
-                            startAdornment={<EditorRibbon onClick={toggleTypeHelperPaneState} />}
+                            startAdornment={
+                                (!isContextTypeEditorSupported || (isContextTypeEditorSupported
+                                    && typeInputMode === TypeInputMode.ADVANCED)) ?
+                                    <EditorRibbon onClick={toggleTypeHelperPaneState} /> :
+                                    undefined
+                            }
                             completions={types}
                             showDefaultCompletion={showDefaultCompletion}
                             getDefaultCompletion={() => getDefaultCompletion(value)}
@@ -265,11 +321,12 @@ export function TypeEditor(props: TypeEditorProps) {
 
                                 onChange(updatedValue);
                                 debouncedTypeEdit(updatedValue);
+                                field.onValueChange?.(updatedValue);
                                 cursorPositionRef.current = updatedCursorPosition;
 
                                 // Set show default completion
                                 const typeExists = referenceTypes.find((type) => type.label === updatedValue);
-                                handleNewTypeSelected && handleNewTypeSelected(typeExists? typeExists : updatedValue)
+                                handleNewTypeSelected && handleNewTypeSelected(typeExists ? typeExists : updatedValue)
                                 const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
                                 if (updatedValue && !typeExists && validTypeForCreation) {
                                     setShowDefaultCompletion(true);
@@ -282,16 +339,17 @@ export function TypeEditor(props: TypeEditorProps) {
                                     updatedValue,
                                     updatedCursorPosition,
                                     false,
-                                    field.valueTypeConstraint as string
+                                    field.valueTypeConstraint as string,
+                                    field.key
                                 );
                             }}
                             onCompletionSelect={handleCompletionSelect}
                             onDefaultCompletionSelect={() => handleDefaultCompletionSelect(value)}
                             onFocus={() => handleFocus(value)}
                             enableExIcon={false}
-                            isHelperPaneOpen={isTypeHelperOpen}
-                            changeHelperPaneState={handleChangeTypeHelperState}
-                            getHelperPane={handleGetTypeHelper}
+                            isHelperPaneOpen={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? false : isTypeHelperOpen}
+                            changeHelperPaneState={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => { } : handleChangeTypeHelperState}
+                            getHelperPane={isContextTypeEditorSupported && typeInputMode === TypeInputMode.GUIDED ? () => null : handleGetTypeHelper}
                             helperPaneOrigin={typeHelperOrigin}
                             helperPaneHeight={typeHelperHeight}
                             onBlur={handleBlur}

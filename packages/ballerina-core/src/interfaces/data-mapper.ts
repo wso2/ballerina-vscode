@@ -24,7 +24,14 @@ export enum TypeKind {
     Record = "record",
     Array = "array",
     String = "string",
+    StringChar = "string:Char",
     Int = "int",
+    IntSigned8 = "int:Signed8",
+    IntSigned16 = "int:Signed16",
+    IntSigned32 = "int:Signed32",
+    IntUnsigned8 = "int:Unsigned8",
+    IntUnsigned16 = "int:Unsigned16",
+    IntUnsigned32 = "int:Unsigned32",
     Float = "float",
     Decimal = "decimal",
     Boolean = "boolean",
@@ -50,8 +57,10 @@ export enum IntermediateClauseType {
     LET = "let",
     WHERE = "where",
     FROM = "from",
-    ORDER_BY = "order by",
-    LIMIT = "limit"
+    ORDER_BY = "order-by",
+    LIMIT = "limit",
+    JOIN = "join",
+    GROUP_BY = "group-by"
 }
 
 export enum ResultClauseType {
@@ -86,8 +95,8 @@ export interface IOType {
     members?: IOType[];
     defaultValue?: unknown;
     optional?: boolean;
-    focusedMemberId?: string;
     isFocused?: boolean;
+    isSeq?: boolean;
     isRecursive?: boolean;
     isDeepNested?: boolean;
     ref?: string;
@@ -104,24 +113,27 @@ export interface Mapping {
     isQueryExpression?: boolean;
     isFunctionCall?: boolean;
     functionRange?: LineRange;
+    functionContent?: string;
+    elementAccessIndex?: string[];
 }
 
 export interface ExpandedDMModel {
     inputs: IOType[];
     output: IOType;
-    subMappings?: IOType[];
+    subMappings?: IOType[] | Mapping[];
     mappings: Mapping[];
     source: string;
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
     triggerRefresh?: boolean;
+    focusInputRootMap?: Record<string, string>;
 }
 
 export interface DMModel {
     inputs: IORoot[];
     output: IORoot;
-    subMappings?: IORoot[];
+    subMappings?: IORoot[] | Mapping[];
     refs: Record<string, RecordType | EnumType>;
     mappings: Mapping[];
     view: string;
@@ -129,6 +141,9 @@ export interface DMModel {
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
     triggerRefresh?: boolean;
+    traversingRoot?: string;
+    focusInputRootMap?: Record<string, string>;
+    groupById?: string;
 }
 
 export interface ModelState {
@@ -158,10 +173,12 @@ export interface IOTypeField {
     displayName?: string;
     member?: IOTypeField;
     members?: IOTypeField[];
+    fields?: IOTypeField[];
     defaultValue?: unknown;
     optional?: boolean;
     ref?: string;
     focusExpression?: string;
+    isSeq?: boolean;
     typeInfo?: TypeInfo;
 }
 
@@ -179,7 +196,7 @@ export interface Query {
     output: string,
     inputs: string[];
     diagnostics?: DMDiagnostic[];
-    fromClause: FromClause;
+    fromClause: IntermediateClause;
     intermediateClauses?: IntermediateClause[];
     resultClause: ResultClause;
 }
@@ -195,6 +212,9 @@ export interface IntermediateClauseProps {
     type?: string;
     expression: string;
     order?: "ascending" | "descending";
+    lhsExpression?: string;
+    rhsExpression?: string;
+    isOuter?: boolean;
 }
 
 export interface IntermediateClause {

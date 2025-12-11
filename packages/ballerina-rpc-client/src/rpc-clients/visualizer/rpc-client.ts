@@ -21,9 +21,12 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     HistoryEntry,
+    JoinProjectPathRequest,
+    JoinProjectPathResponse,
     OpenViewRequest,
+    ProjectStructureArtifactResponse,
     UndoRedoStateResponse,
-    UpdateUndoRedoMangerRequest,
+    UpdatedArtifactsResponse,
     VisualizerAPI,
     addToHistory,
     addToUndoStack,
@@ -35,8 +38,10 @@ import {
     joinProjectPath,
     openView,
     redo,
+    resetUndoRedoStack,
     undo,
-    undoRedoState
+    undoRedoState,
+    updateCurrentArtifactLocation
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -88,11 +93,19 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
     }
 
-    joinProjectPath(segments: string | string[]): Promise<string> {
-        return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, segments);
+    resetUndoRedoStack(): void {
+        return this._messenger.sendNotification(resetUndoRedoStack, HOST_EXTENSION);
+    }
+
+    joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
+        return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, params);
     }
 
     getThemeKind(): Promise<ColorThemeKind> {
         return this._messenger.sendRequest(getThemeKind, HOST_EXTENSION);
+    }
+
+    updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
+        return this._messenger.sendRequest(updateCurrentArtifactLocation, HOST_EXTENSION, params);
     }
 }

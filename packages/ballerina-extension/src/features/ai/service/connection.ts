@@ -16,9 +16,9 @@
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, refreshDevantToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
-import { BACKEND_URL, DEVANT_API_KEY_FOR_ASK } from "../utils";
+import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
@@ -59,10 +59,9 @@ let cachedAuthMethod: LoginMethod | null = null;
  * Reusable fetch function that handles authentication with token refresh
  * @param input - The URL, Request object, or string to fetch
  * @param options - Fetch options
- * @param isAskRequest - TEMPORARY HACK: If true, uses DEVANT_API_KEY_FOR_ASK env variable as API key
  * @returns Promise<Response>
  */
-export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}, isAskRequest: boolean = false): Promise<Response | undefined> {
+export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
     try {
         const credentials = await getAccessToken();
         const loginMethod = credentials.loginMethod;
@@ -74,17 +73,12 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         };
 
         if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
-            // For DEVANT_ENV, use api-key and x-Authorization headers
+            // For DEVANT_ENV, use Bearer token (exchanged from STS token)
             const secrets = credentials.secrets as DevantEnvSecrets;
-            // TEMPORARY HACK: Use DEVANT_API_KEY_FOR_ASK env variable for ask requests
-            const apiKey = isAskRequest ? DEVANT_API_KEY_FOR_ASK : secrets.apiKey;
-            const stsToken = secrets.stsToken;
-
-            if (apiKey && stsToken && apiKey.trim() !== "" && stsToken.trim() !== "") {
-                headers["api-key"] = apiKey;
-                headers["x-Authorization"] = stsToken;
+            if (secrets.accessToken && secrets.accessToken.trim() !== "") {
+                headers["Authorization"] = `Bearer ${secrets.accessToken}`;
             } else {
-                console.warn("DevantEnv secrets missing, this may cause authentication issues");
+                console.warn("DevantEnv access token missing, this may cause authentication issues");
             }
         } else if (credentials && loginMethod === LoginMethod.BI_INTEL) {
             // For BI_INTEL, use Bearer token
@@ -101,20 +95,50 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration (only for BI_INTEL method)
-        if (response.status === 401 && loginMethod === LoginMethod.BI_INTEL) {
-            console.log("Token expired. Refreshing token...");
-            const newToken = await getRefreshedAccessToken();
-            if (newToken) {
-                options.headers = {
-                    ...options.headers,
-                    'Authorization': `Bearer ${newToken}`,
-                };
-                response = await fetch(input, options);
-            } else {
-                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
+        // Handle token expiration for both BI_INTEL and DEVANT_ENV methods
+        if (response.status === 401) {
+            if (loginMethod === LoginMethod.BI_INTEL) {
+                console.log("Token expired. Refreshing BI_INTEL token...");
+                const newToken = await getRefreshedAccessToken();
+                if (newToken) {
+                    options.headers = {
+                        ...options.headers,
+                        'Authorization': `Bearer ${newToken}`,
+                    };
+                    response = await fetch(input, options);
+                } else {
+                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                    return;
+                }
+            } else if (loginMethod === LoginMethod.DEVANT_ENV) {
+                console.log("Token expired. Refreshing DEVANT_ENV token...");
+                try {
+                    const newToken = await refreshDevantToken();
+                    if (newToken) {
+                        options.headers = {
+                            ...options.headers,
+                            'Authorization': `Bearer ${newToken}`,
+                        };
+                        response = await fetch(input, options);
+                    } else {
+                        AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Failed to refresh Devant token:", error);
+                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                    return;
+                }
             }
+        }
+
+        // Handle usage limit exceeded
+        if (response.status === 429) {
+            console.log("Usage limit exceeded (429)");
+            const error = new Error("Usage limit exceeded. Please try again later.");
+            error.name = "UsageLimitError";
+            (error as any).statusCode = 429;
+            throw error;
         }
 
         return response;
@@ -136,9 +160,10 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
+        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
         if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
             cachedAnthropic = createAnthropic({
-                baseURL: BACKEND_URL + "/intelligence-api/v1.0/claude",
+                baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });

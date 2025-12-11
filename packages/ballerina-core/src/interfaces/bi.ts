@@ -97,6 +97,7 @@ export type ParentMetadata = {
     accessor?: string;
     parameters?: string[];
     return?: string;
+    isServiceFunction?: boolean;
 };
 
 export type ToolData = {
@@ -112,8 +113,8 @@ export type AgentData = {
 };
 
 export type MemoryData = {
-    name: string;
     type: string;
+    size: string
 };
 
 export type Imports = {
@@ -185,6 +186,7 @@ export type CodeData = {
     kind?: string;
     originalName?: string;
     dependentProperty?: string[];
+    data?: { [key: string]: CodeData | string };
 };
 
 export type Branch = {
@@ -254,21 +256,49 @@ export enum FUNCTION_TYPE {
     ALL = "all",
 }
 
-export interface ProjectStructureResponse {
+/**
+ * Represents the directory structure of artifacts in a project.
+ */
+export type ProjectDirectoryMap = {
+    [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
+};
+
+/**
+ * Represents a single project's structure with its artifacts organized by directory type.
+ */
+export interface ProjectStructure {
     projectName: string;
-    directoryMap: {
-        [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
-    };
+    projectPath?: string;
+    projectTitle?: string;
+    directoryMap: ProjectDirectoryMap;
+}
+
+/**
+ * Unified response structure for both single projects and multi-project workspaces.
+ * 
+ * For single project:
+ * - workspaceName: undefined
+ * - projects: array with single project
+ * 
+ * For workspace with multiple projects:
+ * - workspaceName: name of the workspace
+ * - projects: array with multiple projects
+ */
+export interface ProjectStructureResponse {
+    workspaceName?: string;
+    workspaceTitle?: string;
+    workspacePath?: string;
+    projects: ProjectStructure[];
 }
 
 export interface ProjectStructureArtifactResponse {
@@ -321,6 +351,7 @@ export type NodePropertyKey =
     | "expression"
     | "functionName"
     | "functionNameDescription"
+    | "instructions"
     | "isIsolated"
     | "maxIter"
     | "memory"
@@ -332,12 +363,16 @@ export type NodePropertyKey =
     | "parameters"
     | "path"
     | "patterns"
+    | "permittedTools"
     | "prompt"
     | "query"
+    | "role"
     | "scope"
+    | "serverUrl"
     | "sessionId"
     | "size"
     | "statement"
+    | "store"
     | "systemPrompt"
     | "targetType"
     | "tools"
@@ -390,20 +425,23 @@ export type NodeKind =
     | "LV_EXPRESSION"
     | "MATCH"
     | "METHOD_CALL"
+    | "MEMORY"
+    | "MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"
     | "VECTOR_STORE"
     | "VECTOR_STORES"
-    | "VECTOR_KNOWLEDGE_BASE"
-    | "VECTOR_KNOWLEDGE_BASE_CALL"
-    | "VECTOR_KNOWLEDGE_BASES"
+    | "KNOWLEDGE_BASE"
+    | "KNOWLEDGE_BASE_CALL"
+    | "KNOWLEDGE_BASES"
     | "EMBEDDING_PROVIDER"
     | "EMBEDDING_PROVIDERS"
     | "DATA_LOADER"
     | "DATA_LOADERS"
     | "CHUNKER"
     | "CHUNKERS"
+    | "MCP_TOOL_KIT"
     | "NEW_CONNECTION"
     | "NEW_DATA"
     | "NP_FUNCTION"

@@ -34,7 +34,9 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    NodeProperties
+    NodeProperties,
+    ExpressionCompletionsRequest,
+    ExpressionCompletionsResponse
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -42,7 +44,9 @@ import {
     Form,
     ExpressionFormField,
     FormExpressionEditorProps,
-    FormImports
+    FormImports,
+    HelperpaneOnChangeOptions,
+    InputMode
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -61,12 +65,14 @@ import {
 import { debounce } from "lodash";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
-import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import { getHelperPaneNew } from "../../HelperPaneNew";
+import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -85,6 +91,7 @@ interface FormProps {
     onCancel?: () => void;
     editForm?: boolean;
     isGraphqlEditor?: boolean;
+    isDataMapperEditor?: boolean;
     onSubmit: (data: FormValues, formImports?: FormImports, importsCodedata?: CodeData) => void;
     isSaving?: boolean;
     isActiveSubPanel?: boolean;
@@ -105,6 +112,9 @@ interface FormProps {
         component: ReactNode;
         index: number;
     }[];
+    changeOptionalFieldTitle?: string;
+    onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
+    hideSaveButton?: boolean;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -120,6 +130,7 @@ export function FormGeneratorNew(props: FormProps) {
         onSubmit,
         isSaving,
         isGraphqlEditor,
+        isDataMapperEditor,
         openSubPanel,
         updatedExpressionField,
         resetUpdatedExpressionField,
@@ -134,6 +145,9 @@ export function FormGeneratorNew(props: FormProps) {
         description,
         preserveFieldOrder,
         injectedComponents,
+        changeOptionalFieldTitle,
+        onChange,
+        hideSaveButton
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -148,6 +162,7 @@ export function FormGeneratorNew(props: FormProps) {
     const prevCompletionFetchText = useRef<string>("");
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
+    const typesCache = useRef<Map<string, CompletionItem[]>>(new Map());
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
@@ -158,11 +173,55 @@ export function FormGeneratorNew(props: FormProps) {
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
+
+    const { addModal, closeModal, popModal } = useModalStack();
+
+    // State to manage record config page modal
+    const [recordConfigPageState, setRecordConfigPageState] = useState<{
+        isOpen: boolean;
+        fieldKey?: string;
+        currentValue?: string;
+        recordTypeField?: RecordTypeField;
+        onChangeCallback?: (value: string) => void;
+    }>({
+        isOpen: false
+    });
+
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
         type: undefined
     }]);
+
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
+
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
+        setIsTypeEditorOpen(open);
+        if (typeName) {
+            setEditingTypeName(typeName);
+        } else {
+            setEditingTypeName("");
+        }
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+        if (type) {
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            setFields(fields.map((field) => {
+                if (field.key === 'type') {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            }));
+        }
+    };
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
@@ -247,8 +306,8 @@ export function FormGeneratorNew(props: FormProps) {
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            if (matchedReferenceType.labelDetails.detail === "Structural Types" 
-                || matchedReferenceType.labelDetails.detail === "Behaviour Types" 
+            if (matchedReferenceType.labelDetails.detail === "Structural Types"
+                || matchedReferenceType.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(matchedReferenceType.label)
             ) {
                 setValueTypeConstraints('');
@@ -258,10 +317,20 @@ export function FormGeneratorNew(props: FormProps) {
         setValueTypeConstraints(valueTypeConstraint);
     }
 
-    const defaultType = (): Type => {
+    const addPopupTester = (modal: ReactNode, id: string, title: string, height?: number, width?: number, onClose?: () => void) => {
+        addModal(modal, id, title, height, width, onClose);
+    }
+
+    const popupManager = {
+        addPopup: addPopupTester,
+        removeLastPopup: popModal,
+        closePopup: closeModal
+    }
+
+    const defaultType = (typeName?: string): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
-                name: typeEditorState.newTypeValue || "MyType",
+                name: typeName || typeEditorState.newTypeValue || "MyType",
                 editable: true,
                 metadata: {
                     label: "",
@@ -276,7 +345,7 @@ export function FormGeneratorNew(props: FormProps) {
                 allowAdditionalFields: false
             };
         } return {
-            name: typeEditorState.newTypeValue || "MyType",
+            name: typeName || typeEditorState.newTypeValue || "MyType",
             editable: true,
             metadata: {
                 label: "",
@@ -291,20 +360,6 @@ export function FormGeneratorNew(props: FormProps) {
             functions: []
         };
     }
-
-    const getPatchedFields = (oldFields: FormField[], newFields: FormField[]) => {
-        const updatedFields = newFields.map((field) => {
-            if (field.type === 'TYPE') {
-                const oldField = oldFields.find(f => f.key === field.key);
-                if (oldField) {
-                    return { ...field, value: oldField.value };
-                }
-            }
-            return field;
-        });
-        return updatedFields;
-    }
-
 
     useEffect(() => {
         if (rpcClient) {
@@ -325,9 +380,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     useEffect(() => {
         if (fields) {
-            const patchedFields = getPatchedFields(fieldsValues, fields);
-            setFields(patchedFields);
-            setFormImports(getImportsForFormFields(patchedFields));
+            setFields(fields);
+            setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
 
@@ -357,11 +411,11 @@ export function FormGeneratorNew(props: FormProps) {
             });
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -400,7 +454,7 @@ export function FormGeneratorNew(props: FormProps) {
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
                     const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
-                    let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                    const completionRequest: ExpressionCompletionsRequest = {
                         filePath: fileName,
                         context: {
                             expression: value,
@@ -414,7 +468,14 @@ export function FormGeneratorNew(props: FormProps) {
                             triggerKind: triggerCharacter ? 2 : 1,
                             triggerCharacter: triggerCharacter as TriggerCharacter
                         }
-                    });
+                    };
+                    
+                    let completions: ExpressionCompletionsResponse;
+                    if (!isDataMapperEditor) {
+                        completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions(completionRequest);
+                    } else {
+                        completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions(completionRequest);
+                    }
 
                     // Convert completions to the ExpressionEditor format
                     let convertedCompletions: CompletionItem[] = [];
@@ -462,26 +523,45 @@ export function FormGeneratorNew(props: FormProps) {
         }
     }, [debouncedRetrieveCompletions]);
 
+    /**
+     * Debounced function that fetches and filters visible types based on user input, with caching support and special handling for GraphQL contexts.
+     */
     const debouncedGetVisibleTypes = useCallback(
         debounce(
             async (
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                valueTypeConstraint?: string
+                valueTypeConstraint?: string,
+                fieldKey?: string
             ) => {
-                let visibleTypes: CompletionItem[] = types;
-                if (!types.length) {
-                    const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
-                        filePath: fileName,
-                        position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                        ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
-                    });
+                let context: TypeHelperContext | undefined;
+                if (isGraphqlEditor) {
+                    context = fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE : TypeHelperContext.GRAPHQL_INPUT_TYPE;
+                }
+                let typesCacheKey = fieldKey || 'default';
+                let visibleTypes = typesCache.current.get(typesCacheKey);
+
+                if (!visibleTypes) {
+                    let types;
+                    if (isGraphqlEditor && fieldKey && context) {
+                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                            filePath: fileName,
+                            context: context,
+                        });
+                    } else {
+                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                            filePath: fileName,
+                            position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
+                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                        });
+                    }
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
                     visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
-                    setTypes(visibleTypes);
+                    typesCache.current.set(typesCacheKey, visibleTypes);
                 }
+                setTypes(visibleTypes);
 
                 if (!fetchReferenceTypes) {
                     const effectiveText = value.slice(0, cursorPosition);
@@ -496,12 +576,12 @@ export function FormGeneratorNew(props: FormProps) {
             },
             250
         ),
-        [rpcClient, types, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, isGraphqlEditor]
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string, fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -589,12 +669,13 @@ export function FormGeneratorNew(props: FormProps) {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string, updatedCursorPosition: number) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
         valueTypeConstraint?: string,
+        inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -606,7 +687,6 @@ export function FormGeneratorNew(props: FormProps) {
             fieldKey: fieldKey,
             fileName: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
-            exprRef: exprRef,
             anchorRef: anchorRef,
             onClose: handleHelperPaneClose,
             defaultValue: defaultValue,
@@ -625,6 +705,7 @@ export function FormGeneratorNew(props: FormProps) {
             handleRetrieveCompletions: handleRetrieveCompletions,
             handleValueTypeConstChange: handleValueTypeConstChange,
             forcedValueTypeConstraint: valueTypeConstraints,
+            inputMode: inputMode,
         });
     };
 
@@ -655,6 +736,11 @@ export function FormGeneratorNew(props: FormProps) {
             handleExpressionEditorCancel();
         }
 
+        const typeHelperContext = isGraphqlEditor ?
+            (fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE
+                : TypeHelperContext.GRAPHQL_INPUT_TYPE)
+            : TypeHelperContext.HTTP_STATUS_CODE;
+
         return getTypeHelper({
             fieldKey: fieldKey,
             valueTypeConstraint: valueTypeConstraint,
@@ -671,6 +757,7 @@ export function FormGeneratorNew(props: FormProps) {
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
+            typeHelperContext: typeHelperContext,
         });
     }
 
@@ -757,14 +844,14 @@ export function FormGeneratorNew(props: FormProps) {
         setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
-    const getNewTypeCreateForm = () => {
+    const getNewTypeCreateForm = (typeName?: string) => {
         pushTypeStack({
-            type: defaultType(),
+            type: defaultType(typeName),
             isDirty: false
         })
     }
 
-    const onSaveType = (type: Type) => {
+    const onSaveType = () => {
         if (stack.length > 0) {
             setRefetchForCurrentModal(true);
             popTypeStack();
@@ -793,6 +880,30 @@ export function FormGeneratorNew(props: FormProps) {
         return await convertToFnSignature(signatureHelp);
     };
 
+    const getExpressionTokens = async (expression: string, filePath: string, position: LinePosition): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: filePath,
+            position: position
+        })
+    }
+
+    const openRecordConfigPage = (fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
+        setRecordConfigPageState({
+            isOpen: true,
+            fieldKey,
+            currentValue,
+            recordTypeField,
+            onChangeCallback
+        });
+    };
+
+    const closeRecordConfigPage = () => {
+        setRecordConfigPageState({
+            isOpen: false
+        });
+    };
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -800,7 +911,11 @@ export function FormGeneratorNew(props: FormProps) {
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
+            fileName: fileName,
             referenceTypes: types,
+            rpcManager: {
+                getExpressionTokens: getExpressionTokens
+            },
             retrieveVisibleTypes: handleGetVisibleTypes,
             getHelperPane: handleGetHelperPane,
             getTypeHelper: handleGetTypeHelper,
@@ -808,6 +923,7 @@ export function FormGeneratorNew(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
+            onOpenRecordConfigPage: openRecordConfigPage,
             helperPaneOrigin: "vertical",
             helperPaneHeight: "default",
         } as FormExpressionEditorProps;
@@ -818,9 +934,13 @@ export function FormGeneratorNew(props: FormProps) {
         extractArgsFromFunction,
         handleGetVisibleTypes,
         handleGetHelperPane,
+        handleGetTypeHelper,
+        handleExpressionFormDiagnostics,
         handleCompletionItemSelect,
         handleExpressionEditorBlur,
-        handleExpressionEditorCancel
+        handleExpressionEditorCancel,
+        openRecordConfigPage,
+        types,
     ]);
 
     const handleSubmit = (values: FormValues) => {
@@ -837,7 +957,9 @@ export function FormGeneratorNew(props: FormProps) {
                     formFields={fieldsValues}
                     projectPath={projectPath}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     onCancelForm={onBack || onCancel}
+                    popupManager={popupManager}
                     submitText={submitText}
                     cancelText={cancelText}
                     onSubmit={handleSubmit}
@@ -859,6 +981,9 @@ export function FormGeneratorNew(props: FormProps) {
                     formImports={formImports}
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
+                    changeOptionalFieldTitle={changeOptionalFieldTitle}
+                    onChange={onChange}
+                    hideSaveButton={hideSaveButton}
                 />
             )}
             {
@@ -870,19 +995,19 @@ export function FormGeneratorNew(props: FormProps) {
                     title="Create New Type"
                     openState={typeEditorState.isOpen}
                     setOpenState={handleTypeEditorStateChange}>
-                    <div style={{ padding: '0px 20px' }}>
-                        {stack.slice(0, i + 1).length > 1 && (
-                            <BreadcrumbContainer>
-                                {stack.slice(0, i + 1).map((stackItem, index) => (
-                                    <React.Fragment key={index}>
-                                        {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                        <BreadcrumbItem>
-                                            {stackItem?.type?.name || "NewType"}
-                                        </BreadcrumbItem>
-                                    </React.Fragment>
-                                ))}
-                            </BreadcrumbContainer>
-                        )}
+                    {stack.slice(0, i + 1).length > 1 && (
+                        <BreadcrumbContainer>
+                            {stack.slice(0, i + 1).map((stackItem, index) => (
+                                <React.Fragment key={index}>
+                                    {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
+                                    <BreadcrumbItem>
+                                        {stackItem?.type?.name || "NewType"}
+                                    </BreadcrumbItem>
+                                </React.Fragment>
+                            ))}
+                        </BreadcrumbContainer>
+                    )}
+                    <div style={{ height: '560px', overflow: 'auto' }}>
                         <FormTypeEditor
                             type={peekTypeStack() && peekTypeStack().type ? peekTypeStack().type : defaultType()}
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
@@ -898,6 +1023,44 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            {recordConfigPageState.isOpen &&
+                recordConfigPageState.fieldKey &&
+                recordConfigPageState.recordTypeField &&
+                recordConfigPageState.onChangeCallback && (
+                    <DynamicModal
+                        width={800}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Record Configuration"
+                        openState={recordConfigPageState.isOpen}
+                        setOpenState={(isOpen: boolean) => {
+                            if (!isOpen) {
+                                closeRecordConfigPage();
+                            }
+                        }}
+                    >
+                        <ConfigureRecordPage
+                            fileName={fileName}
+                            targetLineRange={targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined}
+                            onChange={(value: string, isRecordConfigureChange: boolean) => {
+                                recordConfigPageState.onChangeCallback!(value);
+                            }}
+                            currentValue={recordConfigPageState.currentValue || ""}
+                            recordTypeField={recordConfigPageState.recordTypeField}
+                            onClose={closeRecordConfigPage}
+                            getHelperPane={handleGetHelperPane}
+                            field={fieldsValues.find(f => f.key === recordConfigPageState.fieldKey)}
+                            triggerCharacters={TRIGGER_CHARACTERS}
+                            formContext={{
+                                expressionEditor: expressionEditor,
+                                popupManager: popupManager,
+                                nodeInfo: {
+                                    kind: selectedNode || "EXPRESSION"
+                                }
+                            }}
+                        />
+                    </DynamicModal>
+                )}
         </EditorContext.Provider>
     );
 }

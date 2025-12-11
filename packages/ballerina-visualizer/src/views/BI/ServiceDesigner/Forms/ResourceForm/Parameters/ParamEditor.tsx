@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 import { Divider, Dropdown, Typography } from '@wso2/ui-toolkit';
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, ParameterModel, PropertyModel } from '@wso2/ballerina-core';
+import { LineRange, ParameterModel, PayloadContext, PropertyModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -31,16 +31,87 @@ import { getImportsForProperty } from '../../../../../../utils/bi';
 
 const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "Header" }];
 
+const contentTypes = [
+    "A-IM",
+    "Accept",
+    "Accept-Charset",
+    "Accept-Encoding",
+    "Accept-Language",
+    "Accept-Datetime",
+    "Access-Control-Request-Method",
+    "Access-Control-Request-Headers",
+    "Authorization",
+    "Cache-Control",
+    "Connection",
+    "Content-Encoding",
+    "Content-Length",
+    "Content-MD5",
+    "Content-Type",
+    "Cookie",
+    "Date",
+    "Expect",
+    "Forwarded",
+    "From",
+    "Host",
+    "HTTP2-Settings",
+    "If-Match",
+    "If-Modified-Since",
+    "If-None-Match",
+    "If-Range",
+    "If-Unmodified-Since",
+    "Max-Forwards",
+    "Origin",
+    "Pragma",
+    "Prefer",
+    "Proxy-Authorization",
+    "Range",
+    "Referer",
+    "TE",
+    "Trailer",
+    "Transfer-Encoding",
+    "User-Agent",
+    "Upgrade",
+    "Via",
+    "Warning",
+    "Upgrade-Insecure-Requests",
+    "X-Requested-With",
+    "DNT",
+    "X-Forwarded-For",
+    "X-Forwarded-Host",
+    "X-Forwarded-Proto",
+    "Front-End-Https",
+    "X-Http-Method-Override",
+    "X-ATT-DeviceId",
+    "X-Wap-Profile",
+    "Proxy-Connection",
+    "X-UIDH",
+    "X-Csrf-Token",
+    "X-Request-ID",
+    "X-Correlation-ID",
+    "Save-Data",
+    "Sec-GPC",
+    "Sec-Fetch-Site",
+    "Sec-Fetch-Mode",
+    "Sec-Fetch-User",
+    "Sec-Fetch-Dest",
+    "Sec-CH-UA",
+    "Sec-CH-UA-Mobile",
+    "Sec-CH-UA-Platform"
+];
+
 export interface ParamProps {
     param: ParameterModel;
     hideType?: boolean;
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
+    isNew?: boolean;
+    type?: "QUERY" | "HEADER" | "PAYLOAD" | "PATH";
+    payloadContext?: PayloadContext;
 }
 
 export function ParamEditor(props: ParamProps) {
-    const { param, hideType = false, onChange, onSave, onCancel } = props;
+    const { param, hideType = false, onChange, onSave, onCancel, isNew, type } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -50,7 +121,7 @@ export function ParamEditor(props: ParamProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const handleOnSelect = (value: string) => {
-        onChange({ ...param, httpParamType: value as "QUERY" | "Header" | "PAYLOAD" });
+        onChange({ ...param, httpParamType: value as "QUERY" | "HEADER" | "PAYLOAD" });
     };
 
     const handleReqFieldChange = () => {
@@ -68,8 +139,8 @@ export function ParamEditor(props: ParamProps) {
     };
 
     useEffect(() => {
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+            setFilePath(response.filePath);
         });
         updateFormFields();
     }, []);
@@ -78,31 +149,143 @@ export function ParamEditor(props: ParamProps) {
         const fields: FormField[] = [];
 
         // Add name field
-        fields.push({
-            key: `name`,
-            label: 'Name',
-            type: param.name.valueType,
-            optional: false,
-            editable: true,
-            documentation: '',
-            enabled: param.name?.enabled,
-            value: param.name.value,
-            valueTypeConstraint: ""
-        });
+        // fields.push({
+        //     key: `name`,
+        //     label: 'Name',
+        //     type: param.name.valueType,
+        //     optional: false,
+        //     editable: true,
+        //     documentation: '',
+        //     enabled: param.name?.enabled,
+        //     value: param.name.value,
+        //     valueTypeConstraint: ""
+        // });
 
-        // Add type field if not hidden
-        if (!hideType) {
-            fields.push({
-                key: `type`,
-                label: 'Type',
-                type: param.type.valueType,
-                optional: false,
-                editable: true,
-                documentation: '',
-                enabled: param.type?.enabled,
-                value: param.type.value,
-                valueTypeConstraint: ""
-            });
+        // // Add type field if not hidden
+        // if (!hideType) {
+        //     fields.push({
+        //         key: `type`,
+        //         label: 'Type',
+        //         type: param.type.valueType,
+        //         optional: false,
+        //         editable: true,
+        //         documentation: '',
+        //         enabled: param.type?.enabled,
+        //         value: param.type.value,
+        //         defaultValue: "json",
+        //         valueTypeConstraint: ""
+        //     });
+        // }
+
+        switch (type) {
+            case "QUERY":
+            case "PATH":
+                fields.push({
+                    key: `name`,
+                    label: 'Name',
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value,
+                    valueTypeConstraint: ""
+                });
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: "ENUM",
+                    advanced: isNew,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    defaultValue: "string",
+                    value: param.type.value,
+                    items: ["string", "int", "float", "decimal", "boolean"],
+                    valueTypeConstraint: ""
+                });
+                break;
+            case "HEADER":
+                fields.push({
+                    key: `headerName`,
+                    label: 'Header Name',
+                    type: "AUTOCOMPLETE",
+                    items: contentTypes,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
+                    valueTypeConstraint: "",
+                    onValueChange: (value: string | boolean) => {
+                        const sanitizeValue = (value as string)
+                            .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
+                            .replace(/\.([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
+                            .replace(/[^a-zA-Z0-9]/g, '');
+                        const sanitizedValueWithLowerFirst = sanitizeValue.charAt(0).toLowerCase() + sanitizeValue.slice(1);
+                        // Set the sanitized value to the variable name field
+                        // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
+                        if (param.name && typeof param.name === 'object') {
+                            param.name.value = sanitizeValue;
+                            param.headerName.value = `"${value}"`;
+                            onChange({ ...param, name: { ...param.name, value: sanitizedValueWithLowerFirst } });
+                        }
+                    }
+                });
+                fields.push({
+                    key: `name`,
+                    label: 'Variable Name',
+                    advanced: isNew,
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value || "contentType",
+                    valueTypeConstraint: ""
+                });
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: "ENUM",
+                    advanced: isNew,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: true,
+                    defaultValue: "string",
+                    value: param.type.value,
+                    items: ["string", "int", "float", "decimal", "boolean"],
+                    valueTypeConstraint: ""
+                });
+                break;
+            case "PAYLOAD":
+                fields.push({
+                    key: `name`,
+                    label: 'Name',
+                    type: param.name.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: '',
+                    enabled: param.name?.enabled,
+                    value: param.name.value,
+                    valueTypeConstraint: ""
+                });
+                fields.push({
+                    key: `type`,
+                    label: 'Type',
+                    type: param.type.valueType,
+                    optional: false,
+                    editable: true,
+                    documentation: param?.type?.metadata?.description || '',
+                    enabled: param.type?.enabled,
+                    value: param.type.value || "json",
+                    defaultValue: "json",
+                    valueTypeConstraint: "",
+                    // isContextTypeSupported: true // Enable this to support context typeEditor
+                });
+                break;
         }
 
         // Add default value field if available
@@ -112,10 +295,10 @@ export function ParamEditor(props: ParamProps) {
                 label: 'Default Value',
                 type: (param.defaultValue as PropertyModel).valueType,
                 optional: true,
-                advanced: true,
+                advanced: isNew,
                 editable: true,
                 documentation: '',
-                enabled: enableDefault || (param.defaultValue as PropertyModel)?.enabled,
+                enabled: true,
                 value: (param.defaultValue as PropertyModel)?.value,
                 valueTypeConstraint: ""
             });
@@ -137,16 +320,17 @@ export function ParamEditor(props: ParamProps) {
                 imports: getImportsForProperty('type', formImports)
             },
             name: { ...param.name, value: dataValues['name'] ?? param.name.value },
+            headerName: { ...param.headerName, value: dataValues['headerName'] !== undefined ? `"${dataValues['headerName']}"` : param.headerName?.value },
             defaultValue: {
                 ...(param.defaultValue as PropertyModel),
                 value: dataValues['defaultValue'] ?? (param.defaultValue as PropertyModel)?.value,
                 enabled: !!dataValues['defaultValue']
             }
         };
-        
+
         // Update the parent component's state first
         onChange(updatedParam);
-        
+
         // Then call onSave if provided
         if (onSave) {
             onSave(updatedParam);
@@ -169,29 +353,9 @@ export function ParamEditor(props: ParamProps) {
 
     return (
         <EditorContainer>
-            {param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.httpParamType === "PAYLOAD" ? "Payload" : "Parameter"} Configuration</Typography>}
-            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{param.metadata.label} Configuration</Typography>}
+            {param.httpParamType && <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">{param.httpParamType.charAt(0).toUpperCase() + param.httpParamType.slice(1).toLowerCase()} {param.httpParamType === "QUERY" && "Parameter"}</Typography>}
+            {!param.httpParamType && <Typography sx={{ marginBlockEnd: 0, marginTop: 5 }} variant="h4">{param.metadata.label}</Typography>}
             <Divider />
-            {param.httpParamType !== "PAYLOAD" &&
-                <EditorContent>
-                    {param.httpParamType && (
-                        <Dropdown
-                            id="param-type-selector"
-                            sx={{ zIndex: 2, width: 172 }}
-                            isRequired
-                            items={options}
-                            label="Param Type"
-                            onValueChange={handleOnSelect}
-                            value={param.httpParamType}
-                        />
-                    )}
-                    {param.httpParamType === "QUERY" && (
-                        <VSCodeCheckbox checked={param.kind === "REQUIRED"} onChange={handleReqFieldChange} id="is-req-checkbox">
-                            Is Required?
-                        </VSCodeCheckbox>
-                    )}
-                </EditorContent>
-            }
             <>
                 {filePath && targetLineRange &&
                     <FormGeneratorNew

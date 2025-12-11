@@ -81,12 +81,13 @@ const ButtonWrapper = styled.div`
 
 
 export interface ListenerEditViewProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
 }
 
 export function ListenerEditView(props: ListenerEditViewProps) {
-    const { filePath, position } = props;
+    const { projectPath, filePath, position } = props;
     const { rpcClient } = useRpcContext();
     const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
@@ -108,8 +109,8 @@ export function ListenerEditView(props: ListenerEditViewProps) {
 
     return (
         <View>
-            <TopNavigationBar />
-            <TitleBar title="Listener" subtitle="Configure Listener" />
+            <TopNavigationBar projectPath={projectPath} />
+            <TitleBar title={listenerModel?.name + " Configuration"} subtitle="Configure Listener" />
             <ViewContent padding>
                 {!listenerModel &&
                     <LoadingContainer>

@@ -21,9 +21,13 @@ import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import {
     getRewrittenPrompt,
     populateHistory,
-    transformProjectSource,
+    flattenProjectToFiles,
     getErrorMessage,
     extractResourceDocumentContent,
+    parseSourceFilesFromXML,
+    buildFilePaths,
+    buildPackageContext,
+    formatFileUploadContents,
 } from "../utils";
 import { LANGLIBS } from "./../libs/langlibs";
 import { Library } from "./../libs/libs_types";
@@ -36,10 +40,10 @@ import {
     ProjectSource,
     RepairParams,
     RepairResponse,
-    SourceFiles,
+    SourceFile,
     Command,
 } from "@wso2/ballerina-core";
-import { getProjectFromResponse, getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
+import { getProjectSource, postProcess } from "../../../../rpc-managers/ai-panel/rpc-manager";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../../src/rpc-managers/ai-panel/utils";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np_prompts";
@@ -65,12 +69,13 @@ function appendFinalMessages(
 
 // Core code generation function that emits events
 export async function generateCodeCore(params: GenerateCodeRequest, eventHandler: CopilotEventHandler): Promise<void> {
-    const project: ProjectSource = await getProjectSource(params.operationType);
-    const packageName = project.projectName;
-    const sourceFiles: SourceFiles[] = transformProjectSource(project);
-    let updatedSourceFiles: SourceFiles[] = [...sourceFiles];
+    const projects: ProjectSource[] = await getProjectSource(params.operationType);
+    const activeProject = projects.find(p => p.isActive) || projects[0];
+    const packageName = activeProject.projectName;
+    const sourceFiles: SourceFile[] = flattenProjectToFiles(projects);
+    let updatedSourceFiles: SourceFile[] = [...sourceFiles];
     let updatedFileNames: string[] = [];
-    const prompt = getRewrittenPrompt(params, sourceFiles);
+    const prompt = getRewrittenPrompt(params, projects);
     const historyMessages = populateHistory(params.chatHistory);
     const cacheOptions = await getProviderCacheControl();
 
@@ -84,7 +89,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPromptPrefix(sourceFiles, params.operationType),
+            content: getSystemPromptPrefix(projects, params.operationType),
         },
         {
             role: "system",
@@ -96,7 +101,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
             role: "user",
             content: getUserPrompt(
                 prompt,
-                sourceFiles,
+                projects,
                 params.fileAttachmentContents,
                 packageName,
                 params.operationType
@@ -126,7 +131,6 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
     eventHandler({ type: "start" });
     let assistantResponse: string = "";
-    let finalResponse: string = "";
     let selectedLibraries: string[] = [];
     let codeGenStart = false;
     const tempCodeSegment = '<code filename="temp.bal">\n```ballerina\n// Code Generation\n```\n</code>';
@@ -222,19 +226,17 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
 
                 const { messages: finalMessages } = await response;
                 appendFinalMessages(allMessages, finalMessages, cacheOptions);
-                let codeSegment = getCodeBlocks(updatedSourceFiles, updatedFileNames);
                 const postProcessedResp: PostProcessResponse = await postProcess({
-                    assistant_response: codeSegment,
+                    sourceFiles: updatedSourceFiles,
+                    updatedFileNames: updatedFileNames,
                 });
 
-                codeSegment = postProcessedResp.assistant_response;
+                updatedSourceFiles = postProcessedResp.sourceFiles;
                 let diagnostics: DiagnosticEntry[] = postProcessedResp.diagnostics.diagnostics;
 
                 const MAX_REPAIR_ATTEMPTS = 3;
                 let repair_attempt = 0;
-                let diagnosticFixResp = codeSegment; //TODO: Check if we need this variable
                 while (
-                    hasCodeBlocks(diagnosticFixResp) &&
                     diagnostics.length > 0 &&
                     repair_attempt < MAX_REPAIR_ATTEMPTS
                 ) {
@@ -244,20 +246,24 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
                     const repairedResponse: RepairResponse = await repairCode(
                         {
                             previousMessages: allMessages,
-                            assistantResponse: diagnosticFixResp,
+                            sourceFiles: updatedSourceFiles,
+                            updatedFileNames: updatedFileNames,
                             diagnostics: diagnostics,
                         },
                         libraryDescriptions,
-                        updatedSourceFiles,
                         eventHandler
                     );
-                    diagnosticFixResp = repairedResponse.repairResponse;
+                    updatedSourceFiles = repairedResponse.sourceFiles;
+                    updatedFileNames = repairedResponse.updatedFileNames;
                     diagnostics = repairedResponse.diagnostics;
                     repair_attempt++;
                 }
 
+                // Generate final code blocks from repaired source files
+                const finalCodeSegment = getCodeBlocks(updatedSourceFiles, updatedFileNames);
+
                 // Update the final assistant response with the final code blocks
-                assistantResponse = assistantResponse.replace(tempCodeSegment, diagnosticFixResp);
+                assistantResponse = assistantResponse.replace(tempCodeSegment, finalCodeSegment);
 
                 console.log("Final Diagnostics ", diagnostics);
                 codeGenStart = false;
@@ -271,7 +277,7 @@ export async function generateCodeCore(params: GenerateCodeRequest, eventHandler
     }
 }
 
-function getCodeBlocks(updatedSourceFiles: SourceFiles[], updatedFileNames: string[]) {
+function getCodeBlocks(updatedSourceFiles: SourceFile[], updatedFileNames: string[]) {
     const codeBlocks: string[] = [];
 
     for (const fileName of updatedFileNames) {
@@ -301,12 +307,14 @@ export async function generateCode(params: GenerateCodeRequest): Promise<void> {
     }
 }
 
-function getSystemPromptPrefix(sourceFiles: SourceFiles[], op: OperationType): string {
+function getSystemPromptPrefix(projects: ProjectSource[], op: OperationType): string {
     const basePrompt = `You are an expert assistant specializing in Ballerina code generation. Your should ONLY answer Ballerina related queries.`;
 
     if (op === "CODE_FOR_USER_REQUIREMENT") {
+        const sourceFiles = flattenProjectToFiles(projects);
         return getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(sourceFiles));
     } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
+        const sourceFiles = flattenProjectToFiles(projects);
         return getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(sourceFiles));
     }
     return basePrompt;
@@ -374,29 +382,20 @@ ${JSON.stringify(langlibs, null, 2)}
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml).
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
-Begin your response with the very consice explanation. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
+Begin your response with the very consice explanation in the same language as the user query. The explanation should contain a very high level the control flow decided in step 1 along with the how libraries are utilized.
 Once the explanation is finished, make the necessary File modifications. Avoid any usage guides or explanations after the file modifications.
 `;
 }
 
 function getUserPrompt(
     usecase: string,
-    existingCode: SourceFiles[],
+    projects: ProjectSource[],
     fileUploadContents: FileAttatchment[],
     packageName: string,
     op: OperationType
 ): string {
-    let fileInstructions = "";
-    if (fileUploadContents.length > 0) {
-        fileInstructions = `4. File Upload Contents. : Contents of the file which the user uploaded as additional information for the query.
-
-${fileUploadContents
-    .map(
-        (file) => `File Name: ${file.fileName}
-Content: ${file.content}`
-    )
-    .join("\n")}`;
-    }
+    const fileInstructions = formatFileUploadContents(fileUploadContents);
+    const packageContext = buildPackageContext(projects, packageName);
 
     return `QUERY: The query you need to answer.
 <query>
@@ -405,10 +404,10 @@ ${usecase}
 
 Existing Code: Users existing code.
 <existing_code>
-${stringifyExistingCode(existingCode, op)}
+${stringifyExistingCode(projects, op)}
 </existing_code>
 
-Current Package name: ${packageName}
+${packageContext}
 
 ${fileInstructions}
 
@@ -419,6 +418,12 @@ export async function triggerGeneratedCodeRepair(params: RepairParams): Promise<
     // add null as the command since this is a repair operation is not a command
     const eventHandler = createWebviewEventHandler(undefined);
     try {
+        // Parse sourceFiles from assistantResponse XML if provided
+        if (params.assistantResponse && !params.sourceFiles) {
+            params.sourceFiles = parseSourceFilesFromXML(params.assistantResponse);
+            params.updatedFileNames = params.sourceFiles.map(file => file.filePath);
+        }
+
         // Fetch all libraries for tool description
         const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
         const libraryDescriptions =
@@ -440,8 +445,10 @@ export async function repairCodeCore(
     eventHandler: CopilotEventHandler
 ): Promise<RepairResponse> {
     eventHandler({ type: "start" });
-    const resp = await repairCode(params, libraryDescriptions, [], eventHandler);
-    eventHandler({ type: "content_replace", content: resp.repairResponse });
+    const resp = await repairCode(params, libraryDescriptions, eventHandler);
+    // Convert repaired sourceFiles to XML format for display
+    const repairedCodeBlocks = getCodeBlocks(resp.sourceFiles, resp.updatedFileNames);
+    eventHandler({ type: "content_replace", content: repairedCodeBlocks });
     console.log("Manual Repair Diagnostics left: ", resp.diagnostics);
     eventHandler({ type: "diagnostics", diagnostics: resp.diagnostics });
     eventHandler({ type: "stop", command: undefined });
@@ -451,14 +458,16 @@ export async function repairCodeCore(
 export async function repairCode(
     params: RepairParams,
     libraryDescriptions: string,
-    sourceFiles: SourceFiles[] = [],
     eventHandler?: CopilotEventHandler
 ): Promise<RepairResponse> {
+    // Convert current sourceFiles to XML format for assistant message
+    const assistantResponse = getCodeBlocks(params.sourceFiles, params.updatedFileNames);
+
     const allMessages: ModelMessage[] = [
         ...params.previousMessages,
         {
             role: "assistant",
-            content: params.assistantResponse,
+            content: assistantResponse,
         },
         {
             role: "user",
@@ -469,9 +478,8 @@ export async function repairCode(
         },
     ];
 
-    let updatedSourceFiles: SourceFiles[] =
-        sourceFiles.length == 0 ? getProjectFromResponse(params.assistantResponse).sourceFiles : sourceFiles;
-    let updatedFileNames: string[] = [];
+    let updatedSourceFiles: SourceFile[] = [...params.sourceFiles];
+    let updatedFileNames: string[] = [...params.updatedFileNames];
 
     const tools = {
         LibraryProviderTool: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
@@ -505,31 +513,45 @@ export async function repairCode(
             },
         });
     }
-    const updatedCodeBlocks = getCodeBlocks(updatedSourceFiles, updatedFileNames);
-    // replace original response with new code blocks
-    let diagnosticFixResp = replaceCodeBlocks(params.assistantResponse, updatedCodeBlocks);
+
     const postProcessResp: PostProcessResponse = await postProcess({
-        assistant_response: diagnosticFixResp,
+        sourceFiles: updatedSourceFiles,
+        updatedFileNames: updatedFileNames,
     });
-    diagnosticFixResp = postProcessResp.assistant_response;
     console.log("After auto repair, Diagnostics : ", postProcessResp.diagnostics.diagnostics);
 
-    return { repairResponse: diagnosticFixResp, diagnostics: postProcessResp.diagnostics.diagnostics };
+    return {
+        sourceFiles: postProcessResp.sourceFiles,
+        updatedFileNames: updatedFileNames,
+        diagnostics: postProcessResp.diagnostics.diagnostics
+    };
 }
 
-export function stringifyExistingCode(existingCode: SourceFiles[], op: OperationType): string {
-    let existingCodeStr = "";
-    for (const file of existingCode) {
-        const filePath = file.filePath;
-        if (op !== "CODE_GENERATION" && !filePath.endsWith(".bal")) {
-            continue;
-        }
+/**
+ * Formats a file as XML with filename and optional external package attribute.
+ */
+function formatFileAsXml(filePath: string, content: string, externalAttr: string): string {
+    return `<file filename="${filePath}"${externalAttr}>
+<content>
+${content}
+</content>
+</file>`;
+}
 
-        existingCodeStr += `<file filename="${filePath}">\n`;
-        existingCodeStr += `<content>\n${file.content}\n</content>\n`;
-        existingCodeStr += `</file>\n`;
-    }
-    return existingCodeStr;
+export function stringifyExistingCode(projects: ProjectSource[], op: OperationType): string {
+    const usePackagePrefix = projects.length > 1;
+    const fileFilter = (filePath: string) =>
+        op === "CODE_GENERATION" || filePath.endsWith(".bal");
+
+    const files = buildFilePaths(projects, fileFilter);
+
+    return files.map(({ filePath, content, packageName, isActive }) => {
+        const externalAttr = (usePackagePrefix && packageName && !isActive)
+            ? ` externalPackageName="${packageName}"`
+            : "";
+
+        return formatFileAsXml(filePath, content, externalAttr);
+    }).join("\n");
 }
 
 export function hasCodeBlocks(text: string) {

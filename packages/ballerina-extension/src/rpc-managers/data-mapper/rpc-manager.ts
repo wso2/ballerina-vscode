@@ -21,7 +21,8 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
-    AllDataMapperSourceRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClearTypeCacheResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
@@ -35,6 +36,7 @@ import {
     DMModelRequest,
     ExpandedDMModel,
     ExpandedDMModelResponse,
+    FieldPropertyRequest,
     GetDataMapperCodedataRequest,
     GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
@@ -52,12 +54,8 @@ import {
 import { StateMachine } from "../../stateMachine";
 
 import {
-    buildSourceRequests,
-    consolidateTextEdits,
     expandDMModel,
-    processSourceRequests,
     processTypeReference,
-    setHasStopped,
     updateAndRefreshDataMapper,
     updateSource
 } from "./utils";
@@ -228,17 +226,6 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
-    async getAllDataMapperSource(params: AllDataMapperSourceRequest): Promise<DataMapperSourceResponse> {
-        return new Promise(async (resolve) => {
-            setHasStopped(false);
-
-            const sourceRequests = buildSourceRequests(params);
-            const responses = await processSourceRequests(sourceRequests);
-            const allTextEdits = consolidateTextEdits(responses, params.mappings.length);
-            resolve ({ textEdits: allTextEdits });
-        });
-    }
-
     async getProperty(params: PropertyRequest): Promise<PropertyResponse> {
         return new Promise(async (resolve) => {
             const property = await StateMachine
@@ -246,6 +233,26 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .getProperty(params) as PropertyResponse;
 
             resolve(property);
+        });
+    }
+
+    async getFieldProperty(params: FieldPropertyRequest): Promise<PropertyResponse> {
+        return new Promise(async (resolve) => {
+            const property = await StateMachine
+                .langClient()
+                .getFieldProperty(params) as PropertyResponse;
+
+            resolve(property);
+        });
+    }
+
+    async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return new Promise(async (resolve) => {
+            const position: any = await StateMachine
+                .langClient()
+                .getClausePosition(params);
+
+            resolve(position);
         });
     }
 
@@ -317,19 +324,8 @@ export class DataMapperRpcManager implements DataMapperAPI {
 
     async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
         try {
-            const { model, rootViewId, options = {} } = params;
-
-            // Validate input parameters
-            if (!model) {
-                throw new Error("DMModel is required for transformation");
-            }
-
-            if (!rootViewId) {
-                throw new Error("rootViewId is required for transformation");
-            }
-
             // Transform the model using the existing expansion logic
-            const expandedModel = expandDMModel(model, rootViewId);
+            const expandedModel = expandDMModel(params.model, params.rootViewId);
 
             return {
                 expandedModel,
@@ -421,4 +417,5 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 });
         });
     }
+
 }

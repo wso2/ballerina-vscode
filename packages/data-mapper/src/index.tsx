@@ -24,11 +24,12 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType } from "@wso2/ballerina-core";
+import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType, Property, LinePosition } from "@wso2/ballerina-core";
 import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
 import { ExpressionProvider } from "./context/ExpressionContext";
+import { ISSUES_URL } from "./components/Diagram/utils/constants";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -62,11 +63,13 @@ export interface ExpressionBarProps {
 export interface DataMapperEditorProps {
     modelState: ModelState;
     name: string;
+    reusable?: boolean;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
     convertToQuery: (mapping: Mapping, clauseType: ResultClauseType, viewId: string, name: string) => Promise<void>;
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     deleteClause: (targetField: string, index: number) => Promise<void>;
+    getClausePosition: (targetField: string, index: number) => Promise<LinePosition>;
     addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
     deleteMapping: (mapping: Mapping, viewId: string) => Promise<void>;
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
@@ -75,11 +78,11 @@ export interface DataMapperEditorProps {
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     onRefresh: () => Promise<void>;
-    onReset: () => Promise<void>;
     onClose: () => void;
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
     generateForm: (formProps: DMFormProps) => JSX.Element;
+    genUniqueName: (name: string, viewId: string) => Promise<string>;
     undoRedoGroup: () => JSX.Element;
 }
 
@@ -89,7 +92,7 @@ export interface DataMapperProps extends DataMapperEditorProps {
 
 export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper">
+        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper" issueUrl={ISSUES_URL}>
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <ExpressionProvider {...expressionBar}>

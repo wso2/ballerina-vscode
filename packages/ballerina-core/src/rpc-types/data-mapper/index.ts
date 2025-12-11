@@ -42,7 +42,10 @@ import {
     ProcessTypeReferenceResponse,
     ProcessTypeReferenceRequest,
     ExpandedDMModelResponse,
-    ClearTypeCacheResponse
+    ClearTypeCacheResponse,
+    FieldPropertyRequest,
+    ClausePositionRequest,
+    ClausePositionResponse
 } from "../../interfaces/extended-lang-client";
 
 export interface DataMapperAPI {
@@ -61,8 +64,9 @@ export interface DataMapperAPI {
     mapWithTransformFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
-    getAllDataMapperSource: (params: AllDataMapperSourceRequest) => Promise<DataMapperSourceResponse>;
     getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;
+    getFieldProperty: (params: FieldPropertyRequest) => Promise<PropertyResponse>;
+    getClausePosition: (params: ClausePositionRequest) => Promise<ClausePositionResponse>;
     getExpandedDMFromDMModel: (params: DMModelRequest) => Promise<ExpandedDMModelResponse>;
     getProcessTypeReference: (params: ProcessTypeReferenceRequest) => Promise<ProcessTypeReferenceResponse>;
     clearTypeCache: () => Promise<ClearTypeCacheResponse>;

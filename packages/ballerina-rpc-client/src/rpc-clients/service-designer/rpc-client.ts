@@ -34,22 +34,27 @@ import {
     ListenerSourceCodeRequest,
     ListenersRequest,
     ListenersResponse,
+    PayloadContext,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     ServiceDesignerAPI,
+    ServiceInitSourceRequest,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
+    ServiceModelInitResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
     TriggerModelsRequest,
     TriggerModelsResponse,
     UpdatedArtifactsResponse,
+    VisibleTypesResponse,
     addFunctionSourceCode,
     addListenerSourceCode,
     addResourceSourceCode,
     addServiceSourceCode,
+    createServiceAndListener,
     exportOASFile,
+    generateExamplePayloadJson,
     getFunctionFromSource,
     getFunctionModel,
     getHttpResourceModel,
@@ -57,6 +62,7 @@ import {
     getListenerModelFromCode,
     getListeners,
     getResourceReturnTypes,
+    getServiceInitModel,
     getServiceModel,
     getServiceModelFromCode,
     getTriggerModels,
@@ -130,7 +136,7 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
         return this._messenger.sendRequest(getHttpResourceModel, HOST_EXTENSION, params);
     }
 
-    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+    getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return this._messenger.sendRequest(getResourceReturnTypes, HOST_EXTENSION, params);
     }
 
@@ -144,5 +150,17 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     updateResourceSourceCode(params: FunctionSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         return this._messenger.sendRequest(updateResourceSourceCode, HOST_EXTENSION, params);
+    }
+
+    getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return this._messenger.sendRequest(getServiceInitModel, HOST_EXTENSION, params);
+    }
+
+    createServiceAndListener(params: ServiceInitSourceRequest): Promise<UpdatedArtifactsResponse> {
+        return this._messenger.sendRequest(createServiceAndListener, HOST_EXTENSION, params);
+    }
+
+    generateExamplePayloadJson(params: PayloadContext): Promise<object> {
+        return this._messenger.sendRequest(generateExamplePayloadJson, HOST_EXTENSION, params);
     }
 }

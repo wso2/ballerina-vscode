@@ -41,7 +41,7 @@ import { InitVisitor } from "../visitors/InitVisitor";
 import { LinkTargetVisitor } from "../visitors/LinkTargetVisitor";
 import { NodeTypes } from "../resources/constants";
 import Controls from "./Controls";
-import { CurrentBreakpointsResponse as BreakpointInfo, traverseFlow } from "@wso2/ballerina-core";
+import { CurrentBreakpointsResponse as BreakpointInfo, JoinProjectPathRequest, JoinProjectPathResponse, traverseFlow, VisualizerLocation } from "@wso2/ballerina-core";
 import { BreakpointVisitor } from "../visitors/BreakpointVisitor";
 import { BaseNodeModel } from "./nodes/BaseNode";
 import { PopupOverlay } from "./PopupOverlay";
@@ -58,7 +58,7 @@ export interface DiagramProps {
     removeBreakpoint?: (node: FlowNode) => void;
     onConnectionSelect?: (connectionName: string) => void;
     goToSource?: (node: FlowNode) => void;
-    openView?: (filePath: string, position: NodePosition) => void;
+    openView?: (location: VisualizerLocation) => void;
     draftNode?: DraftNodeConfig;
     selectedNodeId?: string;
     // agent node callbacks
@@ -86,7 +86,7 @@ export interface DiagramProps {
     project?: {
         org: string;
         path: string;
-        getProjectPath?:(segments: string | string[]) => Promise<string>;
+        getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
@@ -94,6 +94,7 @@ export interface DiagramProps {
         visible: boolean;
         onClickOverlay: () => void;
     }
+    isUserAuthenticated?: boolean;
     expressionContext?: ExpressionContextProps;
 }
 
@@ -120,6 +121,7 @@ export function Diagram(props: DiagramProps) {
         breakpointInfo,
         readOnly,
         overlay,
+        isUserAuthenticated,
         expressionContext,
     } = props;
 
@@ -325,7 +327,13 @@ export function Diagram(props: DiagramProps) {
         suggestions: suggestions,
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
-        expressionContext: expressionContext,
+        isUserAuthenticated: isUserAuthenticated,
+        expressionContext: expressionContext || {
+            completions: [],
+            triggerCharacters: [],
+            retrieveCompletions: () => Promise.resolve(),
+            getHelperPane: undefined,
+        },
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {

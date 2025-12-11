@@ -46,6 +46,7 @@ import { activateAIFeatures } from './features/ai/activator';
 import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
+import { activateTracing } from './features/tracing';
 
 let langClient: ExtendedLangClient;
 export let isPluginStartup = true;
@@ -114,7 +115,7 @@ export async function activate(context: ExtensionContext) {
     await StateMachine.initialize();
     
     // Then return the ballerina extension context
-    return { ballerinaExtInstance: extension.ballerinaExtInstance, projectPath: StateMachine.context().projectUri };
+    return { ballerinaExtInstance: extension.ballerinaExtInstance, projectPath: StateMachine.context().projectPath };
 }
 
 export async function activateBallerina(): Promise<BallerinaExtension> {
@@ -153,8 +154,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         activateEditorSupport(ballerinaExtInstance);
 
         // <------------ MAIN FEATURES ----------->
-        // Enable Ballerina by examples
-        activateBBE(ballerinaExtInstance);
+        // TODO: Enable Ballerina by examples once the samples are available
+        // https://github.com/wso2/product-ballerina-integrator/issues/1967
+        // activateBBE(ballerinaExtInstance);
 
         //Enable BI Feature
         activateBIFeatures(ballerinaExtInstance);
@@ -190,6 +192,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 
         // Activate Agent Chat Panel
         activateAgentChatPanel(ballerinaExtInstance);
+
+        // Activate Tracing Feature
+        activateTracing(ballerinaExtInstance);
 
         langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
         // Register showTextDocument listener

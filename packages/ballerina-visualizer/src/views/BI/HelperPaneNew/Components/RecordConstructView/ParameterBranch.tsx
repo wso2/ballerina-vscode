@@ -18,7 +18,7 @@
 import React, { useState } from "react";
 
 import { TypeField } from "@wso2/ballerina-core";
-import { Button } from "@wso2/ui-toolkit";
+import { Button, Codicon } from "@wso2/ui-toolkit";
 
 
 import { useHelperPaneStyles } from "./styles";
@@ -64,31 +64,48 @@ export function ParameterBranch(props: ParameterBranchProps) {
         }
     });
 
-    function toggleOptionalParams(e: any) {
+    function toggleOptionalParams(e?: React.MouseEvent<HTMLDivElement>) {
+        if (e) {
+            e.stopPropagation();
+        }
         setShowOptionalParams(!showOptionalParams);
     }
+
+    const shouldShowOptionalParamsDirectly = (optionalParams.length > 0 && depth === 1) ||
+        (requiredParams.length === 0 && optionalParams.length > 0 && depth < 3);
 
     return (
         <div data-testid="parameter-branch">
             {requiredParams}
-            {(optionalParams.length > 0 && depth === 1) ? (
+            {shouldShowOptionalParamsDirectly ? (
                 optionalParams
             ) : (
                 <>
                     {optionalParams.length > 0 && (
                         <div className={helperStyleClass.listOptionalWrapper}>
-                            {/* <div className={helperStyleClass.listOptionalHeader}>Optional fields </div> */}
-                            <Button
-                                data-testid="optional-toggle-button"
-                                className={helperStyleClass.listOptionalBtn}
-                                onClick={toggleOptionalParams}
-                                appearance="secondary"
-                            >
-                                {showOptionalParams ? "Hide" : "Show"}
-                            </Button>
+                            <div className={helperStyleClass.listOptionalHeader} onClick={toggleOptionalParams}>
+                                <Button
+                                    data-testid="optional-toggle-button"
+                                    appearance="icon"
+                                    sx={{
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "transparent !important",
+                                        },
+                                    }}
+                                >
+                                    <Codicon
+                                        name={showOptionalParams ? "chevron-down" : "chevron-right"}
+                                        iconSx={{ fontSize: '13px' }}
+                                    />
+                                </Button>
+                                <div className={helperStyleClass.listOptionalTitle}>Optional fields</div>
+                            </div>
                         </div>
                     )}
-                    {showOptionalParams && optionalParams.length > 0 && optionalParams}
+                    <div style={{ marginLeft: '15px' }}>
+                        {showOptionalParams && optionalParams.length > 0 && optionalParams}
+                    </div>
                 </>
             )}
         </div>

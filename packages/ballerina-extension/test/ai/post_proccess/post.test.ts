@@ -21,7 +21,7 @@ import { attemptRepairProject } from '../../../src/rpc-managers/ai-panel/repair-
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as os from 'os';
-import { StateMachine } from '../../../src/stateMachine';
+import { StateMachine } from '../../stateMachine';
 import { Uri } from 'vscode';
 import { Diagnostics } from '@wso2/ballerina-core';
 

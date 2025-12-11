@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { HistoryEntry, MACHINE_VIEW, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
 const NavContainer = styled.div`
     display: flex;
@@ -60,7 +60,14 @@ const IconButton = styled.div`
     }
 `;
 
-const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
+const BreadcrumbItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+`;
+
+const BreadcrumbText = styled.span<{ clickable?: boolean }>`
     ${({ clickable }: { clickable?: boolean }) =>
         clickable &&
         `
@@ -71,25 +78,48 @@ const BreadcrumbItem = styled.span<{ clickable?: boolean }>`
     `}
 `;
 
+const PackageContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    max-width: 120px;
+    overflow: hidden;
+    padding: 3px 4px;
+    font-size: 10px;
+    border-radius: 5px;
+    line-height: 1;
+`;
+
+const PackageName = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
 interface TopNavigationBarProps {
+    projectPath: string;
     onBack?: () => void;
     onHome?: () => void;
 }
 
 export function TopNavigationBar(props: TopNavigationBarProps) {
-    const { onBack, onHome } = props;
+    const { projectPath, onBack, onHome } = props;
     const { rpcClient } = useRpcContext();
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
 
     useEffect(() => {
-        rpcClient
-            .getVisualizerRpcClient()
-            .getHistory()
-            .then((history) => {
-                console.log(">>> history", history);
-                setHistory(history);
-            });
-    }, []);
+        Promise.all([
+            rpcClient.getVisualizerRpcClient().getHistory(),
+            rpcClient.getCommonRpcClient().getWorkspaceType()
+        ]).then(([history, workspaceType]) => {
+            console.log(">>> history", history);
+            setHistory(history);
+            setWorkspaceType(workspaceType);
+        });
+    }, [projectPath]);
 
     const handleBack = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();
@@ -106,9 +136,38 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             rpcClient.getVisualizerRpcClient().goSelected(index);
         }
     };
+
+    const hasMultiplePackages = useMemo(() => {
+        return workspaceType?.type === "BALLERINA_WORKSPACE" ||
+            workspaceType?.type === "MULTIPLE_PROJECTS" ||
+            workspaceType?.type === "VSCODE_WORKSPACE";
+    }, [workspaceType]);
+
+    const isAtOverview = useMemo(() => {
+        return history.length > 0 && history[history.length - 1].location.view === MACHINE_VIEW.PackageOverview;
+    }, [history]);
+
     // HACK: To remove forms from breadcrumb. Will have to fix from the state machine side
-    const hackToSkipForms = ["overview", "automation", "service", "function", "add natural function", "data mapper", "connection"];
+    const hackToSkipForms = [
+        "workspace overview",
+        "automation",
+        "service",
+        "function",
+        "add natural function",
+        "data mapper",
+        "connection",
+        "add project",
+        "bi add project skip",
+        "welcome"
+    ];
+
+    if (workspaceType?.type !== "BALLERINA_WORKSPACE") {
+        hackToSkipForms.push("package overview");
+    }    
+
     const existingLabels = new Set<string>();
+    let hasRenderedPreviousItem = false;
+    
     return (
         <NavContainer>
             {onBack && (
@@ -124,14 +183,39 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                     const shortName = getShortNames(crumb.location.view);
                     if (index === history.length - 1 || !existingLabels.has(shortName) && !hackToSkipForms.includes(shortName.toLowerCase())) {
                         existingLabels.add(shortName);
+                        const shouldShowChevron = hasRenderedPreviousItem;
+                        hasRenderedPreviousItem = true;
+                        
                         return (
                             <React.Fragment key={index}>
-                                {index > 0 && <BreadcrumbSeparator>/</BreadcrumbSeparator>}
-                                <BreadcrumbItem
-                                    clickable={index < history.length - 1}
-                                    onClick={() => index < history.length - 1 && handleCrumbClick(index)}
-                                >
-                                    {shortName}
+                                {shouldShowChevron && (
+                                    <Icon
+                                        name="wide-chevron"
+                                        iconSx={{
+                                            color: "var(--vscode-foreground)",
+                                            fontSize: hasMultiplePackages ? "20px" : "15px",
+                                            opacity: 0.5
+                                        }}
+                                        sx={{ alignSelf: "center" }}
+                                    />
+                                )}
+                                <BreadcrumbItem>
+                                    <BreadcrumbText
+                                        clickable={index < history.length - 1}
+                                        onClick={() => index < history.length - 1 && handleCrumbClick(index)}
+                                    >
+                                        {shortName}
+                                    </BreadcrumbText>
+                                    {hasMultiplePackages && crumb.location.package && !(isAtOverview && index === history.length - 1) && (
+                                        <PackageContainer>
+                                            <Codicon
+                                                name="project"
+                                                sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
+                                                iconSx={{ fontSize: "10px", lineHeight: "1" }}
+                                            />
+                                            <PackageName>{crumb.location.package}</PackageName>
+                                        </PackageContainer>
+                                    )}
                                 </BreadcrumbItem>
                             </React.Fragment>
                         );

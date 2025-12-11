@@ -15,12 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { LinkConnectorNode } from "../components/Diagram/Node";
+import { LinkConnectorNode, QueryExprConnectorNode, ClauseConnectorNode } from "../components/Diagram/Node";
 import { DataMapperNodeModel } from "../components/Diagram/Node/commons/DataMapperNode";
 import { DataMapperContext } from "../utils/DataMapperContext/DataMapperContext";
-import { Mapping } from "@wso2/ballerina-core";
+import { Mapping, Query } from "@wso2/ballerina-core";
 import { BaseVisitor } from "./BaseVisitor";
-import { QueryExprConnectorNode } from "../components/Diagram/Node/QueryExprConnector";
 
 export class IntermediateNodeInitVisitor implements BaseVisitor {
     private intermediateNodes: DataMapperNodeModel[] = [];
@@ -38,11 +37,16 @@ export class IntermediateNodeInitVisitor implements BaseVisitor {
             // Create query expression connector node
             const queryExprNode = new QueryExprConnectorNode(this.context, node);
             this.intermediateNodes.push(queryExprNode);
-        } else if (node.inputs.length > 1 || node.isComplex || node.isFunctionCall) {
+        } else if (node.inputs.length > 1 || node.isComplex || node.isFunctionCall || node.elementAccessIndex) {
             // Create link connector node
             const linkConnectorNode = new LinkConnectorNode(this.context, node);
             this.intermediateNodes.push(linkConnectorNode);
         }
+    }
+
+    beginVisitQuery(query: Query): void {
+        const clauseConnectorNode = new ClauseConnectorNode(this.context, query);
+        this.intermediateNodes.push(clauseConnectorNode);
     }
 
     getNodes() {

@@ -31,7 +31,6 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode,
     QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
@@ -66,7 +65,7 @@ export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): 
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType !== MappingType.Default;
+    return mappingType !== MappingType.Default && mappingType !== MappingType.SeqToArray;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
@@ -77,7 +76,6 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        
         const targetNode = targetPort.getNode();
         if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
             return MappingType.ArrayToSingletonAggregate;
@@ -97,14 +95,30 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         if (sourceField.kind === TypeKind.Union || targetField.kind === TypeKind.Union) {
             return MappingType.ContainsUnions;
         }
+
+        if (sourceField.isSeq) {
+            if (isPrimitive(targetField.kind)){
+                return MappingType.SeqToPrimitive;
+            }
+            if (targetField.kind === TypeKind.Array) {
+                return MappingType.SeqToArray;
+            }
+        }
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
-            if (dimDelta == 0) return MappingType.ArrayToArray;
-            if (dimDelta > 0) return MappingType.ArrayToSingleton;
+            if (dimDelta == 0) {
+                if(targetPort.attributes.portName.endsWith(".#")) {
+                    return MappingType.ArrayJoin;
+                }
+                return MappingType.ArrayToArray;
+            }
+            if (dimDelta > 0) {
+                return MappingType.ArrayToSingleton;
+            }
         }
 
         if ((sourceField.kind !== targetField.kind ||
@@ -142,18 +156,14 @@ export function isMergeable(typeName: string): boolean {
 }
 
 
-export function genArrayElementAccessSuffix(sourcePort: PortModel, targetPort: PortModel) {
-    if (sourcePort instanceof InputOutputPortModel && targetPort instanceof InputOutputPortModel) {
-        let suffix = '';
-        const sourceDim = getDMTypeDim(sourcePort.attributes.field);
-        const targetDim = getDMTypeDim(targetPort.attributes.field);
-        const dimDelta = sourceDim - targetDim;
-        for (let i = 0; i < dimDelta; i++) {
-            suffix += '[0]';
-        }
-        return suffix;
-    }
-    return '';
+export function genArrayElementAccessSuffix(link: DataMapperLinkModel): string {
+    const sourcePort = link.getSourcePort() as InputOutputPortModel;
+    const targetPort = link.getTargetPort() as InputOutputPortModel;
+    
+    const sourceDim = getDMTypeDim(sourcePort.attributes.field);
+    const targetDim = getDMTypeDim(targetPort.attributes.field);
+    
+    return '[0]'.repeat(sourceDim - targetDim);
 };
 
 export function isDefaultValue(field: IOType, value: string): boolean {
@@ -222,7 +232,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, sourceField: string, targetField: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputIds: string[], outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -231,12 +241,23 @@ export function expandArrayFn(context: IDataMapperContext, sourceField: string, 
     }
 
     const lastView = views[views.length - 1];
-    
+
+    const outputIdDotIndex = outputId.indexOf(".");
+    let label: string;
+    let targetField: string;
+    if (outputIdDotIndex !== -1) {
+        label = outputId.slice(outputIdDotIndex + 1);
+        targetField = viewId + "." + label;
+    } else {
+        label = "[]";
+        targetField = viewId + ".0";
+    }
+
     // Create base view properties
     const baseView: View = {
-        label: targetField,
-        sourceField,
-        targetField
+        label: label,
+        sourceFields: inputIds,
+        targetField: targetField
     };
 
     // Create the new view with or without sub-mapping info

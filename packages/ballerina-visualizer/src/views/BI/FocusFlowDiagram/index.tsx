@@ -19,11 +19,9 @@
 import { debounce } from "lodash";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import {
-    Category as PanelCategory,
-} from "@wso2/ballerina-side-panel";
+import { Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import styled from "@emotion/styled";
-import { MemoizedDiagram } from "@wso2/bi-diagram";
+import { MemoizedDiagram, GetHelperPaneFunction } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
     Flow,
@@ -42,7 +40,8 @@ import {
     TriggerCharacter,
     TextEdit,
     ParentMetadata,
-    UpdatedArtifactsResponse
+    UpdatedArtifactsResponse,
+    NodePosition
 } from "@wso2/ballerina-core";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList } from "../../../components/ConnectionSelector";
@@ -56,11 +55,11 @@ import {
     updateLineRange,
 } from "../../../utils/bi";
 import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
-import { NodePosition } from "@wso2/syntax-tree";
 import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
+import { createPromptHelperPane } from "./utils";
 
 const Container = styled.div`
     width: 100%;
@@ -78,7 +77,7 @@ export interface BIFocusFlowDiagramProps {
     projectPath: string;
     filePath: string;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
 }
 
 export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
@@ -164,13 +163,16 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                                 const parentMetadata = model.flowModel.nodes.find(
                                     (node) => node.codedata.node === "EVENT_START"
                                 )?.metadata.data as ParentMetadata | undefined;
-                                onReady(model.flowModel.fileName, parentMetadata);
+                                // Get visualizer location and pass position to onReady
+                                rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
+                                    onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                                });
                             }
                         }
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
-                        onReady(undefined);
+                        onReady(undefined, undefined, undefined);
                     });
             });
     };
@@ -330,41 +332,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
-    const updateCurrentArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
-        console.log(">>> Updating current artifact location", { artifacts });
-        // Get the updated component and update the location
-        const currentIdentifier = (await rpcClient.getVisualizerLocation()).identifier;
-        // Find the correct artifact by currentIdentifier (id)
-        let currentArtifact = artifacts.artifacts.at(0);
-        artifacts.artifacts.forEach((artifact: any) => {
-            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
-                currentArtifact = artifact;
-            }
-            // Check if artifact has resources and find within those
-            if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find(
-                    (resource: any) => resource.id === currentIdentifier || resource.name === currentIdentifier
-                );
-                if (resource) {
-                    currentArtifact = resource;
-                }
-            }
-        });
-        
-        if (currentArtifact) {
-            console.log(">>> currentArtifact", currentArtifact);
-            await rpcClient.getVisualizerRpcClient().openView({
-                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-                location: {
-                    documentUri: currentArtifact.path,
-                    position: currentArtifact.position,
-                    identifier: currentIdentifier,
-                },
-            });
-        }
-        debouncedGetFlowModel();
-    };
-
     const handleOnEditNode = (node: FlowNode) => {
         console.log(">>> on edit node", node);
         selectedNodeRef.current = node;
@@ -438,11 +405,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         rpcClient.getBIDiagramRpcClient().removeBreakpointFromSource(request);
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
+            projectPath: location.projectPath || undefined,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -462,7 +430,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 value: string,
                 property: ExpressionProperty,
                 offset: number,
-                invalidateCache: boolean,
                 triggerCharacter?: string
             ) => {
                 let expressionCompletions: CompletionItem[] = [];
@@ -472,8 +439,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 if (
                     completions.length > 0 &&
                     !triggerCharacter &&
-                    parentContent === prevCompletionFetchText.current &&
-                    !invalidateCache
+                    parentContent === prevCompletionFetchText.current
                 ) {
                     expressionCompletions = completions
                         .filter((completion) => {
@@ -542,10 +508,9 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             value: string,
             property: ExpressionProperty,
             offset: number,
-            invalidateCache: boolean,
             triggerCharacter?: string
         ) => {
-            await debouncedRetrieveCompletions(value, property, offset, invalidateCache, triggerCharacter);
+            await debouncedRetrieveCompletions(value, property, offset, triggerCharacter);
 
             if (triggerCharacter) {
                 await debouncedRetrieveCompletions.flush();
@@ -564,6 +529,18 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         }
         debouncedRetrieveCompletions.cancel();
         handleExpressionEditorCancel();
+    };
+
+    const handleGetExpressionTokens = async (
+        expression: string,
+        fileName: string,
+        position: { line: number; offset: number }
+    ): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: fileName,
+            position: position
+        });
     };
 
     const handleExpressionEditorBlur = () => {
@@ -624,6 +601,46 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         setShowProgressIndicator(false);
     };
 
+    const createHelperPane = useCallback<GetHelperPaneFunction>((
+        fieldKey,
+        exprRef,
+        anchorRef,
+        defaultValue,
+        value,
+        onChange,
+        changeHelperPaneState,
+        helperPaneHeight,
+        recordTypeField,
+        isAssignIdentifier,
+        valueTypeConstraint,
+        inputMode
+    ) => {
+        if (!selectedNode || !model) {
+            return <></>;
+        }
+
+        return createPromptHelperPane({
+            selectedNode,
+            model,
+            fieldKey,
+            exprRef,
+            anchorRef,
+            defaultValue,
+            value,
+            onChange,
+            changeHelperPaneState,
+            helperPaneHeight,
+            recordTypeField,
+            valueTypeConstraint,
+            inputMode,
+            completions,
+            filteredCompletions,
+            projectPath,
+            rpcClient,
+            debouncedRetrieveCompletions
+        });
+    }, [model, projectPath, completions, filteredCompletions, debouncedRetrieveCompletions, rpcClient, selectedNode]);
+
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -642,13 +659,15 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 retrieveCompletions: handleRetrieveCompletions,
                 onCompletionItemSelect: handleCompletionItemSelect,
                 onBlur: handleExpressionEditorBlur,
-                onCancel: handleExpressionEditorCancel
+                onCancel: handleExpressionEditorCancel,
+                getHelperPane: createHelperPane,
+                getExpressionTokens: handleGetExpressionTokens
             },
             aiNodes: {
                 onModelSelect: handleOnEditNPFunctionModel,
             },
         }),
-        [flowModel, projectPath, breakpointInfo, filteredCompletions]
+        [flowModel, projectPath, breakpointInfo, filteredCompletions, createHelperPane, handleGetExpressionTokens]
     );
 
     return (
@@ -678,11 +697,11 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 >
                     {connectionView === SidePanelView.CONNECTION_CONFIG && (
                         <ConnectionConfig
+                            fileName={filePath}
                             connectionKind={selectedConnectionKind}
                             selectedNode={selectedNodeRef.current}
                             onSave={handleUpdateNodeWithConnection}
                             onNavigateToSelectionList={handleNavigateToSelectionList}
-                            // onCreateNew={handleCreateNewConnection}
                         />
                     )}
                     {connectionView === SidePanelView.CONNECTION_SELECT && (
