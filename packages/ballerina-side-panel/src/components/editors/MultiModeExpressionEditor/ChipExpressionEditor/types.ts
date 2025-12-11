@@ -23,7 +23,8 @@ export enum InputMode {
   TEMPLATE = "Template",
   NUMBER = "Number",
   BOOLEAN = "Boolean",
-  SQL = "SQL"
+  SQL = "SQL",
+  ENUM = "Enum"
 }
 
 export const INPUT_MODE_MAP = {

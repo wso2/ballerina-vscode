@@ -34,12 +34,10 @@ import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipE
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
 import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
-import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
-import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
-import { TupleEditor } from './MultiModeExpressionEditor/TupleEditor/TupleEditor';
-import { UnionEditor } from './MultiModeExpressionEditor/UnionEditor/UnionEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
+import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 
 export interface ExpressionField {
     field: FormField;
@@ -133,14 +131,24 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     onOpenExpandedMode,
     isInExpandedMode
 }) => {
+    const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
+        return (
+            <BooleanEditor
+                value={value}
+                field={field}
+                onChange={(val) => onChange(val, val.length)}
+            />
+        );
+    }
+    if (inputMode === InputMode.ENUM && isDropDownType(primaryInputType)) {
         return (
             <EnumEditor
                 value={value}
                 field={field}
                 onChange={(val) => onChange(val, val.length)}
-                items={[]}
-               
+                items={primaryInputType.options}
+
             />
         );
     }

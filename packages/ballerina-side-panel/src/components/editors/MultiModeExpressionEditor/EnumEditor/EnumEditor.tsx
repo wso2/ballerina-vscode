@@ -17,36 +17,25 @@
  */
 
 import { Dropdown, OptionProps } from "@wso2/ui-toolkit";
-import React, { ChangeEvent } from "react"
+import React, { ChangeEvent, useMemo } from "react"
 import { FormField } from "../../../Form/types";
 
 interface EnumEditorProps {
     value: string;
     field: FormField;
     onChange: (value: string, cursorPosition: number) => void;
-    items: OptionProps[];
+    items: string[];
 }
 
 export const EnumEditor = (props: EnumEditorProps) => {
 
-    //TODO: Remove this after LS changes are merged
-    const itemsMock = [
-        {
-            id: "0",
-            content: "INFO",
-            value: "info"
-        },
-        {
-            id: "1",
-            content: "WARNING",
-            value: "warning"
-        },
-        {
-            id: "2",
-            content: "DANGER",
-            value: "danger"
-        }
-    ];
+    const dropdownItems = useMemo(() => {
+        return props.items.map((item, index) => ({
+            key: index.toString(),
+            text: item,
+            value: item,
+        } as OptionProps));
+    }, [props.items]);
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         props.onChange(e.target.value, e.target.value.length)
@@ -55,7 +44,7 @@ export const EnumEditor = (props: EnumEditorProps) => {
         <Dropdown
             id={props.field.key}
             value={props.value.trim()}
-            items={itemsMock}
+            items={dropdownItems}
             onChange={handleChange}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}
