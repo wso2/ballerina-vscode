@@ -17,13 +17,39 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Codicon, Dropdown, LinkButton, TextField } from '@wso2/ui-toolkit';
+import { Codicon, Dropdown, LinkButton, TextField, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { PropertyModel } from '@wso2/ballerina-core';
+import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
+import { getColorByMethod } from '../../../../../../utils/utils';
+import { ParamEditor } from '../Parameters/ParamEditor';
+import { removeForwardSlashes } from '../../../utils';
 
-const verbs = [
+
+const MethodLabel = styled.label`
+    display: flex;
+	margin-bottom: 5px;
+    font-size: var(--vscode-editor-font-size);
+	width: 100px;
+`;
+
+const MethodBox = styled.div`
+    display: flex;
+    justify-content: center;
+    height: 25px;
+    min-width: 70px;
+    width: auto;
+    margin-left: 0px;
+    text-align: center;
+    padding: 3px 5px 3px 5px;
+    background-color: ${(p: any) => p.color};
+    color: #FFF;
+    align-items: center;
+    font-weight: bold;
+`;
+
+export const verbs = [
 	{
 		content: 'GET',
 		id: 'GET',
@@ -72,13 +98,17 @@ export interface ResourcePathProps {
 	method: PropertyModel;
 	onChange: (method: PropertyModel, path: PropertyModel) => void;
 	onError: (hasErros: boolean) => void;
+	isNew?: boolean;
+	readonly?: boolean;
 }
 
 export function ResourcePath(props: ResourcePathProps) {
-	const { method, path, onChange, onError } = props;
+	const { method, path, onChange, onError, isNew, readonly } = props;
 
 	const [inputValue, setInputValue] = useState('');
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
+	const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
+	const [showParamEditor, setShowParamEditor] = useState<boolean>(false);
 
 	useEffect(() => {
 		const resourePathStr = path.value ? path.value : "";
@@ -122,9 +152,56 @@ export function ResourcePath(props: ResourcePathProps) {
 	}
 
 	const handlePathAdd = () => {
-		const value = !path.value || path.value == '' ? '[string param]' : `${path.value}/[string param]`;
+		// Create a new parameter model for path parameter
+		const newPathParam: ParameterModel = {
+			name: {
+				value: 'param',
+				valueType: 'IDENTIFIER',
+				placeholder: 'param',
+				enabled: true
+			},
+			type: {
+				value: 'string',
+				valueType: 'EXPRESSION',
+				placeholder: 'string',
+				enabled: true
+			},
+			kind: 'REQUIRED',
+			enabled: true,
+			metadata: {
+				label: 'Path Parameter',
+				description: 'Path parameter configuration'
+			}
+		};
+		setEditModel(newPathParam);
+		setShowParamEditor(true);
+	};
+
+	const onChangeParam = (param: ParameterModel) => {
+		setEditModel(param);
+	};
+
+	const onSaveParam = (param: ParameterModel) => {
+		// Extract the parameter name and type from the saved param
+		const paramName = param.name.value || 'param';
+		const paramType = param.type.value || 'string';
+
+		// Build the path parameter string: [type paramName]
+		const pathParamStr = `[${paramType} ${paramName}]`;
+
+		// Append to existing path
+		const value = !path.value || path.value === '' ? pathParamStr : `${path.value}/${pathParamStr}`;
 		setInputValue(value);
 		onChange(method, { ...path, value });
+
+		// Close the editor
+		setShowParamEditor(false);
+		setEditModel(undefined);
+	};
+
+	const onParamEditCancel = () => {
+		setShowParamEditor(false);
+		setEditModel(undefined);
 	};
 
 
@@ -133,23 +210,33 @@ export function ResourcePath(props: ResourcePathProps) {
 			<PathContainer>
 				<div
 					style={{
-						width: 160,
-						marginTop: -1.3
+						width: 100,
+						marginRight: isNew ? 10 : 0
 					}}
 				>
-					<Dropdown
-						sx={{ width: 160 }}
-						isRequired
-						errorMsg=""
-						id="drop-down"
-						items={verbs}
-						label="HTTP Method"
-						onValueChange={handleMethodChange}
-						value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
-					/>
+					{!isNew && !readonly && (
+						<Dropdown
+							sx={{ width: 100, background: getColorByMethod(method.value?.toUpperCase()), color: "#fff" }}
+							isRequired
+							errorMsg=""
+							id="drop-down"
+							items={verbs}
+							label="HTTP Method"
+							onValueChange={handleMethodChange}
+							value={method.value.toUpperCase() || method.placeholder.toUpperCase()}
+						/>
+					)}
+					{(isNew || readonly) && (
+						<>
+							<MethodLabel>HTTP Method</MethodLabel>
+							<MethodBox color={getColorByMethod(method.value?.toUpperCase())}>
+								{method.value.toUpperCase()}
+							</MethodBox>
+						</>
+					)}
 				</div>
 				<TextField
-					sx={{ marginLeft: 15, flexGrow: 1 }}
+					sx={{ marginLeft: isNew ? 0 : 15, flexGrow: 1 }}
 					autoFocus
 					required
 					errorMsg={resourcePathErrors}
@@ -159,18 +246,34 @@ export function ResourcePath(props: ResourcePathProps) {
 						const trimmedInput = input.startsWith('/') ? input.slice(1) : input;
 						handlePathChange(trimmedInput);
 					}}
+					disabled={readonly}
 					onKeyUp={handleBlur}
 					placeholder="path/foo"
-					value={path.value}
+					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}
 				/>
 			</PathContainer>
-			<AddButtonWrapper>
-				<LinkButton onClick={handlePathAdd} >
-					<Codicon name="add" />
-					<>Add Path Param</>
-				</LinkButton>
-			</AddButtonWrapper>
+			<>
+				{showParamEditor && editModel ? (
+					<ParamEditor
+						param={editModel}
+						onChange={onChangeParam}
+						onSave={onSaveParam}
+						onCancel={onParamEditCancel}
+						type="PATH"
+						isNew={true}
+					/>
+				) : (
+					!readonly && (
+						<AddButtonWrapper>
+							<LinkButton onClick={handlePathAdd} >
+								<Codicon name="add" />
+								<>Path Param</>
+							</LinkButton>
+						</AddButtonWrapper>
+					)
+				)}
+			</>
 		</>
 	);
 }

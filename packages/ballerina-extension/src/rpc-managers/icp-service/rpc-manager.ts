@@ -36,10 +36,10 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectUri;
+                const projectPath: string = context.projectPath;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.addICP(param);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'ICP Creation');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Creation' });
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
@@ -52,10 +52,10 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectUri;
+                const projectPath: string = context.projectPath;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.disableICP(param);
-                await updateSourceCode({ textEdits: res.textEdits }, null, 'ICP Disable');
+                await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Disable' });
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
@@ -69,7 +69,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectUri;
+                const projectPath: string = context.projectPath;
                 const param = { projectPath };
                 const res: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(res);

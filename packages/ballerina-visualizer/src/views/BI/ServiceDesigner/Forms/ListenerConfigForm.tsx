@@ -57,13 +57,14 @@ interface ListenerConfigFormProps {
     isSaving?: boolean;
     onBack?: () => void;
     formSubmitText?: string;
+    onChange?: (data: ListenerModel) => void;
 }
 
 export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [listenerFields, setListenerFields] = useState<FormField[]>([]);
-    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving } = props;
+    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -94,8 +95,8 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
         setRecordTypeFields(recordTypeFields);
 
         listenerModel && setListenerFields(convertConfig(listenerModel));
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+            setFilePath(response.filePath);
         });
     }, [listenerModel]);
 
@@ -109,6 +110,26 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
         const response = updateConfig(listenerFields, listenerModel);
         onSubmit(response);
     };
+
+    const handleListenerChange = (fieldKey: string, value: any, allValues: FormValues) => {
+        if (onChange && !allValues["defaultListener"]) {
+            let hasChanges = false;
+            console.log("Listener change: ", fieldKey, value, allValues);
+            listenerFields.forEach(val => {
+                if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
+                    hasChanges = true;
+                }
+                if (allValues[val.key]) {
+                    val.value = allValues[val.key]
+                }
+            })
+            if (!hasChanges) {
+                return;
+            }
+            const response = updateConfig(listenerFields, listenerModel);
+            onChange(response);
+        }
+    }
 
     const createTitle = `Provide the necessary configuration details for the ${listenerModel.name} to complete the setup.`;
     const editTitle = `Update the configuration details for the ${listenerModel.name} as needed.`
@@ -141,11 +162,6 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                 <>
                     {listenerFields.length > 0 &&
                         <FormContainer>
-                            {/* <Typography variant="h2" sx={{ marginTop: '16px' }}>{listenerModel.name.charAt(0).toUpperCase() + listenerModel.name.slice(1)} Configuration</Typography>
-                            <BodyText>
-                                {formSubmitText === "Save" ? editTitle : createTitle}
-                            </BodyText> */}
-                            <FormHeader title={`${listenerModel.name.charAt(0).toUpperCase() + listenerModel.name.slice(1)} Configuration`} />
                             {filePath && targetLineRange &&
                                 <FormGeneratorNew
                                     fileName={filePath}
@@ -153,9 +169,12 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                                     fields={listenerFields}
                                     onSubmit={handleListenerSubmit}
                                     onBack={onBack}
+                                    nestedForm={true}
                                     isSaving={isSaving}
                                     submitText={formSubmitText}
                                     recordTypeFields={recordTypeFields}
+                                    onChange={handleListenerChange}
+                                    hideSaveButton={onChange ? true : false}
                                 />
                             }
                         </FormContainer>

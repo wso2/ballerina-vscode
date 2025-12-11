@@ -17,16 +17,34 @@
  * under the License.
  */
 
-import { tests, workspace,  TestRunProfileKind, TestController } from "vscode";
+import { tests, workspace, TestRunProfileKind, TestController, Uri } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
+import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
+import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
+import { PROJECT_TYPE } from "../project";
 
 export let testController: TestController;
 
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
+
+    const workspaceRoot = getWorkspaceRoot();
+
+    if (!workspaceRoot) {
+        return;
+    }
+
+    const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
+    const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));
+    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && await getCurrentBallerinaProject();
+    const isSingleFile = currentProject && currentProject.kind === PROJECT_TYPE.SINGLE_FILE;
+
+    if (!isBallerinaWorkspace && !isBallerinaProject && !isSingleFile) {
+        return;
+    }
 
     // Create test profiles to display.
     testController.createRunProfile('Run Tests', TestRunProfileKind.Run, runHandler, true);

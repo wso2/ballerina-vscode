@@ -19,6 +19,9 @@
 import { startCase } from "lodash";
 import { FormField } from "../Form/types";
 import { ExpressionProperty } from "@wso2/ballerina-core";
+import { InputMode } from "../..";
+import { EditorMode } from "./ExpandedEditor";
+import { EXPANDABLE_MODES } from "./ExpandedEditor/modes/types";
 
 export function isDropdownField(field: FormField) {
     return field.type === "MULTIPLE_SELECT" || field.type === "SINGLE_SELECT" || field.type?.toUpperCase() === "ENUM";
@@ -26,9 +29,18 @@ export function isDropdownField(field: FormField) {
 
 export function getValueForDropdown(field: FormField, multiSelectIndex: number = 0) {
     if (field.type === "MULTIPLE_SELECT") {
-        return field.value?.length > 0 ? field.value[multiSelectIndex] : field.items[0];
+        // For multiple select, check if field.value is an array with values
+        if (Array.isArray(field.value) && field.value.length > 0 && field.value[multiSelectIndex]) {
+            return field.value[multiSelectIndex];
+        }
+        // Return first item as default if available
+        return field.items && field.items.length > 0 ? field.items[0] : undefined;
     }
-    return field.value !== "" ? field.value : field.items[0];
+    // For single select, return the value if it exists and is not empty, otherwise return first item
+    if (field.value && field.value !== "") {
+        return field.value;
+    }
+    return field.items && field.items.length > 0 ? field.items[0] : undefined;
 }
 
 export function getValueFromArrayField(field: FormField, valueIndex: number = 0) {
@@ -63,7 +75,11 @@ export function getPropertyFromFormField(field: FormField): ExpressionProperty {
         placeholder: field.placeholder,
         valueTypeConstraint: field.valueTypeConstraint,
         codedata: field.codedata,
-        imports: field.imports
+        imports: field.imports,
+        diagnostics: {
+            hasDiagnostics: field.diagnostics?.length > 0 ? true : false,
+            diagnostics: field.diagnostics
+        }
     }
 }
 
@@ -83,8 +99,20 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
 }
 
 export const getValueForTextModeEditor = (value: string) => {
-     if (value) {
-        return value.replace(/"/g, "");
+    if (value) {
+        // Only remove starting and ending double quotes, preserve quotes within the string
+        if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
+            return value.slice(1, -1);
+        }
+        return value;
     }
     return value;
+}
+
+export function isExpandableMode(mode: InputMode): mode is EditorMode {
+    return EXPANDABLE_MODES.includes(mode as EditorMode);
+}
+
+export function toEditorMode(mode: InputMode): EditorMode | undefined {
+    return isExpandableMode(mode) ? mode : undefined;
 }

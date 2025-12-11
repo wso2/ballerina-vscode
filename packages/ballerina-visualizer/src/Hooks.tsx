@@ -42,6 +42,8 @@ export const useDataMapperModel = (
                     offset: codedata.lineRange.startLine.offset
                 }
             };
+            console.log('>>> [Data Mapper] Model Parameters:', modelParams);
+
             const res = await rpcClient
                 .getDataMapperRpcClient()
                 .getDataMapperModel(modelParams);

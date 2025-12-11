@@ -29,7 +29,8 @@ import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired } 
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
-import { LinkConnectorNode } from '../Node/LinkConnector/LinkConnectorNode';
+import { isQueryHeaderPort } from '../utils/port-utils';
+import { ClauseConnectorNode, LinkConnectorNode } from '../Node';
 /**
  * This state is controlling the creation of a link.
  */
@@ -68,9 +69,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 									element = portModel;
 								}
 							}
-						}
-
-						if (isInputNode(element)) {
+						} else if (isInputNode(element)) {
 							const isGoToSubMappingBtn = (actionEvent.event.target as Element)
 								.closest('div[id^="go-to-sub-mapping-btn"]');
 							const isDeleteSubMappingBtn = (actionEvent.event.target as Element)
@@ -93,16 +92,18 @@ export class CreateLinkState extends State<DiagramEngine> {
 									element = portModel;
 								}
 							}
-						}
-
-						if (isLinkModel(element) && this.sourcePort) {
+						} else if (isLinkModel(element) && this.sourcePort) {
 							// If a source port is already selected and clicked on a link,
 							// select the target port of the link to create a mapping
-							element = (element as DataMapperLinkModel).getTargetPort();
+							const targetPort = (element as DataMapperLinkModel).getTargetPort();
 
-							if (element instanceof IntermediatePortModel) {
-								const parentNode = element.getNode();
-								if (parentNode instanceof LinkConnectorNode) {
+							if (targetPort instanceof InputOutputPortModel) {
+								element = targetPort;
+							}
+
+							if (targetPort instanceof IntermediatePortModel) {
+								const parentNode = targetPort.getNode();
+								if (parentNode instanceof LinkConnectorNode || parentNode instanceof ClauseConnectorNode) {
 									element = parentNode.targetMappedPort;
 								}
 							}

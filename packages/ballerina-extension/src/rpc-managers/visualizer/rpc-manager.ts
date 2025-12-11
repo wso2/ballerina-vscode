@@ -20,24 +20,26 @@ import {
     ColorThemeKind,
     EVENT_TYPE,
     HistoryEntry,
+    JoinProjectPathRequest,
+    JoinProjectPathResponse,
     MACHINE_VIEW,
     OpenViewRequest,
     PopupVisualizerLocation,
+    ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
+    undo,
     UndoRedoStateResponse,
-    UpdateUndoRedoMangerRequest,
+    UpdatedArtifactsResponse,
     VisualizerAPI,
-    VisualizerLocation,
-    vscode,
+    VisualizerLocation
 } from "@wso2/ballerina-core";
+import fs from "fs";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
-import fs from "fs";
+import { notifyCurrentWebview } from "../../RPCLayer";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
-import { notifyCurrentWebview } from "../../RPCLayer";
-import { updateCurrentArtifactLocation } from "../../utils/state-machine-utils";
 import { refreshDataMapper } from "../data-mapper/utils";
 
 export class VisualizerRpcManager implements VisualizerAPI {
@@ -46,7 +48,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return new Promise(async (resolve) => {
             if (params.isPopup) {
                 const view = params.location.view;
-                if (view && view === MACHINE_VIEW.Overview) {
+                if (view && view === MACHINE_VIEW.PackageOverview) {
                     openPopupView(EVENT_TYPE.CLOSE_VIEW, params.location as PopupVisualizerLocation);
                 } else {
                     openPopupView(params.type, params.location as PopupVisualizerLocation);
@@ -68,8 +70,17 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     goHome(): void {
         history.clear();
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
         commands.executeCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS).then(() => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview }, true);
+            openView(
+                EVENT_TYPE.OPEN_VIEW,
+                {
+                    view: isWithinBallerinaWorkspace
+                        ? MACHINE_VIEW.WorkspaceOverview
+                        : MACHINE_VIEW.PackageOverview
+                },
+                true
+            );
         });
     }
 
@@ -109,9 +120,13 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
-                updateCurrentArtifactLocation({ artifacts: payload.data });
+                const currentArtifact = await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
+                if (!currentArtifact && StateMachine.context().view !== MACHINE_VIEW.InlineDataMapper) {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                    resolve("Undo successful"); // resolve the undo string
+                }
                 notifyCurrentWebview();
                 await this.refreshDataMapperView();
                 unsubscribe();
@@ -123,7 +138,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 console.log("No artifact update notification received within 10 seconds");
                 unsubscribe();
                 StateMachine.setReadyMode();
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                 reject(new Error("Operation timed out. Please try again."));
             }, 10000);
 
@@ -154,7 +169,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
             // Subscribe to artifact updated notifications
             let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
                 console.log("Received notification:", payload);
-                updateCurrentArtifactLocation({ artifacts: payload.data });
+                await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
                 notifyCurrentWebview();
@@ -168,7 +183,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 console.log("No artifact update notification received within 10 seconds");
                 unsubscribe();
                 StateMachine.setReadyMode();
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                 reject(new Error("Operation timed out. Please try again."));
             }, 10000);
 
@@ -189,20 +204,91 @@ export class VisualizerRpcManager implements VisualizerAPI {
         undoRedoManager.commitBatchOperation(params.description);
     }
 
+    resetUndoRedoStack(): void {
+        undoRedoManager.reset();
+    }
+
     async getThemeKind(): Promise<ColorThemeKind> {
         return new Promise((resolve) => {
             resolve(window.activeColorTheme.kind);
         });
     }
 
-    async joinProjectPath(segments: string | string[]): Promise<string> {
+    async joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
         return new Promise((resolve) => {
-            const projectPath = StateMachine.context().projectUri;
-            const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
-            resolve(filePath.fsPath);
+            let projectPath = StateMachine.context().projectPath;
+            // If code data is provided, try to find the project path from the project structure
+            if (params.codeData && params.codeData.packageName) {
+                const packageInfo = StateMachine.context().projectStructure.projects.find(project => {
+                    console.log(">>> project", project);
+                    return project.projectName === params.codeData.packageName;
+                });
+                if (packageInfo) {
+                    projectPath = packageInfo.projectPath;
+                }
+            }
+            if (!projectPath) {
+                resolve({ filePath: "", projectPath: "" });
+                return;
+            }
+            const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
         return undoRedoManager.getUIState();
+    }
+
+    async updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
+        return new Promise((resolve) => {
+            if (params.artifacts.length === 0) {
+                resolve(undefined);
+                return;
+            }
+            console.log(">>> Updating current artifact location", { artifacts: params.artifacts });
+            // Get the updated component and update the location
+            const currentIdentifier = StateMachine.context().identifier;
+            const currentType = StateMachine.context().type;
+            const parentIdentifier = StateMachine.context().parentIdentifier;
+
+            // Find the correct artifact by currentIdentifier (id)
+            let currentArtifact = undefined;
+            for (const artifact of params.artifacts) {
+                if (currentType && currentType.codedata.node === "CLASS" && currentType.name === artifact.name) {
+                    currentArtifact = artifact;
+                    if (artifact.resources && artifact.resources.length > 0) {
+                        const resource = artifact.resources.find(
+                            (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                        );
+                        if (resource) {
+                            currentArtifact = resource;
+                            break;
+                        }
+                    }
+
+                } else if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+                    currentArtifact = artifact;
+                }
+
+                // Check if parent artifact is matched and has resources and find within those
+                if (parentIdentifier && artifact.name === parentIdentifier && artifact.resources && artifact.resources.length > 0) {
+                    const resource = artifact.resources.find(
+                        (resource) => resource.id === currentIdentifier || resource.name === currentIdentifier
+                    );
+                    if (resource) {
+                        currentArtifact = resource;
+                    }
+                }
+            }
+
+            if (currentArtifact) {
+                openView(EVENT_TYPE.UPDATE_PROJECT_LOCATION, {
+                    documentUri: currentArtifact.path,
+                    position: currentArtifact.position,
+                    identifier: currentIdentifier,
+                });
+            }
+            resolve(currentArtifact);
+        });
     }
 }

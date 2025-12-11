@@ -25,7 +25,7 @@ import { useIntermediateNodeStyles } from '../../../styles';
 import { QueryExprConnectorNode } from './QueryExprConnectorNode';
 import { renderDeleteButton, renderEditButton, renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
 import { DiagnosticWidget } from "../../Diagnostic/DiagnosticWidget";
-import { expandArrayFn, getTargetField } from "../../utils/common-utils";
+import { expandArrayFn } from "../../utils/common-utils";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from "../../../../store/store";
 
 export interface QueryExprConnectorNodeWidgetWidgetProps {
@@ -71,11 +71,9 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
         expandedFieldsStore.removeField(targetPort);
 
         const context = node.context;
-
 	    const lastView = context.views[context.views.length - 1];
-        const targetField = getTargetField(lastView.targetField, node.targetMappedPort.attributes.value?.output);
-
-        expandArrayFn(context, node.targetMappedPort.attributes.value.inputs[0], targetField);
+        const mapping = node.targetMappedPort.attributes.value; 
+        expandArrayFn(context, mapping.inputs, mapping.output, lastView.targetField);
     };
 
     const loadingScreen = (
@@ -85,7 +83,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
     );
 
     return (!node.hidden && (
-            <div className={classes.root} data-testid={`link-connector-node-${node?.value}`}>
+            <div className={classes.root} data-testid={`link-connector-node-${node?.targetPort?.getName()}`}>
                 <div className={classes.header}>
                     {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
                     {renderEditButton(onClickEdit, node?.value)}

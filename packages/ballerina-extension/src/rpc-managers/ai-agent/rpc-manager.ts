@@ -150,8 +150,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
             const context = StateMachine.context();
             try {
 
-                const projectUri = context.projectUri;
-                const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
+                const projectPath = context.projectPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath;
                 let selectedModel = "";
                 // Create the tools first
                 if (params.newTools.length > 0) {
@@ -161,7 +161,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
 
                 // Create the model Second
-                const aiModuleOrg = await StateMachine.langClient().getAiModuleOrg({ projectPath: projectUri });
+                const aiModuleOrg = await StateMachine.langClient().getAiModuleOrg({ projectPath: projectPath });
                 const allAgents = (await StateMachine.langClient().getAllAgents({ filePath, orgName: aiModuleOrg.orgName }));
                 console.log("All Agents: ", allAgents);
 
@@ -230,8 +230,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectUri = context.projectUri;
-                const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
+                const projectPath = context.projectPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath;
                 // Create the tools if there are any
                 if (params.newTools.length > 0) {
                     for (const tool of params.newTools) {
@@ -269,14 +269,14 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
     async createTool(tool: AgentTool): Promise<void> {
         try {
-            const projectUri = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const toolName = tool.toolName;
             const connectionName = tool.connectionName;
-            const toolsPath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
+            const toolsPath = Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath;
             let flowNode: FlowNode; // REMOTE_ACTION_CALL| FUNCTION_DEFINITION
 
             if (tool.toolType === "Connector") {
-                const filePath = Utils.joinPath(URI.file(projectUri), "connections.bal").fsPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
                 const connectorFlowNode = tool.connectorFlowNode;
                 const connectorActionCodeData = tool.connectorActionCodeData;
 
@@ -301,7 +301,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 this.updateFlowNodeProperties(flowNode);
             }
             if (tool.toolType === "Function") {
-                const filePath = Utils.joinPath(URI.file(projectUri), "functions.bal").fsPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath;
 
                 if (tool.functionState === 1) { // 1 = Create the function first
                     // Get new function flow node 
@@ -328,7 +328,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         .getFunctionNode({
                             functionName: tool.functionName,
                             fileName: "functions.bal",
-                            projectPath: projectUri
+                            projectPath
                         });
                     flowNode = existingFunctionFlowNode.functionDefinition as FlowNode;
                 }
@@ -351,14 +351,14 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
     async createAgentTool(tool: AgentToolRequest): Promise<void> {
         try {
-            const projectUri = StateMachine.context().projectUri;
+            const projectPath = StateMachine.context().projectPath;
             const toolName = tool.toolName;
-            const toolsPath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
+            const toolsPath = Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath;
             let flowNode: FlowNode; // REMOTE_ACTION_CALL| FUNCTION_DEFINITION
             const selectedCodeData = tool.selectedCodeData;
 
             if (selectedCodeData.node === "REMOTE_ACTION_CALL") {
-                const filePath = Utils.joinPath(URI.file(projectUri), "connections.bal").fsPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
                 // Get the flowNode for connector action
                 const connectorActionFlowNode = await StateMachine.langClient()
                     .getNodeTemplate({
@@ -370,7 +370,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 this.updateFlowNodeProperties(flowNode);
             }
             if (selectedCodeData.node === "FUNCTION_CALL") {
-                const filePath = Utils.joinPath(URI.file(projectUri), "functions.bal").fsPath;
+                const filePath = Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath;
                 // Get the flowNode for existing function action
                 const existingFunctionFlowNode = await StateMachine.langClient()
                     .getNodeTemplate({
@@ -410,88 +410,28 @@ export class AiAgentRpcManager implements AIAgentAPI {
     }
 
     async updateMCPToolKit(params: McpToolUpdateRequest): Promise<void> {
-        const projectUri = StateMachine.context().projectUri;
-        const filePath = Utils.joinPath(URI.file(projectUri), "agents.bal").fsPath;
-
-        // Generate the variable name from the server name
-        const variableName = params.updatedNode.properties["variable"].value;
+        const projectPath = StateMachine.context().projectPath;
+        const agentsFilePath = Utils.joinPath(URI.file(projectPath), params.agentFlowNode.codedata.lineRange.fileName).fsPath;
+        const connectionsFilePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
+        const mcpToolKitVarName = params.updatedNode.properties["variable"].value;
 
         // 1. Use the updatedNode from params for the MCP ToolKit edits
         let mcpEdits: { [filePath: string]: any[] } = {};
         if (params.updatedNode) {
-            // Get the template node
-            const nodeTemplate = await StateMachine.langClient().getNodeTemplate({
-                position: params.agentFlowNode.codedata.lineRange.endLine,
-                filePath: filePath,
-                id: {
-                    node: "CLASS_INIT",
-                    org: "ballerinax",
-                    module: "ai",
-                    packageName: "ai",
-                    version: "1.2.1",
-                    symbol: "init",
-                    object: "McpToolKit"
-                }
-            });
-
-            // Map all properties from updatedNode to nodeTemplate.flowNode
-            for (const key in params.updatedNode.properties) {
-                if (key === "type") {
-                    continue;
-                }
-                if (nodeTemplate.flowNode.properties.hasOwnProperty(key)) {
-                    nodeTemplate.flowNode.properties[key].value = params.updatedNode.properties[key].value;
-                }
-            }
             if (params.selectedTools.length === 0) {
-                (nodeTemplate.flowNode.properties["permittedTools"] as { value: any }).value = `()`;
+                params.updatedNode.properties["permittedTools"].value = `()`;
             } else {
-                if ("permittedTools" in nodeTemplate.flowNode.properties) {
-                    (nodeTemplate.flowNode.properties["permittedTools"] as { value: any }).value = params.selectedTools.map(tool => `"${tool}"`);
+                if ("permittedTools" in params.updatedNode.properties) {
+                    params.updatedNode.properties["permittedTools"].value = `[${params.selectedTools.map(tool => `"${tool}"`).join(", ")}]`;
                 }
             }
-            // Pass codedata if present
-            if (params.codedata) {
-                nodeTemplate.flowNode.codedata.lineRange = params.codedata.lineRange;
-            }
+
             // Use only the template node for generating text edits
             const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
-                filePath: filePath,
-                flowNode: nodeTemplate.flowNode,
+                filePath: connectionsFilePath,
+                flowNode: params.updatedNode,
             });
             mcpEdits = mcpToolKitEdits.textEdits;
-
-
-            for (const key in mcpToolKitEdits.textEdits) {
-                const filtered = mcpToolKitEdits.textEdits[key]
-                    .filter(edit => !edit.newText.includes("import"))
-                    .map(edit => ({
-                        ...edit
-                    }));
-
-                if (filtered.length > 0) {
-                    mcpEdits[key] = filtered;
-                }
-            }
-            // Update the range fields using params.codedata.lineRange
-            if (params.codedata && params.codedata.lineRange) {
-                const { startLine, endLine } = params.codedata.lineRange;
-                for (const file in mcpEdits) {
-                    mcpEdits[file] = mcpEdits[file].map(edit => ({
-                        ...edit,
-                        range: {
-                            start: {
-                                line: startLine.line,
-                                character: startLine.offset,
-                            },
-                            end: {
-                                line: endLine.line,
-                                character: endLine.offset,
-                            },
-                        }
-                    }));
-                }
-            }
         }
 
         // 2. Update the agent's tools array to include the variable name (following updateAIAgentTools pattern)
@@ -499,17 +439,17 @@ export class AiAgentRpcManager implements AIAgentAPI {
         let toolsValue = agentFlowNode.properties["tools"].value;
 
         // Parse existing tools and add the variable name
-        if (typeof toolsValue === "string" && typeof variableName === "string") {
+        if (typeof toolsValue === "string" && typeof mcpToolKitVarName === "string") {
             const toolsArray = this.parseToolsString(toolsValue);
             if (toolsArray.length > 0) {
                 // Add the variable name if not exists
-                if (!toolsArray.includes(variableName)) {
-                    toolsArray.push(variableName);
+                if (!toolsArray.includes(mcpToolKitVarName)) {
+                    toolsArray.push(mcpToolKitVarName);
                 }
                 // Update the tools value
                 toolsValue = `[${toolsArray.join(", ")}]`;
             } else {
-                toolsValue = `[${variableName}]`;
+                toolsValue = `[${mcpToolKitVarName}]`;
             }
         }
 
@@ -518,14 +458,14 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
         // Generate source code for the updated agent
         const agentEdits = await StateMachine.langClient().getSourceCode({
-            filePath: filePath,
+            filePath: agentsFilePath,
             flowNode: agentFlowNode
         });
 
 
         // 3. Apply both edits
-        await updateSourceCode({ textEdits: mcpEdits });
         await updateSourceCode({ textEdits: agentEdits.textEdits });
+        await updateSourceCode({ textEdits: mcpEdits });
     }
 
     private parseToolsString(toolsStr: string): string[] {

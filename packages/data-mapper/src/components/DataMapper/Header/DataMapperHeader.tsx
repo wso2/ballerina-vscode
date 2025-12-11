@@ -16,9 +16,8 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import React from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
 
 import HeaderSearchBox from "./HeaderSearchBox";
 import HeaderBreadcrumb from "./HeaderBreadcrumb";
@@ -27,10 +26,11 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import ExpressionBarWrapper from "./ExpressionBar";
 import EditButton from "./EditButton";
-import { RefreshResetGroup } from "./RefreshResetGroup";
+import { ActionIconButton } from "./ActionIconButton";
 
 export interface DataMapperHeaderProps {
     views: View[];
+    reusable?: boolean;
     switchView: (index: number) => void;
     hasEditDisabled: boolean;
     onClose: () => void;
@@ -43,7 +43,7 @@ export interface DataMapperHeaderProps {
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, reusable, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -52,22 +52,33 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
     return (
         <HeaderContainer>
             <HeaderContent>
-                <IconButton onClick={onBack}>
+                <IconButton onClick={onBack} data-testid="back-button">
                     <Icon name="bi-arrow-back" iconSx={{ fontSize: "24px", color: "var(--vscode-foreground)" }} />
                 </IconButton>
-                {undoRedoGroup && undoRedoGroup()}
-                <VerticalDivider />
-                <RefreshResetGroup onRefresh={onRefresh} onReset={onReset} />
                 <BreadCrumb>
                     <Title>Data Mapper</Title>
                     {!hasEditDisabled && (
                         <HeaderBreadcrumb
                             views={views}
+                            reusable={reusable}
                             switchView={switchView}
                         />
                     )}
                 </BreadCrumb>
                 <RightContainer isClickable={!hasEditDisabled}>
+                    <ActionGroupContainer>
+                        {undoRedoGroup && undoRedoGroup()}
+                        <ActionIconButton
+                            onClick={onReset}
+                            iconName="clear-all"
+                            tooltip="Clear all mappings"
+                        />
+                        <ActionIconButton
+                            onClick={onRefresh}
+                            iconName="refresh"
+                            tooltip="Refresh all mappings"
+                        />
+                    </ActionGroupContainer>
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>
@@ -110,18 +121,17 @@ const Title = styled.h2`
     color: var(--vscode-foreground);
 `;
 
-const VerticalDivider = styled.div`
-    height: 20px;
-    width: 1px;
-    background-color: var(--dropdown-border);
-`;
-
 const RightContainer = styled.div<{ isClickable: boolean }>`
     display: flex;
     align-items: center;
     gap: 12px;
     pointer-events: ${({ isClickable }) => (isClickable ? "auto" : "none")};
     opacity: ${({ isClickable }) => (isClickable ? 1 : 0.5)};
+`;
+
+const ActionGroupContainer = styled.div`
+    display: flex;
+    gap: 2px;
 `;
 
 const BreadCrumb = styled.div`

@@ -91,6 +91,7 @@ const StyledSearchInput = styled(SearchBox)`
 `;
 
 interface ConnectorViewProps {
+    projectPath: string;
     fileName: string;
     targetLinePosition: LinePosition;
     onSelectConnector: (connector: AvailableNode) => void;
@@ -103,6 +104,7 @@ interface ConnectorViewProps {
 
 export function ConnectorView(props: ConnectorViewProps) {
     const {
+        projectPath,
         fileName,
         targetLinePosition,
         onSelectConnector,
@@ -119,7 +121,7 @@ export function ConnectorView(props: ConnectorViewProps) {
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
     const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<string>(
-        openCustomConnectorView? "LocalConnectors" : "StandardLibrary"
+        openCustomConnectorView ? "LocalConnectors" : "StandardLibrary"
     );
 
     useEffect(() => {
@@ -152,9 +154,8 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .then(async (model) => {
                 console.log(">>> bi connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);
@@ -188,9 +189,8 @@ export function ConnectorView(props: ConnectorViewProps) {
             })
             .then(async (model) => {
                 console.log(">>> bi searched connectors", model);
-                const filtered = await filterCategories(model.categories);
-                console.log(">>> bi filtered connectors", filtered);
-                setConnectors(filtered);
+                console.log(">>> bi filtered connectors", model.categories);
+                setConnectors(model.categories);
             })
             .finally(() => {
                 setIsSearching(false);
@@ -279,7 +279,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         <ViewWrapper isHalfView={hideTitle}>
             {isFullView && (
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar title="Connectors" subtitle="Select a connector to integrate with external services" />
                 </>
             )}

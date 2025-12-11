@@ -33,11 +33,12 @@ import { useVisualizerContext } from "../../../Context";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 interface ComponentListViewProps {
+    projectPath: string;
     scope: SCOPE;
 };
 
 export function ComponentListView(props: ComponentListViewProps) {
-    const { scope } = props;
+    const { projectPath, scope } = props;
     const { rpcClient } = useRpcContext();
     const [triggers, setTriggers] = useState<TriggerModelsResponse>({ local: [] });
     const { cacheTriggers, setCacheTriggers } = useVisualizerContext();
@@ -68,13 +69,13 @@ export function ComponentListView(props: ComponentListViewProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath} />
             <TitleBar title="Artifacts" subtitle="Add a new artifact to your integration" />
             <ViewContent padding>
                 <Container>
                     <AddPanel>
                         <AutomationPanel scope={scope} />
-                        <AIAgentPanel scope={scope} />
+                        <AIAgentPanel scope={scope} triggers={triggers} />
                         <IntegrationAPIPanel scope={scope} />
                         <EventIntegrationPanel triggers={triggers} scope={scope} />
                         <FileIntegrationPanel triggers={triggers} scope={scope} />

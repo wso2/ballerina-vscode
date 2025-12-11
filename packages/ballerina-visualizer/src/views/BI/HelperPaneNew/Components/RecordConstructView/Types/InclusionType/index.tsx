@@ -23,7 +23,7 @@ import { Codicon, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { TypeProps } from "../../ParameterBranch";
 import { useHelperPaneStyles } from "../../styles";
 import { ParameterBranch } from "../../ParameterBranch";
-import { isAllDefaultableFields, isRequiredParam, updateFieldsSelection } from "../../utils";
+import { isAllDefaultableFields, isRequiredParam, updateFieldsSelection, resetFieldValues } from "../../utils";
 
 export default function InclusionType(props: TypeProps) {
     const { param, depth, onChange } = props;
@@ -42,6 +42,11 @@ export default function InclusionType(props: TypeProps) {
         const newSelectedState = !paramSelected;
         param.selected = newSelectedState;
         param.inclusionType.selected = newSelectedState;
+
+        // When unchecking, reset the field values
+        if (!newSelectedState) {
+            resetFieldValues(param);
+        }
 
         // If the inclusion type has fields, update their selection state
         if (param.inclusionType?.fields && param.inclusionType.fields.length > 0) {

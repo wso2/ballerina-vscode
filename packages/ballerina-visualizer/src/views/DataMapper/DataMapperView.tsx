@@ -42,7 +42,10 @@ import {
     IOType,
     MACHINE_VIEW,
     VisualizerLocation,
-    DeleteClauseRequest
+    DeleteClauseRequest,
+    IORoot,
+    IntermediateClauseType,
+    TriggerKind
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -66,7 +69,7 @@ interface ModelSignature {
 }
 
 export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectUri, position, reusable, onClose } = props;
+    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
 
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
@@ -275,6 +278,7 @@ export function DataMapperView(props: DataMapperProps) {
                 }));
             }
         }
+        rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
 
     const generateForm = (formProps: DMFormProps) => {
@@ -283,6 +287,7 @@ export function DataMapperView(props: DataMapperProps) {
                 fileName={filePath}
                 preserveFieldOrder={true}
                 helperPaneSide="left"
+                isDataMapperEditor={true}
                 {...formProps}
             />
         )
@@ -355,6 +360,25 @@ export function DataMapperView(props: DataMapperProps) {
         } catch (error) {
             console.error(error);
             setIsFileUpdateError(true);
+        }
+    }
+
+    const getClausePosition = async (targetField: string, index: number) => {
+        try {
+            const { position } = await rpcClient.getDataMapperRpcClient().getClausePosition({
+                filePath,
+                codedata: viewState.codedata,
+                targetField: targetField,
+                index: index
+            });
+            if (position) {
+                return position;
+            } else {
+                throw new Error("Clause position not found");
+            }
+        } catch (error) {
+            console.error(error);
+            return { line: 0, offset: 0  };
         }
     }
 
@@ -477,7 +501,7 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToFunction = async (functionRange: LineRange) => {
-        const documentUri: string = await rpcClient.getVisualizerRpcClient().joinProjectPath(functionRange.fileName);
+        const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
         const position: NodePosition = {
             startLine: functionRange.startLine.line,
             startColumn: functionRange.startLine.offset,
@@ -490,13 +514,12 @@ export function DataMapperView(props: DataMapperProps) {
     };
 
     const goToSource = async (outputId: string, viewId: string) => {
-        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+        const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
-            propertyKey: "expression", // TODO: Remove this once the API is updated
             targetField: viewId,
             fieldId: outputId,
-        })
+        });
         if (property.codedata) {
             const position: NodePosition = {
                 startLine: property.codedata.lineRange?.startLine?.line,
@@ -525,11 +548,45 @@ export function DataMapperView(props: DataMapperProps) {
         parentField.isDeepNested = false;
     }
 
+    const genUniqueName = async (name: string, viewId: string): Promise<string> => {
+        const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
+            filePath,
+            codedata: viewState.codedata,
+            targetField: viewId
+        })
 
+        if (!property?.codedata?.lineRange?.startLine) {
+            console.error("Failed to get start line for generating unique name");
+            return name;
+        }
+
+        const completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
+            filePath,
+            context: {
+                expression: "",
+                startLine: property.codedata.lineRange.startLine,
+                lineOffset: 0,
+                offset: 0,
+                codedata: viewState.codedata,
+                property: property
+            },
+            completionContext: {
+                triggerKind: TriggerKind.INVOKED
+            }
+        });
+
+        let i = 2;
+        let uniqueName = name;
+        while (completions.some(c => c.insertText === uniqueName)) {
+            uniqueName = name + (i++);
+        }
+
+        return uniqueName;
+    };
 
     const onDMClose = () => {
         onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
-    }
+    };
 
     const onDMRefresh = async () => {
         try {
@@ -543,13 +600,6 @@ export function DataMapperView(props: DataMapperProps) {
         await refreshDMModel();
     };
 
-    const onDMReset = async () => {
-        await deleteMapping(
-            { output: name, expression: undefined },
-            name
-        );
-    };
-
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
@@ -558,7 +608,7 @@ export function DataMapperView(props: DataMapperProps) {
         };
 
         rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
-    }
+    };
 
 
     useEffect(() => {
@@ -591,13 +641,11 @@ export function DataMapperView(props: DataMapperProps) {
                 const { property } = await rpcClient.getDataMapperRpcClient().getProperty({
                     filePath,
                     codedata: viewState.codedata,
-                    propertyKey: "expression", // TODO: Remove this once the API is updated
-                    targetField: viewId,
-                    fieldId: outputId,
+                    targetField: viewId
                 })
                 const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
-                const startLine = updateLineRange(codedata.lineRange, expressionOffsetRef.current).startLine;
-                let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                const startLine = updateLineRange(property.codedata.lineRange, expressionOffsetRef.current).startLine;
+                let completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions({
                     filePath,
                     context: {
                         expression: value,
@@ -605,10 +653,10 @@ export function DataMapperView(props: DataMapperProps) {
                         lineOffset: lineOffset,
                         offset: charOffset,
                         codedata: viewState.codedata,
-                        property: property,
+                        property: property
                     },
                     completionContext: {
-                        triggerKind: triggerCharacter ? 2 : 1,
+                        triggerKind: triggerCharacter ? TriggerKind.TRIGGER_CHARACTER : TriggerKind.INVOKED,
                         triggerCharacter: triggerCharacter as TriggerCharacter
                     }
                 });
@@ -666,7 +714,7 @@ export function DataMapperView(props: DataMapperProps) {
                 <>
                     {reusable && (!hasInputs || !hasOutputs) ? (
                         <FunctionForm
-                            projectPath={projectUri}
+                            projectPath={projectPath}
                             filePath={filePath}
                             functionName={modelState.model.output.name}
                             isDataMapper={true}
@@ -675,9 +723,9 @@ export function DataMapperView(props: DataMapperProps) {
                         <DataMapper
                             modelState={modelState}
                             name={name}
+                            reusable={reusable}
                             onClose={onDMClose}
                             onRefresh={onDMRefresh}
-                            onReset={onDMReset}
                             onEdit={reusable ? onEdit : undefined}
                             applyModifications={updateExpression}
                             addArrayElement={addArrayElement}
@@ -686,6 +734,7 @@ export function DataMapperView(props: DataMapperProps) {
                             convertToQuery={convertToQuery}
                             addClauses={addClauses}
                             deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}
@@ -693,6 +742,7 @@ export function DataMapperView(props: DataMapperProps) {
                             mapWithTransformFn={mapWithTransformFn}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
+                            genUniqueName={genUniqueName}
                             undoRedoGroup={undoRedoGroup}
                             expressionBar={{
                                 completions: filteredCompletions,
@@ -712,9 +762,15 @@ export function DataMapperView(props: DataMapperProps) {
 };
 
 const getModelSignature = (model: DMModel | ExpandedDMModel): ModelSignature => ({
-    inputs: model.inputs.map(i => i.name),
+    inputs: [...model.inputs.map(i => i.name),
+    ...(model.query?.inputs || []),
+    ...(model.query?.intermediateClauses
+        ?.filter((clause) => (clause.type === IntermediateClauseType.LET || clause.type === IntermediateClauseType.GROUP_BY))
+        .map(clause => `${clause.properties.type} ${clause.properties.name} ${clause.properties.expression}`)
+        || [])
+    ],
     output: model.output.name,
-    subMappings: model.subMappings?.map(s => s.name) || [],
+    subMappings: model.subMappings?.map(s => (s as IORoot | IOType).name) || [],
     refs: 'refs' in model ? JSON.stringify(model.refs) : ''
 });
 

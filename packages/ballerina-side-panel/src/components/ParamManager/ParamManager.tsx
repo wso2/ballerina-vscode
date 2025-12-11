@@ -313,6 +313,9 @@ export function ParamManager(props: ParamManagerProps) {
                                 field.editable = param.identifierEditable;
                                 field.lineRange = param.identifierRange;
                             }
+                            if (field.key === "type" && field.type === "ACTION_TYPE" && param.formValues['isGraphqlId'] !== undefined) {
+                                field.isGraphqlId = param.formValues['isGraphqlId'];
+                            }
                         }
                     })
                     render.push(

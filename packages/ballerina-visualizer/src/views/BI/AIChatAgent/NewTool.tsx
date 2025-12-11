@@ -53,7 +53,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
     const agentFilePath = useRef<string>("");
-    const projectUri = useRef<string>("");
+    const projectPath = useRef<string>("");
 
     useEffect(() => {
         initPanel();
@@ -61,15 +61,16 @@ export function NewTool(props: NewToolProps): JSX.Element {
 
     const initPanel = async () => {
         // get agent file path
-        const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
-        projectUri.current = filePath.projectUri;
+        const visualizerContext = await rpcClient.getVisualizerLocation();
+        agentFilePath.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
+        projectPath.current = visualizerContext.projectPath;
         // fetch tools and agent node
         await fetchAgentNode();
     };
 
     const fetchAgentNode = async () => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+        console.log(">>> agent node found", { agentNode });
         setAgentNode(agentNode);
     };
 
@@ -82,10 +83,11 @@ export function NewTool(props: NewToolProps): JSX.Element {
         }
         try {
             const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
+            const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode.codedata.lineRange.fileName] })).filePath;
             // generate the source code
             const agentResponse = await rpcClient
                 .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: agentFilePath.current, flowNode: updatedAgentNode });
+                .getSourceCode({ filePath: filePath, flowNode: updatedAgentNode });
             console.log(">>> response getSourceCode with template ", { agentResponse });
 
             // wait for 2 seconds
@@ -152,7 +154,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     return (
         <>
             {agentFilePath.current && !savingForm && (
-                <AIAgentSidePanel projectPath={projectUri.current} onSubmit={handleOnSubmit} mode={mode} />
+                <AIAgentSidePanel projectPath={projectPath.current} onSubmit={handleOnSubmit} mode={mode} />
             )}
             {(!agentFilePath.current || savingForm) && (
                 <LoaderContainer>

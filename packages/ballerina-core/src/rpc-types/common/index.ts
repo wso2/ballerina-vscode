@@ -31,7 +31,9 @@ import {
     WorkspacesFileResponse,
     FileOrDirRequest,
     WorkspaceRootResponse,
-    ShowErrorMessageRequest
+    ShowErrorMessageRequest,
+    WorkspaceTypeResponse,
+    SampleDownloadRequest
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -49,5 +51,6 @@ export interface CommonRPCAPI {
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
-
+    getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
+    downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
 }

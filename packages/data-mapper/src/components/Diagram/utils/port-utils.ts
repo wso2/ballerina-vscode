@@ -23,7 +23,7 @@ import { ARRAY_OUTPUT_TARGET_PORT_PREFIX, OBJECT_OUTPUT_TARGET_PORT_PREFIX, PRIM
 import { ArrayOutputNode } from "../Node/ArrayOutput/ArrayOutputNode";
 import { PrimitiveOutputNode } from "../Node/PrimitiveOutput/PrimitiveOutputNode";
 
-export function getInputPort(node: InputNode, inputField: string): InputOutputPortModel {
+export function getInputPort(node: InputNode | SubMappingNode, inputField: string): InputOutputPortModel {
     const portId = node instanceof SubMappingNode
         ? `${SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX}.${inputField}.OUT`
         : `${inputField}.OUT`;
@@ -70,4 +70,8 @@ export function getTargetPortPrefix(node: NodeModel): string {
 		default:
 			return "";
 	}
+}
+
+export function isQueryHeaderPort(port: InputOutputPortModel): boolean {
+    return port.attributes.portName.endsWith(".#");
 }

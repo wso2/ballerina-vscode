@@ -126,7 +126,7 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
         const res = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
@@ -282,7 +282,7 @@ export function FunctionForm(props: FunctionFormProps) {
                 rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
                 return;
             }
-            const updatedArtifact = sourceCode.artifacts.find(res => !res.isNew && (res.name === functionName || res.context === functionName));
+            const updatedArtifact = sourceCode.artifacts.find(res => !res.isNew && (res.name === functionName || res.context === functionName || res.name === data?.functionName));
             if (updatedArtifact) {
                 rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: updatedArtifact.path, position: updatedArtifact.position } });
                 return;
@@ -367,7 +367,7 @@ export function FunctionForm(props: FunctionFormProps) {
         <View>
             {!isPopup &&
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar
                         title={formType.current}
                         subtitle={titleSubtitle}
@@ -402,6 +402,7 @@ export function FunctionForm(props: FunctionFormProps) {
                         {filePath && targetLineRange && functionFields.length > 0 &&
                             <FormGeneratorNew
                                 fileName={filePath}
+                                nestedForm={true}
                                 targetLineRange={targetLineRange}
                                 fields={functionFields}
                                 isSaving={saving}

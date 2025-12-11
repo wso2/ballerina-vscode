@@ -30,6 +30,7 @@ interface MigrationStatusContentProps {
     parsedReportData: MigrationReportJSON | null;
     onViewReport: () => void;
     onSaveReport: () => void;
+    isMultiProject?: boolean;
 }
 
 export const MigrationStatusContent: React.FC<MigrationStatusContentProps> = ({
@@ -38,7 +39,8 @@ export const MigrationStatusContent: React.FC<MigrationStatusContentProps> = ({
     migrationResponse,
     parsedReportData,
     onViewReport,
-    onSaveReport
+    onSaveReport,
+    isMultiProject = false
 }) => {
     if (state.isInProgress) {
         return (
@@ -66,13 +68,14 @@ export const MigrationStatusContent: React.FC<MigrationStatusContentProps> = ({
                     reportData={parsedReportData}
                     onViewReport={onViewReport}
                     onSaveReport={onSaveReport}
+                    isMultiProject={isMultiProject}
                 />
             );
         } else {
             return (
                 <>
                     {migrationResponse?.report && (
-                        <ReportButtons onViewReport={onViewReport} onSaveReport={onSaveReport} />
+                        <ReportButtons onViewReport={onViewReport} onSaveReport={onSaveReport} isMultiProject={isMultiProject} />
                     )}
                 </>
             );

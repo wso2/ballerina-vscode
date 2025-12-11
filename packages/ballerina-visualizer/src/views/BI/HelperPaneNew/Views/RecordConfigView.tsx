@@ -37,17 +37,6 @@ export const Description = styled.div({
     color: 'var(--vscode-list-deemphasizedForeground)',
 });
 
-const Label = styled.div<{}>`
-    font-size: 14px;
-    font-family: GilmerBold;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    text-wrap: nowrap;
-`;
-
-export const PanelBody = styled.div`
-    height: 100vh;
-`;
 
 
 export function RecordConfigView(props: ConfigureViewProps) {
@@ -58,18 +47,16 @@ export function RecordConfigView(props: ConfigureViewProps) {
     }
 
     return (
-        <PanelBody>
-            <>
-                <LabelContainer>
-                    <Description >{`Select fields to construct the record`}</Description>
-                </LabelContainer>
-                <div style={{
-                    maxHeight: '450px',
-                    overflowY: 'auto'
-                }}>
-                    <MemoizedParameterBranch key={JSON.stringify(recordModel)} parameters={recordModel} depth={1} onChange={handleOnChange} />
-                </div>
-            </>
-        </PanelBody>
+        <>
+            <LabelContainer>
+                <Description >{`Select fields to construct the record`}</Description>
+            </LabelContainer>
+            <div style={{
+                maxHeight: '450px',
+                overflowY: 'auto'
+            }}>
+                <MemoizedParameterBranch key={JSON.stringify(recordModel)} parameters={recordModel} depth={1} onChange={handleOnChange} />
+            </div>
+        </>
     );
 }

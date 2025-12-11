@@ -38,6 +38,8 @@ import {
     BIModuleNodesResponse,
     BINodeTemplateRequest,
     BINodeTemplateResponse,
+    BISearchNodesRequest,
+    BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
     BISourceCodeRequest,
@@ -45,9 +47,13 @@ import {
     BuildMode,
     ClassFieldModifierRequest,
     ComponentRequest,
+    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
+    DeleteConfigVariableRequestV2,
+    DeleteConfigVariableResponseV2,
+    DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
@@ -83,7 +89,6 @@ import {
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
     ProjectComponentsResponse,
-    ProjectImports,
     ProjectRequest,
     ProjectStructureResponse,
     ReadmeContentRequest,
@@ -109,6 +114,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
+    VerifyTypeDeleteRequest,
+    VerifyTypeDeleteResponse,
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspacesResponse,
@@ -119,17 +126,18 @@ import {
     createComponent,
     createGraphqlClassType,
     createProject,
+    addProjectToWorkspace,
     deleteByComponentInfo,
     deleteConfigVariableV2,
     deleteFlowNode,
     deleteOpenApiGeneratedModules,
+    deleteProject,
     deleteType,
     deployProject,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
-    getAllImports,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -141,6 +149,7 @@ import {
     getConfigVariableNodeTemplate,
     getConfigVariables,
     getConfigVariablesV2,
+    getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
     getEnclosedFunction,
@@ -177,6 +186,7 @@ import {
     renameIdentifier,
     runProject,
     search,
+    searchNodes,
     updateClassField,
     updateConfigVariables,
     updateConfigVariablesV2,
@@ -185,12 +195,14 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    DeleteConfigVariableRequestV2,
-    DeleteConfigVariableResponseV2,
-    VerifyTypeDeleteRequest,
-    VerifyTypeDeleteResponse,
     verifyTypeDelete,
-    ConfigVariableRequest,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
+    getFormDiagnostics,
+    getExpressionTokens,
+    ExpressionTokensRequest,
+    AddProjectToWorkspaceRequest,
+    OpenReadmeRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -262,6 +274,14 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
     }
 
+    deleteProject(params: DeleteProjectRequest): void {
+        return this._messenger.sendNotification(deleteProject, HOST_EXTENSION, params);
+    }
+
+    addProjectToWorkspace(params: AddProjectToWorkspaceRequest): void {
+        return this._messenger.sendNotification(addProjectToWorkspace, HOST_EXTENSION, params);
+    }
+
     getWorkspaces(): Promise<WorkspacesResponse> {
         return this._messenger.sendRequest(getWorkspaces, HOST_EXTENSION);
     }
@@ -288,6 +308,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
         return this._messenger.sendRequest(getExpressionCompletions, HOST_EXTENSION, params);
+    }
+
+    getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
+        return this._messenger.sendRequest(getDataMapperCompletions, HOST_EXTENSION, params);
     }
 
     getConfigVariables(): Promise<ConfigVariableResponse> {
@@ -322,12 +346,12 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(getModuleNodes, HOST_EXTENSION);
     }
 
-    getReadmeContent(): Promise<ReadmeContentResponse> {
-        return this._messenger.sendRequest(getReadmeContent, HOST_EXTENSION);
+    getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
+        return this._messenger.sendRequest(getReadmeContent, HOST_EXTENSION, params);
     }
 
-    openReadme(): void {
-        return this._messenger.sendNotification(openReadme, HOST_EXTENSION);
+    openReadme(params: OpenReadmeRequest): void {
+        return this._messenger.sendNotification(openReadme, HOST_EXTENSION, params);
     }
 
     renameIdentifier(params: RenameIdentifierRequest): Promise<void> {
@@ -370,12 +394,12 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(getBreakpointInfo, HOST_EXTENSION);
     }
 
-    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
-        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
+    getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
+        return this._messenger.sendRequest(getFormDiagnostics, HOST_EXTENSION, params);
     }
 
-    getAllImports(): Promise<ProjectImports> {
-        return this._messenger.sendRequest(getAllImports, HOST_EXTENSION);
+    getExpressionDiagnostics(params: ExpressionDiagnosticsRequest): Promise<ExpressionDiagnosticsResponse> {
+        return this._messenger.sendRequest(getExpressionDiagnostics, HOST_EXTENSION, params);
     }
 
     formDidOpen(params: FormDidOpenParams): Promise<void> {
@@ -470,6 +494,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(search, HOST_EXTENSION, params);
     }
 
+    searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {
+        return this._messenger.sendRequest(searchNodes, HOST_EXTENSION, params);
+    }
+
     getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         return this._messenger.sendRequest(getRecordNames, HOST_EXTENSION);
     }
@@ -496,5 +524,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     verifyTypeDelete(params: VerifyTypeDeleteRequest): Promise<VerifyTypeDeleteResponse> {
         return this._messenger.sendRequest(verifyTypeDelete, HOST_EXTENSION, params);
+    }
+
+    getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
+        return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
     }
 }

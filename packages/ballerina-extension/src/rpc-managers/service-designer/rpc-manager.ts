@@ -37,18 +37,22 @@ import {
     ListenersRequest,
     ListenersResponse,
     OpenAPISpec,
+    PayloadContext,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     ResourceSourceCodeResponse,
     ServiceDesignerAPI,
+    ServiceInitSourceRequest,
     ServiceModelFromCodeRequest,
     ServiceModelFromCodeResponse,
+    ServiceModelInitResponse,
     ServiceModelRequest,
     ServiceModelResponse,
     ServiceSourceCodeRequest,
+    SourceEditResponse,
     TriggerModelsRequest,
     TriggerModelsResponse,
-    UpdatedArtifactsResponse
+    UpdatedArtifactsResponse,
+    VisibleTypesResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -57,6 +61,7 @@ import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+import { generateExamplePayload } from "../../features/ai/service/editor/payload-json/payload_json";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
@@ -96,8 +101,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenersResponse = await context.langClient.getListeners(params);
@@ -124,12 +129,12 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.addListenerSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true }, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, resolveMissingDependencies: true, artifactData: { artifactType: DIRECTORY_MAP.LISTENER }, description: params.listener.name + ' Creation' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -161,12 +166,12 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.LISTENER }, params.listener.name + ' Update');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.LISTENER }, description: params.listener.name + ' Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -181,8 +186,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ServiceModelResponse = await context.langClient.getServiceModel(params);
@@ -197,8 +202,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const identifiers = [];
@@ -221,7 +226,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.addServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: params.service.name + ' Creation' });
                 let result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -236,8 +241,8 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
-                const targetFile = path.join(projectDir, `main.bal`);
+                const projectPath = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectPath, `main.bal`);
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const identifiers = [];
@@ -248,7 +253,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                     }
                 }
                 const res: ListenerSourceCodeResponse = await context.langClient.updateServiceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, params.service.name + ' Update');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: params.service.name + ' Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -293,14 +298,14 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectDir = path.join(StateMachine.context().projectUri);
+                const projectPath = path.join(StateMachine.context().projectPath);
                 if (!params.filePath) {
-                    const targetFile = path.join(projectDir, `main.bal`);
+                    const targetFile = path.join(projectPath, `main.bal`);
                     this.ensureFileExists(targetFile);
                     params.filePath = targetFile;
                 }
                 const res: ResourceSourceCodeResponse = await context.langClient.addResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, { artifactType: DIRECTORY_MAP.SERVICE }, 'Resource Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: 'Resource Creation' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -316,7 +321,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.updateResourceSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Resource Update');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: params.artifactType ? { artifactType: params.artifactType } : null, description: 'Resource Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -344,7 +349,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             const context = StateMachine.context();
             try {
                 const res: ResourceSourceCodeResponse = await context.langClient.addFunctionSourceCode(params);
-                const artifacts = await updateSourceCode(res, null, 'Function Creation');
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: params.artifactType ? { artifactType: params.artifactType } : { artifactType: DIRECTORY_MAP.FUNCTION }, description: 'Function Creation' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
@@ -388,13 +393,12 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
         }
     }
 
-    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<ResourceReturnTypesResponse> {
+    async getResourceReturnTypes(params: ResourceReturnTypesRequest): Promise<VisibleTypesResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
-            params.filePath = StateMachine.context().projectUri;
-            params.context = "HTTP_STATUS_CODE";
+            params.filePath = params.filePath || context.projectPath;
             try {
-                const res: ResourceReturnTypesResponse = await context.langClient.getResourceReturnTypes(params);
+                const res: VisibleTypesResponse = await context.langClient.getResourceReturnTypes(params);
                 resolve(res);
             } catch (error) {
                 console.log(">>> error fetching resource return types", error);
@@ -412,5 +416,68 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 console.log(">>> error fetching function model", error);
             }
         });
+    }
+
+    async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const projectDir = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectDir, `main.bal`);
+                this.ensureFileExists(targetFile);
+                params.filePath = targetFile;
+                const res: ServiceModelInitResponse = await context.langClient.getServiceInitModel(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async createServiceAndListener(params: ServiceInitSourceRequest): Promise<UpdatedArtifactsResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            try {
+                const projectDir = path.join(StateMachine.context().projectPath);
+                const targetFile = path.join(projectDir, `main.bal`);
+                this.ensureFileExists(targetFile);
+                params.filePath = targetFile;
+                const identifiers = [];
+                for (let property in params.serviceInitModel.properties) {
+                    const value = params.serviceInitModel.properties[property].value
+                        || params.serviceInitModel.properties[property].values?.at(0);
+                    if (value) {
+                        identifiers.push(value);
+                    }
+                    if (params.serviceInitModel.properties[property].choices) {
+                        params.serviceInitModel.properties[property].choices.forEach(choice => {
+                            if (choice.properties) {
+                                Object.keys(choice.properties).forEach(subProperty => {
+                                    const subPropertyValue = choice.properties[subProperty].value;
+                                    if (subPropertyValue) {
+                                        identifiers.push(subPropertyValue);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+                const res: SourceEditResponse = await context.langClient.createServiceAndListener(params);
+
+                const edits = { textEdits: res.textEdits, resolveMissingDependencies: false };
+
+                const artifacts = await updateSourceCode({ ...edits, artifactData: { artifactType: DIRECTORY_MAP.SERVICE }, description: 'Service and Listener Creation' });
+                let result: UpdatedArtifactsResponse = {
+                    artifacts: artifacts
+                };
+                resolve(result);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async generateExamplePayloadJson(params: PayloadContext): Promise<object> {
+        return await generateExamplePayload(params);
     }
 }

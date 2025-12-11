@@ -41,7 +41,7 @@ export function activateDevantFeatures(_ballerinaExtInstance: BallerinaExtension
 }
 
 const handleComponentPushToDevant = async () => {
-    const projectRoot = StateMachine.context().projectUri;
+    const projectRoot = StateMachine.context().projectPath;
     if (!projectRoot) {
         return;
     }
@@ -75,10 +75,14 @@ const handleComponentPushToDevant = async () => {
         if (!StateMachine.context().projectStructure) {
             return;
         }
-
-        const services = StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.SERVICE];
-        const automation = StateMachine.context().projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION];
-
+        const projectStructure = StateMachine.context().projectStructure.projects.find(
+            (proj) => proj.projectPath === projectRoot
+        );
+        if (!projectStructure) {
+            return;
+        }
+        const services = projectStructure?.directoryMap[DIRECTORY_MAP.SERVICE];
+        const automation = projectStructure?.directoryMap[DIRECTORY_MAP.AUTOMATION];
         const scopeSet = new Set<SCOPE>();
 
         if (services) {
@@ -120,7 +124,7 @@ const handleComponentPushToDevant = async () => {
         const deployementParams: ICreateComponentCmdParams = {
             integrationType: integrationType as any,
             buildPackLang: "ballerina",
-            componentDir: StateMachine.context().projectUri,
+            componentDir: StateMachine.context().projectPath,
             extName: "Devant",
         };
         commands.executeCommand(PlatformCommandIds.CreateNewComponent, deployementParams);

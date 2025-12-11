@@ -20,7 +20,6 @@ import { useEffect, useState } from "react";
 import {
     EVENT_TYPE,
     MACHINE_VIEW,
-    ProjectStructureResponse,
     CDModel,
     CDService,
     NodePosition,
@@ -29,6 +28,7 @@ import {
     CDListener,
     CDResourceFunction,
     CDFunction,
+    ProjectStructure,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Diagram } from "@wso2/component-diagram";
@@ -48,7 +48,7 @@ const DiagramContainer = styled.div`
 `;
 
 interface ComponentDiagramProps {
-    projectStructure: ProjectStructureResponse;
+    projectStructure: ProjectStructure;
 }
 
 export function ComponentDiagram(props: ComponentDiagramProps) {
