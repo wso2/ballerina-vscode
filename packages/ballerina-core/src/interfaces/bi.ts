@@ -19,7 +19,6 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
-import { FieldType, ValueType } from "..";
 
 export type { NodePosition };
 

@@ -26,5 +26,5 @@ export const getPrimaryInputType = (types: InputType[]): InputType | undefined =
 export const isTemplateType = (
   value: InputType
 ): value is TemplateType => {
-  return value !== null && typeof value === "object" && "template" in value;
+  return value != null && typeof value === "object" && "template" in value;
 };
