@@ -32,6 +32,7 @@ import {
     openView,
     OpenViewRequest,
     redo,
+    resetUndoRedoStack,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
@@ -52,6 +53,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(redo, (count: number) => rpcManger.redo(count));
     messenger.onNotification(addToUndoStack, (args: AddToUndoStackRequest) => rpcManger.addToUndoStack(args));
     messenger.onRequest(undoRedoState, () => rpcManger.undoRedoState());
+    messenger.onNotification(resetUndoRedoStack, () => rpcManger.resetUndoRedoStack());
     messenger.onRequest(joinProjectPath, (args: JoinProjectPathRequest) => rpcManger.joinProjectPath(args));
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());
     messenger.onRequest(updateCurrentArtifactLocation, (args: UpdatedArtifactsResponse) => rpcManger.updateCurrentArtifactLocation(args));
