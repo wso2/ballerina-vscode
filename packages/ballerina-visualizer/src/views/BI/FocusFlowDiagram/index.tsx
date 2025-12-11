@@ -55,7 +55,7 @@ import {
     updateLineRange,
 } from "../../../utils/bi";
 import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
-import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem, FormExpressionEditorRef, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } from "@wso2/ui-toolkit";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";

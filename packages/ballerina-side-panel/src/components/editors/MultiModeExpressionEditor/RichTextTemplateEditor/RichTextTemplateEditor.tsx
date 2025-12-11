@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -255,7 +255,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         const view = viewRef.current;
         let finalValue = newValue;
-        let cursorPosition = view.state.selection.from;
+        let cursorPosition;
 
         // If a chip was clicked, replace it
         if (helperPaneState.clickedChipPos !== undefined && helperPaneState.clickedChipNode) {
