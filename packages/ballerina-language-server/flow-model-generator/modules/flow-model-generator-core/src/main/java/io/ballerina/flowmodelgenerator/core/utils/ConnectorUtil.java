@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Utility class for connector-related operations.
  *
- * @since 1.0.0
+ * @since 1.5.0
  */
 public class ConnectorUtil {
 
