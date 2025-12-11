@@ -681,9 +681,15 @@ export const resolveVariableValue = async (
 
     const trimmed = value.trim();
 
-    // String literal - remove quotes
+    // String literal - remove quotes and check for interpolation
     if (isStringLiteral(trimmed)) {
-        return removeQuotes(trimmed);
+        const content = removeQuotes(trimmed);
+        const interpolationMatch = content.match(/^\s*\$\{([^}]+)\}\s*$/);
+        if (interpolationMatch) {
+            const variableName = interpolationMatch[1];
+            return resolveVariableValue(variableName, moduleVariables, rpcClient, projectPathUri);
+        }
+        return content;
     }
 
     // URL - return as-is to skip variable lookups
