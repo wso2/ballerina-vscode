@@ -358,6 +358,16 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         setResolutionError("Loaded tools via manual discovery.");
     }, []);
 
+    const handleRetryFetch = useCallback(() => {
+        // Clear previous errors and reset tool source
+        setMcpToolsError("");
+        setResolutionError("");
+        setToolSource(null);
+
+        // Retry fetching tools with current form values
+        fetchToolsFromServer(serverUrl, auth);
+    }, [serverUrl, auth, fetchToolsFromServer]);
+
     const handleSave = async (node?: FlowNode) => {
         setIsSaving(true);
         try {
@@ -413,11 +423,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         onDiscoverClick={() => setShowDiscoverModal(true)}
                         resolutionError={resolutionError}
                         toolSource={toolSource}
+                        onRetryFetch={handleRetryFetch}
                     />
                 ),
                 index: 2
             }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch]);
 
     return (
         <Container>

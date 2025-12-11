@@ -71,6 +71,7 @@ interface McpToolsSelectionProps {
     onDiscoverClick?: () => void;
     toolSource?: 'auto-fetched' | 'manual-discovery' | 'saved-mock' | null;
     resolutionError?: string;
+    onRetryFetch?: () => void;
 }
 
 interface ToolsListProps {
@@ -123,7 +124,7 @@ const ToolCheckboxItem = styled.div<{ disabled?: boolean }>`
 export const ErrorMessage = styled.div<{ padding?: string; maxHeight?: string }>`
     color: ${ThemeColors.ERROR};
     font-size: 12px;
-    padding: ${(props: { padding?: string }) => props.padding || '0 0 12px 12px'};
+    padding: ${(props: { padding?: string }) => props.padding || '0 0 4px 12px'};
     ${(props: { maxHeight?: string }) => props.maxHeight ? `max-height: ${props.maxHeight}; overflow-y: auto;` : ''}
     word-break: break-word;
     white-space: pre-wrap;
@@ -430,7 +431,8 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     showDiscoverButton = false,
     onDiscoverClick,
     resolutionError = "",
-    toolSource = null
+    toolSource = null,
+    onRetryFetch
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const formattedError = useMemo(() => formatErrorMessage(error), [error]);
@@ -519,6 +521,18 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                                 Unable to load tools from MCP server.
                             </InfoMessage>
                             <ErrorMessage maxHeight="100px">{formattedError}</ErrorMessage>
+                            {onRetryFetch && (
+                                <div style={{ padding: '0 12px 12px 12px', display: 'flex', alignItems: 'center' }}>
+                                    <Button
+                                        onClick={onRetryFetch}
+                                        disabled={loading}
+                                        appearance="secondary"
+                                    >
+                                        <Icon name="bi-retry" sx={{ marginRight: '6px', width: 16, height: 16, fontSize: 16 }} />
+                                        Retry
+                                    </Button>
+                                </div>
+                            )}
                         </>
                     )}
                     {resolutionError && toolSource === 'saved-mock' && !error && (
