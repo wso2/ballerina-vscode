@@ -98,13 +98,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                         placeholder="Key"
                         isError={duplicateKeys.has(pair.key.trim())}
                     />
-                    <S.Input
-                        type="text"
-                        value={pair.value}
-                        onChange={(e) => handleValueChange(index, e.target.value)}
-                        placeholder="Value"
-                        isError={false}
-                    />
+                    
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => handleDelete(index)}

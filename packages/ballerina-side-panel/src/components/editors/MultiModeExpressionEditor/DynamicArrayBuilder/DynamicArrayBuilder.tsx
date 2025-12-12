@@ -16,14 +16,21 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from '@emotion/styled';
 import { Button, Codicon, ThemeColors } from '@wso2/ui-toolkit';
+import { ExpressionField, ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
+import { InputMode } from "../ChipExpressionEditor/types";
+import { getPrimaryInputType } from "@wso2/ballerina-core";
+import { getInputModeFromBallerinaType, getInputModeFromTypes } from "../ChipExpressionEditor/utils";
+import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
+import { useFormContext } from "../../../../context";
 
 interface DynamicArrayBuilderProps {
     label: string;
-    values: string[];
+    value: string | any[];
     onChange: (updated: string, updatedCursorPosition: number) => void;
+    expressionFieldProps: ExpressionFieldProps;
 }
 
 export namespace S {
@@ -75,45 +82,60 @@ export namespace S {
 }
 
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
-    const { label, values, onChange } = props;
-    const [arrayValues, setArrayValues] = useState<string[]>(values);
+    const { label, value, onChange, expressionFieldProps } = props;
+    const [arrayValues, setArrayValues] = useState<string[]>([]);
+    
+    const { form } = useFormContext();
+    const { setValue } = form;
 
     useEffect(() => {
-        setArrayValues(values);
-    }, [values]);
-
-    const updateArray = (newArray: string[]) => {
-        setArrayValues(newArray);
-        const formatted = `[${newArray.map(v => `"${v}"`).join(', ')}]`;
-        onChange(formatted, formatted.length);
-    };
+        const valuesArray = Array.isArray(value) ? value : [""];
+        setArrayValues(valuesArray);
+    }, [value]);
 
     const handleInputChange = (index: number, value: string) => {
         const newArray = [...arrayValues];
         newArray[index] = value;
-        updateArray(newArray);
+        setValue(expressionFieldProps.field.key, newArray);
+        setArrayValues(newArray);
     };
 
     const handleDelete = (index: number) => {
         const newArray = arrayValues.filter((_, i) => i !== index);
-        updateArray(newArray);
+        setArrayValues(newArray);
     };
 
     const handleAdd = () => {
         const newArray = [...arrayValues, ''];
-        updateArray(newArray);
+        setArrayValues(newArray);
     };
 
+    const primaryInputMode = useMemo(() => {
+        if (expressionFieldProps.field.types.length === 0) {
+            return InputMode.EXP;
+        }
+        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)
+    }, [expressionFieldProps.field.types]);
     return (
         <S.Container>
             <S.Label>{label}</S.Label>
             {arrayValues.map((value, index) => (
                 <S.ItemContainer key={index}>
-                    <S.Input
-                        type="text"
+                    <ChipExpressionEditorComponent
+                        getHelperPane={props.expressionFieldProps.getHelperPane}
+                        isExpandedVersion={false}
+                        completions={props.expressionFieldProps.completions}
+                        onChange={(value) => handleInputChange(index, value)}
                         value={value}
-                        onChange={(e) => handleInputChange(index, e.target.value)}
-                        placeholder="Enter value"
+                        sanitizedExpression={props.expressionFieldProps.sanitizedExpression}
+                        rawExpression={props.expressionFieldProps.rawExpression}
+                        fileName={props.expressionFieldProps.fileName}
+                        targetLineRange={props.expressionFieldProps.targetLineRange}
+                        extractArgsFromFunction={props.expressionFieldProps.extractArgsFromFunction}
+                        onOpenExpandedMode={props.expressionFieldProps.onOpenExpandedMode}
+                        onRemove={props.expressionFieldProps.onRemove}
+                        isInExpandedMode={props.expressionFieldProps.isInExpandedMode}
+                        configuration={getEditorConfiguration(primaryInputMode, primaryInputMode)}
                     />
                     <S.DeleteButton
                         appearance="icon"

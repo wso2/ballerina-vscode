@@ -38,13 +38,14 @@ import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
+import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 
-export interface ExpressionField {
+export interface ExpressionFieldProps {
     field: FormField;
     inputMode: InputMode;
     primaryMode: InputMode;
     name: string;
-    value: string;
+    value: string | any[];
     fileName?: string;
     targetLineRange?: LineRange;
     completions: CompletionItem[];
@@ -103,34 +104,61 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
-export const ExpressionField: React.FC<ExpressionField> = ({
-    inputMode,
-    field,
-    primaryMode,
-    name,
-    value,
-    completions,
-    autoFocus,
-    ariaLabel,
-    placeholder,
-    fileName,
-    targetLineRange,
-    onChange,
-    extractArgsFromFunction,
-    onFocus,
-    onBlur,
-    onSave,
-    onCancel,
-    onRemove,
-    getHelperPane,
-    growRange,
-    exprRef,
-    anchorRef,
-    sanitizedExpression,
-    rawExpression,
-    onOpenExpandedMode,
-    isInExpandedMode
-}) => {
+export const getEditorConfiguration = (inputMode: InputMode, primaryMode: InputMode) => {
+    switch (inputMode) {
+        case InputMode.TEXT:
+            return new StringTemplateEditorConfig();
+        case InputMode.TEMPLATE:
+            return new RawTemplateEditorConfig();
+        default:
+            return new PrimaryModeChipExpressionEditorConfig(primaryMode);
+    }
+};
+
+export const ExpressionField: React.FC<ExpressionFieldProps> = (props: ExpressionFieldProps) => {
+    const {
+        inputMode,
+        field,
+        primaryMode,
+        name,
+        value,
+        completions,
+        autoFocus,
+        ariaLabel,
+        placeholder,
+        fileName,
+        targetLineRange,
+        onChange,
+        extractArgsFromFunction,
+        onFocus,
+        onBlur,
+        onSave,
+        onCancel,
+        onRemove,
+        getHelperPane,
+        growRange,
+        exprRef,
+        anchorRef,
+        sanitizedExpression,
+        rawExpression,
+        onOpenExpandedMode,
+        isInExpandedMode
+    } = props;
+
+    if ( inputMode === InputMode.ARRAY) {
+        return (
+            <DynamicArrayBuilder
+                value={value}
+                label={field.label}
+                onChange={(val) => onChange(val, val.length)}
+                expressionFieldProps={props}
+            />
+        );
+    }
+    if (Array.isArray(value)) {
+        throw new Error(`Invalid value type: expected a string but received an array for input mode ${inputMode}`);
+    }
+
     const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
         return (
@@ -190,7 +218,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={new StringTemplateEditorConfig()}
+                configuration={getEditorConfiguration(inputMode, primaryMode)}
             />
 
         );
@@ -211,7 +239,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={new RawTemplateEditorConfig()}
+                configuration={getEditorConfiguration(inputMode, primaryMode)}
             />
 
         );
@@ -271,7 +299,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={new PrimaryModeChipExpressionEditorConfig(primaryMode)}
+            configuration={getEditorConfiguration(inputMode, primaryMode)}
         />
     );
 };
