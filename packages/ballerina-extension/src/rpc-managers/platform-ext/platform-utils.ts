@@ -359,7 +359,7 @@ export const initializeDevantConnection = async (params: {
     // Update bal.toml with created connection reference
     const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
 
-    const updatedToml: PackageTomlValues = {
+    const updatedToml: Partial<PackageTomlValues> = {
         ...tomlValues,
         tool: {
             ...tomlValues?.tool,

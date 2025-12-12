@@ -34,7 +34,8 @@ import {
     ShowErrorMessageRequest,
     WorkspaceTypeResponse,
     SetWebviewCacheRequestParam,
-    ShowInfoModalRequest
+    ShowInfoModalRequest,
+    SampleDownloadRequest
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -57,4 +58,5 @@ export interface CommonRPCAPI {
     setWebviewCache: (params: SetWebviewCacheRequestParam) => void;
     restoreWebviewCache: (params: IDBValidKey) => unknown;
     clearWebviewCache: (params: IDBValidKey) => void;
+    downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
 }

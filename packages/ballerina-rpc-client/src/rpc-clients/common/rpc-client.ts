@@ -27,30 +27,32 @@ import {
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
+    PackageTomlValues,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
+    SampleDownloadRequest,
     ShowErrorMessageRequest,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
+    WorkspaceTypeResponse,
     WorkspacesFileResponse,
+    downloadSelectedSampleFromGithub,
     executeCommand,
     experimentalEnabled,
     getBallerinaDiagnostics,
+    getCurrentProjectTomlValues,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
+    getWorkspaceType,
     goToSource,
     isNPSupported,
     openExternalUrl,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
-    getCurrentProjectTomlValues,
-    PackageTomlValues,
     selectFileOrFolderPath,
     showErrorMessage,
-    WorkspaceTypeResponse,
-    getWorkspaceType,
     SetWebviewCacheRequestParam,
     SetWebviewCache,
     RestoreWebviewCache,
@@ -124,7 +126,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendRequest(showInformationModal, HOST_EXTENSION, params);
     }
 
-    getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
+    getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         return this._messenger.sendRequest(getCurrentProjectTomlValues, HOST_EXTENSION);
     }
 
@@ -142,5 +144,9 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     clearWebviewCache(params: IDBValidKey): Promise<void> {
         return this._messenger.sendRequest(ClearWebviewCache, HOST_EXTENSION, params);
+    }
+    
+    downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
+        return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
     }
 }

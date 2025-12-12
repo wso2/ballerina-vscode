@@ -38,6 +38,7 @@ import {
     joinProjectPath,
     openView,
     redo,
+    resetUndoRedoStack,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation
@@ -90,6 +91,10 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     undoRedoState(): Promise<UndoRedoStateResponse> {
         return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
+    }
+
+    resetUndoRedoStack(): void {
+        return this._messenger.sendNotification(resetUndoRedoStack, HOST_EXTENSION);
     }
 
     joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {

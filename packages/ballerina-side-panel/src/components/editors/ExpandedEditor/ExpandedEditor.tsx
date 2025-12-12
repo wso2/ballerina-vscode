@@ -25,8 +25,12 @@ import { EditorMode } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
+import { TemplateMode } from "./modes/TemplateMode";
 import { MinimizeIcon } from "../MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
+import { DiagnosticMessage } from "@wso2/ballerina-core";
+import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { FieldError } from "react-hook-form";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -41,6 +45,8 @@ interface ExpandedPromptEditorProps {
     completions?: CompletionItem[];
     fileName?: string;
     targetLineRange?: LineRange;
+    sanitizedExpression?: (value: string) => string;
+    rawExpression?: (value: string) => string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -52,6 +58,10 @@ interface ExpandedPromptEditorProps {
         onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         helperPaneHeight: HelperPaneHeight
     ) => React.ReactNode;
+    // Error diagnostics props
+    error?: FieldError;
+    formDiagnostics?: DiagnosticMessage[];
+    inputMode?: InputMode;
 }
 
 const ModalContainer = styled.div`
@@ -97,7 +107,7 @@ const ModalHeaderSection = styled.header`
 
 const ModalContent = styled.div`
     flex: 1;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 8px 18px 16px;
     display: flex;
     flex-direction: column;
@@ -137,9 +147,10 @@ const TitleWrapper = styled.div`
  * Map of mode components - add new modes here
  */
 const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
-    text: TextMode,
-    prompt: PromptMode,
-    expression: ExpressionMode
+    [InputMode.TEXT]: TextMode,
+    [InputMode.PROMPT]: PromptMode,
+    [InputMode.EXP]: ExpressionMode,
+    [InputMode.TEMPLATE]: TemplateMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
@@ -153,25 +164,31 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
     completions,
     fileName,
     targetLineRange,
+    sanitizedExpression,
+    rawExpression,
     extractArgsFromFunction,
-    getHelperPane
+    getHelperPane,
+    error,
+    formDiagnostics,
+    inputMode
 }) => {
-    const promptFields = ["query", "instructions", "role"];
+    const promptFields = ["instructions", "role"];
 
     // Determine mode - use prop if provided, otherwise auto-detect
-    const defaultMode: EditorMode = propMode ?? (
-        promptFields.includes(field.key) ? "prompt" : "text"
+    let defaultMode: EditorMode = propMode ?? (
+        promptFields.includes(field.key) ? InputMode.PROMPT : InputMode.TEXT
     );
 
-    const [mode] = useState<EditorMode>(defaultMode);
-    const [showPreview, setShowPreview] = useState(false);
+    if (field.key === "query" && propMode === InputMode.TEXT) {
+        defaultMode = InputMode.PROMPT;
+    }
+
+    const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
 
     useEffect(() => {
-        if (mode === "text") {
-            setShowPreview(false);
-        }
-    }, [mode]);
+        setMode(defaultMode);
+    }, [defaultMode]);
 
     const handleMinimize = () => {
         onClose();
@@ -199,18 +216,43 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
         value: value,
         onChange: onChange,
         field,
-        // Props for modes with preview support
-        ...(mode === "prompt" && {
-            isPreviewMode: showPreview,
-            onTogglePreview: () => setShowPreview(!showPreview)
-        }),
-        // Props for expression mode
-        ...(mode === "expression" && {
+        // Props for prompt mode
+        ...(mode === InputMode.PROMPT && {
             completions,
             fileName,
             targetLineRange,
+            sanitizedExpression,
+            rawExpression,
             extractArgsFromFunction,
-            getHelperPane
+            getHelperPane,
+            error,
+            formDiagnostics,
+            inputMode
+        }),
+        // Props for expression mode
+        ...(mode === InputMode.EXP && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            error,
+            formDiagnostics
+        }),
+        // Props for template mode
+        ...(mode === InputMode.TEMPLATE && {
+            completions,
+            fileName,
+            targetLineRange,
+            sanitizedExpression,
+            rawExpression,
+            extractArgsFromFunction,
+            getHelperPane,
+            error,
+            formDiagnostics,
+            inputMode
         })
     };
     // HACK: Must find a proper central way to manager popups

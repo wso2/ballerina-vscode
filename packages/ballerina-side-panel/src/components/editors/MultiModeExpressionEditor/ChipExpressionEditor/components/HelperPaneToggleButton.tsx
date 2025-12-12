@@ -24,14 +24,18 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 interface HelperPaneToggleButtonProps {
     isOpen: boolean;
     onClick: () => void;
+    sx?: React.CSSProperties;
+    disabled?: boolean;
+    title?: string;
+    displayText?: string;
 }
 
 const OutlineButton = styled.button<{ isOpen: boolean }>`
     padding: 6px 12px;
     border-radius: 3px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    background-color: ${props => props.isOpen 
-        ? ThemeColors.SURFACE 
+    background-color: ${(props: { isOpen: boolean }) => props.isOpen
+        ? ThemeColors.SURFACE
         : ThemeColors.SURFACE_BRIGHT};
     color: ${ThemeColors.ON_SURFACE};
     display: inline-flex;
@@ -63,6 +67,11 @@ const OutlineButton = styled.button<{ isOpen: boolean }>`
         flex-shrink: 0;
         pointer-events: none;
     }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 `;
 
 const ButtonText = styled.span`
@@ -73,9 +82,13 @@ const ButtonText = styled.span`
 
 export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, HelperPaneToggleButtonProps>(({
     isOpen,
-    onClick
+    onClick,
+    sx,
+    disabled,
+    title,
+    displayText
 }, ref) => {
-    
+
     return (
         <OutlineButton
             ref={ref}
@@ -85,9 +98,12 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
             aria-pressed={isOpen}
             tabIndex={-1}
             isOpen={isOpen}
+            style={sx}
+            disabled={disabled}
+            title={title}
         >
             {isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
-            <ButtonText>Helper Panel</ButtonText>
+            <ButtonText>{displayText ? displayText : "Helper Panel"}</ButtonText>
         </OutlineButton>
     );
 });

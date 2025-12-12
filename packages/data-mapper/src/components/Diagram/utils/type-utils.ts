@@ -28,6 +28,10 @@ export function getTypeName(fieldType: IOType): string {
 	} 
 
     let typeName = fieldType?.typeName || fieldType.kind;
+
+    if (fieldType.isSeq) {
+        return `...${typeName}`;
+    }
     
 	return typeName;
 }
@@ -90,3 +94,10 @@ export function getGenericTypeKind(typeKind: TypeKind): TypeKind {
             return typeKind;
     }
 };
+
+export function isNumericType(typeKind: TypeKind): boolean {
+    const genericTypeKind = getGenericTypeKind(typeKind);
+    return genericTypeKind === TypeKind.Int ||
+        genericTypeKind === TypeKind.Float ||
+        genericTypeKind === TypeKind.Decimal;
+}

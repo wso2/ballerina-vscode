@@ -35,7 +35,8 @@ import {
     ShowErrorMessageRequest,
     WorkspaceTypeResponse,
     SetWebviewCacheRequestParam,
-    ShowInfoModalRequest
+    ShowInfoModalRequest,
+    SampleDownloadRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -59,3 +60,4 @@ export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { meth
 export const SetWebviewCache: RequestType<SetWebviewCacheRequestParam, void> = { method: `${_preFix}/setWebviewCache` };
 export const RestoreWebviewCache: RequestType<IDBValidKey, unknown> = { method: `${_preFix}/restoreWebviewCache` };
 export const ClearWebviewCache: RequestType<IDBValidKey, void> = { method: `${_preFix}/clearWebviewCache` };
+export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
