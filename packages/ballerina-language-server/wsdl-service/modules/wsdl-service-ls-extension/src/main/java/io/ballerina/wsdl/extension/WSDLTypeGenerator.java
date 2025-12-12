@@ -115,6 +115,8 @@ public class WSDLTypeGenerator {
             }
         } catch (WSDLException e) {
             throw new WSDLGenerationException("Failed to parse WSDL content: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new WSDLGenerationException("Failed to read WSDL file: " + e.getMessage(), e);
         }
 
         Path outputPath = projectPath.resolve("generated").resolve(module);
