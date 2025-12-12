@@ -58,9 +58,9 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [showDiscoverModal, setShowDiscoverModal] = useState<boolean>(false);
 
     // Edit mode tracking
-    const [resolutionAttempted, setResolutionAttempted] = useState<boolean>(false);
     const [resolutionError, setResolutionError] = useState<string>("");
     const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
+    const isInitializingEditModeRef = useRef<boolean>(false);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -145,9 +145,10 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const cleanUrl = cleanServerUrl(resolvedUrl);
         if (cleanUrl === null) {
             setMcpToolsError("");
-            if (url === resolvedUrl && url.trim()) {
-                setResolutionError("Unable to resolve Server URL at design time. Tools cannot be auto-fetched with the current configuration.");
-            }
+            setAvailableMcpTools([]);
+            setSelectedMcpTools(new Set());
+            setToolSource(null);
+            setResolutionError("Unable to resolve Server URL at design time. Tools cannot be auto-fetched with the current configuration.");
             setLoadingMcpTools(false);
             return [];
         }
@@ -161,6 +162,9 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
         if (requiresAuth && accessToken === null) {
             setMcpToolsError("");
+            setAvailableMcpTools([]);
+            setSelectedMcpTools(new Set());
+            setToolSource(null);
             setResolutionError("Unable to resolve authentication configuration at design time. Tools cannot be auto-fetched with the current configuration.");
             setLoadingMcpTools(false);
             return [];
@@ -237,6 +241,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
     useEffect(() => {
         if (toolsInclude !== "selected") {
+            debouncedFetchTools.cancel();
             setAvailableMcpTools([]);
             setSelectedMcpTools(new Set());
             setLoadingMcpTools(false);
@@ -246,12 +251,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             return;
         }
 
-        if (editMode && !resolutionAttempted) {
-            return;
-        }
+        if (isInitializingEditModeRef.current) return;
+        if (editMode && toolSource !== null) return;
 
         debouncedFetchTools(serverUrl, auth);
-    }, [serverUrl, auth, toolsInclude]);
+        return () => debouncedFetchTools.cancel();
+    }, [serverUrl, auth, toolsInclude, requiresAuth, debouncedFetchTools]);
 
     useEffect(() => {
         // Clear auth field value when requiresAuth is unchecked
@@ -264,54 +269,59 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     }, [requiresAuth]);
 
     const initializeEditMode = async () => {
-        const node = mcpToolKitNodeRef.current;
-        if (!node) return;
+        isInitializingEditModeRef.current = true;
 
-        const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
+        try {
+            const node = mcpToolKitNodeRef.current;
+            if (!node) return;
 
-        // Step 1: Update form state so FormGenerator displays values
-        setRequiresAuth(savedRequiresAuth);
+            const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
 
-        // Step 2: If no tools saved, exit early
-        if (permittedTools.length === 0) {
-            return;
-        }
+            // Update form state so FormGenerator displays values
+            setRequiresAuth(savedRequiresAuth);
 
-        // Step 3: Attempt to resolve variables
-        const resolution = await attemptValueResolution(
-            savedUrl,
-            savedAuth,
-            rpcClient,
-            projectPathUriRef.current,
-            agentFilePathRef.current
-        );
+            // If no tools saved, exit early
+            if (permittedTools.length === 0) {
+                return;
+            }
 
-        // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
-        setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
-        setToolsInclude("selected");
+            // Attempt to resolve variables
+            const resolution = await attemptValueResolution(
+                savedUrl,
+                savedAuth,
+                rpcClient,
+                projectPathUriRef.current,
+                agentFilePathRef.current
+            );
 
-        if (resolution.canResolve) {
-            // Case 1: Values CAN be resolved - fetch tools from server and preselect saved tools
-            const tools = await fetchToolsFromServer(resolution.resolvedUrl, resolution.resolvedAuth, {
-                preselectTools: permittedTools,
-                skipResolution: true // Already resolved
-            });
+            // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
+            setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
+            setToolsInclude("selected");
 
-            // If fetch failed, fall back to mock tools
-            if (!tools || tools.length === 0) {
+            if (resolution.canResolve) {
+                // Values CAN be resolved - fetch tools from server and preselect saved tools
+                const tools = await fetchToolsFromServer(resolution.resolvedUrl, resolution.resolvedAuth, {
+                    preselectTools: permittedTools,
+                    skipResolution: true // Already resolved
+                });
+
+                // If fetch failed, fall back to mock tools
+                if (!tools || tools.length === 0) {
+                    if (resolution.error) {
+                        setResolutionError(resolution.error);
+                    }
+                    displayMockTools(permittedTools);
+                }
+            } else {
+                // Values CANNOT be resolved - show mock tools
                 if (resolution.error) {
                     setResolutionError(resolution.error);
                 }
                 displayMockTools(permittedTools);
             }
-        } else {
-            // Case 2: Values CANNOT be resolved - show mock tools
-            if (resolution.error) {
-                setResolutionError(resolution.error);
-            }
-            displayMockTools(permittedTools);
+        } finally {
+            isInitializingEditModeRef.current = false;
         }
-        setResolutionAttempted(true);
     };
 
     const displayMockTools = (toolNames: string[]) => {
@@ -430,6 +440,16 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             }];
     }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch]);
 
+    const fieldOverrides = useMemo(() => ({
+        auth: {
+            advanced: false,
+            hidden: !requiresAuth
+        },
+        toolKitName: {
+            advanced: true,
+        }
+    }), [requiresAuth]);
+
     return (
         <Container>
             {isLoading && (
@@ -450,8 +470,14 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     onChange={(fieldKey, value) => {
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
                             setServerUrl(value);
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                                setToolSource(null);
+                            }
                         } else if (fieldKey === AUTH_FIELD_KEY) {
                             setAuth(value);
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                                setToolSource(null);
+                            }
                         }
                     }}
                     derivedFields={editMode ? [] : [
@@ -465,15 +491,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     showProgressIndicator={isSaving}
                     disableSaveButton={isSaveDisabled}
                     injectedComponents={injectedComponents}
-                    fieldOverrides={useMemo(() => ({
-                        auth: {
-                            advanced: false,
-                            hidden: !requiresAuth
-                        },
-                        toolKitName: {
-                            advanced: true,
-                        }
-                    }), [requiresAuth])}
+                    fieldOverrides={fieldOverrides}
                 />
             )}
 

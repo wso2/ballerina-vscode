@@ -43,7 +43,7 @@ export async function attemptValueResolution(
     let error = "";
 
     // Try to resolve server URL
-    let resolvedUrl = "";
+    let resolvedUrl = null;
     try {
         resolvedUrl = await resolveVariableValue(
             serverUrl,
@@ -63,7 +63,7 @@ export async function attemptValueResolution(
     }
 
     // Try to resolve auth
-    let resolvedAuthValue = "";
+    let resolvedAuthValue = null;
     if (auth && auth.trim()) {
         try {
             resolvedAuthValue = await resolveAuthConfig(

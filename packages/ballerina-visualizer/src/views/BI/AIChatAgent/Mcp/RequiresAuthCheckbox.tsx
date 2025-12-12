@@ -64,11 +64,11 @@ export const RequiresAuthCheckbox: React.FC<RequiresAuthCheckboxProps> = ({ chec
                     Enable if the server requires authentication
                 </AuthCheckboxDescription>
             </div>
-            <AuthCheckboxWrapper onClick={handleToggle}>
+            <AuthCheckboxWrapper>
                 <CheckBox
                     label=""
                     checked={checked}
-                    onChange={handleToggle}
+                    onChange={() => { }}
                     sx={{ display: "contents" }}
                 />
             </AuthCheckboxWrapper>
