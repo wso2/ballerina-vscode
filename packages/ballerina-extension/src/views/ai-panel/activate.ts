@@ -24,7 +24,7 @@ import { notifyAiWebview } from '../../RPCLayer';
 import { openView, StateMachine } from '../../stateMachine';
 import { MESSAGES } from '../../features/project/cmds/cmd-runner';
 import { VisualizerWebview } from '../visualizer/webview';
-import { needsProjectDiscovery, promptPackageSelection, requiresPackageSelection } from '../../utils/command-utils';
+import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from '../../utils/command-utils';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 import { findBallerinaPackageRoot } from '../../utils';
 import { findWorkspaceTypeFromWorkspaceFolders } from '../../rpc-managers/common/utils';
@@ -80,19 +80,10 @@ async function handleOpenAIPanel(defaultPrompt?: AIPanelPrompt): Promise<void> {
 async function handleWorkspaceLevelAIPanel(projectInfo: ProjectInfo): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
-    if (availablePackages.length === 0) {
-        vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-        return false;
-    }
-
     try {
-        const selectedPackage = await promptPackageSelection(
-            availablePackages,
-            "Select a package to open AI panel"
-        );
-
+        const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open AI panel");
         if (!selectedPackage) {
-            return true; // User cancelled
+            return true;
         }
 
         openPackageOverviewView(selectedPackage);
