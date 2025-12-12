@@ -50,6 +50,7 @@ import {
     PanelContainer,
     FormImports,
     HelperpaneOnChangeOptions,
+    InputMode,
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -898,6 +899,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
         defaultValueTypeConstraint?: string,
+        inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -927,7 +929,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             valueTypeConstraint: defaultValueTypeConstraint,
             handleRetrieveCompletions: handleRetrieveCompletions,
             forcedValueTypeConstraint: valueTypeConstraints,
-            handleValueTypeConstChange: handleValueTypeConstChange
+            handleValueTypeConstChange: handleValueTypeConstChange,
+            inputMode: inputMode,
         });
     };
 

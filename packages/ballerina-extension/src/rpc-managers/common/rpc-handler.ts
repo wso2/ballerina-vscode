@@ -31,6 +31,7 @@ import {
     ShowErrorMessageRequest,
     showInformationModal,
     WorkspaceFileRequest,
+    downloadSelectedSampleFromGithub,
     executeCommand,
     experimentalEnabled,
     getBallerinaDiagnostics,
@@ -43,6 +44,7 @@ import {
     isNPSupported,
     openExternalUrl,
     runBackgroundTerminalCommand,
+    SampleDownloadRequest,
     selectFileOrDirPath,
     selectFileOrFolderPath,
     showErrorMessage,
@@ -72,4 +74,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(SetWebviewCache, (params: SetWebviewCacheRequestParam) => rpcManger.setWebviewCache(params));
     messenger.onRequest(RestoreWebviewCache, (params: string) => rpcManger.restoreWebviewCache(params));
     messenger.onRequest(ClearWebviewCache, (params: string) => rpcManger.clearWebviewCache(params));
+    messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
 }

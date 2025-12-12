@@ -131,3 +131,6 @@ export interface SetWebviewCacheRequestParam {
 	cacheKey: IDBValidKey;
 	data: unknown;
 }
+export interface SampleDownloadRequest {
+    zipFileName: string;
+}

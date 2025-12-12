@@ -553,7 +553,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     (item) => `${balPackage}.${item.targetModule}` === moduleName
                 );
                 if (matchingTomlEntry && matchingTomlEntry?.remoteId) {
-                    const updatedToml: PackageTomlValues = {
+                    const updatedToml: Partial<PackageTomlValues> = {
                         ...tomlValues,
                         tool: {
                             ...tomlValues?.tool,

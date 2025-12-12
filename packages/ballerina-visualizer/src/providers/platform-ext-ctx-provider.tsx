@@ -33,7 +33,7 @@ const defaultPlatformExtContext: {
     devantConsoleUrl: string;
     projectPath: string;
     workspacePath: string;
-    projectToml?: { values: PackageTomlValues; refresh: () => void };
+    projectToml?: { values: Partial<PackageTomlValues>; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
     deployableArtifacts?: { exists: boolean, refetch: () => void }
 } = {

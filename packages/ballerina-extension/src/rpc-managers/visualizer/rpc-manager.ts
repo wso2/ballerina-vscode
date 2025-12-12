@@ -27,6 +27,7 @@ import {
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
+    undo,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -122,7 +123,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 const currentArtifact = await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
-                if (!currentArtifact) {
+                if (!currentArtifact && StateMachine.context().view !== MACHINE_VIEW.InlineDataMapper) {
                     openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                     resolve("Undo successful"); // resolve the undo string
                 }
@@ -201,6 +202,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
         undoRedoManager.startBatchOperation();
         undoRedoManager.addFileToBatch(params.filePath, currentFileContent, params.source);
         undoRedoManager.commitBatchOperation(params.description);
+    }
+
+    resetUndoRedoStack(): void {
+        undoRedoManager.reset();
     }
 
     async getThemeKind(): Promise<ColorThemeKind> {

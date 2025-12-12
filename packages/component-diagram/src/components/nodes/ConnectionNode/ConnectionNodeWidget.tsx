@@ -164,6 +164,14 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
         setMenuAnchorEl(null);
     };
 
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     const getNodeTitle = () => {
         return model.node.symbol;
     };
@@ -199,7 +207,12 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
                     <Title hovered={isHovered}>{getNodeTitle()}</Title>
                     <Description>{getNodeDescription()}</Description>
                 </Header>
-                <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                <MenuButton 
+                    appearance="icon" 
+                    onClick={handleOnMenuClick}
+                    onMouseDown={handleMenuMouseDown}
+                    onMouseUp={handleMenuMouseUp}
+                >
                     <MoreVertIcon />
                 </MenuButton>
             </ClickableArea>

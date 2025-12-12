@@ -140,7 +140,7 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 export function enrichCategoryWithDevant(
     isLoggedIn: boolean,
     selected: ContextItemEnriched,
-    tomlValues: PackageTomlValues,
+    tomlValues: Partial<PackageTomlValues>,
     connections: ConnectionListItem[] = [],
     panelCategories: PanelCategory[] = [],
     importingConn?: ConnectionListItem
@@ -764,6 +764,9 @@ async function getDocumentation(fnDescription: string, argsDescription: string[]
 };
 
 export async function convertToFnSignature(signatureHelp: SignatureHelpResponse) {
+    if (!signatureHelp) {
+        return undefined;
+    }
     const currentSignature = signatureHelp.signatures[0];
     if (!currentSignature) {
         return undefined;

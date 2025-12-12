@@ -19,13 +19,34 @@
 export enum InputMode {
   TEXT = "Text",
   EXP = "Expression",
-  GUIDED = "Guided"
-}
+  RECORD = "Record",
+  TEMPLATE = "Template",
+  NUMBER = "Number",
+  BOOLEAN = "Boolean",
+  SQL = "SQL",
+  PROMPT = "Prompt"
+};
 
 export const INPUT_MODE_MAP = {
   string: InputMode.TEXT,
-  //later add more when needed
+  int: InputMode.NUMBER,
+  boolean: InputMode.BOOLEAN,
+  "sql:ParameterizedQuery": InputMode.SQL,
+  "ai:Prompt": InputMode.PROMPT
 };
+
+export enum TokenType {
+  LITERAL = "literal",
+  VARIABLE = "variable",
+  FUNCTION = "function",
+  PARAMETER = "parameter",
+  START_EVENT = "start_event",
+  END_EVENT = "end_event",
+  TYPE_CAST = "type_cast",
+  VALUE = "value",
+  DOCUMENT = "document",
+  PROPERTY = "property"
+}
 
 export type ExpressionColumnOffset = {
   startColumn: number;
@@ -44,6 +65,14 @@ export type Token = {
   tokenType: 'variable'
 }
 
+export type DocumentType = 'ImageDocument' | 'FileDocument' | 'AudioDocument';
+
+export type TokenMetadata = {
+  content: string;
+  fullValue: string;
+  documentType?: DocumentType; // Present only for document tokens
+};
+
 export type ExpressionModel = {
   id: string
   value: string,
@@ -51,13 +80,42 @@ export type ExpressionModel = {
   startColumn: number,
   startLine: number,
   length: number,
-  type: 'variable' | 'function' | 'literal' | 'parameter',
+  type: TokenType,
   isFocused?: boolean
   focusOffsetStart?: number,
   focusOffsetEnd?: number
+  metadata?: TokenMetadata; // Present when type is 'document' or 'variable' with interpolation
 }
 
 export type CursorPosition = {
   start: number;
   end: number;
 }
+
+// Compound token sequence detected from multiple tokens
+export type CompoundTokenSequence = {
+  startIndex: number;
+  endIndex: number;
+  tokenType: TokenType.VARIABLE | TokenType.DOCUMENT;
+  displayText: string;
+  metadata: TokenMetadata;
+  start: number;
+  end: number;
+};
+
+// Token pattern configuration for detecting compound token sequences
+export type TokenPattern = {
+  name: TokenType.VARIABLE | TokenType.DOCUMENT;
+  sequence: readonly TokenType[];
+  extractor: (tokens: any[], startIndex: number, endIndex: number, docText: string) => TokenMetadata | null;
+  priority: number;
+};
+
+// Helper pane state management
+export type HelperPaneState = {
+  isOpen: boolean;
+  top: number;
+  left: number;
+  clickedChipPos?: number;
+  clickedChipNode?: any;
+};

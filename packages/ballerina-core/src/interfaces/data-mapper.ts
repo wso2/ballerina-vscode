@@ -57,8 +57,10 @@ export enum IntermediateClauseType {
     LET = "let",
     WHERE = "where",
     FROM = "from",
-    ORDER_BY = "order by",
-    LIMIT = "limit"
+    ORDER_BY = "order-by",
+    LIMIT = "limit",
+    JOIN = "join",
+    GROUP_BY = "group-by"
 }
 
 export enum ResultClauseType {
@@ -93,8 +95,8 @@ export interface IOType {
     members?: IOType[];
     defaultValue?: unknown;
     optional?: boolean;
-    focusedMemberId?: string;
     isFocused?: boolean;
+    isSeq?: boolean;
     isRecursive?: boolean;
     isDeepNested?: boolean;
     ref?: string;
@@ -125,6 +127,7 @@ export interface ExpandedDMModel {
     query?: Query;
     mapping_fields?: Record<string, any>;
     triggerRefresh?: boolean;
+    focusInputRootMap?: Record<string, string>;
 }
 
 export interface DMModel {
@@ -138,6 +141,9 @@ export interface DMModel {
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
     triggerRefresh?: boolean;
+    traversingRoot?: string;
+    focusInputRootMap?: Record<string, string>;
+    groupById?: string;
 }
 
 export interface ModelState {
@@ -172,6 +178,7 @@ export interface IOTypeField {
     optional?: boolean;
     ref?: string;
     focusExpression?: string;
+    isSeq?: boolean;
     typeInfo?: TypeInfo;
 }
 
@@ -189,7 +196,7 @@ export interface Query {
     output: string,
     inputs: string[];
     diagnostics?: DMDiagnostic[];
-    fromClause: FromClause;
+    fromClause: IntermediateClause;
     intermediateClauses?: IntermediateClause[];
     resultClause: ResultClause;
 }
@@ -205,6 +212,9 @@ export interface IntermediateClauseProps {
     type?: string;
     expression: string;
     order?: "ascending" | "descending";
+    lhsExpression?: string;
+    rhsExpression?: string;
+    isOuter?: boolean;
 }
 
 export interface IntermediateClause {

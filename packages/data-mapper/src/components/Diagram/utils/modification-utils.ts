@@ -22,9 +22,10 @@ import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperC
 import { MappingFindingVisitor } from "../../../visitors/MappingFindingVisitor";
 import { traverseNode } from "../../../utils/model-utils";
 import { expandArrayFn, getValueType } from "./common-utils";
-import { FnMetadata, FnParams, FnReturnType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
+import { FnMetadata, FnParams, FnReturnType, IntermediateClauseType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
+import { useDMQueryClausesPanelStore } from "../../../store/store";
 
 export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
 	const sourcePort = link.getSourcePort();
@@ -172,7 +173,83 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 
 	await context.convertToQuery(mapping, clauseType, viewId, name);
 
-	expandArrayFn(context, input, output, viewId);
+	expandArrayFn(context, [input], output, viewId);
+}
+
+
+export async function mapSeqToArray(link: DataMapperLinkModel, context: IDataMapperContext){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+}
+
+export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperContext, modifier: (expr: string) => string){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+	if (!sourcePortModel.attributes.field.isFocused){
+
+		const lastView = context.views[context.views.length - 1];
+		const viewId = lastView.targetField;
+
+		const clause = {
+			type: IntermediateClauseType.LET,
+			properties: {
+				name: await context.genUniqueName(sourcePortModel.attributes.field.name, viewId),
+				type: "var",
+				expression: sourcePortModel.attributes.fieldFQN,
+			}
+		}
+
+		const groupByClauseIndex = context.model.query?.intermediateClauses
+			?.findIndex(c => c.type === IntermediateClauseType.GROUP_BY);
+
+		const letClauseIndex = (groupByClauseIndex !== -1 && groupByClauseIndex !== undefined) ? groupByClauseIndex - 1 : -1;
+
+		await context.addClauses(clause, viewId, true, letClauseIndex);
+
+		sourcePortModel.attributes.fieldFQN = clause.properties.name;
+		sourcePortModel.attributes.optionalOmittedFieldFQN = clause.properties.name;
+
+	}
+
+	await createNewMapping(link, modifier);
+
+}
+
+export function mapWithJoin(link: DataMapperLinkModel) {
+
+	const sourcePort = link.getSourcePort();
+	if (!sourcePort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+	const { setClauseToAdd, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
+
+	setClauseToAdd({
+		type: IntermediateClauseType.JOIN,
+		properties: {
+			name: sourcePortModel.attributes.field.name + "Item",
+			type: "var",
+			expression: sourcePortModel.attributes.fieldFQN,
+			isOuter: false,
+			lhsExpression: "",
+			rhsExpression: "",
+		}
+	});
+	setIsQueryClausesPanelOpen(true);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {
