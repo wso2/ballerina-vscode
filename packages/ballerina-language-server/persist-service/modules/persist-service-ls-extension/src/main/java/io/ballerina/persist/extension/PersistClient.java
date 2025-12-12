@@ -219,7 +219,7 @@ public class PersistClient {
 
         try {
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForPersistBuildOption(module, textEditsMap);
+            boolean isModuleExists = addTextEditForBallerinaToml(module, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
@@ -456,48 +456,127 @@ public class PersistClient {
         return sanitizedDbName + "_" + sanitizedDatastore;
     }
 
-    private boolean addTextEditForPersistBuildOption(String module, Map<Path, List<TextEdit>> textEditsMap)
+    private boolean addTextEditForBallerinaToml(String module, Map<Path, List<TextEdit>> textEditsMap)
             throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
+        DocumentNode rootNode = parseTomlFile(tomlPath);
+
+        TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, module);
+        String tomlEntry = buildTomlEntries(module, analysisResult);
+        addTomlTextEdit(tomlPath, rootNode, analysisResult.toolPersistLineRange(), tomlEntry, textEditsMap);
+
+        return analysisResult.moduleExists();
+    }
+
+    private DocumentNode parseTomlFile(Path tomlPath) throws IOException {
         TextDocument configDocument = TextDocuments.from(Files.readString(tomlPath));
         io.ballerina.toml.syntax.tree.SyntaxTree syntaxTree = io.ballerina.toml.syntax.tree.SyntaxTree
                 .from(configDocument);
-        DocumentNode rootNode = syntaxTree.rootNode();
+        return syntaxTree.rootNode();
+    }
 
-        LineRange lineRange = null;
+    private TomlAnalysisResult analyzeTomlStructure(DocumentNode rootNode, String module) {
+        LineRange toolPersistLineRange = null;
+        boolean hasPersistDependency = false;
+        boolean hasPersistSqlDependency = false;
+
         for (DocumentMemberDeclarationNode node : rootNode.members()) {
             if (node.kind() != SyntaxKind.TABLE_ARRAY) {
                 continue;
             }
-            TableArrayNode tableArrayNode = (TableArrayNode) node;
-            if (!tableArrayNode.identifier().toSourceCode().equals("tool.persist")) {
-                continue;
-            }
 
-            for (KeyValueNode field : tableArrayNode.fields()) {
-                String identifier = field.identifier().toSourceCode();
-                if (identifier.trim().equals("targetModule")) {
-                    if (field.value().toSourceCode().contains("\"" + module + "\"")) {
-                        lineRange = tableArrayNode.lineRange();
-                        break;
-                    }
-                }
+            TableArrayNode tableArrayNode = (TableArrayNode) node;
+            String identifier = tableArrayNode.identifier().toSourceCode();
+
+            if (identifier.equals("tool.persist")) {
+                toolPersistLineRange = checkToolPersistModule(tableArrayNode, module);
+            } else if (identifier.equals("dependency")) {
+                hasPersistDependency = hasPersistToolDependency(tableArrayNode);
+            } else if (identifier.equals("platform.java21.dependency")) {
+                hasPersistSqlDependency = hasPersistSqlDependency(tableArrayNode);
             }
         }
 
-        String tomlEntry = getTomlEntry(module);
+        return new TomlAnalysisResult(
+                toolPersistLineRange,
+                hasPersistDependency,
+                hasPersistSqlDependency,
+                toolPersistLineRange != null
+        );
+    }
+
+    private LineRange checkToolPersistModule(TableArrayNode tableArrayNode, String module) {
+        for (KeyValueNode field : tableArrayNode.fields()) {
+            String fieldIdentifier = field.identifier().toSourceCode();
+            if (fieldIdentifier.trim().equals("targetModule")) {
+                if (field.value().toSourceCode().contains("\"" + module + "\"")) {
+                    return tableArrayNode.lineRange();
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean hasPersistToolDependency(TableArrayNode tableArrayNode) {
+        for (KeyValueNode field : tableArrayNode.fields()) {
+            String fieldIdentifier = field.identifier().toSourceCode().trim();
+            String fieldValue = field.value().toSourceCode().trim();
+            if (fieldIdentifier.equals("name") && fieldValue.contains("\"tool.persist\"")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasPersistSqlDependency(TableArrayNode tableArrayNode) {
+        for (KeyValueNode field : tableArrayNode.fields()) {
+            String fieldIdentifier = field.identifier().toSourceCode().trim();
+            String fieldValue = field.value().toSourceCode().trim();
+            if (fieldIdentifier.equals("artifactId") && fieldValue.contains("\"persist-sql\"")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String buildTomlEntries(String module, TomlAnalysisResult analysisResult) {
+        StringBuilder tomlEntry = new StringBuilder();
+
+        tomlEntry.append(getBuildOptionEntry(module));
+
+        if (!analysisResult.hasPersistDependency()) {
+            tomlEntry.append(getPersistMinimumVersionRequirementEntry());
+        }
+
+        if (!analysisResult.hasPersistSqlDependency()) {
+            tomlEntry.append(getPersistSqlMinimumVersionRequirementEntry());
+        }
+
+        return tomlEntry.toString();
+    }
+
+    private void addTomlTextEdit(Path tomlPath, DocumentNode rootNode, LineRange toolPersistLineRange,
+                                 String tomlEntry, Map<Path, List<TextEdit>> textEditsMap) {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(tomlPath, textEdits);
-        if (lineRange != null) {
-            textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), tomlEntry));
+
+        if (toolPersistLineRange != null) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(toolPersistLineRange), tomlEntry));
         } else {
             LinePosition startPos = LinePosition.from(rootNode.lineRange().endLine().line() + 1, 0);
             textEdits.add(new TextEdit(CommonUtils.toRange(startPos), tomlEntry));
         }
-        return lineRange != null;
     }
 
-    private String getTomlEntry(String module) {
+    private record TomlAnalysisResult(
+            LineRange toolPersistLineRange,
+            boolean hasPersistDependency,
+            boolean hasPersistSqlDependency,
+            boolean moduleExists
+    ) {
+    }
+
+    private String getBuildOptionEntry(String module) {
         String moduleWithQuotes = "\"" + module + "\"";
         return LS + "[[tool.persist]]" + LS +
                 "id" + " = " + moduleWithQuotes + LS +
@@ -506,6 +585,22 @@ public class PersistClient {
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
                 "options.withInitParams" + " = true" + LS;
+    }
+
+    private String getPersistMinimumVersionRequirementEntry() {
+        return LS + "[[dependency]]" + LS +
+                "org = \"ballerina\"" + LS +
+                "name = \"tool.persist\"" + LS +
+                // This version is hardcoded as minimum compatible version
+                "version = \"1.8.0\"" + LS;
+    }
+
+    private String getPersistSqlMinimumVersionRequirementEntry() {
+        return LS + "[[platform.java21.dependency]]" + LS +
+                "groupId = \"io.ballerina.stdlib\"" + LS +
+                "artifactId = \"persist.sql-native\"" + LS +
+                // This version is hardcoded as minimum compatible version
+                "version = \"1.7.0\"" + LS;
     }
 
     /**
