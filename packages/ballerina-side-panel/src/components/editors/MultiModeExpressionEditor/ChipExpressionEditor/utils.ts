@@ -46,10 +46,17 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "SINGLE_SELECT") {
         return InputMode.ENUM;
     }
+    if (inputType.fieldType === "EXPRESSION_SET") {
+        return InputMode.ARRAY;
+    }
 
     //default behaviour
-    return INPUT_MODE_MAP[inputType.ballerinaType];
+    return getInputModeFromBallerinaType(inputType.ballerinaType);
 };
+
+export const getInputModeFromBallerinaType = (ballerinaType: string): InputMode => {
+    return INPUT_MODE_MAP[ballerinaType];
+}
 
 export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
     const primaryInputType = getPrimaryInputType(inputTypes);

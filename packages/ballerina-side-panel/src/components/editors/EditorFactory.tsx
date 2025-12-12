@@ -92,7 +92,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "EXPRESSION" ||
             type.fieldType === "LV_EXPRESSION" ||
             type.fieldType === "ACTION_OR_EXPRESSION" ||
-            type.fieldType === "TEXT"
+            type.fieldType === "TEXT" ||
+            type.fieldType === "EXPRESSION_SET"
         );
     });
 
@@ -108,8 +109,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "EXPRESSION_SET") {
-        return <ArrayEditor field={field} label={"Add Another Value"} />;
     } else if (field.type === "MAPPING_EXPRESSION_SET") {
         return (
             <MapEditor
