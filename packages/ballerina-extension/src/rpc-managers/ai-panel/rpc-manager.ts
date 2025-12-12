@@ -330,7 +330,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return {
             testSource:"",
 
-        }
+        };
     }
 
     async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
@@ -345,7 +345,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         // });
         return {
             diagnostics: []
-        }
+        };
     }
 
     async getServiceSourceForName(params: string): Promise<string> {
@@ -388,7 +388,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         // });
         return {
             mentions: []
-        }
+        };
     }
 
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
@@ -405,7 +405,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         // });
         return {
             mentions: []
-        }
+        };
     }
 
     async abortTestGeneration(): Promise<void> {
