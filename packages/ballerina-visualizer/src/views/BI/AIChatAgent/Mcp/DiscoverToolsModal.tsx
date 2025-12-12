@@ -88,10 +88,6 @@ const StyledModalContent = styled(ModalContent)`
 const isValidUrl = (url: string): boolean => {
     if (!url || !url.trim()) return false;
     try {
-        // Allow localhost URLs
-        if (url.includes("localhost") || url.includes("127.0.0.1")) {
-            return url.startsWith("http://") || url.startsWith("https://");
-        }
         const urlObj = new URL(url);
         return urlObj.protocol === "http:" || urlObj.protocol === "https:";
     } catch {
@@ -184,7 +180,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
         } finally {
             setLoadingDiscovery(false);
         }
-    }, [manualServerUrl, authToken, authType, rpcClient]);
+    }, [manualServerUrl, authToken, authType, rpcClient, existingToolNames]);
 
     const handleToolSelectionChange = useCallback((toolName: string, isSelected: boolean) => {
         setSelectedDiscoveredTools(prev => {
@@ -350,7 +346,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                 />
                             </SearchContainer>
 
-                            <ToolsHeader style={{ marginBottom: '12px' }}>
+                            <ToolsHeader style={{ marginBottom: '12px' }} padding="12px 0 6px 0">
                                 <InfoMessage padding="0" style={{ margin: 0 }}>
                                     {selectedDiscoveredTools.size} of {discoveredTools.length} selected
                                 </InfoMessage>

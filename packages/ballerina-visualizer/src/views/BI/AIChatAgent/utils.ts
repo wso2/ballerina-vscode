@@ -646,7 +646,7 @@ export const findValueInConfigVariables = async (
                 );
                 if (variable) {
                     // Return the value from configValue or defaultValue
-                    const configValue = variable.properties?.configValue?.value as string;
+                    const configValue = variable.properties?.configValue?.value as string | null;
                     if (configValue === "" || configValue === null) return null;
                     return configValue;
                 }
