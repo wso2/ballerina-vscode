@@ -250,23 +250,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "msg"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "PrintableRawTemplate",
-                        "packageInfo": "ballerina:log:2.15.0",
-                        "packageName": "log",
-                        "kind": "OBJECT_TYPE",
-                        "selected": false
-                      }
-                    ]
+                    }
                   },
                   "error": {
                     "metadata": {
@@ -289,22 +273,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "'error"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "error",
-                        "packageInfo": "ballerina:lang.annotations:0.0.0",
-                        "packageName": "lang.annotations",
-                        "kind": "ERROR_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "stackTrace": {
@@ -331,22 +299,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "stackTrace"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "StackFrame",
-                        "packageInfo": "ballerina:lang.error:0.0.0",
-                        "packageName": "lang.error",
-                        "kind": "ARRAY_TYPE",
-                        "selected": false
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "additionalValues": {
@@ -368,8 +320,7 @@
                     "codedata": {
                       "kind": "INCLUDED_RECORD_REST",
                       "originalName": "Additional Values"
-                    },
-                    "typeMembers": []
+                    }
                   }
                 },
                 "flags": 0
@@ -437,23 +388,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "bootstrapServers"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              },
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "ARRAY_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "acks": {
             "metadata": {
@@ -483,15 +418,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "acks"
             },
-            "typeMembers": [
-              {
-                "type": "ProducerAcks",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"all\""
           },
           "compressionType": {
@@ -524,15 +450,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "compressionType"
             },
-            "typeMembers": [
-              {
-                "type": "CompressionType",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"none\""
           },
           "clientId": {
@@ -559,15 +476,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "clientId"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "metricsRecordingLevel": {
@@ -594,15 +502,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "metricsRecordingLevel"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "metricReporterClasses": {
@@ -629,15 +528,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "metricReporterClasses"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "partitionerClass": {
@@ -664,15 +554,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "partitionerClass"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "interceptorClasses": {
@@ -699,15 +580,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "interceptorClasses"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "transactionalId": {
@@ -734,15 +606,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "transactionalId"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "schemaRegistryUrl": {
@@ -769,15 +632,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "schemaRegistryUrl"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "avroSchema": {
@@ -804,15 +658,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "avroSchema"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "keySchema": {
@@ -839,15 +684,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "keySchema"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "valueSchema": {
@@ -874,15 +710,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "valueSchema"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "schemaRegistryConfig": {
@@ -909,15 +736,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "schemaRegistryConfig"
             },
-            "typeMembers": [
-              {
-                "type": "map<anydata>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "keySerializerType": {
@@ -947,15 +765,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "keySerializerType"
             },
-            "typeMembers": [
-              {
-                "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"SER_AVRO\""
           },
           "valueSerializerType": {
@@ -985,15 +794,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "valueSerializerType"
             },
-            "typeMembers": [
-              {
-                "type": "SerializerType",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"SER_AVRO\""
           },
           "additionalProperties": {
@@ -1020,15 +820,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "additionalProperties"
             },
-            "typeMembers": [
-              {
-                "type": "map<string>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "bufferMemory": {
@@ -1055,15 +846,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "bufferMemory"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "retryCount": {
@@ -1090,15 +872,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "retryCount"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "batchSize": {
@@ -1125,15 +898,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "batchSize"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "linger": {
@@ -1160,15 +924,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "linger"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "sendBuffer": {
@@ -1195,15 +950,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "sendBuffer"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "receiveBuffer": {
@@ -1230,15 +976,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "receiveBuffer"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "maxRequestSize": {
@@ -1265,15 +1002,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxRequestSize"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "reconnectBackoffTime": {
@@ -1300,15 +1028,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "reconnectBackoffTime"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "reconnectBackoffMaxTime": {
@@ -1335,15 +1054,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "reconnectBackoffMaxTime"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "retryBackoffTime": {
@@ -1370,15 +1080,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "retryBackoffTime"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "maxBlock": {
@@ -1405,15 +1106,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxBlock"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "requestTimeout": {
@@ -1440,15 +1132,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "requestTimeout"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "metadataMaxAge": {
@@ -1475,15 +1158,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "metadataMaxAge"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "metricsSampleWindow": {
@@ -1510,15 +1184,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "metricsSampleWindow"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "metricsNumSamples": {
@@ -1545,15 +1210,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "metricsNumSamples"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "maxInFlightRequestsPerConnection": {
@@ -1580,15 +1236,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxInFlightRequestsPerConnection"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "connectionsMaxIdleTime": {
@@ -1615,15 +1262,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connectionsMaxIdleTime"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "transactionTimeout": {
@@ -1650,15 +1288,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "transactionTimeout"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "enableIdempotence": {
@@ -1685,15 +1314,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "enableIdempotence"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "secureSocket": {
@@ -1702,6 +1322,19 @@
               "description": "Configurations related to SSL/TLS encryption"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "kafka:SecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "SecureSocket",
+                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageName": "kafka",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "kafka:SecureSocket"
@@ -1716,15 +1349,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "SecureSocket",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{cert: {path: \"\", password: \"\"}}"
           },
           "auth": {
@@ -1733,6 +1357,19 @@
               "description": "Authentication-related configurations for the `kafka:Producer`"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "kafka:AuthenticationConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "AuthenticationConfiguration",
+                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageName": "kafka",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "kafka:AuthenticationConfiguration"
@@ -1747,15 +1384,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "auth"
             },
-            "typeMembers": [
-              {
-                "type": "AuthenticationConfiguration",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{username: \"\", password: \"\"}"
           },
           "securityProtocol": {
@@ -1787,15 +1415,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "securityProtocol"
             },
-            "typeMembers": [
-              {
-                "type": "SecurityProtocol",
-                "packageInfo": "ballerinax:kafka:4.6.2",
-                "packageName": "kafka",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"PLAINTEXT\""
           },
           "checkError": {
