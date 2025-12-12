@@ -39,8 +39,6 @@ The tool analyzes the entire Ballerina package and returns:
 `,
         inputSchema: DiagnosticsInputSchema,
         execute: async (): Promise<DiagnosticsCheckResult> => {
-            console.log(`[${DIAGNOSTICS_TOOL_NAME}] Checking compilation errors for Ballerina package at ${tempProjectPath}`);
-
             // Use shared utility to check compilation errors
             const result = await checkCompilationErrors(tempProjectPath);
 

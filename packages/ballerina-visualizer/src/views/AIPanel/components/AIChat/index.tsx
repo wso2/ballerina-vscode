@@ -106,6 +106,33 @@ const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
 
+/**
+ * Formats a file path into a user-friendly display name
+ * - Removes .bal extension
+ * - Replaces _ and - with spaces
+ * - Preserves directory structure for context (e.g., "tests/")
+ */
+function formatFileNameForDisplay(filePath: string): string {
+    // Remove .bal extension
+    let displayName = filePath.replace(/\.bal$/, '');
+
+    // Extract directory and filename
+    const lastSlashIndex = displayName.lastIndexOf('/');
+    if (lastSlashIndex !== -1) {
+        const directory = displayName.substring(0, lastSlashIndex + 1);
+        const fileName = displayName.substring(lastSlashIndex + 1);
+
+        // Replace _ and - with spaces in the filename only
+        const formattedFileName = fileName.replace(/[_-]/g, ' ');
+        displayName = directory + formattedFileName;
+    } else {
+        // No directory, just format the filename
+        displayName = displayName.replace(/[_-]/g, ' ');
+    }
+
+    return displayName;
+}
+
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
 const AIChat: React.FC = () => {
@@ -344,9 +371,10 @@ const AIChat: React.FC = () => {
                 });
             } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
+                const displayName = formatFileNameForDisplay(fileName);
                 const message = response.toolName === "file_write"
-                    ? `Creating ${fileName}...`
-                    : `Editing ${fileName}...`;
+                    ? `Creating ${displayName}...`
+                    : `Updating ${displayName}...`;
 
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
@@ -476,7 +504,7 @@ const AIChat: React.FC = () => {
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
                         const creatingPattern = /<toolcall>Creating (.+?)\.\.\.<\/toolcall>/;
-                        const editingPattern = /<toolcall>Editing (.+?)\.\.\.<\/toolcall>/;
+                        const updatingPattern = /<toolcall>Updating (.+?)\.\.\.<\/toolcall>/;
 
                         let updatedContent = lastMessageContent;
 
@@ -488,10 +516,10 @@ const AIChat: React.FC = () => {
                                 creatingPattern,
                                 (_match, fileName) => `<toolresult>${resultText} ${fileName}</toolresult>`
                             );
-                        } else if (editingPattern.test(lastMessageContent)) {
+                        } else if (updatingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
-                                editingPattern,
-                                (_match, fileName) => `<toolresult>Edited ${fileName}</toolresult>`
+                                updatingPattern,
+                                (_match, fileName) => `<toolresult>Updated ${fileName}</toolresult>`
                             );
                         }
 

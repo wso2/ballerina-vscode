@@ -15,14 +15,13 @@
 // under the License.
 
 import { TestConfiguration } from '../types';
-import * as path from 'path';
 
 /**
  * Default test configuration
  */
 export const DEFAULT_TEST_CONFIG: TestConfiguration = {
-    // Set to 1 to avoid temp project naming collisions
-    maxConcurrency: 1,
+    // ExecutionContext pattern enables parallel execution without race conditions!
+    maxConcurrency: 5,
     iterations: 1
 } as const;
 

@@ -22,6 +22,7 @@ import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
 import { integrateCodeToWorkspace } from '../design/utils';
 import { checkCompilationErrors } from './diagnostics_utils';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics_tool';
+import { createExecutionContextFromStateMachine } from '../design/design';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
@@ -330,7 +331,8 @@ async function handleTaskCompletion(
     if (tempProjectPath && modifiedFiles) {
         const modifiedFilesSet = new Set(modifiedFiles);
         console.log(`[TaskWrite Tool] Integrating ${modifiedFilesSet.size} modified file(s)`);
-        await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+        const ctx = createExecutionContextFromStateMachine();
+        await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
         modifiedFiles.length = 0;
     }
 

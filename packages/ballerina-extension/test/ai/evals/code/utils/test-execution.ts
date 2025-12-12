@@ -34,7 +34,6 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
     let aiTempProjectPath: string | null = null;
 
     try {
-        // Step 1: Create isolated copy of base project template in temp directory
         isolatedProject = createIsolatedTestProject(useCase.projectPath, useCase.id);
         console.log(`[${useCase.id}] Created isolated test project at: ${isolatedProject.path}`);
 
@@ -109,11 +108,12 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
         // Step 8: Always cleanup both isolated project and AI temp project
         if (aiTempProjectPath) {
             console.log(`[${useCase.id}] Cleaning up AI temp project: ${aiTempProjectPath}`);
-            cleanupIsolatedTestProject({ path: aiTempProjectPath, basePath: '', testId: useCase.id });
+            // cleanupIsolatedTestProject({ path: aiTempProjectPath, basePath: '', testId: useCase.id });
         }
+
         if (isolatedProject) {
             console.log(`[${useCase.id}] Cleaning up isolated test project: ${isolatedProject.path}`);
-            cleanupIsolatedTestProject(isolatedProject);
+            // cleanupIsolatedTestProject(isolatedProject);
         }
     }
 }
