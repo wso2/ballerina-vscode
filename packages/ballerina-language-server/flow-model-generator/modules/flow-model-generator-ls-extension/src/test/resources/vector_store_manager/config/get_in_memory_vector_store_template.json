@@ -89,15 +89,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "topK"
           },
-          "typeMembers": [
-            {
-              "type": "int",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "0"
         },
         "similarityMetric": {
@@ -128,15 +119,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "similarityMetric"
           },
-          "typeMembers": [
-            {
-              "type": "SimilarityMetric",
-              "packageInfo": "ballerina:ai:1.1.0",
-              "packageName": "ai",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"DOT_PRODUCT\""
         },
         "scope": {

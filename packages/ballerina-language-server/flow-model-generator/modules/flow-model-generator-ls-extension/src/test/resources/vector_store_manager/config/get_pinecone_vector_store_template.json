@@ -88,16 +88,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "serviceUrl"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "apiKey": {
           "metadata": {
@@ -122,16 +113,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "apiKey"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "queryMode": {
           "metadata": {
@@ -161,15 +143,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "queryMode"
           },
-          "typeMembers": [
-            {
-              "type": "VectorStoreQueryMode",
-              "packageInfo": "ballerina:ai:1.5.0",
-              "packageName": "ai",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"HYBRID\""
         },
         "config": {
@@ -177,6 +150,19 @@
             "label": "Pinecone Configuration"
           },
           "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "pinecone:Configuration",
+              "typeMembers": [
+                {
+                  "type": "Configuration",
+                  "packageInfo": "ballerinax:ai.pinecone:1.1.0",
+                  "packageName": "ai.pinecone",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
+            },
             {
               "fieldType": "EXPRESSION",
               "ballerinaType": "pinecone:Configuration"
@@ -191,15 +177,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "config"
           },
-          "typeMembers": [
-            {
-              "type": "Configuration",
-              "packageInfo": "ballerinax:ai.pinecone:1.1.0",
-              "packageName": "ai.pinecone",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "{}"
         },
         "httpConfig": {
@@ -208,6 +185,19 @@
             "description": "HTTP client configuration for the Pinecone connection\n"
           },
           "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "vector:ConnectionConfig",
+              "typeMembers": [
+                {
+                  "type": "ConnectionConfig",
+                  "packageInfo": "ballerinax:pinecone.vector:1.0.2",
+                  "packageName": "pinecone.vector",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ]
+            },
             {
               "fieldType": "EXPRESSION",
               "ballerinaType": "vector:ConnectionConfig"
@@ -222,15 +212,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "httpConfig"
           },
-          "typeMembers": [
-            {
-              "type": "ConnectionConfig",
-              "packageInfo": "ballerinax:pinecone.vector:1.0.2",
-              "packageName": "pinecone.vector",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "{}"
         },
         "scope": {
