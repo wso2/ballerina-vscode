@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType} from "@wso2/ballerina-core";
+import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType, ExecutionContext} from "@wso2/ballerina-core";
 import { ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../connection";
 import { getErrorMessage, populateHistoryForAgent } from "../utils";
@@ -24,7 +24,7 @@ import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../l
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
 import { checkCompilationErrors } from "../libs/diagnostics_utils";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
-import { sendAgentDidOpenForProjects } from "../libs/agent_ls_notification_utils";
+import { sendAgentDidOpenForProjects, sendAgentDidCloseForProjects } from "../libs/agent_ls_notification_utils";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../libs/healthcareLibraryProviderTool";
@@ -38,6 +38,7 @@ import { LangfuseExporter } from 'langfuse-vercel';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { getProjectSource } from "../../utils/project-utils";
+import { StateMachine } from "../../../../stateMachine";
 
 // const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
 // const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
@@ -53,20 +54,66 @@ import { getProjectSource } from "../../utils/project-utils";
 // });
 // sdk.start();
 
-// TODO: Tool name, types and used in both ext and visualizer to display, either move to core or use visualizer as view only.
+// ==================================
+// Helper Functions
+// ==================================
+
+/**
+ * Closes all documents in the temp project and waits for LS to process
+ * This prevents stale document state in the Language Server
+ * @param tempProjectPath Path to the temporary project
+ * @param projects Project sources to close
+ */
+async function closeAllDocumentsAndWait(tempProjectPath: string, projects: ProjectSource[]): Promise<void> {
+    sendAgentDidCloseForProjects(tempProjectPath, projects);
+    await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+// ==================================
+// ExecutionContext Factory Functions
+// ==================================
+
+/**
+ * Creates an ExecutionContext from StateMachine's current state.
+ * Used by production RPC handlers to create context from current UI state.
+ *
+ * @returns ExecutionContext with paths from StateMachine
+ */
+export function createExecutionContextFromStateMachine(): ExecutionContext {
+    const context = StateMachine.context();
+    return {
+        projectPath: context.projectPath,
+        workspacePath: context.workspacePath
+    };
+}
+
+/**
+ * Creates an ExecutionContext with explicit paths.
+ * Used by tests to create isolated contexts per test case.
+ *
+ * @param projectPath - Absolute path to the project
+ * @param workspacePath - Optional workspace path
+ * @returns ExecutionContext with specified paths
+ */
+export function createExecutionContext(
+    projectPath: string,
+    workspacePath?: string
+): ExecutionContext {
+    return { projectPath, workspacePath };
+}
 
 export async function generateDesignCore(
     params: GenerateAgentCodeRequest,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    ctx: ExecutionContext
 ): Promise<string> {
     const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
 
-    const tempProjectPath = (await createTempProjectOfWorkspace()).path;
+    const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
     const shouldCleanup = !process.env.AI_TEST_ENV;
 
-    const projects: ProjectSource[] = await getProjectSource(params.operationType); // TODO: Fix multi project
-
+    const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
     // Send didOpen for all initial project files
     sendAgentDidOpenForProjects(tempProjectPath, projects);
 
@@ -87,7 +134,6 @@ export async function generateDesignCore(
         {
             role: "user",
             content: userMessageContent,
-            // providerOptions: cacheOptions,
         },
     ];
 
@@ -225,6 +271,7 @@ export async function generateDesignCore(
                 const error = part.error;
                 console.error("[Design] Error:", error);
                 if (shouldCleanup) {
+                    await closeAllDocumentsAndWait(tempProjectPath, projects);
                     cleanupTempProject(tempProjectPath);
                 }
                 eventHandler({ type: "error", content: getErrorMessage(error) });
@@ -259,6 +306,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 });
 
                 if (shouldCleanup) {
+                    await closeAllDocumentsAndWait(tempProjectPath, projects);
                     cleanupTempProject(tempProjectPath);
                 }
 
@@ -288,9 +336,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
                 if (!process.env.AI_TEST_ENV && modifiedFiles.length > 0) {
                     const modifiedFilesSet = new Set(modifiedFiles);
-                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
                 }
-
+                await closeAllDocumentsAndWait(tempProjectPath, projects);
                 if (shouldCleanup) {
                     cleanupTempProject(tempProjectPath);
                 }
@@ -300,7 +348,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 AIChatStateMachine.sendEvent({
                     type: AIChatMachineEventType.FINISH_EXECUTION,
                 });
-                // await langfuseExporter.forceFlush();
                 return tempProjectPath;
             }
         }
@@ -340,7 +387,8 @@ function updateAndSaveChat(
 export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Design);
     try {
-        await generateDesignCore(params, eventHandler);
+        const ctx = createExecutionContextFromStateMachine();
+        await generateDesignCore(params, eventHandler, ctx);
     } catch (error) {
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });

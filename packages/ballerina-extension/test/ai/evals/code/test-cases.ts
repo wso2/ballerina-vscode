@@ -23,78 +23,78 @@ export const initialTestCases = [
     prompt: "write an integration to Sync a folder in google drive to microsoft one drive",
     projectPath: "bi_init"
   },
-  // {
-  //   prompt: "Write an http service to read a specified csv file and add it to google sheet.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Write an application to read open github issues in a given repo and send those as a message to a slack channel.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Write an application to todos from a csv file and create github issues for each todo.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Read a CSV file from the local system and upload its content to a Google Sheets document.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Fetch the latest issues from a GitHub repository and send a summary to a Slack channel.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Download a file from a specific GitHub repository and save it to a local directory.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Read data from a Google Sheets document and convert it into a CSV file stored locally.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Monitor a Google Sheets document for changes and send an alert to a Slack channel whenever an update is detected.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Export the data from a Slack channel conversation to a Google Sheets document.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Read a list of users from a CSV file and add them to a specific Slack channel.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Fetch pull requests from a GitHub repository and log the details into a local CSV file.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Sync a Google Sheets document with a CSV file on the local system, ensuring both have the same content.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Extract user information from a Slack workspace and store it in a Google Sheets document.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Send notifications to a Slack channel whenever a new file is added to a specific GitHub repository.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Read data from a local CSV file and update corresponding rows in a Google Sheets document.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Automatically post updates to a Slack channel and google sheets whenever a new issue is created in a GitHub repository.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Upload a local CSV file to a specific Google Sheets document, appending the data to the existing sheet.",
-  //   projectPath: "bi_init"
-  // },
-  // {
-  //   prompt: "Generate a CSV report from Google Sheets data and send the report to a Slack channel.",
-  //   projectPath: "bi_init"
-  // },
+  {
+    prompt: "Write an http service to read a specified csv file and add it to google sheet.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Write an application to read open github issues in a given repo and send those as a message to a slack channel.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Write an application to todos from a csv file and create github issues for each todo.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Read a CSV file from the local system and upload its content to a Google Sheets document.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Fetch the latest issues from a GitHub repository and send a summary to a Slack channel.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Download a file from a specific GitHub repository and save it to a local directory.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Read data from a Google Sheets document and convert it into a CSV file stored locally.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Monitor a Google Sheets document for changes and send an alert to a Slack channel whenever an update is detected.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Export the data from a Slack channel conversation to a Google Sheets document.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Read a list of users from a CSV file and add them to a specific Slack channel.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Fetch pull requests from a GitHub repository and log the details into a local CSV file.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Sync a Google Sheets document with a CSV file on the local system, ensuring both have the same content.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Extract user information from a Slack workspace and store it in a Google Sheets document.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Send notifications to a Slack channel whenever a new file is added to a specific GitHub repository.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Read data from a local CSV file and update corresponding rows in a Google Sheets document.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Automatically post updates to a Slack channel and google sheets whenever a new issue is created in a GitHub repository.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Upload a local CSV file to a specific Google Sheets document, appending the data to the existing sheet.",
+    projectPath: "bi_init"
+  },
+  {
+    prompt: "Generate a CSV report from Google Sheets data and send the report to a Slack channel.",
+    projectPath: "bi_init"
+  },
 ];
 
 export const httpTestCases = [

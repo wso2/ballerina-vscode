@@ -18,10 +18,10 @@
  */
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
-import { AIMachineContext, AIMachineStateValue, ChatMessage } from "../../state-machine-types";
+import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, LinePosition, Project } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, LinePosition } from "../..";
 
 // ==================================
 // General Interfaces
@@ -452,3 +452,27 @@ export interface DocGenerationRequest {
 
 export const GENERATE_TEST_AGAINST_THE_REQUIREMENT = "Generate tests against the requirements";
 export const GENERATE_CODE_AGAINST_THE_REQUIREMENT = "Generate code based on the requirements";
+
+// ==================================
+// Execution Context
+// ==================================
+
+/**
+ * Execution context for AI code generation operations.
+ *
+ * Contains project path information needed for code generation without
+ * depending on global StateMachine state. This enables:
+ * - Parallel test execution with isolated contexts
+ * - Explicit path dependencies
+ * - Better testability and code clarity
+ *
+ * @property projectPath - Absolute path to the active Ballerina project/package
+ * @property workspacePath - Optional absolute path to workspace root (for multi-package workspaces)
+ */
+export interface ExecutionContext {
+    /** Absolute path to the current Ballerina project */
+    readonly projectPath: string;
+
+    /** Optional absolute path to workspace root (if multi-package workspace) */
+    readonly workspacePath?: string;
+}

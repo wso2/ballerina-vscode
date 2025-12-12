@@ -146,16 +146,79 @@ export function sendAgentDidOpenBatch(tempProjectPath: string, files: string[]):
 export function sendAgentDidOpenForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
   projects.forEach(project => {
-    // Add source files
     allFiles.push(...project.sourceFiles.map(f => f.filePath));
-    // Add module files
     project.projectModules?.forEach(module => {
       allFiles.push(...module.sourceFiles.map(f => f.filePath));
     });
-    // Add test files
     if (project.projectTests) {
       allFiles.push(...project.projectTests.map(f => f.filePath));
     }
   });
   sendAgentDidOpenBatch(tempProjectPath, allFiles);
+}
+
+/**
+ * Sends didClose notifications for a file to both file:// and ai:// schemas
+ * Used for cleanup when temp project is deleted or replaced
+ * @param tempProjectPath The root path of the temporary project
+ * @param filePath The relative file path
+ */
+export function sendAgentDidClose(tempProjectPath: string, filePath: string): void {
+  try {
+    const fullPath = path.join(tempProjectPath, filePath);
+
+    const fileUri = Uri.file(fullPath).toString();
+    try {
+      StateMachine.langClient().didClose({
+        textDocument: {
+          uri: fileUri
+        }
+      });
+    } catch (error) {
+      console.error(`[AgentNotification] Failed didClose (file schema) for ${filePath}:`, error);
+    }
+
+    const aiUri = 'ai' + fileUri.substring(4);
+    try {
+      StateMachine.langClient().didClose({
+        textDocument: {
+          uri: aiUri
+        }
+      });
+    } catch (error) {
+      console.error(`[AgentNotification] Failed didClose (ai schema) for ${filePath}:`, error);
+    }
+  } catch (error) {
+    console.error(`[AgentNotification] Failed to send didClose for ${filePath}:`, error);
+  }
+}
+
+/**
+ * Sends didClose notifications for multiple files in batch
+ * Used when cleaning up entire temp project
+ * @param tempProjectPath The root path of the temporary project
+ * @param files Array of relative file paths to close
+ */
+export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[]): void {
+  files.forEach(file => sendAgentDidClose(tempProjectPath, file));
+}
+
+/**
+ * Sends didClose notifications for all project files from project sources
+ * Includes source files, module files, and test files
+ * @param tempProjectPath The root path of the temporary project
+ * @param projects Array of project sources containing source files, modules, and tests
+ */
+export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
+  const allFiles: string[] = [];
+  projects.forEach(project => {
+    allFiles.push(...project.sourceFiles.map(f => f.filePath));
+    project.projectModules?.forEach(module => {
+      allFiles.push(...module.sourceFiles.map(f => f.filePath));
+    });
+    if (project.projectTests) {
+      allFiles.push(...project.projectTests.map(f => f.filePath));
+    }
+  });
+  sendAgentDidCloseBatch(tempProjectPath, allFiles);
 }
