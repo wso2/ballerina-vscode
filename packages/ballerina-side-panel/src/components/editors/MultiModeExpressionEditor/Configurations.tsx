@@ -172,26 +172,3 @@ export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfi
         return `\$\{${value}\}`;
     }
 }
-
-export class PrimaryModeChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    private readonly primaryMode: InputMode;
-
-    constructor(primaryMode: InputMode) {
-        super();
-        this.primaryMode = primaryMode;
-    }
-
-    getHelperValue(value: string, token?: ParsedToken): string {
-        const isTemplateEditor = (
-            this.primaryMode === InputMode.TEXT ||
-            this.primaryMode === InputMode.TEMPLATE ||
-            this.primaryMode === InputMode.SQL
-        );
-
-
-        if (isTemplateEditor && (!token || token.type !== TokenType.FUNCTION)) {
-            return `\$\{${value}\}`;
-        }
-        return value;
-    }
-}
