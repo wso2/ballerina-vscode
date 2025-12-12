@@ -569,15 +569,47 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     for (TypeSymbol ts : typeSymbols) {
                         handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo));
                     }
+                    // group by the fieldType
+                    List<PropertyType> propTypes = this.types;
+                    propTypes.stream()
+                            .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
+                            .forEach((fieldType, groupedTypes) -> {
+                                if (groupedTypes.size() > 1) {
+                                    // merge the ballerina types
+                                    String mergedBallerinaType = groupedTypes.stream()
+                                            .map(PropertyType::ballerinaType)
+                                            .distinct()
+                                            .reduce((a, b) -> a + "|" + b)
+                                            .orElse("");
+                                    // remove the existing types
+                                    this.types.removeIf(t -> t.fieldType() == fieldType);
+
+                                    List<PropertyTypeMemberInfo> distinctMembers = null;
+                                    if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
+                                        distinctMembers = new ArrayList<>(groupedTypes.stream()
+                                                .filter(t -> t.typeMembers() != null)
+                                                .flatMap(t -> t.typeMembers().stream())
+                                                .distinct()
+                                                .toList());
+                                    }
+
+                                    // add the merged type
+                                    this.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
+                                            null, null, distinctMembers));
+                                }
+                            });
                 }
             }
 
             // updated the selected type from the RECORD_MAP_EXPRESSION type members
-            if (value != null && type().typeMembers != null) {
-                String selectedType = getSelectedType(value, semanticModel);
-                if (selectedType != null) {
-                    type().typeMembers.stream().filter(typeMember ->
-                            typeMember.type().equals(selectedType)).forEach(typeMember -> typeMember.selected(true));
+            if (!this.types.isEmpty()) {
+                PropertyType last = this.types.getLast();
+                if (value != null && last != null && last.typeMembers() != null) {
+                    String selectedType = getSelectedType(value, semanticModel);
+                    if (selectedType != null) {
+                        last.typeMembers().stream().filter(typeMember ->
+                                typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
+                    }
                 }
             }
 
@@ -614,7 +646,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
                 case MAP -> type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
                 case RECORD -> {
-                    if (typeSymbol.typeKind() == TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
+                    if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
                         String type = ballerinaType;
                         String[] typeParts = ballerinaType.split(":");
