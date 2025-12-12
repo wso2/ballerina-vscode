@@ -24,7 +24,7 @@ package io.ballerina.wsdl.extension;
  * @since 1.4.0
  */
 public class WSDLConverterRequest {
-    private String wsdlContent;
+    private String wsdlFilePath;
     private String projectPath;
     private String portName;
     private String module;
@@ -36,27 +36,27 @@ public class WSDLConverterRequest {
     /**
      * Constructor for WSDLConverterRequest.
      *
-     * @param wsdlContent  The WSDL file content
+     * @param wsdlFilePath The WSDL file path
      * @param projectPath  The project path
      * @param portName     The port name to use (optional)
      * @param module       The target module name
      * @param operations   The operations to include (optional, null/empty = all operations)
      */
-    public WSDLConverterRequest(String wsdlContent, String projectPath, String portName, String module,
+    public WSDLConverterRequest(String wsdlFilePath, String projectPath, String portName, String module,
                                 String[] operations) {
-        this.wsdlContent = wsdlContent;
+        this.wsdlFilePath = wsdlFilePath;
         this.projectPath = projectPath;
         this.portName = portName;
         this.module = module;
         this.operations = operations;
     }
 
-    public String getWsdlContent() {
-        return wsdlContent;
+    public String getWsdlFilePath() {
+        return wsdlFilePath;
     }
 
-    public void setWsdlContent(String wsdlContent) {
-        this.wsdlContent = wsdlContent;
+    public void setWsdlFilePath(String wsdlFilePath) {
+        this.wsdlFilePath = wsdlFilePath;
     }
 
     public String getProjectPath() {
