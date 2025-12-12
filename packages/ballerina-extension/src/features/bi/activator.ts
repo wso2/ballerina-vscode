@@ -41,73 +41,13 @@ import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } f
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
-import { needsProjectDiscovery, promptPackageSelection, requiresPackageSelection } from "../../utils/command-utils";
+import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
 const TRACE_SERVER_VERBOSE = "verbose";
-
-/**
- * Helper function to handle command invocation with proper context resolution.
- * Supports both tree view clicks and command palette invocation.
- * 
- * @param item - The tree item (undefined when invoked from command palette)
- * @param view - The view to open
- * @param additionalViewParams - Additional parameters to pass to the view
- */
-async function handleCommandWithContext(
-    item: TreeItem | undefined,
-    view: MACHINE_VIEW,
-    additionalViewParams: Record<string, any> = {}
-): Promise<void> {
-    const { projectInfo, projectPath, view: currentView, workspacePath } = StateMachine.context();
-    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
-    const hasActiveTextEditor = !!window.activeTextEditor;
-
-    const currentBallerinaFile = tryGetCurrentBallerinaFile();
-    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
-
-    // Scenario 1: Multi-package workspace invoked from command palette
-    if (!item) {
-        if (requiresPackageSelection(workspacePath, currentView, projectPath, isWebviewOpen, hasActiveTextEditor)) {
-            await handleCommandWithPackageSelection(projectInfo, view, additionalViewParams);
-            return;
-        }
-
-        if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
-            try {
-                const success = await tryHandleCommandWithDiscoveredProject(view, additionalViewParams);
-                if (!success) {
-                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                }
-            } catch {
-                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-            }
-            return;
-        }
-
-        openView(EVENT_TYPE.OPEN_VIEW, {
-            view,
-            projectPath,
-            ...additionalViewParams
-        });
-    }
-    // Scenario 2: Invoked from tree view with item context
-    else if (item?.resourceUri) {
-        const projectPath = item.resourceUri.fsPath;
-        openView(EVENT_TYPE.OPEN_VIEW, {
-            view,
-            projectPath,
-            ...additionalViewParams
-        });
-    }
-    // Scenario 3: Default - no specific context
-    else {
-        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
-    }
-}
 
 export function activate(context: BallerinaExtension) {
     const isWorkspaceSupported = isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0));
@@ -134,7 +74,7 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
         commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
-        startDebugging(Uri.file(StateMachine.context().projectPath), false, true);
+        handleDebugCommandWithContext();
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, async (item?: TreeItem) => {
@@ -232,6 +172,122 @@ export function activate(context: BallerinaExtension) {
     openBallerinaTomlFile(context);
 }
 
+
+/**
+ * Helper function to handle command invocation with proper context resolution.
+ * Supports both tree view clicks and command palette invocation.
+ * 
+ * @param item - The tree item (undefined when invoked from command palette)
+ * @param view - The view to open
+ * @param additionalViewParams - Additional parameters to pass to the view
+ */
+async function handleCommandWithContext(
+    item: TreeItem | undefined,
+    view: MACHINE_VIEW,
+    additionalViewParams: Record<string, any> = {}
+): Promise<void> {
+    const { projectInfo, projectPath, view: currentView, workspacePath } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!window.activeTextEditor;
+
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    // Scenario 1: Multi-package workspace invoked from command palette
+    if (!item) {
+        if (requiresPackageSelection(workspacePath, currentView, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+            await handleCommandWithPackageSelection(projectInfo, view, additionalViewParams);
+            return;
+        }
+
+        if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+            try {
+                const success = await tryHandleCommandWithDiscoveredProject(view, additionalViewParams);
+                if (!success) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                }
+            } catch {
+                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            }
+            return;
+        }
+
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view,
+            projectPath,
+            ...additionalViewParams
+        });
+    }
+    // Scenario 2: Invoked from tree view with item context
+    else if (item?.resourceUri) {
+        const projectPath = item.resourceUri.fsPath;
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view,
+            projectPath,
+            ...additionalViewParams
+        });
+    }
+    // Scenario 3: Default - no specific context
+    else {
+        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
+    }
+}
+
+/** Handles the debug command based on current workspace context. */
+async function handleDebugCommandWithContext() {
+    const { workspacePath, view, projectPath, projectInfo } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!window.activeTextEditor;
+
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    if (requiresPackageSelection(workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        await handleDebugCommandWithPackageSelection(projectInfo);
+        return;
+    }
+
+    if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+        try {
+            await handleDebugCommandWithProjectDiscovery();
+        } catch {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        }
+        return;
+    }
+
+    startDebugging(Uri.file(projectPath), false, true);
+}
+
+/**
+ * Prompts user to select a package and starts debugging.
+ * @param projectInfo - The project info
+ * @returns void
+ */
+async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
+    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    if (!selectedPackage) {
+        return;
+    }
+
+    await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+    startDebugging(Uri.file(selectedPackage), false, true);
+}
+
+/** Discovers project root from active file and starts debugging. */
+async function handleDebugCommandWithProjectDiscovery() {
+    const packageRoot = await getCurrentProjectRoot();
+
+    if (packageRoot) {
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+        await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+        startDebugging(Uri.file(packageRoot), false, true);
+    } else {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+    }
+}
 
 function openBallerinaTomlFile(context: BallerinaExtension) {
     const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
@@ -473,15 +529,10 @@ async function handleCommandWithPackageSelection(
 ): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
 
-    if (availablePackages.length === 0) {
-        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-        return false;
-    }
-
-    const selectedPackage = await promptPackageSelection(availablePackages);
+    const selectedPackage = await selectPackageOrPrompt(availablePackages);
 
     if (!selectedPackage) {
-        return false; // User cancelled
+        return false;
     }
 
     openView(EVENT_TYPE.OPEN_VIEW, {
