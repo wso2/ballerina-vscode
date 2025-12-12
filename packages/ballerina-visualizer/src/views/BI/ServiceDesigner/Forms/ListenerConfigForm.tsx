@@ -20,11 +20,9 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { ListenerModel, LineRange, RecordTypeField, PropertyModel, PropertyTypeMemberInfo, Property, getPrimaryInputType } from "@wso2/ballerina-core";
+import { ListenerModel, LineRange, RecordTypeField, Property, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
-import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
 
 const Container = styled.div`

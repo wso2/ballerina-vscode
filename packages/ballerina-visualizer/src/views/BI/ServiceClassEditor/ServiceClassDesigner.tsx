@@ -287,7 +287,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         });
         if (lsResponse.function) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
-            if (type === 'resource' && lsResponse.function.accessor) {
+            if (type === 'resource' && lsResponse.function.accessor && lsResponse.function.accessor.types.length > 0) {
                 lsResponse.function.accessor.value = 'get';
                 lsResponse.function.accessor.types[0].fieldType = 'IDENTIFIER';
             }

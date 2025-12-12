@@ -261,7 +261,7 @@ export function convertNodePropertyToFormField(
     const formField: FormField = {
         key,
         label: property.metadata?.label || "",
-        type: getPrimaryInputType(property.types)?.fieldType,
+        type: getPrimaryInputType(property.types)?.fieldType ?? "",
         optional: property.optional,
         advanced: property.advanced,
         placeholder: property.placeholder,
@@ -914,8 +914,9 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     }
 
     // Set up parameter manager properties
-    formField.types
-    formField.types[0].fieldType = "PARAM_MANAGER";
+    if (formField.types.length > 0) {
+        formField.types[0].fieldType = "PARAM_MANAGER";
+    }
     formField.type = "PARAM_MANAGER";
 
     // Create existing parameter values
