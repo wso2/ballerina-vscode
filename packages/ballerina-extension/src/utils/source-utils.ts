@@ -38,6 +38,7 @@ export interface UpdateSourceCodeRequest {
     identifier?: string;
     skipPayloadCheck?: boolean; // This is used to skip the payload check because the payload data might become empty as a result of a change. Example: Deleting a component.
     isRenameOperation?: boolean; // This is used to identify if the update is a rename operation.
+    skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
 export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
@@ -168,7 +169,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             }
 
             return new Promise((resolve, reject) => {
-                if (tomlFilesUpdated) {
+                if (tomlFilesUpdated && !updateSourceCodeRequest?.skipUpdateViewOnTomlUpdate) {
                     StateMachine.setReadyMode();
                     resolve([]);
                     return;
