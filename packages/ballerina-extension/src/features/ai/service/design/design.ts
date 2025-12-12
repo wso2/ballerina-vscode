@@ -20,18 +20,15 @@ import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from 
 import { getErrorMessage, populateHistoryForAgent } from "../utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../event";
 import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../libs/task_write_tool";
+import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from "../libs/task_write_tool";
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../libs/diagnostics_tool";
-import { checkCompilationErrors } from "../libs/diagnostics_utils";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../libs/text_editor_tool";
-import { sendAgentDidOpenForProjects, sendAgentDidCloseForProjects } from "../libs/agent_ls_notification_utils";
+import { sendAgentDidOpenForProjects } from "../libs/agent_ls_notification_utils";
 import { getLibraryProviderTool } from "../libs/libraryProviderTool";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../libs/libs";
 import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../libs/healthcareLibraryProviderTool";
-import { Library } from "../libs/libs_types";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
-import { getTempProject as createTempProjectOfWorkspace, cleanupTempProject } from "../../utils/project-utils";
-import { integrateCodeToWorkspace } from "./utils";
+import { getTempProject as createTempProjectOfWorkspace } from "../../utils/project-utils";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../libs/connectorGeneratorTool";
 import { LangfuseExporter } from 'langfuse-vercel';
@@ -39,6 +36,9 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { getProjectSource } from "../../utils/project-utils";
 import { StateMachine } from "../../../../stateMachine";
+import { createDesignEventRegistry } from "./handlers/create-design-event-registry";
+import { StreamContext } from "./handlers/stream-context";
+import { StreamErrorException, StreamAbortException, StreamFinishException } from "./handlers/stream-event-handler";
 
 // const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
 // const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
@@ -53,21 +53,6 @@ import { StateMachine } from "../../../../stateMachine";
 //     instrumentations: [getNodeAutoInstrumentations()],
 // });
 // sdk.start();
-
-// ==================================
-// Helper Functions
-// ==================================
-
-/**
- * Closes all documents in the temp project and waits for LS to process
- * This prevents stale document state in the Language Server
- * @param tempProjectPath Path to the temporary project
- * @param projects Project sources to close
- */
-async function closeAllDocumentsAndWait(tempProjectPath: string, projects: ProjectSource[]): Promise<void> {
-    sendAgentDidCloseForProjects(tempProjectPath, projects);
-    await new Promise(resolve => setTimeout(resolve, 300));
-}
 
 // ==================================
 // ExecutionContext Factory Functions
@@ -172,216 +157,40 @@ export async function generateDesignCore(
 
     eventHandler({ type: "start" });
 
-    let selectedLibraries: string[] = [];
+    // Create stream context for handlers
+    const streamContext: StreamContext = {
+        eventHandler,
+        modifiedFiles,
+        accumulatedMessages: [],
+        currentAssistantContent: [],
+        selectedLibraries: [],
+        tempProjectPath,
+        projects,
+        shouldCleanup,
+        messageId,
+        userMessageContent,
+        response,
+        ctx,
+    };
 
-    let accumulatedMessages: any[] = [];
-    let currentAssistantContent: any[] = [];
+    // Create event registry
+    const registry = createDesignEventRegistry();
 
-    for await (const part of fullStream) {
-        switch (part.type) {
-            case "text-delta": {
-                const textPart = part.text;
-                eventHandler({ type: "content_block", content: textPart });
-                accumulateTextContent(currentAssistantContent, textPart);
-                break;
-            }
-            case "tool-call": {
-                const toolName = part.toolName;
-                accumulateToolCall(currentAssistantContent, part);
-
-                if (toolName === "LibraryProviderTool" || toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL) {
-                    selectedLibraries = (part.input as any)?.libraryNames || [];
-                    eventHandler({ type: "tool_call", toolName });
-
-                } else if (
-                    [
-                        FILE_WRITE_TOOL_NAME,
-                        FILE_SINGLE_EDIT_TOOL_NAME,
-                        FILE_BATCH_EDIT_TOOL_NAME,
-                    ].includes(toolName)
-                ) {
-                    const input = part.input as any;
-                    const fileName = input?.file_path || 'file';
-                    eventHandler({
-                        type: "tool_call",
-                        toolName,
-                        toolInput: { fileName }
-                    });
-                } else {
-                    eventHandler({ type: "tool_call", toolName });
-                }
-                break;
-            }
-            case "tool-result": {
-                const toolName = part.toolName;
-                const result = part.output;
-                saveToolResult(part, accumulatedMessages, currentAssistantContent);
-
-                if (toolName === TASK_WRITE_TOOL_NAME && result) {
-                    const taskResult = result as TaskWriteResult;
-                    eventHandler({
-                        type: "tool_result",
-                        toolName,
-                        toolOutput: {
-                            success: taskResult.success,
-                            message: taskResult.message,
-                            allTasks: taskResult.tasks,
-                        },
-                    });
-                } else if (toolName === "LibraryProviderTool" || toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL) {
-                    const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-                    const fetchedLibraries = libraryNames.filter((name) => selectedLibraries.includes(name));
-                    eventHandler({ type: "tool_result", toolName, toolOutput: fetchedLibraries });
-
-                } else if (
-                    [
-                        FILE_WRITE_TOOL_NAME,
-                        FILE_SINGLE_EDIT_TOOL_NAME,
-                        FILE_BATCH_EDIT_TOOL_NAME,
-                    ].includes(toolName)
-                ) {
-                    // Extract action from result message for file_write
-                    let action = undefined;
-                    if (toolName === FILE_WRITE_TOOL_NAME && result) {
-                        const message = (result as any).message || '';
-                        if (message.includes('updated')) {
-                            action = 'updated';
-                        } else if (message.includes('created')) {
-                            action = 'created';
-                        }
-                    }
-
-                    eventHandler({
-                        type: "tool_result",
-                        toolName,
-                        toolOutput: { success: true, action }
-                    });
-                } else if (toolName === DIAGNOSTICS_TOOL_NAME) {
-                    eventHandler({
-                        type: "tool_result",
-                        toolName,
-                        toolOutput: result
-                    });
-                } else {
-                    eventHandler({ type: "tool_result", toolName });
-                }
-                break;
-            }
-            case "error": {
-                const error = part.error;
-                console.error("[Design] Error:", error);
-                if (shouldCleanup) {
-                    await closeAllDocumentsAndWait(tempProjectPath, projects);
-                    cleanupTempProject(tempProjectPath);
-                }
-                eventHandler({ type: "error", content: getErrorMessage(error) });
-                return tempProjectPath;
-            }
-            case "text-start": {
-                eventHandler({ type: "content_block", content: " \n" });
-                break;
-            }
-            case "abort": {
-                console.log("[Design] Aborted by user.");
-                let messagesToSave: any[] = [];
-                try {
-                    const partialResponse = await response;
-                    messagesToSave = partialResponse.messages || [];
-                } catch (error) {
-                    if (currentAssistantContent.length > 0) {
-                        accumulatedMessages.push({
-                            role: "assistant",
-                            content: currentAssistantContent,
-                        });
-                    }
-                    messagesToSave = accumulatedMessages;
-                }
-
-                // Add user message to inform about abort and file reversion
-                messagesToSave.push({
-                    role: "user",
-                    content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
-</abort_notification>`,
-                });
-
-                if (shouldCleanup) {
-                    await closeAllDocumentsAndWait(tempProjectPath, projects);
-                    cleanupTempProject(tempProjectPath);
-                }
-
-                updateAndSaveChat(messageId, userMessageContent, messagesToSave, eventHandler);
-                eventHandler({ type: "abort", command: Command.Design });
-                AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.FINISH_EXECUTION,
-                });
-                return tempProjectPath;
-            }
-            case "text-start": {
-                currentAssistantContent.push({ type: "text", text: "" });
-                eventHandler({ type: "content_block", content: " \n" });
-                break;
-            }
-            case "finish": {
-                const finalResponse = await response;
-                const assistantMessages = finalResponse.messages || [];
-
-                const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
-                if (finalDiagnostics.diagnostics && finalDiagnostics.diagnostics.length > 0) {
-                    eventHandler({
-                        type: "diagnostics",
-                        diagnostics: finalDiagnostics.diagnostics
-                    });
-                }
-
-                if (!process.env.AI_TEST_ENV && modifiedFiles.length > 0) {
-                    const modifiedFilesSet = new Set(modifiedFiles);
-                    await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-                }
-                await closeAllDocumentsAndWait(tempProjectPath, projects);
-                if (shouldCleanup) {
-                    cleanupTempProject(tempProjectPath);
-                }
-
-                updateAndSaveChat(messageId, userMessageContent, assistantMessages, eventHandler);
-                eventHandler({ type: "stop", command: Command.Design });
-                AIChatStateMachine.sendEvent({
-                    type: AIChatMachineEventType.FINISH_EXECUTION,
-                });
-                return tempProjectPath;
-            }
+    try {
+        for await (const part of fullStream) {
+            await registry.handleEvent(part, streamContext);
         }
+    } catch (e) {
+        //TODO: Refactor
+        if (e instanceof StreamErrorException ||
+            e instanceof StreamAbortException ||
+            e instanceof StreamFinishException) {
+            return e.tempProjectPath;
         }
+        throw e;
+    }
 
     return tempProjectPath;
-}
-
-/**
- * Updates chat message with model messages and triggers save
- */
-function updateAndSaveChat(
-    messageId: string,
-    userMessageContent: any,
-    assistantMessages: any[],
-    eventHandler: CopilotEventHandler
-): void {
-    const completeMessages = [
-        {
-            role: "user",
-            content: userMessageContent,
-        },
-        ...assistantMessages
-    ];
-
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
-        payload: {
-            id: messageId,
-            modelMessages: completeMessages,
-        },
-    });
-
-    eventHandler({ type: "save_chat", command: Command.Design, messageId });
 }
 
 export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
@@ -393,50 +202,4 @@ export async function generateDesign(params: GenerateAgentCodeRequest): Promise<
         console.error("Error during design generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
     }
-}
-
-function accumulateTextContent(currentAssistantContent: any[], textPart: string): void {
-    const lastContent = currentAssistantContent[currentAssistantContent.length - 1];
-    if (lastContent && lastContent.type === "text") {
-        lastContent.text += textPart;
-    }
-}
-
-function accumulateToolCall(currentAssistantContent: any[], part: any): void {
-    currentAssistantContent.push({
-        type: "tool-call",
-        toolCallId: part.toolCallId,
-        toolName: part.toolName,
-        input: part.input
-    });
-}
-
-function saveToolResult(
-    part: any,
-    accumulatedMessages: any[],
-    currentAssistantContent: any[]
-): void {
-    if (currentAssistantContent.length > 0) {
-        accumulatedMessages.push({
-            role: "assistant",
-            content: [...currentAssistantContent]
-        });
-        currentAssistantContent.length = 0;
-    }
-
-    // Need to specify output type for tool result
-    const outputType: 'json' = 'json';
-
-    accumulatedMessages.push({
-        role: "tool",
-        content: [{
-            type: "tool-result",
-            toolCallId: part.toolCallId,
-            toolName: part.toolName,
-            output: {
-                type: outputType,
-                value: part.output
-            }
-        }]
-    });
 }
