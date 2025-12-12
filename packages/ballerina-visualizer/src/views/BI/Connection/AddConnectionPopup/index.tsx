@@ -24,10 +24,11 @@ import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, Overlay, Pro
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
-import AddConnectionWizard from "../AddConnectionWizard";
+import APIConnectionPopup from "../APIConnectionPopup";
 import ConnectionConfigurationPopup from "../ConnectionConfigurationPopup";
 import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
 import { BodyTinyInfo } from "../../../styles";
+import AddConnectionWizard from "../AddConnectionWizard";
 
 const PopupOverlay = styled(Overlay)`
     z-index: 1999;
@@ -429,13 +430,11 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         return (
             <>
                 <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
-                <AddConnectionWizard
+                <APIConnectionPopup
                     projectPath={projectPath}
                     fileName={fileName}
                     target={target}
                     onClose={handleCloseWizard}
-                    isPopupScreen={true}
-                    openCustomConnectorView={true}
                 />
             </>
         );
