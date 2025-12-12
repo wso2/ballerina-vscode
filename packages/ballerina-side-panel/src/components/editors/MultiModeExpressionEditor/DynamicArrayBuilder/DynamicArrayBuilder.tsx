@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import styled from '@emotion/styled';
 import { Button, Codicon, ThemeColors } from '@wso2/ui-toolkit';
 import { ExpressionField, ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
@@ -83,31 +83,42 @@ export namespace S {
 
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const { label, value, onChange, expressionFieldProps } = props;
-    const [arrayValues, setArrayValues] = useState<string[]>([]);
-    
     const { form } = useFormContext();
-    const { setValue } = form;
-
+    const { setValue, getValues } = form;
+    
+    // Use a ref to track the current editing state to avoid stale closures
+    const currentValuesRef = useRef<string[]>(Array.isArray(value) ? value : [""]);
+    
+    // Update ref when prop changes from parent (e.g., opening in edit mode)
     useEffect(() => {
-        const valuesArray = Array.isArray(value) ? value : [""];
-        setArrayValues(valuesArray);
+        currentValuesRef.current = Array.isArray(value) ? value : [""];
     }, [value]);
 
-    const handleInputChange = (index: number, value: string) => {
-        const newArray = [...arrayValues];
-        newArray[index] = value;
-        setValue(expressionFieldProps.field.key, newArray);
-        setArrayValues(newArray);
+    // Use the value from props directly (controlled by parent/form context)
+    const arrayValues = useMemo(() => {
+        return Array.isArray(value) ? value : [""];
+    }, [value]);
+
+    const handleInputChange = (index: number, newValue: string) => {
+        // Use the current ref value to ensure we have the latest state
+        const currentArray = [...currentValuesRef.current];
+        currentArray[index] = newValue;
+        currentValuesRef.current = currentArray;
+        setValue(expressionFieldProps.field.key, currentArray, { shouldValidate: false, shouldDirty: true });
     };
 
     const handleDelete = (index: number) => {
-        const newArray = arrayValues.filter((_, i) => i !== index);
-        setArrayValues(newArray);
+        const currentArray = [...currentValuesRef.current];
+        const newArray = currentArray.filter((_, i) => i !== index);
+        currentValuesRef.current = newArray;
+        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
     };
 
     const handleAdd = () => {
-        const newArray = [...arrayValues, ''];
-        setArrayValues(newArray);
+        const currentArray = [...currentValuesRef.current];
+        const newArray = [...currentArray, ''];
+        currentValuesRef.current = newArray;
+        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
     };
 
     const primaryInputMode = useMemo(() => {
@@ -120,7 +131,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         <S.Container>
             <S.Label>{label}</S.Label>
             {arrayValues.map((value, index) => (
-                <S.ItemContainer key={index}>
+                <S.ItemContainer key={`${expressionFieldProps.field.key}-${index}`}>
                     <ChipExpressionEditorComponent
                         getHelperPane={props.expressionFieldProps.getHelperPane}
                         isExpandedVersion={false}
