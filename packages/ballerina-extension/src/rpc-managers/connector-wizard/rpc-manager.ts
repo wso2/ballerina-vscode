@@ -27,7 +27,9 @@ import {
     IntrospectDatabaseRequest,
     IntrospectDatabaseResponse,
     PersistClientGenerateRequest,
-    PersistClientGenerateResponse
+    PersistClientGenerateResponse,
+    WSDLApiClientGenerationRequest,
+    WSDLApiClientGenerationResponse
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
@@ -103,6 +105,30 @@ export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
                 resolve(persistResponse);
             } catch (error) {
                 console.log(">>> error persisting client", error);
+                resolve(undefined);
+            }
+        });
+    }
+
+    async generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const response = await StateMachine.langClient().generateWSDLApiClient(params);
+                console.log(">>> generate wsdl api client response", response);
+
+                const wsdlResponse = response as WSDLApiClientGenerationResponse;
+
+                if (wsdlResponse?.source?.textEditsMap) {
+                    await updateSourceCode({
+                        textEdits: wsdlResponse.source.textEditsMap,
+                        description: `WSDL API Client Generation`
+                    });
+                    console.log(">>> Applied text edits for wsdl api client");
+                }
+
+                resolve(wsdlResponse);
+            } catch (error) {
+                console.log(">>> error generating wsdl api client", error);
                 resolve(undefined);
             }
         });

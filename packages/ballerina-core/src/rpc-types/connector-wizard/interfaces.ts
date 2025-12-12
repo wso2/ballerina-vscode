@@ -83,3 +83,23 @@ export interface PersistSource {
         [key: string]: TextEdit[];
     };
 }
+
+export interface WSDLApiClientGenerationRequest {
+    projectPath: string;
+    module: string;
+    wsdlFilePath: string;
+    portName?: string;
+    operations?: string[];
+}
+
+export interface WSDLApiClientGenerationResponse {
+    source?: WSDLApiClientSource;
+    errorMsg?: string;
+    stackTrace?: string;
+} 
+
+export interface WSDLApiClientSource {
+    textEditsMap: {
+        [key: string]: TextEdit[];
+    };
+}
