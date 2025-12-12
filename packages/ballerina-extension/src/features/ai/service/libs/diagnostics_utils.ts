@@ -1,5 +1,5 @@
 import { DiagnosticEntry, Diagnostics } from '@wso2/ballerina-core';
-import { checkProjectDiagnostics } from '../../../../rpc-managers/ai-panel/repair-utils';
+import { checkProjectDiagnostics, isModuleNotFoundDiagsExist as resolveModuleNotFoundDiagnostics } from '../../../../rpc-managers/ai-panel/repair-utils';
 import { StateMachine } from '../../../../stateMachine';
 import * as path from 'path';
 
@@ -34,6 +34,7 @@ export interface DiagnosticsCheckResult {
  */
 const DIAGNOSTIC_HINTS: Record<string, string> = {
     // Diagnostic code mappings to be populated
+    "BCE2000": "This usually indicates a missing import statement. Please ensure that all necessary modules are imported in each file where they are used.",
 };
 
 /**
@@ -92,10 +93,16 @@ export async function checkCompilationErrors(
 
         // Get language client from state machine
         const langClient = StateMachine.langClient();
-        
+
         // Get diagnostics from language server for the current project
         console.log(`[DiagnosticsUtils] Calling language server for diagnostics on ${tempProjectPath}`);
-        const diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath);
+        let diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath);
+
+        // Check if there are module not found diagnostics and attempt to resolve them
+        const isDiagsChanged = await resolveModuleNotFoundDiagnostics(diagnostics, langClient);
+        if (isDiagsChanged) {
+            diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath);
+        }
 
         // Transform and enrich diagnostics with hints
         const enrichedDiagnostics = transformDiagnosticsToEnriched(diagnostics);
@@ -105,7 +112,7 @@ export async function checkCompilationErrors(
         if (errorCount === 0) {
             return {
                 diagnostics: [],
-                message: "No compilation errors found. Code compiles successfully."
+                message: "No compilation errors found. Code compiles successfully.",
             };
         }
 
@@ -116,8 +123,12 @@ export async function checkCompilationErrors(
     } catch (error) {
         console.error("[DiagnosticsUtils] Error checking compilation errors:", error);
         return {
-            diagnostics: [],
-            message: `Failed to check compilation errors: ${error instanceof Error ? error.message : 'Unknown error'}`
+            diagnostics: [{
+                message: "Internal error occurred while checking compilation errors."
+            }],
+            message: `<CRITICAL_ERROR> Failed to check compilation errors due to an internal error. Avoid try to resolve this with code changes. Acknowledge the failure and stop the generation.
+Reason: ${error instanceof Error ? error.message : 'Unknown error'}
+</CRITICAL_ERROR>`,
         };
     }
 }

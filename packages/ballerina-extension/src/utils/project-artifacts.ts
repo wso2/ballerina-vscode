@@ -95,6 +95,10 @@ async function buildProjectArtifactsStructure(
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
+    if (!StateMachine.context().projectPath && !StateMachine.context().workspacePath) {
+        console.warn("No project or workspace path found in the StateMachine context.");
+        return;
+    }
     const projectUri = URI.file(StateMachine.context().projectPath) || URI.file(StateMachine.context().workspacePath);
     const isWithinProject = URI
         .parse(publishedArtifacts.uri).fsPath.toLowerCase()

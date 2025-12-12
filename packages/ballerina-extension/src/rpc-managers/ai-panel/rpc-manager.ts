@@ -84,9 +84,6 @@ import { generateDocumentationForService } from "../../features/ai/service/docum
 import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
 import { GenerationType } from "../../features/ai/service/libs/libs";
 import { Library } from "../../features/ai/service/libs/libs_types";
-import { generateFunctionTests } from "../../features/ai/service/test/function_tests";
-import { generateTestPlan } from "../../features/ai/service/test/test_plan";
-import { generateTest, getDiagnostics, getResourceAccessorDef, getResourceAccessorNames, getServiceDeclaration, getServiceDeclarationNames } from "../../features/ai/testGenerator";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
@@ -320,80 +317,95 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
 
-                const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
-                resolve(generatedTests);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        //         const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
+        //         resolve(generatedTests);
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return {
+            testSource:"",
+
+        }
     }
 
     async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
-                const diagnostics = await getDiagnostics(projectPath, params);
-                resolve(diagnostics);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
+        //         const diagnostics = await getDiagnostics(projectPath, params);
+        //         resolve(diagnostics);
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return {
+            diagnostics: []
+        }
     }
 
     async getServiceSourceForName(params: string): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
-                const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
-                resolve(serviceDeclaration.source);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
+        //         const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
+        //         resolve(serviceDeclaration.source);
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return "";
     }
 
     async getResourceSourceForMethodAndPath(params: string): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
-                const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
-                resolve(resourceAccessorDef.source);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
+        //         const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
+        //         resolve(resourceAccessorDef.source);
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return "";
     }
 
     async getServiceNames(): Promise<TestGenerationMentions> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
-                const serviceDeclNames = await getServiceDeclarationNames(projectPath);
-                resolve({
-                    mentions: serviceDeclNames
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
+        //         const serviceDeclNames = await getServiceDeclarationNames(projectPath);
+        //         resolve({
+        //             mentions: serviceDeclNames
+        //         });
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return {
+            mentions: []
+        }
     }
 
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const projectPath = StateMachine.context().projectPath;
-                const resourceAccessorNames = await getResourceAccessorNames(projectPath);
-                resolve({
-                    mentions: resourceAccessorNames
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // return new Promise(async (resolve, reject) => {
+        //     try {
+        //         const projectPath = StateMachine.context().projectPath;
+        //         const resourceAccessorNames = await getResourceAccessorNames(projectPath);
+        //         resolve({
+        //             mentions: resourceAccessorNames
+        //         });
+        //     } catch (error) {
+        //         reject(error);
+        //     }
+        // });
+        return {
+            mentions: []
+        }
     }
 
     async abortTestGeneration(): Promise<void> {
@@ -646,11 +658,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
-        await generateTestPlan(params);
+        // await generateTestPlan(params);
     }
 
     async generateFunctionTests(params: TestGeneratorIntermediaryState): Promise<void> {
-        await generateFunctionTests(params);
+        // await generateFunctionTests(params);
     }
 
     async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {

@@ -50,7 +50,11 @@ export async function checkProjectDiagnostics(langClient: ExtendedLangClient, te
             uri: Uri.file(tempDir).toString()
         }
     });
-    if (!response.errorDiagnosticMap || Object.keys(response.errorDiagnosticMap).length === 0) {
+    if (!response.errorDiagnosticMap) {
+        throw new Error("Internal error while getting diagnostics from language server");
+    }
+    
+    if (Object.keys(response.errorDiagnosticMap).length === 0) {
         return [];
     }
     for (const [filePath, diagnostics] of Object.entries(response.errorDiagnosticMap)) {
