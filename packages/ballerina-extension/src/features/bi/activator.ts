@@ -256,6 +256,11 @@ async function handleDebugCommandWithContext() {
         return;
     }
 
+    if (!projectPath) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return;
+    }
+
     startDebugging(Uri.file(projectPath), false, true);
 }
 
@@ -265,7 +270,7 @@ async function handleDebugCommandWithContext() {
  * @returns void
  */
 async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
-    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+    const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
     const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
     if (!selectedPackage) {
