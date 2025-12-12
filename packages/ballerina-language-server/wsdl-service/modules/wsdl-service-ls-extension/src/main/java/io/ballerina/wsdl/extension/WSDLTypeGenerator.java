@@ -30,7 +30,9 @@ import org.eclipse.lsp4j.TextEdit;
 import org.xml.sax.InputSource;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +54,7 @@ public class WSDLTypeGenerator {
     private static final String CLIENT_FILE_NAME = "client.bal";
     private static final String LS = System.lineSeparator();
 
-    private final String wsdlContent;
+    private final Path wsdlFilePath;
     private final Path projectPath;
     private final String portName;
     private final String[] operations;
@@ -61,13 +63,13 @@ public class WSDLTypeGenerator {
     /**
      * Constructor for WSDLTypeGenerator.
      *
-     * @param wsdlContent  The WSDL content as string
+     * @param wsdlFilePath The WSDL file path
      * @param projectPath  The project directory path
      * @param portName     The port name to use (optional)
      * @param operations   The operations to include (optional, null/empty = all operations)
      */
-    public WSDLTypeGenerator(String wsdlContent, Path projectPath, String portName, String[] operations) {
-        this.wsdlContent = wsdlContent;
+    public WSDLTypeGenerator(Path wsdlFilePath, Path projectPath, String portName, String[] operations) {
+        this.wsdlFilePath = wsdlFilePath;
         this.projectPath = projectPath;
         this.portName = portName != null ? portName : "";
         this.operations = operations != null ? operations : new String[0];
@@ -75,7 +77,7 @@ public class WSDLTypeGenerator {
     }
 
     /**
-     * Generates Ballerina types and client class from the WSDL content in a generated module folder.
+     * Generates Ballerina types and client class from the WSDL file in a generated module folder.
      * The types (schema types and envelope types) will be generated in generated/<module>/types.bal.
      * The client class and its imports will be generated in generated/<module>/client.bal.
      *
@@ -89,6 +91,7 @@ public class WSDLTypeGenerator {
         }
         WsdlToBallerinaResponse wsdlResponse;
         try {
+            String wsdlContent = readWSDLFile(wsdlFilePath);
             Definition wsdlDefinition = parseWSDLContent(wsdlContent);
             WsdlToBallerina wsdlToBallerina = new WsdlToBallerina();
             wsdlResponse = new WsdlToBallerinaResponse();
@@ -112,6 +115,8 @@ public class WSDLTypeGenerator {
             }
         } catch (WSDLException e) {
             throw new WSDLGenerationException("Failed to parse WSDL content: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new WSDLGenerationException("Failed to read WSDL file: " + e.getMessage(), e);
         }
 
         Path outputPath = projectPath.resolve("generated").resolve(module);
@@ -138,6 +143,17 @@ public class WSDLTypeGenerator {
         }
         ClientSource clientSourceResult = new ClientSource(textEditsMap);
         return gson.toJsonTree(clientSourceResult);
+    }
+
+    /**
+     * Reads WSDL file content from the given path.
+     *
+     * @param filePath Path to the WSDL file
+     * @return WSDL content as string
+     * @throws IOException if file reading fails
+     */
+    private String readWSDLFile(Path filePath) throws IOException {
+        return Files.readString(filePath);
     }
 
     /**
