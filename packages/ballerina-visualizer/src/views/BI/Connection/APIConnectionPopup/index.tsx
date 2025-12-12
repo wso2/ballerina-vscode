@@ -279,12 +279,10 @@ interface APIConnectionPopupProps {
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
     onBack?: () => void;
-    onGenerateSubmit?: () => Promise<void> | void;
-    onSaveConnection?: () => Promise<void> | void;
 }
 
 export function APIConnectionPopup(props: APIConnectionPopupProps) {
-    const { projectPath, fileName, target, onBack, onClose, onGenerateSubmit, onSaveConnection } = props;
+    const { projectPath, fileName, target, onBack, onClose } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -468,9 +466,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     if (response.artifacts.length > 0) {
                         setIsSavingConnection(false);
                         const newConnection = response.artifacts.find((artifact) => artifact.isNew);
-                        if (onClose) {
-                            onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
-                        }
+                        onClose?.({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
                     } else {
                         console.error(">>> Error updating source code", response);
                         setIsSavingConnection(false);
@@ -478,17 +474,10 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                 })
                 .catch((error) => {
                     console.error(">>> Error saving connection", error);
+                }).finally(() => {
                     setIsSavingConnection(false);
                 });
         }
-    };
-
-    const handleSaveConnection = async () => {
-        setIsSavingConnection(true);
-        if (onSaveConnection) {
-            await onSaveConnection();
-        }
-        setIsSavingConnection(false);
     };
 
     const renderStepper = () => {

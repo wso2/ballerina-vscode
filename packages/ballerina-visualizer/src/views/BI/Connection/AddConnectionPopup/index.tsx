@@ -233,10 +233,11 @@ interface AddConnectionPopupProps {
     fileName: string;
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
+    onNavigateToOverview?: () => void;
 }
 
 export function AddConnectionPopup(props: AddConnectionPopupProps) {
-    const { projectPath, fileName, target, onClose } = props;
+    const { projectPath, fileName, target, onClose, onNavigateToOverview } = props;
     const { rpcClient } = useRpcContext();
 
     const [searchText, setSearchText] = useState<string>("");
@@ -364,6 +365,9 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         setSelectedConnector(null);
         if (parent) {
             onClose?.(parent);
+            if (onNavigateToOverview) {
+                onNavigateToOverview();
+            }
         }
     };
 
@@ -435,6 +439,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                     fileName={fileName}
                     target={target}
                     onClose={handleCloseWizard}
+                    onBack={handleBackToConnectorList}
                 />
             </>
         );
@@ -453,12 +458,11 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     }
 
     const handleClosePopup = () => {
-        if (onClose) {
-            onClose();
+        if (onNavigateToOverview) {
+            onNavigateToOverview();
         } else {
-            rpcClient.getVisualizerRpcClient()?.goHome();
+            onClose?.();
         }
-
     };
 
     const openLearnMoreURL = () => {
