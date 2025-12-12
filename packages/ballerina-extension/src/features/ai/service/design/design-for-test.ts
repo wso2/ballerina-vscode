@@ -14,10 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { GenerateAgentCodeRequest } from "@wso2/ballerina-core";
+import { GenerateAgentCodeRequest, ExecutionContext } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../event";
-import { generateDesignCore } from "./design";
-import { StateMachine } from "../../../../stateMachine";
+import { generateDesignCore, createExecutionContext } from "./design";
 
 /**
  * Parameters for test-mode code generation
@@ -42,8 +41,8 @@ export interface GenerateDesignForTestResult {
  *
  * This function is specifically designed for evaluation and testing scenarios where:
  * - Tests create isolated project from template and pass its path
- * - This function sets StateMachine.context().projectPath to the isolated project
- * - generateDesignCore creates temp copy from StateMachine.context().projectPath
+ * - This function creates an isolated ExecutionContext for each test
+ * - generateDesignCore uses the isolated context (no StateMachine updates!)
  * - Changes are NOT integrated back to workspace (controlled by AI_TEST_ENV)
  * - Temp project is NOT cleaned up (AI_TEST_ENV prevents cleanup)
  * - Returns paths for validation and manual cleanup
@@ -66,30 +65,15 @@ export async function generateDesignForTest(
     }
 
     try {
-        // Set StateMachine.context().projectPath to the isolated project
-        // This ensures getTempProject() creates a temp copy from the isolated project
-        const langClient = StateMachine.langClient();
-        if (!langClient) {
-            throw new Error('[Test Mode] Language client not available');
-        }
-
-        const projectInfo = await langClient.getProjectInfo({ projectPath: params.projectPath });
-        await StateMachine.updateProjectRootAndInfo(params.projectPath, projectInfo);
-
-        // Verify the update
-        if (StateMachine.context().projectPath !== params.projectPath) {
-            throw new Error(`[Test Mode] Failed to set StateMachine projectPath. Expected: ${params.projectPath}, Got: ${StateMachine.context().projectPath}`);
-        }
-
-        // generateDesignCore creates temp project from StateMachine.context().projectPath
-        const tempProjectPath = await generateDesignCore(params, eventHandler);
+        const ctx: ExecutionContext = createExecutionContext(params.projectPath);
+        const tempProjectPath = await generateDesignCore(params, eventHandler, ctx);
 
         return {
             tempProjectPath,
             isolatedProjectPath: params.projectPath
         };
     } catch (error) {
-        console.error(`[Test Mode] Generation failed:`, error);
+        console.error(`[Test Mode] Generation failed for project ${params.projectPath}:`, error);
         throw error;
     }
 }

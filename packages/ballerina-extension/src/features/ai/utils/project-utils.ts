@@ -21,11 +21,12 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { StateMachine } from '../../../stateMachine';
-import { OperationType, ProjectModule, ProjectSource } from '@wso2/ballerina-core';
+import { OperationType, ProjectModule, ProjectSource, ExecutionContext } from '@wso2/ballerina-core';
 import { getWorkspaceTomlValues } from '../../../../src/utils';
 import { parse } from 'toml';
 import { NATURAL_PROGRAMMING_DIR_NAME, REQ_KEY, REQUIREMENT_DOC_PREFIX, REQUIREMENT_MD_DOCUMENT, REQUIREMENT_TEXT_DOCUMENT } from '../../../../src/rpc-managers/ai-panel/constants';
 import { isErrorCode, requirementsSpecification } from '../../../../src/rpc-managers/ai-panel/utils';
+import { sendAgentDidCloseBatch } from '../service/libs/agent_ls_notification_utils';
 
 /**
  * Result of getTempProject operation
@@ -47,10 +48,38 @@ interface BallerinaModule {
     isGenerated: boolean;
 }
 
-enum CodeGenerationType {
-    CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
-    TESTS_FOR_USER_REQUIREMENT = "TESTS_FOR_USER_REQUIREMENT",
-    CODE_GENERATION = "CODE_GENERATION"
+/**
+ * Recursively finds all .bal files in a directory
+ * @param dir Directory to search
+ * @param baseDir Base directory for relative paths (defaults to dir)
+ * @returns Array of relative file paths
+ */
+function findAllBalFiles(dir: string, baseDir?: string): string[] {
+    const base = baseDir || dir;
+    const files: string[] = [];
+
+    if (!fs.existsSync(dir)) {
+        return files;
+    }
+
+    try {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+
+            if (entry.isDirectory()) {
+                files.push(...findAllBalFiles(fullPath, base));
+            } else if (entry.isFile() && entry.name.endsWith('.bal')) {
+                const relativePath = path.relative(base, fullPath);
+                files.push(relativePath);
+            }
+        }
+    } catch (error) {
+        console.warn(`[findAllBalFiles] Error reading directory ${dir}:`, error);
+    }
+
+    return files;
 }
 
 // TODO: Improve sync strategy and timing
@@ -65,14 +94,15 @@ enum CodeGenerationType {
  * Creates a temporary project directory for AI operations.
  *
  * Priority order for source project path:
- * 1. StateMachine.context().projectPath (set by evals or active project)
- * 2. StateMachine.context().workspacePath (fallback for workspace context)
+ * 1. ctx.projectPath (set by caller, isolated per execution)
+ * 2. ctx.workspacePath (fallback for workspace context)
  *
+ * @param ctx - Execution context containing project paths
  * @returns Result containing temp path
  */
-export async function getTempProject(): Promise<TempProjectResult> {
-    let projectRoot = StateMachine.context().projectPath;
-    const workspacePath = StateMachine.context().workspacePath;
+export async function getTempProject(ctx: ExecutionContext): Promise<TempProjectResult> {
+    let projectRoot = ctx.projectPath;
+    const workspacePath = ctx.workspacePath;
     if (workspacePath) {
         projectRoot = workspacePath;
     }
@@ -82,9 +112,14 @@ export async function getTempProject(): Promise<TempProjectResult> {
     const randomSuffix = crypto.randomBytes(4).toString('hex');
     const tempDir = path.join(os.tmpdir(), `bal-proj-${projectHash}-${timestamp}-${randomSuffix}`);
 
-    // Check if temp project already exists (should be impossible with timestamp + crypto random)
     if (fs.existsSync(tempDir)) {
-        // Remove and recreate to sync changes
+        const existingFiles = findAllBalFiles(tempDir);
+
+        if (existingFiles.length > 0) {
+            sendAgentDidCloseBatch(tempDir, existingFiles);
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 
@@ -114,16 +149,15 @@ export function cleanupTempProject(tempPath: string): void {
     }
 }
 
-export async function getProjectSource(requestType: OperationType): Promise<ProjectSource[]> {
-    const context = StateMachine.context();
-    const currentProjectPath = context.projectPath;
-    const workspacePath = context.workspacePath;
+export async function getProjectSource(requestType: OperationType, ctx: ExecutionContext): Promise<ProjectSource[]> {
+    const currentProjectPath = ctx.projectPath;
+    const workspacePath = ctx.workspacePath;
 
     // Early return for non-workspace case: single project only
     if (!workspacePath) {
-        const project = await getCurrentProjectSource(requestType, currentProjectPath);
+        const project = await getCurrentProjectSource(requestType, ctx);
         if (!project) {
-            throw new Error('Cannot get project source - StateMachine projectPath not initialized');
+            throw new Error('Cannot get project source - ExecutionContext projectPath not initialized');
         }
         // No workspace context, so packagePath is empty string
         return [convertToProjectSource(project, "", true)];
@@ -134,12 +168,14 @@ export async function getProjectSource(requestType: OperationType): Promise<Proj
 
     // Fallback to single project if workspace.toml is invalid or has no packages
     if (!workspaceTomlValues || !workspaceTomlValues.workspace || !workspaceTomlValues.workspace.packages) {
-        const project = await getCurrentProjectSource(requestType);
+        const project = await getCurrentProjectSource(requestType, ctx);
         // Workspace exists but invalid, treat as non-workspace
         return [convertToProjectSource(project, "", true)];
     }
 
-    const packagePaths = StateMachine.context().projectInfo?.children.map(child => child.projectPath);
+    const langClient = StateMachine.langClient();
+    const projectInfo = await langClient.getProjectInfo({ projectPath: ctx.projectPath });
+    const packagePaths = projectInfo?.children.map(child => child.projectPath) || [];
 
     // Load all packages in parallel
     const projectSources: ProjectSource[] = await Promise.all(
@@ -149,7 +185,7 @@ export async function getProjectSource(requestType: OperationType): Promise<Proj
                 ? pkgPath
                 : path.join(workspacePath, pkgPath);
 
-            const project = await getCurrentProjectSource(requestType, fullPackagePath);
+            const project = await getCurrentProjectSource(requestType, ctx, fullPackagePath);
             const isActive = fullPackagePath === currentProjectPath;
 
             // Use relative path from workspace for packagePath
@@ -164,8 +200,12 @@ export async function getProjectSource(requestType: OperationType): Promise<Proj
     return projectSources;
 }
 
-async function getCurrentProjectSource(requestType: OperationType, projectPath?: string): Promise<BallerinaProject> {
-    const targetProjectPath = projectPath || StateMachine.context().projectPath;
+async function getCurrentProjectSource(
+    requestType: OperationType,
+    ctx: ExecutionContext,
+    projectPathOverride?: string
+): Promise<BallerinaProject> {
+    const targetProjectPath = projectPathOverride || ctx.projectPath;
     if (!targetProjectPath) {
         return null;
     }

@@ -45,6 +45,8 @@ import fs from 'fs';
 import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
 import { getTempProject, cleanupTempProject } from "../../utils/project-utils";
 import { integrateCodeToWorkspace } from "../design/utils";
+import { createExecutionContextFromStateMachine } from "../design/design";
+import { ExecutionContext } from "@wso2/ballerina-core";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -260,7 +262,8 @@ export async function generateMappingCodeCore(
         throw new Error("Function name is required in the mapping parameters");
     }
 
-    const { path: tempProjectPath } = await getTempProject();
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
     try {
         // Initialize generation process
         eventHandler({ type: "start" });
@@ -453,7 +456,7 @@ export async function generateMappingCodeCore(
         if (modifiedFiles.length > 0) {
             eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
             const modifiedFilesSet = new Set(modifiedFiles);
-            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
 
@@ -672,7 +675,8 @@ export async function generateInlineMappingCodeCore(
     }
 
     // Create temp project using shared utilities
-    const { path: tempProjectPath } = await getTempProject();
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
 
     try {
         // Initialize generation process
@@ -792,7 +796,7 @@ export async function generateInlineMappingCodeCore(
         if (modifiedFiles.length > 0) {
             eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
             const modifiedFilesSet = new Set(modifiedFiles);
-            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
 
@@ -848,7 +852,8 @@ export async function generateContextTypesCore(
     }
 
     // Create temp project using shared utilities
-    const { path: tempProjectPath } = await getTempProject();
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
 
     try {
         // Initialize generation process
@@ -876,7 +881,7 @@ export async function generateContextTypesCore(
         if (modifiedFiles.length > 0) {
             eventHandler({ type: "content_block", content: "<progress>Integrating code to workspace...</progress>" });
             const modifiedFilesSet = new Set(modifiedFiles);
-            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet);
+            await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
         }
 

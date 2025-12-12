@@ -14,13 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFile, FileChanges, CodeContext, ProjectSource } from "@wso2/ballerina-core";
+import { SourceFile, FileChanges, CodeContext, ProjectSource, ExecutionContext } from "@wso2/ballerina-core";
 import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import type { TextEdit } from "vscode-languageserver-protocol";
-import { StateMachine } from "../../../../../src/stateMachine";
 
 /**
  * File extensions to include in codebase structure
@@ -62,8 +61,13 @@ function sanitizeTempPaths(content: string, tempPath: string, workspacePath: str
  * Integrates code from temp directory to workspace
  * @param tempProjectPath Path to the temporary project directory
  * @param modifiedFiles Set of file paths that were actually modified during the sessionDependencies.toml
+ * @param ctx Execution context containing project paths
  */
-export async function integrateCodeToWorkspace(tempProjectPath: string, modifiedFiles?: Set<string>): Promise<void> {
+export async function integrateCodeToWorkspace(
+    tempProjectPath: string,
+    modifiedFiles: Set<string> | undefined,
+    ctx: ExecutionContext
+): Promise<void> {
     if (!tempProjectPath) {
         console.log("[Design Integration] No temp project path provided");
         return;
@@ -74,8 +78,8 @@ export async function integrateCodeToWorkspace(tempProjectPath: string, modified
         return;
     }
 
-    let workspaceFolderPath = StateMachine.context().projectPath;
-    const workspacePath = StateMachine.context().workspacePath;
+    let workspaceFolderPath = ctx.projectPath;
+    const workspacePath = ctx.workspacePath;
     if (workspacePath) {
         workspaceFolderPath = workspacePath;
     }

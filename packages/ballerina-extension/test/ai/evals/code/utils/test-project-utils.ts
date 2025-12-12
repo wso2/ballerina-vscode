@@ -79,6 +79,7 @@ export function createIsolatedTestProject(
             testId
         };
     } catch (error) {
+        console.error(`[DESIGN_DEBUG] [TEST ISOLATION] Failed to create isolated project:`, error);
         // Cleanup on error
         try {
             fs.rmSync(tempProjectPath, { recursive: true, force: true });
