@@ -278,6 +278,7 @@ export function DataMapperView(props: DataMapperProps) {
                 }));
             }
         }
+        rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
 
     const generateForm = (formProps: DMFormProps) => {

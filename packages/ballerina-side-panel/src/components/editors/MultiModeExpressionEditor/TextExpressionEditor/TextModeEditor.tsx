@@ -57,13 +57,6 @@ export const TextModeEditor: React.FC<ChipExpressionEditorComponentProps> = (pro
                 isInExpandedMode={props.isInExpandedMode}
                 configuration={props.configuration}
             />
-            {props.onOpenExpandedMode && !props.isInExpandedMode && (
-                <div id="text-mode-editor-expand" style={{ position: 'absolute', bottom: '9px', right: '8px' }}>
-                    <FloatingToggleButton onClick={props.onOpenExpandedMode} title="Expand Editor">
-                        <ExpandIcon />
-                    </FloatingToggleButton>
-                </div>
-            )}
         </EditorContainer>
     );
 };
