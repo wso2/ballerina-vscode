@@ -74,16 +74,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "key"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "value": {
         "metadata": {
@@ -108,16 +99,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "value"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

@@ -55,16 +55,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "s"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "options": {
         "metadata": {
@@ -72,6 +63,19 @@
           "description": "Options to be used for filtering in the projection"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "jsondata:Options",
+            "typeMembers": [
+              {
+                "type": "Options",
+                "packageInfo": "ballerina:data.jsondata:1.1.0",
+                "packageName": "data.jsondata",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "jsondata:Options"
@@ -86,15 +90,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "options"
         },
-        "typeMembers": [
-          {
-            "type": "Options",
-            "packageInfo": "ballerina:data.jsondata:1.1.0",
-            "packageName": "data.jsondata",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{}"
       },
       "t": {

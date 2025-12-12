@@ -92,8 +92,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "org"
-        },
-        "typeMembers": []
+        }
       },
       "$type": {
         "metadata": {
@@ -126,50 +125,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "'type"
         },
-        "typeMembers": [
-          {
-            "type": "\"all\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"public\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"private\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"forks\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"sources\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"member\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"all\""
       },
       "sort": {
@@ -201,36 +156,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "sort"
         },
-        "typeMembers": [
-          {
-            "type": "\"created\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"updated\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"pushed\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"full_name\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"created\""
       },
       "direction": {
@@ -253,29 +178,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "direction"
         },
-        "typeMembers": [
-          {
-            "type": "\"desc\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "\"asc\"",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "per_page": {
@@ -302,15 +204,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "per_page"
         },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0"
       },
       "page": {
@@ -337,15 +230,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "page"
         },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0"
       },
       "type": {

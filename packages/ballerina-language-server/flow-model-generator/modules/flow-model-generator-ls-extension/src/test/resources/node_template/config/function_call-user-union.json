@@ -55,16 +55,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "status"
-        },
-        "typeMembers": [
-          {
-            "type": "Status",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "dept": {
         "metadata": {
@@ -93,16 +84,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "dept"
-        },
-        "typeMembers": [
-          {
-            "type": "Department",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "priority": {
         "metadata": {
@@ -132,16 +114,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "priority"
-        },
-        "typeMembers": [
-          {
-            "type": "Priority",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "value": {
         "metadata": {
@@ -153,16 +126,12 @@
             "ballerinaType": "string"
           },
           {
-            "fieldType": "NUMBER",
-            "ballerinaType": "int"
-          },
-          {
             "fieldType": "FLAG",
             "ballerinaType": "boolean"
           },
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "int|decimal"
           },
           {
             "fieldType": "EXPRESSION",
@@ -177,16 +146,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "value"
-        },
-        "typeMembers": [
-          {
-            "type": "MixedValue",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

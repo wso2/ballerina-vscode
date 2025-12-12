@@ -54,23 +54,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "msg"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "PrintableRawTemplate",
-            "packageInfo": "ballerina:log:2.12.0",
-            "packageName": "log",
-            "kind": "OBJECT_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "error": {
         "metadata": {
@@ -92,22 +76,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "'error"
         },
-        "typeMembers": [
-          {
-            "type": "error",
-            "packageInfo": "ballerina:lang.annotations:0.0.0",
-            "packageName": "lang.annotations",
-            "kind": "ERROR_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "stackTrace": {
@@ -134,22 +102,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "stackTrace"
         },
-        "typeMembers": [
-          {
-            "type": "StackFrame",
-            "packageInfo": "ballerina:lang.error:0.0.0",
-            "packageName": "lang.error",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "additionalValues": {
@@ -171,8 +123,7 @@
         "codedata": {
           "kind": "INCLUDED_RECORD_REST",
           "originalName": "Additional Values"
-        },
-        "typeMembers": []
+        }
       }
     },
     "flags": 0

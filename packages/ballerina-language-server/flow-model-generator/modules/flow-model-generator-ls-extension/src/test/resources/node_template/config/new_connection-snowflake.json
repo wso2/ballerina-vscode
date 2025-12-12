@@ -51,16 +51,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "account_identifier"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "user": {
         "metadata": {
@@ -85,16 +76,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "user"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "password": {
         "metadata": {
@@ -119,16 +101,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "password"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "options": {
         "metadata": {
@@ -136,6 +109,19 @@
           "description": "The Snowflake client properties"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "snowflake:Options",
+            "typeMembers": [
+              {
+                "type": "Options",
+                "packageInfo": "ballerinax:snowflake:2.2.0",
+                "packageName": "snowflake",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "snowflake:Options?"
@@ -150,22 +136,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "options"
         },
-        "typeMembers": [
-          {
-            "type": "Options",
-            "packageInfo": "ballerinax:snowflake:2.2.0",
-            "packageName": "snowflake",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "connectionPool": {
@@ -174,6 +144,19 @@
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "sql:ConnectionPool",
+            "typeMembers": [
+              {
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.15.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "sql:ConnectionPool?"
@@ -188,22 +171,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "connectionPool"
         },
-        "typeMembers": [
-          {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.15.0",
-            "packageName": "sql",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {

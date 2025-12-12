@@ -92,8 +92,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "userId"
-        },
-        "typeMembers": []
+        }
       },
       "type": {
         "metadata": {

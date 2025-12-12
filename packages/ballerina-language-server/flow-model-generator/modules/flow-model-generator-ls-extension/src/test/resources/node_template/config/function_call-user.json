@@ -51,16 +51,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "x"
-        },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

@@ -92,8 +92,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "organizationId"
-        },
-        "typeMembers": []
+        }
       },
       "accountId": {
         "metadata": {
@@ -118,8 +117,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "accountId"
-        },
-        "typeMembers": []
+        }
       },
       "start": {
         "metadata": {
@@ -127,6 +125,10 @@
           "description": "Index of first item to include in the response. The default value is 0."
         },
         "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32"
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "int:Signed32?"
@@ -141,22 +143,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "'start"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "take": {
@@ -165,6 +151,10 @@
           "description": "Page size of the response. The default value is 20."
         },
         "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32"
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "int:Signed32?"
@@ -179,22 +169,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "take"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "end": {
@@ -203,6 +177,10 @@
           "description": "Index of the last item to include in the response. Ignored if `take` parameter is specified."
         },
         "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32"
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "int:Signed32?"
@@ -217,22 +195,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "end"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {

@@ -54,16 +54,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "m"
-        },
-        "typeMembers": [
-          {
-            "type": "Type>",
-            "packageInfo": "ballerina:lang.map:0.0.0",
-            "packageName": "lang.map",
-            "kind": "MAP_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "func": {
         "metadata": {
@@ -84,16 +75,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "func"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1 accum, map",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "FUNCTION_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "initial": {
         "metadata": {
@@ -114,16 +96,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "initial"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1",
-            "packageInfo": "ballerina:lang.map:0.0.0",
-            "packageName": "lang.map",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

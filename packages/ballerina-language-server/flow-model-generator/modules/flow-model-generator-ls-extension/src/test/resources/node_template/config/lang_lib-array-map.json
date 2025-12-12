@@ -54,16 +54,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "arr"
-        },
-        "typeMembers": [
-          {
-            "type": "Type",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "packageName": "lang.array",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "func": {
         "metadata": {
@@ -84,16 +75,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "func"
-        },
-        "typeMembers": [
-          {
-            "type": "Type val) returns array",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "FUNCTION_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

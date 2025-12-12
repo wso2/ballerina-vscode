@@ -54,16 +54,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "arr"
-        },
-        "typeMembers": [
-          {
-            "type": "AnydataType",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "packageName": "lang.array",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "val": {
         "metadata": {
@@ -84,16 +75,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "val"
-        },
-        "typeMembers": [
-          {
-            "type": "AnydataType",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "packageName": "lang.array",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "startIndex": {
         "metadata": {
@@ -119,15 +101,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "startIndex"
         },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0"
       },
       "type": {

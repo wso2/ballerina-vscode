@@ -73,16 +73,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "path"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

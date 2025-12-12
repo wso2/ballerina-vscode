@@ -39,6 +39,19 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "covid19:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "ballerinax:covid19:1.5.1",
+                "packageName": "covid19",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "covid19:ConnectionConfig"
           }
@@ -52,15 +65,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "config"
         },
-        "typeMembers": [
-          {
-            "type": "ConnectionConfig",
-            "packageInfo": "ballerinax:covid19:1.5.1",
-            "packageName": "covid19",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{}"
       },
       "serviceUrl": {
@@ -87,15 +91,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "serviceUrl"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "type": {

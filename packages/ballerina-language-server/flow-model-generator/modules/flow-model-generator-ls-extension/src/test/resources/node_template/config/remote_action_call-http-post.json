@@ -75,16 +75,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "path"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "message": {
         "metadata": {
@@ -109,16 +100,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "message"
-        },
-        "typeMembers": [
-          {
-            "type": "RequestMessage",
-            "packageInfo": "ballerina:http:2.12.0",
-            "packageName": "http",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "headers": {
         "metadata": {
@@ -144,22 +126,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "headers"
         },
-        "typeMembers": [
-          {
-            "type": "map<string|string[]>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "mediaType": {
@@ -186,22 +152,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "mediaType"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "targetType": {

@@ -50,16 +50,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "t"
-        },
-        "typeMembers": [
-          {
-            "type": "MapType>",
-            "packageInfo": "ballerina:lang.table:0.0.0",
-            "packageName": "lang.table",
-            "kind": "TABLE_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "func": {
         "metadata": {
@@ -80,16 +71,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "func"
-        },
-        "typeMembers": [
-          {
-            "type": "Type accum, table",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "FUNCTION_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "initial": {
         "metadata": {
@@ -110,16 +92,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "initial"
-        },
-        "typeMembers": [
-          {
-            "type": "Type",
-            "packageInfo": "ballerina:lang.table:0.0.0",
-            "packageName": "lang.table",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

@@ -58,15 +58,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "host"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "user": {
@@ -93,22 +84,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "user"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "password": {
@@ -135,22 +110,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "password"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "database": {
@@ -177,22 +136,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "database"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "port": {
@@ -219,15 +162,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "port"
         },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0"
       },
       "options": {
@@ -236,6 +170,19 @@
           "description": "MySQL database options"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "mysql:Options",
+            "typeMembers": [
+              {
+                "type": "Options",
+                "packageInfo": "ballerinax:mysql:1.15.0",
+                "packageName": "mysql",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "mysql:Options?"
@@ -250,22 +197,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "options"
         },
-        "typeMembers": [
-          {
-            "type": "Options",
-            "packageInfo": "ballerinax:mysql:1.15.0",
-            "packageName": "mysql",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "connectionPool": {
@@ -274,6 +205,19 @@
           "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "sql:ConnectionPool",
+            "typeMembers": [
+              {
+                "type": "ConnectionPool",
+                "packageInfo": "ballerina:sql:1.16.0",
+                "packageName": "sql",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "sql:ConnectionPool?"
@@ -288,22 +232,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "connectionPool"
         },
-        "typeMembers": [
-          {
-            "type": "ConnectionPool",
-            "packageInfo": "ballerina:sql:1.16.0",
-            "packageName": "sql",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {

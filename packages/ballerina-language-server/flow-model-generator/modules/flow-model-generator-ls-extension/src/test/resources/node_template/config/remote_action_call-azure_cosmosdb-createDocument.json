@@ -70,16 +70,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "databaseId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "containerId": {
         "metadata": {
@@ -104,16 +95,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "containerId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "documemtId": {
         "metadata": {
@@ -138,16 +120,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "documemtId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "document": {
         "metadata": {
@@ -172,16 +145,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "document"
-        },
-        "typeMembers": [
-          {
-            "type": "map<json>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "partitionKey": {
         "metadata": {
@@ -190,20 +154,12 @@
         },
         "types": [
           {
-            "fieldType": "NUMBER",
-            "ballerinaType": "int"
-          },
-          {
-            "fieldType": "NUMBER",
-            "ballerinaType": "float"
-          },
-          {
-            "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
-          },
-          {
             "fieldType": "TEXT",
             "ballerinaType": "string"
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int|float|decimal"
           },
           {
             "fieldType": "EXPRESSION",
@@ -218,37 +174,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "partitionKey"
-        },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "float",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "requestOptions": {
         "metadata": {
@@ -256,6 +182,19 @@
           "description": "The `cosmos_db:RequestOptions` which can be used to add additional capabilities that can \noverride client configuration provided in the inilization"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:RequestOptions",
+            "typeMembers": [
+              {
+                "type": "RequestOptions",
+                "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
+                "packageName": "azure_cosmosdb",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "azure_cosmosdb:RequestOptions?"
@@ -270,22 +209,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "requestOptions"
         },
-        "typeMembers": [
-          {
-            "type": "RequestOptions",
-            "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
-            "packageName": "azure_cosmosdb",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {

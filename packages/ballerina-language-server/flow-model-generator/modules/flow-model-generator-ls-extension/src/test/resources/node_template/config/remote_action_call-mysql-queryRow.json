@@ -74,15 +74,6 @@
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
         },
-        "typeMembers": [
-          {
-            "type": "ParameterizedQuery",
-            "packageInfo": "ballerina:sql:1.15.0",
-            "packageName": "sql",
-            "kind": "OBJECT_TYPE",
-            "selected": false
-          }
-        ],
         "imports": {
           "sql": "ballerina/sql"
         }

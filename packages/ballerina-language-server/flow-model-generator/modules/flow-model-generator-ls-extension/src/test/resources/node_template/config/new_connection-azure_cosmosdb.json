@@ -39,6 +39,19 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
+                "packageName": "azure_cosmosdb",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "azure_cosmosdb:ConnectionConfig"
           }
@@ -51,16 +64,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "config"
-        },
-        "typeMembers": [
-          {
-            "type": "ConnectionConfig",
-            "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
-            "packageName": "azure_cosmosdb",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

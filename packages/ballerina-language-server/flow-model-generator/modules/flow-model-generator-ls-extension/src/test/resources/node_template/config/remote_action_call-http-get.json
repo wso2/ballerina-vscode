@@ -75,16 +75,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "path"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "headers": {
         "metadata": {
@@ -110,22 +101,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "headers"
         },
-        "typeMembers": [
-          {
-            "type": "map<string|string[]>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "targetType": {

@@ -51,16 +51,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "e"
-        },
-        "typeMembers": [
-          {
-            "type": "error<error",
-            "packageInfo": "ballerina:lang.error:0.0.0",
-            "packageName": "lang.error",
-            "kind": "ERROR_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

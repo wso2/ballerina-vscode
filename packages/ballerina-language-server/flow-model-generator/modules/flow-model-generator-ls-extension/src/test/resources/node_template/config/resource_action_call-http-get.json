@@ -94,22 +94,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "headers"
         },
-        "typeMembers": [
-          {
-            "type": "map<string|string[]>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "targetType": {
@@ -153,8 +137,7 @@
         "codedata": {
           "kind": "INCLUDED_RECORD_REST",
           "originalName": "Additional Values"
-        },
-        "typeMembers": []
+        }
       },
       "type": {
         "metadata": {

@@ -35,6 +35,19 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Address",
+            "typeMembers": [
+              {
+                "type": "Address",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "Address"
           }
@@ -47,22 +60,26 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "address"
-        },
-        "typeMembers": [
-          {
-            "type": "Address",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "Person": {
         "metadata": {
           "label": "Person"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Person",
+            "typeMembers": [
+              {
+                "type": "Person",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "Person"
@@ -76,16 +93,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "Person"
-        },
-        "typeMembers": [
-          {
-            "type": "Person",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

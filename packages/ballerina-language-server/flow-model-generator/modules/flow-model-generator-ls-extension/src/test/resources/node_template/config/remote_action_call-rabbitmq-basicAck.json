@@ -76,15 +76,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "multiple"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "checkError": {

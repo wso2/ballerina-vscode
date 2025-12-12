@@ -41,6 +41,19 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "datalake:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "ballerinax:azure.datalake:1.5.1",
+                "packageName": "azure.datalake",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "datalake:ConnectionConfig"
           }
@@ -53,16 +66,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "config"
-        },
-        "typeMembers": [
-          {
-            "type": "ConnectionConfig",
-            "packageInfo": "ballerinax:azure.datalake:1.5.1",
-            "packageName": "azure.datalake",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "serviceUrl": {
         "metadata": {
@@ -87,16 +91,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "serviceUrl"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

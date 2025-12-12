@@ -35,6 +35,19 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "http:ClientConfiguration",
+            "typeMembers": [
+              {
+                "type": "ClientConfiguration",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "http:ClientConfiguration"
           }
@@ -48,15 +61,6 @@
           "kind": "REQUIRED",
           "originalName": "config"
         },
-        "typeMembers": [
-          {
-            "type": "ClientConfiguration",
-            "packageInfo": "ballerina:http:2.15.2",
-            "packageName": "http",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "imports": {
           "http": "ballerina/http"
         }
@@ -66,6 +70,19 @@
           "label": "Address"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Address",
+            "typeMembers": [
+              {
+                "type": "Address",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "Address"
@@ -79,16 +96,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "address"
-        },
-        "typeMembers": [
-          {
-            "type": "Address",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {

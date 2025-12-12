@@ -58,15 +58,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "serviceUrl"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "allowHeaders": {
@@ -93,15 +84,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowHeaders"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowMethods": {
@@ -128,15 +110,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowMethods"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowOrigins": {
@@ -163,15 +136,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowOrigins"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "exposeHeaders": {
@@ -198,15 +162,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "exposeHeaders"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowCredentials": {
@@ -233,15 +188,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowCredentials"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "maxAge": {
@@ -268,15 +214,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxAge"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "type": {

@@ -56,16 +56,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "host"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "port": {
         "metadata": {
@@ -90,16 +81,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "port"
-        },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "username": {
         "metadata": {
@@ -125,15 +107,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "username"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "password": {
@@ -160,15 +133,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "password"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "virtualHost": {
@@ -195,15 +159,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "virtualHost"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "connectionTimeout": {
@@ -230,15 +185,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "connectionTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "handshakeTimeout": {
@@ -265,15 +211,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "handshakeTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "shutdownTimeout": {
@@ -300,15 +237,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "shutdownTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "heartbeat": {
@@ -335,15 +263,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "heartbeat"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "validation": {
@@ -370,15 +289,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "validation"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "secureSocket": {
@@ -387,6 +297,19 @@
           "description": "Configurations for facilitating secure connections"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "rabbitmq:SecureSocket"
@@ -401,15 +324,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "secureSocket"
         },
-        "typeMembers": [
-          {
-            "type": "SecureSocket",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "packageName": "rabbitmq",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{cert: {path: \"\", password: \"\"}}"
       },
       "auth": {
@@ -418,6 +332,19 @@
           "description": "Configurations related to authentication"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:Credentials",
+            "typeMembers": [
+              {
+                "type": "Credentials",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ]
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "rabbitmq:Credentials"
@@ -432,15 +359,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "auth"
         },
-        "typeMembers": [
-          {
-            "type": "Credentials",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "packageName": "rabbitmq",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{username: \"\", password: \"\"}"
       },
       "type": {

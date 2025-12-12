@@ -50,16 +50,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "v"
-        },
-        "typeMembers": [
-          {
-            "type": "anydata",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
