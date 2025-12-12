@@ -112,16 +112,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "path"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "headers": {
             "metadata": {
@@ -147,22 +138,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "headers"
             },
-            "typeMembers": [
-              {
-                "type": "map<string|string[]>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -354,16 +329,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "config": {
             "metadata": {
@@ -371,6 +337,19 @@
               "description": "The configurations to be used when initializing the `client`"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "ClientConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientConfiguration"
@@ -385,16 +364,7 @@
             "codedata": {
               "kind": "INCLUDED_RECORD",
               "originalName": "config"
-            },
-            "typeMembers": [
-              {
-                "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.15.3",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -549,16 +519,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "path"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "headers": {
             "metadata": {
@@ -584,22 +545,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "headers"
             },
-            "typeMembers": [
-              {
-                "type": "map<string|string[]>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -945,16 +890,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "config": {
             "metadata": {
@@ -962,6 +898,19 @@
               "description": "The configurations to be used when initializing the `client`"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "ClientConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientConfiguration"
@@ -976,16 +925,7 @@
             "codedata": {
               "kind": "INCLUDED_RECORD",
               "originalName": "config"
-            },
-            "typeMembers": [
-              {
-                "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.15.3",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {

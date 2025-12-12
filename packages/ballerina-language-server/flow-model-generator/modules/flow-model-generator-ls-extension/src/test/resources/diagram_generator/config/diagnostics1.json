@@ -388,16 +388,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "s"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "i": {
             "metadata": {
@@ -431,16 +422,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "i"
-            },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "b": {
             "metadata": {
@@ -465,16 +447,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "b"
-            },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "j": {
             "metadata": {
@@ -508,16 +481,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "j"
-            },
-            "typeMembers": [
-              {
-                "type": "map<json>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "diagnostics": {

@@ -295,16 +295,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "randomNumber"
-            },
-            "typeMembers": [
-              {
-                "type": "float",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "id": {
             "metadata": {
@@ -329,16 +320,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "id"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {

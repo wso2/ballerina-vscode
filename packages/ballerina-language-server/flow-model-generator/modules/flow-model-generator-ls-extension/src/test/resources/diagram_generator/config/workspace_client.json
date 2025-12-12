@@ -134,16 +134,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "serviceUrl"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -338,16 +329,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "id"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -512,16 +494,7 @@
                     "codedata": {
                       "kind": "REST_PARAMETER",
                       "originalName": "values"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "Printable",
-                        "packageInfo": "ballerina:io:1.8.0",
-                        "packageName": "io",
-                        "kind": "ARRAY_TYPE",
-                        "selected": false
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0
@@ -645,8 +618,7 @@
             "codedata": {
               "kind": "PATH_PARAM",
               "originalName": "id"
-            },
-            "typeMembers": []
+            }
           },
           "connection": {
             "metadata": {
@@ -827,16 +799,7 @@
                     "codedata": {
                       "kind": "REST_PARAMETER",
                       "originalName": "values"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "Printable",
-                        "packageInfo": "ballerina:io:1.8.0",
-                        "packageName": "io",
-                        "kind": "ARRAY_TYPE",
-                        "selected": false
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0

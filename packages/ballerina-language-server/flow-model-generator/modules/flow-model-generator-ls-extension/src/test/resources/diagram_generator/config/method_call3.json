@@ -143,6 +143,23 @@
             },
             "types": [
               {
+                "fieldType": "TEXT",
+                "ballerinaType": "redis:ConnectionUri"
+              },
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:ConnectionParams",
+                "typeMembers": [
+                  {
+                    "type": "ConnectionParams",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams"
               }
@@ -156,22 +173,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "typeMembers": [
-              {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "ConnectionParams",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "connectionPooling": {
@@ -198,15 +199,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connectionPooling"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "isClusterConnection": {
@@ -233,15 +225,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "isClusterConnection"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "secureSocket": {
@@ -250,6 +233,19 @@
               "description": "Configurations related to SSL/TLS encryption"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:SecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "SecureSocket",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "redis:SecureSocket"
@@ -264,15 +260,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "SecureSocket",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "checkError": {

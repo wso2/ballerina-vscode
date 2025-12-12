@@ -105,6 +105,19 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "pkgB:Customer",
+                "typeMembers": [
+                  {
+                    "type": "Customer",
+                    "packageInfo": "wso2:pkgB:0.1.0",
+                    "packageName": "pkgB",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "pkgB:Customer"
               }
@@ -118,16 +131,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "customer"
-            },
-            "typeMembers": [
-              {
-                "type": "Customer",
-                "packageInfo": "wso2:pkgB:0.1.0",
-                "packageName": "pkgB",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "orderAmount": {
             "metadata": {
@@ -152,16 +156,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "orderAmount"
-            },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -279,16 +274,7 @@
             "codedata": {
               "kind": "REST_PARAMETER",
               "originalName": "values"
-            },
-            "typeMembers": [
-              {
-                "type": "Printable",
-                "packageInfo": "ballerina:io:1.8.0",
-                "packageName": "io",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "flags": 0

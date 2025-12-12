@@ -273,16 +273,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "seconds"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "decimal",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0

@@ -193,6 +193,19 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "Source",
+                "typeMembers": [
+                  {
+                    "type": "Source",
+                    "packageInfo": "nipunaf:new_connection1:0.1.0",
+                    "packageName": "new_connection1",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "Source"
               }
@@ -206,16 +219,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "src"
-            },
-            "typeMembers": [
-              {
-                "type": "Source",
-                "packageInfo": "nipunaf:new_connection1:0.1.0",
-                "packageName": "new_connection1",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -339,6 +343,19 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "Source",
+                "typeMembers": [
+                  {
+                    "type": "Source",
+                    "packageInfo": "nipunaf:new_connection1:0.1.0",
+                    "packageName": "new_connection1",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "Source"
               }
@@ -361,16 +378,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "src"
-            },
-            "typeMembers": [
-              {
-                "type": "Source",
-                "packageInfo": "nipunaf:new_connection1:0.1.0",
-                "packageName": "new_connection1",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -502,16 +510,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "i"
-            },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -624,16 +623,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "value"
-            },
-            "typeMembers": [
-              {
-                "type": "json",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "OTHER",
-                "selected": false
-              }
-            ]
+            }
           },
           "indentation": {
             "metadata": {
@@ -659,15 +649,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "indentation"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "variable": {

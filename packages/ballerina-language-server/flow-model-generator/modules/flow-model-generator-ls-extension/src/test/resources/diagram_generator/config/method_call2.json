@@ -716,16 +716,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "s"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
