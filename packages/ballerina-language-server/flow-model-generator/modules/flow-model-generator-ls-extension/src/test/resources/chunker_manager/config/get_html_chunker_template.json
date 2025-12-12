@@ -91,15 +91,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxChunkSize"
           },
-          "typeMembers": [
-            {
-              "type": "int",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "0"
         },
         "maxOverlapSize": {
@@ -126,15 +117,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxOverlapSize"
           },
-          "typeMembers": [
-            {
-              "type": "int",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "0"
         },
         "strategy": {
@@ -168,15 +150,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "strategy"
           },
-          "typeMembers": [
-            {
-              "type": "HtmlChunkStrategy",
-              "packageInfo": "ballerina:ai:1.5.0",
-              "packageName": "ai",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"CHARACTER\""
         },
         "scope": {
