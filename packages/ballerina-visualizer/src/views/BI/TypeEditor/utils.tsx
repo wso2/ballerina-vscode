@@ -16,25 +16,25 @@
  * under the License.
  */
 
-import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem } from '@wso2/ballerina-core';
+import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext } from '@wso2/ballerina-core';
 import type { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { COMPLETION_ITEM_KIND, convertCompletionItemKind } from '@wso2/ui-toolkit';
 import { getFunctionItemKind, isDMSupportedType } from '../../../utils/bi';
 
 // TODO: Remove this order onces the LS is fixed
 const TYPE_CATEGORY_ORDER = [
-    { label: "User-Defined", sortText: "0"},
-    { label: "Primitive Types", sortText: "1"},
-    { label: "Data Types", sortText: "2"},
-    { label: "Structural Types", sortText: "3"},
-    { label: "Error Types", sortText: "4"},
-    { label: "Behaviour Types", sortText: "5"},
-    { label: "Other Types", sortText: "6"},
-    { label: "Used Variable Types", sortText: "7"},
+    { label: "User-Defined", sortText: "0" },
+    { label: "Primitive Types", sortText: "1" },
+    { label: "Data Types", sortText: "2" },
+    { label: "Structural Types", sortText: "3" },
+    { label: "Error Types", sortText: "4" },
+    { label: "Behaviour Types", sortText: "5" },
+    { label: "Other Types", sortText: "6" },
+    { label: "Used Variable Types", sortText: "7" },
 
     // GraphQL Specific
-    { label: "Scalar Types", sortText: "1"},
-    { label: "Enum Types", sortText: "2"},
+    { label: "Scalar Types", sortText: "1" },
+    { label: "Enum Types", sortText: "2" },
 ] as const;
 
 /**
@@ -44,7 +44,7 @@ const TYPE_CATEGORY_ORDER = [
  * @param filterDMTypes - Whether to filter the types for the data mapper
  * @returns The categories for the type editor
  */
-export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): TypeHelperCategory[] => {
+export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payloadContext?: GeneralPayloadContext): TypeHelperCategory[] => {
     const categoryRecord: Record<string, TypeHelperItem[]> = {};
 
     for (const type of types) {
@@ -68,12 +68,79 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): Typ
         });
     }
 
-    const categories = Object.entries(categoryRecord).map(([category, items]) => ({
+    let categories = Object.entries(categoryRecord).map(([category, items]) => ({
         category,
         sortText: TYPE_CATEGORY_ORDER.find((order) => order.label === category)?.sortText,
         items
     }));
 
+    if (payloadContext?.protocol === "FTP") {
+
+        categories = categories
+            .filter((category) => category.category === "User-Defined")
+            .map((category) => ({
+                ...category,
+                items: category.items.filter((item) => item.labelDetails?.description === "Record")
+            }))
+            .filter((category) => category.items.length > 0);
+
+        if (payloadContext?.filterType === "JSON") {
+            categories = [...categories,
+            {
+                category: "Data Types",
+                sortText: "2",
+                items: [
+                    {
+                        name: "json",
+                        insertText: "json",
+                        type: "type-parameter",
+                        labelDetails: {
+                            detail: "Data Types",
+                            description: "Built-in JSON type"
+                        }
+                    }
+                ]
+            }
+            ];
+        } else if (payloadContext?.filterType === "XML") {
+            categories = [...categories,
+            {
+                category: "Data Types",
+                sortText: "2",
+                items: [
+                    {
+                        name: "xml",
+                        insertText: "xml",
+                        type: "type-parameter",
+                        labelDetails: {
+                            detail: "Data Types",
+                            description: "Built-in XML type"
+                        }
+                    }
+                ]
+            }
+            ];
+        } else if (payloadContext?.filterType === "CSV") {
+            categories = [...categories,
+            {
+                category: "Structural Types",
+                sortText: "3",
+                items: [
+                    {
+                        name: "string[]",
+                        insertText: "string[]",
+                        type: "type-parameter",
+                        labelDetails: {
+                            detail: "Structural Types",
+                            description: "Built-in string array type"
+                        }
+                    }
+                ]
+            }
+            ];
+
+        }
+    }
     return categories.sort((a, b) => a.sortText.localeCompare(b.sortText));
 };
 
@@ -107,7 +174,7 @@ export const getImportedTypes = (types: Category[]) => {
         if (category.items.length === 0) {
             continue;
         }
-        
+
         const categoryKind = getFunctionItemKind(category.metadata.label);
         if (categoryKind !== functionKinds.IMPORTED) {
             continue;
@@ -161,7 +228,7 @@ export const getTypeBrowserTypes = (types: Category[]) => {
         if (category.items.length === 0) {
             continue;
         }
-        
+
         const categoryKind = getFunctionItemKind(category.metadata.label);
         const items: TypeHelperItem[] = [];
         const subCategories: TypeHelperCategory[] = [];

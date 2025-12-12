@@ -124,7 +124,12 @@ export interface MessageQueuePayloadContext {
     messageDocumentation?: string;
 }
 
-export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext;
+export interface GeneralPayloadContext {
+    protocol: string;
+    filterType?: string;
+}
+
+export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext | GeneralPayloadContext;
 
 export interface ParamDetails {
     name: string;
