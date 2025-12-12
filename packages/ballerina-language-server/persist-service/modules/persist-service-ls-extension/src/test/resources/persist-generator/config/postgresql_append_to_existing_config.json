@@ -40,7 +40,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"departments\"\ntargetModule = \"departments\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_config.departments\"\ntargetModule = \"sample_project_with_config.departments\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
       }
     ],
     "sample-project-with-config/persist/model.bal": [

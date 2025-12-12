@@ -86,7 +86,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"testdb_mssql\"\ntargetModule = \"testdb_mssql\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb_mssql\"\ntargetModule = \"sample_project.testdb_mssql\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
       }
     ],
     "sample-project/config.bal": [

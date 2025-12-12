@@ -85,7 +85,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"testdb\"\ntargetModule = \"testdb\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
       }
     ],
     "sample-project/config.bal": [

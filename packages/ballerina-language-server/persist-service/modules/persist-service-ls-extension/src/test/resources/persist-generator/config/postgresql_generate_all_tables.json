@@ -86,7 +86,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"testdb_pg\"\ntargetModule = \"testdb_pg\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb_pg\"\ntargetModule = \"sample_project.testdb_pg\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
       }
     ],
     "sample-project/config.bal": [
