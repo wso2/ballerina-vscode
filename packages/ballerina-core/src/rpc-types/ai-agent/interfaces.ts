@@ -47,6 +47,22 @@ export interface ToolParameterFormValues {
 }
 
 export interface ToolParameterItem {
+    id: number;
+    icon: string;
+    key: string;
+    value: string;
+    identifierEditable: boolean;
+    identifierRange?: {
+        fileName: string;
+        startLine: {
+            line: number;
+            offset: number;
+        };
+        endLine: {
+            line: number;
+            offset: number;
+        };
+    };
     formValues: ToolParameterFormValues;
 }
 

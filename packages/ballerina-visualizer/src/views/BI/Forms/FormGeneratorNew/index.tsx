@@ -36,7 +36,8 @@ import {
     LinePosition,
     NodeProperties,
     ExpressionCompletionsRequest,
-    ExpressionCompletionsResponse
+    ExpressionCompletionsResponse,
+    Diagnostic
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -115,6 +116,7 @@ interface FormProps {
     changeOptionalFieldTitle?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     hideSaveButton?: boolean;
+    customDiagnosticFilter?: (diagnostics: Diagnostic[]) => Diagnostic[];
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -147,7 +149,8 @@ export function FormGeneratorNew(props: FormProps) {
         injectedComponents,
         changeOptionalFieldTitle,
         onChange,
-        hideSaveButton
+        hideSaveButton,
+        customDiagnosticFilter
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -469,7 +472,7 @@ export function FormGeneratorNew(props: FormProps) {
                             triggerCharacter: triggerCharacter as TriggerCharacter
                         }
                     };
-                    
+
                     let completions: ExpressionCompletionsResponse;
                     if (!isDataMapperEditor) {
                         completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions(completionRequest);
@@ -648,6 +651,10 @@ export function FormGeneratorNew(props: FormProps) {
                         let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics);
                         // HACK: filter unknown module and undefined type diagnostics for local connections
                         uniqueDiagnostics = filterUnsupportedDiagnostics(uniqueDiagnostics);
+                        // Apply custom diagnostic filter if provided
+                        if (customDiagnosticFilter) {
+                            uniqueDiagnostics = customDiagnosticFilter(uniqueDiagnostics);
+                        }
 
                         setDiagnosticsInfo({ key, diagnostics: uniqueDiagnostics });
                     }
