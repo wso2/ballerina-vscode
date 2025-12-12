@@ -113,6 +113,19 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt",
+                "typeMembers": [
+                  {
+                    "type": "SystemPrompt",
+                    "packageInfo": "ballerinax:ai:1.0.1",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "ai:SystemPrompt"
               }
@@ -440,16 +453,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "query"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "sessionId": {
             "metadata": {
@@ -475,15 +479,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           }
         },
@@ -540,15 +535,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "model"
             },
-            "typeMembers": [
-              {
-                "type": "ModelProvider",
-                "packageInfo": "ballerinax:ai:1.0.1",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "object {}"
           },
           "systemPrompt": {
@@ -557,6 +543,19 @@
               "description": "The system prompt assigned to the agent"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt",
+                "typeMembers": [
+                  {
+                    "type": "SystemPrompt",
+                    "packageInfo": "ballerinax:ai:1.0.1",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "ai:SystemPrompt"
@@ -572,15 +571,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "systemPrompt"
             },
-            "typeMembers": [
-              {
-                "type": "SystemPrompt",
-                "packageInfo": "ballerinax:ai:1.0.1",
-                "packageName": "ai",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ],
             "defaultValue": "{role: \"\", instructions: \"\"}"
           },
           "agentType": {
@@ -611,15 +601,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "agentType"
             },
-            "typeMembers": [
-              {
-                "type": "AgentType",
-                "packageInfo": "ballerinax:ai:1.0.1",
-                "packageName": "ai",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"FUNCTION_CALL_AGENT\""
           },
           "tools": {
@@ -647,15 +628,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "tools"
             },
-            "typeMembers": [
-              {
-                "type": "BaseToolKit|ai",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "[]"
           },
           "maxIter": {
@@ -682,15 +654,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "verbose": {
@@ -717,15 +680,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "verbose"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "memory": {
@@ -748,22 +702,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "memory"
             },
-            "typeMembers": [
-              {
-                "type": "Memory",
-                "packageInfo": "ballerinax:ai:1.0.1",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -853,7 +791,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -900,16 +838,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "httpVersion": {
             "metadata": {
@@ -939,15 +868,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "httpVersion"
             },
-            "typeMembers": [
-              {
-                "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"2.0\""
           },
           "http1Settings": {
@@ -956,6 +876,19 @@
               "description": "HTTP/1.x specific settings"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp1Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp1Settings"
@@ -970,15 +903,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http1Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "http2Settings": {
@@ -987,6 +911,19 @@
               "description": "HTTP/2 specific settings"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp2Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp2Settings"
@@ -1001,15 +938,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http2Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "timeout": {
@@ -1036,15 +964,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "timeout"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "forwarded": {
@@ -1071,15 +990,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "forwarded"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "followRedirects": {
@@ -1088,6 +998,19 @@
               "description": "HTTP redirect handling configurations (with 3xx status codes)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:FollowRedirects",
+                "typeMembers": [
+                  {
+                    "type": "FollowRedirects",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:FollowRedirects?"
@@ -1102,22 +1025,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "followRedirects"
             },
-            "typeMembers": [
-              {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "poolConfig": {
@@ -1126,6 +1033,19 @@
               "description": "Configurations associated with the request connection pool"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "PoolConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:PoolConfiguration?"
@@ -1140,22 +1060,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "poolConfig"
             },
-            "typeMembers": [
-              {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "cache": {
@@ -1164,6 +1068,19 @@
               "description": "HTTP response caching related configurations"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CacheConfig",
+                "typeMembers": [
+                  {
+                    "type": "CacheConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CacheConfig"
@@ -1178,15 +1095,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "cache"
             },
-            "typeMembers": [
-              {
-                "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "compression": {
@@ -1217,15 +1125,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "compression"
             },
-            "typeMembers": [
-              {
-                "type": "Compression",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"AUTO\""
           },
           "auth": {
@@ -1234,6 +1133,61 @@
               "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig",
+                "typeMembers": [
+                  {
+                    "type": "CredentialsConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "BearerTokenConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "JwtIssuerConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2ClientCredentialsGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2PasswordGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2RefreshTokenGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2JwtBearerGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientAuthConfig?"
@@ -1248,64 +1202,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "auth"
             },
-            "typeMembers": [
-              {
-                "type": "CredentialsConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "BearerTokenConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "JwtIssuerConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2ClientCredentialsGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2PasswordGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2RefreshTokenGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "circuitBreaker": {
@@ -1314,6 +1210,19 @@
               "description": "Circuit breaker configurations to prevent cascading failures"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig",
+                "typeMembers": [
+                  {
+                    "type": "CircuitBreakerConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CircuitBreakerConfig?"
@@ -1328,22 +1237,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "circuitBreaker"
             },
-            "typeMembers": [
-              {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "retryConfig": {
@@ -1352,6 +1245,19 @@
               "description": "Automatic retry settings for failed requests"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:RetryConfig",
+                "typeMembers": [
+                  {
+                    "type": "RetryConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RetryConfig?"
@@ -1366,22 +1272,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "retryConfig"
             },
-            "typeMembers": [
-              {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "cookieConfig": {
@@ -1390,6 +1280,19 @@
               "description": "Cookie handling settings for session management"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CookieConfig",
+                "typeMembers": [
+                  {
+                    "type": "CookieConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CookieConfig?"
@@ -1404,22 +1307,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "cookieConfig"
             },
-            "typeMembers": [
-              {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "responseLimits": {
@@ -1428,6 +1315,19 @@
               "description": "Limits for response size and headers (to prevent memory issues)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "typeMembers": [
+                  {
+                    "type": "ResponseLimitConfigs",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ResponseLimitConfigs"
@@ -1442,15 +1342,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "responseLimits"
             },
-            "typeMembers": [
-              {
-                "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "proxy": {
@@ -1459,6 +1350,19 @@
               "description": "Proxy server settings if requests need to go through a proxy"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ProxyConfig",
+                "typeMembers": [
+                  {
+                    "type": "ProxyConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ProxyConfig?"
@@ -1473,22 +1377,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "proxy"
             },
-            "typeMembers": [
-              {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "validation": {
@@ -1515,15 +1403,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "validation"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "socketConfig": {
@@ -1532,6 +1411,19 @@
               "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSocketConfig",
+                "typeMembers": [
+                  {
+                    "type": "ClientSocketConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientSocketConfig"
@@ -1546,15 +1438,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "socketConfig"
             },
-            "typeMembers": [
-              {
-                "type": "ClientSocketConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "laxDataBinding": {
@@ -1581,15 +1464,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "laxDataBinding"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "secureSocket": {
@@ -1598,6 +1472,19 @@
               "description": "SSL/TLS security settings for HTTPS connections"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "ClientSecureSocket",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientSecureSocket?"
@@ -1612,22 +1499,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -1717,7 +1588,7 @@
         "metadata": {
           "label": "New Connection",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -1764,16 +1635,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "httpVersion": {
             "metadata": {
@@ -1803,15 +1665,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "httpVersion"
             },
-            "typeMembers": [
-              {
-                "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"2.0\""
           },
           "http1Settings": {
@@ -1820,6 +1673,19 @@
               "description": "HTTP/1.x specific settings"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp1Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp1Settings"
@@ -1834,15 +1700,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http1Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "http2Settings": {
@@ -1851,6 +1708,19 @@
               "description": "HTTP/2 specific settings"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp2Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp2Settings"
@@ -1865,15 +1735,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http2Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "timeout": {
@@ -1900,15 +1761,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "timeout"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "forwarded": {
@@ -1935,15 +1787,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "forwarded"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "followRedirects": {
@@ -1952,6 +1795,19 @@
               "description": "HTTP redirect handling configurations (with 3xx status codes)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:FollowRedirects",
+                "typeMembers": [
+                  {
+                    "type": "FollowRedirects",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:FollowRedirects?"
@@ -1966,22 +1822,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "followRedirects"
             },
-            "typeMembers": [
-              {
-                "type": "FollowRedirects",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "poolConfig": {
@@ -1990,6 +1830,19 @@
               "description": "Configurations associated with the request connection pool"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "PoolConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:PoolConfiguration?"
@@ -2004,22 +1857,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "poolConfig"
             },
-            "typeMembers": [
-              {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "cache": {
@@ -2028,6 +1865,19 @@
               "description": "HTTP response caching related configurations"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CacheConfig",
+                "typeMembers": [
+                  {
+                    "type": "CacheConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CacheConfig"
@@ -2042,15 +1892,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "cache"
             },
-            "typeMembers": [
-              {
-                "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "compression": {
@@ -2081,15 +1922,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "compression"
             },
-            "typeMembers": [
-              {
-                "type": "Compression",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"AUTO\""
           },
           "auth": {
@@ -2098,6 +1930,61 @@
               "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig",
+                "typeMembers": [
+                  {
+                    "type": "CredentialsConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "BearerTokenConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "JwtIssuerConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2ClientCredentialsGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2PasswordGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2RefreshTokenGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2JwtBearerGrantConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientAuthConfig?"
@@ -2112,64 +1999,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "auth"
             },
-            "typeMembers": [
-              {
-                "type": "CredentialsConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "BearerTokenConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "JwtIssuerConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2ClientCredentialsGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2PasswordGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2RefreshTokenGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "OAuth2JwtBearerGrantConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "circuitBreaker": {
@@ -2178,6 +2007,19 @@
               "description": "Circuit breaker configurations to prevent cascading failures"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig",
+                "typeMembers": [
+                  {
+                    "type": "CircuitBreakerConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CircuitBreakerConfig?"
@@ -2192,22 +2034,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "circuitBreaker"
             },
-            "typeMembers": [
-              {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "retryConfig": {
@@ -2216,6 +2042,19 @@
               "description": "Automatic retry settings for failed requests"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:RetryConfig",
+                "typeMembers": [
+                  {
+                    "type": "RetryConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RetryConfig?"
@@ -2230,22 +2069,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "retryConfig"
             },
-            "typeMembers": [
-              {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "cookieConfig": {
@@ -2254,6 +2077,19 @@
               "description": "Cookie handling settings for session management"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CookieConfig",
+                "typeMembers": [
+                  {
+                    "type": "CookieConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CookieConfig?"
@@ -2268,22 +2104,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "cookieConfig"
             },
-            "typeMembers": [
-              {
-                "type": "CookieConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "responseLimits": {
@@ -2292,6 +2112,19 @@
               "description": "Limits for response size and headers (to prevent memory issues)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "typeMembers": [
+                  {
+                    "type": "ResponseLimitConfigs",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ResponseLimitConfigs"
@@ -2306,15 +2139,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "responseLimits"
             },
-            "typeMembers": [
-              {
-                "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "proxy": {
@@ -2323,6 +2147,19 @@
               "description": "Proxy server settings if requests need to go through a proxy"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ProxyConfig",
+                "typeMembers": [
+                  {
+                    "type": "ProxyConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ProxyConfig?"
@@ -2337,22 +2174,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "proxy"
             },
-            "typeMembers": [
-              {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "validation": {
@@ -2379,15 +2200,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "validation"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "socketConfig": {
@@ -2396,6 +2208,19 @@
               "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSocketConfig",
+                "typeMembers": [
+                  {
+                    "type": "ClientSocketConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientSocketConfig"
@@ -2410,15 +2235,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "socketConfig"
             },
-            "typeMembers": [
-              {
-                "type": "ClientSocketConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "laxDataBinding": {
@@ -2445,15 +2261,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "laxDataBinding"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "secureSocket": {
@@ -2462,6 +2269,19 @@
               "description": "SSL/TLS security settings for HTTPS connections"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "ClientSecureSocket",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientSecureSocket?"
@@ -2476,22 +2296,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -2628,16 +2432,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "serviceUrl"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "apiKey": {
             "metadata": {
@@ -2663,16 +2458,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "apiKey"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "deploymentId": {
             "metadata": {
@@ -2698,16 +2484,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "deploymentId"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "apiVersion": {
             "metadata": {
@@ -2733,16 +2510,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "apiVersion"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "maxTokens": {
             "metadata": {
@@ -2768,15 +2536,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "maxTokens"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "temperature": {
@@ -2803,15 +2562,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "temperature"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "httpVersion": {
@@ -2842,15 +2592,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "httpVersion"
             },
-            "typeMembers": [
-              {
-                "type": "HttpVersion",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -2862,6 +2603,19 @@
               "description": "Configurations related to HTTP/1.x protocol"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp1Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp1Settings"
@@ -2876,15 +2630,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http1Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp1Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -2896,6 +2641,19 @@
               "description": "Configurations related to HTTP/2 protocol"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp2Settings",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientHttp2Settings"
@@ -2910,15 +2668,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "http2Settings"
             },
-            "typeMembers": [
-              {
-                "type": "ClientHttp2Settings",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -2948,15 +2697,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "timeout"
             },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0.0d"
           },
           "forwarded": {
@@ -2983,15 +2723,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "forwarded"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "poolConfig": {
@@ -3000,6 +2731,19 @@
               "description": "Configurations associated with request pooling"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "PoolConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:PoolConfiguration"
@@ -3014,15 +2758,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "poolConfig"
             },
-            "typeMembers": [
-              {
-                "type": "PoolConfiguration",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3034,6 +2769,19 @@
               "description": "HTTP caching related configurations"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CacheConfig",
+                "typeMembers": [
+                  {
+                    "type": "CacheConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CacheConfig"
@@ -3048,15 +2796,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "cache"
             },
-            "typeMembers": [
-              {
-                "type": "CacheConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3090,15 +2829,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "compression"
             },
-            "typeMembers": [
-              {
-                "type": "Compression",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3110,6 +2840,19 @@
               "description": "Configurations associated with the behaviour of the Circuit Breaker"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig",
+                "typeMembers": [
+                  {
+                    "type": "CircuitBreakerConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:CircuitBreakerConfig"
@@ -3124,15 +2867,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "circuitBreaker"
             },
-            "typeMembers": [
-              {
-                "type": "CircuitBreakerConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3144,6 +2878,19 @@
               "description": "Configurations associated with retrying"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:RetryConfig",
+                "typeMembers": [
+                  {
+                    "type": "RetryConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RetryConfig"
@@ -3158,15 +2905,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "retryConfig"
             },
-            "typeMembers": [
-              {
-                "type": "RetryConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3178,6 +2916,19 @@
               "description": "Configurations associated with inbound response size limits"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "typeMembers": [
+                  {
+                    "type": "ResponseLimitConfigs",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ResponseLimitConfigs"
@@ -3192,15 +2943,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "responseLimits"
             },
-            "typeMembers": [
-              {
-                "type": "ResponseLimitConfigs",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3212,6 +2954,19 @@
               "description": "SSL/TLS-related options"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "ClientSecureSocket",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ClientSecureSocket"
@@ -3226,15 +2981,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "ClientSecureSocket",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3246,6 +2992,19 @@
               "description": "Proxy server related options"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ProxyConfig",
+                "typeMembers": [
+                  {
+                    "type": "ProxyConfig",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:ProxyConfig"
@@ -3260,15 +3019,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "proxy"
             },
-            "typeMembers": [
-              {
-                "type": "ProxyConfig",
-                "packageInfo": "ballerina:http:2.15.2",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "http": "ballerina/http"
             },
@@ -3298,15 +3048,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "validation"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "checkError": {
@@ -3426,6 +3167,23 @@
             },
             "types": [
               {
+                "fieldType": "TEXT",
+                "ballerinaType": "redis:ConnectionUri"
+              },
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:ConnectionParams",
+                "typeMembers": [
+                  {
+                    "type": "ConnectionParams",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams"
               }
@@ -3439,22 +3197,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "typeMembers": [
-              {
-                "type": "ConnectionUri",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "ConnectionParams",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "connectionPooling": {
@@ -3481,15 +3223,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connectionPooling"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "isClusterConnection": {
@@ -3516,15 +3249,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "isClusterConnection"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "secureSocket": {
@@ -3533,6 +3257,19 @@
               "description": "Configurations related to SSL/TLS encryption"
             },
             "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:SecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "SecureSocket",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ]
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "redis:SecureSocket"
@@ -3547,15 +3284,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "secureSocket"
             },
-            "typeMembers": [
-              {
-                "type": "SecureSocket",
-                "packageInfo": "ballerinax:redis:3.1.0",
-                "packageName": "redis",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "{}"
           },
           "checkError": {
