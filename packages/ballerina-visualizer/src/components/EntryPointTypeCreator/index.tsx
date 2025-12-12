@@ -39,7 +39,6 @@ interface EntryPointTypeCreatorProps {
     modalWidth?: number;
     modalHeight?: number;
     payloadContext?: PayloadContext;
-
 }
 
 interface TypeEditorState {

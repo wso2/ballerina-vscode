@@ -44,7 +44,6 @@ type FormTypeEditorProps = {
     onTypeChange: (type: Type) => void;
     newType: boolean;
     newTypeValue?: string;
-    isGraphql?: boolean;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: (typeName?: string) => void;
@@ -57,8 +56,9 @@ type FormTypeEditorProps = {
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
+    const { type, onTypeChange, newType, newTypeValue,  onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
     const { rpcClient } = useRpcContext();
+    const isGraphql = payloadContext?.protocol === "GRAPHQL";
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange | undefined>(undefined);
@@ -127,7 +127,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                             });
                         }
-                        const basicTypes = getTypes(types);
+                        const basicTypes = getTypes(types, false, payloadContext);
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
                         fetchedInitialTypes.current = true;
