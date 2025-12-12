@@ -218,8 +218,10 @@ public class PersistClient {
         Path persistModelPath = persistPath.resolve(MODEL_FILE_NAME);
 
         try {
+            Project project = this.workspaceManager.loadProject(projectPath);
+            String packageName = project.currentPackage().packageName().value();
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForBallerinaToml(module, textEditsMap);
+            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
@@ -228,9 +230,9 @@ public class PersistClient {
             entityModule = reloadEntityFromSyntaxTree(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
             addTextEditForConfigurations(textEditsMap);
-            addTextEditForConnectionClient(module, textEditsMap);
+            addTextEditForConnectionClient(packageName, module, textEditsMap);
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
-        } catch (BalException | IOException | FormatterException e) {
+        } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
         }
     }
@@ -262,12 +264,13 @@ public class PersistClient {
         }
     }
 
-    private void addTextEditForConnectionClient(String module, Map<Path, List<TextEdit>> textEditsMap)
+    private void addTextEditForConnectionClient(String packageName, String moduleName,
+                                                Map<Path, List<TextEdit>> textEditsMap)
             throws PersistClientException {
         try {
+            String modulePrefix = moduleName.contains(".") ?
+                    moduleName.substring(moduleName.lastIndexOf('.') + 1) : moduleName;
             Path connectionsFilePath = projectPath.resolve("connections.bal");
-            Project project = this.workspaceManager.loadProject(projectPath);
-            String packageName = project.currentPackage().packageName().value();
             boolean isConnectionsFileExists = Files.exists(connectionsFilePath);
             Optional<Document> document = isConnectionsFileExists ? workspaceManager.document(connectionsFilePath)
                     : Optional.empty();
@@ -276,43 +279,38 @@ public class PersistClient {
             // start
             if (document.isEmpty() || document.get().textDocument().textLines().isEmpty()) {
                 List<TextEdit> textEdits = new ArrayList<>();
-                String importStmt = "import " + packageName + "." + module + ";" + LS;
-                String clientDeclaration = "final " + module + ":Client " + this.name + " = check new (" +
+                String importStmt = "import " + packageName + "." + moduleName + ";" + LS;
+                String clientDeclaration = "final " + modulePrefix + ":Client " + this.name + " = check new (" +
                         this.name + "Host, " + this.name + "Port, " + this.name + "User, " +
                         this.name + "Password, " + this.name + "Database" + ");" + LS;
                 textEdits.add(new TextEdit(START_RANGE, importStmt + LS + clientDeclaration + LS));
                 textEditsMap.put(connectionsFilePath, textEdits);
             } else {
-                addTextEditWithExistingConnections(module, textEditsMap, document.get(), connectionsFilePath);
+                addTextEditWithExistingConnections(packageName, moduleName, modulePrefix, textEditsMap, document.get(),
+                        connectionsFilePath);
             }
-        } catch (WorkspaceDocumentException | EventSyncException | FormatterException e) {
+        } catch (FormatterException e) {
             throw new PersistClientException("Error accessing existing connections: " + e.getMessage(), e);
         }
     }
 
-    private void addTextEditWithExistingConnections(String module, Map<Path, List<TextEdit>> textEditsMap,
-            Document document, Path connectionsFilePath)
-            throws FormatterException, PersistClientException {
-        try {
-            Project project = this.workspaceManager.loadProject(projectPath);
-            String packageName = project.currentPackage().packageName().value();
-            SyntaxTree syntaxTree = document.syntaxTree();
-            ModulePartNode modulePartNode = syntaxTree.rootNode();
-            modulePartNode = modifyWithImportStatement(packageName, module, modulePartNode);
-            modulePartNode = modifyWithClientDeclaration(module, modulePartNode);
-            SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
-            SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
-            List<TextEdit> textEdits = new ArrayList<>();
-            textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
-            textEditsMap.put(connectionsFilePath, textEdits);
-        } catch (WorkspaceDocumentException | EventSyncException e) {
-            throw new PersistClientException("Error loading project for connections: " + e.getMessage(), e);
-        }
+    private void addTextEditWithExistingConnections(String packageName, String module, String modulePrefix,
+                                                    Map<Path, List<TextEdit>> textEditsMap, Document document,
+                                                    Path connectionsFilePath) throws FormatterException {
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        modulePartNode = modifyWithImportStatement(packageName, module, modulePartNode);
+        modulePartNode = modifyWithClientDeclaration(modulePrefix, modulePartNode);
+        SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
+        SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
+        textEditsMap.put(connectionsFilePath, textEdits);
     }
 
-    private ModulePartNode modifyWithClientDeclaration(String module, ModulePartNode modulePartNode) {
+    private ModulePartNode modifyWithClientDeclaration(String modulePrefix, ModulePartNode modulePartNode) {
         QualifiedNameReferenceNode moduleRefNode = createQualifiedNameReferenceNode(
-                createIdentifierToken(module),
+                createIdentifierToken(modulePrefix),
                 createToken(COLON_TOKEN),
                 createIdentifierToken("Client"));
         CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
@@ -425,8 +423,7 @@ public class PersistClient {
     }
 
     private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
-            Path persistModelPath)
-            throws FormatterException {
+                                                       Path persistModelPath) throws FormatterException {
         List<TextEdit> persistModelTextEdits = new ArrayList<>();
         persistModelTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataModels.toSourceCode())));
         textEditsMap.put(persistModelPath, persistModelTextEdits);
@@ -449,20 +446,18 @@ public class PersistClient {
     }
 
     private static String generateModuleNameFromDatabase(String database, String datastore) {
-        // Generate a module name combining the database name and datastore name
-        // Module names can only contain alphanumerics, underscores, and periods
-        String sanitizedDbName = database.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase(Locale.getDefault());
-        String sanitizedDatastore = datastore.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase(Locale.getDefault());
-        return sanitizedDbName + "_" + sanitizedDatastore;
+        String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
+        return datastore + "." + sanitizedDatabaseName;
     }
 
-    private boolean addTextEditForBallerinaToml(String module, Map<Path, List<TextEdit>> textEditsMap)
-            throws IOException {
+    private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
+            List<TextEdit>> textEditsMap) throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
         DocumentNode rootNode = parseTomlFile(tomlPath);
+        String moduleFullName = packageName + "." + module;
 
-        TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, module);
-        String tomlEntry = buildTomlEntries(module, analysisResult);
+        TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, moduleFullName);
+        String tomlEntry = buildTomlEntries(moduleFullName, analysisResult);
         addTomlTextEdit(tomlPath, rootNode, analysisResult.toolPersistLineRange(), tomlEntry, textEditsMap);
 
         return analysisResult.moduleExists();
@@ -478,7 +473,6 @@ public class PersistClient {
     private TomlAnalysisResult analyzeTomlStructure(DocumentNode rootNode, String module) {
         LineRange toolPersistLineRange = null;
         boolean hasPersistDependency = false;
-        boolean hasPersistSqlDependency = false;
 
         for (DocumentMemberDeclarationNode node : rootNode.members()) {
             if (node.kind() != SyntaxKind.TABLE_ARRAY) {
@@ -492,15 +486,12 @@ public class PersistClient {
                 toolPersistLineRange = checkToolPersistModule(tableArrayNode, module);
             } else if (identifier.equals("dependency")) {
                 hasPersistDependency = hasPersistToolDependency(tableArrayNode);
-            } else if (identifier.equals("platform.java21.dependency")) {
-                hasPersistSqlDependency = hasPersistSqlDependency(tableArrayNode);
             }
         }
 
         return new TomlAnalysisResult(
                 toolPersistLineRange,
                 hasPersistDependency,
-                hasPersistSqlDependency,
                 toolPersistLineRange != null
         );
     }
@@ -528,17 +519,6 @@ public class PersistClient {
         return false;
     }
 
-    private boolean hasPersistSqlDependency(TableArrayNode tableArrayNode) {
-        for (KeyValueNode field : tableArrayNode.fields()) {
-            String fieldIdentifier = field.identifier().toSourceCode().trim();
-            String fieldValue = field.value().toSourceCode().trim();
-            if (fieldIdentifier.equals("artifactId") && fieldValue.contains("\"persist-sql\"")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private String buildTomlEntries(String module, TomlAnalysisResult analysisResult) {
         StringBuilder tomlEntry = new StringBuilder();
 
@@ -546,10 +526,6 @@ public class PersistClient {
 
         if (!analysisResult.hasPersistDependency()) {
             tomlEntry.append(getPersistMinimumVersionRequirementEntry());
-        }
-
-        if (!analysisResult.hasPersistSqlDependency()) {
-            tomlEntry.append(getPersistSqlMinimumVersionRequirementEntry());
         }
 
         return tomlEntry.toString();
@@ -571,7 +547,6 @@ public class PersistClient {
     private record TomlAnalysisResult(
             LineRange toolPersistLineRange,
             boolean hasPersistDependency,
-            boolean hasPersistSqlDependency,
             boolean moduleExists
     ) {
     }
@@ -593,14 +568,6 @@ public class PersistClient {
                 "name = \"tool.persist\"" + LS +
                 // This version is hardcoded as minimum compatible version
                 "version = \"1.8.0\"" + LS;
-    }
-
-    private String getPersistSqlMinimumVersionRequirementEntry() {
-        return LS + "[[platform.java21.dependency]]" + LS +
-                "groupId = \"io.ballerina.stdlib\"" + LS +
-                "artifactId = \"persist.sql-native\"" + LS +
-                // This version is hardcoded as minimum compatible version
-                "version = \"1.7.0\"" + LS;
     }
 
     /**
