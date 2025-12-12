@@ -22,7 +22,7 @@ import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, ThemeColors, 
 import styled from '@emotion/styled';
 import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
-import { Parameters } from '../DatabindForm/Parameters/Parameters';
+import { Parameters } from './Parameters/Parameters';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -54,7 +54,7 @@ export const EditorContentColumn = styled.div`
 `;
 
 export interface FTPFormProps {
-    functionModel: FunctionModel;
+    functionModel?: FunctionModel;
     model: ServiceModel;
     isSaving: boolean;
     onSave: (functionModel: FunctionModel, openDiagram?: boolean) => void;
@@ -68,7 +68,7 @@ export function FTPForm(props: FTPFormProps) {
 
     const payloadContext = {
         protocol: "FTP",
-        filterType: props.functionModel.name.metadata.label || "JSON"
+        filterType: props.functionModel?.name.metadata.label || "JSON"
     } as GeneralPayloadContext;
 
     const [serviceModel, setserviceModel] = useState<ServiceModel>(model);
@@ -88,12 +88,10 @@ export function FTPForm(props: FTPFormProps) {
         const availableFunctions = model.functions?.filter(fn => !fn.enabled) || [];
         if (availableFunctions.length > 0 && isNew) {
             const initialFunction = availableFunctions[0];
-            initialFunction.codedata.moduleName = "ftp";
             setFunctionModel(initialFunction);
             setSelectedFileFormat(initialFunction.name?.metadata?.label || '');
         }
         if (!isNew) {
-            props.functionModel.codedata.moduleName = "ftp";
             setFunctionModel(props.functionModel);
             setSelectedFileFormat(props.functionModel.name?.metadata?.label || '');
         }
@@ -195,9 +193,7 @@ export function FTPForm(props: FTPFormProps) {
         // Disable the DATA_BINDING parameter and set canDataBind to false
         const updatedParameters = functionModel.parameters.map((p) => {
             if (p.kind === "DATA_BINDING") {
-                return { ...p, enabled: false };
-            }
-            if(p.kind === "REQUIRED" && p.name.value === "content") {
+                p.type.value = p.type.placeholder;
                 return { ...p, enabled: true };
             }
             return p;
@@ -278,7 +274,7 @@ export function FTPForm(props: FTPFormProps) {
 
                                 {/* Define Content Schema Button or Display - only show if canDataBind property exists */}
                                 {dataBindingParam && (
-                                    !dataBindingParam.enabled ? (
+                                    (dataBindingParam.type?.value===dataBindingParam.type?.placeholder) ? (
                                         <AddButtonWrapper>
                                             <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
                                                 <LinkButton onClick={onAddContentSchemaClick}>
