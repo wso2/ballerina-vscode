@@ -209,6 +209,27 @@ export const ExpressionField: React.FC<ExpressionField> = ({
 
         );
     }
+    if (inputMode === InputMode.PROMPT) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={field.valueTypeConstraint === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+            />
+
+        );
+    }
     if (inputMode === InputMode.NUMBER) {
         return (
             <NumberExpressionEditor
