@@ -20,7 +20,7 @@ import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon, ThemeColors, Typography, Overlay, TextField, Dropdown, OptionProps, Icon } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
-import { LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 const PopupOverlay = styled(Overlay)`
@@ -459,7 +459,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             }
 
 
-            onClose?.();
+            onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
         } catch (error) {
             console.error(">>> Error saving connection", error);
             // TODO: Show error message to user

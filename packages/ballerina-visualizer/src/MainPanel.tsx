@@ -543,6 +543,7 @@ const MainPanel = () => {
                             <AddConnectionPopup
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
+                                onNavigateToOverview={handleNavigateToOverview}
                             />
                         );
                         break;
@@ -648,6 +649,10 @@ const MainPanel = () => {
         rpcClient
             .getVisualizerRpcClient()
             .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
+    };
+
+    const handleNavigateToOverview = () => {
+        rpcClient.getVisualizerRpcClient().goHome();
     };
 
     const handlePopupClose = (id: string) => {
