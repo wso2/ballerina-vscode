@@ -429,16 +429,7 @@
                             "codedata": {
                               "kind": "REQUIRED",
                               "originalName": "val"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": true
-                              }
-                            ]
+                            }
                           }
                         },
                         "flags": 0,
@@ -543,16 +534,7 @@
                             "codedata": {
                               "kind": "REQUIRED",
                               "originalName": "val"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": true
-                              }
-                            ]
+                            }
                           }
                         },
                         "flags": 0,
@@ -641,16 +623,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "val"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0,
@@ -755,16 +728,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "val"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0
