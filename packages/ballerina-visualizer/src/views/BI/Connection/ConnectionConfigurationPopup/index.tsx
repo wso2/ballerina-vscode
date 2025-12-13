@@ -197,10 +197,21 @@ const TagText = styled(Typography)`
     margin: 0;
 `;
 
-const ConfigContent = styled.div`
+const ConfigContent = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
-    overflow-y: auto;
-    padding: 0 32px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
+    padding: 0 32px ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 32px;
+    min-height: 0;
+`;
+
+const FormContainer = styled.div<{}>`
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 `;
 
 const ConnectionDetailsSection = styled.div`
@@ -498,7 +509,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                     </ConnectorTag>
                 </ConnectorInfoCard>
 
-                <ConfigContent>
+                <ConfigContent hasFooterButton={!pullingStatus && !!selectedNodeRef.current}>
                     {pullingStatus && (
                         <StatusContainer>
                             {pullingStatus === PullingStatus.FETCHING && (
@@ -559,17 +570,20 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                                         Configure your connection settings
                                     </ConnectionDetailsSubtitle>
                                 </ConnectionDetailsSection>
-                                <ConnectionConfigView
-                                    fileName={fileName}
-                                    submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
-                                    isSaving={savingFormStatus === SavingFormStatus.SAVING}
-                                    selectedNode={nodeWithoutDescription}
-                                    onSubmit={handleOnFormSubmit}
-                                    updatedExpressionField={updatedExpressionField}
-                                    resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                                    openSubPanel={handleSubPanel}
-                                    isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
-                                />
+                                <FormContainer>
+                                    <ConnectionConfigView
+                                        fileName={fileName}
+                                        submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
+                                        isSaving={savingFormStatus === SavingFormStatus.SAVING}
+                                        selectedNode={nodeWithoutDescription}
+                                        onSubmit={handleOnFormSubmit}
+                                        updatedExpressionField={updatedExpressionField}
+                                        resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                        openSubPanel={handleSubPanel}
+                                        isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
+                                        footerActionButton={true}
+                                    />
+                                </FormContainer>
                             </>
                         );
                     })()}
