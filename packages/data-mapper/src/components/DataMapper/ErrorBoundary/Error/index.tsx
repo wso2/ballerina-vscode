@@ -55,7 +55,6 @@ export default function ErrorScreen(props: ErrorScreenProps) {
                         </p>
                     </div>
                     <div className={classes.actionButtons}>
-                       
                         <Button appearance="secondary" onClick={resetBoundary}>
                             <Icon name="refresh" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
                             Refresh
