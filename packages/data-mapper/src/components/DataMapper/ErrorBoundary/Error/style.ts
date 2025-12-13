@@ -67,7 +67,7 @@ export const useStyles = () => ({
 
     actionButtons: css({
         display: 'flex',
-        gap: '4px',
+        gap: '8px',
         alignItems: 'center',
         alignSelf: 'flex-end'
     }),
