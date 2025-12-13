@@ -42,15 +42,13 @@ export function DataMapper(props: DataMapperProps) {
 
     const goToSource = () => {
         const lineRange = props.codedata.lineRange;
-        if (lineRange) {
-            const position: NodePosition = {
-                startLine: lineRange.startLine.line,
-                startColumn: lineRange.startLine.offset,
-                endLine: lineRange.endLine.line,
-                endColumn: lineRange.endLine.offset,
-            };
-            rpcClient.getCommonRpcClient().goToSource({ position });
-        }
+        const position: NodePosition = {
+            startLine: lineRange?.startLine.line,
+            startColumn: lineRange?.startLine.offset,
+            endLine: lineRange?.endLine.line,
+            endColumn: lineRange?.endLine.offset,
+        };
+        rpcClient.getCommonRpcClient().goToSource({ position });
     };
 
     const onClose = props.onClose || (() => {
