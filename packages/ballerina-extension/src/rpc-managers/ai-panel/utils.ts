@@ -16,14 +16,14 @@
  * under the License.
  */
 
-import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest} from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest, RepairedMapping} from "@wso2/ballerina-core";
 import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
 import { processDataMapperInput } from "../../features/ai/data-mapper/context-api";
-import { DataMapperRequest, DataMapperResponse, FileData } from "../../features/ai/data-mapper/types";
+import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../features/ai/data-mapper/types";
 import { getAskResponse } from "../../features/ai/ask/index";
 import { MappingFileRecord} from "./types";
 import { generateAutoMappings, generateRepairCode } from "../../features/ai/data-mapper/index";
@@ -206,11 +206,11 @@ export async function enrichModelWithMappingInstructions(mappingInstructionFiles
     };
 }
 
-// Processes a repair request and returns the repaired source files using AI
-export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<SourceFile[]> {
+// Processes a repair request and returns the repaired mappings using AI
+export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<{ repairedMappings: RepairedMapping[] }> {
     try {
         const repairResponse = await generateRepairCode(codeRepairRequest);
-        return repairResponse.repairedFiles;
+        return { repairedMappings: repairResponse.repairedMappings };
     } catch (error) {
         console.error(error);
         throw error;
