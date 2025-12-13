@@ -16,12 +16,12 @@
 
 import { GenerateAgentCodeRequest, ExecutionContext } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../event";
-import { generateDesignCore, createExecutionContext } from "./design";
+import { generateAgentCore, createExecutionContext } from "./agent";
 
 /**
  * Parameters for test-mode code generation
  */
-export interface GenerateDesignForTestParams extends GenerateAgentCodeRequest {
+export interface GenerateAgentForTestParams extends GenerateAgentCodeRequest {
     /** Path to the isolated test project (created by eval from template) */
     projectPath: string;
 }
@@ -29,7 +29,7 @@ export interface GenerateDesignForTestParams extends GenerateAgentCodeRequest {
 /**
  * Result returned from test-mode code generation
  */
-export interface GenerateDesignForTestResult {
+export interface GenerateAgentForTestResult {
     /** Path to the temp project where code was generated (created by getTempProject) */
     tempProjectPath: string;
     /** Path to the isolated test project (source) */
@@ -42,7 +42,7 @@ export interface GenerateDesignForTestResult {
  * This function is specifically designed for evaluation and testing scenarios where:
  * - Tests create isolated project from template and pass its path
  * - This function creates an isolated ExecutionContext for each test
- * - generateDesignCore uses the isolated context (no StateMachine updates!)
+ * - generateAgentCore uses the isolated context (no StateMachine updates!)
  * - Changes are NOT integrated back to workspace (controlled by AI_TEST_ENV)
  * - Temp project is NOT cleaned up (AI_TEST_ENV prevents cleanup)
  * - Returns paths for validation and manual cleanup
@@ -52,10 +52,10 @@ export interface GenerateDesignForTestResult {
  * @returns Object containing temp project path and isolated project path
  * @throws Error if AI_TEST_ENV not set or projectPath not provided
  */
-export async function generateDesignForTest(
-    params: GenerateDesignForTestParams,
+export async function generateAgentForTest(
+    params: GenerateAgentForTestParams,
     eventHandler: CopilotEventHandler
-): Promise<GenerateDesignForTestResult> {
+): Promise<GenerateAgentForTestResult> {
     if (!process.env.AI_TEST_ENV) {
         throw new Error('[Test Mode] AI_TEST_ENV must be set to use test mode generation');
     }
@@ -66,7 +66,7 @@ export async function generateDesignForTest(
 
     try {
         const ctx: ExecutionContext = createExecutionContext(params.projectPath);
-        const tempProjectPath = await generateDesignCore(params, eventHandler, ctx);
+        const tempProjectPath = await generateAgentCore(params, eventHandler, ctx);
 
         return {
             tempProjectPath,

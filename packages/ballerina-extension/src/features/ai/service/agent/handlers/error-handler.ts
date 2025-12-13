@@ -41,7 +41,7 @@ export class ErrorHandler implements StreamEventHandler {
 
     async handle(part: any, context: StreamContext): Promise<void> {
         const error = part.error;
-        console.error("[Design] Error:", error);
+        console.error("[Agent] Error:", error);
 
         if (context.shouldCleanup) {
             await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);

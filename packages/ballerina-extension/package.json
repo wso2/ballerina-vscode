@@ -443,7 +443,7 @@
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
@@ -455,7 +455,7 @@
             {
                 "command": "ballerina.test.edit.case",
                 "title": "Edit test case",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
@@ -619,7 +619,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "BI"
             },
             {
@@ -676,7 +676,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -697,7 +697,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -712,7 +712,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -1039,8 +1039,8 @@
                     "fontCharacter": "\\f114"
                 }
             },
-            "distro-design-view": {
-                "description": "design-view",
+            "distro-agent-view": {
+                "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f16e"

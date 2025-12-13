@@ -14,10 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { StreamEventHandler, StreamAbortException } from "./stream-event-handler";
+import { StreamEventHandler, StreamFinishException } from "./stream-event-handler";
 import { StreamContext } from "./stream-context";
 import { Command, AIChatMachineEventType } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
+import { checkCompilationErrors } from "../../libs/diagnostics_utils";
+import { integrateCodeToWorkspace } from "../utils";
 import { sendAgentDidCloseForProjects } from "../../libs/agent_ls_notification_utils";
 import { cleanupTempProject } from "../../../utils/project-utils";
 
@@ -54,57 +56,51 @@ function updateAndSaveChat(
         },
     });
 
-    eventHandler({ type: "save_chat", command: Command.Design, messageId });
+    eventHandler({ type: "save_chat", command: Command.Agent, messageId });
 }
 
 /**
- * Handles abort events from the stream.
- * Saves partial state and performs cleanup.
+ * Handles finish events from the stream.
+ * Runs diagnostics, integrates code to workspace, and performs cleanup.
  */
-export class AbortHandler implements StreamEventHandler {
-    readonly eventType = "abort";
+export class FinishHandler implements StreamEventHandler {
+    readonly eventType = "finish";
 
     canHandle(eventType: string): boolean {
         return eventType === this.eventType;
     }
 
     async handle(part: any, context: StreamContext): Promise<void> {
-        console.log("[Design] Aborted by user.");
+        const finalResponse = await context.response;
+        const assistantMessages = finalResponse.messages || [];
 
-        let messagesToSave: any[] = [];
-        try {
-            const partialResponse = await context.response;
-            messagesToSave = partialResponse.messages || [];
-        } catch (error) {
-            if (context.currentAssistantContent.length > 0) {
-                context.accumulatedMessages.push({
-                    role: "assistant",
-                    content: context.currentAssistantContent,
-                });
-            }
-            messagesToSave = context.accumulatedMessages;
-        }
-
-        // Add user message to inform about abort and file reversion
-        messagesToSave.push({
-            role: "user",
-            content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
-</abort_notification>`,
+        // Run final diagnostics
+        const finalDiagnostics = await checkCompilationErrors(context.tempProjectPath);
+        context.eventHandler({
+            type: "diagnostics",
+            diagnostics: finalDiagnostics.diagnostics
         });
 
+        // Integrate code to workspace if not in test mode
+        if (!process.env.AI_TEST_ENV && context.modifiedFiles.length > 0) {
+            const modifiedFilesSet = new Set(context.modifiedFiles);
+            await integrateCodeToWorkspace(context.tempProjectPath, modifiedFilesSet, context.ctx);
+        }
+
+        // Cleanup
+        await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
         if (context.shouldCleanup) {
-            await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
             cleanupTempProject(context.tempProjectPath);
         }
 
-        updateAndSaveChat(context.messageId, context.userMessageContent, messagesToSave, context.eventHandler);
-        context.eventHandler({ type: "abort", command: Command.Design });
+        // Update and save chat
+        updateAndSaveChat(context.messageId, context.userMessageContent, assistantMessages, context.eventHandler);
+        context.eventHandler({ type: "stop", command: Command.Agent });
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.FINISH_EXECUTION,
         });
 
         // Throw exception to exit stream loop and return tempProjectPath
-        throw new StreamAbortException(context.tempProjectPath);
+        throw new StreamFinishException(context.tempProjectPath);
     }
 }

@@ -33,7 +33,7 @@ import { CopilotEventHandler } from "../event";
 import { AIChatMachineEventType } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../views/ai-panel/aiChatMachine";
 import { langClient } from "../../activator";
-import { applyTextEdits } from "../design/utils";
+import { applyTextEdits } from "../agent/utils";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 

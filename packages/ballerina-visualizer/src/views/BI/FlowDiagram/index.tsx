@@ -786,7 +786,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             filePath: model.fileName
         };
 
-        // Create AIPanelPrompt with CodeContext - design mode is the default
+        // Create AIPanelPrompt with CodeContext - agent mode is the default
         const aiPrompt: AIPanelPrompt = {
             type: 'text',
             text: prompt || '',

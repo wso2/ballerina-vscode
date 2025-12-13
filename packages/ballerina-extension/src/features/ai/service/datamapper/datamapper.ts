@@ -44,8 +44,8 @@ import { URI } from "vscode-uri";
 import fs from 'fs';
 import { writeBallerinaFileDidOpenTemp } from "../../../../../src/utils/modification";
 import { getTempProject, cleanupTempProject } from "../../utils/project-utils";
-import { integrateCodeToWorkspace } from "../design/utils";
-import { createExecutionContextFromStateMachine } from "../design/design";
+import { integrateCodeToWorkspace } from "../agent/utils";
+import { createExecutionContextFromStateMachine } from "../agent/agent";
 import { ExecutionContext } from "@wso2/ballerina-core";
 
 // =============================================================================

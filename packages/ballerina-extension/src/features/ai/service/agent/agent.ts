@@ -36,7 +36,7 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { getProjectSource } from "../../utils/project-utils";
 import { StateMachine } from "../../../../stateMachine";
-import { createDesignEventRegistry } from "./handlers/create-design-event-registry";
+import { createAgentEventRegistry } from "./handlers/create-agent-event-registry";
 import { StreamContext } from "./handlers/stream-context";
 import { StreamErrorException, StreamAbortException, StreamFinishException } from "./handlers/stream-event-handler";
 
@@ -87,7 +87,7 @@ export function createExecutionContext(
     return { projectPath, workspacePath };
 }
 
-export async function generateDesignCore(
+export async function generateAgentCore(
     params: GenerateAgentCodeRequest,
     eventHandler: CopilotEventHandler,
     ctx: ExecutionContext
@@ -174,7 +174,7 @@ export async function generateDesignCore(
     };
 
     // Create event registry
-    const registry = createDesignEventRegistry();
+    const registry = createAgentEventRegistry();
 
     try {
         for await (const part of fullStream) {
@@ -193,13 +193,13 @@ export async function generateDesignCore(
     return tempProjectPath;
 }
 
-export async function generateDesign(params: GenerateAgentCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler(Command.Design);
+export async function generateAgent(params: GenerateAgentCodeRequest): Promise<void> {
+    const eventHandler = createWebviewEventHandler(Command.Agent);
     try {
         const ctx = createExecutionContextFromStateMachine();
-        await generateDesignCore(params, eventHandler, ctx);
+        await generateAgentCore(params, eventHandler, ctx);
     } catch (error) {
-        console.error("Error during design generation:", error);
+        console.error("Error during agent generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
     }
 }
