@@ -68,9 +68,12 @@ interface ModelSignature {
     refs: string;
 }
 
-export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
+export interface DataMapperViewProps extends DataMapperProps {
+    goToSource: () => void;
+}
 
+export function DataMapperView(props: DataMapperViewProps) {
+    const { filePath, codedata, name, projectPath, position, reusable, onClose, goToSource } = props;
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
         model: null,
@@ -508,7 +511,7 @@ export function DataMapperView(props: DataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
-    const goToSource = async (outputId: string, viewId: string) => {
+    const goToFieldSource = async (outputId: string, viewId: string) => {
         const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
@@ -613,7 +616,7 @@ export function DataMapperView(props: DataMapperProps) {
         } else if (isFileUpdateError) {
             throw new Error("Error while updating file content");
         }
-    }, [isError]);
+    }, [isError, isFileUpdateError]);
 
     const retrieveCompeletions = useCallback(
         debounce(async (outputId: string, viewId: string, value: string, cursorPosition?: number) => {
@@ -739,6 +742,7 @@ export function DataMapperView(props: DataMapperProps) {
                             enrichChildFields={enrichChildFields}
                             genUniqueName={genUniqueName}
                             undoRedoGroup={undoRedoGroup}
+                            goToSource={goToSource}
                             expressionBar={{
                                 completions: filteredCompletions,
                                 isUpdatingSource,
@@ -746,7 +750,7 @@ export function DataMapperView(props: DataMapperProps) {
                                 onCompletionSelect: handleCompletionSelect,
                                 onSave: updateExprFromExprBar,
                                 onCancel: handleExpressionCancel,
-                                goToSource: goToSource
+                                goToSource: goToFieldSource
                             }}
                         />
                     )}
