@@ -22,13 +22,13 @@ import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
-import { processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
-import { DataMapperRequest, DataMapperResponse, FileData } from "../../../src/features/ai/service/datamapper/types";
-import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
+import { processDataMapperInput } from "../../features/ai/data-mapper/context-api";
+import { DataMapperRequest, DataMapperResponse, FileData } from "../../features/ai/data-mapper/types";
+import { getAskResponse } from "../../features/ai/ask/index";
 import { MappingFileRecord} from "./types";
-import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
+import { generateAutoMappings, generateRepairCode } from "../../features/ai/data-mapper/index";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
-import { CopilotEventHandler } from "../../../src/features/ai/service/event";
+import { CopilotEventHandler } from "../../features/ai/utils/events";
 import { VisualizerRpcManager } from "../visualizer/rpc-manager";
 import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
 

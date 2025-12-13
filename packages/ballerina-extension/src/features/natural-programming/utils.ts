@@ -43,9 +43,9 @@ import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
 import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
-import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../../src/utils/ai/auth';
-import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
-import { fetchWithAuth } from '../ai/service/connection';
+import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
+import { AIStateMachine } from '../../views/ai-panel/aiMachine';
+import { fetchWithAuth } from '../ai/utils/ai-client';
 
 let controller = new AbortController();
 

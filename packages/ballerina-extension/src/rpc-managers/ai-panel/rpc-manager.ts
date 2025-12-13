@@ -70,20 +70,20 @@ import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
-import { fetchWithAuth } from "../../../src/features/ai/service/connection";
-import { openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
-import { generateAgent } from "../../../src/features/ai/service/agent/agent";
-import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
+import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
+import { generateAgent } from "../../features/ai/agent/index";
+import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
 import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
-import { generateDocumentationForService } from "../../features/ai/service/documentation/doc_generator";
+import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 // import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
-import { selectRequiredFunctions } from "../../features/ai/service/libs/funcs";
-import { GenerationType } from "../../features/ai/service/libs/libs";
-import { Library } from "../../features/ai/service/libs/libs_types";
+import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
+import { GenerationType } from "../../features/ai/utils/libs/libraries";
+import { Library } from "../../features/ai/utils/libs/library-types";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
@@ -102,7 +102,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 import { getWorkspaceTomlValues } from "./../../../src/utils/config";
-import { getSelectedLibraries } from "../../../src/features/ai/service/libs/healthcareLibraryProviderTool";
+import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
