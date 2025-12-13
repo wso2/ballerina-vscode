@@ -21,7 +21,7 @@ import { validateTestResult } from './test-validation';
 import { VSCODE_COMMANDS } from './constants';
 import { SourceFile } from "@wso2/ballerina-core";
 import { createIsolatedTestProject, cleanupIsolatedTestProject, extractSourceFiles, IsolatedProjectResult } from './test-project-utils';
-import { GenerateAgentForTestParams, GenerateAgentForTestResult } from '../../../../../src/features/ai/service/agent/agent-for-test';
+import { GenerateAgentForTestParams, GenerateAgentForTestResult } from '../../../../../src/features/ai/agent/index-for-test';
 
 /**
  * Executes a single test case and returns the result

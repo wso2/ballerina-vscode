@@ -20,15 +20,15 @@ import { commands, window } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
 import { GenerateCodeRequest, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
-import { CopilotEventHandler } from './service/event';
+import { CopilotEventHandler } from './utils/events';
 import { addConfigFile, getConfigFilePath } from './utils';
 import { StateMachine } from "../../stateMachine";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND, DEFAULT_PROVIDER_ADDED, LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT } from './constants';
 import { REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
-import { generateMappingCodeCore } from './service/datamapper/datamapper';
-import { generateAgentForTest, GenerateAgentForTestParams } from './service/agent/agent-for-test';
+import { generateMappingCodeCore } from './data-mapper';
+import { generateAgentForTest, GenerateAgentForTestParams } from './agent/index-for-test';
 
 export let langClient: ExtendedLangClient;
 
@@ -54,12 +54,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             getSelectedLibraries,
             getRelevantLibrariesAndFunctions,
             GenerationType
-        } = require('./service/libs/libs');
+        } = require('./utils/libraries');
         const {
             selectRequiredFunctions,
             getMaximizedSelectedLibs,
             toMaximizedLibrariesFromLibJson
-        } = require('./service/libs/funcs');
+        } = require('./utils/function-registry');
 
         commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
             return await getAllLibraries(generationType);

@@ -21,7 +21,7 @@ import { createMachine, assign, interpret } from 'xstate';
 import { extension } from '../../BalExtensionContext';
 import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, TaskStatus, Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
 import { GenerateAgentCodeRequest, SourceFile } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
-import { generateAgent } from '../../features/ai/service/agent/agent';
+import { generateAgent } from '../../features/ai/agent/index';
 import { captureWorkspaceSnapshot, restoreWorkspaceSnapshot } from './checkpoint/checkpointUtils';
 import { getCheckpointConfig } from './checkpoint/checkpointConfig';
 import { notifyCheckpointCaptured } from '../../RPCLayer';
@@ -625,7 +625,7 @@ const executeDatamapperService = async (context: AIChatMachineContext): Promise<
         generateMappingCode,
         generateInlineMappingCode,
         generateContextTypes
-    } = await import('../../features/ai/service/datamapper/datamapper');
+    } = await import('../../features/ai/data-mapper/index');
 
     let result: { modifiedFiles: string[], sourceFiles: SourceFile[] } | undefined;
 

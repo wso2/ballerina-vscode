@@ -161,7 +161,7 @@ import {
     window, workspace
 } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
-import { fetchWithAuth } from "../../../src/features/ai/service/connection";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { extension } from "../../BalExtensionContext";
 import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
