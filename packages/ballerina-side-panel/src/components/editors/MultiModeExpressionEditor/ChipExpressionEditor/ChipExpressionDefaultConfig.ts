@@ -19,7 +19,7 @@
 import FXButton from "./components/FxButton";
 import { ParsedToken } from "./utils";
 
-export abstract class ChipExpressionEditorDefaultConfiguration {
+export class ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken) {
         return value;
     }
