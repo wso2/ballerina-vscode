@@ -168,10 +168,13 @@ const ConnectorInfoDescription = styled(Typography)`
 `;
 
 
-const ContentContainer = styled.div`
+const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
     padding: 24px 32px;
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
 `;
 
 const LoadingContainer = styled.div`
@@ -375,7 +378,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     </ConnectorInfoContent>
                 </ConnectorInfoCard>
 
-                <ContentContainer>
+                <ContentContainer hasFooterButton={true}>
                     <ConnectionConfigView
                         submitText={isSaving ? "Saving..." : "Save"}
                         fileName={filePath}
@@ -392,6 +395,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={handleResetUpdatedExpressionField}
                         isSaving={isSaving}
+                        footerActionButton={true}
                     />
                 </ContentContainer>
             </PopupContainer>

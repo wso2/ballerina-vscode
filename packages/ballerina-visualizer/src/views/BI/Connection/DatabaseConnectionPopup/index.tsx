@@ -88,16 +88,35 @@ const StepperContainer = styled.div`
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
 
-const ContentContainer = styled.div`
+const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
     padding: 24px 32px;
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    min-height: 0;
 `;
 
-const StepContent = styled.div`
+const StepContent = styled.div<{ fillHeight?: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 24px;
+    ${(props: { fillHeight?: boolean }) => props.fillHeight && `
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+    `}
+`;
+
+const FooterContainer = styled.div`
+    position: sticky;
+    bottom: 0;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
 `;
 
 const SectionTitle = styled(Typography)`
@@ -507,7 +526,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         switch (currentStep) {
             case 0:
                 return (
-                    <StepContent>
+                    <StepContent fillHeight={true}>
                         <div>
                             <SectionTitle variant="h3">Database Credentials</SectionTitle>
                             <SectionSubtitle variant="body2">
@@ -569,19 +588,13 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     onTextChange={(value) => handleCredentialsChange("password", value)}
                                 />
                             </FormField>
-                            <ActionButton
-                                onClick={handleIntrospect}
-                                disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting || !!connectionError}
-                            >
-                                {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
-                            </ActionButton>
                         </FormSection>
                     </StepContent>
                 );
 
             case 1:
                 return (
-                    <StepContent>
+                    <StepContent fillHeight={true}>
                         <SelectionInfo>
                             <div>
                                 <SectionTitle variant="h3">Select Tables</SectionTitle>
@@ -612,18 +625,12 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
                             Select All
                         </SelectAllButton>
-                            <ActionButton
-                                onClick={handleContinueToConnectionDetails}
-                                disabled={selectedTablesCount === 0}
-                            >
-                                Continue to Connection Details
-                            </ActionButton>
                     </StepContent>
                 );
 
             case 2:
                 return (
-                    <StepContent>
+                    <StepContent fillHeight={true}>
                         <div>
                             <SectionTitle variant="h3">Connection Details</SectionTitle>
                             <SectionSubtitle variant="body2">
@@ -684,12 +691,6 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 </FormField>
                             </FormSection>
                         </ConfigurablesPanel>
-                            <ActionButton
-                                onClick={handleSaveConnection}
-                                disabled={!connectionName || isSaving}
-                            >
-                                {isSaving ? "Saving..." : "Save Connection"}
-                            </ActionButton>
                     </StepContent>
                 );
 
@@ -719,7 +720,43 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 <StepperContainer>
                     <Stepper steps={steps} currentStep={currentStep} alignment="flex-start" />
                 </StepperContainer>
-                <ContentContainer>{renderStepContent()}</ContentContainer>
+                <ContentContainer hasFooterButton={true}>{renderStepContent()}</ContentContainer>
+                {currentStep === 0 && (
+                    <FooterContainer>
+                        <ActionButton
+                            appearance="primary"
+                            onClick={handleIntrospect}
+                            disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting || !!connectionError}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
+                        </ActionButton>
+                    </FooterContainer>
+                )}
+                {currentStep === 1 && (
+                    <FooterContainer>
+                        <ActionButton
+                            appearance="primary"
+                            onClick={handleContinueToConnectionDetails}
+                            disabled={selectedTablesCount === 0}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            Continue to Connection Details
+                        </ActionButton>
+                    </FooterContainer>
+                )}
+                {currentStep === 2 && (
+                    <FooterContainer>
+                        <ActionButton
+                            appearance="primary"
+                            onClick={handleSaveConnection}
+                            disabled={!connectionName || isSaving}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            {isSaving ? "Saving..." : "Save Connection"}
+                        </ActionButton>
+                    </FooterContainer>
+                )}
             </PopupContainer>
         </>
     );

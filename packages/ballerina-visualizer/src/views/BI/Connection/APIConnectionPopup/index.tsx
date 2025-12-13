@@ -91,17 +91,35 @@ const StepperContainer = styled.div`
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
 
-const ContentContainer = styled.div`
+const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
     padding: 24px 32px;
-    background: ${ThemeColors.SURFACE_DIM};
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    min-height: 0;
 `;
 
-const StepContent = styled.div`
+const FooterContainer = styled.div`
+    position: sticky;
+    bottom: 0;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+`;
+
+const StepContent = styled.div<{ fillHeight?: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 20px;
+    ${(props: { fillHeight?: boolean }) => props.fillHeight && `
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+    `}
 `;
 
 const SectionTitle = styled(Typography)`
@@ -120,7 +138,7 @@ const SectionSubtitle = styled(Typography)`
 const FormSection = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
     background: transparent;
     border: none;
     padding: 0;
@@ -129,7 +147,6 @@ const FormSection = styled.div`
 const FormField = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
 `;
 
 const UploadCard = styled.div<{ hasFile?: boolean }>`
@@ -189,7 +206,6 @@ const UploadSubtitle = styled(Typography)`
 
 
 const ActionButton = styled(Button)`
-    margin-top: 12px;
     width: 100% !important;
     min-width: 0 !important;
     display: flex !important;
@@ -295,7 +311,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
 
-    const steps = useMemo(() => ["Import API Spec", "Create Connection"], []);
+    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);
 
     const apiSpecOptions = useMemo(
         () => [
@@ -484,7 +500,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         return (
             <>
                 <StepperContainer>
-                    <Stepper steps={steps} currentStep={currentStep} alignment="flex-start" />
+                    <Stepper steps={steps} currentStep={currentStep} alignment="center"  />
                 </StepperContainer>
             </>
         );
@@ -493,7 +509,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const renderImportStep = () => (
         <StepContent>
             <StepHeader>
-                <Typography variant="h3" sx={{ color: ThemeColors.ON_SURFACE }}>
+                <Typography variant="h3" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "5px" }}>
                     Connector Configuration
                 </Typography>
                 <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
@@ -511,19 +527,21 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     />
                 </FormField>
                 <FormField>
+                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "0px", fontSize: "13px", fontWeight: 500 }}>
+                        Connector Name
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, marginBottom: "8px", fontSize: "12px" }}>
+                        Name of the connector module to be generated
+                    </Typography>
                     <TextField
                         id="connector-name"
-                        label="Connector Name"
                         value={connectorName}
                         onTextChange={(value) => setConnectorName(value)}
                         placeholder="Enter connector name"
                     />
-                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, marginTop: "4px", fontSize: "12px" }}>
-                        Name of the connector module to be generated
-                    </Typography>
                 </FormField>
                 <FormField>
-                    <Typography variant="h3" sx={{ fontSize: 18, fontWeight: 700, color: ThemeColors.ON_SURFACE }}>
+                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "8px", fontSize: "13px", fontWeight: 500 }}>
                         Import Specification File
                     </Typography>
                     <UploadCard
@@ -542,13 +560,6 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                         </UploadText>
                     </UploadCard>
                 </FormField>
-                <ActionButton
-                    appearance="primary"
-                    disabled={!selectedFilePath || !connectorName || isSavingConnector}
-                    onClick={handleSaveConnector}
-                >
-                    {isSavingConnector ? "Saving..." : "Save Connector"}
-                </ActionButton>
             </FormSection>
         </StepContent>
     );
@@ -556,16 +567,17 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const renderConnectionStep = () => {
         if (selectedFlowNode) {
             return (
-                <StepContent>
+                <StepContent fillHeight={true}>
                     <ConnectionConfigView
                         fileName={fileName}
-                        submitText={isSavingConnection ? "Creating..." : "Create"}
+                        submitText={isSavingConnection ? "Creating..." : "Save Connection"}
                         isSaving={isSavingConnection}
                         selectedNode={selectedFlowNode}
                         onSubmit={handleOnFormSubmit}
                         updatedExpressionField={updatedExpressionField}
                         resetUpdatedExpressionField={() => setUpdatedExpressionField(undefined)}
                         isPullingConnector={isSavingConnection}
+                        footerActionButton={true}
                     />
                 </StepContent>
             );
@@ -605,7 +617,19 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     </CloseButton>
                 </PopupHeader>
                 {renderStepper()}
-                <ContentContainer>{renderStepContent()}</ContentContainer>
+                <ContentContainer hasFooterButton={currentStep === 1}>{renderStepContent()}</ContentContainer>
+                {currentStep === 0 && (
+                    <FooterContainer>
+                        <ActionButton
+                            appearance="primary"
+                            disabled={!selectedFilePath || !connectorName || isSavingConnector}
+                            onClick={handleSaveConnector}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            {isSavingConnector ? "Saving..." : "Save Connector"}
+                        </ActionButton>
+                    </FooterContainer>
+                )}
             </PopupContainer>
         </>
     );
