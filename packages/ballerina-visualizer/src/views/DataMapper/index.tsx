@@ -41,9 +41,16 @@ export function DataMapper(props: DataMapperProps) {
     const {rpcClient} = useRpcContext();
 
     const goToSource = () => {
-        rpcClient.getCommonRpcClient()?.executeCommand({
-            commands: ["ballerina.show.source"]
-        });
+        const lineRange = props.codedata.lineRange;
+        if (lineRange) {
+            const position: NodePosition = {
+                startLine: lineRange.startLine.line,
+                startColumn: lineRange.startLine.offset,
+                endLine: lineRange.endLine.line,
+                endColumn: lineRange.endLine.offset,
+            };
+            rpcClient.getCommonRpcClient().goToSource({ position });
+        }
     };
 
     const onClose = props.onClose || (() => {
