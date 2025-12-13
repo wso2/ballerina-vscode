@@ -19,10 +19,10 @@ import { z } from 'zod';
 import { CopilotEventHandler } from '../event';
 import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, AIChatMachineContext } from '@wso2/ballerina-core';
 import { AIChatStateMachine } from '../../../../views/ai-panel/aiChatMachine';
-import { integrateCodeToWorkspace } from '../design/utils';
+import { integrateCodeToWorkspace } from '../agent/utils';
 import { checkCompilationErrors } from './diagnostics_utils';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics_tool';
-import { createExecutionContextFromStateMachine } from '../design/design';
+import { createExecutionContextFromStateMachine } from '../agent/agent';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 

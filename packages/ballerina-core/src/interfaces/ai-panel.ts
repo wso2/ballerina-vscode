@@ -24,7 +24,7 @@ export enum Command {
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
-    Design = '/design', // Internal use only - design is the default behavior
+    Agent = '/agent', // Internal use only - agent is the default behavior
     Doc = '/doc'
 }
 

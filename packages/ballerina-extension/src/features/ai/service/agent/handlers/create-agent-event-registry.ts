@@ -24,12 +24,12 @@ import { AbortHandler } from "./abort-handler";
 import { FinishHandler } from "./finish-handler";
 
 /**
- * Creates and configures a StreamEventRegistry for the design service.
+ * Creates and configures a StreamEventRegistry for the agent service.
  * Registers all 7 event handlers in the appropriate order.
  *
  * @returns A configured StreamEventRegistry ready for use
  */
-export function createDesignEventRegistry(): StreamEventRegistry {
+export function createAgentEventRegistry(): StreamEventRegistry {
     const registry = new StreamEventRegistry();
 
     // Register all handlers

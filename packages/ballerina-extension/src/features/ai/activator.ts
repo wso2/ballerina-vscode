@@ -28,7 +28,7 @@ import { REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
 import { generateMappingCodeCore } from './service/datamapper/datamapper';
-import { generateDesignForTest, GenerateDesignForTestParams } from './service/design/design-for-test';
+import { generateAgentForTest, GenerateAgentForTestParams } from './service/agent/agent-for-test';
 
 export let langClient: ExtendedLangClient;
 
@@ -40,8 +40,8 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
-        commands.registerCommand('ballerina.test.ai.generateDesignForTest', async (params: GenerateDesignForTestParams, testEventHandler: CopilotEventHandler) => {
-            return await generateDesignForTest(params, testEventHandler);
+        commands.registerCommand('ballerina.test.ai.generateAgentForTest', async (params: GenerateAgentForTestParams, testEventHandler: CopilotEventHandler) => {
+            return await generateAgentForTest(params, testEventHandler);
         });
 
         commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {

@@ -116,8 +116,8 @@ export const commandTemplates = {
             placeholders: [],
         },
     ],
-    [Command.Design]: [
-        // Internal use only - design is the default behavior when no command is specified
+    [Command.Agent]: [
+        // Internal use only - agent is the default behavior when no command is specified
     ],
     [Command.Doc]: [
         {

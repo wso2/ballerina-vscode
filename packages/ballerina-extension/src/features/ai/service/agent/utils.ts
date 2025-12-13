@@ -69,12 +69,12 @@ export async function integrateCodeToWorkspace(
     ctx: ExecutionContext
 ): Promise<void> {
     if (!tempProjectPath) {
-        console.log("[Design Integration] No temp project path provided");
+        console.log("[Agent Integration] No temp project path provided");
         return;
     }
 
     if (!fs.existsSync(tempProjectPath)) {
-        console.warn("[Design Integration] Temp project path does not exist:", tempProjectPath);
+        console.warn("[Agent Integration] Temp project path does not exist:", tempProjectPath);
         return;
     }
 
@@ -97,34 +97,34 @@ export async function integrateCodeToWorkspace(
                 const fileName = path.basename(relativePath);
                 if (FILES_REQUIRING_PATH_SANITIZATION.includes(fileName)) {
                     content = sanitizeTempPaths(content, tempProjectPath, workspaceFolderPath);
-                    console.log(`[Design Integration] Sanitized temp paths in: ${relativePath}`);
+                    console.log(`[Agent Integration] Sanitized temp paths in: ${relativePath}`);
                 }
 
                 fileChanges.push({
                     filePath: relativePath,
                     content: content,
                 });
-                console.log(`[Design Integration] Prepared modified file: ${relativePath}`);
+                console.log(`[Agent Integration] Prepared modified file: ${relativePath}`);
             } else {
-                console.warn(`[Design Integration] Modified file not found: ${relativePath}`);
+                console.warn(`[Agent Integration] Modified file not found: ${relativePath}`);
             }
         }
     } else {
-        console.log("[Design Integration] No modified files to integrate");
+        console.log("[Agent Integration] No modified files to integrate");
     }
 
     if (fileChanges.length === 0) {
-        console.warn("[Design Integration] No files found in temp project");
+        console.warn("[Agent Integration] No files found in temp project");
         return;
     }
 
     try {
-        console.log(`[Design Integration] Integrating ${fileChanges.length} file(s) from temp project...`);
+        console.log(`[Agent Integration] Integrating ${fileChanges.length} file(s) from temp project...`);
         await addToIntegration(workspaceFolderPath, fileChanges);
-        console.log("[Design Integration] Successfully integrated code");
+        console.log("[Agent Integration] Successfully integrated code");
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("[Design Integration] Failed:", errorMessage);
+        console.error("[Agent Integration] Failed:", errorMessage);
         throw new Error(`Failed to integrate code to workspace: ${errorMessage}`);
     }
 }

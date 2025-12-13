@@ -871,7 +871,7 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processDesignGeneration(parsedInput.text, inputText);
+            await processAgentGeneration(parsedInput.text, inputText);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
@@ -1208,9 +1208,9 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
     }
 
-    async function processDesignGeneration(useCase: string, message: string) {
+    async function processAgentGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
-            type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT,
+            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
             payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
         });
     }

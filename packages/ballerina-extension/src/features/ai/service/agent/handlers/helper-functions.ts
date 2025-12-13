@@ -16,7 +16,7 @@
 
 /**
  * Helper functions for accumulating and managing stream content.
- * Extracted from design.ts to be reusable across handlers.
+ * Extracted from agent.ts to be reusable across handlers.
  */
 
 /**

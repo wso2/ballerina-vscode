@@ -72,7 +72,7 @@ import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
 import { fetchWithAuth } from "../../../src/features/ai/service/connection";
 import { openChatWindowWithCommand } from "../../../src/features/ai/service/datamapper/datamapper";
-import { generateDesign } from "../../../src/features/ai/service/design/design";
+import { generateAgent } from "../../../src/features/ai/service/agent/agent";
 import { generateOpenAPISpec } from "../../../src/features/ai/service/openapi/openapi";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
@@ -762,9 +762,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
+    async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
         AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT,
+            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
             payload: {
                 prompt: params.usecase,
                 isPlanMode: params.isPlanMode ?? true,
