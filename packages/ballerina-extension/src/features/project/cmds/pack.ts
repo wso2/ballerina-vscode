@@ -65,7 +65,7 @@ export function activatePackCommand() {
 
             const currentProject = await getCurrentBallerinaProject(targetPath);
 
-            let balCommand = BALLERINA_COMMANDS.PACK
+            let balCommand = BALLERINA_COMMANDS.PACK;
 
             if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
                 balCommand = BALLERINA_COMMANDS.PACK_WITH_EXPERIMENTAL;
