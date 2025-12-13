@@ -62,7 +62,7 @@ export default function ErrorScreen(props: ErrorScreenProps) {
                         </Button>
                          <Button appearance="primary" onClick={goToSource}>
                             <Icon name="code" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
-                            Show source
+                            Switch To Source
                         </Button>
                     </div>
                 </div>
