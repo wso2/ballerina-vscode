@@ -249,20 +249,15 @@ export function DataMapperView(props: DataMapperViewProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            if (viewState.subMappingName) {
-                // If the view is a sub mapping, we can reuse the codedata of the parent view
-                setViewState({ viewId, codedata: viewState.codedata, subMappingName: viewState.subMappingName });
-            } else {
-                const resp = await rpcClient
-                    .getDataMapperRpcClient()
-                    .getSubMappingCodedata({
-                        filePath,
-                        codedata: viewState.codedata,
-                        view: viewId
-                    });
-                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-                setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
-            }
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .getSubMappingCodedata({
+                    filePath,
+                    codedata: viewState.codedata,
+                    view: viewId
+                });
+            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+            setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
         } else {
             if (viewState.subMappingName) {
                 // If the view is a sub mapping, we need to get the codedata of the parent mapping
