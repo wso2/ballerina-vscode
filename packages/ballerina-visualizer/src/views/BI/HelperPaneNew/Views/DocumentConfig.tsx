@@ -29,6 +29,7 @@ import { AIDocumentType } from "./Documents";
 import { VariableItem } from "./Variables";
 import FooterButtons from "../Components/FooterButtons";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
+import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type DocumentConfigProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
@@ -44,8 +45,12 @@ type DocumentConfigProps = {
 const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: AIDocumentType, content: string): string => {
-    return`<${documentType}>{content: ${content}}`;
+const wrapInDocumentType = (documentType: AIDocumentType, content: string, isTemplateMode: boolean): string => {
+    const wrappedContent = `<${documentType}>{content: ${content}}`;
+    if (isTemplateMode) {
+        return wrapInTemplateInterpolation(wrappedContent, InputMode.TEMPLATE);
+    }
+    return wrappedContent;
 };
 
 export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
@@ -158,7 +163,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const needsTypeCasting = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
 
         // Check if we're in template mode
-        const isTemplateMode = inputMode === InputMode.TEMPLATE;
+        const isTemplateMode = inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE;
 
         if (isAIDocumentType) {
             // For AI document types, wrap in string interpolation only in template mode
@@ -169,7 +174,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             }
         } else if (needsTypeCasting) {
             // Wrap the variable in the document structure with or without interpolation based on mode
-            const wrappedValue = wrapInDocumentType(documentType, fullPath);
+            const wrappedValue = wrapInDocumentType(documentType, fullPath, isTemplateMode);
             onChange(wrappedValue, false);
         } else {
             // For other types (records, etc.), insert directly
@@ -210,8 +215,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             if (!url.trim()) {
                 return;
             }
-            const isTemplateMode = inputMode === InputMode.TEMPLATE;
-            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`);
+            const isTemplateMode = inputMode === InputMode.PROMPT;
+            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode);
             onChange(wrappedValue, false, false);
             closeModal(POPUP_IDS.DOCUMENT_URL);
         };
