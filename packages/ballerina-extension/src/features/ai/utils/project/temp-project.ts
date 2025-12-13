@@ -23,10 +23,11 @@ import * as path from 'path';
 import { StateMachine } from '../../../../stateMachine';
 import { OperationType, ProjectModule, ProjectSource, ExecutionContext } from '@wso2/ballerina-core';
 import { getWorkspaceTomlValues } from '../../../../utils';
-import { parse } from 'toml';
 import { NATURAL_PROGRAMMING_DIR_NAME, REQ_KEY, REQUIREMENT_DOC_PREFIX, REQUIREMENT_MD_DOCUMENT, REQUIREMENT_TEXT_DOCUMENT } from '../../../../rpc-managers/ai-panel/constants';
 import { isErrorCode, requirementsSpecification } from '../../../../rpc-managers/ai-panel/utils';
 import { sendAgentDidCloseBatch } from './ls-schema-notifications';
+import { parseTomlToConfig } from '../../../../../src/features/config-generator/utils';
+import { BALLERINA_TOML } from '../../../../../src/utils/project-utils';
 
 /**
  * Result of getTempProject operation
@@ -217,7 +218,7 @@ async function getCurrentProjectSource(
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
         // Simple parsing to extract the package.name field
         try {
-            const tomlObj = parse(tomlContent);
+            const tomlObj: BALLERINA_TOML = parseTomlToConfig(tomlContent) as BALLERINA_TOML;
             packageName = tomlObj.package.name;
         } catch (error) {
             packageName = '';

@@ -21,13 +21,13 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, LinePosition } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition } from "../..";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any>}
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
     | undefined;
 
@@ -195,11 +195,11 @@ export interface TempDirectoryPath {
 }
 
 export interface ExtractMappingDetailsRequest {
-    parameters: MappingParameters;
-    recordMap: Record<string, DataMappingRecord>;
-    allImports: ImportInfo[];
-    existingFunctions: ComponentInfo[];
-    functionContents: Record<string, string>;
+    parameters: MappingParameters;                
+    recordMap: Record<string, DataMappingRecord>;  
+    allImports: ImportInfo[];  
+    existingFunctions: ComponentInfo[];    
+    functionContents: Record<string, string>;        
 }
 
 export interface ExistingFunctionMatchResult {
@@ -209,13 +209,13 @@ export interface ExistingFunctionMatchResult {
 }
 
 export interface ExtractMappingDetailsResponse {
-    inputs: DataMappingRecord[];
-    output: DataMappingRecord;
+    inputs: DataMappingRecord[];    
+    output: DataMappingRecord; 
     inputParams: string[];
-    outputParam: string;
+    outputParam: string;   
     imports: ImportInfo[];
     inputNames: string[];
-    existingFunctionMatch: ExistingFunctionMatchResult;
+    existingFunctionMatch: ExistingFunctionMatchResult;       
 }
 
 export interface RepairCodeParams {
@@ -225,10 +225,18 @@ export interface RepairCodeParams {
     tempDir?: string;
 }
 
+export interface RepairedMapping {
+    output: string;       
+    expression: string; 
+}
+
 export interface repairCodeRequest {
-    sourceFiles: SourceFile[];
-    diagnostics: DiagnosticList;
+    dmModel: DMModel;
     imports: ImportInfo[];
+}
+
+export interface RepairCodeResponse {
+    repairedMappings: RepairedMapping[];
 }
 
 // Test-generator related interfaces

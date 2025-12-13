@@ -4,6 +4,16 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.6.3](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.2...ballerina-integrator-1.5.3) - 2025-12-01
+
+### Changed
+
+- **Data Mapper** — Improved completion support for the expression bar and clause editor. Re-enabled array aggregating options.
+
+### Fixed
+
+- **Data Mapper** — Fixed expression bar focusing, inline undo button, and crashes during mapping clearance.
+- **AI Data Mapper** — Fixed error handling, output formatting, and compilation errors.
 
 ## [5.6.2](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.1...ballerina-integrator-1.5.2) - 2025-11-18
 

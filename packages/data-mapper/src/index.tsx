@@ -29,6 +29,7 @@ import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
 
 import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
 import { ExpressionProvider } from "./context/ExpressionContext";
+import { ISSUES_URL } from "./components/Diagram/utils/constants";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -77,7 +78,6 @@ export interface DataMapperEditorProps {
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     onRefresh: () => Promise<void>;
-    onReset: () => Promise<void>;
     onClose: () => void;
     onEdit?: () => void;
     handleView: (viewId: string, isSubMapping?: boolean) => void;
@@ -92,7 +92,7 @@ export interface DataMapperProps extends DataMapperEditorProps {
 
 export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper">
+        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper" issueUrl={ISSUES_URL}>
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <ExpressionProvider {...expressionBar}>

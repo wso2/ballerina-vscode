@@ -32,16 +32,16 @@ const GeneratedMappingSchema = z.object({
   generatedMappings: DataMappingSchema,
 });
 
-// Schema for a single source file
-const SourceFileSchema = z.object({
-  filePath: z.string().min(1),
-  content: z.string(),
+// Schema for a single repaired mapping
+const RepairedMappingSchema = z.object({
+  output: z.string(),
+  expression: z.string()
 });
 
-// Schema for the array of repaired source files
-const RepairedSourceFilesSchema = z.object({
-  repairedFiles: z.array(SourceFileSchema),
+// Schema for the array of repaired mappings
+const RepairedMappingsSchema = z.object({
+  repairedMappings: z.array(RepairedMappingSchema),
 });
 
 // Export the schema for reuse
-export { GeneratedMappingSchema, RepairedSourceFilesSchema };
+export { GeneratedMappingSchema, RepairedMappingsSchema };

@@ -16,41 +16,13 @@
  * under the License.
  */
 
-import { DataMappingRecord, createFunctionSignature, getSource, repairCodeRequest, ProjectSource, SourceFile } from "@wso2/ballerina-core";
+import { DataMappingRecord, createFunctionSignature, getSource } from "@wso2/ballerina-core";
 import { camelCase } from "lodash";
-import { writeBallerinaFileDidOpenTemp } from "../../../../utils/modification";
-import { repairSourceFilesWithAI } from "../../../../rpc-managers/ai-panel/utils";
 import { PrimitiveType } from "../constants";
 
 /**
  * Code generation utilities for data mapping functions
  */
-
-export async function repairCodeWithLLM(codeRepairRequest: repairCodeRequest): Promise<ProjectSource> {
-  if (!codeRepairRequest) {
-    throw new Error("Code repair request is required");
-  }
-
-  if (!codeRepairRequest.sourceFiles || codeRepairRequest.sourceFiles.length === 0) {
-    throw new Error("Source files are required for code repair");
-  }
-
-  const repairedSourceFiles = await repairSourceFilesWithAI(codeRepairRequest);
-
-  for (const repairedFile of repairedSourceFiles) {
-    try {
-      writeBallerinaFileDidOpenTemp(
-        repairedFile.filePath,
-        repairedFile.content
-      );
-    } catch (error) {
-      console.error(`Error processing file ${repairedFile.filePath}:`, error);
-    }
-  }
-
-  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "", packagePath: "", isActive: true };
-  return projectSourceResponse;
-}
 
 export function createDataMappingFunctionSource(
   inputParams: DataMappingRecord[],

@@ -41,50 +41,46 @@ import {
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
-    OperationType,
     PostProcessRequest,
     PostProcessResponse,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
     ProjectDiagnostics,
-    ProjectModule,
     ProjectSource,
     RelevantLibrariesAndFunctionsRequest,
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
-    SourceFile,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
+    TestPlanGenerationRequest
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import path from "path";
-import { parse } from 'toml';
 import { workspace } from 'vscode';
 
+import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
-import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
-import { generateAgent } from "../../features/ai/agent/index";
-import { generateOpenAPISpec } from "../../features/ai/openapi/index";
-import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
-import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
+import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
+import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
+import { generateOpenAPISpec } from "../../features/ai/openapi/index";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 // import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
+import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
 import { GenerationType } from "../../features/ai/utils/libs/libraries";
 import { Library } from "../../features/ai/utils/libs/library-types";
-import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
@@ -94,15 +90,11 @@ import { refreshDataMapper } from "../data-mapper/utils";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
-    REQUIREMENT_MD_DOCUMENT,
-    REQUIREMENT_TEXT_DOCUMENT,
-    REQ_KEY, TEST_DIR_NAME
+    TEST_DIR_NAME
 } from "./constants";
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, isErrorCode, requirementsSpecification, searchDocumentation } from "./utils";
+import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { getWorkspaceTomlValues } from "./../../../src/utils/config";
-import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 

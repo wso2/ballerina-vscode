@@ -60,3 +60,8 @@ export enum PrimitiveArrayType {
   BOOLEAN_OR_NULL_ARRAY = "boolean?[]",
   BOOLEAN_OR_NULL_ARRAY_NULLABLE = "boolean?[]?"
 }
+
+// Error type
+export enum ErrorType {
+  ERROR = "error"
+}
