@@ -322,7 +322,31 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             .then(async (model) => {
                 console.log(">>> bi searched connectors", model);
                 console.log(">>> bi filtered connectors", model.categories);
-                setConnectors(model.categories);
+                
+                // When searching, the API might return a flat array of connectors instead of categories
+                // Check if categories exist and have the proper structure (with items arrays)
+                let normalizedCategories: Category[] = [];
+                
+                if (model.categories && Array.isArray(model.categories)) {
+                    // Check if the first item is a category (has items) or a connector (has codedata)
+                    const firstItem = model.categories[0];
+                    if (firstItem && "items" in firstItem && Array.isArray(firstItem.items)) {
+                        // Proper category structure - use as is
+                        normalizedCategories = model.categories;
+                    } else if (firstItem && "codedata" in firstItem) {
+                        // Flat array of connectors - wrap in a category
+                        normalizedCategories = [{
+                            metadata: { 
+                                label: "Search Results",
+                                description: ""
+                            },
+                            items: model.categories as unknown as AvailableNode[]
+                        }];
+                    }
+                }
+                
+                console.log(">>> normalized categories for search", normalizedCategories);
+                setConnectors(normalizedCategories);
             })
             .finally(() => {
                 setIsSearching(false);
@@ -399,9 +423,21 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         if (!category || !category.items) {
             return category;
         }
+        // Only apply client-side filtering if there's no search text (backend already filtered)
+        if (searchText) {
+            // When searching, show all items from backend results
+            return category;
+        }
         category.items = filterItems(category.items);
         return category;
     }).filter((category) => {
+        if (!category) {
+            return false;
+        }
+        // When searching, show all categories that have items
+        if (searchText) {
+            return category.items && category.items.length > 0;
+        }
         // Map filterType to category labels similar to ConnectorView
         // "Standard" maps to "StandardLibrary" (exclude Local and CurrentOrg)
         // "Organization" maps to "CurrentOrg"
@@ -471,6 +507,47 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         })
     };
 
+    const getConnectorCreationOptions = () => {
+        if (!searchText || searchText.trim() === "") {
+            // No search - show both options
+            return { showApiSpec: true, showDatabase: true };
+        }
+
+        const lowerSearchText = searchText.toLowerCase().trim();
+        
+        // Database-related keywords
+        const databaseKeywords = [
+            "database", "db", "mysql", "postgresql", "postgres", "mssql", "sql server",
+            "sqlserver", "oracle", "sqlite", "mariadb", "mongodb", "cassandra",
+            "redis", "dynamodb", "table", "schema", "query", "sql"
+        ];
+        
+        // API-related keywords
+        const apiKeywords = [
+            "api", "http", "https", "rest", "graphql", "soap", "wsdl", "openapi",
+            "swagger", "endpoint", "service", "client", "request", "response",
+            "json", "xml", "yaml", "websocket", "rpc"
+        ];
+
+        const isDatabaseSearch = databaseKeywords.some(keyword => lowerSearchText.includes(keyword));
+        const isApiSearch = apiKeywords.some(keyword => lowerSearchText.includes(keyword));
+
+        // If search matches database keywords, show only database option
+        if (isDatabaseSearch && !isApiSearch) {
+            return { showApiSpec: false, showDatabase: true };
+        }
+        
+        // If search matches API keywords, show only API spec option
+        if (isApiSearch && !isDatabaseSearch) {
+            return { showApiSpec: true, showDatabase: false };
+        }
+
+        // If both or neither match, show both options
+        return { showApiSpec: true, showDatabase: true };
+    };
+
+    const connectorOptions = getConnectorCreationOptions();
+
     return (
         <>
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
@@ -498,58 +575,64 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                         />
                     </SearchContainer>
 
-                    <Section>
-                        <SectionTitle variant="h3">CREATE NEW CONNECTOR</SectionTitle>
-                        <CreateConnectorOptions>
-                            <ConnectorOptionCard onClick={handleApiSpecConnection}>
-                                <ConnectorOptionIcon>
-                                    <Icon name="file-code" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                </ConnectorOptionIcon>
-                                <ConnectorOptionContent>
-                                    <ConnectorOptionTitle>Connect via API Specification</ConnectorOptionTitle>
-                                    <ConnectorOptionDescription>
-                                        Import an OpenAPI or WSDL file to create a connector
-                                    </ConnectorOptionDescription>
-                                    <ConnectorOptionButtons>
-                                        <ConnectorTypeButton appearance="secondary">
-                                            OpenAPI
-                                        </ConnectorTypeButton>
-                                        <ConnectorTypeButton appearance="secondary">
-                                            WSDL
-                                        </ConnectorTypeButton>
-                                    </ConnectorOptionButtons>
-                                </ConnectorOptionContent>
-                                <ArrowIcon>
-                                    <Codicon name="chevron-right" />
-                                </ArrowIcon>
-                            </ConnectorOptionCard>
-                            <ConnectorOptionCard onClick={handleDatabaseConnection}>
-                                <ConnectorOptionIcon>
-                                    <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                </ConnectorOptionIcon>
-                                <ConnectorOptionContent>
-                                    <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
-                                    <ConnectorOptionDescription>
-                                        Enter credentials to introspect and discover database tables
-                                    </ConnectorOptionDescription>
-                                    <ConnectorOptionButtons>
-                                        <ConnectorTypeButton appearance="secondary">
-                                            MySQL
-                                        </ConnectorTypeButton>
-                                        <ConnectorTypeButton appearance="secondary">
-                                            MSSQL
-                                        </ConnectorTypeButton>
-                                        <ConnectorTypeButton appearance="secondary">
-                                            PostgreSQL
-                                        </ConnectorTypeButton>
-                                    </ConnectorOptionButtons>
-                                </ConnectorOptionContent>
-                                <ArrowIcon>
-                                    <Codicon name="chevron-right" />
-                                </ArrowIcon>
-                            </ConnectorOptionCard>
-                        </CreateConnectorOptions>
-                    </Section>
+                    {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
+                        <Section>
+                            <SectionTitle variant="h3">CREATE NEW CONNECTOR</SectionTitle>
+                            <CreateConnectorOptions>
+                                {connectorOptions.showApiSpec && (
+                                    <ConnectorOptionCard onClick={handleApiSpecConnection}>
+                                        <ConnectorOptionIcon>
+                                            <Icon name="bi-api-spec" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                        </ConnectorOptionIcon>
+                                        <ConnectorOptionContent>
+                                            <ConnectorOptionTitle>Connect via API Specification</ConnectorOptionTitle>
+                                            <ConnectorOptionDescription>
+                                                Import an OpenAPI or WSDL file to create a connector
+                                            </ConnectorOptionDescription>
+                                            <ConnectorOptionButtons>
+                                                <ConnectorTypeButton appearance="secondary">
+                                                    OpenAPI
+                                                </ConnectorTypeButton>
+                                                <ConnectorTypeButton appearance="secondary">
+                                                    WSDL
+                                                </ConnectorTypeButton>
+                                            </ConnectorOptionButtons>
+                                        </ConnectorOptionContent>
+                                        <ArrowIcon>
+                                            <Codicon name="chevron-right" />
+                                        </ArrowIcon>
+                                    </ConnectorOptionCard>
+                                )}
+                                {connectorOptions.showDatabase && (
+                                    <ConnectorOptionCard onClick={handleDatabaseConnection}>
+                                        <ConnectorOptionIcon>
+                                            <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                        </ConnectorOptionIcon>
+                                        <ConnectorOptionContent>
+                                            <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
+                                            <ConnectorOptionDescription>
+                                                Enter credentials to introspect and discover database tables
+                                            </ConnectorOptionDescription>
+                                            <ConnectorOptionButtons>
+                                                <ConnectorTypeButton appearance="secondary">
+                                                    MySQL
+                                                </ConnectorTypeButton>
+                                                <ConnectorTypeButton appearance="secondary">
+                                                    MSSQL
+                                                </ConnectorTypeButton>
+                                                <ConnectorTypeButton appearance="secondary">
+                                                    PostgreSQL
+                                                </ConnectorTypeButton>
+                                            </ConnectorOptionButtons>
+                                        </ConnectorOptionContent>
+                                        <ArrowIcon>
+                                            <Codicon name="chevron-right" />
+                                        </ArrowIcon>
+                                    </ConnectorOptionCard>
+                                )}
+                            </CreateConnectorOptions>
+                        </Section>
+                    )}
 
                     <Section>
                         <SectionHeader>
