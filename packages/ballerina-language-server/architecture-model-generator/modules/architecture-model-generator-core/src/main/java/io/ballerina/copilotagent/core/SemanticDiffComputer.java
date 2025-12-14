@@ -54,7 +54,6 @@ import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -94,12 +93,13 @@ public class SemanticDiffComputer {
         NodeRefExtractor originalNodeRefExtractor = new NodeRefExtractor(originalNodeRefMap);
         NodeRefExtractor modifiedNodeRefExtractor = new NodeRefExtractor(modifiedNodeRefMap);
 
-        for (String docName : originalDocumentMap.keySet()) {
+        for (Map.Entry<String, Document> entry : originalDocumentMap.entrySet()) {
+            String docName = entry.getKey();
             if (!modifiedDocumentMap.containsKey(docName)) {
                 // Document removed in modified project
                 continue;
             }
-            Document originalDoc = originalDocumentMap.get(docName);
+            Document originalDoc = entry.getValue();
             Document modifiedDoc = modifiedDocumentMap.get(docName);
             modifiedDocumentMap.remove(docName);
             if (originalDoc.syntaxTree().rootNode().toSourceCode().equals(
@@ -112,8 +112,8 @@ public class SemanticDiffComputer {
         }
 
         // Handle newly added documents in modified project
-        for (String docName : modifiedDocumentMap.keySet()) {
-            Document modifiedDoc = modifiedDocumentMap.get(docName);
+        for (Map.Entry<String, Document> entry : modifiedDocumentMap.entrySet()) {
+            Document modifiedDoc = entry.getValue();
             modifiedDoc.syntaxTree().rootNode().accept(modifiedNodeRefExtractor);
         }
 
@@ -153,7 +153,8 @@ public class SemanticDiffComputer {
             return;
         }
 
-        for (String listenerName : originalListenerMap.keySet()) {
+        for (Map.Entry<String, ListenerDeclarationNode> entry : originalListenerMap.entrySet()) {
+            String listenerName = entry.getKey();
             if (!modifiedListenerMap.containsKey(listenerName)) {
                 loadDesignDiagrams = true;
                 return;
@@ -175,11 +176,12 @@ public class SemanticDiffComputer {
      */
     private void computeTypeDefDiffs(Map<String, TypeDefinitionNode> originalTypeDefMap,
                                      Map<String, TypeDefinitionNode> modifiedTypeDefMap) {
-        for (String typeDefName : originalTypeDefMap.keySet()) {
+        for (Map.Entry<String, TypeDefinitionNode> entry : originalTypeDefMap.entrySet()) {
+            String typeDefName = entry.getKey();
             if (!modifiedTypeDefMap.containsKey(typeDefName)) {
                 continue;
             }
-            TypeDefinitionNode originalTypeDef = originalTypeDefMap.get(typeDefName);
+            TypeDefinitionNode originalTypeDef = entry.getValue();
             TypeDefinitionNode modifiedTypeDef = modifiedTypeDefMap.remove(typeDefName);
             if (originalTypeDef.toSourceCode().equals(modifiedTypeDef.toSourceCode())) {
                 continue;
@@ -194,8 +196,8 @@ public class SemanticDiffComputer {
         originalTypeDefMap.keySet().forEach(modifiedTypeDefMap::remove);
 
         // Handle newly added type definitions in modified project
-        for (String typeDefName : modifiedTypeDefMap.keySet()) {
-            TypeDefinitionNode typeDefinitionNode = modifiedTypeDefMap.get(typeDefName);
+        for (Map.Entry<String, TypeDefinitionNode> entry : modifiedTypeDefMap.entrySet()) {
+            TypeDefinitionNode typeDefinitionNode = entry.getValue();
             LineRange lineRange = typeDefinitionNode.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.TYPE_DEFINITION,
                     resolveUri(lineRange.fileName()), lineRange);
@@ -212,17 +214,18 @@ public class SemanticDiffComputer {
      */
     private void computeFunctionDiffs(Map<String, FunctionDefinitionNode> originalFunctionMap,
                                       Map<String, FunctionDefinitionNode> modifiedFunctionMap) {
-        for (String functionName : originalFunctionMap.keySet()) {
+        for (Map.Entry<String, FunctionDefinitionNode> entry : originalFunctionMap.entrySet()) {
+            String functionName = entry.getKey();
             if (!modifiedFunctionMap.containsKey(functionName)) {
                 continue;
             }
             FunctionDefinitionNode modifiedFunction = modifiedFunctionMap.remove(functionName);
-            compareFunctionBodies(originalFunctionMap.get(functionName), modifiedFunction, NodeKind.MODULE_FUNCTION);
+            compareFunctionBodies(entry.getValue(), modifiedFunction, NodeKind.MODULE_FUNCTION);
         }
 
         // Handle newly added functions in modified project
-        for (String functionName : modifiedFunctionMap.keySet()) {
-            FunctionDefinitionNode functionDefinitionNode = modifiedFunctionMap.get(functionName);
+        for (Map.Entry<String, FunctionDefinitionNode> entry : modifiedFunctionMap.entrySet()) {
+            FunctionDefinitionNode functionDefinitionNode = entry.getValue();
             LineRange lineRange = functionDefinitionNode.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.MODULE_FUNCTION,
                     resolveUri(lineRange.fileName()), lineRange);
@@ -427,9 +430,10 @@ public class SemanticDiffComputer {
     private void computeServiceDiffs(Map<String, ServiceDeclarationNode> originalServiceMap,
                                      Map<String, ServiceDeclarationNode> modifiedServiceMap) {
         List<String> foundServices = new ArrayList<>();
-        for (String serviceName : originalServiceMap.keySet()) {
+        for (Map.Entry<String, ServiceDeclarationNode> entry : originalServiceMap.entrySet()) {
+            String serviceName = entry.getKey();
             if (modifiedServiceMap.containsKey(serviceName)) {
-                ServiceDeclarationNode originalService = originalServiceMap.get(serviceName);
+                ServiceDeclarationNode originalService = entry.getValue();
                 ServiceDeclarationNode modifiedService = modifiedServiceMap.get(serviceName);
                 foundServices.add(serviceName);
                 if (!originalService.toSourceCode().equals(modifiedService.toSourceCode())) {
@@ -445,9 +449,10 @@ public class SemanticDiffComputer {
         Map<String, String> modifiedServiceBasePaths = extractServiceBasePaths(modifiedServiceMap);
 
         // Check for matches and handle differences
-        for (String basePath : originalServiceBasePaths.keySet()) {
+        for (Map.Entry<String, String> entry : originalServiceBasePaths.entrySet()) {
+            String basePath = entry.getKey();
             if (modifiedServiceBasePaths.containsKey(basePath)) {
-                String originalServiceName = originalServiceBasePaths.get(basePath);
+                String originalServiceName = entry.getValue();
                 String modifiedServiceName = modifiedServiceBasePaths.get(basePath);
                 foundServices.add(originalServiceName);
                 foundServices.add(modifiedServiceName);
@@ -587,7 +592,8 @@ public class SemanticDiffComputer {
      */
     private Map<String, String> extractServiceBasePaths(Map<String, ServiceDeclarationNode> serviceMap) {
         Map<String, String> serviceBasePaths = new HashMap<>();
-        for (String serviceName : serviceMap.keySet()) {
+        for (Map.Entry<String, ServiceDeclarationNode> entry : serviceMap.entrySet()) {
+            String serviceName = entry.getKey();
             String basePath = serviceName.split("#")[0];
             serviceBasePaths.put(basePath, serviceName);
         }
@@ -648,11 +654,12 @@ public class SemanticDiffComputer {
         Map<String, List<Connection>> originalConnectionMap = extractConnectionMap(originalConnections);
         Map<String, List<Connection>> modifiedConnectionMap = extractConnectionMap(modifiedConnections);
 
-        for (String key : originalConnectionMap.keySet()) {
+        for (Map.Entry<String, List<Connection>> entry : originalConnectionMap.entrySet()) {
+            String key = entry.getKey();
             if (!modifiedConnectionMap.containsKey(key)) {
                 return true;
             }
-            List<Connection> originalConnList = originalConnectionMap.get(key);
+            List<Connection> originalConnList = entry.getValue();
             List<Connection> modifiedConnList = modifiedConnectionMap.get(key);
             if (originalConnList.size() != modifiedConnList.size()) {
                 return true;
