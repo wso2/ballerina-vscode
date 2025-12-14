@@ -44,8 +44,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "mod1:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "oas:client1.mod1:0.1.0",
+                "packageName": "client1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "mod1:ConnectionConfig"
+            "ballerinaType": "mod1:ConnectionConfig",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -57,15 +72,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "config"
         },
-        "typeMembers": [
-          {
-            "type": "ConnectionConfig",
-            "packageInfo": "oas:client1.mod1:0.1.0",
-            "packageName": "client1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{}"
       },
       "serviceUrl": {
@@ -76,11 +82,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -92,15 +100,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "serviceUrl"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "type": {
@@ -110,7 +109,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "mod1:Client",
@@ -131,7 +131,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "mod1Client",
@@ -147,7 +148,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -163,7 +165,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,
