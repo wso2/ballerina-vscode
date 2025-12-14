@@ -20,6 +20,7 @@ import { Command, AIChatMachineEventType } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
+import { updateAndSaveChat } from "../../../utils/events";
 
 /**
  * Closes all documents in the temp project and waits for LS to process
@@ -27,34 +28,6 @@ import { cleanupTempProject } from "../../../utils/project/temp-project";
 async function closeAllDocumentsAndWait(tempProjectPath: string, projects: any[]): Promise<void> {
     sendAgentDidCloseForProjects(tempProjectPath, projects);
     await new Promise(resolve => setTimeout(resolve, 300));
-}
-
-/**
- * Updates chat message with model messages and triggers save
- */
-function updateAndSaveChat(
-    messageId: string,
-    userMessageContent: any,
-    assistantMessages: any[],
-    eventHandler: any
-): void {
-    const completeMessages = [
-        {
-            role: "user",
-            content: userMessageContent,
-        },
-        ...assistantMessages
-    ];
-
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
-        payload: {
-            id: messageId,
-            modelMessages: completeMessages,
-        },
-    });
-
-    eventHandler({ type: "save_chat", command: Command.Agent, messageId });
 }
 
 /**
@@ -98,7 +71,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             cleanupTempProject(context.tempProjectPath);
         }
 
-        updateAndSaveChat(context.messageId, context.userMessageContent, messagesToSave, context.eventHandler);
+        updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "abort", command: Command.Agent });
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.FINISH_EXECUTION,

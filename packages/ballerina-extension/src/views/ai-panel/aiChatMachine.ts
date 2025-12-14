@@ -622,6 +622,14 @@ const executeDatamapperService = async (context: AIChatMachineContext): Promise<
 
     const { datamapperType, params } = context.commandParams;
 
+    // Get messageId from last message in chat history
+    const lastMessage = context.chatHistory[context.chatHistory.length - 1];
+    const messageId = lastMessage?.id;
+
+    if (!messageId) {
+        throw new Error('No messageId found in chat history');
+    }
+
     // Import datamapper functions dynamically
     const {
         generateMappingCode,
@@ -633,35 +641,25 @@ const executeDatamapperService = async (context: AIChatMachineContext): Promise<
 
     // Execute the appropriate datamapper function
     // Each function manages its own temp directory internally
+    // Pass messageId so they can emit save_chat events
     switch (datamapperType) {
         case 'function':
-            await generateMappingCode(params);
+            await generateMappingCode(params, messageId);
             result = { modifiedFiles: [], sourceFiles: [] }; // No return from these functions
             break;
         case 'inline':
-            await generateInlineMappingCode(params);
+            await generateInlineMappingCode(params, messageId);
             result = { modifiedFiles: [], sourceFiles: [] };
             break;
         case 'contextTypes':
-            await generateContextTypes(params);
+            await generateContextTypes(params, messageId);
             result = { modifiedFiles: [], sourceFiles: [] };
             break;
         default:
             throw new Error(`Unknown datamapper type: ${datamapperType}`);
     }
 
-    // Update chat message
-    const lastMessage = context.chatHistory[context.chatHistory.length - 1];
-    if (lastMessage) {
-        chatStateService.send({
-            type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
-            payload: {
-                id: lastMessage.id,
-                uiResponse: `Datamapping (${datamapperType}) completed successfully`,
-            }
-        });
-    }
-
+    // Note: Chat history update is now handled by save_chat event from datamapper functions
     return { modifiedFiles: result.modifiedFiles };
 };
 
