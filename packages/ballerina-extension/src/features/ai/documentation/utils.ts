@@ -14,7 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ProjectSource } from "@wso2/ballerina-core";
+import { ProjectSource, SyntaxTree } from "@wso2/ballerina-core";
+import { getProjectSource } from "../utils";
+import { ModulePart, ServiceDeclaration, STKindChecker } from "@wso2/syntax-tree";
+import { Uri } from "vscode";
+import { StateMachine } from "../../../../src/stateMachine";
 
 // ==============================================
 //            UTILITY FUNCTIONS
@@ -96,4 +100,68 @@ export function getTypesAsJsonSchema(openApiSpec: string): string {
         // Return empty object if parsing fails
         return "{}";
     }
+}
+
+export async function getServiceDeclaration(projectRoot: string, serviceName: string): Promise<{ serviceDeclaration: ServiceDeclaration | null, serviceDocFilePath: string }> {
+    const projectSource = await getProjectSource(projectRoot);
+    if (!projectSource) {
+        throw new Error("The current project is not recognized as a valid Ballerina project. Please ensure you have opened a Ballerina project.");
+    }
+
+    let serviceDeclaration: ServiceDeclaration | null = null;
+    let serviceDocFilePath = "";
+
+    for (const sourceFile of projectSource.sourceFiles) {
+        serviceDocFilePath = sourceFile.filePath;
+        const fileUri = Uri.file(serviceDocFilePath).toString();
+        const syntaxTree = await StateMachine.langClient().getSyntaxTree({
+            documentIdentifier: {
+                uri: fileUri
+            }
+        }) as SyntaxTree;
+        const matchedService = findMatchingServiceDeclaration(syntaxTree, serviceName);
+        if (matchedService) {
+            serviceDeclaration = matchedService;
+            break;
+        }
+    }
+
+    if (!serviceDeclaration) {
+        throw new Error(`Couldn't find any services matching the service name provided, which is "${serviceName}". Please recheck if the provided service name is correct.`);
+    }
+
+    return { serviceDeclaration, serviceDocFilePath };
+}
+
+const findMatchingServiceDeclaration = (syntaxTree: SyntaxTree, targetServiceName: string): ServiceDeclaration | null => {
+    const serviceDeclarations = findServiceDeclarations(syntaxTree);
+
+    for (const serviceDecl of serviceDeclarations) {
+        const serviceName = constructServiceName(serviceDecl);
+        if (serviceName === targetServiceName) {
+            return serviceDecl;
+        }
+    }
+
+    return null;
+};
+
+const findServiceDeclarations = (syntaxTree: SyntaxTree): ServiceDeclaration[] => {
+    const serviceDeclarations: ServiceDeclaration[] = [];
+
+    const modulePartNode = syntaxTree.syntaxTree as ModulePart;
+    for (const member of modulePartNode.members) {
+        if (STKindChecker.isServiceDeclaration(member)) {
+            serviceDeclarations.push(member);
+        }
+    }
+    return serviceDeclarations;
+};
+
+function constructServiceName(targetNode: ServiceDeclaration): string {
+    return targetNode.absoluteResourcePath.map(item => {
+        if ('value' in item) { return item.value; }
+        if ('literalToken' in item) { return item.literalToken.value; }
+        return '';
+    }).join('');
 }

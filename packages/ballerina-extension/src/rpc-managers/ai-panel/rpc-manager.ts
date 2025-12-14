@@ -195,9 +195,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         await writeBallerinaFileDidOpen(balFilePath, req.content);
-        updateView();
-        const datamapperMetadata = StateMachine.context().dataMapperMetadata;
-        await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
         return true;
     }
 
