@@ -97,7 +97,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_OR_EXPRESSION"
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
           }
         ],
         "value": "\"S\"\n",
@@ -122,7 +123,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "var1",
@@ -151,7 +153,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "int",
