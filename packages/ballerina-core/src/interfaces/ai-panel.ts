@@ -17,10 +17,10 @@
  */
 
 export enum Command {
-    Tests = '/tests',
+    // Tests = '/tests',
     DataMap = '/datamap',
     TypeCreator = '/typecreator',
-    Healthcare = '/healthcare',
+    // Healthcare = '/healthcare',
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
