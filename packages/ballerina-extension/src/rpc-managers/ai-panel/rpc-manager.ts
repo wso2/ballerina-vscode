@@ -95,6 +95,7 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -364,20 +365,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getServiceNames(): Promise<TestGenerationMentions> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const serviceDeclNames = await getServiceDeclarationNames(projectPath);
-        //         resolve({
-        //             mentions: serviceDeclNames
-        //         });
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            mentions: []
-        };
+        return new Promise(async (resolve, reject) => {
+            try {
+                const projectPath = StateMachine.context().projectPath;
+                const serviceDeclNames = await getServiceDeclarationNames(projectPath);
+                resolve({
+                    mentions: serviceDeclNames
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
     async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {

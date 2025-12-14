@@ -165,3 +165,19 @@ function constructServiceName(targetNode: ServiceDeclaration): string {
         return '';
     }).join('');
 }
+
+export async function getServiceDeclarationNames(projectRoot: string): Promise<string[]> {
+    const projectSource = await getProjectSource(projectRoot);
+    if (!projectSource) {
+        throw new Error("Invalid Ballerina project. Please open a valid Ballerina project.");
+    }
+
+    return (await Promise.all(
+        projectSource.sourceFiles.map(async ({ filePath }) => {
+            const syntaxTree = await StateMachine.langClient().getSyntaxTree({
+                documentIdentifier: { uri: Uri.file(filePath).toString() }
+            }) as SyntaxTree;
+            return findServiceDeclarations(syntaxTree).map(constructServiceName);
+        })
+    )).flat();
+}

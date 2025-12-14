@@ -920,25 +920,25 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Tests: {
-                    switch (parsedInput.templateId) {
-                        case "tests-for-service":
-                            await processTestGeneration(
-                                [inputText, attachments],
-                                "service",
-                                parsedInput.placeholderValues.servicename
-                            );
-                            break;
-                        case "tests-for-function":
-                            await processTestGeneration(
-                                [inputText, attachments],
-                                "function",
-                                parsedInput.placeholderValues.methodPath
-                            );
-                            break;
-                    }
-                    break;
-                }
+                // case Command.Tests: {
+                //     switch (parsedInput.templateId) {
+                //         case "tests-for-service":
+                //             await processTestGeneration(
+                //                 [inputText, attachments],
+                //                 "service",
+                //                 parsedInput.placeholderValues.servicename
+                //             );
+                //             break;
+                //         case "tests-for-function":
+                //             await processTestGeneration(
+                //                 [inputText, attachments],
+                //                 "function",
+                //                 parsedInput.placeholderValues.methodPath
+                //             );
+                //             break;
+                //     }
+                //     break;
+                // }
                 case Command.DataMap: {
                     switch (parsedInput.templateId) {
                         case "mappings-for-records":
@@ -992,14 +992,14 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Healthcare: {
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            await processHealthcareCodeGeneration(parsedInput.text, inputText);
-                            break;
-                    }
-                    break;
-                }
+                // case Command.Healthcare: {
+                //     switch (parsedInput.templateId) {
+                //         case TemplateId.Wildcard:
+                //             await processHealthcareCodeGeneration(parsedInput.text, inputText);
+                //             break;
+                //     }
+                //     break;
+                // }
                 case Command.Ask: {
                     switch (parsedInput.templateId) {
                         case TemplateId.Wildcard:
