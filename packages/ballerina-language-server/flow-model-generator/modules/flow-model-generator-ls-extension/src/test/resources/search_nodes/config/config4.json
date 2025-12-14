@@ -42,11 +42,13 @@
           "types": [
             {
               "fieldType": "TEXT",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": true
             }
           ],
           "value": "\"http://example.com\"",
@@ -58,16 +60,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "url"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": true
-            }
-          ]
+          }
         },
         "timeout": {
           "metadata": {
@@ -77,11 +70,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "decimal"
+              "ballerinaType": "decimal",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "decimal"
+              "ballerinaType": "decimal",
+              "selected": false
             }
           ],
           "placeholder": "0.0d",
@@ -93,15 +88,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "timeout"
           },
-          "typeMembers": [
-            {
-              "type": "decimal",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "0.0d"
         },
         "poolConfig": {
@@ -111,8 +97,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:PoolConfiguration",
+              "typeMembers": [
+                {
+                  "type": "PoolConfiguration",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "grpc:PoolConfiguration?"
+              "ballerinaType": "grpc:PoolConfiguration?",
+              "selected": false
             }
           ],
           "placeholder": "()",
@@ -124,22 +125,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "poolConfig"
           },
-          "typeMembers": [
-            {
-              "type": "PoolConfiguration",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "()"
         },
         "secureSocket": {
@@ -149,8 +134,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:ClientSecureSocket",
+              "typeMembers": [
+                {
+                  "type": "ClientSecureSocket",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "grpc:ClientSecureSocket?"
+              "ballerinaType": "grpc:ClientSecureSocket?",
+              "selected": false
             }
           ],
           "placeholder": "()",
@@ -162,22 +162,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "secureSocket"
           },
-          "typeMembers": [
-            {
-              "type": "ClientSecureSocket",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "()"
         },
         "compression": {
@@ -192,11 +176,13 @@
                 "AUTO",
                 "ALWAYS",
                 "NEVER"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "grpc:Compression"
+              "ballerinaType": "grpc:Compression",
+              "selected": false
             }
           ],
           "placeholder": "\"AUTO\"",
@@ -208,15 +194,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "compression"
           },
-          "typeMembers": [
-            {
-              "type": "Compression",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"AUTO\""
         },
         "retryConfiguration": {
@@ -226,8 +203,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:RetryConfiguration",
+              "typeMembers": [
+                {
+                  "type": "RetryConfiguration",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "grpc:RetryConfiguration?"
+              "ballerinaType": "grpc:RetryConfiguration?",
+              "selected": false
             }
           ],
           "placeholder": "()",
@@ -239,22 +231,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "retryConfiguration"
           },
-          "typeMembers": [
-            {
-              "type": "RetryConfiguration",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "()"
         },
         "auth": {
@@ -264,8 +240,65 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:CredentialsConfig|grpc:BearerTokenConfig|grpc:JwtIssuerConfig|grpc:OAuth2ClientCredentialsGrantConfig|grpc:OAuth2PasswordGrantConfig|grpc:OAuth2RefreshTokenGrantConfig|grpc:OAuth2JwtBearerGrantConfig",
+              "typeMembers": [
+                {
+                  "type": "CredentialsConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "BearerTokenConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "JwtIssuerConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2ClientCredentialsGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2PasswordGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2RefreshTokenGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2JwtBearerGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.0",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "grpc:ClientAuthConfig?"
+              "ballerinaType": "grpc:ClientAuthConfig?",
+              "selected": false
             }
           ],
           "placeholder": "()",
@@ -277,64 +310,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "auth"
           },
-          "typeMembers": [
-            {
-              "type": "CredentialsConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "BearerTokenConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "JwtIssuerConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "OAuth2ClientCredentialsGrantConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "OAuth2PasswordGrantConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "OAuth2RefreshTokenGrantConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "OAuth2JwtBearerGrantConfig",
-              "packageInfo": "ballerina:grpc:1.14.0",
-              "packageName": "grpc",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            },
-            {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "()"
         },
         "maxInboundMessageSize": {
@@ -345,11 +320,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             }
           ],
           "placeholder": "0",
@@ -361,15 +338,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "maxInboundMessageSize"
           },
-          "typeMembers": [
-            {
-              "type": "int",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "0"
         },
         "checkError": {
@@ -379,7 +347,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,
@@ -395,7 +364,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -411,7 +381,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "grpcClient",
@@ -440,7 +411,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "grpc:Client",
