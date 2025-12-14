@@ -27,7 +27,6 @@ import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
-import { DataMapperErrorBoundary } from "./ErrorBoundary";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
 import {
@@ -41,7 +40,6 @@ import {
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
 import { DataMapperEditorProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
-import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
 import {
     LinkConnectorNode,
@@ -158,8 +156,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
 
     const [views, dispatch] = useReducer(viewsReducer, initialView);
     const [nodes, setNodes] = useState<DataMapperNodeModel[]>([]);
-    const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
-    const [hasInternalError, setHasInternalError] = useState(false);
 
     const { isSMConfigPanelOpen, resetSubMappingConfig } = useDMSubMappingConfigPanelStore(
         useShallow(state => ({
@@ -284,7 +280,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             ]);
         } catch (error) {
             console.error("Error generating nodes:", error);
-            setHasInternalError(true);
+            throw error;
         }
     };
 
@@ -320,7 +316,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const handleErrors = (kind: ErrorNodeKind) => {
-        setErrorKind(kind);
+        throw new Error("Diagram rendering error:" + kind);
     };
 
     const autoMapWithAI = async () => {
@@ -339,53 +335,48 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }
 
     return (
-        <DataMapperErrorBoundary hasError={hasInternalError} onClose={onClose}>
-            <div className={classes.root}>
-                {model && (
-                    <DataMapperHeader
-                        views={views}
-                        reusable={reusable}
-                        switchView={switchView}
-                        hasEditDisabled={!!errorKind}
-                        onClose={handleOnClose}
-                        onBack={handleOnBack}
-                        onRefresh={onRefresh}
-                        onReset={handleOnReset}
-                        onEdit={onEdit}
-                        autoMapWithAI={autoMapWithAI}
-                        undoRedoGroup={undoRedoGroup}
+        <div className={classes.root}>
+            {model && (
+                <DataMapperHeader
+                    views={views}
+                    reusable={reusable}
+                    switchView={switchView}
+                    onClose={handleOnClose}
+                    onBack={handleOnBack}
+                    onRefresh={onRefresh}
+                    onReset={handleOnReset}
+                    onEdit={onEdit}
+                    autoMapWithAI={autoMapWithAI}
+                    undoRedoGroup={undoRedoGroup}
+                />
+            )}
+            {nodes.length > 0 && (
+                <>
+                    <DataMapperDiagram
+                        nodes={nodes}
+                        onError={handleErrors}
                     />
-                )}
-                {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-                {nodes.length > 0 && !errorKind && (
-                    <>
-                        <DataMapperDiagram
-                            nodes={nodes}
-                            onError={handleErrors}
+                    {isSMConfigPanelOpen && (
+                        <SubMappingConfigForm
+                            views={views}
+                            updateView={editView}
+                            addSubMapping={addNewSubMapping}
+                            generateForm={generateForm}
                         />
-                        {isSMConfigPanelOpen && (
-                            <SubMappingConfigForm
-                                views={views}
-                                updateView={editView}
-                                addSubMapping={addNewSubMapping}
-                                generateForm={generateForm}
-                            />
-                        )}
-                        {isQueryClausesPanelOpen && (
-                            <ClausesPanel
-                                query={model.query}
-                                targetField={views[views.length - 1].targetField}
-                                addClauses={addClauses}
-                                deleteClause={deleteClause}
-                                getClausePosition={getClausePosition}
-                                generateForm={generateForm}
-                                genUniqueName={genUniqueName}
-                            />
-                        )}
-                    </>
-                )}
-                
-            </div>
-        </DataMapperErrorBoundary>
-    )
+                    )}
+                    {isQueryClausesPanelOpen && (
+                        <ClausesPanel
+                            query={model.query}
+                            targetField={views[views.length - 1].targetField}
+                            addClauses={addClauses}
+                            deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
+                            generateForm={generateForm}
+                            genUniqueName={genUniqueName}
+                        />
+                    )}
+                </>
+            )}
+        </div>
+    );
 }

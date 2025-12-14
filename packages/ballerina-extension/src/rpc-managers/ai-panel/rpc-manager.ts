@@ -23,9 +23,7 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddFilesToProjectRequest,
-    AddToProjectRequest,
     BIIntelSecrets,
-    AllDataMapperSourceRequest,
     BIModuleNodesRequest,
     BISourceCodeResponse,
     DeleteFromProjectRequest,
@@ -93,6 +91,7 @@ import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCop
 import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { refreshDataMapper } from "../data-mapper/utils";
+import { buildProjectsStructure } from "../../utils/project-artifacts";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -195,29 +194,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return {
             response: await fetchData(params.url, params.options)
         };
-    }
-
-    async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
-        // Check if workspaceFolderPath is a Ballerina project
-        // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        let balFilePath = path.join(projectPath, req.filePath);
-
-        const directory = path.dirname(balFilePath);
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory, { recursive: true });
-        }
-
-        await writeBallerinaFileDidOpen(balFilePath, req.content);
-        updateView();
-        const datamapperMetadata = StateMachine.context().dataMapperMetadata;
-        await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
-        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
