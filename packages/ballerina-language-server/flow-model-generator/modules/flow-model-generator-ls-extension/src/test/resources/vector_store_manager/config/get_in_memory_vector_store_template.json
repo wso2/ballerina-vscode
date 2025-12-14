@@ -35,7 +35,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "ai:InMemoryVectorStore",
@@ -56,7 +57,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "aiInmemoryvectorstore",
@@ -73,11 +75,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             }
           ],
           "placeholder": "0",
@@ -103,11 +107,13 @@
                 "DOT_PRODUCT",
                 "EUCLIDEAN",
                 "COSINE"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:SimilarityMetric"
+              "ballerinaType": "ai:SimilarityMetric",
+              "selected": false
             }
           ],
           "placeholder": "\"DOT_PRODUCT\"",
@@ -128,7 +134,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -144,7 +151,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,

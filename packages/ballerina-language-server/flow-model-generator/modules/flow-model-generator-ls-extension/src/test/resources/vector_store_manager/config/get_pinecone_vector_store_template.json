@@ -35,7 +35,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "pinecone:VectorStore",
@@ -56,7 +57,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "pineconeVectorstore",
@@ -73,11 +75,13 @@
           "types": [
             {
               "fieldType": "TEXT",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "placeholder": "\"\"",
@@ -98,11 +102,13 @@
           "types": [
             {
               "fieldType": "TEXT",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "placeholder": "\"\"",
@@ -127,11 +133,13 @@
                 "HYBRID",
                 "SPARSE",
                 "DENSE"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:VectorStoreQueryMode"
+              "ballerinaType": "ai:VectorStoreQueryMode",
+              "selected": false
             }
           ],
           "placeholder": "\"HYBRID\"",
@@ -161,11 +169,13 @@
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "pinecone:Configuration"
+              "ballerinaType": "pinecone:Configuration",
+              "selected": false
             }
           ],
           "placeholder": "{}",
@@ -196,11 +206,13 @@
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "vector:ConnectionConfig"
+              "ballerinaType": "vector:ConnectionConfig",
+              "selected": false
             }
           ],
           "placeholder": "{}",
@@ -221,7 +233,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -237,7 +250,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,

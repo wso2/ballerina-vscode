@@ -37,7 +37,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "ai:GenericRecursiveChunker",
@@ -58,7 +59,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "aiGenericrecursivechunker",
@@ -75,11 +77,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             }
           ],
           "placeholder": "0",
@@ -101,11 +105,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             }
           ],
           "placeholder": "0",
@@ -133,11 +139,13 @@
                 "LINE",
                 "WORD",
                 "CHARACTER"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:RecursiveChunkStrategy"
+              "ballerinaType": "ai:RecursiveChunkStrategy",
+              "selected": false
             }
           ],
           "placeholder": "\"PARAGRAPH\"",
@@ -158,7 +166,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -174,7 +183,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,
