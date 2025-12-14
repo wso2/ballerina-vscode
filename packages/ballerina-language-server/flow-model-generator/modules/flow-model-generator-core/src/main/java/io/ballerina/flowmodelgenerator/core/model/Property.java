@@ -436,6 +436,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private List<String> options;
             private Property template;
             private List<PropertyTypeMemberInfo> typeMembers;
+            private boolean selected = false;
 
             private TypeBuilder() {
             }
@@ -487,10 +488,15 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder selected(boolean selected) {
+                this.selected = selected;
+                return this;
+            }
+
             public Builder<T> stepOut() {
                 if (fieldType != null) {
                     Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template,
-                            typeMembers));
+                            typeMembers, selected));
                 }
                 reset();
                 return Builder.this;
@@ -502,6 +508,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 scope = null;
                 options = null;
                 template = null;
+                typeMembers = null;
+                selected = false;
             }
         }
 
@@ -597,7 +605,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                                     // add the merged type
                                     this.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                            null, null, distinctMembers));
+                                            null, null, distinctMembers, false));
                                 }
                             });
                 }

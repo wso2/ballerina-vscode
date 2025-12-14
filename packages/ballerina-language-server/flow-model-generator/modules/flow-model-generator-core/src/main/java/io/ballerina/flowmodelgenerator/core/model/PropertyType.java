@@ -35,15 +35,15 @@ public class PropertyType {
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
 
-    public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope,
-                       List<String> options, Property template, List<PropertyTypeMemberInfo> typeMembers) {
+    public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<String> options,
+                        Property template, List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.scope = scope;
         this.options = options;
         this.template = template;
         this.typeMembers = typeMembers;
-        this.selected = false;
+        this.selected = selected;
     }
 
     public Property.ValueType fieldType() {
