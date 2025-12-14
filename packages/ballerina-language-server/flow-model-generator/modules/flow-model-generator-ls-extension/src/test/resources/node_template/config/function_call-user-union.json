@@ -40,11 +40,13 @@
               "PENDING",
               "INACTIVE",
               "ACTIVE"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Status"
+            "ballerinaType": "Status",
+            "selected": false
           }
         ],
         "placeholder": "\"PENDING\"",
@@ -69,11 +71,13 @@
               "Sales",
               "HR",
               "Marketing"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Department"
+            "ballerinaType": "Department",
+            "selected": false
           }
         ],
         "placeholder": "\"Engineering\"",
@@ -99,11 +103,13 @@
               "3",
               "4",
               "5"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Priority"
+            "ballerinaType": "Priority",
+            "selected": false
           }
         ],
         "placeholder": "1",
@@ -123,19 +129,23 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int|decimal"
+            "ballerinaType": "int|decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "MixedValue"
+            "ballerinaType": "MixedValue",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -155,7 +165,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",
@@ -173,7 +184,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "stringResult",

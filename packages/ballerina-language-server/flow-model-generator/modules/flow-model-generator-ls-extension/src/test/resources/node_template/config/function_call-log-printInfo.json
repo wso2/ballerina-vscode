@@ -39,11 +39,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string|log:PrintableRawTemplate"
+            "ballerinaType": "string|log:PrintableRawTemplate",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -64,7 +66,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "error?"
+            "ballerinaType": "error?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -86,11 +89,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "error:StackFrame[]"
+            "ballerinaType": "error:StackFrame[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "error:StackFrame[]?"
+            "ballerinaType": "error:StackFrame[]?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -112,7 +117,8 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "log:Value"
+            "ballerinaType": "log:Value",
+            "selected": false
           }
         ],
         "placeholder": "{}",

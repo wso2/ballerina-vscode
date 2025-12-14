@@ -49,11 +49,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "azure_cosmosdb:ConnectionConfig"
+            "ballerinaType": "azure_cosmosdb:ConnectionConfig",
+            "selected": false
           }
         ],
         "placeholder": "{baseUrl: \"\", primaryKeyOrResourceToken: \"\"}",
@@ -73,7 +75,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "azure_cosmosdb:DataPlaneClient",
@@ -94,7 +97,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "azureCosmosdbDataplaneclient",
@@ -110,7 +114,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -126,7 +131,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

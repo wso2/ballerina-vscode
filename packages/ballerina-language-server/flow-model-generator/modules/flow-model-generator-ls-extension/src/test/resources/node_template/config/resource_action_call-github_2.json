@@ -41,7 +41,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "github:Client"
+            "ballerinaType": "github:Client",
+            "selected": false
           }
         ],
         "value": "githubClient",
@@ -57,7 +58,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_PATH"
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
         ],
         "value": "/orgs/[org]/repos",
@@ -77,11 +79,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -109,11 +113,13 @@
               "forks",
               "sources",
               "member"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "\"all\"|\"public\"|\"private\"|\"forks\"|\"sources\"|\"member\""
+            "ballerinaType": "\"all\"|\"public\"|\"private\"|\"forks\"|\"sources\"|\"member\"",
+            "selected": false
           }
         ],
         "placeholder": "\"all\"",
@@ -140,11 +146,13 @@
               "updated",
               "pushed",
               "full_name"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "\"created\"|\"updated\"|\"pushed\"|\"full_name\""
+            "ballerinaType": "\"created\"|\"updated\"|\"pushed\"|\"full_name\"",
+            "selected": false
           }
         ],
         "placeholder": "\"created\"",
@@ -166,7 +174,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "\"desc\"?|\"asc\""
+            "ballerinaType": "\"desc\"?|\"asc\"",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -188,11 +197,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -214,11 +225,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -239,7 +252,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "github:MinimalRepository[]",
@@ -257,7 +271,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "githubMinimalrepository",
@@ -273,7 +288,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

@@ -45,7 +45,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "mysql:Client"
+            "ballerinaType": "mysql:Client",
+            "selected": false
           }
         ],
         "value": "mysqlClient",
@@ -62,7 +63,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ParameterizedQuery"
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
           }
         ],
         "placeholder": "object {}",
@@ -86,7 +88,8 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "anydata"
+            "ballerinaType": "anydata",
+            "selected": false
           }
         ],
         "placeholder": "anydata",
@@ -107,7 +110,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "returnType",
@@ -128,7 +132,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "returnType",
@@ -144,7 +149,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

@@ -42,7 +42,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "client_module:CustomClient"
+            "ballerinaType": "client_module:CustomClient",
+            "selected": false
           }
         ],
         "value": "customClient",
@@ -58,7 +59,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_PATH"
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
         ],
         "value": "/users/[userId]",
@@ -77,11 +79,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -101,7 +105,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "json",
@@ -119,7 +124,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "jsonResult",
@@ -135,7 +141,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

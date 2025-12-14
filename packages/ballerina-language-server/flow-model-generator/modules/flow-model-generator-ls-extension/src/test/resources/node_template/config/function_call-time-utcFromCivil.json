@@ -48,11 +48,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "time:Civil"
+            "ballerinaType": "time:Civil",
+            "selected": false
           }
         ],
         "placeholder": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
@@ -72,7 +74,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "time:Utc",
@@ -90,7 +93,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "timeUtc",
@@ -106,7 +110,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

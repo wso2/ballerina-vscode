@@ -39,11 +39,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:AnydataType[]"
+            "ballerinaType": "array:AnydataType[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType[]"
+            "ballerinaType": "array:AnydataType[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -64,7 +66,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType"
+            "ballerinaType": "array:AnydataType",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -85,11 +88,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -110,7 +115,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "int|()",
@@ -128,7 +134,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "intResult",

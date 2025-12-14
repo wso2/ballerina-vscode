@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "table<table:MapType>"
+            "ballerinaType": "table<table:MapType>",
+            "selected": false
           }
         ],
         "placeholder": "table []",
@@ -60,7 +61,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (table:Type accum, table:MapType val) returns table:Type"
+            "ballerinaType": "function (table:Type accum, table:MapType val) returns table:Type",
+            "selected": false
           }
         ],
         "placeholder": "",
@@ -81,7 +83,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "table:Type"
+            "ballerinaType": "table:Type",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -101,7 +104,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "table:Type",
@@ -119,7 +123,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "tableType",
@@ -135,7 +140,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

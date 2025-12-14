@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "io:Printable"
+            "ballerinaType": "io:Printable",
+            "selected": false
           }
         ],
         "placeholder": "()",

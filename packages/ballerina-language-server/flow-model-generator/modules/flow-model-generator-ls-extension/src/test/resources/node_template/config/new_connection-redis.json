@@ -40,7 +40,8 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "redis:ConnectionUri"
+            "ballerinaType": "redis:ConnectionUri",
+            "selected": false
           },
           {
             "fieldType": "RECORD_MAP_EXPRESSION",
@@ -53,11 +54,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams"
+            "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -79,11 +82,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -105,11 +110,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -140,11 +147,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "redis:SecureSocket"
+            "ballerinaType": "redis:SecureSocket",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -165,7 +174,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "redis:Client",
@@ -186,7 +196,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "redisClient",
@@ -202,7 +213,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -218,7 +230,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

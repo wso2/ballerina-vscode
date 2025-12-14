@@ -42,11 +42,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -68,11 +70,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -94,11 +98,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -120,11 +126,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -146,11 +154,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -172,11 +182,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -198,11 +210,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -223,7 +237,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "mod:Client",
@@ -244,7 +259,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "modClient",
@@ -260,7 +276,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -276,7 +293,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

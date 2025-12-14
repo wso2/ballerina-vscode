@@ -41,11 +41,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -66,11 +68,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -91,11 +95,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -117,11 +123,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -143,11 +151,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -169,11 +179,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -195,11 +207,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -221,11 +235,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -247,11 +263,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -273,11 +291,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -308,11 +328,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "rabbitmq:SecureSocket"
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "selected": false
           }
         ],
         "placeholder": "{cert: {path: \"\", password: \"\"}}",
@@ -343,11 +365,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "rabbitmq:Credentials"
+            "ballerinaType": "rabbitmq:Credentials",
+            "selected": false
           }
         ],
         "placeholder": "{username: \"\", password: \"\"}",
@@ -368,7 +392,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "rabbitmq:Client",
@@ -389,7 +414,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "rabbitmqClient",
@@ -405,7 +431,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -421,7 +448,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

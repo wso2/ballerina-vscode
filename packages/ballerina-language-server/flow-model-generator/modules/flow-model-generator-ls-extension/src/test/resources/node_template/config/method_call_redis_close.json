@@ -42,7 +42,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "redis:Client"
+            "ballerinaType": "redis:Client",
+            "selected": false
           }
         ],
         "value": "rc",
@@ -58,7 +59,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

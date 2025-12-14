@@ -40,11 +40,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -74,11 +76,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "jsondata:Options"
+            "ballerinaType": "jsondata:Options",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -100,7 +104,8 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "anydata"
+            "ballerinaType": "anydata",
+            "selected": false
           }
         ],
         "placeholder": "anydata",
@@ -121,7 +126,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "t",
@@ -139,7 +145,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "t",
@@ -155,7 +162,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

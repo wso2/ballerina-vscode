@@ -41,7 +41,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "github:Client"
+            "ballerinaType": "github:Client",
+            "selected": false
           }
         ],
         "value": "githubClient",
@@ -57,7 +58,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_PATH"
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
         ],
         "value": "/app-manifests/[code]/conversions",
@@ -76,11 +78,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -100,7 +104,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "github:ManifestConversions",
@@ -118,7 +123,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "githubManifestconversions",
@@ -134,7 +140,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

@@ -45,11 +45,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "http:ClientConfiguration"
+            "ballerinaType": "http:ClientConfiguration",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -81,11 +83,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Address"
+            "ballerinaType": "Address",
+            "selected": false
           }
         ],
         "placeholder": "{houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}",
@@ -105,7 +109,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "http:HttpServiceConfig",
@@ -126,7 +131,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "httpHttpserviceconfig",

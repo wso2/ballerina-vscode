@@ -38,7 +38,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "azure_cosmosdb:DataPlaneClient"
+            "ballerinaType": "azure_cosmosdb:DataPlaneClient",
+            "selected": false
           }
         ],
         "value": "covid19Client",
@@ -55,11 +56,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -80,11 +83,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -105,11 +110,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -130,11 +137,13 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "map<json>"
+            "ballerinaType": "map<json>",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map<json>"
+            "ballerinaType": "map<json>",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -155,15 +164,18 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int|float|decimal"
+            "ballerinaType": "int|float|decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int|float|decimal|string"
+            "ballerinaType": "int|float|decimal|string",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -193,11 +205,13 @@
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "azure_cosmosdb:RequestOptions?"
+            "ballerinaType": "azure_cosmosdb:RequestOptions?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -218,7 +232,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "azure_cosmosdb:DocumentResponse",
@@ -236,7 +251,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "azureCosmosdbDocumentresponse",
@@ -252,7 +268,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

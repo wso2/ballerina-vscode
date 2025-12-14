@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream<stream:Type, stream:ErrorType?>"
+            "ballerinaType": "stream<stream:Type, stream:ErrorType?>",
+            "selected": false
           }
         ],
         "placeholder": "new ()",
@@ -60,7 +61,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (stream:Type1 accum, stream:Type val) returns stream:Type1"
+            "ballerinaType": "function (stream:Type1 accum, stream:Type val) returns stream:Type1",
+            "selected": false
           }
         ],
         "placeholder": "",
@@ -81,7 +83,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream:Type1"
+            "ballerinaType": "stream:Type1",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -101,7 +104,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "stream:Type1",
@@ -119,7 +123,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "streamType1",
@@ -135,7 +140,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

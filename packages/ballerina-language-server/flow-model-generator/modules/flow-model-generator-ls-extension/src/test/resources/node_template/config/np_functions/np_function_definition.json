@@ -26,7 +26,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "naturalFunction",
@@ -42,7 +43,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "",
@@ -66,7 +68,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -77,7 +80,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -93,7 +97,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -109,7 +114,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -123,7 +129,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {},
@@ -140,7 +147,8 @@
         "types": [
           {
             "fieldType": "RAW_TEMPLATE",
-            "ballerinaType": "np:Prompt"
+            "ballerinaType": "np:Prompt",
+            "selected": false
           }
         ],
         "value": "",
@@ -160,7 +168,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION"
+            "fieldType": "EXPRESSION",
+            "selected": false
           }
         ],
         "optional": false,
@@ -174,7 +183,8 @@
       "modelProviderAsParameter": {
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": false
           }
         ],
         "value": false,

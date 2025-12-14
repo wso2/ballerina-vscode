@@ -43,7 +43,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "snowflake:Client"
+            "ballerinaType": "snowflake:Client",
+            "selected": false
           }
         ],
         "value": "snowflakeCl",
@@ -60,7 +61,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ParameterizedQuery"
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
           }
         ],
         "placeholder": "object {}",
@@ -84,7 +86,8 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "record {|anydata...;|}"
+            "ballerinaType": "record {|anydata...;|}",
+            "selected": false
           }
         ],
         "placeholder": "record {|anydata...;|}",
@@ -105,7 +108,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "stream<rowType, sql:Error?>",
@@ -126,7 +130,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "streamRowtypeSqlError",
