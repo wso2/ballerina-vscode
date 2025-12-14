@@ -26,7 +26,9 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -601,22 +603,66 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 }
             }
 
-            // updated the selected type from the RECORD_MAP_EXPRESSION type members
-            if (!this.types.isEmpty()) {
-                PropertyType last = this.types.getLast();
-                if (value != null && last != null && last.typeMembers() != null) {
-                    String selectedType = getSelectedType(value, semanticModel);
-                    if (selectedType != null) {
-                        last.typeMembers().stream().filter(typeMember ->
-                                typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
-                    }
-                }
-            }
-
             // All the ballerina types will have a default to expression type
             type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
                     .stepOut();
+
+            // get value node kind
+            // from the node kind map its belonging prop kind
+            // filter the prop type list and set the selected flag to true
+            if (value != null) {
+                ValueType matchingValueType = findMatchingValueType(value);
+                // if matching type is mapping_expression_set
+                // need to check if it's a map or a record if its a map then need to set the matching type
+                if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
+                    Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
+                    if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
+                    }
+                    ValueType finalMatchingValueType = matchingValueType;
+                    this.types.stream()
+                            .filter(propType -> propType.fieldType() == finalMatchingValueType)
+                            .findFirst()
+                            .ifPresent(propType -> {
+                                propType.selected(true);
+                                if (propType.fieldType() == ValueType.RECORD_MAP_EXPRESSION) {
+                                    String selectedType = getSelectedType(value, semanticModel);
+                                    if (selectedType != null) {
+                                        propType.typeMembers().stream().filter(typeMember ->
+                                                typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
+                                    }
+                                }
+                            });
+                } else if (matchingValueType == ValueType.EXPRESSION) {
+                    boolean foundMatch = false;
+                    PropertyType expressionPropType = null;
+                    for (PropertyType propType : this.types) {
+                        if (propType.fieldType() == ValueType.SINGLE_SELECT) {
+                            String valueStr = value.toSourceCode().trim();
+                            for (String option : propType.options()) {
+                                if (option.equals(valueStr)) {
+                                    propType.selected(true);
+                                    foundMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (propType.fieldType() == ValueType.EXPRESSION) {
+                            expressionPropType = propType;
+                        }
+                    }
+                    if (!foundMatch && expressionPropType != null) {
+                        expressionPropType.selected(true);
+                    }
+                } else {
+                    ValueType finalMatchingValueType = matchingValueType;
+                    this.types.stream()
+                       .filter(propType -> propType.fieldType() == finalMatchingValueType)
+                       .findFirst()
+                       .ifPresent(propType -> propType.selected(true));
+                }
+            }
             return this;
         }
 
@@ -670,6 +716,18 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 }
             }
             return true;
+        }
+
+        // need to handle the enums separately
+        private ValueType findMatchingValueType(Node node) {
+            return switch (node.kind()) {
+                case STRING_TEMPLATE_EXPRESSION -> ValueType.TEXT;
+                case NUMERIC_LITERAL -> ValueType.NUMBER;
+                case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
+                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;
+                case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
+                default -> ValueType.EXPRESSION;
+            };
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {
