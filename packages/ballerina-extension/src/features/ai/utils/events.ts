@@ -19,6 +19,18 @@ import { sendContentAppendNotification, sendContentReplaceNotification, sendDiag
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
+/**
+ * Updates chat message with model messages and triggers save
+ * This is a shared utility used by agent, datamapper, and other AI features
+ */
+export function updateAndSaveChat(
+    messageId: string,
+    command: Command,
+    eventHandler: CopilotEventHandler
+): void {
+    eventHandler({ type: "save_chat", command, messageId });
+}
+
 // Event listener that handles events and sends notifications
 export function createWebviewEventHandler(command: Command): CopilotEventHandler {
     return (event: ChatNotify) => {

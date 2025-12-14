@@ -29,7 +29,7 @@ import { AIPanelAbortController, repairSourceFilesWithAI } from "../../../rpc-ma
 import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest, CodeData } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./prompts/mapping-prompt";
 import { getBallerinaCodeRepairPrompt } from "./prompts/repair-prompt";
-import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
+import { CopilotEventHandler, createWebviewEventHandler, updateAndSaveChat } from "../utils/events";
 import { getErrorMessage } from "../utils/ai-utils";
 import { buildMappingFileArray, buildRecordMap, collectExistingFunctions, collectModuleInfo, prepareMappingContext, determineCustomFunctionsPath, getUniqueFunctionFilePaths } from "./utils/mapping-context";
 import { getFunctionDefinitionFromSyntaxTree, extractImports } from "./utils/temp-project";
@@ -441,7 +441,8 @@ export async function generateAutoMappings(dataMapperModelResponse?: DataMapperM
 // Core mapping code generation function that emits events
 export async function generateMappingCodeCore(
     mappingRequest: ProcessMappingParametersRequest,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    messageId?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!mappingRequest.parameters) {
         throw new Error("Parameters are required in the mapping request");
@@ -637,6 +638,10 @@ export async function generateMappingCodeCore(
             eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
 
+        // Save chat history before stopping (similar to agent finish handler)
+        if (messageId) {
+            updateAndSaveChat(messageId, Command.DataMap, eventHandler);
+        }
         eventHandler({ type: "stop", command: Command.DataMap });
 
         return {
@@ -664,10 +669,10 @@ export async function generateMappingCodeCore(
 }
 
 // Main public function that uses the default event handler for mapping generation
-export async function generateMappingCode(mappingRequest: ProcessMappingParametersRequest): Promise<void> {
+export async function generateMappingCode(mappingRequest: ProcessMappingParametersRequest, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.DataMap);
     try {
-        await generateMappingCodeCore(mappingRequest, eventHandler);
+        await generateMappingCodeCore(mappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during mapping code generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
@@ -841,7 +846,8 @@ export function combineTextEdits(sortedTextEdits: TextEdit[]): TextEdit {
 // Core inline mapping code generation function that emits events and generates mappings inline
 export async function generateInlineMappingCodeCore(
     inlineMappingRequest: MetadataWithAttachments,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    messageId?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!inlineMappingRequest.metadata) {
         throw new Error("Metadata is required in the inline mapping request");
@@ -969,6 +975,10 @@ export async function generateInlineMappingCodeCore(
             eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
 
+        // Save chat history before stopping (similar to agent finish handler)
+        if (messageId) {
+            updateAndSaveChat(messageId, Command.DataMap, eventHandler);
+        }
         eventHandler({ type: "stop", command: Command.DataMap });
 
         return {
@@ -996,10 +1006,10 @@ export async function generateInlineMappingCodeCore(
 }
 
 // Main public function that uses the default event handler for inline mapping generation
-export async function generateInlineMappingCode(inlineMappingRequest: MetadataWithAttachments): Promise<void> {
+export async function generateInlineMappingCode(inlineMappingRequest: MetadataWithAttachments, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.DataMap);
     try {
-        await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler);
+        await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during inline mapping code generation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
@@ -1014,7 +1024,8 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
 // Core context type creation function that emits events and generates Ballerina record types
 export async function generateContextTypesCore(
     typeCreationRequest: ProcessContextTypeCreationRequest,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    messageId?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (typeCreationRequest.attachments.length === 0) {
         throw new Error("Attachments are required for type creation");
@@ -1055,6 +1066,10 @@ export async function generateContextTypesCore(
             eventHandler({ type: "content_block", content: "\n\nType generation is complete! The generated types have been added to your workspace." });
         }
 
+        // Save chat history before stopping (similar to agent finish handler)
+        if (messageId) {
+            updateAndSaveChat(messageId, Command.TypeCreator, eventHandler);
+        }
         eventHandler({ type: "stop", command: Command.TypeCreator });
 
         return {
@@ -1082,10 +1097,10 @@ export async function generateContextTypesCore(
 }
 
 // Main public function that uses the default event handler for context type creation
-export async function generateContextTypes(typeCreationRequest: ProcessContextTypeCreationRequest): Promise<void> {
+export async function generateContextTypes(typeCreationRequest: ProcessContextTypeCreationRequest, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.TypeCreator);
     try {
-        await generateContextTypesCore(typeCreationRequest, eventHandler);
+        await generateContextTypesCore(typeCreationRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during context type creation:", error);
         eventHandler({ type: "error", content: getErrorMessage(error) });
