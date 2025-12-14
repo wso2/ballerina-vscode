@@ -53,6 +53,7 @@ import { writeBallerinaFileDidOpenTemp } from "../../../utils/modification";
 import { getTempProject, cleanupTempProject } from "../utils/project/temp-project";
 import { integrateCodeToWorkspace } from "../agent/utils";
 import { createExecutionContextFromStateMachine } from "../agent";
+import { sendAgentDidOpen } from "../utils/project/ls-schema-notifications";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -1042,12 +1043,14 @@ export async function generateContextTypesCore(
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
+        eventHandler({ type: "content_block", content: "\n\n<progress>Generating types...</progress>" });
 
         // Generate types from context with validation
         const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
             projectComponents,
-            langClient
+            langClient,
+            tempProjectPath
         );
 
         // Create source files array

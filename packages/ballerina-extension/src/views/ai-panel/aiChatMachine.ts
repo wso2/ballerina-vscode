@@ -214,6 +214,10 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 currentQuestion: (_ctx, event) => event.payload.state.currentQuestion,
                 errorMessage: (_ctx) => undefined,
                 sessionId: (_ctx, event) => event.payload.state.sessionId,
+                projectId: (_ctx, event) => event.payload.state.projectId,
+                checkpoints: (_ctx, event) => event.payload.state.checkpoints || [],
+                isPlanMode: (_ctx, event) => event.payload.state.isPlanMode || false,
+                autoApproveEnabled: (_ctx, event) => event.payload.state.autoApproveEnabled || false,
             }),
         },
         [AIChatMachineEventType.RESTORE_CHECKPOINT]: {

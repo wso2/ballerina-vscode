@@ -29,7 +29,7 @@ import {
 } from "@wso2/ballerina-core";
 import path from "path";
 import { Uri } from "vscode";
-import { writeBallerinaFileDidOpenTemp } from "../../../../utils/modification";
+import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../../../utils/modification";
 import { ExtendedLangClient } from "../../../../core";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { extractRecordTypeDefinitionsFromFile } from "../../../../rpc-managers/ai-panel/utils";
@@ -77,10 +77,12 @@ export async function extractRecordTypesFromSyntaxTree(
 }
 
 // Generate Ballerina record types from context attachments and validate against existing records
+// TODO: Refactor this. Need to see the cases when file contains types, when the file is not found, rely on LS diagnostics APIs for checking existing types etc.
 export async function generateTypesFromContext(
   sourceAttachments: Attachment[],
   projectComponents: ProjectComponentsResponse,
-  langClient: ExtendedLangClient
+  langClient: ExtendedLangClient,
+  tempDirectory: string
 ): Promise<TypesGenerationResult> {
   if (!sourceAttachments || sourceAttachments.length === 0) {
     throw new Error("Source attachments are required for type generation");
@@ -122,11 +124,13 @@ export async function generateTypesFromContext(
   const typeGenerationResponse = await generateTypeCreation(typeGenerationRequest);
   const generatedTypesCode = typeGenerationResponse.typesCode;
 
-  // Create temp directory and file to validate generated types
-  const tempDirectory = await createTempBallerinaDir();
+  // Use provided temp directory
   const tempTypesFilePath = path.join(tempDirectory, outputFileName);
 
-  writeBallerinaFileDidOpenTemp(tempTypesFilePath, generatedTypesCode);
+  writeBallerinaFileDidOpen(tempTypesFilePath, generatedTypesCode);
+
+  // // Wait for Language Server to process the file
+  // await new Promise(resolve => setTimeout(resolve, 2000));
 
   // Extract record and enum names from syntax tree
   const { records: generatedRecords, enums: generatedEnums } = await extractRecordTypesFromSyntaxTree(langClient, tempTypesFilePath);
